@@ -8,6 +8,7 @@ export default class Lint extends Command {
       options: ['autodetect', 'map', 'profile'],
       char: 'h',
       default: 'autodetect',
+      description: 'File format to lint',
     }),
     help: flags.help({ char: 'h' }),
   };
@@ -16,6 +17,6 @@ export default class Lint extends Command {
 
   async run(): Promise<void> {
     const { args, flags } = this.parse(Lint);
-    this.log(`${flags.format}, ${Object.entries(args).join(':')}`);
+    this.log(`${flags.format}, ${JSON.stringify(args)}`);
   }
 }
