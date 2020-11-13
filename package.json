@@ -1,0 +1,42 @@
+{
+  "name": "@superfaceai/cli",
+  "version": "0.0.0",
+  "description": "Superface CLI utility",
+  "main": "dist/index.js",
+  "repository": "git@github.com:superfaceai/cli.git",
+  "author": "Superface Team",
+  "private": true,
+  "bin": "./bin/sfcli",
+  "files": ["./bin/"],
+  "scripts": {
+    "build": "tsc -p tsconfig.release.json --outDir dist",
+    "start": "node dist/index.js",
+    "test": "jest",
+    "test:clean": "jest --clear-cache && jest",
+    "lint": "eslint src/",
+    "format": "prettier -c src/",
+    "format:fix": "prettier --write src/"
+  },
+  "devDependencies": {
+    "@types/jest": "^26.0.15",
+    "@typescript-eslint/eslint-plugin": "^4.7.0",
+    "@typescript-eslint/parser": "^4.7.0",
+    "eslint": "^7.13.0",
+    "eslint-config-prettier": "^6.15.0",
+    "eslint-import-resolver-typescript": "^2.3.0",
+    "eslint-plugin-import": "^2.22.1",
+    "eslint-plugin-jest": "^24.1.2",
+    "eslint-plugin-simple-import-sort": "^5.0.3",
+    "jest": "^26.6.3",
+    "prettier": "^2.1.2",
+    "ts-jest": "^26.4.4",
+    "typescript": "^4.0.5"
+  },
+  "dependencies": {
+    "@oclif/command": "^1.8.0"
+  },
+  "oclif": {
+    "commands": "./dist/commands",
+    "bin": "sfcli"
+  }
+}
