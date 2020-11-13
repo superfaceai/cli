@@ -36,7 +36,8 @@
   },
   "dependencies": {
     "@oclif/command": "^1.8.0",
-    "@oclif/config": "^1.17.0"
+    "@oclif/config": "^1.17.0",
+    "@superfaceai/superface-parser": "^0.0.5-beta"
   },
   "oclif": {
     "commands": "./dist/commands",

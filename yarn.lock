@@ -582,6 +582,19 @@
   dependencies:
     "@sinonjs/commons" "^1.7.0"
 
+"@superfaceai/language@^0.0.16-alpha":
+  version "0.0.16"
+  resolved "https://npm.pkg.github.com/download/@superfaceai/language/0.0.16/d028b3bcf2e4cb05b8e54e9cc4edf49aa15446b847cbc0dbad6574a03bb48eea#55446cfbfe38933ee3db55da727462e89c03e48c"
+  integrity sha512-szSh1cfGHbVqLphdU2OmxRhGYv5apKkubfTsmWp2PUKx4JCsppUGuIpWKJTXrcxSw8EIaCv/G79iyulur50+jA==
+
+"@superfaceai/superface-parser@^0.0.5-beta":
+  version "0.0.5-beta"
+  resolved "https://npm.pkg.github.com/download/@superfaceai/superface-parser/0.0.5-beta/8d94fd563c0826044a12d6e75eb9d0b1b186a06661e0fc295f205822fff87573#3f820b5227f69a88691f87399673bd1960f38eb2"
+  integrity sha512-FDH4Jo7xZiCW9ZGj8mk9CPt3y6sTSssM5R848YZpfHNX0T/rg6qizMJgFwae4rhiOIAr5se9tllveovIc1WZXQ==
+  dependencies:
+    "@superfaceai/language" "^0.0.16-alpha"
+    typescript "^4.0.2"
+
 "@types/babel__core@^7.0.0", "@types/babel__core@^7.1.7":
   version "7.1.12"
   resolved "https://registry.yarnpkg.com/@types/babel__core/-/babel__core-7.1.12.tgz#4d8e9e51eb265552a7e4f1ff2219ab6133bdfb2d"
@@ -4437,7 +4450,7 @@ typedarray-to-buffer@^3.1.5:
   dependencies:
     is-typedarray "^1.0.0"
 
-typescript@^4.0.5:
+typescript@^4.0.2, typescript@^4.0.5:
   version "4.0.5"
   resolved "https://registry.yarnpkg.com/typescript/-/typescript-4.0.5.tgz#ae9dddfd1069f1cb5beb3ef3b2170dd7c1332389"
   integrity sha512-ywmr/VrTVCmNTJ6iV2LwIrfG1P+lv6luD8sUJs+2eI9NLGigaN+nUQc13iHqisq7bra9lnmUSYqbJvegraBOPQ==
