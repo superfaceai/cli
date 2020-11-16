@@ -25,7 +25,7 @@ export default class Compile extends Command {
       default: undefined,
       description: 'Writes compiled file to disk with .ast.json extension to filesystem. The file is written alongside the source file if output dir/path is not specified by -o.'
     }),
-    outputDest: flags.string({
+    output: flags.string({
       char: 'o',
       default: undefined,
       description: 'Specifies directory or filename where the compiled file should be written.'
@@ -42,14 +42,14 @@ export default class Compile extends Command {
     const parsedFile = this.parseFile(path, format);
     const json = JSON.stringify(parsedFile, undefined, flags.compact ? undefined : 2);
     const pathInfo = pathParse(path);
-    if (flags.write || flags.outputDest) {
+    if (flags.write || flags.output) {
       let basePathAndFileName = `${pathInfo.dir}${sep}${pathInfo.base}`;
       let suffixes = '.ast.json';
-      if (flags.outputDest) {
-        if (lstatSync(flags.outputDest).isDirectory()) {
-          basePathAndFileName = `${flags.outputDest}${sep}${pathInfo.base}`
+      if (flags.output) {
+        if (lstatSync(flags.output).isDirectory()) {
+          basePathAndFileName = `${flags.output}${sep}${pathInfo.base}`
         } else {
-          basePathAndFileName = flags.outputDest;
+          basePathAndFileName = flags.output;
           suffixes = '';
         }
       }
