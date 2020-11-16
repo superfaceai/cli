@@ -1,9 +1,9 @@
 import { readFileSync } from 'fs';
 import { stdout } from 'stdout-stderr';
 
-import Transpile from './transpile';
+import Compile from './compile';
 
-describe('transpile CLI command', () => {
+describe('Compile CLI command', () => {
 
 
   beforeEach(() => {
@@ -15,16 +15,16 @@ describe('transpile CLI command', () => {
   })
 
   describe('integration tests', () => {
-    it('transpiles map', async () => {
+    it('compiles map', async () => {
       const mapASTFixture = JSON.parse(readFileSync('./fixtures/transpiled/testMap.suma.ast.json').toString()) as unknown;
-      await Transpile.run(['./fixtures/testMap.suma']);
+      await Compile.run(['./fixtures/testMap.suma']);
 
       expect(JSON.parse(stdout.output)).toEqual(mapASTFixture);
     });
 
-    it('transpiles profile', async () => {
+    it('compiles profile', async () => {
       const mapASTFixture = JSON.parse(readFileSync('./fixtures/transpiled/testProfile.supr.ast.json').toString()) as unknown;
-      await Transpile.run(['./fixtures/testProfile.supr']);
+      await Compile.run(['./fixtures/testProfile.supr']);
 
       expect(JSON.parse(stdout.output)).toEqual(mapASTFixture);
     });

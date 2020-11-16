@@ -5,8 +5,8 @@ import { parse as pathParse, sep } from 'path'
 
 import { detectFormat, SuperfaceFormat } from '../utils/detectFormat';
 
-export default class Transpile extends Command {
-  static description = 'Transpiles the given profile or map to AST';
+export default class Compile extends Command {
+  static description = 'Compiles the given profile or map to AST';
 
   static flags = {
     format: flags.enum({
@@ -18,17 +18,17 @@ export default class Transpile extends Command {
     compact: flags.boolean({
       char: 'c',
       default: false,
-      description: 'Compact the JSON representation of the transpilation output.'
+      description: 'Compact the JSON representation of the compilation output.'
     }),
     write: flags.boolean({
       char: 'w',
       default: undefined,
-      description: 'Writes transpiled file to disk with .ast.json extension to filesystem. The file is written alongside the source file if output dir/path is not specified by -o.'
+      description: 'Writes compiled file to disk with .ast.json extension to filesystem. The file is written alongside the source file if output dir/path is not specified by -o.'
     }),
     outputDest: flags.string({
       char: 'o',
       default: undefined,
-      description: 'Specifies directory or filename where the transpiled file should be written.'
+      description: 'Specifies directory or filename where the compiled file should be written.'
     }),
     help: flags.help({ char: 'h' }),
   };
@@ -36,7 +36,7 @@ export default class Transpile extends Command {
   static args = [{ name: 'file', required: true }];
 
   async run(): Promise<void> {
-    const { args, flags } = this.parse(Transpile);
+    const { args, flags } = this.parse(Compile);
     const path = args['file'] as string;
     const format = this.determineFormatFromFlagOrFile(flags.format, path);
     const parsedFile = this.parseFile(path, format);
