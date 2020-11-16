@@ -12,12 +12,12 @@
   ],
   "scripts": {
     "build": "tsc -p tsconfig.release.json --outDir dist",
-    "start": "node dist/index.js",
     "test": "jest",
     "test:clean": "jest --clear-cache && jest",
     "lint": "eslint src/",
     "format": "prettier -c src/",
-    "format:fix": "prettier --write src/"
+    "format:fix": "prettier --write src/",
+    "prepush": "yarn test && yarn lint && yarn format"
   },
   "devDependencies": {
     "@types/jest": "^26.0.15",
@@ -36,7 +36,8 @@
   },
   "dependencies": {
     "@oclif/command": "^1.8.0",
-    "@oclif/config": "^1.17.0"
+    "@oclif/config": "^1.17.0",
+    "@superfaceai/superface-parser": "^0.0.5-beta"
   },
   "oclif": {
     "commands": "./dist/commands",

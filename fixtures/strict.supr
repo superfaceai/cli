@@ -1,0 +1,41 @@
+"""
+Title
+
+Description
+"""
+profile = "https://example.com/profile/myProfile"
+
+// https://sfspec.surge.sh/profile#sec-Use-case
+"usecase title"
+usecase Foo {
+	input {
+    	"field title"
+    	field! string!
+		// https://sfspec.surge.sh/profile#UnionModel
+        field number | boolean, field boolean
+    }
+    
+    // https://sfspec.surge.sh/profile#ScalarModel
+    result number
+    
+    // https://sfspec.surge.sh/profile#sec-List-Model
+	// https://sfspec.surge.sh/profile#sec-Alias-Model
+    async result [FooModel]
+    
+    // https://sfspec.surge.sh/profile#EnumModel
+    error enum {
+    	NOT_FOUND = 404,
+        BAD_REQUEST = 400
+    } 
+}
+
+// https://sfspec.surge.sh/profile#sec-Named-Model
+// https://sfspec.surge.sh/profile#sec-Object-Model
+"Title"
+model FooModel {
+	foo bar! | baz!
+} | [enum { FOO, BAR }]
+
+// https://sfspec.surge.sh/profile#sec-Named-Field
+"Title"
+field foo string!
