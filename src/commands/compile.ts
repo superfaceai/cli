@@ -9,11 +9,11 @@ export default class Compile extends Command {
   static description = 'Compiles the given profile or map to AST. Writes compiled file to disk with .ast.json extension to filesystem. The file is written alongside the source file if output dir/path is not specified by -o flag.';
 
   static flags = {
-    format: flags.enum({
-      char: 'f',
+    type: flags.enum({
+      char: 't',
       options: ['autodetect', 'map', 'profile'],
       default: 'autodetect',
-      description: 'File format to lint',
+      description: 'File type to compile.',
     }),
     compact: flags.boolean({
       char: 'c',
@@ -35,7 +35,7 @@ export default class Compile extends Command {
     const { args, flags } = this.parse(Compile);
     const output = flags.output && flags.output.trim();
     const path = args['file'] as string;
-    const format = this.determineFormatFromFlagOrFile(flags.format, path);
+    const format = this.determineFormatFromFlagOrFile(flags.type, path);
     const parsedFile = this.parseFile(path, format);
     const json = JSON.stringify(parsedFile, undefined, flags.compact ? undefined : 2);
     const pathInfo = pathParse(path);
