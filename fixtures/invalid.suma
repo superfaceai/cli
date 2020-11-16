@@ -1,0 +1,5 @@
+profile = "http://example.com/profile"
+
+map Foo {
+	
+}
