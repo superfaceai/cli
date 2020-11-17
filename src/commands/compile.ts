@@ -1,93 +1,139 @@
 import { Command, flags } from '@oclif/command';
-import { parseMap, parseProfile, Source } from '@superfaceai/superface-parser';
-import { lstatSync, readFileSync, writeFileSync } from 'fs';
-import { parse as pathParse, sep } from 'path'
+import { CLIError } from '@oclif/errors';
+import { Source } from '@superfaceai/superface-parser';
+import * as nodePath from 'path';
 
-import { detectFormat, SuperfaceFormat } from '../utils/detectFormat';
+import {
+  DOCUMENT_PARSE_FUNCTION,
+  DocumentType,
+  inferDocumentTypeWithFlag,
+} from '../common/document';
+import { DocumentTypeFlag, documentTypeFlag } from '../common/flags';
+import { lstatPromise, OutputStream, readFilePromise } from '../common/io';
 
 export default class Compile extends Command {
-  static description = 'Compiles the given profile or map to AST. Writes compiled file to disk with .ast.json extension to filesystem. The file is written alongside the source file if output dir/path is not specified by -o flag.';
+  static description =
+    'Compiles the given profile or map to AST. Writes compiled file to disk with .ast.json extension to filesystem. The file is written alongside the source file if output dir/path is not specified by -o flag.';
 
   static flags = {
-    type: flags.enum({
-      char: 't',
-      options: ['autodetect', 'map', 'profile'],
-      default: 'autodetect',
-      description: 'File type to compile.',
+    documentType: documentTypeFlag,
+    output: flags.string({
+      char: 'o',
+      description:
+        'Specifies directory or filename where the compiled file should be written. `-` is stdout, `-2` is stderr.',
+      default: undefined,
     }),
+    append: flags.boolean({
+      default: false,
+      description:
+        'Open output file in append mode instead of truncating it if it exists. Has no effect with stdout and stderr streams.',
+    }),
+
     compact: flags.boolean({
       char: 'c',
       default: false,
-      description: 'Compact the JSON representation of the compilation output.'
-    }),
-    output: flags.string({
-      char: 'o',
-      default: undefined,
-      description: 'Specifies directory or filename where the compiled file should be written.  If "-" is used as a value, the compilation result is piped to STDOUT.',
-      
+      description: 'Compact the JSON representation of the compilation output.',
     }),
     help: flags.help({ char: 'h' }),
   };
 
+  // Require at least one file but allow multiple files
   static args = [{ name: 'file', required: true }];
+  static strict = false;
 
   async run(): Promise<void> {
-    const { args, flags } = this.parse(Compile);
-    const output = flags.output && flags.output.trim();
-    const path = args['file'] as string;
-    const format = this.determineFormatFromFlagOrFile(flags.type, path);
-    const parsedFile = this.parseFile(path, format);
-    const json = JSON.stringify(parsedFile, undefined, flags.compact ? undefined : 2);
-    const pathInfo = pathParse(path);
-    if (output != '-') {
-      let basePathAndFileName = `${pathInfo.dir}${sep}${pathInfo.base}`;
-      let suffixes = '.ast.json';
-      if (output) {
-        if (lstatSync(output).isDirectory()) {
-          basePathAndFileName = `${output}${sep}${pathInfo.base}`
-        } else {
-          basePathAndFileName = output;
-          suffixes = '';
+    const DEFAULT_EXTENSION = '.ast.json';
+
+    const { argv, flags } = this.parse(Compile);
+
+    // process output path and prepare output stream
+    // outputStream is set when the output points to a file and thus
+    // is shared across all input files
+    const outputPath = flags.output?.trim();
+    let outputStream: OutputStream | undefined = undefined;
+    if (outputPath !== undefined) {
+      let isDirectory = false;
+      try {
+        const lstat = await lstatPromise(outputPath);
+        isDirectory = lstat.isDirectory();
+      } catch (e) {
+        // eat ENOENT error and keep isDirectory false
+        if (e !== null && typeof e === 'object' && 'code' in e) {
+          // All the checks done and eslint still complains
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+          if (e.code !== 'ENOENT') {
+            throw e;
+          }
         }
       }
-      writeFileSync(`${basePathAndFileName}${suffixes}`, json);
-    } else {
-      this.log(json);
+
+      if (!isDirectory) {
+        this.debug(`Compiling all files to "${outputPath}"`);
+        outputStream = new OutputStream(outputPath, flags.append);
+      }
     }
 
+    await Promise.all(
+      argv.map(
+        async (file): Promise<void> => {
+          // Shared stream
+          let fileOutputStream = outputStream;
+          if (fileOutputStream === undefined) {
+            if (outputPath !== undefined) {
+              // Shared directory, name based on file
+              const sharedDirectory = nodePath.join(
+                outputPath,
+                nodePath.basename(file)
+              );
+              this.debug(`Compiling "${file}" to "${sharedDirectory}"`);
+
+              fileOutputStream = new OutputStream(
+                sharedDirectory,
+                flags.append
+              );
+            } else {
+              // File specific path based on file path
+              this.debug(
+                `Compiling "${file}" to "${file + DEFAULT_EXTENSION}"`
+              );
+              fileOutputStream = new OutputStream(
+                file + DEFAULT_EXTENSION,
+                flags.append
+              );
+            }
+          }
+
+          const ast = await Compile.compileFile(file, flags.documentType);
+          const json = JSON.stringify(
+            ast,
+            undefined,
+            flags.compact ? undefined : 2
+          );
+
+          await fileOutputStream.write(json);
+          if (fileOutputStream != outputStream) {
+            await fileOutputStream.cleanup();
+          }
+        }
+      )
+    );
+
+    await outputStream?.cleanup();
   }
 
-  private parseFile(path: string, format: SuperfaceFormat): unknown {
-    const pathInfo = pathParse(path);
-    const fileContents = readFileSync(path).toString();
-    const source = new Source(fileContents, pathInfo.base);
-    const parsingFunction = this.determineParsingFunction(format);
-    if (!parsingFunction) {
-      this.error("Unable to autodetect file format. Use -f flag to specify file format or pass a file with either .suma or .supr extension.", { exit: 1 });
+  static async compileFile(
+    path: string,
+    documentTypeFlag: DocumentTypeFlag
+  ): Promise<unknown> {
+    const documentType = inferDocumentTypeWithFlag(documentTypeFlag, path);
+    if (documentType === DocumentType.UNKNOWN) {
+      throw new CLIError('Could not infer document type', { exit: 1 });
     }
 
-    return parsingFunction(source);
-  }
+    const parseFunction = DOCUMENT_PARSE_FUNCTION[documentType];
+    const content = (await readFilePromise(path)).toString();
+    const source = new Source(content, nodePath.basename(path));
 
-  private determineParsingFunction(format: SuperfaceFormat): ((source: Source) => unknown) | undefined {
-    if (format == SuperfaceFormat.Profile) {
-      return parseProfile;
-    } else if (format == SuperfaceFormat.Map) {
-      return parseMap;
-    }
-
-    return undefined;
-  }
-
-  private determineFormatFromFlagOrFile(formatFlag: string, path: string): SuperfaceFormat {
-    if (formatFlag === 'autodetect') {
-      return detectFormat(path);
-    } else if (formatFlag == 'profile') {
-      return SuperfaceFormat.Profile;
-    } else if (formatFlag == 'map') {
-      return SuperfaceFormat.Map;
-    }
-
-    return SuperfaceFormat.UNKNOWN;
+    return parseFunction(source);
   }
 }
