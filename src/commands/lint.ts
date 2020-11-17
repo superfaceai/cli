@@ -2,20 +2,25 @@ import { Command, flags } from '@oclif/command';
 import { CLIError } from '@oclif/errors';
 import { Source, SyntaxError } from '@superfaceai/superface-parser';
 
-import { documentTypeFlag, DocumentTypeFlag } from '../common/flags';
-import { DocumentType, inferDocumentTypeWithFlag, DOCUMENT_PARSE_FUNCTION } from '../common/document';
-import { readFilePromise, OutputStream } from '../common/io';
+import {
+  DOCUMENT_PARSE_FUNCTION,
+  DocumentType,
+  inferDocumentTypeWithFlag,
+} from '../common/document';
+import { DocumentTypeFlag, documentTypeFlag } from '../common/flags';
+import { OutputStream, readFilePromise } from '../common/io';
 import { formatWordPlurality } from '../util';
 
 type FileReport = {
-  path: string,
-  errors: SyntaxError[],
-  warnings: unknown[]
+  path: string;
+  errors: SyntaxError[];
+  warnings: unknown[];
 };
 
 type OutputFormatFlag = 'long' | 'short' | 'json';
 export default class Lint extends Command {
-  static description = 'Lints a map or profile file. Outputs the linter issues to STDOUT by default.\nLinter ends with non zero exit code if errors are found.';
+  static description =
+    'Lints a map or profile file. Outputs the linter issues to STDOUT by default.\nLinter ends with non zero exit code if errors are found.';
 
   // Require at least one file but allow multiple files
   static args = [{ name: 'file', required: true }];
@@ -25,12 +30,14 @@ export default class Lint extends Command {
     documentType: documentTypeFlag,
     output: flags.string({
       char: 'o',
-      description: 'Filename where the output will be written. `-` is stdout, `-2` is stderr.',
-      default: '-'
+      description:
+        'Filename where the output will be written. `-` is stdout, `-2` is stderr.',
+      default: '-',
     }),
     append: flags.boolean({
       default: false,
-      description: 'Open output file in append mode instead of truncating it if it exists. Has no effect with stdout and stderr streams.'
+      description:
+        'Open output file in append mode instead of truncating it if it exists. Has no effect with stdout and stderr streams.',
     }),
 
     outputFormat: flags.build({
@@ -40,15 +47,18 @@ export default class Lint extends Command {
       parse(input, _context): OutputFormatFlag {
         // Sanity check
         if (input !== 'long' && input !== 'short' && input !== 'json') {
-          throw new CLIError('Internal error: unexpected enum variant', { exit: -1 })
+          throw new CLIError('Internal error: unexpected enum variant', {
+            exit: -1,
+          });
         }
 
         return input;
-      }
+      },
     })({ default: 'long' }),
     color: flags.boolean({
       allowNo: true,
-      description: 'Output colorized report. Only works for `human` output format. Set by default for stdout and stderr output.'
+      description:
+        'Output colorized report. Only works for `human` output format. Set by default for stdout and stderr output.',
     }),
 
     help: flags.help({ char: 'h' }),
@@ -64,28 +74,44 @@ export default class Lint extends Command {
       case 'short':
         {
           const totals = await Lint.processFiles(
-            outputStream, argv, flags.documentType,
+            outputStream,
+            argv,
+            flags.documentType,
             '\n',
-            report => Lint.formatHuman(report, flags.outputFormat === 'short', flags.color ?? outputStream.isTTY)
+            report =>
+              Lint.formatHuman(
+                report,
+                flags.outputFormat === 'short',
+                flags.color ?? outputStream.isTTY
+              )
           );
-          await outputStream.write(`\nDetected ${formatWordPlurality(totals[0] + totals[1], 'problem')}\n`);
+          await outputStream.write(
+            `\nDetected ${formatWordPlurality(
+              totals[0] + totals[1],
+              'problem'
+            )}\n`
+          );
         }
         break;
-      
+
       case 'json':
         {
           await outputStream.write('{"reports":[');
           const totals = await Lint.processFiles(
-            outputStream, argv, flags.documentType,
+            outputStream,
+            argv,
+            flags.documentType,
             ',',
             report => Lint.formatJson(report)
           );
-          await outputStream.write(`],"total":{"errors":${totals[0]},"warnings":${totals[1]}}}\n`);
+          await outputStream.write(
+            `],"total":{"errors":${totals[0]},"warnings":${totals[1]}}}\n`
+          );
         }
         break;
     }
 
-    outputStream.cleanup();
+    await outputStream.cleanup();
   }
 
   static async processFiles(
@@ -96,7 +122,7 @@ export default class Lint extends Command {
     fn: (report: FileReport) => string
   ): Promise<[errors: number, warnings: number]> {
     let outputCounter = files.length;
-    
+
     const counts = await Promise.all(
       files.map(
         async (file): Promise<[number, number]> => {
@@ -115,15 +141,16 @@ export default class Lint extends Command {
       )
     );
 
-    return counts.reduce(
-      (acc, curr) => [acc[0] + curr[0], acc[1] + curr[1]]
-    );
+    return counts.reduce((acc, curr) => [acc[0] + curr[0], acc[1] + curr[1]]);
   }
 
-  static async lintFile(path: string, documentTypeFlag: DocumentTypeFlag): Promise<FileReport> {
+  static async lintFile(
+    path: string,
+    documentTypeFlag: DocumentTypeFlag
+  ): Promise<FileReport> {
     const documenType = inferDocumentTypeWithFlag(documentTypeFlag, path);
     if (documenType === DocumentType.UNKNOWN) {
-      throw new CLIError("Could not infer document type", { exit: 1 });
+      throw new CLIError('Could not infer document type', { exit: 1 });
     }
 
     const parse = DOCUMENT_PARSE_FUNCTION[documenType];
@@ -133,19 +160,23 @@ export default class Lint extends Command {
     const result: FileReport = {
       path,
       errors: [],
-      warnings: []
+      warnings: [],
     };
 
     try {
       parse(source);
     } catch (e) {
-      result.errors.push(e)
-    };
+      result.errors.push(e);
+    }
 
     return result;
   }
 
-  private static formatHuman(report: FileReport, short?: boolean, _color?: boolean): string {
+  private static formatHuman(
+    report: FileReport,
+    short?: boolean,
+    _color?: boolean
+  ): string {
     const FILE_OK = '🆗';
     const FILE_WARN = '⚠️';
     const FILE_ERR = '❌';
@@ -172,9 +203,9 @@ export default class Lint extends Command {
       buffer += '\n';
     }
 
-    for (const _warning of report.warnings) {
-      // TODO
-    }
+    // TODO
+    // for (const _warning of report.warnings) {
+    // }
 
     return buffer;
   }
@@ -185,7 +216,9 @@ export default class Lint extends Command {
         return undefined;
       }
 
+      // we are just passing the value along, nothing unsafe about that
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-return
       return value;
-    })
+    });
   }
 }
