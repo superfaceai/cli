@@ -1,11 +1,10 @@
 import { Command, flags } from '@oclif/command';
 import { CLIError } from '@oclif/errors';
 import { Source, SyntaxError } from '@superfaceai/superface-parser';
-import * as common from '../common';
-import * as fs from 'fs';
-import { Writable } from 'stream';
 
-import { readFilePromise, streamWritePromise, streamEndPromise } from '../io';
+import { documentTypeFlag, DocumentTypeFlag } from '../common/flags';
+import { DocumentType, inferDocumentTypeWithFlag, DOCUMENT_PARSE_FUNCTION } from '../common/document';
+import { readFilePromise, OutputStream } from '../common/io';
 import { formatWordPlurality } from '../util';
 
 type FileReport = {
@@ -23,7 +22,7 @@ export default class Lint extends Command {
   static strict = false;
 
   static flags = {
-    documentType: common.documentTypeFlag,
+    documentType: documentTypeFlag,
     output: flags.string({
       char: 'o',
       description: 'Filename where the output will be written. `-` is stdout, `-2` is stderr.',
@@ -58,28 +57,7 @@ export default class Lint extends Command {
   async run(): Promise<void> {
     const { argv, flags } = this.parse(Lint);
 
-    let outputStream: Writable;
-    let outputStreamIsStd: boolean;
-    switch (flags.output) {
-      case '-':
-        outputStream = process.stdout;
-        outputStreamIsStd = true;
-        break;
-
-      case '-2':
-        outputStream = outputStream = process.stderr;
-        outputStreamIsStd = true;
-        break;
-
-      default:
-        outputStream = fs.createWriteStream(flags.output, {
-          flags: flags.append ? 'a' : 'w',
-          mode: 0o644,
-          encoding: 'utf-8'
-        });
-        outputStreamIsStd = false;
-        break;
-    }
+    const outputStream = new OutputStream(flags.output, flags.append);
 
     switch (flags.outputFormat) {
       case 'long':
@@ -88,35 +66,32 @@ export default class Lint extends Command {
           const totals = await Lint.processFiles(
             outputStream, argv, flags.documentType,
             '\n',
-            report => Lint.formatHuman(report, flags.outputFormat === 'short', flags.color ?? outputStreamIsStd)
+            report => Lint.formatHuman(report, flags.outputFormat === 'short', flags.color ?? outputStream.isTTY)
           );
-          await streamWritePromise(outputStream, `Detected ${formatWordPlurality(totals[0] + totals[1], 'problem')}\n`)
+          await outputStream.write(`\nDetected ${formatWordPlurality(totals[0] + totals[1], 'problem')}\n`);
         }
         break;
       
       case 'json':
         {
-          await streamWritePromise(outputStream, '{"reports":[');
+          await outputStream.write('{"reports":[');
           const totals = await Lint.processFiles(
             outputStream, argv, flags.documentType,
             ',',
             report => Lint.formatJson(report)
           );
-          await streamWritePromise(outputStream, `],"total":{"errors":${totals[0]},"warnings":${totals[1]}}}\n`);
+          await outputStream.write(`],"total":{"errors":${totals[0]},"warnings":${totals[1]}}}\n`);
         }
         break;
     }
 
-    // TODO: Should we also end stdout or stderr?
-    if (!outputStreamIsStd) {
-      await streamEndPromise(outputStream);
-    }
+    outputStream.cleanup();
   }
 
   static async processFiles(
-    stream: Writable,
+    outputStream: OutputStream,
     files: string[],
-    documentTypeFlag: common.DocumentTypeFlag,
+    documentTypeFlag: DocumentTypeFlag,
     outputGlue: string,
     fn: (report: FileReport) => string
   ): Promise<[errors: number, warnings: number]> {
@@ -133,7 +108,7 @@ export default class Lint extends Command {
           }
           outputCounter -= 1;
 
-          await streamWritePromise(stream, output);
+          await outputStream.write(output);
 
           return [report.errors.length, report.warnings.length];
         }
@@ -145,13 +120,13 @@ export default class Lint extends Command {
     );
   }
 
-  static async lintFile(path: string, documentTypeFlag: common.DocumentTypeFlag): Promise<FileReport> {
-    const documenType = common.inferDocumentTypeWithFlag(documentTypeFlag, path);
-    if (documenType === common.DocumentType.UNKNOWN) {
+  static async lintFile(path: string, documentTypeFlag: DocumentTypeFlag): Promise<FileReport> {
+    const documenType = inferDocumentTypeWithFlag(documentTypeFlag, path);
+    if (documenType === DocumentType.UNKNOWN) {
       throw new CLIError("Could not infer document type", { exit: 1 });
     }
 
-    const parse = common.DOCUMENT_PARSE_FUNCTION[documenType];
+    const parse = DOCUMENT_PARSE_FUNCTION[documenType];
     const content = await readFilePromise(path).then(f => f.toString());
     const source = new Source(content, path);
 
