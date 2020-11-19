@@ -7,21 +7,14 @@ import {
 describe('inferDocumentType()', () => {
   it('infers map type', () => {
     expect(inferDocumentType('test.suma')).toEqual(DocumentType.MAP);
-    expect(inferDocumentType('test.map.slang')).toEqual(DocumentType.MAP);
   });
 
   it('infers profile type', () => {
     expect(inferDocumentType('test.supr')).toEqual(DocumentType.PROFILE);
-    expect(inferDocumentType('test.profile.slang')).toEqual(
-      DocumentType.PROFILE
-    );
   });
 
   it('returns unknown for unknown types', () => {
     expect(inferDocumentType('test.supr.face')).toEqual(DocumentType.UNKNOWN);
-    expect(inferDocumentType('test.profile.slang.json')).toEqual(
-      DocumentType.UNKNOWN
-    );
     expect(inferDocumentType('test.slang')).toEqual(DocumentType.UNKNOWN);
     expect(inferDocumentType('test')).toEqual(DocumentType.UNKNOWN);
   });
@@ -56,13 +49,7 @@ describe('inferDocumentTypeWithFlag()', () => {
     expect(inferDocumentTypeWithFlag('auto', 'test.suma')).toEqual(
       DocumentType.MAP
     );
-    expect(inferDocumentTypeWithFlag('auto', 'test.map.slang')).toEqual(
-      DocumentType.MAP
-    );
     expect(inferDocumentTypeWithFlag('auto', 'test.supr')).toEqual(
-      DocumentType.PROFILE
-    );
-    expect(inferDocumentTypeWithFlag('auto', 'test.profile.slang')).toEqual(
       DocumentType.PROFILE
     );
 
