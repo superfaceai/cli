@@ -8,8 +8,8 @@ export enum DocumentType {
   PROFILE = 'profile',
 }
 export function inferDocumentType(path: string): DocumentType {
-  const MAP_EXTENSIONS = ['.suma', '.map.slang'];
-  const PROFILE_EXTENSIONS = ['.supr', '.profile.slang'];
+  const MAP_EXTENSIONS = ['.suma'];
+  const PROFILE_EXTENSIONS = ['.supr'];
 
   const normalizedPath = path.toLowerCase().trim();
   if (MAP_EXTENSIONS.some(ex => normalizedPath.endsWith(ex))) {
