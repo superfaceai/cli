@@ -12,15 +12,14 @@ import { DocumentTypeFlag, documentTypeFlag } from '../common/flags';
 import { lstatPromise, OutputStream, readFilePromise } from '../common/io';
 
 export default class Compile extends Command {
-  static description =
-    'Compiles the given profile or map to AST. Writes compiled file to disk with .ast.json extension to filesystem. The file is written alongside the source file if output dir/path is not specified by -o flag.';
+  static description = 'Compiles the given profile or map to AST.';
 
   static flags = {
     documentType: documentTypeFlag,
     output: flags.string({
       char: 'o',
       description:
-        'Specifies directory or filename where the compiled file should be written. `-` is stdout, `-2` is stderr.',
+        'Specifies directory or filename where the compiled file should be written. `-` is stdout, `-2` is stderr. By default, the output is written alongside the input file with `.ast.json` suffix added.',
       default: undefined,
     }),
     append: flags.boolean({
@@ -32,7 +31,7 @@ export default class Compile extends Command {
     compact: flags.boolean({
       char: 'c',
       default: false,
-      description: 'Compact the JSON representation of the compilation output.',
+      description: 'Use compact JSON representation of the AST.',
     }),
     help: flags.help({ char: 'h' }),
   };
