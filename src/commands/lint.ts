@@ -56,6 +56,8 @@ export default class Lint extends Command {
       },
     })({ default: 'long' }),
     color: flags.boolean({
+      // TODO: Hidden because it doesn't do anything right now
+      hidden: true,
       allowNo: true,
       description:
         'Output colorized report. Only works for `human` output format. Set by default for stdout and stderr output.',
@@ -68,12 +70,13 @@ export default class Lint extends Command {
     const { argv, flags } = this.parse(Lint);
 
     const outputStream = new OutputStream(flags.output, flags.append);
+    let totals: [errors: number, warnings: number];
 
     switch (flags.outputFormat) {
       case 'long':
       case 'short':
         {
-          const totals = await Lint.processFiles(
+          totals = await Lint.processFiles(
             outputStream,
             argv,
             flags.documentType,
@@ -97,7 +100,7 @@ export default class Lint extends Command {
       case 'json':
         {
           await outputStream.write('{"reports":[');
-          const totals = await Lint.processFiles(
+          totals = await Lint.processFiles(
             outputStream,
             argv,
             flags.documentType,
@@ -112,6 +115,12 @@ export default class Lint extends Command {
     }
 
     await outputStream.cleanup();
+
+    if (totals[0] > 0) {
+      throw new CLIError('Errors were found', { exit: 1 });
+    } else if (totals[1] > 0) {
+      throw new CLIError('Warnings were found', { exit: 2 });
+    }
   }
 
   static async processFiles(

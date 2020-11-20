@@ -22,7 +22,9 @@ describe('lint CLI command', () => {
   });
 
   it('lints a valid and an invalid map', async () => {
-    await Lint.run(['./fixtures/strict.suma', './fixtures/invalid.suma']);
+    await expect(
+      Lint.run(['./fixtures/strict.suma', './fixtures/invalid.suma'])
+    ).rejects.toHaveProperty(['oclif', 'exit'], 1);
 
     expect(stdout.output).toContain('🆗 ./fixtures/strict.suma\n' + '\n');
     expect(stdout.output).toContain(
@@ -38,12 +40,14 @@ describe('lint CLI command', () => {
   });
 
   it('lints a valid and an invalid map - short format', async () => {
-    await Lint.run([
-      '--outputFormat',
-      'short',
-      './fixtures/strict.suma',
-      './fixtures/invalid.suma',
-    ]);
+    await expect(
+      Lint.run([
+        '--outputFormat',
+        'short',
+        './fixtures/strict.suma',
+        './fixtures/invalid.suma',
+      ])
+    ).rejects.toHaveProperty(['oclif', 'exit'], 1);
 
     expect(stdout.output).toContain('🆗 ./fixtures/strict.suma\n' + '\n');
     expect(stdout.output).toContain(
@@ -54,12 +58,14 @@ describe('lint CLI command', () => {
   });
 
   it('lints a valid and an invalid map - json format', async () => {
-    await Lint.run([
-      '--outputFormat',
-      'json',
-      './fixtures/strict.suma',
-      './fixtures/invalid.suma',
-    ]);
+    await expect(
+      Lint.run([
+        '--outputFormat',
+        'json',
+        './fixtures/strict.suma',
+        './fixtures/invalid.suma',
+      ])
+    ).rejects.toHaveProperty(['oclif', 'exit'], 1);
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const result: Record<string, unknown> = JSON.parse(stdout.output);
