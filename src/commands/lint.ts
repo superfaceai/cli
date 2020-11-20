@@ -70,7 +70,7 @@ export default class Lint extends Command {
     const { argv, flags } = this.parse(Lint);
 
     const outputStream = new OutputStream(flags.output, flags.append);
-    let totals;
+    let totals: [errors: number, warnings: number];
 
     switch (flags.outputFormat) {
       case 'long':
