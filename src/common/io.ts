@@ -3,6 +3,8 @@ import { Writable } from 'stream';
 import { promisify } from 'util';
 
 export const readFilePromise = promisify(fs.readFile);
+export const lstatPromise = promisify(fs.lstat);
+
 export function streamWritePromise(
   stream: Writable,
   data: string

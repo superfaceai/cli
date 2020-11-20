@@ -1,0 +1,125 @@
+// https://sfspec.surge.sh/map#sec-Map-Document
+"""
+Strict Map
+
+Example of the map syntax adhering to the strict syntax.
+"""
+
+profile = "http://example.com/profile"
+provider = "http://example.com/provider"
+
+// https://sfspec.surge.sh/map#sec-Usecase-Map
+"Map Foo
+Description of the map Foo"
+map Foo {
+	// https://sfspec.surge.sh/map#sec-Set-Variables
+
+	set if (!cond) {
+		foo = 1
+		"foo" = 1 + 1
+		"foo.bar".bar = call Op()
+  	}
+	
+	set {
+		foo = 1
+	}
+
+	foo = 1
+	"foo.bar".bar = call Op()
+
+	// https://sfspec.surge.sh/map#sec-Operation-Call
+
+	call Op(foo = 1, bar = 1 + 1) if (cond) {
+		// https://sfspec.surge.sh/map#SetOutcome
+		// https://sfspec.surge.sh/map#SetMapOutcome
+
+		// https://sfspec.surge.sh/map#MapResult
+		map result if (cond) {
+			foo = 1
+		}
+		return map result if (cond) {
+			"foo" = 1
+		}
+
+		// https://sfspec.surge.sh/map#sec-Map-Error
+		map error if (cond) {
+			"foo.bar" = 1
+		}
+		return map error if (cond) {
+			foo.bar = 1
+		}
+	}
+
+	// https://sfspec.surge.sh/map#HTTPCall
+	http GET "/api/{foo}/bar" {
+		// https://sfspec.surge.sh/map#HTTPSecurity
+		security apikey header {
+			name = "apikey-header"
+		}
+
+		// https://sfspec.surge.sh/map#HTTPRequest
+		request "application/json" {
+			// https://sfspec.surge.sh/map#URLQuery
+			query {
+				foo = "hello",
+				bar = "world"
+			}
+
+			// https://sfspec.surge.sh/map//HTTPHeaders
+			headers {
+				"User-Agent" = "superface v1"
+			}
+
+			// https://sfspec.surge.sh/map//HTTPBody
+			body {
+				foo = 1,
+				bar = 1 + 1,
+				"foo.bar".bar = "3"
+			}
+		}
+
+		// https://sfspec.surge.sh/map#HTTPRespose
+		response 300 {
+			map result {
+				foo = 1
+			}
+		}
+
+		// https://sfspec.surge.sh/map#HTTPRespose
+		response "application/json" {
+			map error {
+				foo = 1
+			}
+		}
+
+		// https://sfspec.surge.sh/map#HTTPRespose
+		response "*" "en-US" {
+			return map result {
+				foo = 1
+			}
+		}
+
+		// https://sfspec.surge.sh/map#HTTPRespose
+		response {
+			return map error {
+				foo = 1
+			}
+		}
+	}
+
+	http POST "/" {
+		// https://sfspec.surge.sh/map#HTTPRequest
+		request {
+			// https://sfspec.surge.sh/map#HTTPBody
+			body = [1, 2, 3]
+		}
+
+		response 404 "text/html" "en-US" {
+			foo = 1
+		}
+	}
+
+	http OPTIONS "/" {
+		security none
+	}
+}

@@ -7,6 +7,9 @@ export enum DocumentType {
   MAP = 'map',
   PROFILE = 'profile',
 }
+/**
+ * Detects whether the file on path is Superface Map or Superface Profile based on the extension.
+ */
 export function inferDocumentType(path: string): DocumentType {
   const MAP_EXTENSIONS = ['.suma'];
   const PROFILE_EXTENSIONS = ['.supr'];
@@ -21,6 +24,10 @@ export function inferDocumentType(path: string): DocumentType {
 
   return DocumentType.UNKNOWN;
 }
+/**
+ * If flag is `DocumentTypeFlag.UNKNOWN` and `path` is defined, then calls `inferDocumentType(path)`
+ * otherwise returns `flag`.
+ */
 export function inferDocumentTypeWithFlag(
   flag: DocumentTypeFlag,
   path?: string
