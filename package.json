@@ -6,7 +6,10 @@
   "repository": "git@github.com:superfaceai/cli.git",
   "author": "Superface Team",
   "private": true,
-  "bin": "./bin/sfcli",
+  "bin": {
+    "superface": "./bin/superface",
+    "sf": "./bin/superface"
+  },
   "files": [
     "./bin/"
   ],
@@ -42,6 +45,6 @@
   },
   "oclif": {
     "commands": "./dist/commands",
-    "bin": "sfcli"
+    "bin": "superface"
   }
 }
