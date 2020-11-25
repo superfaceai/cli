@@ -582,17 +582,17 @@
   dependencies:
     "@sinonjs/commons" "^1.7.0"
 
-"@superfaceai/language@^0.0.16-alpha":
+"@superfaceai/language@^0.0.16":
   version "0.0.16"
   resolved "https://npm.pkg.github.com/download/@superfaceai/language/0.0.16/d028b3bcf2e4cb05b8e54e9cc4edf49aa15446b847cbc0dbad6574a03bb48eea#55446cfbfe38933ee3db55da727462e89c03e48c"
   integrity sha512-szSh1cfGHbVqLphdU2OmxRhGYv5apKkubfTsmWp2PUKx4JCsppUGuIpWKJTXrcxSw8EIaCv/G79iyulur50+jA==
 
-"@superfaceai/superface-parser@^0.0.5-beta":
-  version "0.0.5-beta"
-  resolved "https://npm.pkg.github.com/download/@superfaceai/superface-parser/0.0.5-beta/8d94fd563c0826044a12d6e75eb9d0b1b186a06661e0fc295f205822fff87573#3f820b5227f69a88691f87399673bd1960f38eb2"
-  integrity sha512-FDH4Jo7xZiCW9ZGj8mk9CPt3y6sTSssM5R848YZpfHNX0T/rg6qizMJgFwae4rhiOIAr5se9tllveovIc1WZXQ==
+"@superfaceai/superface-parser@^0.0.5":
+  version "0.0.5"
+  resolved "https://npm.pkg.github.com/download/@superfaceai/superface-parser/0.0.5/9672ae574245206d4a1eafafc9f011819809c305385bcbce57ed9862af9aac26#2b6fab3cd569428ad43e99eb93093f66dab671c2"
+  integrity sha512-u8POoAB6D3yMSPAF+hKsWL9bjuL3Akxx/5pGF6amJCOF09V9ZYoZEYRoU/NDwmVcw+z+p71oAgQoe8tJXJWiBA==
   dependencies:
-    "@superfaceai/language" "^0.0.16-alpha"
+    "@superfaceai/language" "^0.0.16"
     typescript "^4.0.2"
 
 "@types/babel__core@^7.0.0", "@types/babel__core@^7.1.7":
