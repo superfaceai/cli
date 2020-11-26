@@ -79,7 +79,15 @@ describe('Create CLI command', () => {
 
   it('creates map with one usecase', async () => {
     documentName = 'SMSService';
-    await Create.run(['-t', 'map', documentName, '-u', 'SendSMS']);
+    await Create.run([
+      '-t',
+      'map',
+      documentName,
+      '-u',
+      'SendSMS',
+      '-p',
+      'Twillio',
+    ]);
     expect(stdout.output).toEqual(
       `-> Created SMSService.suma (provider = Twillio, id = "https://example.com/Twillio/SMSService")\n`
     );

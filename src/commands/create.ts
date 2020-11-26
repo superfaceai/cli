@@ -1,17 +1,16 @@
 import { Command, flags } from '@oclif/command';
 import { CLIError } from '@oclif/errors';
 
-import {
-  DocumentType,
-  MAP_EXTENSIONS,
-  PROFILE_EXTENSIONS,
-} from '../common/document';
+import { MAP_EXTENSIONS, PROFILE_EXTENSIONS } from '../common/document';
 import { OutputStream } from '../common/io';
+
+export enum CapabilityType {
+  USECASE = 'usecase',
+  MAP = 'map',
+}
 
 export default class Create extends Command {
   static description = 'Creates empty map and profile on a local filesystem.';
-
-  static strict = false;
 
   static args = [
     {
@@ -34,8 +33,6 @@ export default class Create extends Command {
     }),
     provider: flags.string({
       char: 'p',
-      options: ['Twillio', 'Tyntec'],
-      default: 'Twillio',
     }),
     outputFormat: flags.string({
       char: 'f',
@@ -84,7 +81,10 @@ export default class Create extends Command {
     const outputStream = new OutputStream(`${__dirname}/${fileName}`);
 
     await outputStream.write(
-      this.getDocument(DocumentType.PROFILE, documentName, useCaseNames)
+      `profile = "https://example.com/profile/${documentName}"\n\n${this.getUsecases(
+        CapabilityType.USECASE,
+        useCaseNames
+      )}`
     );
 
     this.log(
@@ -97,18 +97,22 @@ export default class Create extends Command {
   async createMap(
     documentName: string,
     useCaseNames: string[],
-    providerName: string
+    providerName?: string
   ): Promise<void> {
+    if (!providerName) {
+      throw new CLIError('Provider name not found!', {
+        exit: -1,
+      });
+    }
+
     const fileName = `${documentName}${MAP_EXTENSIONS[0]}`;
     const outputStream = new OutputStream(`${__dirname}/${fileName}`);
 
     await outputStream.write(
-      this.getDocument(
-        DocumentType.MAP,
-        documentName,
-        useCaseNames,
-        providerName
-      )
+      `profile = "https://example.com/profile/${documentName}"\nprovider = "https://example.com/${providerName}/${documentName}"\n\n${this.getUsecases(
+        CapabilityType.MAP,
+        useCaseNames
+      )}`
     );
 
     this.log(
@@ -118,40 +122,7 @@ export default class Create extends Command {
     await outputStream.cleanup();
   }
 
-  getDocument(
-    type: DocumentType,
-    documentName: string,
-    useCaseNames: string[],
-    providerName?: string
-  ): string {
-    if (type === 'profile') {
-      return `profile = "https://example.com/profile/${documentName}"\n\n${this.getUsecases(
-        type,
-        useCaseNames
-      )}`;
-    }
-
-    if (!providerName) {
-      throw new CLIError('Provider name not specified!', {
-        exit: -1,
-      });
-    }
-
-    return `profile = "https://example.com/profile/${documentName}"\nprovider = "https://example.com/${providerName}/${documentName}"\n\n${this.getUsecases(
-      type,
-      useCaseNames
-    )}`;
-  }
-
-  getUsecases(type: DocumentType, useCaseNames: string[]): string {
-    if (type === 'profile') {
-      return useCaseNames
-        .map(useCaseName => `usecase ${useCaseName} {}`)
-        .join('\n\n');
-    }
-
-    return useCaseNames
-      .map(useCaseName => `map ${useCaseName} {}`)
-      .join('\n\n');
+  getUsecases(type: CapabilityType, useCaseNames: string[]): string {
+    return useCaseNames.map(name => `${type} ${name} {}`).join('\n\n');
   }
 }
