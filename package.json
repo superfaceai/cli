@@ -43,7 +43,8 @@
     "@oclif/command": "^1.8.0",
     "@oclif/config": "^1.17.0",
     "@superfaceai/parser": "0.0.6",
-    "inquirer": "^7.3.3"
+    "inquirer": "^7.3.3",
+    "inquirer-file-tree-selection-prompt": "^1.0.7"
   },
   "oclif": {
     "commands": "./dist/commands",

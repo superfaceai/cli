@@ -3,7 +3,10 @@ import { Writable } from 'stream';
 import { promisify } from 'util';
 
 export const readFilePromise = promisify(fs.readFile);
+export const accessPromise = promisify(fs.access);
+export const statPromise = promisify(fs.stat);
 export const lstatPromise = promisify(fs.lstat);
+export const readdirPromise = promisify(fs.readdir);
 
 export function streamWritePromise(
   stream: Writable,

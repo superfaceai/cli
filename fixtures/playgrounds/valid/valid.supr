@@ -1,0 +1,20 @@
+profile = "https://example.com/pubs"
+
+"""
+List pub opening hours
+"""
+usecase PubOpeningHours {
+	input {
+		city! string!
+		nameRegex string!
+	}
+
+	result [{ name string, openingHours string }]
+
+	error PubOpeningHoursError
+}
+
+model PubOpeningHoursError enum {
+	TIMEOUT
+}
+
