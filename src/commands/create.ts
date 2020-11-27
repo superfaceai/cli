@@ -1,5 +1,6 @@
 import { Command, flags } from '@oclif/command';
-import { CLIError } from '@oclif/errors';
+
+import { userError } from '../common/error';
 
 import { MAP_EXTENSIONS, PROFILE_EXTENSIONS } from '../common/document';
 import { OutputStream } from '../common/io';
@@ -45,9 +46,7 @@ export default class Create extends Command {
       typeof documentName !== 'string' ||
       !/^[_a-zA-Z][_a-zA-Z0-9]*$/.test(documentName)
     ) {
-      throw new CLIError('Invalid document name!', {
-        exit: -1,
-      });
+      throw userError('Invalid document name', 1);
     }
 
     // if there is no specified usecase - create usecase with same name as document name
@@ -97,9 +96,7 @@ export default class Create extends Command {
     providerName?: string
   ): Promise<void> {
     if (!providerName) {
-      throw new CLIError('Provider name not found!', {
-        exit: -1,
-      });
+      throw userError('Provider name not found', 2);
     }
 
     const fileName = `${documentName}${MAP_EXTENSIONS[0]}`;

@@ -1,6 +1,7 @@
 import { Command, flags } from '@oclif/command';
-import { CLIError } from '@oclif/errors';
 import { Source, SyntaxError } from '@superfaceai/parser';
+
+import { userError, developerError } from '../common/error';
 
 import {
   DOCUMENT_PARSE_FUNCTION,
@@ -47,9 +48,7 @@ export default class Lint extends Command {
       parse(input, _context): OutputFormatFlag {
         // Sanity check
         if (input !== 'long' && input !== 'short' && input !== 'json') {
-          throw new CLIError('Internal error: unexpected enum variant', {
-            exit: -1,
-          });
+          throw developerError('unexpected enum variant', 1);
         }
 
         return input;
@@ -117,9 +116,9 @@ export default class Lint extends Command {
     await outputStream.cleanup();
 
     if (totals[0] > 0) {
-      throw new CLIError('Errors were found', { exit: 1 });
+      throw userError('Errors were found', 1);
     } else if (totals[1] > 0) {
-      throw new CLIError('Warnings were found', { exit: 2 });
+      throw userError('Warnings were found', 2);
     }
   }
 
@@ -159,7 +158,7 @@ export default class Lint extends Command {
   ): Promise<FileReport> {
     const documenType = inferDocumentTypeWithFlag(documentTypeFlag, path);
     if (documenType === DocumentType.UNKNOWN) {
-      throw new CLIError('Could not infer document type', { exit: 1 });
+      throw userError('Could not infer document type', 3);
     }
 
     const parse = DOCUMENT_PARSE_FUNCTION[documenType];

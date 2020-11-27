@@ -1,7 +1,8 @@
 import { Command, flags } from '@oclif/command';
-import { CLIError } from '@oclif/errors';
 import { Source } from '@superfaceai/parser';
 import * as nodePath from 'path';
+
+import { userError } from '../common/error';
 
 import {
   DOCUMENT_PARSE_FUNCTION,
@@ -126,7 +127,7 @@ export default class Compile extends Command {
   ): Promise<unknown> {
     const documentType = inferDocumentTypeWithFlag(documentTypeFlag, path);
     if (documentType === DocumentType.UNKNOWN) {
-      throw new CLIError('Could not infer document type', { exit: 1 });
+      throw userError('Could not infer document type', 1);
     }
 
     const parseFunction = DOCUMENT_PARSE_FUNCTION[documentType];
