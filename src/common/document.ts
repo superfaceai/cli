@@ -2,6 +2,9 @@ import { parseMap, parseProfile } from '@superfaceai/superface-parser';
 
 import { DocumentTypeFlag } from './flags';
 
+export const MAP_EXTENSIONS = ['.suma'];
+export const PROFILE_EXTENSIONS = ['.supr'];
+
 export enum DocumentType {
   UNKNOWN = 'unknown',
   MAP = 'map',
@@ -11,9 +14,6 @@ export enum DocumentType {
  * Detects whether the file on path is Superface Map or Superface Profile based on the extension.
  */
 export function inferDocumentType(path: string): DocumentType {
-  const MAP_EXTENSIONS = ['.suma'];
-  const PROFILE_EXTENSIONS = ['.supr'];
-
   const normalizedPath = path.toLowerCase().trim();
   if (MAP_EXTENSIONS.some(ex => normalizedPath.endsWith(ex))) {
     return DocumentType.MAP;
