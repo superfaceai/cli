@@ -2,7 +2,7 @@ import { Command, flags } from '@oclif/command';
 
 import { userError } from '../common/error';
 
-import { MAP_EXTENSIONS, PROFILE_EXTENSIONS } from '../common/document';
+import { MAP_EXTENSIONS, PROFILE_EXTENSIONS, validateDocumentName } from '../common/document';
 import { OutputStream } from '../common/io';
 
 export enum CapabilityType {
@@ -34,7 +34,7 @@ export default class Create extends Command {
     }),
     provider: flags.string({
       char: 'p',
-    }),
+    })
   };
 
   async run(): Promise<void> {
@@ -43,8 +43,7 @@ export default class Create extends Command {
     let usecases: string[];
 
     if (
-      typeof documentName !== 'string' ||
-      !/^[_a-zA-Z][_a-zA-Z0-9]*$/.test(documentName)
+      typeof documentName !== 'string' || !validateDocumentName(documentName)
     ) {
       throw userError('Invalid document name', 1);
     }

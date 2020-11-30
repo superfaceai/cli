@@ -10,6 +10,7 @@ export const accessPromise = promisify(fs.access);
 export const statPromise = promisify(fs.stat);
 export const lstatPromise = promisify(fs.lstat);
 export const readdirPromise = promisify(fs.readdir);
+export const mkdirPromise = promisify(fs.mkdir);
 
 export const rimrafPromise = promisify(rimraf);
 
@@ -144,5 +145,12 @@ export class OutputStream {
     }
 
     return Promise.resolve();
+  }
+
+  static async writeOnce(path: string, data: string, append?: boolean): Promise<void> {
+    const stream = new OutputStream(path, append);
+
+    await stream.write(data);
+    return stream.cleanup();
   }
 }

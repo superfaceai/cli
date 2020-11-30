@@ -1,7 +1,7 @@
 import { Command, flags } from '@oclif/command';
 import * as nodePath from 'path';
 import { userError, developerError } from '../common/error';
-import { accessPromise, readdirPromise, statPromise, rimrafPromise, execFilePromise, resolveSkipFile } from '../common/io';
+import { accessPromise, readdirPromise, statPromise, rimrafPromise, execFilePromise, resolveSkipFile, mkdirPromise, OutputStream } from '../common/io';
 import * as inquirer from 'inquirer';
 import FileTreeSelectionPrompt from 'inquirer-file-tree-selection-prompt';
 import Compile from './compile';
@@ -9,6 +9,7 @@ import chalk from 'chalk';
 
 import ts from 'typescript';
 import { skipFileFlag, SkipFileType } from '../common/flags';
+import { validateDocumentName } from '../common/document';
 
 inquirer.registerPrompt('file-tree-selection', FileTreeSelectionPrompt)
 
@@ -110,8 +111,8 @@ clean: the \`node_modules\` folder and compilation artifacts are cleaned.`
 
   // INITIALIZE //
 
-  private async runInitialize(playgroundPath: string | undefined, providers: string[] | undefined): Promise<void> {
-    if (playgroundPath === undefined) {
+  private async runInitialize(path: string | undefined, providers: string[] | undefined): Promise<void> {
+    if (path === undefined) {
       const response: { playground: string } = await inquirer.prompt({
         name: 'playground',
         message: `Path to playground to initialize`,
@@ -125,23 +126,75 @@ clean: the \`node_modules\` folder and compilation artifacts are cleaned.`
             return 'The playground path must not be empty.'
           }
 
+          let exists = true;
           try {
             await accessPromise(input);
           } catch (e) {
             // We are looking for a non-existent path
             if (e.code === 'ENOENT') {
-              return true;
+              exists = false;
             }
           }
+          if (exists) {
+            return 'The playground path must not exist.';
+          }
 
-          return 'The playground path must not exist.';
+          const baseName = nodePath.basename(input);
+          if (!validateDocumentName(baseName)) {
+            return 'The playground name must be a valid slang identifier.';
+          }
+
+          return true;
         }
       });
 
-      playgroundPath = response.playground;
+      path = response.playground;
+    }
+    const playgroundPath = path;
+
+    const name = nodePath.basename(playgroundPath);
+    if (!validateDocumentName(name)) {
+      throw userError('The playground name must be a valid slang identifier', 11);
+    }
+
+    if (providers === undefined || providers.length === 0) {
+      const response: { providers: string } = await inquirer.prompt({
+        name: 'providers',
+        message: 'Input space separated list of providers to create',
+        type: 'input',
+        validate: (input: string): boolean => {
+          const providers = Play.parseProviderNames(input);
+
+          return providers.length > 0;
+        }
+      });
+      providers = Play.parseProviderNames(response.providers);
     }
 
     this.debug("Playground path:", playgroundPath);
+    this.debug("Playground name:", name);
+    this.debug("Providers:", providers);
+
+    await mkdirPromise(playgroundPath, { recursive: true, mode: 0o744 });
+
+    const packageJsonPromise = OutputStream.writeOnce(
+      nodePath.join(playgroundPath, 'package.json'),
+      packageJsonTemplate(name)
+    );
+
+    const gluesPromises = providers?.map(
+      provider => OutputStream.writeOnce(
+        nodePath.join(playgroundPath, `${name}.${provider}.ts`),
+        glueScriptTemplate(name, provider)
+      )
+    );
+
+    await Promise.all(
+      [
+        packageJsonPromise,
+        ...gluesPromises
+      ]
+    )
   }
 
   // EXECUTE //
@@ -164,7 +217,7 @@ clean: the \`node_modules\` folder and compilation artifacts are cleaned.`
         choices: [...playground.providers.values()].map(p => {
           return { name: p }
         }),
-        validate: async (input: string[]): Promise<boolean> => {
+        validate: (input: string[]): boolean => {
           return input.length > 0;
         }
       });
@@ -314,6 +367,16 @@ clean: the \`node_modules\` folder and compilation artifacts are cleaned.`
     );
   }
 
+  // UTILITY //
+
+  private static parseProviderNames(input: string): string[] {
+    return input.split(' ').filter(
+      i => i.trim() !== ''
+    ).filter(
+      p => validateDocumentName(p)
+    );
+  }
+
   private static async promptExistingPlayground(): Promise<string> {
     const response: { playground: string } = await inquirer.prompt({
       name: 'playground',
@@ -422,4 +485,78 @@ clean: the \`node_modules\` folder and compilation artifacts are cleaned.`
   private logCli(message: string) {
     this.log(chalk.grey(message));
   }
+}
+
+function packageJsonTemplate(name: string): string {
+  return `{
+    "name": "${name}",
+    "private": true,
+    "dependencies": {
+      "@superfaceai/sdk": "^0.0.3"
+    },
+    "devDependencies": {
+      "typescript": "^4"
+    }
+  }`;
+}
+
+function glueScriptTemplate(name: string, provider: string): string {
+  return `
+import * as fs from 'fs';
+import { promisify, inspect } from 'util';
+import { Provider } from '@superfaceai/sdk'; // The sdk is where the main work is performed
+
+const readFile = promisify(fs.readFile);
+
+async function main() {
+  // Load the compiled JSON ASTs from local files
+  // These files are compiled when running \`superface play ${name}\` or \`superface compile ${name}.supr ${name}.${provider}.suma\` in the current directory
+  const profileAst = JSON.parse(
+    await readFile('${name}.supr.ast.json', { encoding: 'utf-8' })
+  );
+  const mapAst = JSON.parse(
+    await readFile('${name}.${provider}.suma.ast.json', { encoding: 'utf-8' })
+  );
+
+  // Crate a new provider from local files.
+  const provider = new Provider(
+    // the loaded ASTs
+    profileAst,
+    mapAst,
+    // name of the usecase to execute
+    '${name}',
+    // base url for relative request url in maps
+    // for example, the same Overpass API is mirrored on more servers:
+    // https://wiki.openstreetmap.org/wiki/Overpass_API#Public_Overpass_API_instances
+    'https://overpass-api.de'
+  );
+
+  // Bind authentication configuration to the provider
+  const boundProvider = await provider.bind(
+    {
+      // TODO: Add your auth keys for provider '${provider}' here
+      // No keys are needed for OSM
+    }
+  );
+
+  // Perform the map with the given input and return the result as defined in the profile usecase
+  const result = await boundProvider.perform(
+    {
+      city: "Praha",
+      nameRegex: "Diego"
+    }
+  );
+
+  // TODO: Do something with the result, here we just print in
+  console.log(
+    "${name}/${provider} result:",
+    inspect(result, {
+      depth: 5,
+      colors: true
+    })
+  );
+}
+
+main()  
+`
 }

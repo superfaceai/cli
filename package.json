@@ -11,7 +11,8 @@
     "sf": "bin/superface"
   },
   "files": [
-    "./bin/"
+    "bin/",
+    "dist/"
   ],
   "scripts": {
     "build": "tsc -p tsconfig.release.json --outDir dist",
