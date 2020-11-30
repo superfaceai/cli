@@ -41,7 +41,10 @@ export default class Create extends Command {
     const { documentName } = args;
     let usecases: string[];
 
-    if (typeof documentName !== 'string') {
+    if (
+      typeof documentName !== 'string' ||
+      !/^[_a-zA-Z][_a-zA-Z0-9]*$/.test(documentName)
+    ) {
       throw new CLIError('Invalid document name!', {
         exit: -1,
       });
@@ -72,7 +75,7 @@ export default class Create extends Command {
     useCaseNames: string[]
   ): Promise<void> {
     const fileName = `${documentName}${PROFILE_EXTENSIONS[0]}`;
-    const outputStream = new OutputStream(`${__dirname}/${fileName}`);
+    const outputStream = new OutputStream(fileName);
 
     await outputStream.write(
       `profile = "https://example.com/profile/${documentName}"\n\n${this.getUsecases(
@@ -100,7 +103,7 @@ export default class Create extends Command {
     }
 
     const fileName = `${documentName}${MAP_EXTENSIONS[0]}`;
-    const outputStream = new OutputStream(`${__dirname}/${fileName}`);
+    const outputStream = new OutputStream(fileName);
 
     await outputStream.write(
       `profile = "https://example.com/profile/${documentName}"\nprovider = "https://example.com/${providerName}/${documentName}"\n\n${this.getUsecases(
