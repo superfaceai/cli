@@ -1,12 +1,17 @@
 import * as fs from 'fs';
 import { Writable } from 'stream';
 import { promisify } from 'util';
+import rimraf from 'rimraf';
+import * as childProcess from 'child_process';
+import { SkipFileType } from './flags';
 
 export const readFilePromise = promisify(fs.readFile);
 export const accessPromise = promisify(fs.access);
 export const statPromise = promisify(fs.stat);
 export const lstatPromise = promisify(fs.lstat);
 export const readdirPromise = promisify(fs.readdir);
+
+export const rimrafPromise = promisify(rimraf);
 
 export function streamWritePromise(
   stream: Writable,
@@ -28,6 +33,61 @@ export function streamEndPromise(stream: Writable): Promise<void> {
     stream.once('error', reject);
     stream.once('close', resolve);
   });
+}
+
+export function execFilePromise(
+  path: string,
+  args?: string[],
+  execOptions?: fs.BaseEncodingOptions & childProcess.ExecFileOptions,
+  options?: {
+    forwardStdout?: boolean,
+    forwardStderr?: boolean
+  }
+): Promise<void> {
+  return new Promise(
+    (resolve, reject) => {
+      const child = childProcess.execFile(
+        path,
+        args,
+        execOptions,
+        (err, _stdout, _stderr) => {
+          if (err) {
+            reject(err)
+          } else {
+            resolve()
+          }
+        }
+      );
+
+      if (options?.forwardStdout === true) {
+        child.stdout?.on('data', chunk => process.stdout.write(chunk));
+      }
+      if (options?.forwardStderr === true) {
+        child.stderr?.on('data', chunk => process.stderr.write(chunk));
+      }
+    }
+  )
+}
+
+export async function resolveSkipFile(flag: SkipFileType, files: string[]): Promise<boolean> {
+  if (flag === 'never') {
+    return false;
+  } else if (flag === 'always') {
+    return true;
+  } else {
+    try {
+      await Promise.all(
+        files.map(
+          file => accessPromise(file)
+        )
+      );
+    } catch (e) {
+      // If at least one file cannot be accessed return false
+      return false;
+    }
+
+    return true;
+  }
 }
 
 export class OutputStream {

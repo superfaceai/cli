@@ -1,0 +1,10 @@
+{
+	"name": "valid",
+	"private": true,
+	"dependencies": {
+		"@superfaceai/sdk": "^0.0.3"
+	},
+	"devDependencies": {
+		"typescript": "^4"
+	}
+}
