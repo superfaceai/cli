@@ -16,13 +16,11 @@ describe('Create CLI command', () => {
     stderr.stop();
     stdout.stop();
 
-    const path = `${__dirname}/${documentName}`;
-
-    if (fs.existsSync(`${path}.supr`)) {
-      fs.unlinkSync(`${path}.supr`);
+    if (fs.existsSync(`${documentName}.supr`)) {
+      fs.unlinkSync(`${documentName}.supr`);
     }
-    if (fs.existsSync(`${path}.suma`)) {
-      fs.unlinkSync(`${path}.suma`);
+    if (fs.existsSync(`${documentName}.suma`)) {
+      fs.unlinkSync(`${documentName}.suma`);
     }
   });
 
@@ -33,7 +31,7 @@ describe('Create CLI command', () => {
       `-> Created SendSMS.supr (id = "https://example.com/profile/SendSMS")\n`
     );
 
-    await Lint.run([`${__dirname}/${documentName}.supr`]);
+    await Lint.run([`${documentName}.supr`]);
     expect(stdout.output).toContain('Detected 0 problems\n');
   });
 
@@ -44,7 +42,7 @@ describe('Create CLI command', () => {
       `-> Created SMSService.supr (id = "https://example.com/profile/SMSService")\n`
     );
 
-    await Lint.run([`${__dirname}/${documentName}.supr`]);
+    await Lint.run([`${documentName}.supr`]);
     expect(stdout.output).toContain('Detected 0 problems\n');
   });
 
@@ -62,7 +60,7 @@ describe('Create CLI command', () => {
       `-> Created SMSService.supr (id = "https://example.com/profile/SMSService")\n`
     );
 
-    await Lint.run([`${__dirname}/${documentName}.supr`]);
+    await Lint.run([`${documentName}.supr`]);
     expect(stdout.output).toContain('Detected 0 problems\n');
   });
 
@@ -73,7 +71,7 @@ describe('Create CLI command', () => {
       `-> Created SendSMS.suma (provider = Twillio, id = "https://example.com/Twillio/SendSMS")\n`
     );
 
-    await Lint.run([`${__dirname}/${documentName}.suma`]);
+    await Lint.run([`${documentName}.suma`]);
     expect(stdout.output).toContain('Detected 0 problems\n');
   });
 
@@ -92,7 +90,7 @@ describe('Create CLI command', () => {
       `-> Created SMSService.suma (provider = Twillio, id = "https://example.com/Twillio/SMSService")\n`
     );
 
-    await Lint.run([`${__dirname}/${documentName}.suma`]);
+    await Lint.run([`${documentName}.suma`]);
     expect(stdout.output).toContain('Detected 0 problems\n');
   });
 
@@ -112,7 +110,7 @@ describe('Create CLI command', () => {
       `-> Created SMSService.suma (provider = Twillio, id = "https://example.com/Twillio/SMSService")\n`
     );
 
-    await Lint.run([`${__dirname}/${documentName}.suma`]);
+    await Lint.run([`${documentName}.suma`]);
     expect(stdout.output).toContain('Detected 0 problems\n');
   });
 
@@ -123,10 +121,10 @@ describe('Create CLI command', () => {
       `-> Created SendSMS.supr (id = "https://example.com/profile/SendSMS")\n-> Created SendSMS.suma (provider = Twillio, id = "https://example.com/Twillio/SendSMS")\n`
     );
 
-    await Lint.run([`${__dirname}/${documentName}.supr`]);
+    await Lint.run([`${documentName}.supr`]);
     expect(stdout.output).toContain('Detected 0 problems\n');
 
-    await Lint.run([`${__dirname}/${documentName}.suma`]);
+    await Lint.run([`${documentName}.suma`]);
     expect(stdout.output).toContain('Detected 0 problems\n');
   });
 
@@ -137,10 +135,10 @@ describe('Create CLI command', () => {
       `-> Created SMSService.supr (id = "https://example.com/profile/SMSService")\n-> Created SMSService.suma (provider = Twillio, id = "https://example.com/Twillio/SMSService")\n`
     );
 
-    await Lint.run([`${__dirname}/${documentName}.supr`]);
+    await Lint.run([`${documentName}.supr`]);
     expect(stdout.output).toContain('Detected 0 problems\n');
 
-    await Lint.run([`${__dirname}/${documentName}.suma`]);
+    await Lint.run([`${documentName}.suma`]);
     expect(stdout.output).toContain('Detected 0 problems\n');
   });
 
@@ -158,10 +156,10 @@ describe('Create CLI command', () => {
       `-> Created SMSService.supr (id = "https://example.com/profile/SMSService")\n-> Created SMSService.suma (provider = Twillio, id = "https://example.com/Twillio/SMSService")\n`
     );
 
-    await Lint.run([`${__dirname}/${documentName}.supr`]);
+    await Lint.run([`${documentName}.supr`]);
     expect(stdout.output).toContain('Detected 0 problems\n');
 
-    await Lint.run([`${__dirname}/${documentName}.suma`]);
+    await Lint.run([`${documentName}.suma`]);
     expect(stdout.output).toContain('Detected 0 problems\n');
   });
 });
