@@ -34,12 +34,6 @@ export default class Create extends Command {
     provider: flags.string({
       char: 'p',
     }),
-    outputFormat: flags.string({
-      char: 'f',
-      description: 'Format of created profile or map.',
-      options: ['text', 'json'],
-      default: 'text',
-    }),
   };
 
   async run(): Promise<void> {
