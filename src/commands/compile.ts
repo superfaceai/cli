@@ -1,6 +1,6 @@
 import { Command, flags } from '@oclif/command';
 import { CLIError } from '@oclif/errors';
-import { Source } from '@superfaceai/superface-parser';
+import { Source } from '@superfaceai/parser';
 import * as nodePath from 'path';
 
 import {

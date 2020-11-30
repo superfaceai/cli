@@ -1,6 +1,6 @@
 import { Command, flags } from '@oclif/command';
 import { CLIError } from '@oclif/errors';
-import { Source, SyntaxError } from '@superfaceai/superface-parser';
+import { Source, SyntaxError } from '@superfaceai/parser';
 
 import {
   DOCUMENT_PARSE_FUNCTION,
