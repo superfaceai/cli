@@ -1,4 +1,4 @@
-import { parseMap, parseProfile } from '@superfaceai/superface-parser';
+import { parseMap, parseProfile } from '@superfaceai/parser';
 
 import { DocumentTypeFlag } from './flags';
 

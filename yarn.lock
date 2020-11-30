@@ -582,17 +582,17 @@
   dependencies:
     "@sinonjs/commons" "^1.7.0"
 
-"@superfaceai/language@^0.0.16":
-  version "0.0.16"
-  resolved "https://npm.pkg.github.com/download/@superfaceai/language/0.0.16/d028b3bcf2e4cb05b8e54e9cc4edf49aa15446b847cbc0dbad6574a03bb48eea#55446cfbfe38933ee3db55da727462e89c03e48c"
-  integrity sha512-szSh1cfGHbVqLphdU2OmxRhGYv5apKkubfTsmWp2PUKx4JCsppUGuIpWKJTXrcxSw8EIaCv/G79iyulur50+jA==
+"@superfaceai/ast@^0.0.18":
+  version "0.0.18"
+  resolved "https://npm.pkg.github.com/download/@superfaceai/ast/0.0.18/e91aa5bf51d97aa602aa04bc88c277a82d1f16eda96805a4d81a94be6b01f440#7dd7a3f3ebb5366ebd1d865aea942a1f70a65c0d"
+  integrity sha512-4isw2Tpr82bzX8Yvh7t0uVcPp4ogCouWaj+G71M5VNzeHTXI4+Zx2asJJPEQSsh6/poUoUnyladXqnt+u7DxMg==
 
-"@superfaceai/superface-parser@^0.0.5":
-  version "0.0.5"
-  resolved "https://npm.pkg.github.com/download/@superfaceai/superface-parser/0.0.5/9672ae574245206d4a1eafafc9f011819809c305385bcbce57ed9862af9aac26#2b6fab3cd569428ad43e99eb93093f66dab671c2"
-  integrity sha512-u8POoAB6D3yMSPAF+hKsWL9bjuL3Akxx/5pGF6amJCOF09V9ZYoZEYRoU/NDwmVcw+z+p71oAgQoe8tJXJWiBA==
+"@superfaceai/parser@0.0.6":
+  version "0.0.6"
+  resolved "https://npm.pkg.github.com/download/@superfaceai/parser/0.0.6/d22877d27b5b2759ade932cd313eb994ad5cd5c304c51a2b4a79c9c15a8fdf37#2635efc4e3c6171825c99d8665a8885b6b1c55a0"
+  integrity sha512-ya9/voZy3CS5ZHJ/Y6he564ilGlWmBW4w+O6HSLKNwVta49v65bV9I2ptlsyrMYbcx8d9p8oUfTpyPwcFgPycA==
   dependencies:
-    "@superfaceai/language" "^0.0.16"
+    "@superfaceai/ast" "^0.0.18"
     typescript "^4.0.2"
 
 "@types/babel__core@^7.0.0", "@types/babel__core@^7.1.7":
@@ -4457,7 +4457,12 @@ typedarray-to-buffer@^3.1.5:
   dependencies:
     is-typedarray "^1.0.0"
 
-typescript@^4.0.2, typescript@^4.0.5:
+typescript@^4.0.2:
+  version "4.1.2"
+  resolved "https://registry.yarnpkg.com/typescript/-/typescript-4.1.2.tgz#6369ef22516fe5e10304aae5a5c4862db55380e9"
+  integrity sha512-thGloWsGH3SOxv1SoY7QojKi0tc+8FnOmiarEGMbd/lar7QOEd3hvlx3Fp5y6FlDUGl9L+pd4n2e+oToGMmhRQ==
+
+typescript@^4.0.5:
   version "4.0.5"
   resolved "https://registry.yarnpkg.com/typescript/-/typescript-4.0.5.tgz#ae9dddfd1069f1cb5beb3ef3b2170dd7c1332389"
   integrity sha512-ywmr/VrTVCmNTJ6iV2LwIrfG1P+lv6luD8sUJs+2eI9NLGigaN+nUQc13iHqisq7bra9lnmUSYqbJvegraBOPQ==
