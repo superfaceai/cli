@@ -24,6 +24,7 @@
     "prepush": "yarn test && yarn lint && yarn format"
   },
   "devDependencies": {
+    "@types/debug": "^4.1.5",
     "@types/inquirer": "^7.3.1",
     "@types/jest": "^26.0.15",
     "@types/rimraf": "^3.0.0",
@@ -45,6 +46,7 @@
     "@oclif/config": "^1.17.0",
     "@superfaceai/parser": "0.0.6",
     "chalk": "^4.1.0",
+    "debug": "^4.3.1",
     "inquirer": "^7.3.3",
     "inquirer-file-tree-selection-prompt": "^1.0.7",
     "rimraf": "^3.0.2",

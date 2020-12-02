@@ -1,14 +1,12 @@
 import { Command, flags } from '@oclif/command';
 
-import { userError } from '../common/error';
+import { developerError, userError } from '../common/error';
 
 import { MAP_EXTENSIONS, PROFILE_EXTENSIONS, validateDocumentName } from '../common/document';
 import { OutputStream } from '../common/io';
 
-export enum CapabilityType {
-  USECASE = 'usecase',
-  MAP = 'map',
-}
+import * as profileTemplate from '../templates/profile';
+import * as mapTemplate from '../templates/map';
 
 export default class Create extends Command {
   static description = 'Creates empty map and profile on a local filesystem.';
@@ -34,6 +32,11 @@ export default class Create extends Command {
     }),
     provider: flags.string({
       char: 'p',
+    }),
+    template: flags.string({
+      options: ['empty', 'pubs'],
+      default: 'empty',
+      description: 'Template to initialize the usecases and maps with'
     })
   };
 
@@ -45,7 +48,7 @@ export default class Create extends Command {
     if (
       typeof documentName !== 'string' || !validateDocumentName(documentName)
     ) {
-      throw userError('Invalid document name', 1);
+      throw userError('Invalid document name.', 1);
     }
 
     // if there is no specified usecase - create usecase with same name as document name
@@ -55,33 +58,47 @@ export default class Create extends Command {
       usecases = flags.usecase;
     }
 
+    // typecheck the template flag
+    switch (flags.template) {
+      case 'empty':
+      case 'pubs':
+        break;
+      default:
+        throw developerError('Invalid --template flag option', 1);
+    }
+
     switch (flags.documentType) {
       case 'profile':
-        await this.createProfile(documentName, usecases);
+        await this.createProfile(documentName, usecases, flags.template);
         break;
       case 'map':
-        await this.createMap(documentName, usecases, flags.provider);
+        if (!flags.provider) {
+          throw userError('Provider name must be provided when generating a map.', 2);
+        }
+        await this.createMap(documentName, usecases, flags.provider, flags.template);
         break;
       case 'both':
-        await this.createProfile(documentName, usecases);
-        await this.createMap(documentName, usecases, flags.provider);
+        if (!flags.provider) {
+          throw userError('Provider name must be provided when generating a map.', 2);
+        }
+        await this.createProfile(documentName, usecases, flags.template);
+        await this.createMap(documentName, usecases, flags.provider, flags.template);
     }
   }
 
-  async createProfile(
+  private async createProfile(
     documentName: string,
-    useCaseNames: string[]
+    useCaseNames: string[],
+    template: profileTemplate.UsecaseTemplateType
   ): Promise<void> {
     const fileName = `${documentName}${PROFILE_EXTENSIONS[0]}`;
     const outputStream = new OutputStream(fileName);
 
     await outputStream.write(
-      `profile = "https://example.com/profile/${documentName}"\n\n${this.getUsecases(
-        CapabilityType.USECASE,
-        useCaseNames
-      )}`
+      profileTemplate.header(documentName) + useCaseNames.map(
+        usecase => profileTemplate.usecase(template, usecase)
+      ).join('')
     );
-
     this.log(
       `-> Created ${fileName} (id = "https://example.com/profile/${documentName}")`
     );
@@ -89,33 +106,24 @@ export default class Create extends Command {
     await outputStream.cleanup();
   }
 
-  async createMap(
+  private async createMap(
     documentName: string,
     useCaseNames: string[],
-    providerName?: string
+    providerName: string,
+    template: mapTemplate.MapTemplateType
   ): Promise<void> {
-    if (!providerName) {
-      throw userError('Provider name not found', 2);
-    }
-
     const fileName = `${documentName}${MAP_EXTENSIONS[0]}`;
     const outputStream = new OutputStream(fileName);
 
     await outputStream.write(
-      `profile = "https://example.com/profile/${documentName}"\nprovider = "https://example.com/${providerName}/${documentName}"\n\n${this.getUsecases(
-        CapabilityType.MAP,
-        useCaseNames
-      )}`
+      mapTemplate.header(documentName, providerName) + useCaseNames.map(
+        usecase => mapTemplate.map(template, usecase)
+      ).join('')
     );
-
     this.log(
       `-> Created ${fileName} (provider = ${providerName}, id = "https://example.com/${providerName}/${documentName}")`
     );
 
     await outputStream.cleanup();
-  }
-
-  getUsecases(type: CapabilityType, useCaseNames: string[]): string {
-    return useCaseNames.map(name => `${type} ${name} {}`).join('\n\n');
   }
 }

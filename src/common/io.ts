@@ -5,6 +5,8 @@ import rimraf from 'rimraf';
 import * as childProcess from 'child_process';
 import { SkipFileType } from './flags';
 
+import { debug as createDebug } from 'debug';
+
 export const readFilePromise = promisify(fs.readFile);
 export const accessPromise = promisify(fs.access);
 export const statPromise = promisify(fs.stat);
@@ -91,7 +93,9 @@ export async function resolveSkipFile(flag: SkipFileType, files: string[]): Prom
   }
 }
 
+const outputStreamDebug = createDebug('superface:OutputStream');
 export class OutputStream {
+  private readonly name: string;
   readonly stream: Writable;
 
   readonly isStdStream: boolean;
@@ -111,18 +115,24 @@ export class OutputStream {
   constructor(path: string, append?: boolean) {
     switch (path) {
       case '-':
+        outputStreamDebug("Opening stdout");
+        this.name = 'stdout';
         this.stream = process.stdout;
         this.isStdStream = true;
         this.isTTY = process.stdout.isTTY;
         break;
 
       case '-2':
+        outputStreamDebug("Opening stderr");
+        this.name = 'stderr';
         this.stream = process.stderr;
         this.isStdStream = true;
         this.isTTY = process.stdout.isTTY;
         break;
 
       default:
+        outputStreamDebug(`Opening/creating "${path}" in ${append ? 'append' : 'write'} mode`);
+        this.name = path;
         this.stream = fs.createWriteStream(path, {
           flags: append ? 'a' : 'w',
           mode: 0o644,
@@ -135,10 +145,13 @@ export class OutputStream {
   }
 
   write(data: string): Promise<void> {
+    outputStreamDebug(`Wiritng ${data.length} characters to "${this.name}"`);
     return streamWritePromise(this.stream, data);
   }
 
   cleanup(): Promise<void> {
+    outputStreamDebug(`Closing stream "${this.name}"`);
+
     // TODO: Should we also end stdout or stderr?
     if (!this.isStdStream) {
       return streamEndPromise(this.stream);
