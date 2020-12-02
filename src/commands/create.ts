@@ -1,12 +1,14 @@
 import { Command, flags } from '@oclif/command';
 
+import {
+  MAP_EXTENSIONS,
+  PROFILE_EXTENSIONS,
+  validateDocumentName,
+} from '../common/document';
 import { developerError, userError } from '../common/error';
-
-import { MAP_EXTENSIONS, PROFILE_EXTENSIONS, validateDocumentName } from '../common/document';
 import { OutputStream } from '../common/io';
-
-import * as profileTemplate from '../templates/profile';
 import * as mapTemplate from '../templates/map';
+import * as profileTemplate from '../templates/profile';
 
 export default class Create extends Command {
   static description = 'Creates empty map and profile on a local filesystem.';
@@ -36,8 +38,8 @@ export default class Create extends Command {
     template: flags.string({
       options: ['empty', 'pubs'],
       default: 'empty',
-      description: 'Template to initialize the usecases and maps with'
-    })
+      description: 'Template to initialize the usecases and maps with',
+    }),
   };
 
   async run(): Promise<void> {
@@ -46,7 +48,8 @@ export default class Create extends Command {
     let usecases: string[];
 
     if (
-      typeof documentName !== 'string' || !validateDocumentName(documentName)
+      typeof documentName !== 'string' ||
+      !validateDocumentName(documentName)
     ) {
       throw userError('Invalid document name.', 1);
     }
@@ -73,16 +76,32 @@ export default class Create extends Command {
         break;
       case 'map':
         if (!flags.provider) {
-          throw userError('Provider name must be provided when generating a map.', 2);
+          throw userError(
+            'Provider name must be provided when generating a map.',
+            2
+          );
         }
-        await this.createMap(documentName, usecases, flags.provider, flags.template);
+        await this.createMap(
+          documentName,
+          usecases,
+          flags.provider,
+          flags.template
+        );
         break;
       case 'both':
         if (!flags.provider) {
-          throw userError('Provider name must be provided when generating a map.', 2);
+          throw userError(
+            'Provider name must be provided when generating a map.',
+            2
+          );
         }
         await this.createProfile(documentName, usecases, flags.template);
-        await this.createMap(documentName, usecases, flags.provider, flags.template);
+        await this.createMap(
+          documentName,
+          usecases,
+          flags.provider,
+          flags.template
+        );
     }
   }
 
@@ -95,9 +114,10 @@ export default class Create extends Command {
     const outputStream = new OutputStream(fileName);
 
     await outputStream.write(
-      profileTemplate.header(documentName) + useCaseNames.map(
-        usecase => profileTemplate.usecase(template, usecase)
-      ).join('')
+      profileTemplate.header(documentName) +
+        useCaseNames
+          .map(usecase => profileTemplate.usecase(template, usecase))
+          .join('')
     );
     this.log(
       `-> Created ${fileName} (id = "https://example.com/profile/${documentName}")`
@@ -116,9 +136,8 @@ export default class Create extends Command {
     const outputStream = new OutputStream(fileName);
 
     await outputStream.write(
-      mapTemplate.header(documentName, providerName) + useCaseNames.map(
-        usecase => mapTemplate.map(template, usecase)
-      ).join('')
+      mapTemplate.header(documentName, providerName) +
+        useCaseNames.map(usecase => mapTemplate.map(template, usecase)).join('')
     );
     this.log(
       `-> Created ${fileName} (provider = ${providerName}, id = "https://example.com/${providerName}/${documentName}")`

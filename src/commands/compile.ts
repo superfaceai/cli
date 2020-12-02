@@ -2,13 +2,12 @@ import { Command, flags } from '@oclif/command';
 import { Source } from '@superfaceai/parser';
 import * as nodePath from 'path';
 
-import { userError } from '../common/error';
-
 import {
   DOCUMENT_PARSE_FUNCTION,
   DocumentType,
   inferDocumentTypeWithFlag,
 } from '../common/document';
+import { userError } from '../common/error';
 import { DocumentTypeFlag, documentTypeFlag } from '../common/flags';
 import { lstatPromise, OutputStream, readFilePromise } from '../common/io';
 

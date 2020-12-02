@@ -12,14 +12,18 @@ export function packageJson(name: string): string {
 }
 
 export function npmRc(): string {
-  return '@superfaceai:registry=https://npm.pkg.github.com\n'
+  return '@superfaceai:registry=https://npm.pkg.github.com\n';
 }
 
 export type GlueTemplateType = 'empty' | 'pubs';
 /**
  * Returns a glue script of given template `type` with given `name` and `provider`.
-*/
-export function glueScript(type: GlueTemplateType, name: string, provider: string): string {
+ */
+export function glueScript(
+  type: GlueTemplateType,
+  name: string,
+  provider: string
+): string {
   switch (type) {
     case 'empty':
       return empty(name, provider);
@@ -77,7 +81,7 @@ async function main() {
 }
 
 main()
-`
+`;
 }
 
 export function pubs(name: string, provider: string): string {
@@ -138,5 +142,5 @@ async function main() {
 }
 
 main()
-`
+`;
 }

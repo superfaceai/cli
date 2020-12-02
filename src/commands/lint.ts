@@ -1,13 +1,12 @@
 import { Command, flags } from '@oclif/command';
 import { Source, SyntaxError } from '@superfaceai/parser';
 
-import { userError, developerError } from '../common/error';
-
 import {
   DOCUMENT_PARSE_FUNCTION,
   DocumentType,
   inferDocumentTypeWithFlag,
 } from '../common/document';
+import { developerError, userError } from '../common/error';
 import { DocumentTypeFlag, documentTypeFlag } from '../common/flags';
 import { OutputStream, readFilePromise } from '../common/io';
 import { formatWordPlurality } from '../util';

@@ -1,5 +1,6 @@
 import { flags } from '@oclif/command';
 import { Definition, IOptionFlag } from '@oclif/command/lib/flags';
+
 import { developerError } from './error';
 
 export type DocumentTypeFlag = 'auto' | 'map' | 'profile';
@@ -29,4 +30,4 @@ export const skipFileFlag: Definition<SkipFileType> = flags.build({
 
     return input;
   },
-})
+});

@@ -10,7 +10,7 @@ provider = "https://example.com/${provider}/${name}"
 export type MapTemplateType = 'empty' | 'pubs';
 /**
  * Returns a map of given template `type` with given `name`.
-*/
+ */
 export function map(type: MapTemplateType, name: string): string {
   switch (type) {
     case 'empty':

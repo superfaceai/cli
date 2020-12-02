@@ -1,15 +1,15 @@
 /**
  * Returns a usecase header with filled in `name` and `provider`.
  */
-export function header(name: string) {
-	return `profile = "https://example.com/profile/${name}"
+export function header(name: string): string {
+  return `profile = "https://example.com/profile/${name}"
 `;
 }
 
 export type UsecaseTemplateType = 'empty' | 'pubs';
 /**
  * Returns a usecase of given template `type` with given `name`.
-*/
+ */
 export function usecase(type: UsecaseTemplateType, name: string): string {
   switch (type) {
     case 'empty':
@@ -19,7 +19,7 @@ export function usecase(type: UsecaseTemplateType, name: string): string {
   }
 }
 
-export function empty(name: string) {
+export function empty(name: string): string {
   return `
 """
 ${name} usecase
@@ -28,7 +28,7 @@ usecase ${name} {}
 `;
 }
 
-export function pubs(name: string) {
+export function pubs(name: string): string {
   return `
 """
 List pub opening hours

@@ -1,74 +1,90 @@
 import { Command, flags } from '@oclif/command';
-import * as nodePath from 'path';
-import { userError, developerError } from '../common/error';
-import { accessPromise, readdirPromise, statPromise, rimrafPromise, execFilePromise, resolveSkipFile, mkdirPromise, OutputStream } from '../common/io';
+import chalk from 'chalk';
 import * as inquirer from 'inquirer';
 import FileTreeSelectionPrompt from 'inquirer-file-tree-selection-prompt';
-import Compile from './compile';
-import chalk from 'chalk';
+import * as nodePath from 'path';
+import * as ts from 'typescript';
 
-import ts from 'typescript';
-import { skipFileFlag, SkipFileType } from '../common/flags';
 import { validateDocumentName } from '../common/document';
-
+import { developerError, userError } from '../common/error';
+import { skipFileFlag, SkipFileType } from '../common/flags';
+import {
+  accessPromise,
+  execFilePromise,
+  mkdirPromise,
+  OutputStream,
+  readdirPromise,
+  resolveSkipFile,
+  rimrafPromise,
+  statPromise,
+} from '../common/io';
+import * as mapTemplate from '../templates/map';
 import * as playgroundTemplate from '../templates/playground';
 import * as profileTemplate from '../templates/profile';
-import * as mapTemplate from '../templates/map';
+import Compile from './compile';
 
-inquirer.registerPrompt('file-tree-selection', FileTreeSelectionPrompt)
+// just let me use this js library eslint
+// eslint-disable-next-line import/namespace
+inquirer.registerPrompt('file-tree-selection', FileTreeSelectionPrompt);
 
 type ActionType = 'initialize' | 'execute' | 'clean';
 interface PlaygroundFolder {
-  name: string,
-  path: string,
-  providers: Set<string>
-};
+  name: string;
+  path: string;
+  providers: Set<string>;
+}
 
 export default class Play extends Command {
   static description = `Manages and executes interactive playgrounds. Missing arguments are interactively prompted.
 Playground is a folder F which contains a profile (\`F.supr\`), maps (\`F.*.suma\`) and glue scripts (\`F.*.ts\`) where \`*\` denotes provider name.
 initialize: a playground is populated with an example profile, and a pair of a map and a glue script for each provider.
 execute: the profile, and the selected pairs of a map and a glue script are compiled and the specified provider glue scripts are executed.
-clean: the \`node_modules\` folder and compilation artifacts are cleaned.`
-    ;
+clean: the \`node_modules\` folder and compilation artifacts are cleaned.`;
 
   static examples = [
     'superface play',
     'superface play initialize PubHours --providers osm gmaps',
     'superface play execute PubHours --providers osm',
-    'superface play clean PubHours'
+    'superface play clean PubHours',
   ];
 
-  static args = [{
-    name: 'action',
-    description: 'Action to take.',
-    required: false,
-    options: ['initialize', 'execute', 'clean']
-  }, {
-    name: 'playground',
-    description: 'Path to the playground to initialize or execute.',
-    required: false
-  }];
+  static args = [
+    {
+      name: 'action',
+      description: 'Action to take.',
+      required: false,
+      options: ['initialize', 'execute', 'clean'],
+    },
+    {
+      name: 'playground',
+      description: 'Path to the playground to initialize or execute.',
+      required: false,
+    },
+  ];
 
   static flags = {
     providers: flags.string({
       char: 'p',
       multiple: true,
-      description: 'Providers to initialize or execute.'
+      description: 'Providers to initialize or execute.',
     }),
 
     skip: skipFileFlag({
-      description: 'Controls the fallback skipping behavior of more specific skip flags.\nSee `--skip-npm`, `--skip-ast`, and `--skip-tsc` for more details.',
-      default: 'never'
+      description:
+        'Controls the fallback skipping behavior of more specific skip flags.\nSee `--skip-npm`, `--skip-ast`, and `--skip-tsc` for more details.',
+      default: 'never',
     }),
     'skip-npm': skipFileFlag({
-      description: 'Control skipping behavior of the npm install execution step.\n`exists` checks for the presence of `node_modules` directory.'
+      description:
+        'Control skipping behavior of the npm install execution step.\n`exists` checks for the presence of `node_modules` directory.',
     }),
     'skip-ast': skipFileFlag({
-      description: 'Control skipping behavior of the superface ast compile execution step.\n`exists` checks for the presence of `<name>.<provider>.suma.ast.json` files.'
+      description:
+        'Control skipping behavior of the superface ast compile execution step.\n`exists` checks for the presence of `<name>.<provider>.suma.ast.json` files.',
     }),
     'skip-tsc': skipFileFlag({
-      description: 'Control skipping behavior of the tsc compile execution step.\n`exists` checks for the presence of `<name>.<provider>.js files.'
+      description:
+        'Control skipping behavior of the tsc compile execution step.\n`exists` checks for the presence of `<name>.<provider>.js files.',
     }),
 
     help: flags.help({ char: 'h' }),
@@ -77,34 +93,41 @@ clean: the \`node_modules\` folder and compilation artifacts are cleaned.`
   async run(): Promise<void> {
     const { args, flags } = this.parse(Play);
 
+    // what even are types
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     let action: ActionType = args.action;
     if (action === undefined) {
-      const response = await inquirer.prompt({
+      // eslint-disable-next-line import/namespace
+      const response: { action: ActionType } = await inquirer.prompt({
         name: 'action',
         message: 'Select an action',
         type: 'list',
-        choices: [{
-          name: 'Initialize a new playground',
-          value: 'initialize'
-        }, {
-          name: 'Execute an existing playground',
-          value: 'execute'
-        }, {
-          name: 'Clean an existing playground',
-          value: 'clean'
-        }],
+        choices: [
+          {
+            name: 'Initialize a new playground',
+            value: 'initialize',
+          },
+          {
+            name: 'Execute an existing playground',
+            value: 'execute',
+          },
+          {
+            name: 'Clean an existing playground',
+            value: 'clean',
+          },
+        ],
       });
       action = response.action;
-    };
-    this.debug("Action:", action);
+    }
+    this.debug('Action:', action);
 
     if (action === 'initialize') {
       await this.runInitialize(args.playground, flags.providers);
     } else if (action === 'execute') {
       await this.runExecute(args.playground, flags.providers, {
-        npm: flags["skip-npm"] ?? flags.skip,
-        ast: flags["skip-ast"] ?? flags.skip,
-        tsc: flags["skip-tsc"] ?? flags.skip
+        npm: flags['skip-npm'] ?? flags.skip,
+        ast: flags['skip-ast'] ?? flags.skip,
+        tsc: flags['skip-tsc'] ?? flags.skip,
       });
     } else if (action === 'clean') {
       await this.runClean(args.playground);
@@ -115,27 +138,38 @@ clean: the \`node_modules\` folder and compilation artifacts are cleaned.`
 
   // INITIALIZE //
 
-  private async runInitialize(path: string | undefined, providers: string[] | undefined): Promise<void> {
+  private async runInitialize(
+    path: string | undefined,
+    providers: string[] | undefined
+  ): Promise<void> {
     if (path === undefined) {
+      // eslint-disable-next-line import/namespace
       const response: { playground: string } = await inquirer.prompt({
         name: 'playground',
         message: `Path to playground to initialize`,
         type: 'input',
-        validate: async (input: any): Promise<boolean | string> => {
+        validate: async (input: unknown): Promise<boolean | string> => {
           if (typeof input !== 'string') {
             throw developerError('unexpected argument type', 11);
           }
 
           if (input.trim().length === 0) {
-            return 'The playground path must not be empty.'
+            return 'The playground path must not be empty.';
           }
 
           let exists = true;
           try {
             await accessPromise(input);
-          } catch (e) {
-            // We are looking for a non-existent path
-            if (e.code === 'ENOENT') {
+          } catch (err) {
+            if (!('code' in err)) {
+              // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+              throw developerError(`unexpected error: ${err}`, 12);
+            }
+
+            // we check the 'code` member
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+            if (err.code === 'ENOENT') {
+              // We are looking for a non-existent path
               exists = false;
             }
           }
@@ -149,7 +183,7 @@ clean: the \`node_modules\` folder and compilation artifacts are cleaned.`
           }
 
           return true;
-        }
+        },
       });
 
       path = response.playground;
@@ -158,10 +192,14 @@ clean: the \`node_modules\` folder and compilation artifacts are cleaned.`
 
     const name = nodePath.basename(playgroundPath);
     if (!validateDocumentName(name)) {
-      throw userError('The playground name must be a valid slang identifier', 11);
+      throw userError(
+        'The playground name must be a valid slang identifier',
+        11
+      );
     }
 
     if (providers === undefined || providers.length === 0) {
+      // eslint-disable-next-line import/namespace
       const response: { providers: string } = await inquirer.prompt({
         name: 'providers',
         message: 'Input space separated list of providers to create',
@@ -170,14 +208,14 @@ clean: the \`node_modules\` folder and compilation artifacts are cleaned.`
           const providers = Play.parseProviderNames(input);
 
           return providers.length > 0;
-        }
+        },
       });
       providers = Play.parseProviderNames(response.providers);
     }
 
-    this.debug("Playground path:", playgroundPath);
-    this.debug("Playground name:", name);
-    this.debug("Providers:", providers);
+    this.debug('Playground path:', playgroundPath);
+    this.debug('Playground name:', name);
+    this.debug('Providers:', providers);
 
     await mkdirPromise(playgroundPath, { recursive: true, mode: 0o744 });
 
@@ -186,8 +224,8 @@ clean: the \`node_modules\` folder and compilation artifacts are cleaned.`
       playgroundTemplate.packageJson(name)
     );
 
-    const gluesPromises = providers.map(
-      provider => OutputStream.writeOnce(
+    const gluesPromises = providers.map(provider =>
+      OutputStream.writeOnce(
         nodePath.join(playgroundPath, `${name}.${provider}.ts`),
         playgroundTemplate.glueScript('pubs', name, provider)
       )
@@ -198,8 +236,8 @@ clean: the \`node_modules\` folder and compilation artifacts are cleaned.`
       profileTemplate.header(name) + profileTemplate.pubs(name)
     );
 
-    const mapsPromises = providers.map(
-      provider => OutputStream.writeOnce(
+    const mapsPromises = providers.map(provider =>
+      OutputStream.writeOnce(
         nodePath.join(playgroundPath, `${name}.${provider}.suma`),
         mapTemplate.header(name, provider) + mapTemplate.pubs(name)
       )
@@ -210,15 +248,13 @@ clean: the \`node_modules\` folder and compilation artifacts are cleaned.`
       playgroundTemplate.npmRc()
     );
 
-    await Promise.all(
-      [
-        packageJsonPromise,
-        ...gluesPromises,
-        profilePromise,
-        ...mapsPromises,
-        npmrcPromise
-      ]
-    )
+    await Promise.all([
+      packageJsonPromise,
+      ...gluesPromises,
+      profilePromise,
+      ...mapsPromises,
+      npmrcPromise,
+    ]);
   }
 
   // EXECUTE //
@@ -234,29 +270,33 @@ clean: the \`node_modules\` folder and compilation artifacts are cleaned.`
     const playground = await Play.detectPlayground(playgroundPath);
 
     if (providers === undefined || providers.length === 0) {
+      // eslint-disable-next-line import/namespace
       const response: { providers: string[] } = await inquirer.prompt({
         name: 'providers',
         message: 'Select a provider to execute',
         type: 'checkbox',
         choices: [...playground.providers.values()].map(p => {
-          return { name: p }
+          return { name: p };
         }),
         validate: (input: string[]): boolean => {
           return input.length > 0;
-        }
+        },
       });
       providers = response.providers;
     } else {
       for (const provider of providers) {
         if (!playground.providers.has(provider)) {
-          throw userError(`Provider "${provider}" not found for playground "${playground.path}"`, 21);
+          throw userError(
+            `Provider "${provider}" not found for playground "${playground.path}"`,
+            21
+          );
         }
       }
     }
 
-    this.debug("Playground:", playground);
-    this.debug("Providers:", providers);
-    this.debug("Skip:", skip);
+    this.debug('Playground:', playground);
+    this.debug('Providers:', providers);
+    this.debug('Skip:', skip);
     await this.executePlayground(playground, providers, skip);
   }
 
@@ -265,57 +305,83 @@ clean: the \`node_modules\` folder and compilation artifacts are cleaned.`
     providers: string[],
     skip: Record<'npm' | 'ast' | 'tsc', SkipFileType>
   ): Promise<void> {
-    const profilePath = nodePath.join(playground.path, `${playground.name}.supr`);
-    const mapPaths = providers.map(
-      provider => nodePath.join(playground.path, `${playground.name}.${provider}.suma`)
+    const profilePath = nodePath.join(
+      playground.path,
+      `${playground.name}.supr`
+    );
+    const mapPaths = providers.map(provider =>
+      nodePath.join(playground.path, `${playground.name}.${provider}.suma`)
     );
 
-    const gluePaths = providers.map(
-      provider => nodePath.join(playground.path, `${playground.name}.${provider}.ts`)
+    const gluePaths = providers.map(provider =>
+      nodePath.join(playground.path, `${playground.name}.${provider}.ts`)
     );
     const compiledGluePaths = providers.map(
       provider => `${playground.name}.${provider}.js`
     );
 
-    const skipNpm = await resolveSkipFile(skip.npm, [nodePath.join(playground.path, 'node_modules')]);
+    const skipNpm = await resolveSkipFile(skip.npm, [
+      nodePath.join(playground.path, 'node_modules'),
+    ]);
     if (!skipNpm) {
       this.logCli('$ npm install');
       try {
         await execFilePromise('npm', ['install'], {
-          cwd: playground.path
+          cwd: playground.path,
         });
       } catch (err) {
+        if (!('stdout' in err)) {
+          // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+          throw developerError(`unexpected error: ${err}`, 21);
+        }
+
+        // we check the 'stdout` member
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access,@typescript-eslint/restrict-template-expressions
         throw userError(`npm install failed: ${err.stdout}`, 22);
       }
     }
 
-    const skipAst = await resolveSkipFile(skip.ast, mapPaths.map(m => `${m}.ast.json`));
+    const skipAst = await resolveSkipFile(
+      skip.ast,
+      mapPaths.map(m => `${m}.ast.json`)
+    );
     if (!skipAst) {
-      this.logCli(`$ superface compile '${profilePath}' ${mapPaths.map(p => `'${p}'`).join(' ')}`);
+      this.logCli(
+        `$ superface compile '${profilePath}' ${mapPaths
+          .map(p => `'${p}'`)
+          .join(' ')}`
+      );
       try {
         await Compile.run([profilePath, ...mapPaths]);
       } catch (err) {
+        if (!('message' in err)) {
+          // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+          throw developerError(`unexpected error: ${err}`, 22);
+        }
+
+        // we check the 'message` member
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access,@typescript-eslint/restrict-template-expressions
         throw userError(`superface compilation failed: ${err.message}`, 23);
       }
     }
 
-    const skipTsc = await resolveSkipFile(skip.tsc, compiledGluePaths.map(g => nodePath.join(playground.path, g)));
+    const skipTsc = await resolveSkipFile(
+      skip.tsc,
+      compiledGluePaths.map(g => nodePath.join(playground.path, g))
+    );
     if (!skipTsc) {
       this.logCli(`$ tsc ${gluePaths.map(p => `'${p}'`).join(' ')}`);
-      const program = ts.createProgram(
-        gluePaths,
-        {
-          sourceMap: false,
-          outDir: playground.path,
-          declaration: false,
-          target: ts.ScriptTarget.ES2015,
-          module: ts.ModuleKind.CommonJS,
-          moduleResolution: ts.ModuleResolutionKind.NodeJs,
-          strict: true,
-          noEmitOnError: true,
-          typeRoots: ["node_modules/@types"]
-        }
-      );
+      const program = ts.createProgram(gluePaths, {
+        sourceMap: false,
+        outDir: playground.path,
+        declaration: false,
+        target: ts.ScriptTarget.ES2015,
+        module: ts.ModuleKind.CommonJS,
+        moduleResolution: ts.ModuleResolutionKind.NodeJs,
+        strict: true,
+        noEmitOnError: true,
+        typeRoots: ['node_modules/@types'],
+      });
       const result = program.emit();
 
       if (result.emitSkipped) {
@@ -323,16 +389,30 @@ clean: the \`node_modules\` folder and compilation artifacts are cleaned.`
 
         for (const diagnostic of result.diagnostics) {
           if (!diagnostic.file || !diagnostic.start) {
-            throw developerError('Invalid typescript compiler diagnostic output', 21);
+            throw developerError(
+              'Invalid typescript compiler diagnostic output',
+              23
+            );
           }
 
-          let { line, character } = diagnostic.file.getLineAndCharacterOfPosition(diagnostic.start);
-          let message = ts.flattenDiagnosticMessageText(diagnostic.messageText, "\n");
+          const {
+            line,
+            character,
+          } = diagnostic.file.getLineAndCharacterOfPosition(diagnostic.start);
+          const message = ts.flattenDiagnosticMessageText(
+            diagnostic.messageText,
+            '\n'
+          );
 
-          diagnosticMessage += `\t${diagnostic.file.fileName}:${line + 1}:${character + 1} ${message}`;
+          diagnosticMessage += `\t${diagnostic.file.fileName}:${line + 1}:${
+            character + 1
+          } ${message}`;
         }
 
-        throw userError(`Typescript compilation failed: ${diagnosticMessage}`, 24);
+        throw userError(
+          `Typescript compilation failed: ${diagnosticMessage}`,
+          24
+        );
       }
     }
 
@@ -346,14 +426,14 @@ clean: the \`node_modules\` folder and compilation artifacts are cleaned.`
           cwd: playground.path,
           env: {
             ...process.env,
-            'DEBUG': '*'
-          }
+            DEBUG: '*',
+          },
         },
         {
           forwardStdout: true,
-          forwardStderr: true
+          forwardStderr: true,
         }
-      )
+      );
     }
   }
 
@@ -365,43 +445,36 @@ clean: the \`node_modules\` folder and compilation artifacts are cleaned.`
     }
     const playground = await Play.detectPlayground(playgroundPath);
 
-    this.debug("Playground:", playground);
+    this.debug('Playground:', playground);
 
     const files = [
       `${playground.name}.supr.ast.json`,
       'node_modules',
-      'package-lock.json'
+      'package-lock.json',
     ];
     for (const provider of playground.providers.values()) {
-      files.push(
-        `${playground.name}.${provider}.suma.ast.json`
-      );
-      files.push(
-        `${playground.name}.${provider}.js`,
-      );
+      files.push(`${playground.name}.${provider}.suma.ast.json`);
+      files.push(`${playground.name}.${provider}.js`);
     }
     this.logCli(`$ rimraf ${files.map(f => `'${f}'`).join(' ')}`);
 
     await Promise.all(
-      files.map(
-        file => rimrafPromise(
-          nodePath.join(playground.path, file)
-        )
-      )
+      files.map(file => rimrafPromise(nodePath.join(playground.path, file)))
     );
   }
 
   // UTILITY //
 
   private static parseProviderNames(input: string): string[] {
-    return input.split(' ').filter(
-      i => i.trim() !== ''
-    ).filter(
-      p => validateDocumentName(p)
-    );
+    return input
+      .split(' ')
+      .filter(i => i.trim() !== '')
+      .filter(p => validateDocumentName(p));
   }
 
   private static async promptExistingPlayground(): Promise<string> {
+    // HOW COME I SEE IT THEN ESLINT?
+    // eslint-disable-next-line import/namespace
     const response: { playground: string } = await inquirer.prompt({
       name: 'playground',
       message: `Path to playground to execute (navigate to a valid playground, use space to expand folders)`,
@@ -409,7 +482,7 @@ clean: the \`node_modules\` folder and compilation artifacts are cleaned.`
       onlyShowValid: false,
       onlyShowDir: true,
       hideChildrenOfValid: true,
-      validate: async (input: any): Promise<boolean> => {
+      validate: async (input: unknown): Promise<boolean> => {
         if (typeof input !== 'string') {
           throw developerError('unexpected argument type', 21);
         }
@@ -421,7 +494,8 @@ clean: the \`node_modules\` folder and compilation artifacts are cleaned.`
         }
 
         return true;
-      }
+      },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any); // have to cast to any because the registration of the new prompt is not known to typescript
 
     return response.playground;
@@ -436,17 +510,19 @@ clean: the \`node_modules\` folder and compilation artifacts are cleaned.`
    * - `<folder-name>.*.suma` (at least one pair with `.ts` below)
    * - `<folder-name>.*.ts`
    */
-  private static async detectPlayground(path: string): Promise<PlaygroundFolder> {
+  private static async detectPlayground(
+    path: string
+  ): Promise<PlaygroundFolder> {
     let stat;
     try {
       stat = await statPromise(path);
     } catch (e) {
       throw userError('The playground path must exist and be accessible', 31);
-    };
+    }
 
     if (!stat.isDirectory()) {
       throw userError('The playground path must be a directory', 32);
-    };
+    }
 
     const baseName = nodePath.basename(path);
     const startName = baseName + '.';
@@ -454,8 +530,8 @@ clean: the \`node_modules\` folder and compilation artifacts are cleaned.`
 
     let foundPackageJson = false;
     let foundProfile = false;
-    let foundMaps: Set<string> = new Set();
-    let foundGlues: Set<string> = new Set();
+    const foundMaps: Set<string> = new Set();
+    const foundGlues: Set<string> = new Set();
 
     for (const entry of entries) {
       if (entry === 'package.json') {
@@ -488,18 +564,18 @@ clean: the \`node_modules\` folder and compilation artifacts are cleaned.`
       }
     }
 
-    let providers: Set<string> = new Set();
+    const providers: Set<string> = new Set();
     for (const x of foundMaps) {
       if (foundGlues.has(x)) {
         providers.add(x);
       }
-    };
+    }
 
     if (foundPackageJson && foundProfile && providers.size > 0) {
       return {
         name: baseName,
         path,
-        providers
+        providers,
       };
     }
 

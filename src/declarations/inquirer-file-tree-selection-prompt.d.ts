@@ -1,4 +1,6 @@
 declare module 'inquirer-file-tree-selection-prompt' {
-	const FileTreeSelectionPrompt: any;
-	export default FileTreeSelectionPrompt;
+  // Allow because the type is not really public
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const FileTreeSelectionPrompt: any;
+  export default FileTreeSelectionPrompt;
 }
