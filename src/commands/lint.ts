@@ -1,21 +1,46 @@
 import { Command, flags } from '@oclif/command';
 import { CLIError } from '@oclif/errors';
-import { Source, SyntaxError } from '@superfaceai/parser';
+import {
+  formatErrors,
+  formatWarnings,
+  getProfileOutput,
+  Source,
+  SyntaxError,
+  validateMap,
+  ValidationError,
+  ValidationWarning,
+} from '@superfaceai/parser';
 
 import {
   DOCUMENT_PARSE_FUNCTION,
   DocumentType,
+  inferDocumentType,
   inferDocumentTypeWithFlag,
 } from '../common/document';
 import { DocumentTypeFlag, documentTypeFlag } from '../common/flags';
 import { OutputStream, readFilePromise } from '../common/io';
 import { formatWordPlurality } from '../util';
 
-type FileReport = {
+type ReportKind = 'file' | 'compatibility';
+
+interface Report {
+  kind: ReportKind;
   path: string;
+}
+
+interface FileReport extends Report {
+  kind: 'file';
   errors: SyntaxError[];
   warnings: unknown[];
-};
+}
+
+interface ProfileMapReport extends Report {
+  kind: 'compatibility';
+  errors: ValidationError[];
+  warnings: ValidationWarning[];
+}
+
+type ReportFormat = FileReport | ProfileMapReport;
 
 type OutputFormatFlag = 'long' | 'short' | 'json';
 export default class Lint extends Command {
@@ -28,12 +53,14 @@ export default class Lint extends Command {
 
   static flags = {
     documentType: documentTypeFlag,
+
     output: flags.string({
       char: 'o',
       description:
         'Filename where the output will be written. `-` is stdout, `-2` is stderr.',
       default: '-',
     }),
+
     append: flags.boolean({
       default: false,
       description:
@@ -55,12 +82,20 @@ export default class Lint extends Command {
         return input;
       },
     })({ default: 'long' }),
+
     color: flags.boolean({
       // TODO: Hidden because it doesn't do anything right now
       hidden: true,
       allowNo: true,
       description:
         'Output colorized report. Only works for `human` output format. Set by default for stdout and stderr output.',
+    }),
+
+    validate: flags.boolean({
+      // TODO: extend or modify this
+      char: 'v',
+      default: false,
+      description: 'Validate maps to specific profile.',
     }),
 
     help: flags.help({ char: 'h' }),
@@ -80,6 +115,7 @@ export default class Lint extends Command {
             outputStream,
             argv,
             flags.documentType,
+            flags.validate,
             '\n',
             report =>
               Lint.formatHuman(
@@ -104,6 +140,7 @@ export default class Lint extends Command {
             outputStream,
             argv,
             flags.documentType,
+            flags.validate,
             ',',
             report => Lint.formatJson(report)
           );
@@ -127,28 +164,40 @@ export default class Lint extends Command {
     outputStream: OutputStream,
     files: string[],
     documentTypeFlag: DocumentTypeFlag,
+    validateFlag: boolean,
     outputGlue: string,
-    fn: (report: FileReport) => string
+    fn: (report: ReportFormat) => string
   ): Promise<[errors: number, warnings: number]> {
     let outputCounter = files.length;
+    let counts: [number, number][] = [];
 
-    const counts = await Promise.all(
-      files.map(
-        async (file): Promise<[number, number]> => {
-          const report = await Lint.lintFile(file, documentTypeFlag);
+    if (!validateFlag) {
+      counts = await Promise.all(
+        files.map(
+          async (file): Promise<[number, number]> => {
+            const report = await Lint.lintFile(file, documentTypeFlag);
 
-          let output = fn(report);
-          if (outputCounter > 1) {
-            output += outputGlue;
+            let output = fn(report);
+            if (outputCounter > 1) {
+              output += outputGlue;
+            }
+            outputCounter -= 1;
+
+            await outputStream.write(output);
+
+            return [report.errors.length, report.warnings.length];
           }
-          outputCounter -= 1;
-
-          await outputStream.write(output);
-
-          return [report.errors.length, report.warnings.length];
-        }
-      )
-    );
+        )
+      );
+    } else {
+      counts = await Lint.lintMapsToProfile(
+        files,
+        outputStream,
+        outputCounter,
+        outputGlue,
+        fn
+      );
+    }
 
     return counts.reduce((acc, curr) => [acc[0] + curr[0], acc[1] + curr[1]]);
   }
@@ -167,6 +216,7 @@ export default class Lint extends Command {
     const source = new Source(content, path);
 
     const result: FileReport = {
+      kind: 'file',
       path,
       errors: [],
       warnings: [],
@@ -181,45 +231,118 @@ export default class Lint extends Command {
     return result;
   }
 
+  static async lintMapsToProfile(
+    files: string[],
+    outputStream: OutputStream,
+    outputCounter: number,
+    outputGlue: string,
+    fn: (report: ReportFormat) => string
+  ): Promise<[number, number][]> {
+    const profile = files.find(
+      file => inferDocumentType(file) === DocumentType.PROFILE
+    );
+    const maps = files.filter(
+      file => inferDocumentType(file) === DocumentType.MAP
+    );
+
+    if (!profile) {
+      throw new CLIError('Cannot validate without profile', { exit: -1 });
+    }
+    if (maps.length === 0) {
+      throw new CLIError('Map not found', { exit: 1 });
+    }
+
+    const parseProfile = DOCUMENT_PARSE_FUNCTION[DocumentType.PROFILE];
+    const parseMap = DOCUMENT_PARSE_FUNCTION[DocumentType.MAP];
+
+    const content = await readFilePromise(profile).then(f => f.toString());
+    const source = new Source(content, profile);
+    const profileOutput = getProfileOutput(parseProfile(source));
+
+    const counts: [number, number][] = [];
+    for (const map of maps) {
+      const content = await readFilePromise(map).then(f => f.toString());
+      const source = new Source(content, map);
+      const result = validateMap(profileOutput, parseMap(source));
+
+      const report: ProfileMapReport = result.pass
+        ? {
+            kind: 'compatibility',
+            path: map,
+            errors: [],
+            warnings: result.warnings ?? [],
+          }
+        : {
+            kind: 'compatibility',
+            path: map,
+            errors: result.errors,
+            warnings: result.warnings ?? [],
+          };
+
+      let output = fn(report);
+      if (outputCounter > 1) {
+        output += outputGlue;
+      }
+      outputCounter -= 1;
+
+      await outputStream.write(output);
+
+      counts.push([
+        result.pass ? 0 : result.errors.length,
+        result.warnings?.length ?? 0,
+      ]);
+    }
+
+    return counts;
+  }
+
   private static formatHuman(
-    report: FileReport,
+    report: ReportFormat,
     short?: boolean,
     _color?: boolean
   ): string {
-    const FILE_OK = '🆗';
-    const FILE_WARN = '⚠️';
-    const FILE_ERR = '❌';
+    const REPORT_OK = '🆗';
+    const REPORT_WARN = '⚠️';
+    const REPORT_ERR = '❌';
 
     let prefix;
     if (report.errors.length > 0) {
-      prefix = FILE_ERR;
+      prefix = REPORT_ERR;
     } else if (report.warnings.length > 0) {
-      prefix = FILE_WARN;
+      prefix = REPORT_WARN;
     } else {
-      prefix = FILE_OK;
+      prefix = REPORT_OK;
     }
 
     let buffer = `${prefix} ${report.path}\n`;
 
-    for (const error of report.errors) {
-      if (short) {
-        buffer += `\t${error.location.line}:${error.location.column} ${error.message}\n`;
-      } else {
-        buffer += error.format();
+    if (report.kind === 'file') {
+      for (const error of report.errors) {
+        if (short) {
+          buffer += `\t${error.location.line}:${error.location.column} ${error.message}\n`;
+        } else {
+          buffer += error.format();
+        }
       }
-    }
-    if (report.errors.length > 0 && report.warnings.length > 0) {
-      buffer += '\n';
-    }
+      if (report.errors.length > 0 && report.warnings.length > 0) {
+        buffer += '\n';
+      }
 
-    // TODO
-    // for (const _warning of report.warnings) {
-    // }
+      // TODO
+      // for (const _warning of report.warnings) {
+      // }
+    } else {
+      buffer += formatErrors(report.errors);
+      if (report.warnings.length > 0) {
+        buffer += '\n';
+      }
+      buffer += formatWarnings(report.warnings);
+    }
 
     return buffer;
   }
 
-  private static formatJson(report: FileReport): string {
+  private static formatJson(report: ReportFormat): string {
     return JSON.stringify(report, (key, value) => {
       if (key === 'source') {
         return undefined;
