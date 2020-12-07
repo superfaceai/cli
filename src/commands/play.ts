@@ -3,7 +3,6 @@ import chalk from 'chalk';
 import * as inquirer from 'inquirer';
 import FileTreeSelectionPrompt from 'inquirer-file-tree-selection-prompt';
 import * as nodePath from 'path';
-import * as ts from 'typescript';
 
 import { validateDocumentName } from '../common/document';
 import { developerError, userError } from '../common/error';
@@ -313,8 +312,8 @@ clean: the \`node_modules\` folder and compilation artifacts are cleaned.`;
       nodePath.join(playground.path, `${playground.name}.${provider}.suma`)
     );
 
-    const gluePaths = providers.map(provider =>
-      nodePath.join(playground.path, `${playground.name}.${provider}.ts`)
+    const gluePaths = providers.map(
+      provider => `${playground.name}.${provider}.ts`
     );
     const compiledGluePaths = providers.map(
       provider => `${playground.name}.${provider}.js`
@@ -332,7 +331,7 @@ clean: the \`node_modules\` folder and compilation artifacts are cleaned.`;
       } catch (err) {
         if (!('stdout' in err)) {
           // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-          throw developerError(`unexpected error: ${err}`, 21);
+          throw developerError(`unexpected error: ${err}`, 22);
         }
 
         // we check the 'stdout` member
@@ -370,49 +369,37 @@ clean: the \`node_modules\` folder and compilation artifacts are cleaned.`;
       compiledGluePaths.map(g => nodePath.join(playground.path, g))
     );
     if (!skipTsc) {
-      this.logCli(`$ tsc ${gluePaths.map(p => `'${p}'`).join(' ')}`);
-      const program = ts.createProgram(gluePaths, {
-        sourceMap: false,
-        outDir: playground.path,
-        declaration: false,
-        target: ts.ScriptTarget.ES2015,
-        module: ts.ModuleKind.CommonJS,
-        moduleResolution: ts.ModuleResolutionKind.NodeJs,
-        strict: true,
-        noEmitOnError: true,
-        typeRoots: ['node_modules/@types'],
-      });
-      const result = program.emit();
-
-      if (result.emitSkipped) {
-        let diagnosticMessage = '\n';
-
-        for (const diagnostic of result.diagnostics) {
-          if (!diagnostic.file || !diagnostic.start) {
-            throw developerError(
-              'Invalid typescript compiler diagnostic output',
-              23
-            );
+      this.logCli(
+        `$ tsc --strict --target ES2015 --module commonjs --outDir ${
+          playground.path
+        } ${gluePaths.map(p => `'${p}'`).join(' ')}`
+      );
+      try {
+        await execFilePromise(
+          nodePath.join('node_modules', '.bin', 'tsc'),
+          [
+            '--strict',
+            '--target',
+            'ES2015',
+            '--module',
+            'commonjs',
+            '--outDir',
+            '.',
+            ...gluePaths,
+          ],
+          {
+            cwd: playground.path,
           }
-
-          const {
-            line,
-            character,
-          } = diagnostic.file.getLineAndCharacterOfPosition(diagnostic.start);
-          const message = ts.flattenDiagnosticMessageText(
-            diagnostic.messageText,
-            '\n'
-          );
-
-          diagnosticMessage += `\t${diagnostic.file.fileName}:${line + 1}:${
-            character + 1
-          } ${message}`;
+        );
+      } catch (err) {
+        if (!('stdout' in err)) {
+          // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+          throw developerError(`unexpected error: ${err}`, 23);
         }
 
-        throw userError(
-          `Typescript compilation failed: ${diagnosticMessage}`,
-          24
-        );
+        // we check the 'stdout` member
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access,@typescript-eslint/restrict-template-expressions
+        throw userError(`tsc failed: ${err.stdout}`, 23);
       }
     }
 

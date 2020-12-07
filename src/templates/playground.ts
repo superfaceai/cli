@@ -6,6 +6,7 @@ export function packageJson(name: string): string {
     "@superfaceai/sdk": "^0.0.3"
   },
   "devDependencies": {
+    "@types/node": "^14.14.10",
     "typescript": "^4"
   }
 }`;
