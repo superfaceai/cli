@@ -70,7 +70,7 @@ describe('Play CLI command', () => {
     expect(undefined).toBeUndefined();
   });
 
-  it('execute compiles playground and executes it', async () => {
+  xit('execute compiles playground and executes it', async () => {
     stdout.start();
     await Play.run([
       'execute',
