@@ -1,12 +1,11 @@
 import * as childProcess from 'child_process';
-// eslint is having a bad day
-// eslint-disable-next-line import/named
-import { debug as createDebug } from 'debug';
+import createDebug from 'debug';
 import * as fs from 'fs';
 import rimraf from 'rimraf';
 import { Writable } from 'stream';
 import { promisify } from 'util';
 
+import { assertIsIOError } from './error';
 import { SkipFileType } from './flags';
 
 export const readFilePromise = promisify(fs.readFile);
@@ -17,6 +16,25 @@ export const readdirPromise = promisify(fs.readdir);
 export const mkdirPromise = promisify(fs.mkdir);
 
 export const rimrafPromise = promisify(rimraf);
+
+export async function existsPromise(path: string): Promise<boolean> {
+  try {
+    await accessPromise(path);
+  } catch (err: unknown) {
+    assertIsIOError(err);
+
+    // Allow `ENOENT` because it answers the question.
+    if (err.code === 'ENOENT') {
+      return false;
+    }
+
+    // Rethrow other errors.
+    throw err;
+  }
+
+  // No error, no problem.
+  return true;
+}
 
 export function streamWritePromise(
   stream: Writable,

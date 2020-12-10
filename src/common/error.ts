@@ -1,4 +1,5 @@
 import { CLIError } from '@oclif/errors';
+import { inspect } from 'util';
 
 /**
  * User error.
@@ -7,12 +8,12 @@ import { CLIError } from '@oclif/errors';
  *
  * Has a positive exit code.
  */
-export function userError(message: string, index: number): CLIError {
-  if (index <= 0) {
-    throw developerError('expected positive error index', 1);
+export function userError(message: string, code: number): CLIError {
+  if (code <= 0) {
+    throw developerError('expected positive error code', 1);
   }
 
-  return new CLIError(message, { exit: index });
+  return new CLIError(message, { exit: code });
 }
 
 /**
@@ -22,10 +23,50 @@ export function userError(message: string, index: number): CLIError {
  *
  * Has a negative exit code.
  */
-export function developerError(message: string, index: number): CLIError {
-  if (index <= 0) {
-    throw developerError('expected positive error index', 1);
+export function developerError(message: string, code: number): CLIError {
+  if (code <= 0) {
+    throw developerError('expected positive error code', 1);
   }
 
-  return new CLIError(`Internal error: ${message}`, { exit: -index });
+  return new CLIError(`Internal error: ${message}`, { exit: -code });
+}
+
+export function assertIsGenericError(
+  error: unknown
+): asserts error is { message: string } {
+  if (typeof error === 'object' && error !== null && 'message' in error) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const err: Record<string, any> = error;
+    if (typeof err.message === 'string') {
+      return;
+    }
+  }
+
+  throw developerError(`unexpected error: ${inspect(error)}`, 101);
+}
+export function assertIsIOError(
+  error: unknown
+): asserts error is { code: string } {
+  if (typeof error === 'object' && error !== null && 'code' in error) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const err: Record<string, any> = error;
+    if (typeof err.code === 'string') {
+      return;
+    }
+  }
+
+  throw developerError(`unexpected error: ${inspect(error)}`, 102);
+}
+export function assertIsExecError(
+  error: unknown
+): asserts error is { stdout: string } {
+  if (typeof error === 'object' && error !== null && 'stdout' in error) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const err: Record<string, any> = error;
+    if (typeof err.stdout === 'string') {
+      return;
+    }
+  }
+
+  throw developerError(`unexpected error: ${inspect(error)}`, 103);
 }

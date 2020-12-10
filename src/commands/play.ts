@@ -1,15 +1,20 @@
 import { Command, flags } from '@oclif/command';
 import chalk from 'chalk';
-import * as inquirer from 'inquirer';
+import inquirer from 'inquirer';
 import FileTreeSelectionPrompt from 'inquirer-file-tree-selection-prompt';
 import * as nodePath from 'path';
 
 import { validateDocumentName } from '../common/document';
-import { developerError, userError } from '../common/error';
+import {
+  assertIsExecError,
+  assertIsGenericError,
+  developerError,
+  userError,
+} from '../common/error';
 import { skipFileFlag, SkipFileType } from '../common/flags';
 import {
-  accessPromise,
   execFilePromise,
+  existsPromise,
   mkdirPromise,
   OutputStream,
   readdirPromise,
@@ -22,11 +27,16 @@ import * as playgroundTemplate from '../templates/playground';
 import * as profileTemplate from '../templates/profile';
 import Compile from './compile';
 
-// just let me use this js library eslint
-// eslint-disable-next-line import/namespace
 inquirer.registerPrompt('file-tree-selection', FileTreeSelectionPrompt);
 
 type ActionType = 'initialize' | 'execute' | 'clean';
+function isActionType(input: unknown): input is ActionType {
+  return (
+    typeof input === 'string' &&
+    (input === 'initialize' || input === 'execute' || input === 'clean')
+  );
+}
+
 interface PlaygroundFolder {
   name: string;
   path: string;
@@ -92,11 +102,8 @@ clean: the \`node_modules\` folder and compilation artifacts are cleaned.`;
   async run(): Promise<void> {
     const { args, flags } = this.parse(Play);
 
-    // what even are types
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    let action: ActionType = args.action;
+    let action: unknown = args.action;
     if (action === undefined) {
-      // eslint-disable-next-line import/namespace
       const response: { action: ActionType } = await inquirer.prompt({
         name: 'action',
         message: 'Select an action',
@@ -119,6 +126,9 @@ clean: the \`node_modules\` folder and compilation artifacts are cleaned.`;
       action = response.action;
     }
     this.debug('Action:', action);
+    if (!isActionType(action)) {
+      throw developerError('Invalid action', 1);
+    }
 
     if (action === 'initialize') {
       await this.runInitialize(args.playground, flags.providers);
@@ -130,8 +140,6 @@ clean: the \`node_modules\` folder and compilation artifacts are cleaned.`;
       });
     } else if (action === 'clean') {
       await this.runClean(args.playground);
-    } else {
-      throw developerError('Invalid action', 1);
     }
   }
 
@@ -142,7 +150,6 @@ clean: the \`node_modules\` folder and compilation artifacts are cleaned.`;
     providers: string[] | undefined
   ): Promise<void> {
     if (path === undefined) {
-      // eslint-disable-next-line import/namespace
       const response: { playground: string } = await inquirer.prompt({
         name: 'playground',
         message: `Path to playground to initialize`,
@@ -156,22 +163,7 @@ clean: the \`node_modules\` folder and compilation artifacts are cleaned.`;
             return 'The playground path must not be empty.';
           }
 
-          let exists = true;
-          try {
-            await accessPromise(input);
-          } catch (err) {
-            if (!('code' in err)) {
-              // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-              throw developerError(`unexpected error: ${err}`, 12);
-            }
-
-            // we check the 'code` member
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-            if (err.code === 'ENOENT') {
-              // We are looking for a non-existent path
-              exists = false;
-            }
-          }
+          const exists = await existsPromise(input);
           if (exists) {
             return 'The playground path must not exist.';
           }
@@ -198,7 +190,6 @@ clean: the \`node_modules\` folder and compilation artifacts are cleaned.`;
     }
 
     if (providers === undefined || providers.length === 0) {
-      // eslint-disable-next-line import/namespace
       const response: { providers: string } = await inquirer.prompt({
         name: 'providers',
         message: 'Input space separated list of providers to create',
@@ -269,7 +260,6 @@ clean: the \`node_modules\` folder and compilation artifacts are cleaned.`;
     const playground = await Play.detectPlayground(playgroundPath);
 
     if (providers === undefined || providers.length === 0) {
-      // eslint-disable-next-line import/namespace
       const response: { providers: string[] } = await inquirer.prompt({
         name: 'providers',
         message: 'Select a provider to execute',
@@ -329,13 +319,7 @@ clean: the \`node_modules\` folder and compilation artifacts are cleaned.`;
           cwd: playground.path,
         });
       } catch (err) {
-        if (!('stdout' in err)) {
-          // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-          throw developerError(`unexpected error: ${err}`, 22);
-        }
-
-        // we check the 'stdout` member
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access,@typescript-eslint/restrict-template-expressions
+        assertIsExecError(err);
         throw userError(`npm install failed: ${err.stdout}`, 22);
       }
     }
@@ -353,13 +337,7 @@ clean: the \`node_modules\` folder and compilation artifacts are cleaned.`;
       try {
         await Compile.run([profilePath, ...mapPaths]);
       } catch (err) {
-        if (!('message' in err)) {
-          // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-          throw developerError(`unexpected error: ${err}`, 22);
-        }
-
-        // we check the 'message` member
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access,@typescript-eslint/restrict-template-expressions
+        assertIsGenericError(err);
         throw userError(`superface compilation failed: ${err.message}`, 23);
       }
     }
@@ -392,13 +370,7 @@ clean: the \`node_modules\` folder and compilation artifacts are cleaned.`;
           }
         );
       } catch (err) {
-        if (!('stdout' in err)) {
-          // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-          throw developerError(`unexpected error: ${err}`, 23);
-        }
-
-        // we check the 'stdout` member
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access,@typescript-eslint/restrict-template-expressions
+        assertIsExecError(err);
         throw userError(`tsc failed: ${err.stdout}`, 23);
       }
     }
@@ -456,12 +428,10 @@ clean: the \`node_modules\` folder and compilation artifacts are cleaned.`;
     return input
       .split(' ')
       .filter(i => i.trim() !== '')
-      .filter(p => validateDocumentName(p));
+      .filter(validateDocumentName);
   }
 
   private static async promptExistingPlayground(): Promise<string> {
-    // HOW COME I SEE IT THEN ESLINT?
-    // eslint-disable-next-line import/namespace
     const response: { playground: string } = await inquirer.prompt({
       name: 'playground',
       message: `Path to playground to execute (navigate to a valid playground, use space to expand folders)`,
@@ -482,8 +452,7 @@ clean: the \`node_modules\` folder and compilation artifacts are cleaned.`;
 
         return true;
       },
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } as any); // have to cast to any because the registration of the new prompt is not known to typescript
+    } as typeof FileTreeSelectionPrompt); // have to cast because the registration of the new prompt is not known to typescript
 
     return response.playground;
   }
@@ -552,9 +521,9 @@ clean: the \`node_modules\` folder and compilation artifacts are cleaned.`;
     }
 
     const providers: Set<string> = new Set();
-    for (const x of foundMaps) {
-      if (foundGlues.has(x)) {
-        providers.add(x);
+    for (const provider of foundMaps) {
+      if (foundGlues.has(provider)) {
+        providers.add(provider);
       }
     }
 

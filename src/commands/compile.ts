@@ -7,7 +7,7 @@ import {
   DocumentType,
   inferDocumentTypeWithFlag,
 } from '../common/document';
-import { userError } from '../common/error';
+import { assertIsIOError, userError } from '../common/error';
 import { DocumentTypeFlag, documentTypeFlag } from '../common/flags';
 import { lstatPromise, OutputStream, readFilePromise } from '../common/io';
 
@@ -55,14 +55,11 @@ export default class Compile extends Command {
       try {
         const lstat = await lstatPromise(outputPath);
         isDirectory = lstat.isDirectory();
-      } catch (e) {
+      } catch (err: unknown) {
         // eat ENOENT error and keep isDirectory false
-        if (e !== null && typeof e === 'object' && 'code' in e) {
-          // All the checks done and eslint still complains
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-          if (e.code !== 'ENOENT') {
-            throw e;
-          }
+        assertIsIOError(err);
+        if (err.code !== 'ENOENT') {
+          throw err;
         }
       }
 
