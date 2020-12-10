@@ -1,31 +1,19 @@
 import { Command, flags } from '@oclif/command';
-import chalk from 'chalk';
+import { grey } from 'chalk';
 import inquirer from 'inquirer';
 import FileTreeSelectionPrompt from 'inquirer-file-tree-selection-prompt';
 import * as nodePath from 'path';
 
 import { validateDocumentName } from '../common/document';
-import {
-  assertIsExecError,
-  assertIsGenericError,
-  developerError,
-  userError,
-} from '../common/error';
+import { developerError, userError } from '../common/error';
 import { skipFileFlag, SkipFileType } from '../common/flags';
+import { existsPromise } from '../common/io';
 import {
-  execFilePromise,
-  existsPromise,
-  mkdirPromise,
-  OutputStream,
-  readdirPromise,
-  resolveSkipFile,
-  rimrafPromise,
-  statPromise,
-} from '../common/io';
-import * as mapTemplate from '../templates/map';
-import * as playgroundTemplate from '../templates/playground';
-import * as profileTemplate from '../templates/profile';
-import Compile from './compile';
+  cleanPlayground,
+  detectPlayground,
+  executePlayground,
+  initializePlayground,
+} from '../logic/playground';
 
 inquirer.registerPrompt('file-tree-selection', FileTreeSelectionPrompt);
 
@@ -35,12 +23,6 @@ function isActionType(input: unknown): input is ActionType {
     typeof input === 'string' &&
     (input === 'initialize' || input === 'execute' || input === 'clean')
   );
-}
-
-interface PlaygroundFolder {
-  name: string;
-  path: string;
-  providers: Set<string>;
 }
 
 export default class Play extends Command {
@@ -181,14 +163,6 @@ clean: the \`node_modules\` folder and compilation artifacts are cleaned.`;
     }
     const playgroundPath = path;
 
-    const name = nodePath.basename(playgroundPath);
-    if (!validateDocumentName(name)) {
-      throw userError(
-        'The playground name must be a valid slang identifier',
-        11
-      );
-    }
-
     if (providers === undefined || providers.length === 0) {
       const response: { providers: string } = await inquirer.prompt({
         name: 'providers',
@@ -204,47 +178,8 @@ clean: the \`node_modules\` folder and compilation artifacts are cleaned.`;
     }
 
     this.debug('Playground path:', playgroundPath);
-    this.debug('Playground name:', name);
     this.debug('Providers:', providers);
-
-    await mkdirPromise(playgroundPath, { recursive: true, mode: 0o744 });
-
-    const packageJsonPromise = OutputStream.writeOnce(
-      nodePath.join(playgroundPath, 'package.json'),
-      playgroundTemplate.packageJson(name)
-    );
-
-    const gluesPromises = providers.map(provider =>
-      OutputStream.writeOnce(
-        nodePath.join(playgroundPath, `${name}.${provider}.ts`),
-        playgroundTemplate.glueScript('pubs', name, provider)
-      )
-    );
-
-    const profilePromise = OutputStream.writeOnce(
-      nodePath.join(playgroundPath, `${name}.supr`),
-      profileTemplate.header(name) + profileTemplate.pubs(name)
-    );
-
-    const mapsPromises = providers.map(provider =>
-      OutputStream.writeOnce(
-        nodePath.join(playgroundPath, `${name}.${provider}.suma`),
-        mapTemplate.header(name, provider) + mapTemplate.pubs(name)
-      )
-    );
-
-    const npmrcPromise = OutputStream.writeOnce(
-      nodePath.join(playgroundPath, '.npmrc'),
-      playgroundTemplate.npmRc()
-    );
-
-    await Promise.all([
-      packageJsonPromise,
-      ...gluesPromises,
-      profilePromise,
-      ...mapsPromises,
-      npmrcPromise,
-    ]);
+    await initializePlayground(playgroundPath, providers, m => this.log(grey(m)));
   }
 
   // EXECUTE //
@@ -257,7 +192,7 @@ clean: the \`node_modules\` folder and compilation artifacts are cleaned.`;
     if (playgroundPath === undefined) {
       playgroundPath = await Play.promptExistingPlayground();
     }
-    const playground = await Play.detectPlayground(playgroundPath);
+    const playground = await detectPlayground(playgroundPath);
 
     if (providers === undefined || providers.length === 0) {
       const response: { providers: string[] } = await inquirer.prompt({
@@ -286,114 +221,7 @@ clean: the \`node_modules\` folder and compilation artifacts are cleaned.`;
     this.debug('Playground:', playground);
     this.debug('Providers:', providers);
     this.debug('Skip:', skip);
-    await this.executePlayground(playground, providers, skip);
-  }
-
-  private async executePlayground(
-    playground: PlaygroundFolder,
-    providers: string[],
-    skip: Record<'npm' | 'ast' | 'tsc', SkipFileType>
-  ): Promise<void> {
-    const profilePath = nodePath.join(
-      playground.path,
-      `${playground.name}.supr`
-    );
-    const mapPaths = providers.map(provider =>
-      nodePath.join(playground.path, `${playground.name}.${provider}.suma`)
-    );
-
-    const gluePaths = providers.map(
-      provider => `${playground.name}.${provider}.ts`
-    );
-    const compiledGluePaths = providers.map(
-      provider => `${playground.name}.${provider}.js`
-    );
-
-    const skipNpm = await resolveSkipFile(skip.npm, [
-      nodePath.join(playground.path, 'node_modules'),
-    ]);
-    if (!skipNpm) {
-      this.logCli('$ npm install');
-      try {
-        await execFilePromise('npm', ['install'], {
-          cwd: playground.path,
-        });
-      } catch (err) {
-        assertIsExecError(err);
-        throw userError(`npm install failed: ${err.stdout}`, 22);
-      }
-    }
-
-    const skipAst = await resolveSkipFile(
-      skip.ast,
-      mapPaths.map(m => `${m}.ast.json`)
-    );
-    if (!skipAst) {
-      this.logCli(
-        `$ superface compile '${profilePath}' ${mapPaths
-          .map(p => `'${p}'`)
-          .join(' ')}`
-      );
-      try {
-        await Compile.run([profilePath, ...mapPaths]);
-      } catch (err) {
-        assertIsGenericError(err);
-        throw userError(`superface compilation failed: ${err.message}`, 23);
-      }
-    }
-
-    const skipTsc = await resolveSkipFile(
-      skip.tsc,
-      compiledGluePaths.map(g => nodePath.join(playground.path, g))
-    );
-    if (!skipTsc) {
-      this.logCli(
-        `$ tsc --strict --target ES2015 --module commonjs --outDir ${
-          playground.path
-        } ${gluePaths.map(p => `'${p}'`).join(' ')}`
-      );
-      try {
-        await execFilePromise(
-          nodePath.join('node_modules', '.bin', 'tsc'),
-          [
-            '--strict',
-            '--target',
-            'ES2015',
-            '--module',
-            'commonjs',
-            '--outDir',
-            '.',
-            ...gluePaths,
-          ],
-          {
-            cwd: playground.path,
-          }
-        );
-      } catch (err) {
-        assertIsExecError(err);
-        throw userError(`tsc failed: ${err.stdout}`, 23);
-      }
-    }
-
-    for (const compiledGluePath of compiledGluePaths) {
-      this.logCli(`$ DEBUG='*' '${process.execPath}' '${compiledGluePath}'`);
-
-      await execFilePromise(
-        process.execPath,
-        [compiledGluePath],
-        {
-          cwd: playground.path,
-          env: {
-            ...process.env,
-            DEBUG: '*',
-          },
-        },
-        {
-          forwardStdout: true,
-          forwardStderr: true,
-        }
-      );
-    }
+    await executePlayground(playground, providers, skip, m => this.log(grey(m)));
   }
 
   // CLEAN //
@@ -402,24 +230,10 @@ clean: the \`node_modules\` folder and compilation artifacts are cleaned.`;
     if (playgroundPath === undefined) {
       playgroundPath = await Play.promptExistingPlayground();
     }
-    const playground = await Play.detectPlayground(playgroundPath);
+    const playground = await detectPlayground(playgroundPath);
 
     this.debug('Playground:', playground);
-
-    const files = [
-      `${playground.name}.supr.ast.json`,
-      'node_modules',
-      'package-lock.json',
-    ];
-    for (const provider of playground.providers.values()) {
-      files.push(`${playground.name}.${provider}.suma.ast.json`);
-      files.push(`${playground.name}.${provider}.js`);
-    }
-    this.logCli(`$ rimraf ${files.map(f => `'${f}'`).join(' ')}`);
-
-    await Promise.all(
-      files.map(file => rimrafPromise(nodePath.join(playground.path, file)))
-    );
+    await cleanPlayground(playground, m => this.log(grey(m)));
   }
 
   // UTILITY //
@@ -445,7 +259,7 @@ clean: the \`node_modules\` folder and compilation artifacts are cleaned.`;
         }
 
         try {
-          await Play.detectPlayground(input);
+          await detectPlayground(input);
         } catch (e) {
           return false;
         }
@@ -455,90 +269,5 @@ clean: the \`node_modules\` folder and compilation artifacts are cleaned.`;
     } as typeof FileTreeSelectionPrompt); // have to cast because the registration of the new prompt is not known to typescript
 
     return response.playground;
-  }
-
-  /**
-   * Detects playground at specified directory path or rejects.
-   *
-   * Looks for all of these files:
-   * - `package.json`
-   * - `<folder-name>.supr`
-   * - `<folder-name>.*.suma` (at least one pair with `.ts` below)
-   * - `<folder-name>.*.ts`
-   */
-  private static async detectPlayground(
-    path: string
-  ): Promise<PlaygroundFolder> {
-    let stat;
-    try {
-      stat = await statPromise(path);
-    } catch (e) {
-      throw userError('The playground path must exist and be accessible', 31);
-    }
-
-    if (!stat.isDirectory()) {
-      throw userError('The playground path must be a directory', 32);
-    }
-
-    const baseName = nodePath.basename(path);
-    const startName = baseName + '.';
-    const entries = await readdirPromise(path);
-
-    let foundPackageJson = false;
-    let foundProfile = false;
-    const foundMaps: Set<string> = new Set();
-    const foundGlues: Set<string> = new Set();
-
-    for (const entry of entries) {
-      if (entry === 'package.json') {
-        foundPackageJson = true;
-      } else if (entry.startsWith(startName)) {
-        if (entry === `${startName}supr`) {
-          foundProfile = true;
-          continue;
-        }
-
-        if (entry.endsWith('.suma')) {
-          const provider = entry.slice(
-            startName.length,
-            entry.length - '.suma'.length
-          );
-
-          foundMaps.add(provider);
-          continue;
-        }
-
-        if (entry.endsWith('.ts')) {
-          const provider = entry.slice(
-            startName.length,
-            entry.length - '.ts'.length
-          );
-
-          foundGlues.add(provider);
-          continue;
-        }
-      }
-    }
-
-    const providers: Set<string> = new Set();
-    for (const provider of foundMaps) {
-      if (foundGlues.has(provider)) {
-        providers.add(provider);
-      }
-    }
-
-    if (foundPackageJson && foundProfile && providers.size > 0) {
-      return {
-        name: baseName,
-        path,
-        providers,
-      };
-    }
-
-    throw userError('The directory at playground path is not a playground', 33);
-  }
-
-  private logCli(message: string) {
-    this.log(chalk.grey(message));
   }
 }
