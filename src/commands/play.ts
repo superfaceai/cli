@@ -78,8 +78,17 @@ clean: the \`node_modules\` folder and compilation artifacts are cleaned.`;
         'Control skipping behavior of the tsc compile execution step.\n`exists` checks for the presence of `<name>.<provider>.js files.',
     }),
 
+    quiet: flags.boolean({
+      char: 'q',
+      description:
+        'When set to true, disables the shell echo output of play actions.',
+      default: false,
+    }),
+
     help: flags.help({ char: 'h' }),
   };
+
+  private logCallback?: (message: string) => void = m => this.log(grey(m));
 
   async run(): Promise<void> {
     const { args, flags } = this.parse(Play);
@@ -110,6 +119,10 @@ clean: the \`node_modules\` folder and compilation artifacts are cleaned.`;
     this.debug('Action:', action);
     if (!isActionType(action)) {
       throw developerError('Invalid action', 1);
+    }
+
+    if (flags.quiet === true) {
+      this.logCallback = undefined;
     }
 
     if (action === 'initialize') {
@@ -179,9 +192,7 @@ clean: the \`node_modules\` folder and compilation artifacts are cleaned.`;
 
     this.debug('Playground path:', playgroundPath);
     this.debug('Providers:', providers);
-    await initializePlayground(playgroundPath, providers, m =>
-      this.log(grey(m))
-    );
+    await initializePlayground(playgroundPath, providers, this.logCallback);
   }
 
   // EXECUTE //
@@ -223,9 +234,7 @@ clean: the \`node_modules\` folder and compilation artifacts are cleaned.`;
     this.debug('Playground:', playground);
     this.debug('Providers:', providers);
     this.debug('Skip:', skip);
-    await executePlayground(playground, providers, skip, m =>
-      this.log(grey(m))
-    );
+    await executePlayground(playground, providers, skip, this.logCallback);
   }
 
   // CLEAN //
@@ -237,7 +246,7 @@ clean: the \`node_modules\` folder and compilation artifacts are cleaned.`;
     const playground = await detectPlayground(playgroundPath);
 
     this.debug('Playground:', playground);
-    await cleanPlayground(playground, m => this.log(grey(m)));
+    await cleanPlayground(playground, this.logCallback);
   }
 
   // UTILITY //

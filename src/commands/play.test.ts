@@ -31,19 +31,20 @@ describe('Play CLI command', () => {
     );
   });
 
-  it('a valid playground is detected', async () => {
+  it('detects a valid playground', async () => {
     expect(
       await Play.run(['clean', nodePath.join(baseFixture, 'valid')])
     ).toBeUndefined();
   });
 
-  it('an invalid playground is rejected', async () => {
+  it('rejects an an invalid playground', async () => {
     await expect(
       Play.run(['clean', nodePath.join(baseFixture, 'invalid')])
     ).rejects.toThrow('The directory at playground path is not a playground');
   });
 
-  it('initialize creates a valid playground', async () => {
+  it('creates a valid playground', async () => {
+    stdout.start();
     await Play.run([
       'initialize',
       testPlaygroundPath,
@@ -51,9 +52,9 @@ describe('Play CLI command', () => {
       'foo',
       'bar',
     ]);
+    stdout.stop();
 
     await accessPromise(testPlaygroundPath);
-
     const expectedFiles = [
       'package.json',
       'test.supr',
@@ -66,12 +67,36 @@ describe('Play CLI command', () => {
       await accessPromise(nodePath.join(testPlaygroundPath, file));
     }
 
-    // No exceptions thrown
-    expect(undefined).toBeUndefined();
+    expect(stdout.output).toBe(
+      `$ mkdir fixtures/playgrounds/test
+$ echo '<package template>' > fixtures/playgrounds/test/package.json
+$ echo '<glue template>' > fixtures/playgrounds/test/test.foo.ts
+$ echo '<glue template>' > fixtures/playgrounds/test/test.bar.ts
+$ echo '<profile template>' > fixtures/playgrounds/test/test.supr
+$ echo '<map template>' > fixtures/playgrounds/test/test.foo.suma
+$ echo '<map template>' > fixtures/playgrounds/test/test.bar.suma
+$ echo '<npmrc template>' > fixtures/playgrounds/test/.npmrc
+`
+    );
+  });
+
+  it('does not log to stdout with --quiet', async () => {
+    stdout.start();
+    await Play.run([
+      'initialize',
+      testPlaygroundPath,
+      '--providers',
+      'foo',
+      'bar',
+      '--quiet',
+    ]);
+    stdout.stop();
+
+    expect(stdout.output).toBe('');
   });
 
   // TODO: Currently skipping this in CI because of access permission issues
-  it.skip('execute compiles playground and executes it', async () => {
+  it.skip('compiles playground and executes it', async () => {
     stdout.start();
     await Play.run([
       'execute',
@@ -97,7 +122,7 @@ describe('Play CLI command', () => {
     );
   }, 30000);
 
-  it('clean cleans compilation artifacts', async () => {
+  it('cleans compilation artifacts', async () => {
     const deletedFiles = [
       'package-lock.json',
       'node_modules',
@@ -125,7 +150,9 @@ describe('Play CLI command', () => {
       )
     );
 
+    stdout.start();
     await Play.run(['clean', testPlaygroundPath]);
+    stdout.stop();
 
     await Promise.all(
       deletedFiles.map(file =>
@@ -139,6 +166,11 @@ describe('Play CLI command', () => {
       expectedFiles.map(file =>
         accessPromise(nodePath.join(testPlaygroundPath, file))
       )
+    );
+
+    expect(stdout.output).toBe(
+      `$ rimraf 'test.supr.ast.json' 'node_modules' 'package-lock.json' 'test.bar.suma.ast.json' 'test.bar.js' 'test.foo.suma.ast.json' 'test.foo.js'
+`
     );
   });
 });
