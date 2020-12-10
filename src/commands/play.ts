@@ -179,7 +179,9 @@ clean: the \`node_modules\` folder and compilation artifacts are cleaned.`;
 
     this.debug('Playground path:', playgroundPath);
     this.debug('Providers:', providers);
-    await initializePlayground(playgroundPath, providers, m => this.log(grey(m)));
+    await initializePlayground(playgroundPath, providers, m =>
+      this.log(grey(m))
+    );
   }
 
   // EXECUTE //
@@ -221,7 +223,9 @@ clean: the \`node_modules\` folder and compilation artifacts are cleaned.`;
     this.debug('Playground:', playground);
     this.debug('Providers:', providers);
     this.debug('Skip:', skip);
-    await executePlayground(playground, providers, skip, m => this.log(grey(m)));
+    await executePlayground(playground, providers, skip, m =>
+      this.log(grey(m))
+    );
   }
 
   // CLEAN //
