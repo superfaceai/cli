@@ -1,8 +1,7 @@
 import { Command, flags } from '@oclif/command';
 import { CLIError } from '@oclif/errors';
 import {
-  formatErrors,
-  formatWarnings,
+  formatIssues,
   getProfileOutput,
   Source,
   SyntaxError,
@@ -14,8 +13,11 @@ import {
 import {
   DOCUMENT_PARSE_FUNCTION,
   DocumentType,
-  inferDocumentType,
   inferDocumentTypeWithFlag,
+  isMapFile,
+  isProfileFile,
+  isUnknown,
+  isUnknownFile,
 } from '../common/document';
 import { DocumentTypeFlag, documentTypeFlag } from '../common/flags';
 import { OutputStream, readFilePromise } from '../common/io';
@@ -207,7 +209,7 @@ export default class Lint extends Command {
     documentTypeFlag: DocumentTypeFlag
   ): Promise<FileReport> {
     const documenType = inferDocumentTypeWithFlag(documentTypeFlag, path);
-    if (documenType === DocumentType.UNKNOWN) {
+    if (isUnknown(documenType)) {
       throw new CLIError('Could not infer document type', { exit: 1 });
     }
 
@@ -238,28 +240,37 @@ export default class Lint extends Command {
     outputGlue: string,
     fn: (report: ReportFormat) => string
   ): Promise<[number, number][]> {
-    const profile = files.find(
-      file => inferDocumentType(file) === DocumentType.PROFILE
-    );
-    const maps = files.filter(
-      file => inferDocumentType(file) === DocumentType.MAP
-    );
+    const counts: [number, number][] = [];
+    const profiles = files.filter(isProfileFile);
+    const maps = files.filter(isMapFile);
+    const unknown = files.filter(isUnknownFile);
 
-    if (!profile) {
+    if (profiles.length === 0) {
       throw new CLIError('Cannot validate without profile', { exit: -1 });
     }
+    if (profiles.length > 1) {
+      throw new CLIError('Cannot validate with multiple profiles', {
+        exit: -1,
+      });
+    }
     if (maps.length === 0) {
-      throw new CLIError('Map not found', { exit: 1 });
+      throw new CLIError('Cannot validate without map', {
+        exit: -1,
+      });
+    }
+
+    counts.push([0, unknown.length]);
+    for (const file of unknown) {
+      await outputStream.write(`⚠️  ${file}: Could not infer document type\n`);
     }
 
     const parseProfile = DOCUMENT_PARSE_FUNCTION[DocumentType.PROFILE];
     const parseMap = DOCUMENT_PARSE_FUNCTION[DocumentType.MAP];
 
-    const content = await readFilePromise(profile).then(f => f.toString());
-    const source = new Source(content, profile);
+    const content = await readFilePromise(profiles[0]).then(f => f.toString());
+    const source = new Source(content, profiles[0]);
     const profileOutput = getProfileOutput(parseProfile(source));
 
-    const counts: [number, number][] = [];
     for (const map of maps) {
       const content = await readFilePromise(map).then(f => f.toString());
       const source = new Source(content, map);
@@ -332,11 +343,11 @@ export default class Lint extends Command {
       // for (const _warning of report.warnings) {
       // }
     } else {
-      buffer += formatErrors(report.errors);
+      buffer += formatIssues(report.errors);
       if (report.warnings.length > 0) {
         buffer += '\n';
       }
-      buffer += formatWarnings(report.warnings);
+      buffer += formatIssues(report.warnings);
     }
 
     return buffer;
