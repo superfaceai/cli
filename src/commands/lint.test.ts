@@ -113,10 +113,16 @@ describe('lint CLI command', () => {
 
   it('lints multiple maps to specific profile', async () => {
     await expect(
-      Lint.run(['-v', './fixtures/testProfile.supr', './fixtures/testMap.suma'])
+      Lint.run([
+        '-v',
+        './fixtures/testProfile.supr',
+        './fixtures/testMap.suma',
+        './fixtures/testMapValid.suma',
+      ])
     ).rejects.toHaveProperty(['oclif', 'exit'], 1);
 
     expect(stdout.output).toContain('❌ ./fixtures/testMap.suma');
+    expect(stdout.output).toContain('🆗 ./fixtures/testMapValid.suma');
     expect(stdout.output).toContain(
       '8:1 ProfileId - Wrong Profile ID: expected https://example.com/profile/myProfile, but got http://example.com/profile'
     );
@@ -127,5 +133,58 @@ describe('lint CLI command', () => {
       '90:14 ObjectLiteral - Wrong Structure: expected 404 or 400, but got "ObjectLiteral"'
     );
     expect(stdout.output).toContain('Detected 12 problems');
+  });
+
+  it('lints multiple maps to multiple profiles', async () => {
+    await expect(
+      Lint.run([
+        '-v',
+        './fixtures/testProfile.supr',
+        './fixtures/testMap.suma',
+        './fixtures/strict.supr',
+      ])
+    ).rejects.toThrowError('Cannot validate with multiple profiles');
+
+    await expect(
+      Lint.run([
+        '-v',
+        './fixtures/testProfile.supr',
+        './fixtures/testMap.suma',
+        './fixtures/strict.supr',
+        './fixtures/strict.unknown',
+      ])
+    ).rejects.toThrowError('Cannot validate with multiple profiles');
+  });
+
+  it('lints multiple maps with unknown files to profile', async () => {
+    await expect(
+      Lint.run([
+        '-v',
+        './fixtures/testProfile.supr',
+        './fixtures/testMapValid.suma',
+        './fixtures/strict.unknown',
+        './fixtures/some.unknown',
+      ])
+    ).rejects.toHaveProperty(['oclif', 'exit'], 2);
+
+    expect(stdout.output).toContain('⚠️  ./fixtures/strict.unknown');
+    expect(stdout.output).toContain('⚠️  ./fixtures/some.unknown');
+    expect(stdout.output).toContain('🆗 ./fixtures/testMapValid.suma');
+    expect(stdout.output).toContain('Detected 2 problems');
+
+    await expect(
+      Lint.run([
+        '-v',
+        './fixtures/testProfile.supr',
+        './fixtures/testMap.suma',
+        './fixtures/testMapValid.suma',
+        './fixtures/strict.unknown',
+      ])
+    ).rejects.toHaveProperty(['oclif', 'exit'], 1);
+
+    expect(stdout.output).toContain('⚠️  ./fixtures/strict.unknown');
+    expect(stdout.output).toContain('❌ ./fixtures/testMap.suma');
+    expect(stdout.output).toContain('🆗 ./fixtures/testMapValid.suma');
+    expect(stdout.output).toContain('Detected 2 problems');
   });
 });
