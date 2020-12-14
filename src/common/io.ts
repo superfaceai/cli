@@ -1,25 +1,25 @@
 import * as childProcess from 'child_process';
 import createDebug from 'debug';
 import * as fs from 'fs';
-import rimraf from 'rimraf';
+import rimrafCallback from 'rimraf';
 import { Writable } from 'stream';
 import { promisify } from 'util';
 
 import { assertIsIOError } from './error';
 import { SkipFileType } from './flags';
 
-export const readFilePromise = promisify(fs.readFile);
-export const accessPromise = promisify(fs.access);
-export const statPromise = promisify(fs.stat);
-export const lstatPromise = promisify(fs.lstat);
-export const readdirPromise = promisify(fs.readdir);
-export const mkdirPromise = promisify(fs.mkdir);
+export const readFile = promisify(fs.readFile);
+export const access = promisify(fs.access);
+export const stat = promisify(fs.stat);
+export const lstat = promisify(fs.lstat);
+export const readdir = promisify(fs.readdir);
+export const mkdir = promisify(fs.mkdir);
 
-export const rimrafPromise = promisify(rimraf);
+export const rimraf = promisify(rimrafCallback);
 
-export async function existsPromise(path: string): Promise<boolean> {
+export async function exists(path: string): Promise<boolean> {
   try {
-    await accessPromise(path);
+    await access(path);
   } catch (err: unknown) {
     assertIsIOError(err);
 
@@ -36,10 +36,7 @@ export async function existsPromise(path: string): Promise<boolean> {
   return true;
 }
 
-export function streamWritePromise(
-  stream: Writable,
-  data: string
-): Promise<void> {
+export function streamWrite(stream: Writable, data: string): Promise<void> {
   return new Promise((resolve, reject) => {
     const writeMore = stream.write(data, 'utf-8');
 
@@ -51,14 +48,14 @@ export function streamWritePromise(
     }
   });
 }
-export function streamEndPromise(stream: Writable): Promise<void> {
+export function streamEnd(stream: Writable): Promise<void> {
   return new Promise((resolve, reject) => {
     stream.once('error', reject);
     stream.once('close', resolve);
   });
 }
 
-export function execFilePromise(
+export function execFile(
   path: string,
   args?: string[],
   execOptions?: fs.BaseEncodingOptions & childProcess.ExecFileOptions,
@@ -100,7 +97,7 @@ export async function resolveSkipFile(
     return true;
   } else {
     try {
-      await Promise.all(files.map(file => accessPromise(file)));
+      await Promise.all(files.map(file => access(file)));
     } catch (e) {
       // If at least one file cannot be accessed return false
       return false;
@@ -166,7 +163,7 @@ export class OutputStream {
   write(data: string): Promise<void> {
     outputStreamDebug(`Wiritng ${data.length} characters to "${this.name}"`);
 
-    return streamWritePromise(this.stream, data);
+    return streamWrite(this.stream, data);
   }
 
   cleanup(): Promise<void> {
@@ -174,7 +171,7 @@ export class OutputStream {
 
     // TODO: Should we also end stdout or stderr?
     if (!this.isStdStream) {
-      return streamEndPromise(this.stream);
+      return streamEnd(this.stream);
     }
 
     return Promise.resolve();

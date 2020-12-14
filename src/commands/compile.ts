@@ -9,7 +9,7 @@ import {
 } from '../common/document';
 import { assertIsIOError, userError } from '../common/error';
 import { DocumentTypeFlag, documentTypeFlag } from '../common/flags';
-import { lstatPromise, OutputStream, readFilePromise } from '../common/io';
+import { lstat, OutputStream, readFile } from '../common/io';
 
 export default class Compile extends Command {
   static description = 'Compiles the given profile or map to AST.';
@@ -53,8 +53,8 @@ export default class Compile extends Command {
     if (outputPath !== undefined) {
       let isDirectory = false;
       try {
-        const lstat = await lstatPromise(outputPath);
-        isDirectory = lstat.isDirectory();
+        const lstatInfo = await lstat(outputPath);
+        isDirectory = lstatInfo.isDirectory();
       } catch (err: unknown) {
         // eat ENOENT error and keep isDirectory false
         assertIsIOError(err);
@@ -127,7 +127,7 @@ export default class Compile extends Command {
     }
 
     const parseFunction = DOCUMENT_PARSE_FUNCTION[documentType];
-    const content = (await readFilePromise(path)).toString();
+    const content = (await readFile(path)).toString();
     const source = new Source(content, nodePath.basename(path));
 
     return parseFunction(source);

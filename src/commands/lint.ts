@@ -8,7 +8,7 @@ import {
 } from '../common/document';
 import { developerError, userError } from '../common/error';
 import { DocumentTypeFlag, documentTypeFlag } from '../common/flags';
-import { OutputStream, readFilePromise } from '../common/io';
+import { OutputStream, readFile } from '../common/io';
 import { formatWordPlurality } from '../util';
 
 type FileReport = {
@@ -161,7 +161,7 @@ export default class Lint extends Command {
     }
 
     const parse = DOCUMENT_PARSE_FUNCTION[documenType];
-    const content = await readFilePromise(path).then(f => f.toString());
+    const content = await readFile(path).then(f => f.toString());
     const source = new Source(content, path);
 
     const result: FileReport = {

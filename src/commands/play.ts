@@ -7,7 +7,7 @@ import * as nodePath from 'path';
 import { validateDocumentName } from '../common/document';
 import { developerError, userError } from '../common/error';
 import { skipFileFlag, SkipFileType } from '../common/flags';
-import { existsPromise } from '../common/io';
+import { exists } from '../common/io';
 import {
   cleanPlayground,
   detectPlayground,
@@ -158,8 +158,8 @@ clean: the \`node_modules\` folder and compilation artifacts are cleaned.`;
             return 'The playground path must not be empty.';
           }
 
-          const exists = await existsPromise(input);
-          if (exists) {
+          const fileExists = await exists(input);
+          if (fileExists) {
             return 'The playground path must not exist.';
           }
 

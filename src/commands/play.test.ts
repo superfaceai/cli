@@ -2,12 +2,7 @@ import * as nodePath from 'path';
 import { stdout } from 'stdout-stderr';
 
 import Play from '../commands/play';
-import {
-  accessPromise,
-  mkdirPromise,
-  OutputStream,
-  rimrafPromise,
-} from '../common/io';
+import { access, mkdir, OutputStream, rimraf } from '../common/io';
 
 describe('Play CLI command', () => {
   const baseFixture = nodePath.join('fixtures', 'playgrounds');
@@ -15,7 +10,7 @@ describe('Play CLI command', () => {
   const testPlaygroundPath = nodePath.join(baseFixture, testPlaygroundName);
 
   afterEach(async () => {
-    await rimrafPromise(testPlaygroundPath);
+    await rimraf(testPlaygroundPath);
 
     const testFiles = [
       'package-lock.json',
@@ -25,9 +20,7 @@ describe('Play CLI command', () => {
       'valid.noop.js',
     ];
     await Promise.all(
-      testFiles.map(file =>
-        rimrafPromise(nodePath.join(baseFixture, 'valid', file))
-      )
+      testFiles.map(file => rimraf(nodePath.join(baseFixture, 'valid', file)))
     );
   });
 
@@ -54,7 +47,7 @@ describe('Play CLI command', () => {
     ]);
     stdout.stop();
 
-    await accessPromise(testPlaygroundPath);
+    await access(testPlaygroundPath);
     const expectedFiles = [
       'package.json',
       'test.supr',
@@ -64,7 +57,7 @@ describe('Play CLI command', () => {
       'test.bar.ts',
     ];
     for (const file of expectedFiles) {
-      await accessPromise(nodePath.join(testPlaygroundPath, file));
+      await access(nodePath.join(testPlaygroundPath, file));
     }
 
     expect(stdout.output).toBe(
@@ -117,7 +110,7 @@ $ echo '<npmrc template>' > fixtures/playgrounds/test/.npmrc
     ];
     await Promise.all(
       expectedFiles.map(file =>
-        accessPromise(nodePath.join(baseFixture, 'valid', file))
+        access(nodePath.join(baseFixture, 'valid', file))
       )
     );
   }, 30000);
@@ -142,7 +135,7 @@ $ echo '<npmrc template>' > fixtures/playgrounds/test/.npmrc
       'test.baz.ts',
     ];
 
-    await mkdirPromise(testPlaygroundPath);
+    await mkdir(testPlaygroundPath);
 
     await Promise.all(
       [...deletedFiles, ...expectedFiles].map(file =>
@@ -157,15 +150,13 @@ $ echo '<npmrc template>' > fixtures/playgrounds/test/.npmrc
     await Promise.all(
       deletedFiles.map(file =>
         expect(
-          accessPromise(nodePath.join(testPlaygroundPath, file))
+          access(nodePath.join(testPlaygroundPath, file))
         ).rejects.toThrowError('ENOENT')
       )
     );
 
     await Promise.all(
-      expectedFiles.map(file =>
-        accessPromise(nodePath.join(testPlaygroundPath, file))
-      )
+      expectedFiles.map(file => access(nodePath.join(testPlaygroundPath, file)))
     );
 
     expect(stdout.output).toBe(

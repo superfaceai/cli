@@ -9,13 +9,13 @@ import {
 } from '../common/error';
 import { SkipFileType } from '../common/flags';
 import {
-  execFilePromise,
-  mkdirPromise,
+  execFile,
+  mkdir,
   OutputStream,
-  readdirPromise,
+  readdir,
   resolveSkipFile,
-  rimrafPromise,
-  statPromise,
+  rimraf,
+  stat,
 } from '../common/io';
 import * as mapTemplate from '../templates/map';
 import * as playgroundTemplate from '../templates/playground';
@@ -40,7 +40,7 @@ export async function initializePlayground(
   }
 
   logCb?.(`$ mkdir ${playgroundPath}`);
-  await mkdirPromise(playgroundPath, { recursive: true, mode: 0o744 });
+  await mkdir(playgroundPath, { recursive: true, mode: 0o744 });
 
   const packageJsonPath = nodePath.join(playgroundPath, 'package.json');
   logCb?.(`$ echo '<package template>' > ${packageJsonPath}`);
@@ -116,7 +116,7 @@ export async function executePlayground(
   if (!skipNpm) {
     logCb?.('$ npm install');
     try {
-      await execFilePromise('npm', ['install'], {
+      await execFile('npm', ['install'], {
         cwd: playground.path,
       });
     } catch (err) {
@@ -154,7 +154,7 @@ export async function executePlayground(
       } ${gluePaths.map(p => `'${p}'`).join(' ')}`
     );
     try {
-      await execFilePromise(
+      await execFile(
         nodePath.join('node_modules', '.bin', 'tsc'),
         [
           '--strict',
@@ -179,7 +179,7 @@ export async function executePlayground(
   for (const compiledGluePath of compiledGluePaths) {
     logCb?.(`$ DEBUG='*' '${process.execPath}' '${compiledGluePath}'`);
 
-    await execFilePromise(
+    await execFile(
       process.execPath,
       [compiledGluePath],
       {
@@ -213,7 +213,7 @@ export async function cleanPlayground(
   logCb?.(`$ rimraf ${files.map(f => `'${f}'`).join(' ')}`);
 
   await Promise.all(
-    files.map(file => rimrafPromise(nodePath.join(playground.path, file)))
+    files.map(file => rimraf(nodePath.join(playground.path, file)))
   );
 }
 
@@ -229,20 +229,20 @@ export async function cleanPlayground(
 export async function detectPlayground(
   path: string
 ): Promise<PlaygroundFolder> {
-  let stat;
+  let statInfo;
   try {
-    stat = await statPromise(path);
+    statInfo = await stat(path);
   } catch (e) {
     throw userError('The playground path must exist and be accessible', 31);
   }
 
-  if (!stat.isDirectory()) {
+  if (!statInfo.isDirectory()) {
     throw userError('The playground path must be a directory', 32);
   }
 
   const baseName = nodePath.basename(path);
   const startName = baseName + '.';
-  const entries = await readdirPromise(path);
+  const entries = await readdir(path);
 
   let foundPackageJson = false;
   let foundProfile = false;
