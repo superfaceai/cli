@@ -69,9 +69,13 @@ export function execFile(
       path,
       args,
       execOptions,
-      (err, _stdout, _stderr) => {
+      (err, stdout, stderr) => {
         if (err) {
-          reject(err);
+          reject({
+            ...err,
+            stdout,
+            stderr
+          });
         } else {
           resolve();
         }

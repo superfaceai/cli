@@ -81,8 +81,11 @@ clean: the \`node_modules\` folder and compilation artifacts are cleaned.`;
     quiet: flags.boolean({
       char: 'q',
       description:
-        'When set to true, disables the shell echo output of play actions.',
+        'When set to true, disables the shell echo output of play actions.\nAlso overrides the default value of `--debug-level` to an empty string.',
       default: false,
+    }),
+    'debug-level': flags.string({
+      description: '[default: *] Controls the value of the env variable `DEBUG` passed when executing the playground glue.\nPass an empty string to disable. Defaults to an empty string when `--quiet` is also passed.'
     }),
 
     help: flags.help({ char: 'h' }),
@@ -121,8 +124,12 @@ clean: the \`node_modules\` folder and compilation artifacts are cleaned.`;
       throw developerError('Invalid action', 1);
     }
 
+    let debugLevel = flags["debug-level"];
     if (flags.quiet === true) {
       this.logCallback = undefined;
+      debugLevel = '';
+    } else if (debugLevel === undefined) {
+      debugLevel = '*';
     }
 
     if (action === 'initialize') {
@@ -132,7 +139,7 @@ clean: the \`node_modules\` folder and compilation artifacts are cleaned.`;
         npm: flags['skip-npm'] ?? flags.skip,
         ast: flags['skip-ast'] ?? flags.skip,
         tsc: flags['skip-tsc'] ?? flags.skip,
-      });
+      }, debugLevel);
     } else if (action === 'clean') {
       await this.runClean(args.playground);
     }
@@ -200,7 +207,8 @@ clean: the \`node_modules\` folder and compilation artifacts are cleaned.`;
   private async runExecute(
     playgroundPath: string | undefined,
     providers: string[] | undefined,
-    skip: Record<'npm' | 'ast' | 'tsc', SkipFileType>
+    skip: Record<'npm' | 'ast' | 'tsc', SkipFileType>,
+    debugLevel: string
   ): Promise<void> {
     if (playgroundPath === undefined) {
       playgroundPath = await Play.promptExistingPlayground();
@@ -234,7 +242,15 @@ clean: the \`node_modules\` folder and compilation artifacts are cleaned.`;
     this.debug('Playground:', playground);
     this.debug('Providers:', providers);
     this.debug('Skip:', skip);
-    await executePlayground(playground, providers, skip, this.logCallback);
+    await executePlayground(
+      playground,
+      providers,
+      skip,
+      {
+        debugLevel,
+        logCb: this.logCallback
+      }
+    );
   }
 
   // CLEAN //

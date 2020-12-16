@@ -96,7 +96,10 @@ export async function executePlayground(
   playground: PlaygroundFolder,
   providers: string[],
   skip: Record<'npm' | 'ast' | 'tsc', SkipFileType>,
-  logCb?: LogCallback
+  options: {
+    debugLevel: string,
+    logCb?: LogCallback
+  }
 ): Promise<void> {
   const profilePath = nodePath.join(playground.path, `${playground.name}.supr`);
   const mapPaths = providers.map(provider =>
@@ -114,14 +117,14 @@ export async function executePlayground(
     nodePath.join(playground.path, 'node_modules'),
   ]);
   if (!skipNpm) {
-    logCb?.('$ npm install');
+    options.logCb?.('$ npm install');
     try {
       await execFile('npm', ['install'], {
         cwd: playground.path,
       });
     } catch (err) {
       assertIsExecError(err);
-      throw userError(`npm install failed: ${err.stdout}`, 22);
+      throw userError(`npm install failed:\n${err.stdout}`, 22);
     }
   }
 
@@ -130,7 +133,7 @@ export async function executePlayground(
     mapPaths.map(m => `${m}.ast.json`)
   );
   if (!skipAst) {
-    logCb?.(
+    options.logCb?.(
       `$ superface compile '${profilePath}' ${mapPaths
         .map(p => `'${p}'`)
         .join(' ')}`
@@ -148,7 +151,7 @@ export async function executePlayground(
     compiledGluePaths.map(g => nodePath.join(playground.path, g))
   );
   if (!skipTsc) {
-    logCb?.(
+    options.logCb?.(
       `$ tsc --strict --target ES2015 --module commonjs --outDir ${
         playground.path
       } ${gluePaths.map(p => `'${p}'`).join(' ')}`
@@ -172,13 +175,15 @@ export async function executePlayground(
       );
     } catch (err) {
       assertIsExecError(err);
-      throw userError(`tsc failed: ${err.stdout}`, 23);
+      throw userError(`tsc failed:\n${err.stdout}`, 23);
     }
   }
 
   for (const compiledGluePath of compiledGluePaths) {
-    logCb?.(`$ DEBUG='*' '${process.execPath}' '${compiledGluePath}'`);
+    // log and handle debug level flag
+    options.logCb?.(`$ DEBUG='${options.debugLevel}' '${process.execPath}' '${compiledGluePath}'`);
 
+    // actually exec
     await execFile(
       process.execPath,
       [compiledGluePath],
@@ -186,8 +191,10 @@ export async function executePlayground(
         cwd: playground.path,
         env: {
           ...process.env,
-          DEBUG: '*',
-        },
+          // enable colors since we are forwarding stdout
+          DEBUG_COLORS: process.stdout.isTTY ? '1' : '',
+          DEBUG: options.debugLevel
+        }
       },
       {
         forwardStdout: true,

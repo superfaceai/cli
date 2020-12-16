@@ -3,7 +3,7 @@ export function packageJson(name: string): string {
   "name": "${name}",
   "private": true,
   "dependencies": {
-    "@superfaceai/sdk": "^0.0.3"
+    "@superfaceai/sdk": "^0.0.4"
   },
   "devDependencies": {
     "@types/node": "^14.14.10",
@@ -56,8 +56,6 @@ async function main() {
     // the loaded ASTs
     profileAst,
     mapAst,
-    // name of the usecase to execute
-    '${name}',
     // base url for relative request url in maps
   );
 
@@ -69,7 +67,11 @@ async function main() {
   );
 
   // Perform the map with the given input and return the result as defined in the profile usecase
-  const result = await boundProvider.perform({});
+  const result = await boundProvider.perform(
+    {},
+    // name of the usecase to execute
+    '${name}'
+  );
 
   // TODO: Do something with the result, here we just print in
   console.log(
@@ -108,8 +110,6 @@ async function main() {
     // the loaded ASTs
     profileAst,
     mapAst,
-    // name of the usecase to execute
-    '${name}',
     // base url for relative request url in maps
     // for example, the same Overpass API is mirrored on more servers:
     // https://wiki.openstreetmap.org/wiki/Overpass_API#Public_Overpass_API_instances
@@ -129,7 +129,9 @@ async function main() {
     {
       city: "Praha",
       nameRegex: "Diego"
-    }
+    },
+    // name of the usecase to execute
+    '${name}',
   );
 
   // TODO: Do something with the result, here we just print in
