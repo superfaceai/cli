@@ -99,6 +99,12 @@ export default class Lint extends Command {
       description: 'Validate maps to specific profile.',
     }),
 
+    quiet: flags.boolean({
+      char: 'q',
+      default: false,
+      description: 'When set to true, disables output of warnings.',
+    }),
+
     help: flags.help({ char: 'h' }),
   };
 
@@ -121,13 +127,14 @@ export default class Lint extends Command {
             report =>
               Lint.formatHuman(
                 report,
+                flags.quiet,
                 flags.outputFormat === 'short',
                 flags.color ?? outputStream.isTTY
               )
           );
           await outputStream.write(
             `\nDetected ${formatWordPlurality(
-              totals[0] + totals[1],
+              totals[0] + (flags.quiet ? 0 : totals[1]),
               'problem'
             )}\n`
           );
@@ -156,7 +163,7 @@ export default class Lint extends Command {
 
     if (totals[0] > 0) {
       throw new CLIError('Errors were found', { exit: 1 });
-    } else if (totals[1] > 0) {
+    } else if (!flags.quiet && totals[1] > 0) {
       throw new CLIError('Warnings were found', { exit: 2 });
     }
   }
@@ -258,9 +265,24 @@ export default class Lint extends Command {
       });
     }
 
-    counts.push([0, unknown.length]);
-    for (const file of unknown) {
-      await outputStream.write(`⚠️  ${file}: Could not infer document type\n`);
+    if (unknown.length > 0) {
+      for (const file of unknown) {
+        const report: FileReport = {
+          kind: 'file',
+          path: file,
+          errors: [],
+          warnings: ['Could not infer document type'],
+        };
+
+        let output = fn(report);
+        if (unknown.length > 1 && output !== '') {
+          output += outputGlue;
+        }
+
+        await outputStream.write(output);
+      }
+
+      counts.push([0, unknown.length]);
     }
 
     const parseProfile = DOCUMENT_PARSE_FUNCTION[DocumentType.PROFILE];
@@ -308,6 +330,7 @@ export default class Lint extends Command {
 
   private static formatHuman(
     report: ReportFormat,
+    quiet: boolean,
     short?: boolean,
     _color?: boolean
   ): string {
@@ -326,6 +349,10 @@ export default class Lint extends Command {
 
     let buffer = `${prefix} ${report.path}\n`;
 
+    if (prefix === REPORT_WARN && quiet) {
+      return '';
+    }
+
     if (report.kind === 'file') {
       for (const error of report.errors) {
         if (short) {
@@ -339,14 +366,22 @@ export default class Lint extends Command {
       }
 
       // TODO
-      // for (const _warning of report.warnings) {
-      // }
+      if (!quiet) {
+        for (const warning of report.warnings) {
+          if (typeof warning === 'string') {
+            buffer += `\t${warning}\n`;
+          }
+        }
+      }
     } else {
       buffer += formatIssues(report.errors);
-      if (report.warnings.length > 0) {
-        buffer += '\n';
+
+      if (!quiet) {
+        if (report.warnings.length > 0) {
+          buffer += '\n';
+        }
+        buffer += formatIssues(report.warnings);
       }
-      buffer += formatIssues(report.warnings);
     }
 
     return buffer;

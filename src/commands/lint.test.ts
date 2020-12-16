@@ -167,8 +167,8 @@ describe('lint CLI command', () => {
       ])
     ).rejects.toHaveProperty(['oclif', 'exit'], 2);
 
-    expect(stdout.output).toContain('⚠️  ./fixtures/strict.unknown');
-    expect(stdout.output).toContain('⚠️  ./fixtures/some.unknown');
+    expect(stdout.output).toContain('⚠️ ./fixtures/strict.unknown');
+    expect(stdout.output).toContain('⚠️ ./fixtures/some.unknown');
     expect(stdout.output).toContain('🆗 ./fixtures/testMapValid.suma');
     expect(stdout.output).toContain('Detected 2 problems');
 
@@ -182,9 +182,41 @@ describe('lint CLI command', () => {
       ])
     ).rejects.toHaveProperty(['oclif', 'exit'], 1);
 
-    expect(stdout.output).toContain('⚠️  ./fixtures/strict.unknown');
+    expect(stdout.output).toContain('⚠️ ./fixtures/strict.unknown');
     expect(stdout.output).toContain('❌ ./fixtures/testMap.suma');
     expect(stdout.output).toContain('🆗 ./fixtures/testMapValid.suma');
-    expect(stdout.output).toContain('Detected 2 problems');
+    expect(stdout.output).toContain('Detected 13 problems');
+  });
+
+  it('does not show warnings when linting with flag --quiet', async () => {
+    await Lint.run([
+      '-v',
+      '-q',
+      './fixtures/testProfile.supr',
+      './fixtures/testMapValid.suma',
+      './fixtures/strict.unknown',
+      './fixtures/some.unknown',
+    ]);
+
+    expect(stdout.output).not.toContain('⚠️ ./fixtures/strict.unknown');
+    expect(stdout.output).not.toContain('⚠️ ./fixtures/some.unknown');
+    expect(stdout.output).toContain('🆗 ./fixtures/testMapValid.suma');
+    expect(stdout.output).toContain('Detected 0 problems');
+
+    await expect(
+      Lint.run([
+        '-v',
+        '-q',
+        './fixtures/testProfile.supr',
+        './fixtures/testMap.suma',
+        './fixtures/testMapValid.suma',
+        './fixtures/strict.unknown',
+      ])
+    ).rejects.toHaveProperty(['oclif', 'exit'], 1);
+
+    expect(stdout.output).not.toContain('⚠️ ./fixtures/strict.unknown');
+    expect(stdout.output).toContain('❌ ./fixtures/testMap.suma');
+    expect(stdout.output).toContain('🆗 ./fixtures/testMapValid.suma');
+    expect(stdout.output).toContain('Detected 8 problems');
   });
 });
