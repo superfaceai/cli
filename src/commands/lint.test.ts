@@ -135,7 +135,7 @@ describe('lint CLI command', () => {
     expect(stdout.output).toContain('Detected 12 problems');
   });
 
-  it('lints multiple maps to multiple profiles', async () => {
+  it('fails when linting multiple maps to multiple profiles', async () => {
     await expect(
       Lint.run([
         '-v',

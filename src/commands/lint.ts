@@ -16,7 +16,6 @@ import {
   inferDocumentTypeWithFlag,
   isMapFile,
   isProfileFile,
-  isUnknown,
   isUnknownFile,
 } from '../common/document';
 import { DocumentTypeFlag, documentTypeFlag } from '../common/flags';
@@ -208,12 +207,12 @@ export default class Lint extends Command {
     path: string,
     documentTypeFlag: DocumentTypeFlag
   ): Promise<FileReport> {
-    const documenType = inferDocumentTypeWithFlag(documentTypeFlag, path);
-    if (isUnknown(documenType)) {
+    const documentType = inferDocumentTypeWithFlag(documentTypeFlag, path);
+    if (documentType === DocumentType.UNKNOWN) {
       throw new CLIError('Could not infer document type', { exit: 1 });
     }
 
-    const parse = DOCUMENT_PARSE_FUNCTION[documenType];
+    const parse = DOCUMENT_PARSE_FUNCTION[documentType];
     const content = await readFilePromise(path).then(f => f.toString());
     const source = new Source(content, path);
 

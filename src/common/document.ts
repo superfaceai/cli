@@ -50,32 +50,14 @@ export const DOCUMENT_PARSE_FUNCTION = {
   [DocumentType.PROFILE]: parseProfile,
 };
 
-export function isProfile(
-  documentType: DocumentType
-): documentType is DocumentType.PROFILE {
-  return documentType === DocumentType.PROFILE;
+export function isProfileFile(file: string): boolean {
+  return inferDocumentType(file) === DocumentType.PROFILE;
 }
 
-export function isMap(
-  documentType: DocumentType
-): documentType is DocumentType.MAP {
-  return documentType === DocumentType.MAP;
+export function isMapFile(file: string): boolean {
+  return inferDocumentType(file) === DocumentType.MAP;
 }
 
-export function isUnknown(
-  documentType: DocumentType
-): documentType is DocumentType.UNKNOWN {
-  return documentType === DocumentType.UNKNOWN;
-}
-
-export function isProfileFile(file: string): file is DocumentType.PROFILE {
-  return isProfile(inferDocumentType(file));
-}
-
-export function isMapFile(file: string): file is DocumentType.MAP {
-  return isMap(inferDocumentType(file));
-}
-
-export function isUnknownFile(file: string): file is DocumentType.UNKNOWN {
-  return isUnknown(inferDocumentType(file));
+export function isUnknownFile(file: string): boolean {
+  return inferDocumentType(file) === DocumentType.UNKNOWN;
 }
