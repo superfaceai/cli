@@ -1,4 +1,5 @@
 import * as fs from 'fs';
+import nodePath from 'path';
 import { promisify, inspect } from 'util';
 import { Provider } from '@superfaceai/sdk';
 
@@ -6,10 +7,10 @@ const readFile = promisify(fs.readFile);
 
 async function main() {
 	const profileAst = JSON.parse(
-		await readFile('valid.supr.ast.json', { encoding: 'utf-8' })
+		await readFile(nodePath.join('build', 'valid.supr.ast.json'), { encoding: 'utf-8' })
 	);
 	const mapAst = JSON.parse(
-		await readFile('valid.noop.suma.ast.json', { encoding: 'utf-8' })
+		await readFile(nodePath.join('build', 'valid.noop.suma.ast.json'), { encoding: 'utf-8' })
 	);
 
 	const provider = new Provider(

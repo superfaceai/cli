@@ -1,4 +1,5 @@
 import * as fs from 'fs';
+import nodePath from 'path';
 import { promisify, inspect } from 'util';
 import { Provider } from '@superfaceai/sdk';
 
