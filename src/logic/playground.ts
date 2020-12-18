@@ -119,9 +119,9 @@ export async function executePlayground(
   if (!skipNpm) {
     options.logCb?.('$ npm install');
     try {
-      // await execFile('npm', ['install'], {
-      //   cwd: playground.path,
-      // });
+      await execFile('npm', ['install'], {
+        cwd: playground.path,
+      });
     } catch (err) {
       assertIsExecError(err);
       throw userError(`npm install failed:\n${err.stdout}`, 22);
