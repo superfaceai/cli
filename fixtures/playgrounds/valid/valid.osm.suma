@@ -1,0 +1,37 @@
+profile = "https://example.com/pubs"
+provider = "https://example.com/pubs/OSM"
+
+map PubOpeningHours {
+	http POST "/api/interpreter" {
+		request "application/x-www-form-urlencoded" {
+			body {
+				data = call BuildQuery(city = input.city, nameRegex = input.nameRegex)
+			}
+		}
+
+		response 200 {
+			return map error if (body.remarks && body.remarks.includes('Query timed out')) "TIMEOUT"
+
+			return map result body.elements.map(
+				node => {
+					return {
+						name: node.tags.name,
+						openingHours: node.tags.opening_hours
+					}
+				}
+			)
+		}
+	}
+}
+
+operation BuildQuery {
+	regexLine = input.nameRegex ? `node._["name"~"${input.nameRegex}", i];` : '';
+	query = (`[out:json][timeout:10];
+		area[boundary=administrative][admin_level=8][name="${input.city}"];
+		node[amenity="pub"][opening_hours](area);
+		${regexLine}
+
+		out;`);
+	
+	return query;
+}
