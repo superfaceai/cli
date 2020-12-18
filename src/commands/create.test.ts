@@ -102,7 +102,7 @@ describe('Create CLI command', () => {
     documentName = 'SendSMS';
     await Create.run([documentName, '-p', 'Twillio']);
     expect(stdout.output).toEqual(
-      `-> Created SendSMS.suma (provider = Twillio, id = "https://example.com/Twillio/SendSMS")\n-> Created SendSMS.supr (id = "https://example.com/profile/SendSMS")\n`
+      `-> Created SendSMS.supr (id = "https://example.com/profile/SendSMS")\n-> Created SendSMS.suma (provider = Twillio, id = "https://example.com/Twillio/SendSMS")\n`
     );
 
     await Lint.run([`${documentName}.supr`]);
@@ -116,7 +116,7 @@ describe('Create CLI command', () => {
     documentName = 'SMSService';
     await Create.run([documentName, '-u', 'SendSMS', '-p', 'Twillio']);
     expect(stdout.output).toEqual(
-      `-> Created SMSService.suma (provider = Twillio, id = "https://example.com/Twillio/SMSService")\n-> Created SMSService.supr (id = "https://example.com/profile/SMSService")\n`
+      `-> Created SMSService.supr (id = "https://example.com/profile/SMSService")\n-> Created SMSService.suma (provider = Twillio, id = "https://example.com/Twillio/SMSService")\n`
     );
 
     await Lint.run([`${documentName}.supr`]);
@@ -137,7 +137,7 @@ describe('Create CLI command', () => {
       'Twillio',
     ]);
     expect(stdout.output).toEqual(
-      `-> Created SMSService.suma (provider = Twillio, id = "https://example.com/Twillio/SMSService")\n-> Created SMSService.supr (id = "https://example.com/profile/SMSService")\n`
+      `-> Created SMSService.supr (id = "https://example.com/profile/SMSService")\n-> Created SMSService.suma (provider = Twillio, id = "https://example.com/Twillio/SMSService")\n`
     );
 
     await Lint.run([`${documentName}.supr`]);
