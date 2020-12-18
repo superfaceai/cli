@@ -26,7 +26,7 @@ describe('Create CLI command', () => {
 
   it('creates profile with one usecase (with usecase name from cli)', async () => {
     documentName = 'SendSMS';
-    await Create.run(['-t', 'profile', documentName]);
+    await Create.run(['profile', documentName]);
     expect(stdout.output).toEqual(
       `-> Created SendSMS.supr (id = "https://example.com/profile/SendSMS")\n`
     );
@@ -37,7 +37,7 @@ describe('Create CLI command', () => {
 
   it('creates profile with one usecase', async () => {
     documentName = 'SMSService';
-    await Create.run(['-t', 'profile', documentName, '-u', 'SendSMS']);
+    await Create.run(['profile', documentName, '-u', 'SendSMS']);
     expect(stdout.output).toEqual(
       `-> Created SMSService.supr (id = "https://example.com/profile/SMSService")\n`
     );
@@ -48,14 +48,7 @@ describe('Create CLI command', () => {
 
   it('creates profile with multiple usecases', async () => {
     documentName = 'SMSService';
-    await Create.run([
-      '-t',
-      'profile',
-      documentName,
-      '-u',
-      'ReceiveSMS',
-      'SendSMS',
-    ]);
+    await Create.run(['profile', documentName, '-u', 'ReceiveSMS', 'SendSMS']);
     expect(stdout.output).toEqual(
       `-> Created SMSService.supr (id = "https://example.com/profile/SMSService")\n`
     );
@@ -66,7 +59,7 @@ describe('Create CLI command', () => {
 
   it('creates map with one usecase (with usecase name from cli)', async () => {
     documentName = 'SendSMS';
-    await Create.run(['-t', 'map', documentName, '-p', 'Twillio']);
+    await Create.run(['map', documentName, '-p', 'Twillio']);
     expect(stdout.output).toEqual(
       `-> Created SendSMS.suma (provider = Twillio, id = "https://example.com/Twillio/SendSMS")\n`
     );
@@ -77,15 +70,7 @@ describe('Create CLI command', () => {
 
   it('creates map with one usecase', async () => {
     documentName = 'SMSService';
-    await Create.run([
-      '-t',
-      'map',
-      documentName,
-      '-u',
-      'SendSMS',
-      '-p',
-      'Twillio',
-    ]);
+    await Create.run(['map', documentName, '-u', 'SendSMS', '-p', 'Twillio']);
     expect(stdout.output).toEqual(
       `-> Created SMSService.suma (provider = Twillio, id = "https://example.com/Twillio/SMSService")\n`
     );
@@ -97,7 +82,6 @@ describe('Create CLI command', () => {
   it('creates map with mutiple usecases', async () => {
     documentName = 'SMSService';
     await Create.run([
-      '-t',
       'map',
       documentName,
       '-p',
@@ -118,7 +102,7 @@ describe('Create CLI command', () => {
     documentName = 'SendSMS';
     await Create.run([documentName, '-p', 'Twillio']);
     expect(stdout.output).toEqual(
-      `-> Created SendSMS.supr (id = "https://example.com/profile/SendSMS")\n-> Created SendSMS.suma (provider = Twillio, id = "https://example.com/Twillio/SendSMS")\n`
+      `-> Created SendSMS.suma (provider = Twillio, id = "https://example.com/Twillio/SendSMS")\n-> Created SendSMS.supr (id = "https://example.com/profile/SendSMS")\n`
     );
 
     await Lint.run([`${documentName}.supr`]);
@@ -132,7 +116,7 @@ describe('Create CLI command', () => {
     documentName = 'SMSService';
     await Create.run([documentName, '-u', 'SendSMS', '-p', 'Twillio']);
     expect(stdout.output).toEqual(
-      `-> Created SMSService.supr (id = "https://example.com/profile/SMSService")\n-> Created SMSService.suma (provider = Twillio, id = "https://example.com/Twillio/SMSService")\n`
+      `-> Created SMSService.suma (provider = Twillio, id = "https://example.com/Twillio/SMSService")\n-> Created SMSService.supr (id = "https://example.com/profile/SMSService")\n`
     );
 
     await Lint.run([`${documentName}.supr`]);
@@ -153,7 +137,7 @@ describe('Create CLI command', () => {
       'Twillio',
     ]);
     expect(stdout.output).toEqual(
-      `-> Created SMSService.supr (id = "https://example.com/profile/SMSService")\n-> Created SMSService.suma (provider = Twillio, id = "https://example.com/Twillio/SMSService")\n`
+      `-> Created SMSService.suma (provider = Twillio, id = "https://example.com/Twillio/SMSService")\n-> Created SMSService.supr (id = "https://example.com/profile/SMSService")\n`
     );
 
     await Lint.run([`${documentName}.supr`]);

@@ -10,22 +10,20 @@ export enum CapabilityType {
 }
 
 export default class Create extends Command {
+  static strict = false;
+
   static description = 'Creates empty map and profile on a local filesystem.';
 
   static args = [
     {
-      name: 'documentName',
+      name: 'documentInfo',
       required: true,
-      description: 'Document name of profile or map',
+      description:
+        'Two arguments containing informations about the document.\n1. Document Type (optional) - type of document that will be created (profile or map), if not specified, utility will create both\n2. Document Name - name of a file that will be created',
     },
   ];
 
   static flags = {
-    documentType: flags.string({
-      char: 't',
-      options: ['profile', 'map', 'both'],
-      default: 'both',
-    }),
     usecase: flags.string({
       char: 'u',
       multiple: true,
@@ -34,11 +32,28 @@ export default class Create extends Command {
     provider: flags.string({
       char: 'p',
     }),
+    help: flags.help({ char: 'h' }),
   };
 
+  static examples = [
+    '$ superface create profile SMSService',
+    '$ superface create profile SMSService -u SendSMS ReceiveSMS',
+    '$ superface create map SMSService -p Twillio',
+    '$ superface create SMSService -p Twillio',
+    '$ superface create SMSService -p Twillio -u SendSMS ReceiveSMS',
+  ];
+
   async run(): Promise<void> {
-    const { args, flags } = this.parse(Create);
-    const { documentName } = args;
+    const { argv, flags } = this.parse(Create);
+
+    if (argv.length > 2) {
+      throw new CLIError('Invalid command!', {
+        exit: -1,
+      });
+    }
+
+    const documentName = argv[1] ?? argv[0];
+    let documentType = 'both';
     let usecases: string[];
 
     if (
@@ -50,6 +65,18 @@ export default class Create extends Command {
       });
     }
 
+    if (argv.length > 1) {
+      documentType = argv[0];
+    } else if (
+      documentName === 'profile' ||
+      documentName === 'map' ||
+      documentName === 'both'
+    ) {
+      throw new CLIError('Name of your document is reserved!', {
+        exit: -1,
+      });
+    }
+
     // if there is no specified usecase - create usecase with same name as document name
     if (!flags.usecase) {
       usecases = [documentName];
@@ -57,7 +84,7 @@ export default class Create extends Command {
       usecases = flags.usecase;
     }
 
-    switch (flags.documentType) {
+    switch (documentType) {
       case 'profile':
         await this.createProfile(documentName, usecases);
         break;
@@ -65,8 +92,13 @@ export default class Create extends Command {
         await this.createMap(documentName, usecases, flags.provider);
         break;
       case 'both':
-        await this.createProfile(documentName, usecases);
         await this.createMap(documentName, usecases, flags.provider);
+        await this.createProfile(documentName, usecases);
+        break;
+      default:
+        throw new CLIError('Invalid document type!', {
+          exit: -1,
+        });
     }
   }
 
