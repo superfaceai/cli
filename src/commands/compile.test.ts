@@ -1,6 +1,6 @@
 import { stderr, stdout } from 'stdout-stderr';
 
-import { readFilePromise } from '../common/io';
+import { readFile } from '../common/io';
 import Compile from './compile';
 
 describe('Compile CLI command', () => {
@@ -18,7 +18,7 @@ describe('Compile CLI command', () => {
     it('compiles map', async () => {
       const mapASTFixture = JSON.parse(
         (
-          await readFilePromise('./fixtures/transpiled/testMap.suma.ast.json')
+          await readFile('./fixtures/transpiled/testMap.suma.ast.json')
         ).toString()
       ) as unknown;
       await Compile.run(['./fixtures/testMap.suma', '-o', '-']);
@@ -29,9 +29,7 @@ describe('Compile CLI command', () => {
     it('compiles profile', async () => {
       const profileASTFixture = JSON.parse(
         (
-          await readFilePromise(
-            './fixtures/transpiled/testProfile.supr.ast.json'
-          )
+          await readFile('./fixtures/transpiled/testProfile.supr.ast.json')
         ).toString()
       ) as unknown;
       await Compile.run(['./fixtures/testProfile.supr', '-o', '-2']);
@@ -42,14 +40,12 @@ describe('Compile CLI command', () => {
     it('compiles two files into one stream', async () => {
       const mapASTFixture = JSON.parse(
         (
-          await readFilePromise('./fixtures/transpiled/testMap.suma.ast.json')
+          await readFile('./fixtures/transpiled/testMap.suma.ast.json')
         ).toString()
       ) as unknown;
       const profileASTFixture = JSON.parse(
         (
-          await readFilePromise(
-            './fixtures/transpiled/testProfile.supr.ast.json'
-          )
+          await readFile('./fixtures/transpiled/testProfile.supr.ast.json')
         ).toString()
       ) as unknown;
 

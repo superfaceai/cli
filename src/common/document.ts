@@ -49,3 +49,7 @@ export const DOCUMENT_PARSE_FUNCTION = {
   [DocumentType.MAP]: parseMap,
   [DocumentType.PROFILE]: parseProfile,
 };
+
+export function validateDocumentName(name: string): boolean {
+  return /^[_a-zA-Z][_a-zA-Z0-9]*$/.test(name);
+}

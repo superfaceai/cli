@@ -1,0 +1,6 @@
+profile = "https://example.com/pubs"
+provider = "https://example.com/pubs/Noop"
+
+map PubOpeningHours {
+	return map result []
+}
