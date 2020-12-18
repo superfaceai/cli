@@ -97,8 +97,8 @@ export async function executePlayground(
   providers: string[],
   skip: Record<'npm' | 'ast' | 'tsc', SkipFileType>,
   options: {
-    debugLevel: string,
-    logCb?: LogCallback
+    debugLevel: string;
+    logCb?: LogCallback;
   }
 ): Promise<void> {
   const profilePath = nodePath.join(playground.path, `${playground.name}.supr`);
@@ -119,9 +119,9 @@ export async function executePlayground(
   if (!skipNpm) {
     options.logCb?.('$ npm install');
     try {
-      await execFile('npm', ['install'], {
-        cwd: playground.path,
-      });
+      // await execFile('npm', ['install'], {
+      //   cwd: playground.path,
+      // });
     } catch (err) {
       assertIsExecError(err);
       throw userError(`npm install failed:\n${err.stdout}`, 22);
@@ -181,7 +181,9 @@ export async function executePlayground(
 
   for (const compiledGluePath of compiledGluePaths) {
     // log and handle debug level flag
-    options.logCb?.(`$ DEBUG='${options.debugLevel}' '${process.execPath}' '${compiledGluePath}'`);
+    options.logCb?.(
+      `$ DEBUG='${options.debugLevel}' '${process.execPath}' '${compiledGluePath}'`
+    );
 
     // actually exec
     await execFile(
@@ -193,8 +195,8 @@ export async function executePlayground(
           ...process.env,
           // enable colors since we are forwarding stdout
           DEBUG_COLORS: process.stdout.isTTY ? '1' : '',
-          DEBUG: options.debugLevel
-        }
+          DEBUG: options.debugLevel,
+        },
       },
       {
         forwardStdout: true,

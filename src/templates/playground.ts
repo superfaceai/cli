@@ -68,9 +68,9 @@ async function main() {
 
   // Perform the map with the given input and return the result as defined in the profile usecase
   const result = await boundProvider.perform(
-    {},
     // name of the usecase to execute
-    '${name}'
+    '${name}',
+    {}
   );
 
   // TODO: Do something with the result, here we just print in
@@ -126,12 +126,12 @@ async function main() {
 
   // Perform the map with the given input and return the result as defined in the profile usecase
   const result = await boundProvider.perform(
+    // name of the usecase to execute
+    '${name}',
     {
       city: "Praha",
       nameRegex: "Diego"
     },
-    // name of the usecase to execute
-    '${name}',
   );
 
   // TODO: Do something with the result, here we just print in
