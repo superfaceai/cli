@@ -1,6 +1,6 @@
 import { stderr, stdout } from 'stdout-stderr';
 
-import { readFile } from '../common/io';
+import { access, mkdir, readFile, rimraf } from '../common/io';
 import Compile from './compile';
 
 describe('Compile CLI command', () => {
@@ -9,9 +9,11 @@ describe('Compile CLI command', () => {
     stdout.start();
   });
 
-  afterEach(() => {
+  afterEach(async () => {
     stderr.stop();
     stdout.stop();
+
+    await rimraf('./fixtures/compile');
   });
 
   describe('integration tests', () => {
@@ -69,5 +71,27 @@ describe('Compile CLI command', () => {
       expect(files).toContainEqual(mapASTFixture);
       expect(files).toContainEqual(profileASTFixture);
     });
+  });
+
+  it('compiles to outdir', async () => {
+    await mkdir('./fixtures/compile');
+
+    await Compile.run([
+      './fixtures/testProfile.supr',
+      './fixtures/testMap.suma',
+      '-o',
+      './fixtures/compile'
+    ]);
+
+    const expectedFiles = [
+      './fixtures/compile/testProfile.supr.ast.json',
+      './fixtures/compile/testMap.suma.ast.json'
+    ];
+
+    await Promise.all(
+      expectedFiles.map(
+        f => expect(access(f)).resolves.toBeUndefined()
+      )
+    );
   });
 });
