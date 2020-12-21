@@ -11,22 +11,20 @@ import * as mapTemplate from '../templates/map';
 import * as profileTemplate from '../templates/profile';
 
 export default class Create extends Command {
+  static strict = false;
+
   static description = 'Creates empty map and profile on a local filesystem.';
 
   static args = [
     {
-      name: 'documentName',
+      name: 'documentInfo',
       required: true,
-      description: 'Document name of profile or map',
+      description:
+        'Two arguments containing informations about the document.\n1. Document Type (optional) - type of document that will be created (profile or map), if not specified, utility will create both\n2. Document Name - name of a file that will be created',
     },
   ];
 
   static flags = {
-    documentType: flags.string({
-      char: 't',
-      options: ['profile', 'map', 'both'],
-      default: 'both',
-    }),
     usecase: flags.string({
       char: 'u',
       multiple: true,
@@ -40,11 +38,26 @@ export default class Create extends Command {
       default: 'empty',
       description: 'Template to initialize the usecases and maps with',
     }),
+    help: flags.help({ char: 'h' }),
   };
 
+  static examples = [
+    '$ superface create profile SMSService',
+    '$ superface create profile SMSService -u SendSMS ReceiveSMS',
+    '$ superface create map SMSService -p Twillio',
+    '$ superface create SMSService -p Twillio',
+    '$ superface create SMSService -p Twillio -u SendSMS ReceiveSMS',
+  ];
+
   async run(): Promise<void> {
-    const { args, flags } = this.parse(Create);
-    const { documentName } = args;
+    const { argv, flags } = this.parse(Create);
+
+    if (argv.length > 2) {
+      throw userError('Invalid command!', 1);
+    }
+
+    const documentName = argv[1] ?? argv[0];
+    let documentType = 'both';
     let usecases: string[];
 
     if (
@@ -52,6 +65,16 @@ export default class Create extends Command {
       !validateDocumentName(documentName)
     ) {
       throw userError('Invalid document name.', 1);
+    }
+
+    if (argv.length > 1) {
+      documentType = argv[0];
+    } else if (
+      documentName === 'profile' ||
+      documentName === 'map' ||
+      documentName === 'both'
+    ) {
+      throw userError('Name of your document is reserved!', 1);
     }
 
     // if there is no specified usecase - create usecase with same name as document name
@@ -70,7 +93,7 @@ export default class Create extends Command {
         throw developerError('Invalid --template flag option', 1);
     }
 
-    switch (flags.documentType) {
+    switch (documentType) {
       case 'profile':
         await this.createProfile(documentName, usecases, flags.template);
         break;
@@ -102,6 +125,9 @@ export default class Create extends Command {
           flags.provider,
           flags.template
         );
+        break;
+      default:
+        throw developerError('Invalid document type!', 1);
     }
   }
 
