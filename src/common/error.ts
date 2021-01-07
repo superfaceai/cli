@@ -59,7 +59,7 @@ export function assertIsIOError(
 }
 export function assertIsExecError(
   error: unknown
-): asserts error is { stdout: string, stderr: string } {
+): asserts error is { stdout: string; stderr: string } {
   if (typeof error === 'object' && error !== null) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const err: Record<string, any> = error;

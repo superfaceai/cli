@@ -80,18 +80,16 @@ describe('Compile CLI command', () => {
       './fixtures/testProfile.supr',
       './fixtures/testMap.suma',
       '-o',
-      './fixtures/compile'
+      './fixtures/compile',
     ]);
 
     const expectedFiles = [
       './fixtures/compile/testProfile.supr.ast.json',
-      './fixtures/compile/testMap.suma.ast.json'
+      './fixtures/compile/testMap.suma.ast.json',
     ];
 
     await Promise.all(
-      expectedFiles.map(
-        f => expect(access(f)).resolves.toBeUndefined()
-      )
+      expectedFiles.map(f => expect(access(f)).resolves.toBeUndefined())
     );
   });
 });
