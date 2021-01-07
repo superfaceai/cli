@@ -214,7 +214,7 @@ export default class Create extends Command {
     const outputStream = new OutputStream(fileName);
 
     await outputStream.write(
-      mapTemplate.header(`${documentName}`, provider, version, variant) +
+      mapTemplate.header(documentName, provider, version, variant) +
         useCaseNames.map(usecase => mapTemplate.map(template, usecase)).join('')
     );
     this.log(
