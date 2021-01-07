@@ -1,10 +1,17 @@
 /**
- * Returns a map header with filled in `name` and `provider`.
+ * Returns a map header with filled in `name` with `version`, `provider` and `variant`.
  */
-export function header(name: string, provider: string): string {
-  return `profile = "https://example.com/profile/${name}"
-provider = "https://example.com/${provider}/${name}"
-`;
+export function header(
+  name: string,
+  provider: string,
+  version: string,
+  variant?: string
+): string {
+  const variantAssignment = variant ? `variant = "${variant}"\n` : '';
+
+  return `profile = "${name}@${version}"
+provider = "${provider}"
+${variantAssignment}`;
 }
 
 export type MapTemplateType = 'empty' | 'pubs';
@@ -22,6 +29,9 @@ export function map(type: MapTemplateType, name: string): string {
 
 export function empty(name: string): string {
   return `
+"""
+${name} map
+"""
 map ${name} {}
 `;
 }
