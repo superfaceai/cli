@@ -10,6 +10,7 @@ export enum DocumentType {
   MAP = 'map',
   PROFILE = 'profile',
 }
+
 /**
  * Detects whether the file on path is Superface Map or Superface Profile based on the extension.
  */
@@ -24,6 +25,7 @@ export function inferDocumentType(path: string): DocumentType {
 
   return DocumentType.UNKNOWN;
 }
+
 /**
  * If flag is `DocumentTypeFlag.UNKNOWN` and `path` is defined, then calls `inferDocumentType(path)`
  * otherwise returns `flag`.
@@ -45,6 +47,7 @@ export function inferDocumentTypeWithFlag(
 
   return inferDocumentType(path);
 }
+
 export const DOCUMENT_PARSE_FUNCTION = {
   [DocumentType.MAP]: parseMap,
   [DocumentType.PROFILE]: parseProfile,
@@ -52,4 +55,72 @@ export const DOCUMENT_PARSE_FUNCTION = {
 
 export function validateDocumentName(name: string): boolean {
   return /^[_a-zA-Z][_a-zA-Z0-9]*$/.test(name);
+}
+
+export enum CreateMode {
+  PROFILE = 'profile',
+  MAP = 'map',
+  BOTH = 'both',
+  UNKNOWN = 'unknown',
+}
+
+export function inferCreateMode(value: string): CreateMode {
+  return value === 'profile'
+    ? CreateMode.PROFILE
+    : value === 'map'
+    ? CreateMode.MAP
+    : CreateMode.UNKNOWN;
+}
+
+export interface DocumentStructure {
+  profile: string;
+  scope?: string;
+  provider?: string;
+  variant?: string;
+  version: string;
+}
+
+/**
+ * This regex represents identifiers such as:
+ * - profile
+ * - scope
+ * - provider
+ * - variant
+ */
+const IDENTIFIER_REGEX = /[a-z][a-z0-9_-]*/;
+const VERSION_REGEX = /(@[0-9.]*(-[_a-z][-_a-z0-9]*)?)?/;
+
+export function validateInputNames(
+  documentStructure: DocumentStructure
+): boolean {
+  return Object.entries(documentStructure).every(([structureType, value]) => {
+    switch (structureType) {
+      case 'profile':
+      case 'scope':
+      case 'provider':
+      case 'variant':
+        return IDENTIFIER_REGEX.test(value);
+      case 'version':
+        return VERSION_REGEX.test(value);
+      default:
+        return false;
+    }
+  });
+}
+
+export interface ProviderStructure {
+  name: string;
+  deployments: {
+    id: string;
+    baseUrl: string;
+  }[];
+  security?: {
+    auth: {
+      [authType: string]: {
+        type: string;
+        scheme: string;
+      };
+    };
+    hosts: string[];
+  }[];
 }

@@ -63,7 +63,7 @@ export async function initializePlayground(
   logCb?.(`$ echo '<profile template>' > ${profilePath}`);
   const profilePromise = OutputStream.writeOnce(
     profilePath,
-    profileTemplate.header(name) + profileTemplate.pubs(name)
+    profileTemplate.header(name, '1.0.0') + profileTemplate.pubs(name)
   );
 
   const mapsPromises = providers.map(provider => {
@@ -72,7 +72,7 @@ export async function initializePlayground(
 
     return OutputStream.writeOnce(
       path,
-      mapTemplate.header(name, provider) + mapTemplate.pubs(name)
+      mapTemplate.header(name, provider, '1.0.0') + mapTemplate.pubs(name)
     );
   });
 

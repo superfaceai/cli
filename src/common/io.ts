@@ -36,6 +36,12 @@ export async function exists(path: string): Promise<boolean> {
   return true;
 }
 
+export async function makeDirectory(path: string): Promise<void> {
+  if (!(await exists(path))) {
+    await mkdir(path);
+  }
+}
+
 export function streamWrite(stream: Writable, data: string): Promise<void> {
   return new Promise((resolve, reject) => {
     const writeMore = stream.write(data, 'utf-8');
@@ -48,6 +54,7 @@ export function streamWrite(stream: Writable, data: string): Promise<void> {
     }
   });
 }
+
 export function streamEnd(stream: Writable): Promise<void> {
   return new Promise((resolve, reject) => {
     stream.once('error', reject);
@@ -74,7 +81,7 @@ export function execFile(
           reject({
             ...err,
             stdout,
-            stderr
+            stderr,
           });
         } else {
           resolve();
