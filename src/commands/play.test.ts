@@ -15,9 +15,9 @@ describe('Play CLI command', () => {
     const testFiles = [
       'package-lock.json',
       'node_modules',
-      'valid.supr.ast.json',
-      'valid.noop.suma.ast.json',
-      'valid.noop.js',
+      nodePath.join('build', 'valid.supr.ast.json'),
+      nodePath.join('build', 'valid.noop.suma.ast.json'),
+      nodePath.join('build', 'valid.noop.js'),
     ];
     await Promise.all(
       testFiles.map(file => rimraf(nodePath.join(baseFixture, 'valid', file)))
@@ -25,9 +25,9 @@ describe('Play CLI command', () => {
   });
 
   it('detects a valid playground', async () => {
-    expect(
-      await Play.run(['clean', nodePath.join(baseFixture, 'valid')])
-    ).toBeUndefined();
+    await expect(
+      Play.run(['clean', nodePath.join(baseFixture, 'valid')])
+    ).resolves.toBeUndefined();
   });
 
   it('rejects an an invalid playground', async () => {
@@ -38,16 +38,12 @@ describe('Play CLI command', () => {
 
   it('creates a valid playground', async () => {
     stdout.start();
-    await Play.run([
-      'initialize',
-      testPlaygroundPath,
-      '--providers',
-      'foo',
-      'bar',
-    ]);
+    await expect(
+      Play.run(['initialize', testPlaygroundPath, '--providers', 'foo', 'bar'])
+    ).resolves.toBeUndefined();
     stdout.stop();
 
-    await access(testPlaygroundPath);
+    await expect(access(testPlaygroundPath)).resolves.toBeUndefined();
     const expectedFiles = [
       'package.json',
       'test.supr',
@@ -55,9 +51,12 @@ describe('Play CLI command', () => {
       'test.bar.suma',
       'test.foo.ts',
       'test.bar.ts',
+      '.gitignore',
     ];
     for (const file of expectedFiles) {
-      await access(nodePath.join(testPlaygroundPath, file));
+      await expect(
+        access(nodePath.join(testPlaygroundPath, file))
+      ).resolves.toBeUndefined();
     }
 
     expect(stdout.output).toBe(
@@ -69,6 +68,7 @@ $ echo '<profile template>' > fixtures/playgrounds/test/test.supr
 $ echo '<map template>' > fixtures/playgrounds/test/test.foo.suma
 $ echo '<map template>' > fixtures/playgrounds/test/test.bar.suma
 $ echo '<npmrc template>' > fixtures/playgrounds/test/.npmrc
+$ echo '<gitignore template>' > fixtures/playgrounds/test/.gitignore
 `
     );
   });
@@ -104,26 +104,28 @@ $ echo '<npmrc template>' > fixtures/playgrounds/test/.npmrc
     const expectedFiles = [
       'package-lock.json',
       'node_modules',
-      'valid.supr.ast.json',
-      'valid.noop.suma.ast.json',
-      'valid.noop.js',
+      nodePath.join('build', 'valid.supr.ast.json'),
+      nodePath.join('build', 'valid.noop.suma.ast.json'),
+      nodePath.join('build', 'valid.noop.js'),
     ];
-    await Promise.all(
-      expectedFiles.map(file =>
-        access(nodePath.join(baseFixture, 'valid', file))
+    await expect(
+      Promise.all(
+        expectedFiles.map(file =>
+          access(nodePath.join(baseFixture, 'valid', file))
+        )
       )
-    );
+    ).resolves.toBeDefined();
   }, 30000);
 
   it('cleans compilation artifacts', async () => {
     const deletedFiles = [
       'package-lock.json',
       'node_modules',
-      'test.supr.ast.json',
-      'test.foo.suma.ast.json',
-      'test.bar.suma.ast.json',
-      'test.foo.js',
-      'test.bar.js',
+      nodePath.join('build', 'test.supr.ast.json'),
+      nodePath.join('build', 'test.foo.suma.ast.json'),
+      nodePath.join('build', 'test.bar.suma.ast.json'),
+      nodePath.join('build', 'test.foo.js'),
+      nodePath.join('build', 'test.bar.js'),
     ];
     const expectedFiles = [
       'package.json',
@@ -135,7 +137,9 @@ $ echo '<npmrc template>' > fixtures/playgrounds/test/.npmrc
       'test.baz.ts',
     ];
 
-    await mkdir(testPlaygroundPath);
+    await mkdir(nodePath.join(testPlaygroundPath, 'build'), {
+      recursive: true,
+    });
 
     await Promise.all(
       [...deletedFiles, ...expectedFiles].map(file =>
@@ -144,7 +148,9 @@ $ echo '<npmrc template>' > fixtures/playgrounds/test/.npmrc
     );
 
     stdout.start();
-    await Play.run(['clean', testPlaygroundPath]);
+    await expect(
+      Play.run(['clean', testPlaygroundPath])
+    ).resolves.toBeUndefined();
     stdout.stop();
 
     await Promise.all(
@@ -155,13 +161,21 @@ $ echo '<npmrc template>' > fixtures/playgrounds/test/.npmrc
       )
     );
 
-    await Promise.all(
-      expectedFiles.map(file => access(nodePath.join(testPlaygroundPath, file)))
-    );
+    await expect(
+      Promise.all(
+        expectedFiles.map(file =>
+          access(nodePath.join(testPlaygroundPath, file))
+        )
+      )
+    ).resolves.toBeDefined();
 
-    expect(stdout.output).toBe(
-      `$ rimraf 'test.supr.ast.json' 'node_modules' 'package-lock.json' 'test.bar.suma.ast.json' 'test.bar.js' 'test.foo.suma.ast.json' 'test.foo.js'
-`
-    );
+    expect(stdout.output).toMatch(/^\$ rimraf /);
+    expect(stdout.output).toMatch(/build\/test\.supr\.ast\.json'/);
+    expect(stdout.output).toMatch(/node_modules'/);
+    expect(stdout.output).toMatch(/package-lock\.json'/);
+    expect(stdout.output).toMatch(/build\/test\.bar\.suma\.ast\.json'/);
+    expect(stdout.output).toMatch(/build\/test\.bar\.js'/);
+    expect(stdout.output).toMatch(/build\/test\.foo\.suma\.ast\.json'/);
+    expect(stdout.output).toMatch(/build\/test\.foo\.js'/);
   });
 });

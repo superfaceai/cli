@@ -14,6 +14,7 @@ export const stat = promisify(fs.stat);
 export const lstat = promisify(fs.lstat);
 export const readdir = promisify(fs.readdir);
 export const mkdir = promisify(fs.mkdir);
+export const realpath = promisify(fs.realpath);
 
 export const rimraf = promisify(rimrafCallback);
 
@@ -74,7 +75,7 @@ export function execFile(
           reject({
             ...err,
             stdout,
-            stderr
+            stderr,
           });
         } else {
           resolve();
