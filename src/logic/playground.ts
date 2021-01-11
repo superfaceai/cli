@@ -1,7 +1,10 @@
 import nodePath from 'path';
 
 import Compile from '../commands/compile';
-import { validateDocumentName } from '../common/document';
+import {
+  DEFAULT_PROFILE_VERSION,
+  validateDocumentName,
+} from '../common/document';
 import {
   assertIsExecError,
   assertIsGenericError,
@@ -63,7 +66,8 @@ export async function initializePlayground(
   logCb?.(`$ echo '<profile template>' > ${profilePath}`);
   const profilePromise = OutputStream.writeOnce(
     profilePath,
-    profileTemplate.header(name, '1.0.0') + profileTemplate.pubs(name)
+    profileTemplate.header(name, DEFAULT_PROFILE_VERSION) +
+      profileTemplate.pubs(name)
   );
 
   const mapsPromises = providers.map(provider => {
@@ -72,7 +76,8 @@ export async function initializePlayground(
 
     return OutputStream.writeOnce(
       path,
-      mapTemplate.header(name, provider, '1.0.0') + mapTemplate.pubs(name)
+      mapTemplate.header(name, provider, DEFAULT_PROFILE_VERSION) +
+        mapTemplate.pubs(name)
     );
   });
 

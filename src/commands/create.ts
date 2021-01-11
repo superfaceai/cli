@@ -1,18 +1,22 @@
 import { Command, flags } from '@oclif/command';
+import { parseMapId, parseProfileId } from '@superfaceai/parser';
 
 import {
+  composeStructure,
+  composeVersion,
   CreateMode,
+  DEFAULT_PROFILE_VERSION,
   DocumentStructure,
   inferCreateMode,
   MAP_EXTENSIONS,
   PROFILE_EXTENSIONS,
-  ProviderStructure,
-  validateInputNames,
+  validateDocumentName,
 } from '../common/document';
-import { assertIsIOError, developerError, userError } from '../common/error';
-import { makeDirectory, OutputStream } from '../common/io';
+import { developerError, userError } from '../common/error';
+import { mkdirQuiet, OutputStream } from '../common/io';
 import * as mapTemplate from '../templates/map';
 import * as profileTemplate from '../templates/profile';
+import { defaultProvider } from '../templates/provider';
 
 export default class Create extends Command {
   static strict = false;
@@ -45,8 +49,8 @@ export default class Create extends Command {
     }),
     version: flags.string({
       char: 'v',
-      default: '1.0.0',
-      description: 'Version of a profile or map',
+      default: DEFAULT_PROFILE_VERSION,
+      description: 'Version of a profile',
     }),
     template: flags.string({
       options: ['empty', 'pubs'],
@@ -61,13 +65,8 @@ export default class Create extends Command {
     '$ superface create profile sms/service -u SendSMS ReceiveSMS',
     '$ superface create map sms/service -p twillio',
     '$ superface create map sms/service -p twillio -u SendSMS ReceiveSMS',
-    '$ superface create sms/service -p twillio',
     '$ superface create sms/service -p twillio -u SendSMS ReceiveSMS',
-    '$ superface create sms/service -p twillio --version 1.1-rev132',
-    '$ superface create sms/service -p twillio -v 1.1-rev132',
-    '$ superface create sms/service -p twillio --variant bugfix --version 1.1-rev133',
-    '$ superface create sms/service -p twillio -t bugfix -v 1.1-rev133',
-    '$ superface create sms/service@1.1-rev134 -p twillio',
+    '$ superface create sms/service -p twillio -t bugfix -v 1.1-rev133 -u SendSMS ReceiveSMS',
   ];
 
   async run(): Promise<void> {
@@ -78,7 +77,7 @@ export default class Create extends Command {
     }
 
     let createMode = CreateMode.BOTH;
-    let documentName = argv[1] ?? argv[0];
+    const documentName = argv[1] ?? argv[0];
 
     if (argv.length > 1) {
       createMode = inferCreateMode(argv[0]);
@@ -94,37 +93,38 @@ export default class Create extends Command {
       throw userError('Name of your document is reserved!', 1);
     }
 
-    let version = flags.version;
-    // try to obtain a version from the document name
-    if (documentName.includes('@')) {
-      version = documentName.slice(documentName.indexOf('@') + 1);
-      documentName = documentName.slice(0, documentName.indexOf('@'));
+    if (flags.provider && createMode === CreateMode.PROFILE) {
+      throw userError(
+        'Provider should not be specified when generating a profile',
+        1
+      );
     }
 
-    // fill the document structure with information from document name and flags
-    const documentInfo = documentName.split('/');
-    const documentStructure: DocumentStructure = {
-      profile: documentInfo[1] ?? documentInfo[0],
-      scope: documentInfo[1] ? documentInfo[0] : undefined,
-      provider: flags.provider,
-      variant: flags.variant,
-      version,
-    };
+    // parse document name and flags
+    const provider = flags.provider ? `.${flags.provider}` : '';
+    const variant = flags.variant ? `.${flags.variant}` : '';
+    const version =
+      createMode === CreateMode.MAP ? DEFAULT_PROFILE_VERSION : flags.version;
+    const documentId = `${documentName}${provider}${variant}@${version}`;
+    const documentResult =
+      createMode === CreateMode.PROFILE
+        ? parseProfileId(documentId)
+        : parseMapId(documentId);
 
-    // according to new identifier rules - map should always contain scope
-    if (createMode !== CreateMode.PROFILE && !documentStructure.scope) {
-      throw userError('Invalid document structure.', 1);
+    if (documentResult.kind === 'error') {
+      throw userError(documentResult.message, 1);
     }
 
-    if (
-      typeof documentName !== 'string' ||
-      !validateInputNames(documentStructure)
-    ) {
-      throw userError('Invalid document structure.', 1);
-    }
+    // compose document structure from the result
+    const documentStructure = composeStructure(documentResult);
 
     // if there is no specified usecase - create usecase with same name as profile name
-    const usecases = flags.usecase ?? [documentStructure.profile];
+    const usecases = flags.usecase ?? [documentStructure.name];
+    for (const usecase of usecases) {
+      if (!validateDocumentName(usecase)) {
+        throw userError(`Invalid usecase name: ${usecase}`, 1);
+      }
+    }
 
     // typecheck the template flag
     switch (flags.template) {
@@ -137,12 +137,7 @@ export default class Create extends Command {
 
     // create scope directory if it already doesn't exist
     if (documentStructure.scope) {
-      try {
-        await makeDirectory(documentStructure.scope);
-      } catch (err) {
-        assertIsIOError(err);
-        throw userError(`Making directory failed. code: ${err.code}`, 14);
-      }
+      await mkdirQuiet(documentStructure.scope);
     }
 
     switch (createMode) {
@@ -178,23 +173,23 @@ export default class Create extends Command {
     useCaseNames: string[],
     template: profileTemplate.UsecaseTemplateType
   ): Promise<void> {
-    const { profile, scope, version } = documentStructure;
+    const { name, scope } = documentStructure;
 
-    const documentName = scope ? `${scope}/${profile}` : profile;
+    const documentName = scope ? `${scope}/${name}` : name;
+    const version = composeVersion(documentStructure.version);
     const fileName = `${documentName}${PROFILE_EXTENSIONS[0]}`;
-    const outputStream = new OutputStream(fileName);
 
-    await outputStream.write(
+    await OutputStream.writeOnce(
+      fileName,
       profileTemplate.header(documentName, version) +
         useCaseNames
           .map(usecase => profileTemplate.usecase(template, usecase))
           .join('')
     );
+
     this.log(
       `-> Created ${fileName} (name = "${documentName}", version = "${version}")`
     );
-
-    await outputStream.cleanup();
   }
 
   private async createMap(
@@ -202,54 +197,34 @@ export default class Create extends Command {
     useCaseNames: string[],
     template: mapTemplate.MapTemplateType
   ): Promise<void> {
-    const { profile, scope, provider, variant, version } = documentStructure;
+    const { name, scope, provider, variant } = documentStructure;
 
-    if (!provider || !scope) {
-      throw new Error('This should not happen!');
+    if (!provider) {
+      throw developerError('Document structure is complete', 1);
     }
 
-    const documentName = `${scope}/${profile}`;
+    const documentName = scope ? `${scope}/${name}` : name;
+    const version = composeVersion(documentStructure.version);
     const variantName = variant ? `.${variant}` : '';
     const fileName = `${documentName}.${provider}${variantName}${MAP_EXTENSIONS[0]}`;
-    const outputStream = new OutputStream(fileName);
 
-    await outputStream.write(
+    await OutputStream.writeOnce(
+      fileName,
       mapTemplate.header(documentName, provider, version, variant) +
         useCaseNames.map(usecase => mapTemplate.map(template, usecase)).join('')
     );
+
     this.log(
       `-> Created ${fileName} (profile = "${documentName}@${version}", provider = "${provider}")`
     );
-
-    await outputStream.cleanup();
   }
 
   private async createProviderJson(name: string): Promise<void> {
-    const providerStructure: ProviderStructure = {
-      name,
-      deployments: [
-        {
-          id: 'default',
-          baseUrl: `https://api.${name}.com`,
-        },
-      ],
-      security: [
-        {
-          auth: {
-            BasicAuth: {
-              type: 'http',
-              scheme: 'basic',
-            },
-          },
-          hosts: ['default'],
-        },
-      ],
-    };
-    const outputStream = new OutputStream(`${name}.provider.json`);
+    await OutputStream.writeOnce(
+      `${name}.provider.json`,
+      defaultProvider(name)
+    );
 
-    await outputStream.write(JSON.stringify(providerStructure, null, 2));
     this.log(`-> Created ${name}.provider.json`);
-
-    await outputStream.cleanup();
   }
 }

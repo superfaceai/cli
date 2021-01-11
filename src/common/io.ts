@@ -36,10 +36,22 @@ export async function exists(path: string): Promise<boolean> {
   return true;
 }
 
-export async function makeDirectory(path: string): Promise<void> {
-  if (!(await exists(path))) {
+export async function mkdirQuiet(path: string): Promise<void> {
+  try {
     await mkdir(path);
+  } catch (err: unknown) {
+    assertIsIOError(err);
+
+    // Allow `EEXIST` because scope directory already exists.
+    if (err.code === 'EEXIST') {
+      return;
+    }
+
+    // Rethrow other errors.
+    throw err;
   }
+
+  return;
 }
 
 export function streamWrite(stream: Writable, data: string): Promise<void> {
@@ -172,7 +184,7 @@ export class OutputStream {
   }
 
   write(data: string): Promise<void> {
-    outputStreamDebug(`Wiritng ${data.length} characters to "${this.name}"`);
+    outputStreamDebug(`Writing ${data.length} characters to "${this.name}"`);
 
     return streamWrite(this.stream, data);
   }

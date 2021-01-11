@@ -16,17 +16,12 @@ describe('Create CLI command', () => {
     stderr.stop();
     stdout.stop();
 
-    const documentInfo = documentName.split('/');
-    const scope = documentInfo[1] ? documentInfo[0] : undefined;
-
+    // handle profile
     if (fs.existsSync(`${documentName}.supr`)) {
       fs.unlinkSync(`${documentName}.supr`);
     }
 
-    if (fs.existsSync(`${provider}.provider.json`)) {
-      fs.unlinkSync(`${provider}.provider.json`);
-    }
-
+    // handle map
     if (variant) {
       if (fs.existsSync(`${documentName}.${provider}.${variant}.suma`)) {
         fs.unlinkSync(`${documentName}.${provider}.${variant}.suma`);
@@ -37,15 +32,24 @@ describe('Create CLI command', () => {
       }
     }
 
+    const documentInfo = documentName.split('/');
+    const scope = documentInfo[1] ? documentInfo[0] : undefined;
+
+    // handle scope directory
     if (scope) {
       if (fs.existsSync(scope)) {
         fs.rmdirSync(scope);
       }
     }
+
+    // handle provider file
+    if (fs.existsSync(`${provider}.provider.json`)) {
+      fs.unlinkSync(`${provider}.provider.json`);
+    }
   });
 
   it('creates profile with one usecase (with usecase name from cli)', async () => {
-    documentName = 'send-sms';
+    documentName = 'sendsms';
     await Create.run(['profile', documentName]);
     expect(stdout.output).toEqual(
       `-> Created ${documentName}.supr (name = "${documentName}", version = "1.0.0")\n`

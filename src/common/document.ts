@@ -1,7 +1,13 @@
-import { parseMap, parseProfile } from '@superfaceai/parser';
+import {
+  parseMap,
+  ParseMapIdResult,
+  parseProfile,
+  ParseProfileIdResult,
+} from '@superfaceai/parser';
 
 import { DocumentTypeFlag } from './flags';
 
+export const DEFAULT_PROFILE_VERSION = '1.0.0';
 export const MAP_EXTENSIONS = ['.suma'];
 export const PROFILE_EXTENSIONS = ['.supr'];
 
@@ -72,40 +78,19 @@ export function inferCreateMode(value: string): CreateMode {
     : CreateMode.UNKNOWN;
 }
 
+export interface VersionStructure {
+  major: number;
+  minor: number;
+  patch: number;
+  label?: string;
+}
+
 export interface DocumentStructure {
-  profile: string;
+  name: string;
   scope?: string;
   provider?: string;
   variant?: string;
-  version: string;
-}
-
-/**
- * This regex represents identifiers such as:
- * - profile
- * - scope
- * - provider
- * - variant
- */
-const IDENTIFIER_REGEX = /[a-z][a-z0-9_-]*/;
-const VERSION_REGEX = /(@[0-9.]*(-[_a-z][-_a-z0-9]*)?)?/;
-
-export function validateInputNames(
-  documentStructure: DocumentStructure
-): boolean {
-  return Object.entries(documentStructure).every(([structureType, value]) => {
-    switch (structureType) {
-      case 'profile':
-      case 'scope':
-      case 'provider':
-      case 'variant':
-        return IDENTIFIER_REGEX.test(value);
-      case 'version':
-        return VERSION_REGEX.test(value);
-      default:
-        return false;
-    }
-  });
+  version: VersionStructure;
 }
 
 export interface ProviderStructure {
@@ -123,4 +108,36 @@ export interface ProviderStructure {
     };
     hosts: string[];
   }[];
+}
+
+export function isMapParsed(
+  result: ParseProfileIdResult | ParseMapIdResult
+): result is ParseMapIdResult {
+  return 'provider' in result;
+}
+
+export function composeStructure(
+  result: Exclude<
+    ParseProfileIdResult | ParseMapIdResult,
+    { kind: 'error'; message: string }
+  >
+): DocumentStructure {
+  return {
+    name: result.name,
+    scope: result.scope,
+    provider: isMapParsed(result) ? result.provider : undefined,
+    variant: isMapParsed(result) ? result.variant : undefined,
+    version: result.version ?? {
+      major: 1,
+      minor: 0,
+      patch: 0,
+    },
+  };
+}
+
+export function composeVersion(version: VersionStructure): string {
+  return (
+    `${version.major}.${version.minor}.${version.patch}` +
+    (version.label ? `-${version.label}` : '')
+  );
 }
