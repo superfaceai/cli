@@ -1,47 +1,4 @@
-export function packageJson(): string {
-  return `{
-  "name": "playground",
-  "private": true,
-  "dependencies": {
-    "@superfaceai/sdk": "^0.0.6"
-  },
-  "devDependencies": {
-    "@types/node": "^14",
-    "typescript": "^4"
-  }
-}`;
-}
-
-export function npmRc(): string {
-  return '@superfaceai:registry=https://npm.pkg.github.com\n';
-}
-
-export function gitignore(): string {
-  return `build
-node_modules
-package-lock.json
-`;
-}
-
-export type GlueTemplateType = 'empty' | 'pubs';
-
-/**
- * Returns a glue script of given template `type` with given `usecase`.
- */
-export function glueScript(
-  type: GlueTemplateType,
-  usecase: string
-): string {
-  switch (type) {
-    case 'empty':
-      return empty(usecase);
-    case 'pubs':
-      return pubs(usecase);
-  }
-}
-
-function common(usecase: string, input: string): string {
-  return `import * as fs from 'fs';
+import * as fs from 'fs';
 import * as nodePath from 'path';
 import { promisify, inspect } from 'util';
 
@@ -53,24 +10,25 @@ async function loadAsts(
   scope: string | undefined,
   name: string,
   providerName: string,
-  variantName?: undefined,
+  variantName?: string
 ): Promise<{
   profile: ConstructorParameters<typeof Provider>[0],
   map: Exclude<ConstructorParameters<typeof Provider>[1], string>
 }> {
   // if scope is not undefined, add it to the build path
-  let buildPath = nodePath.join('superface', 'build');
+  // let buildPath = nodePath.join('superface', 'build');
+  let buildPath = nodePath.join('build');
   if (scope !== undefined) {
     buildPath = nodePath.join(buildPath, scope);
   }
 
   // Read the profile and map ASTs from the build folder
   const profileAst = JSON.parse(
-    await readFile(nodePath.join(buildPath, \`\${name}.supr.ast.json\`), { encoding: 'utf-8' })
+    await readFile(nodePath.join(buildPath, `${name}.supr.ast.json`), { encoding: 'utf-8' })
   );
   const variant = variantName ? '.' + variantName : '';
   const mapAst = JSON.parse(
-    await readFile(nodePath.join(buildPath, \`\${name}.\${providerName}\${variant}.suma.ast.json\`), { encoding: 'utf-8' })
+    await readFile(nodePath.join(buildPath, `${name}.${providerName}${variant}.suma.ast.json`), { encoding: 'utf-8' })
   );
 
   // As this is a development script, the correct structure of the loaded asts is not checked
@@ -87,28 +45,36 @@ async function execute(
   name: string,
   providerName: string,
   variantName?: string,
-  providerBaseUrl?: string
+  baseUrl?: string,
+  auth?: Parameters<Provider['bind']>[0]
 ) {
-  const asts = await loadAsts(scope, name, variantName);
+ const asts = await loadAsts(scope, name, providerName, variantName);
 
   // 1. Create the provider object with the read ASTs
-  const provider = new Provider(asts.profile, asts.map, providerBaseUrl);
+  const provider = new Provider(
+    asts.profile,
+    asts.map,
+    baseUrl
+  );
 
   // 2. Bind the provider
   const boundProvider = await provider.bind({
-    // TODO: auth keys 
+    ...auth
   });
 
   // 3. Perform the usecase with the bound provider
   const result = await boundProvider.perform(
-    '${usecase}',
-    ${input}
+    'PubOpeningHours',
+    {
+      city: "Praha",
+      nameRegex: "Diego"
+    }
   );
 
   // Do something with the result
   // Here we just print it
   console.log(
-    \`${usecase}/\${providerName}\${variantName ? '.' + variantName : ''} result:\`,
+    `PubOpeningHours/${providerName}${variantName ? '.' + variantName : ''} result:`,
     inspect(result, {
       depth: 5,
       colors: true,
@@ -118,7 +84,7 @@ async function execute(
 
 async function main() {
   // Iterate over the input arguments
-  // Their expected format is \`scope/name.provider.variant\`
+  // Their expected format is `scope/name.provider.variant` (scope nad variant are optional)
   for (const arg of process.argv.slice(2)) {
     let scope: string | undefined = undefined;
     let name: string = arg;
@@ -146,25 +112,20 @@ async function main() {
       variant = nameSplit[2];
     }
 
+    // TODO: Choose auth and base url based on provider name
+    // Later they will be read by the SDK from provider.json and from the registry
+    const baseUrl = 'https://overpass-api.de';
+    const auth = {};
+
     execute(
       scope,
       name,
       provider,
       variant,
-      // TODO: Base url
+      baseUrl,
+      auth
     );
   }
 }
 
 main();
-`;
-
-}
-
-export function empty(usecase: string): string {
-  return common(usecase, '{}');
-}
-
-export function pubs(usecase: string): string {
-  return common(usecase, '{ city: "Praha", nameRegex: "Diego" }');
-}

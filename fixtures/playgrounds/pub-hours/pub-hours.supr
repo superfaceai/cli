@@ -1,0 +1,21 @@
+name = "example/pub-hours"
+version = "1"
+
+"""
+List pub opening hours
+"""
+usecase PubOpeningHours {
+	input {
+		city! string!
+		nameRegex string!
+	}
+
+	result [{ name string, openingHours string }]
+
+	error PubOpeningHoursError
+}
+
+model PubOpeningHoursError enum {
+	TIMEOUT
+}
+

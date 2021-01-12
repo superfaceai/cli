@@ -28,7 +28,7 @@ function isActionType(input: unknown): input is ActionType {
 export default class Play extends Command {
   static description = `Manages and executes interactive playgrounds. Missing arguments are interactively prompted.
 Playground is a folder F which contains a profile (\`F.supr\`), maps (\`F.*.suma\`) and glue scripts (\`F.*.ts\`) where \`*\` denotes provider name.
-initialize: a playground is populated with an example profile, and a pair of a map and a glue script for each provider.
+initialize: a playground is populated with an example profile, and a pair of a map and a play script.
 execute: the profile, and the selected pairs of a map and a glue script are compiled and the specified provider glue scripts are executed.
 clean: the \`node_modules\` folder and compilation artifacts are cleaned.`;
 

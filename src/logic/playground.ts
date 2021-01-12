@@ -61,7 +61,7 @@ export async function initializePlayground(
   logCb?.(`$ echo '<package template>' > ${packageJsonPath}`);
   const packageJsonPromise = OutputStream.writeOnce(
     packageJsonPath,
-    playgroundTemplate.packageJson(name)
+    playgroundTemplate.packageJson()
   );
 
   const gluesPromises = providers.map(provider => {
@@ -70,7 +70,7 @@ export async function initializePlayground(
 
     return OutputStream.writeOnce(
       path,
-      playgroundTemplate.pubs(name, provider)
+      playgroundTemplate.pubs(name)
     );
   });
 

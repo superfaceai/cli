@@ -3,6 +3,8 @@
 ### Changed
 * Updated parser dependency to v0.0.10
 * Updated compile and lint tests to use `path.join` instead of string paths
+* Play command outputs build files to `<playground>/build` directory
+* Playground no longer needs to have the same name as the profile within it
 
 ## [0.0.2]
 
