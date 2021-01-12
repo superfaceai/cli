@@ -11,6 +11,8 @@
 * Updated generation of header fields ( `name`, `version`, `variant` )
 * Updated validation of specified values in create command with new parsing functions
 * Updated compile and lint tests to use `path.join` instead of string paths
+* Play command outputs build files to `<playground>/build` directory
+* Playground no longer needs to have the same name as the profile within it
 
 ### Removed
 * Document type flag: `--documentType` (`-t`)
