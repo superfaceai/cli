@@ -1,8 +1,15 @@
+import * as nodePath from 'path';
 import { stderr, stdout } from 'stdout-stderr';
 
 import Lint from './lint';
 
 describe('lint CLI command', () => {
+  const fixture = {
+    strictProfile: nodePath.join('fixtures', 'strict.supr'),
+    strictMap: nodePath.join('fixtures', 'strict.suma'),
+    invalidMap: nodePath.join('fixtures', 'invalid.suma'),
+  };
+
   beforeEach(() => {
     stderr.start();
     stdout.start();
@@ -14,23 +21,23 @@ describe('lint CLI command', () => {
   });
 
   it('lints one profile and one map file with autodetect', async () => {
-    await Lint.run(['./fixtures/strict.suma', './fixtures/strict.supr']);
+    await Lint.run([fixture.strictMap, fixture.strictProfile]);
 
-    expect(stdout.output).toContain('🆗 ./fixtures/strict.suma\n' + '\n');
-    expect(stdout.output).toContain('🆗 ./fixtures/strict.supr\n' + '\n');
+    expect(stdout.output).toContain(`🆗 ${fixture.strictMap}\n` + '\n');
+    expect(stdout.output).toContain(`🆗 ${fixture.strictProfile}\n` + '\n');
     expect(stdout.output).toContain('Detected 0 problems\n');
   });
 
   it('lints a valid and an invalid map', async () => {
     await expect(
-      Lint.run(['./fixtures/strict.suma', './fixtures/invalid.suma'])
+      Lint.run([fixture.strictMap, fixture.invalidMap])
     ).rejects.toHaveProperty(['oclif', 'exit'], 1);
 
-    expect(stdout.output).toContain('🆗 ./fixtures/strict.suma\n' + '\n');
+    expect(stdout.output).toContain(`🆗 ${fixture.strictMap}\n` + '\n');
     expect(stdout.output).toContain(
-      '❌ ./fixtures/invalid.suma\n' +
+      `❌ ${fixture.invalidMap}\n` +
         'SyntaxError: Expected `provider` but found `map`\n' +
-        ' --> ./fixtures/invalid.suma:3:1\n' +
+        ` --> ${fixture.invalidMap}:3:1\n` +
         '2 | \n' +
         '3 | map Foo {\n' +
         '  | ^^^      \n' +
@@ -44,14 +51,14 @@ describe('lint CLI command', () => {
       Lint.run([
         '--outputFormat',
         'short',
-        './fixtures/strict.suma',
-        './fixtures/invalid.suma',
+        fixture.strictMap,
+        fixture.invalidMap,
       ])
     ).rejects.toHaveProperty(['oclif', 'exit'], 1);
 
-    expect(stdout.output).toContain('🆗 ./fixtures/strict.suma\n' + '\n');
+    expect(stdout.output).toContain(`🆗 ${fixture.strictMap}\n` + '\n');
     expect(stdout.output).toContain(
-      '❌ ./fixtures/invalid.suma\n' +
+      `❌ ${fixture.invalidMap}\n` +
         '\t3:1 Expected `provider` but found `map`\n'
     );
     expect(stdout.output).toContain('Detected 1 problem\n');
@@ -62,8 +69,8 @@ describe('lint CLI command', () => {
       Lint.run([
         '--outputFormat',
         'json',
-        './fixtures/strict.suma',
-        './fixtures/invalid.suma',
+        fixture.strictMap,
+        fixture.invalidMap,
       ])
     ).rejects.toHaveProperty(['oclif', 'exit'], 1);
 
@@ -78,12 +85,12 @@ describe('lint CLI command', () => {
     expect(result.reports).toBeDefined();
 
     expect(result.reports).toContainEqual({
-      path: './fixtures/strict.suma',
+      path: fixture.strictMap,
       errors: [],
       warnings: [],
     });
     expect(result.reports).toContainEqual({
-      path: './fixtures/invalid.suma',
+      path: fixture.invalidMap,
       errors: [
         {
           category: 1,
@@ -93,8 +100,8 @@ describe('lint CLI command', () => {
             column: 1,
           },
           span: {
-            start: 40,
-            end: 43,
+            start: 31,
+            end: 34,
           },
         },
       ],
@@ -103,9 +110,9 @@ describe('lint CLI command', () => {
   });
 
   it('lints a valid file and outputs it to stderr', async () => {
-    await Lint.run(['--output', '-2', './fixtures/strict.supr']);
+    await Lint.run(['--output', '-2', fixture.strictProfile]);
 
-    expect(stderr.output).toContain('🆗 ./fixtures/strict.supr\n' + '\n');
+    expect(stderr.output).toContain(`🆗 ${fixture.strictProfile}\n` + '\n');
     expect(stderr.output).toContain('Detected 0 problems\n');
   });
 });
