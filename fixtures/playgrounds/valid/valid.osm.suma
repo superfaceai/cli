@@ -1,5 +1,5 @@
-profile = "https://example.com/pubs"
-provider = "https://example.com/pubs/OSM"
+profile = "example/pubs@1.0.0"
+provider = "osm"
 
 map PubOpeningHours {
 	http POST "/api/interpreter" {
