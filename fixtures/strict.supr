@@ -3,7 +3,8 @@ Title
 
 Description
 """
-profile = "https://example.com/profile/myProfile"
+name = "example/profile"
+version = "1.0.0"
 
 // https://sfspec.surge.sh/profile#sec-Use-case
 "usecase title"
