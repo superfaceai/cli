@@ -93,19 +93,27 @@ export default class Create extends Command {
       throw userError('Name of your document is reserved!', 1);
     }
 
-    if (flags.provider && createMode === CreateMode.PROFILE) {
-      throw userError(
-        'Provider should not be specified when generating a profile',
-        1
+    // output a warning when generating profile only and provider is specified
+    if (createMode === CreateMode.PROFILE && flags.provider) {
+      this.warn(
+        'Provider should not be specified when generating profile only'
       );
+      flags.provider = undefined;
+    }
+
+    // output a warning when generating map only and version is not in default format
+    if (
+      createMode === CreateMode.MAP &&
+      flags.version !== DEFAULT_PROFILE_VERSION
+    ) {
+      this.warn('Profile version should not be specified when generating map only');
+      flags.version = DEFAULT_PROFILE_VERSION;
     }
 
     // parse document name and flags
     const provider = flags.provider ? `.${flags.provider}` : '';
     const variant = flags.variant ? `.${flags.variant}` : '';
-    const version =
-      createMode === CreateMode.MAP ? DEFAULT_PROFILE_VERSION : flags.version;
-    const documentId = `${documentName}${provider}${variant}@${version}`;
+    const documentId = `${documentName}${provider}${variant}@${flags.version}`;
     const documentResult =
       createMode === CreateMode.PROFILE
         ? parseProfileId(documentId)
