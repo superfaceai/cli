@@ -219,7 +219,7 @@ clean: the \`node_modules\` folder and compilation artifacts are cleaned.`;
     if (playgroundPath === undefined) {
       playgroundPath = await Play.promptExistingPlayground();
     }
-    const playground = await detectPlayground(playgroundPath);
+    const playground = (await detectPlayground(playgroundPath))[0]; // TODO: Do something about multiple instances
 
     if (providers === undefined || providers.length === 0) {
       const response: { providers: string[] } = await inquirer.prompt({
@@ -260,7 +260,7 @@ clean: the \`node_modules\` folder and compilation artifacts are cleaned.`;
     if (playgroundPath === undefined) {
       playgroundPath = await Play.promptExistingPlayground();
     }
-    const playground = await detectPlayground(playgroundPath);
+    const playground = (await detectPlayground(playgroundPath))[0]; // TODO: Do something about multiple instances
 
     this.debug('Playground:', playground);
     await cleanPlayground(playground, this.logCallback);
