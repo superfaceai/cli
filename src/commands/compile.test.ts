@@ -1,20 +1,16 @@
-import * as nodePath from 'path';
+import { join as joinPath } from 'path';
 import { stderr, stdout } from 'stdout-stderr';
 
 import { access, mkdir, readFile, rimraf } from '../common/io';
 import Compile from './compile';
 
 describe('Compile CLI command', () => {
-  const compileDir = nodePath.join('fixtures', 'compile');
+  const compileDir = joinPath('fixtures', 'compile');
   const fixture = {
-    strictProfile: nodePath.join('fixtures', 'strict.supr'),
-    strictMap: nodePath.join('fixtures', 'strict.suma'),
-    strictProfileAst: nodePath.join(
-      'fixtures',
-      'compiled',
-      'strict.supr.ast.json'
-    ),
-    strictMapAst: nodePath.join('fixtures', 'compiled', 'strict.suma.ast.json'),
+    strictProfile: joinPath('fixtures', 'strict.supr'),
+    strictMap: joinPath('fixtures', 'strict.suma'),
+    strictProfileAst: joinPath('fixtures', 'compiled', 'strict.supr.ast.json'),
+    strictMapAst: joinPath('fixtures', 'compiled', 'strict.suma.ast.json'),
   };
 
   beforeEach(() => {
@@ -84,8 +80,8 @@ describe('Compile CLI command', () => {
     ]);
 
     const expectedFiles = [
-      nodePath.join(compileDir, 'strict.supr.ast.json'),
-      nodePath.join(compileDir, 'strict.suma.ast.json'),
+      joinPath(compileDir, 'strict.supr.ast.json'),
+      joinPath(compileDir, 'strict.suma.ast.json'),
     ];
 
     await Promise.all(

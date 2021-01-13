@@ -1,13 +1,13 @@
-import * as nodePath from 'path';
+import { join as joinPath } from 'path';
 import { stderr, stdout } from 'stdout-stderr';
 
 import Lint from './lint';
 
 describe('lint CLI command', () => {
   const fixture = {
-    strictProfile: nodePath.join('fixtures', 'strict.supr'),
-    strictMap: nodePath.join('fixtures', 'strict.suma'),
-    invalidMap: nodePath.join('fixtures', 'invalid.suma'),
+    strictProfile: joinPath('fixtures', 'strict.supr'),
+    strictMap: joinPath('fixtures', 'strict.suma'),
+    invalidMap: joinPath('fixtures', 'invalid.suma'),
   };
 
   beforeEach(() => {
