@@ -106,7 +106,9 @@ export default class Create extends Command {
       createMode === CreateMode.MAP &&
       flags.version !== DEFAULT_PROFILE_VERSION
     ) {
-      this.warn('Profile version should not be specified when generating map only');
+      this.warn(
+        'Profile version should not be specified when generating map only'
+      );
       flags.version = DEFAULT_PROFILE_VERSION;
     }
 
