@@ -3,6 +3,7 @@ import { parseMapId, parseProfileId } from '@superfaceai/parser';
 
 import {
   composeStructure,
+  composeUsecaseName,
   composeVersion,
   CreateMode,
   DEFAULT_PROFILE_VERSION,
@@ -121,9 +122,9 @@ export default class Create extends Command {
     }
 
     // parse document name and flags
-    const provider = flags.provider ? `.${flags.provider}` : '';
+    const providerName = flags.provider ? `.${flags.provider}` : '';
     const variant = flags.variant ? `.${flags.variant}` : '';
-    const documentId = `${documentName}${provider}${variant}@${flags.version}`;
+    const documentId = `${documentName}${providerName}${variant}@${flags.version}`;
     const documentResult =
       createMode === CreateMode.PROFILE
         ? parseProfileId(documentId)
@@ -135,9 +136,10 @@ export default class Create extends Command {
 
     // compose document structure from the result
     const documentStructure = composeStructure(documentResult);
+    const { name, scope, provider } = documentStructure;
 
     // if there is no specified usecase - create usecase with same name as profile name
-    const usecases = flags.usecase ?? [documentStructure.name];
+    const usecases = flags.usecase ?? [composeUsecaseName(name)];
     for (const usecase of usecases) {
       if (!validateDocumentName(usecase)) {
         throw userError(`Invalid usecase name: ${usecase}`, 1);
@@ -154,8 +156,8 @@ export default class Create extends Command {
     }
 
     // create scope directory if it already doesn't exist
-    if (documentStructure.scope) {
-      await mkdirQuiet(documentStructure.scope);
+    if (scope) {
+      await mkdirQuiet(scope);
     }
 
     switch (createMode) {
@@ -163,17 +165,17 @@ export default class Create extends Command {
         await this.createProfile(documentStructure, usecases, flags.template);
         break;
       case CreateMode.MAP:
-        if (!documentStructure.provider) {
+        if (!provider) {
           throw userError(
             'Provider name must be provided when generating a map.',
             2
           );
         }
         await this.createMap(documentStructure, usecases, flags.template);
-        await this.createProviderJson(documentStructure.provider);
+        await this.createProviderJson(provider);
         break;
       case CreateMode.BOTH:
-        if (!documentStructure.provider) {
+        if (!provider) {
           throw userError(
             'Provider name must be provided when generating a map.',
             2
@@ -181,7 +183,7 @@ export default class Create extends Command {
         }
         await this.createProfile(documentStructure, usecases, flags.template);
         await this.createMap(documentStructure, usecases, flags.template);
-        await this.createProviderJson(documentStructure.provider);
+        await this.createProviderJson(provider);
         break;
     }
   }

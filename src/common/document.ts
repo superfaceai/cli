@@ -141,3 +141,10 @@ export function composeVersion(version: VersionStructure): string {
     (version.label ? `-${version.label}` : '')
   );
 }
+
+export const composeUsecaseName = (documentId: string): string =>
+  documentId
+    .split(/[-_]/)
+    .filter(w => w.trim() !== '')
+    .map(w => w[0].toUpperCase() + w.slice(1))
+    .join('');
