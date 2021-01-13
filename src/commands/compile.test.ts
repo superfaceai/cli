@@ -3,7 +3,7 @@ import { stderr, stdout } from 'stdout-stderr';
 import { access, mkdir, readFile, rimraf } from '../common/io';
 import Compile from './compile';
 
-describe('Compile CLI command', () => {
+describe.skip('Compile CLI command', () => {
   beforeEach(() => {
     stderr.start();
     stdout.start();

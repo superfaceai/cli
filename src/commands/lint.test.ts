@@ -2,7 +2,7 @@ import { stderr, stdout } from 'stdout-stderr';
 
 import Lint from './lint';
 
-describe('lint CLI command', () => {
+describe.skip('lint CLI command', () => {
   beforeEach(() => {
     stderr.start();
     stdout.start();

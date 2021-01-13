@@ -1,14 +1,23 @@
 import { Command, flags } from '@oclif/command';
+import { parseMapId, parseProfileId } from '@superfaceai/parser';
 
 import {
+  composeStructure,
+  composeUsecaseName,
+  composeVersion,
+  CreateMode,
+  DEFAULT_PROFILE_VERSION,
+  DocumentStructure,
+  inferCreateMode,
   MAP_EXTENSIONS,
   PROFILE_EXTENSIONS,
   validateDocumentName,
 } from '../common/document';
 import { developerError, userError } from '../common/error';
-import { OutputStream } from '../common/io';
+import { mkdirQuiet, OutputStream } from '../common/io';
 import * as mapTemplate from '../templates/map';
 import * as profileTemplate from '../templates/profile';
+import { defaultProvider } from '../templates/provider';
 
 export default class Create extends Command {
   static strict = false;
@@ -32,6 +41,17 @@ export default class Create extends Command {
     }),
     provider: flags.string({
       char: 'p',
+      description: 'Name of a Provider',
+    }),
+    variant: flags.string({
+      char: 't',
+      description: 'Variant of a map',
+      dependsOn: ['provider'],
+    }),
+    version: flags.string({
+      char: 'v',
+      default: DEFAULT_PROFILE_VERSION,
+      description: 'Version of a profile',
     }),
     template: flags.string({
       options: ['empty', 'pubs'],
@@ -42,11 +62,12 @@ export default class Create extends Command {
   };
 
   static examples = [
-    '$ superface create profile SMSService',
-    '$ superface create profile SMSService -u SendSMS ReceiveSMS',
-    '$ superface create map SMSService -p Twillio',
-    '$ superface create SMSService -p Twillio',
-    '$ superface create SMSService -p Twillio -u SendSMS ReceiveSMS',
+    '$ superface create profile sms/service',
+    '$ superface create profile sms/service -u SendSMS ReceiveSMS',
+    '$ superface create map sms/service -p twillio',
+    '$ superface create map sms/service -p twillio -u SendSMS ReceiveSMS',
+    '$ superface create sms/service -p twillio -u SendSMS ReceiveSMS',
+    '$ superface create sms/service -p twillio -t bugfix -v 1.1-rev133 -u SendSMS ReceiveSMS',
   ];
 
   async run(): Promise<void> {
@@ -56,19 +77,15 @@ export default class Create extends Command {
       throw userError('Invalid command!', 1);
     }
 
+    let createMode = CreateMode.BOTH;
     const documentName = argv[1] ?? argv[0];
-    let documentType = 'both';
-    let usecases: string[];
-
-    if (
-      typeof documentName !== 'string' ||
-      !validateDocumentName(documentName)
-    ) {
-      throw userError('Invalid document name.', 1);
-    }
 
     if (argv.length > 1) {
-      documentType = argv[0];
+      createMode = inferCreateMode(argv[0]);
+
+      if (createMode === CreateMode.UNKNOWN) {
+        throw userError('Could not infer create mode', 3);
+      }
     } else if (
       documentName === 'profile' ||
       documentName === 'map' ||
@@ -77,11 +94,56 @@ export default class Create extends Command {
       throw userError('Name of your document is reserved!', 1);
     }
 
-    // if there is no specified usecase - create usecase with same name as document name
-    if (!flags.usecase) {
-      usecases = [documentName];
-    } else {
-      usecases = flags.usecase;
+    // output a warning when generating profile only and provider is specified
+    if (createMode === CreateMode.PROFILE && flags.provider) {
+      this.warn(
+        'Provider should not be specified when generating profile only'
+      );
+      flags.provider = undefined;
+
+      // output a warning when variant is specified as well
+      if (flags.variant) {
+        this.warn(
+          'Variant should not be specified when generating profile only'
+        );
+        flags.variant = undefined;
+      }
+    }
+
+    // output a warning when generating map only and version is not in default format
+    if (
+      createMode === CreateMode.MAP &&
+      flags.version !== DEFAULT_PROFILE_VERSION
+    ) {
+      this.warn(
+        'Profile version should not be specified when generating map only'
+      );
+      flags.version = DEFAULT_PROFILE_VERSION;
+    }
+
+    // parse document name and flags
+    const providerName = flags.provider ? `.${flags.provider}` : '';
+    const variant = flags.variant ? `.${flags.variant}` : '';
+    const documentId = `${documentName}${providerName}${variant}@${flags.version}`;
+    const documentResult =
+      createMode === CreateMode.PROFILE
+        ? parseProfileId(documentId)
+        : parseMapId(documentId);
+
+    if (documentResult.kind === 'error') {
+      throw userError(documentResult.message, 1);
+    }
+
+    // compose document structure from the result
+    const documentStructure = composeStructure(documentResult);
+    const { name, scope, provider } = documentStructure;
+
+    // if there is no specified usecase - create usecase with same name as profile name
+    const usecases = flags.usecase ?? [composeUsecaseName(name)];
+    for (const usecase of usecases) {
+      if (!validateDocumentName(usecase)) {
+        throw userError(`Invalid usecase name: ${usecase}`, 1);
+      }
     }
 
     // typecheck the template flag
@@ -93,82 +155,96 @@ export default class Create extends Command {
         throw developerError('Invalid --template flag option', 1);
     }
 
-    switch (documentType) {
-      case 'profile':
-        await this.createProfile(documentName, usecases, flags.template);
+    // create scope directory if it already doesn't exist
+    if (scope) {
+      await mkdirQuiet(scope);
+    }
+
+    switch (createMode) {
+      case CreateMode.PROFILE:
+        await this.createProfile(documentStructure, usecases, flags.template);
         break;
-      case 'map':
-        if (!flags.provider) {
+      case CreateMode.MAP:
+        if (!provider) {
           throw userError(
             'Provider name must be provided when generating a map.',
             2
           );
         }
-        await this.createMap(
-          documentName,
-          usecases,
-          flags.provider,
-          flags.template
-        );
+        await this.createMap(documentStructure, usecases, flags.template);
+        await this.createProviderJson(provider);
         break;
-      case 'both':
-        if (!flags.provider) {
+      case CreateMode.BOTH:
+        if (!provider) {
           throw userError(
             'Provider name must be provided when generating a map.',
             2
           );
         }
-        await this.createProfile(documentName, usecases, flags.template);
-        await this.createMap(
-          documentName,
-          usecases,
-          flags.provider,
-          flags.template
-        );
+        await this.createProfile(documentStructure, usecases, flags.template);
+        await this.createMap(documentStructure, usecases, flags.template);
+        await this.createProviderJson(provider);
         break;
-      default:
-        throw developerError('Invalid document type!', 1);
     }
   }
 
   private async createProfile(
-    documentName: string,
+    documentStructure: DocumentStructure,
     useCaseNames: string[],
     template: profileTemplate.UsecaseTemplateType
   ): Promise<void> {
-    const fileName = `${documentName}${PROFILE_EXTENSIONS[0]}`;
-    const outputStream = new OutputStream(fileName);
+    const { name, scope } = documentStructure;
 
-    await outputStream.write(
-      profileTemplate.header(documentName) +
+    const documentName = scope ? `${scope}/${name}` : name;
+    const version = composeVersion(documentStructure.version);
+    const fileName = `${documentName}${PROFILE_EXTENSIONS[0]}`;
+
+    await OutputStream.writeOnce(
+      fileName,
+      profileTemplate.header(documentName, version) +
         useCaseNames
           .map(usecase => profileTemplate.usecase(template, usecase))
           .join('')
     );
-    this.log(
-      `-> Created ${fileName} (id = "https://example.com/profile/${documentName}")`
-    );
 
-    await outputStream.cleanup();
+    this.log(
+      `-> Created ${fileName} (name = "${documentName}", version = "${version}")`
+    );
   }
 
   private async createMap(
-    documentName: string,
+    documentStructure: DocumentStructure,
     useCaseNames: string[],
-    providerName: string,
     template: mapTemplate.MapTemplateType
   ): Promise<void> {
-    const fileName = `${documentName}${MAP_EXTENSIONS[0]}`;
-    const outputStream = new OutputStream(fileName);
+    const { name, scope, provider, variant } = documentStructure;
 
-    await outputStream.write(
-      mapTemplate.header(documentName, providerName) +
+    if (!provider) {
+      throw developerError('Document structure is complete', 1);
+    }
+
+    const documentName = scope ? `${scope}/${name}` : name;
+    const version = composeVersion(documentStructure.version);
+    const variantName = variant ? `.${variant}` : '';
+    const fileName = `${documentName}.${provider}${variantName}${MAP_EXTENSIONS[0]}`;
+
+    await OutputStream.writeOnce(
+      fileName,
+      mapTemplate.header(documentName, provider, version, variant) +
         useCaseNames.map(usecase => mapTemplate.map(template, usecase)).join('')
     );
+
     this.log(
-      `-> Created ${fileName} (provider = ${providerName}, id = "https://example.com/${providerName}/${documentName}")`
+      `-> Created ${fileName} (profile = "${documentName}@${version}", provider = "${provider}")`
+    );
+  }
+
+  private async createProviderJson(name: string): Promise<void> {
+    await OutputStream.writeOnce(
+      `${name}.provider.json`,
+      defaultProvider(name)
     );
 
-    await outputStream.cleanup();
+    this.log(`-> Created ${name}.provider.json`);
   }
 }
