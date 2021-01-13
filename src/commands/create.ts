@@ -99,6 +99,14 @@ export default class Create extends Command {
         'Provider should not be specified when generating profile only'
       );
       flags.provider = undefined;
+
+      // output a warning when variant is specified as well
+      if (flags.variant) {
+        this.warn(
+          'Variant should not be specified when generating profile only'
+        );
+        flags.variant = undefined;
+      }
     }
 
     // output a warning when generating map only and version is not in default format
