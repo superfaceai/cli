@@ -117,6 +117,20 @@ $ echo '<gitignore template>' > fixtures/playgrounds/${testPlaygroundName}/.giti
     ).resolves.toBeDefined();
   }, 30000);
 
+  it.skip('creates, compiles and executes a playground on a real api', async () => {
+    stdout.start();
+    await expect(
+      Play.run(['initialize', testPlaygroundPath, '--providers', 'foo'])
+    ).resolves.toBeUndefined();
+    await Play.run(['execute', testPlaygroundPath, '--providers', 'foo']);
+    stdout.stop();
+
+    expect(stdout.output).toMatch(/create_test\/foo result: Ok {/);
+    expect(stdout.output).toMatch(
+      /{ name: 'Pivni bar Diego', openingHours: 'Mo-Su,PH 16:30 - 23:45' }/
+    );
+  }, 30000);
+
   it('cleans compilation artifacts', async () => {
     const deletedFiles = [
       'package-lock.json',
