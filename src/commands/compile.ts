@@ -69,7 +69,7 @@ export default class Compile extends Command {
               // Shared directory, name based on file
               const sharedDirectory = nodePath.join(
                 outputPath,
-                nodePath.basename(file)
+                nodePath.basename(file) + DEFAULT_EXTENSION
               );
               this.debug(`Compiling "${file}" to "${sharedDirectory}"`);
 

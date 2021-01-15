@@ -1,7 +1,11 @@
+import { Stats } from 'fs';
 import nodePath from 'path';
 
 import Compile from '../commands/compile';
-import { validateDocumentName } from '../common/document';
+import {
+  DEFAULT_PROFILE_VERSION,
+  validateDocumentName,
+} from '../common/document';
 import {
   assertIsExecError,
   assertIsGenericError,
@@ -13,6 +17,7 @@ import {
   execFile,
   OutputStream,
   readdir,
+  realpath,
   resolveSkipFile,
   rimraf,
   stat,
@@ -23,10 +28,21 @@ import * as playgroundTemplate from '../templates/playground';
 import * as profileTemplate from '../templates/profile';
 
 export interface PlaygroundFolder {
+  /**
+   * Name of the playground. Corresponds to the name of the profile that is executed.
+   */
   name: string;
+  /**
+   * Absolute path to the playground.
+   */
   path: string;
+  /**
+   * Set of providers that are contained within the playground.
+   */
   providers: Set<string>;
 }
+
+const BUILD_DIR = 'build';
 
 export async function initializePlayground(
   playgroundPath: string,
@@ -62,7 +78,8 @@ export async function initializePlayground(
   logCb?.(`$ echo '<profile template>' > ${profilePath}`);
   const profilePromise = OutputStream.writeOnce(
     profilePath,
-    profileTemplate.header(name) + profileTemplate.pubs(name)
+    profileTemplate.header(name, DEFAULT_PROFILE_VERSION) +
+      profileTemplate.pubs(name)
   );
 
   const mapsPromises = providers.map(provider => {
@@ -71,7 +88,8 @@ export async function initializePlayground(
 
     return OutputStream.writeOnce(
       path,
-      mapTemplate.header(name, provider) + mapTemplate.pubs(name)
+      mapTemplate.header(name, provider, DEFAULT_PROFILE_VERSION) +
+        mapTemplate.pubs(name)
     );
   });
 
@@ -82,12 +100,20 @@ export async function initializePlayground(
     playgroundTemplate.npmRc()
   );
 
+  const gitignorePath = nodePath.join(playgroundPath, '.gitignore');
+  logCb?.(`$ echo '<gitignore template>' > ${gitignorePath}`);
+  const gitignorePromise = OutputStream.writeOnce(
+    gitignorePath,
+    playgroundTemplate.gitignore()
+  );
+
   await Promise.all([
     packageJsonPromise,
     ...gluesPromises,
     profilePromise,
     ...mapsPromises,
     npmrcPromise,
+    gitignorePromise,
   ]);
 }
 
@@ -104,17 +130,14 @@ export async function executePlayground(
   const mapPaths = providers.map(provider =>
     nodePath.join(playground.path, `${playground.name}.${provider}.suma`)
   );
-
-  const gluePaths = providers.map(
-    provider => `${playground.name}.${provider}.ts`
-  );
-  const compiledGluePaths = providers.map(
-    provider => `${playground.name}.${provider}.js`
+  const gluePaths = providers.map(provider =>
+    nodePath.join(playground.path, `${playground.name}.${provider}.ts`)
   );
 
-  const skipNpm = await resolveSkipFile(skip.npm, [
-    nodePath.join(playground.path, 'node_modules'),
-  ]);
+  const buildPaths = playgroundBuildPaths(playground, providers);
+  await createDirectory(buildPaths.base);
+
+  const skipNpm = await resolveSkipFile(skip.npm, buildPaths.npm);
   if (!skipNpm) {
     options.logCb?.('$ npm install');
     try {
@@ -123,36 +146,36 @@ export async function executePlayground(
       });
     } catch (err) {
       assertIsExecError(err);
-      throw userError(`npm install failed:\n${err.stdout}`, 22);
+      throw userError(`npm install failed:\n${err.stderr}`, 22);
     }
   }
 
-  const skipAst = await resolveSkipFile(
-    skip.ast,
-    mapPaths.map(m => `${m}.ast.json`)
-  );
+  const skipAst = await resolveSkipFile(skip.ast, buildPaths.maps);
   if (!skipAst) {
     options.logCb?.(
-      `$ superface compile '${profilePath}' ${mapPaths
-        .map(p => `'${p}'`)
-        .join(' ')}`
+      `$ superface compile --output '${
+        buildPaths.base
+      }' '${profilePath}' ${mapPaths.map(p => `'${p}'`).join(' ')}`
     );
+
     try {
-      await Compile.run([profilePath, ...mapPaths]);
+      await Compile.run([
+        '--output',
+        buildPaths.base,
+        profilePath,
+        ...mapPaths,
+      ]);
     } catch (err) {
       assertIsGenericError(err);
       throw userError(`superface compilation failed: ${err.message}`, 23);
     }
   }
 
-  const skipTsc = await resolveSkipFile(
-    skip.tsc,
-    compiledGluePaths.map(g => nodePath.join(playground.path, g))
-  );
+  const skipTsc = await resolveSkipFile(skip.tsc, buildPaths.glues);
   if (!skipTsc) {
     options.logCb?.(
       `$ tsc --strict --target ES2015 --module commonjs --outDir ${
-        playground.path
+        buildPaths.base
       } ${gluePaths.map(p => `'${p}'`).join(' ')}`
     );
     try {
@@ -165,7 +188,7 @@ export async function executePlayground(
           '--module',
           'commonjs',
           '--outDir',
-          '.',
+          buildPaths.base,
           ...gluePaths,
         ],
         {
@@ -178,7 +201,7 @@ export async function executePlayground(
     }
   }
 
-  for (const compiledGluePath of compiledGluePaths) {
+  for (const compiledGluePath of buildPaths.glues) {
     // log and handle debug level flag
     options.logCb?.(
       `$ DEBUG='${options.debugLevel}' '${process.execPath}' '${compiledGluePath}'`
@@ -209,20 +232,18 @@ export async function cleanPlayground(
   playground: PlaygroundFolder,
   logCb?: LogCallback
 ): Promise<void> {
+  const buildPaths = playgroundBuildPaths(playground, [
+    ...playground.providers.values(),
+  ]);
   const files = [
-    `${playground.name}.supr.ast.json`,
-    'node_modules',
-    'package-lock.json',
+    buildPaths.profile,
+    ...buildPaths.maps,
+    ...buildPaths.glues,
+    ...buildPaths.npm,
   ];
-  for (const provider of playground.providers.values()) {
-    files.push(`${playground.name}.${provider}.suma.ast.json`);
-    files.push(`${playground.name}.${provider}.js`);
-  }
   logCb?.(`$ rimraf ${files.map(f => `'${f}'`).join(' ')}`);
 
-  await Promise.all(
-    files.map(file => rimraf(nodePath.join(playground.path, file)))
-  );
+  await Promise.all(files.map(f => rimraf(f)));
 }
 
 /**
@@ -230,16 +251,18 @@ export async function cleanPlayground(
  *
  * Looks for all of these files:
  * - `package.json`
- * - `<folder-name>.supr`
- * - `<folder-name>.*.suma` (at least one pair with `.ts` below)
- * - `<folder-name>.*.ts`
+ * - `<name>.supr` - where the name is inferred from the first `supr` file found
+ * - `<name>.*.suma` (at least one pair with `.ts` below)
+ * - `<name>.*.ts`
  */
 export async function detectPlayground(
   path: string
 ): Promise<PlaygroundFolder> {
-  let statInfo;
+  let realPath: string;
+  let statInfo: Stats;
   try {
-    statInfo = await stat(path);
+    realPath = await realpath(path);
+    statInfo = await stat(realPath);
   } catch (e) {
     throw userError('The playground path must exist and be accessible', 31);
   }
@@ -248,60 +271,112 @@ export async function detectPlayground(
     throw userError('The playground path must be a directory', 32);
   }
 
-  const baseName = nodePath.basename(path);
-  const startName = baseName + '.';
-  const entries = await readdir(path);
+  const entries = await readdir(realPath);
 
-  let foundPackageJson = false;
-  let foundProfile = false;
-  const foundMaps: Set<string> = new Set();
-  const foundGlues: Set<string> = new Set();
+  if (!entries.includes('package.json')) {
+    throw userError(
+      'The directory at playground path is not a playground: no package.json found',
+      33
+    );
+  }
 
-  for (const entry of entries) {
-    if (entry === 'package.json') {
-      foundPackageJson = true;
-    } else if (entry.startsWith(startName)) {
-      if (entry === `${startName}supr`) {
-        foundProfile = true;
-        continue;
-      }
+  const foundProfiles = entries.filter(entry => entry.endsWith('.supr'));
+  if (foundProfiles.length === 0) {
+    throw userError(
+      'The directory at playground path is not a playground: no profile found',
+      34
+    );
+  }
+  if (foundProfiles.length >= 2) {
+    // TODO
+  }
 
+  const name = foundProfiles[0].slice(
+    0,
+    foundProfiles[0].length - '.supr'.length
+  );
+
+  const providers = detectPlaygroundProviders(entries, name);
+  if (providers.size === 0) {
+    throw userError(
+      'The directory at playground path is not a playground: no providers found',
+      35
+    );
+  }
+
+  return {
+    name,
+    path: realPath,
+    providers,
+  };
+}
+
+/**
+ * Finds maps and glues for given profile name, if any.
+ */
+function detectPlaygroundProviders(
+  entries: readonly string[],
+  name: string
+): Set<string> {
+  const maps: Set<string> = new Set();
+  const glues: Set<string> = new Set();
+
+  const startName = name + '.';
+
+  entries
+    .filter(entry => entry.startsWith(startName))
+    .forEach(entry => {
       if (entry.endsWith('.suma')) {
         const provider = entry.slice(
           startName.length,
           entry.length - '.suma'.length
         );
 
-        foundMaps.add(provider);
-        continue;
-      }
-
-      if (entry.endsWith('.ts')) {
+        maps.add(provider);
+      } else if (entry.endsWith('.ts')) {
         const provider = entry.slice(
           startName.length,
           entry.length - '.ts'.length
         );
 
-        foundGlues.add(provider);
-        continue;
+        glues.add(provider);
       }
-    }
-  }
+    });
 
   const providers: Set<string> = new Set();
-  for (const provider of foundMaps) {
-    if (foundGlues.has(provider)) {
-      providers.add(provider);
-    }
-  }
+  maps.forEach(provider =>
+    glues.has(provider) ? providers.add(provider) : undefined
+  );
 
-  if (foundPackageJson && foundProfile && providers.size > 0) {
-    return {
-      name: baseName,
-      path,
-      providers,
-    };
-  }
+  return providers;
+}
 
-  throw userError('The directory at playground path is not a playground', 33);
+function playgroundBuildPaths(
+  playground: PlaygroundFolder,
+  providers: string[]
+): {
+  base: string;
+  profile: string;
+  maps: string[];
+  glues: string[];
+  npm: string[];
+} {
+  const buildPath = nodePath.join(playground.path, BUILD_DIR);
+  const maps = providers.map(provider =>
+    nodePath.join(buildPath, `${playground.name}.${provider}.suma.ast.json`)
+  );
+  const glues = providers.map(provider =>
+    nodePath.join(buildPath, `${playground.name}.${provider}.js`)
+  );
+
+  return {
+    base: buildPath,
+    profile: nodePath.join(buildPath, `${playground.name}.supr.ast.json`),
+    glues,
+    maps,
+    npm: [
+      nodePath.join(playground.path, 'package-lock.json'),
+      nodePath.join(playground.path, 'node_modules'),
+    ],
+  };
 }

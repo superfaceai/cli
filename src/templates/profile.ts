@@ -1,8 +1,9 @@
 /**
- * Returns a usecase header with filled in `name` and `provider`.
+ * Returns a usecase header with filled in `name` and `version`.
  */
-export function header(name: string): string {
-  return `profile = "https://example.com/profile/${name}"
+export function header(name: string, version: string): string {
+  return `name = "${name}"
+version = "${version}"
 `;
 }
 

@@ -17,6 +17,7 @@ export const stat = promisify(fs.stat);
 export const lstat = promisify(fs.lstat);
 export const readdir = promisify(fs.readdir);
 const mkdir = promisify(fs.mkdir);
+export const realpath = promisify(fs.realpath);
 export const rimraf = promisify(rimrafCallback);
 
 export async function exists(path: string): Promise<boolean> {
@@ -38,6 +39,24 @@ export async function exists(path: string): Promise<boolean> {
   return true;
 }
 
+export async function mkdirQuiet(path: string): Promise<void> {
+  try {
+    await mkdir(path);
+  } catch (err: unknown) {
+    assertIsIOError(err);
+
+    // Allow `EEXIST` because scope directory already exists.
+    if (err.code === 'EEXIST') {
+      return;
+    }
+
+    // Rethrow other errors.
+    throw err;
+  }
+
+  return;
+}
+
 export function streamWrite(stream: Writable, data: string): Promise<void> {
   return new Promise((resolve, reject) => {
     const writeMore = stream.write(data, 'utf-8');
@@ -50,6 +69,7 @@ export function streamWrite(stream: Writable, data: string): Promise<void> {
     }
   });
 }
+
 export function streamEnd(stream: Writable): Promise<void> {
   return new Promise((resolve, reject) => {
     stream.once('error', reject);
@@ -197,7 +217,7 @@ export class OutputStream {
   }
 
   write(data: string): Promise<void> {
-    outputStreamDebug(`Wiritng ${data.length} characters to "${this.name}"`);
+    outputStreamDebug(`Writing ${data.length} characters to "${this.name}"`);
 
     return streamWrite(this.stream, data);
   }

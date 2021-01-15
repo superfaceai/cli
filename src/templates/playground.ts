@@ -6,7 +6,7 @@ export function packageJson(name: string): string {
     "@superfaceai/sdk": "^0.0.4"
   },
   "devDependencies": {
-    "@types/node": "^14.14.10",
+    "@types/node": "^14.14.14",
     "typescript": "^4"
   }
 }`;
@@ -14,6 +14,13 @@ export function packageJson(name: string): string {
 
 export function npmRc(): string {
   return '@superfaceai:registry=https://npm.pkg.github.com\n';
+}
+
+export function gitignore(): string {
+  return `build
+node_modules
+package-lock.json
+`;
 }
 
 export type GlueTemplateType = 'empty' | 'pubs';
@@ -33,9 +40,10 @@ export function glueScript(
   }
 }
 
-export function empty(name: string, provider: string): string {
+function common(name: string, provider: string, body: string): string {
   return `
 import * as fs from 'fs';
+import * as nodePath from 'path';
 import { promisify, inspect } from 'util';
 import { Provider } from '@superfaceai/sdk'; // The sdk is where the main work is performed
 
@@ -43,14 +51,26 @@ const readFile = promisify(fs.readFile);
 
 async function main() {
   // Load the compiled JSON ASTs from local files
-  // These files are compiled when running \`superface play ${name}\` or \`superface compile ${name}.supr ${name}.${provider}.suma\` in the current directory
+  // These files are compiled when running \`superface play execute ${name}\` or \`superface compile --output build ${name}.supr ${name}.${provider}.suma\` in the current directory
   const profileAst = JSON.parse(
-    await readFile('${name}.supr.ast.json', { encoding: 'utf-8' })
+    await readFile(nodePath.join('build', '${name}.supr.ast.json'), { encoding: 'utf-8' })
   );
   const mapAst = JSON.parse(
-    await readFile('${name}.${provider}.suma.ast.json', { encoding: 'utf-8' })
+    await readFile(nodePath.join('build', '${name}.${provider}.suma.ast.json'), { encoding: 'utf-8' })
   );
 
+${body}
+}
+
+main()
+`;
+}
+
+export function empty(name: string, provider: string): string {
+  return common(
+    name,
+    provider,
+    `
   // Crate a new provider from local files.
   const provider = new Provider(
     // the loaded ASTs
@@ -81,30 +101,15 @@ async function main() {
       colors: true
     })
   );
-}
-
-main()
-`;
+`
+  );
 }
 
 export function pubs(name: string, provider: string): string {
-  return `
-import * as fs from 'fs';
-import { promisify, inspect } from 'util';
-import { Provider } from '@superfaceai/sdk'; // The sdk is where the main work is performed
-
-const readFile = promisify(fs.readFile);
-
-async function main() {
-  // Load the compiled JSON ASTs from local files
-  // These files are compiled when running \`superface play ${name}\` or \`superface compile ${name}.supr ${name}.${provider}.suma\` in the current directory
-  const profileAst = JSON.parse(
-    await readFile('${name}.supr.ast.json', { encoding: 'utf-8' })
-  );
-  const mapAst = JSON.parse(
-    await readFile('${name}.${provider}.suma.ast.json', { encoding: 'utf-8' })
-  );
-
+  return common(
+    name,
+    provider,
+    `
   // Crate a new provider from local files.
   const provider = new Provider(
     // the loaded ASTs
@@ -142,8 +147,6 @@ async function main() {
       colors: true
     })
   );
-}
-
-main()
-`;
+`
+  );
 }

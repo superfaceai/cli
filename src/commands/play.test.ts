@@ -1,13 +1,13 @@
-import * as nodePath from 'path';
+import { join as joinPath } from 'path';
 import { stdout } from 'stdout-stderr';
 
 import Play from '../commands/play';
 import { access, createDirectory, OutputStream, rimraf } from '../common/io';
 
 describe('Play CLI command', () => {
-  const baseFixture = nodePath.join('fixtures', 'playgrounds');
+  const baseFixture = joinPath('fixtures', 'playgrounds');
   const testPlaygroundName = 'test';
-  const testPlaygroundPath = nodePath.join(baseFixture, testPlaygroundName);
+  const testPlaygroundPath = joinPath(baseFixture, testPlaygroundName);
 
   afterEach(async () => {
     await rimraf(testPlaygroundPath);
@@ -15,39 +15,35 @@ describe('Play CLI command', () => {
     const testFiles = [
       'package-lock.json',
       'node_modules',
-      'valid.supr.ast.json',
-      'valid.noop.suma.ast.json',
-      'valid.noop.js',
+      joinPath('build', 'valid.supr.ast.json'),
+      joinPath('build', 'valid.noop.suma.ast.json'),
+      joinPath('build', 'valid.noop.js'),
     ];
     await Promise.all(
-      testFiles.map(file => rimraf(nodePath.join(baseFixture, 'valid', file)))
+      testFiles.map(file => rimraf(joinPath(baseFixture, 'valid', file)))
     );
   });
 
   it('detects a valid playground', async () => {
-    expect(
-      await Play.run(['clean', nodePath.join(baseFixture, 'valid')])
-    ).toBeUndefined();
+    await expect(
+      Play.run(['clean', joinPath(baseFixture, 'valid')])
+    ).resolves.toBeUndefined();
   });
 
   it('rejects an an invalid playground', async () => {
     await expect(
-      Play.run(['clean', nodePath.join(baseFixture, 'invalid')])
+      Play.run(['clean', joinPath(baseFixture, 'invalid')])
     ).rejects.toThrow('The directory at playground path is not a playground');
   });
 
   it('creates a valid playground', async () => {
     stdout.start();
-    await Play.run([
-      'initialize',
-      testPlaygroundPath,
-      '--providers',
-      'foo',
-      'bar',
-    ]);
+    await expect(
+      Play.run(['initialize', testPlaygroundPath, '--providers', 'foo', 'bar'])
+    ).resolves.toBeUndefined();
     stdout.stop();
 
-    await access(testPlaygroundPath);
+    await expect(access(testPlaygroundPath)).resolves.toBeUndefined();
     const expectedFiles = [
       'package.json',
       'test.supr',
@@ -55,9 +51,12 @@ describe('Play CLI command', () => {
       'test.bar.suma',
       'test.foo.ts',
       'test.bar.ts',
+      '.gitignore',
     ];
     for (const file of expectedFiles) {
-      await access(nodePath.join(testPlaygroundPath, file));
+      await expect(
+        access(joinPath(testPlaygroundPath, file))
+      ).resolves.toBeUndefined();
     }
 
     expect(stdout.output).toBe(
@@ -69,6 +68,7 @@ $ echo '<profile template>' > fixtures/playgrounds/test/test.supr
 $ echo '<map template>' > fixtures/playgrounds/test/test.foo.suma
 $ echo '<map template>' > fixtures/playgrounds/test/test.bar.suma
 $ echo '<npmrc template>' > fixtures/playgrounds/test/.npmrc
+$ echo '<gitignore template>' > fixtures/playgrounds/test/.gitignore
 `
     );
   });
@@ -93,7 +93,7 @@ $ echo '<npmrc template>' > fixtures/playgrounds/test/.npmrc
     stdout.start();
     await Play.run([
       'execute',
-      nodePath.join(baseFixture, 'valid'),
+      joinPath(baseFixture, 'valid'),
       '--providers',
       'noop',
     ]);
@@ -104,26 +104,26 @@ $ echo '<npmrc template>' > fixtures/playgrounds/test/.npmrc
     const expectedFiles = [
       'package-lock.json',
       'node_modules',
-      'valid.supr.ast.json',
-      'valid.noop.suma.ast.json',
-      'valid.noop.js',
+      joinPath('build', 'valid.supr.ast.json'),
+      joinPath('build', 'valid.noop.suma.ast.json'),
+      joinPath('build', 'valid.noop.js'),
     ];
-    await Promise.all(
-      expectedFiles.map(file =>
-        access(nodePath.join(baseFixture, 'valid', file))
+    await expect(
+      Promise.all(
+        expectedFiles.map(file => access(joinPath(baseFixture, 'valid', file)))
       )
-    );
+    ).resolves.toBeDefined();
   }, 30000);
 
   it('cleans compilation artifacts', async () => {
     const deletedFiles = [
       'package-lock.json',
       'node_modules',
-      'test.supr.ast.json',
-      'test.foo.suma.ast.json',
-      'test.bar.suma.ast.json',
-      'test.foo.js',
-      'test.bar.js',
+      joinPath('build', 'test.supr.ast.json'),
+      joinPath('build', 'test.foo.suma.ast.json'),
+      joinPath('build', 'test.bar.suma.ast.json'),
+      joinPath('build', 'test.foo.js'),
+      joinPath('build', 'test.bar.js'),
     ];
     const expectedFiles = [
       'package.json',
@@ -135,33 +135,41 @@ $ echo '<npmrc template>' > fixtures/playgrounds/test/.npmrc
       'test.baz.ts',
     ];
 
-    await createDirectory(testPlaygroundPath);
+    await createDirectory(joinPath(testPlaygroundPath, 'build'));
 
     await Promise.all(
       [...deletedFiles, ...expectedFiles].map(file =>
-        OutputStream.writeOnce(nodePath.join(testPlaygroundPath, file), '')
+        OutputStream.writeOnce(joinPath(testPlaygroundPath, file), '')
       )
     );
 
     stdout.start();
-    await Play.run(['clean', testPlaygroundPath]);
+    await expect(
+      Play.run(['clean', testPlaygroundPath])
+    ).resolves.toBeUndefined();
     stdout.stop();
 
     await Promise.all(
       deletedFiles.map(file =>
-        expect(
-          access(nodePath.join(testPlaygroundPath, file))
-        ).rejects.toThrowError('ENOENT')
+        expect(access(joinPath(testPlaygroundPath, file))).rejects.toThrowError(
+          'ENOENT'
+        )
       )
     );
 
-    await Promise.all(
-      expectedFiles.map(file => access(nodePath.join(testPlaygroundPath, file)))
-    );
+    await expect(
+      Promise.all(
+        expectedFiles.map(file => access(joinPath(testPlaygroundPath, file)))
+      )
+    ).resolves.toBeDefined();
 
-    expect(stdout.output).toBe(
-      `$ rimraf 'test.supr.ast.json' 'node_modules' 'package-lock.json' 'test.bar.suma.ast.json' 'test.bar.js' 'test.foo.suma.ast.json' 'test.foo.js'
-`
-    );
-  });
+    expect(stdout.output).toMatch(/^\$ rimraf /);
+    expect(stdout.output).toMatch(/build\/test\.supr\.ast\.json'/);
+    expect(stdout.output).toMatch(/node_modules'/);
+    expect(stdout.output).toMatch(/package-lock\.json'/);
+    expect(stdout.output).toMatch(/build\/test\.bar\.suma\.ast\.json'/);
+    expect(stdout.output).toMatch(/build\/test\.bar\.js'/);
+    expect(stdout.output).toMatch(/build\/test\.foo\.suma\.ast\.json'/);
+    expect(stdout.output).toMatch(/build\/test\.foo\.js'/);
+  }, 20000);
 });
