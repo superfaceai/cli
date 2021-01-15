@@ -7,9 +7,9 @@ import {
   DocumentType,
   inferDocumentTypeWithFlag,
 } from '../common/document';
-import { assertIsIOError, userError } from '../common/error';
+import { userError } from '../common/error';
 import { DocumentTypeFlag, documentTypeFlag } from '../common/flags';
-import { lstat, OutputStream, readFile } from '../common/io';
+import { isDirectory, OutputStream, readFile } from '../common/io';
 
 export default class Compile extends Command {
   static description = 'Compiles the given profile or map to AST.';
@@ -51,19 +51,9 @@ export default class Compile extends Command {
     const outputPath = flags.output?.trim();
     let outputStream: OutputStream | undefined = undefined;
     if (outputPath !== undefined) {
-      let isDirectory = false;
-      try {
-        const lstatInfo = await lstat(outputPath);
-        isDirectory = lstatInfo.isDirectory();
-      } catch (err: unknown) {
-        // eat ENOENT error and keep isDirectory false
-        assertIsIOError(err);
-        if (err.code !== 'ENOENT') {
-          throw err;
-        }
-      }
+      const outputPathisDirectory = await isDirectory(outputPath);
 
-      if (!isDirectory) {
+      if (!outputPathisDirectory) {
         this.debug(`Compiling all files to "${outputPath}"`);
         outputStream = new OutputStream(outputPath, flags.append);
       }
@@ -122,7 +112,10 @@ export default class Compile extends Command {
     documentTypeFlag: DocumentTypeFlag
   ): Promise<unknown> {
     const documentType = inferDocumentTypeWithFlag(documentTypeFlag, path);
-    if (documentType === DocumentType.UNKNOWN) {
+    if (
+      documentType !== DocumentType.MAP &&
+      documentType !== DocumentType.PROFILE
+    ) {
       throw userError('Could not infer document type', 1);
     }
 

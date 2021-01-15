@@ -2,7 +2,7 @@ import * as nodePath from 'path';
 import { stdout } from 'stdout-stderr';
 
 import Play from '../commands/play';
-import { access, mkdir, OutputStream, rimraf } from '../common/io';
+import { access, createDirectory, OutputStream, rimraf } from '../common/io';
 
 describe('Play CLI command', () => {
   const baseFixture = nodePath.join('fixtures', 'playgrounds');
@@ -135,7 +135,7 @@ $ echo '<npmrc template>' > fixtures/playgrounds/test/.npmrc
       'test.baz.ts',
     ];
 
-    await mkdir(testPlaygroundPath);
+    await createDirectory(testPlaygroundPath);
 
     await Promise.all(
       [...deletedFiles, ...expectedFiles].map(file =>

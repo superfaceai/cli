@@ -1,4 +1,6 @@
 ## [Unreleased]
+### Added
+* Generate command
 
 ## [0.0.2]
 

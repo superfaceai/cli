@@ -49,6 +49,7 @@ You can obtain the full CLI help by running `superface --help`.
  `create`| Creates a new profile and/or map locally.
  `lint`  | Lints given profiles and/or maps locally.
  `play`  | Manages and executes interactive playgrounds.
+ `generate` | Generates TypeScript interfaces from profile.
 
 ## Development
 

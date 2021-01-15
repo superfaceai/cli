@@ -9,14 +9,15 @@ import {
 } from '../common/error';
 import { SkipFileType } from '../common/flags';
 import {
+  createDirectory,
   execFile,
-  mkdir,
   OutputStream,
   readdir,
   resolveSkipFile,
   rimraf,
   stat,
 } from '../common/io';
+import { LogCallback } from '../common/types';
 import * as mapTemplate from '../templates/map';
 import * as playgroundTemplate from '../templates/playground';
 import * as profileTemplate from '../templates/profile';
@@ -26,8 +27,6 @@ export interface PlaygroundFolder {
   path: string;
   providers: Set<string>;
 }
-
-type LogCallback = (message: string) => void;
 
 export async function initializePlayground(
   playgroundPath: string,
@@ -40,7 +39,7 @@ export async function initializePlayground(
   }
 
   logCb?.(`$ mkdir ${playgroundPath}`);
-  await mkdir(playgroundPath, { recursive: true, mode: 0o744 });
+  await createDirectory(playgroundPath);
 
   const packageJsonPath = nodePath.join(playgroundPath, 'package.json');
   logCb?.(`$ echo '<package template>' > ${packageJsonPath}`);

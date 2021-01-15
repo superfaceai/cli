@@ -1,20 +1,22 @@
+import { blue, green } from 'chalk';
 import * as childProcess from 'child_process';
 import createDebug from 'debug';
 import * as fs from 'fs';
+import { basename } from 'path';
 import rimrafCallback from 'rimraf';
 import { Writable } from 'stream';
 import { promisify } from 'util';
 
-import { assertIsIOError } from './error';
+import { assertIsIOError, userError } from './error';
 import { SkipFileType } from './flags';
+import { LogCallback } from './types';
 
 export const readFile = promisify(fs.readFile);
 export const access = promisify(fs.access);
 export const stat = promisify(fs.stat);
 export const lstat = promisify(fs.lstat);
 export const readdir = promisify(fs.readdir);
-export const mkdir = promisify(fs.mkdir);
-
+const mkdir = promisify(fs.mkdir);
 export const rimraf = promisify(rimrafCallback);
 
 export async function exists(path: string): Promise<boolean> {
@@ -74,7 +76,7 @@ export function execFile(
           reject({
             ...err,
             stdout,
-            stderr
+            stderr,
           });
         } else {
           resolve();
@@ -109,6 +111,36 @@ export async function resolveSkipFile(
 
     return true;
   }
+}
+
+export async function isDirectory(path: string): Promise<boolean> {
+  try {
+    const lstatInfo = await lstat(path);
+
+    return lstatInfo.isDirectory();
+  } catch (err: unknown) {
+    assertIsIOError(err);
+    if (err.code !== 'ENOENT') {
+      throw err;
+    }
+  }
+
+  return false;
+}
+
+// TODO: This is naive implementation
+export function baseName(path: string): string {
+  const filename = basename(path);
+
+  return filename.split('.')[0];
+}
+
+export async function createDirectory(path: string): Promise<void> {
+  if ((await exists(path)) && !(await isDirectory(path))) {
+    throw userError(`Path '${path}' already exists and is not a directory!`, 1);
+  }
+
+  await mkdir(path, { recursive: true, mode: 0o744 });
 }
 
 const outputStreamDebug = createDebug('superface:OutputStream');
@@ -192,4 +224,16 @@ export class OutputStream {
 
     return stream.cleanup();
   }
+}
+
+export async function writeFile(
+  filename: string,
+  content: string,
+  logCb?: LogCallback
+): Promise<void> {
+  logCb?.(`-> Writing ${blue(filename)}`);
+  const fileStream = new OutputStream(filename);
+  await fileStream.write(content);
+  await fileStream.cleanup();
+  logCb?.(green('\tSuccess!'));
 }

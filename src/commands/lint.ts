@@ -155,12 +155,15 @@ export default class Lint extends Command {
     path: string,
     documentTypeFlag: DocumentTypeFlag
   ): Promise<FileReport> {
-    const documenType = inferDocumentTypeWithFlag(documentTypeFlag, path);
-    if (documenType === DocumentType.UNKNOWN) {
+    const documentType = inferDocumentTypeWithFlag(documentTypeFlag, path);
+    if (
+      documentType !== DocumentType.MAP &&
+      documentType !== DocumentType.PROFILE
+    ) {
       throw userError('Could not infer document type', 3);
     }
 
-    const parse = DOCUMENT_PARSE_FUNCTION[documenType];
+    const parse = DOCUMENT_PARSE_FUNCTION[documentType];
     const content = await readFile(path).then(f => f.toString());
     const source = new Source(content, path);
 
