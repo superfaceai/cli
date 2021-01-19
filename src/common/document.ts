@@ -1,9 +1,4 @@
-import {
-  parseMap,
-  ParseMapIdResult,
-  parseProfile,
-  ParseProfileIdResult,
-} from '@superfaceai/parser';
+import { DocumentVersion, parseMap, parseProfile } from '@superfaceai/parser';
 
 import { DocumentTypeFlag } from './flags';
 
@@ -85,14 +80,6 @@ export interface VersionStructure {
   label?: string;
 }
 
-export interface DocumentStructure {
-  name: string;
-  scope?: string;
-  provider?: string;
-  variant?: string;
-  version: VersionStructure;
-}
-
 export interface ProviderStructure {
   name: string;
   deployments: {
@@ -110,36 +97,14 @@ export interface ProviderStructure {
   }[];
 }
 
-export function isMapParsed(
-  result: ParseProfileIdResult | ParseMapIdResult
-): result is ParseMapIdResult {
-  return 'provider' in result;
-}
+export function composeVersion(
+  version: DocumentVersion,
+  forMap = false
+): string {
+  const patch = forMap ? '' : `.${version.patch ?? 0}`;
+  const label = version.label ? `-${version.label}` : '';
 
-export function composeStructure(
-  result: Exclude<
-    ParseProfileIdResult | ParseMapIdResult,
-    { kind: 'error'; message: string }
-  >
-): DocumentStructure {
-  return {
-    name: result.name,
-    scope: result.scope,
-    provider: isMapParsed(result) ? result.provider : undefined,
-    variant: isMapParsed(result) ? result.variant : undefined,
-    version: result.version ?? {
-      major: 1,
-      minor: 0,
-      patch: 0,
-    },
-  };
-}
-
-export function composeVersion(version: VersionStructure): string {
-  return (
-    `${version.major}.${version.minor}.${version.patch}` +
-    (version.label ? `-${version.label}` : '')
-  );
+  return `${version.major}.${version.minor ?? 0}${patch}${label}`;
 }
 
 export const composeUsecaseName = (documentId: string): string =>
