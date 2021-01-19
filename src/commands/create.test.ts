@@ -86,7 +86,7 @@ describe('Create CLI command', () => {
     provider = 'twillio';
     await Create.run(['map', documentName, '-p', provider]);
     expect(stdout.output).toEqual(
-      `-> Created ${documentName}.${provider}.suma (profile = "${documentName}@1.0.0", provider = "${provider}")\n-> Created ${provider}.provider.json\n`
+      `-> Created ${documentName}.${provider}.suma (profile = "${documentName}@1.0", provider = "${provider}")\n-> Created ${provider}.provider.json\n`
     );
 
     await Lint.run([`${documentName}.${provider}.suma`]);
@@ -98,7 +98,7 @@ describe('Create CLI command', () => {
     provider = 'twillio';
     await Create.run(['map', documentName, '-u', 'SendSMS', '-p', provider]);
     expect(stdout.output).toEqual(
-      `-> Created ${documentName}.${provider}.suma (profile = "${documentName}@1.0.0", provider = "${provider}")\n-> Created ${provider}.provider.json\n`
+      `-> Created ${documentName}.${provider}.suma (profile = "${documentName}@1.0", provider = "${provider}")\n-> Created ${provider}.provider.json\n`
     );
 
     await Lint.run([`${documentName}.${provider}.suma`]);
@@ -118,7 +118,7 @@ describe('Create CLI command', () => {
       'SendSMS',
     ]);
     expect(stdout.output).toEqual(
-      `-> Created ${documentName}.${provider}.suma (profile = "${documentName}@1.0.0", provider = "${provider}")\n-> Created ${provider}.provider.json\n`
+      `-> Created ${documentName}.${provider}.suma (profile = "${documentName}@1.0", provider = "${provider}")\n-> Created ${provider}.provider.json\n`
     );
 
     await Lint.run([`${documentName}.${provider}.suma`]);
@@ -130,7 +130,7 @@ describe('Create CLI command', () => {
     provider = 'twillio';
     await Create.run([documentName, '-p', provider]);
     expect(stdout.output).toEqual(
-      `-> Created ${documentName}.supr (name = "${documentName}", version = "1.0.0")\n-> Created ${documentName}.${provider}.suma (profile = "${documentName}@1.0.0", provider = "${provider}")\n-> Created ${provider}.provider.json\n`
+      `-> Created ${documentName}.supr (name = "${documentName}", version = "1.0.0")\n-> Created ${documentName}.${provider}.suma (profile = "${documentName}@1.0", provider = "${provider}")\n-> Created ${provider}.provider.json\n`
     );
 
     await Lint.run([`${documentName}.supr`]);
@@ -145,7 +145,7 @@ describe('Create CLI command', () => {
     provider = 'twillio';
     await Create.run([documentName, '-u', 'SendSMS', '-p', 'twillio']);
     expect(stdout.output).toEqual(
-      `-> Created ${documentName}.supr (name = "${documentName}", version = "1.0.0")\n-> Created ${documentName}.${provider}.suma (profile = "${documentName}@1.0.0", provider = "${provider}")\n-> Created ${provider}.provider.json\n`
+      `-> Created ${documentName}.supr (name = "${documentName}", version = "1.0.0")\n-> Created ${documentName}.${provider}.suma (profile = "${documentName}@1.0", provider = "${provider}")\n-> Created ${provider}.provider.json\n`
     );
 
     await Lint.run([`${documentName}.supr`]);
@@ -167,7 +167,7 @@ describe('Create CLI command', () => {
       provider,
     ]);
     expect(stdout.output).toEqual(
-      `-> Created ${documentName}.supr (name = "${documentName}", version = "1.0.0")\n-> Created ${documentName}.${provider}.suma (profile = "${documentName}@1.0.0", provider = "${provider}")\n-> Created ${provider}.provider.json\n`
+      `-> Created ${documentName}.supr (name = "${documentName}", version = "1.0.0")\n-> Created ${documentName}.${provider}.suma (profile = "${documentName}@1.0", provider = "${provider}")\n-> Created ${provider}.provider.json\n`
     );
 
     await Lint.run([`${documentName}.supr`]);
