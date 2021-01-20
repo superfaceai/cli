@@ -1,5 +1,4 @@
 import { Command, flags } from '@oclif/command';
-import { CLIError } from '@oclif/errors';
 import { Source } from '@superfaceai/parser';
 import * as nodePath from 'path';
 
@@ -8,8 +7,9 @@ import {
   DocumentType,
   inferDocumentTypeWithFlag,
 } from '../common/document';
+import { assertIsIOError, userError } from '../common/error';
 import { DocumentTypeFlag, documentTypeFlag } from '../common/flags';
-import { lstatPromise, OutputStream, readFilePromise } from '../common/io';
+import { lstat, OutputStream, readFile } from '../common/io';
 
 export default class Compile extends Command {
   static description = 'Compiles the given profile or map to AST.';
@@ -53,16 +53,13 @@ export default class Compile extends Command {
     if (outputPath !== undefined) {
       let isDirectory = false;
       try {
-        const lstat = await lstatPromise(outputPath);
-        isDirectory = lstat.isDirectory();
-      } catch (e) {
+        const lstatInfo = await lstat(outputPath);
+        isDirectory = lstatInfo.isDirectory();
+      } catch (err: unknown) {
         // eat ENOENT error and keep isDirectory false
-        if (e !== null && typeof e === 'object' && 'code' in e) {
-          // All the checks done and eslint still complains
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-          if (e.code !== 'ENOENT') {
-            throw e;
-          }
+        assertIsIOError(err);
+        if (err.code !== 'ENOENT') {
+          throw err;
         }
       }
 
@@ -82,7 +79,7 @@ export default class Compile extends Command {
               // Shared directory, name based on file
               const sharedDirectory = nodePath.join(
                 outputPath,
-                nodePath.basename(file)
+                nodePath.basename(file) + DEFAULT_EXTENSION
               );
               this.debug(`Compiling "${file}" to "${sharedDirectory}"`);
 
@@ -126,11 +123,11 @@ export default class Compile extends Command {
   ): Promise<unknown> {
     const documentType = inferDocumentTypeWithFlag(documentTypeFlag, path);
     if (documentType === DocumentType.UNKNOWN) {
-      throw new CLIError('Could not infer document type', { exit: 1 });
+      throw userError('Could not infer document type', 1);
     }
 
     const parseFunction = DOCUMENT_PARSE_FUNCTION[documentType];
-    const content = (await readFilePromise(path)).toString();
+    const content = (await readFile(path)).toString();
     const source = new Source(content, nodePath.basename(path));
 
     return parseFunction(source);

@@ -5,7 +5,7 @@ import Create from './create';
 import Lint from './lint';
 
 describe('Create CLI command', () => {
-  let documentName: string;
+  let documentName: string, provider: string, variant: string | undefined;
 
   beforeEach(() => {
     stderr.start();
@@ -16,19 +16,43 @@ describe('Create CLI command', () => {
     stderr.stop();
     stdout.stop();
 
+    // handle profile
     if (fs.existsSync(`${documentName}.supr`)) {
       fs.unlinkSync(`${documentName}.supr`);
     }
-    if (fs.existsSync(`${documentName}.suma`)) {
-      fs.unlinkSync(`${documentName}.suma`);
+
+    // handle map
+    if (variant) {
+      if (fs.existsSync(`${documentName}.${provider}.${variant}.suma`)) {
+        fs.unlinkSync(`${documentName}.${provider}.${variant}.suma`);
+      }
+    } else {
+      if (fs.existsSync(`${documentName}.${provider}.suma`)) {
+        fs.unlinkSync(`${documentName}.${provider}.suma`);
+      }
+    }
+
+    const documentInfo = documentName.split('/');
+    const scope = documentInfo[1] ? documentInfo[0] : undefined;
+
+    // handle scope directory
+    if (scope) {
+      if (fs.existsSync(scope)) {
+        fs.rmdirSync(scope);
+      }
+    }
+
+    // handle provider file
+    if (fs.existsSync(`${provider}.provider.json`)) {
+      fs.unlinkSync(`${provider}.provider.json`);
     }
   });
 
   it('creates profile with one usecase (with usecase name from cli)', async () => {
-    documentName = 'SendSMS';
-    await Create.run(['-t', 'profile', documentName]);
+    documentName = 'sendsms';
+    await Create.run(['profile', documentName]);
     expect(stdout.output).toEqual(
-      `-> Created SendSMS.supr (id = "https://example.com/profile/SendSMS")\n`
+      `-> Created ${documentName}.supr (name = "${documentName}", version = "1.0.0")\n`
     );
 
     await Lint.run([`${documentName}.supr`]);
@@ -36,10 +60,10 @@ describe('Create CLI command', () => {
   });
 
   it('creates profile with one usecase', async () => {
-    documentName = 'SMSService';
-    await Create.run(['-t', 'profile', documentName, '-u', 'SendSMS']);
+    documentName = 'sms/service';
+    await Create.run(['profile', documentName, '-u', 'SendSMS']);
     expect(stdout.output).toEqual(
-      `-> Created SMSService.supr (id = "https://example.com/profile/SMSService")\n`
+      `-> Created ${documentName}.supr (name = "${documentName}", version = "1.0.0")\n`
     );
 
     await Lint.run([`${documentName}.supr`]);
@@ -47,17 +71,10 @@ describe('Create CLI command', () => {
   });
 
   it('creates profile with multiple usecases', async () => {
-    documentName = 'SMSService';
-    await Create.run([
-      '-t',
-      'profile',
-      documentName,
-      '-u',
-      'ReceiveSMS',
-      'SendSMS',
-    ]);
+    documentName = 'sms/service';
+    await Create.run(['profile', documentName, '-u', 'ReceiveSMS', 'SendSMS']);
     expect(stdout.output).toEqual(
-      `-> Created SMSService.supr (id = "https://example.com/profile/SMSService")\n`
+      `-> Created ${documentName}.supr (name = "${documentName}", version = "1.0.0")\n`
     );
 
     await Lint.run([`${documentName}.supr`]);
@@ -65,101 +82,98 @@ describe('Create CLI command', () => {
   });
 
   it('creates map with one usecase (with usecase name from cli)', async () => {
-    documentName = 'SendSMS';
-    await Create.run(['-t', 'map', documentName, '-p', 'Twillio']);
+    documentName = 'sms/service';
+    provider = 'twillio';
+    await Create.run(['map', documentName, '-p', provider]);
     expect(stdout.output).toEqual(
-      `-> Created SendSMS.suma (provider = Twillio, id = "https://example.com/Twillio/SendSMS")\n`
+      `-> Created ${documentName}.${provider}.suma (profile = "${documentName}@1.0", provider = "${provider}")\n-> Created ${provider}.provider.json\n`
     );
 
-    await Lint.run([`${documentName}.suma`]);
+    await Lint.run([`${documentName}.${provider}.suma`]);
     expect(stdout.output).toContain('Detected 0 problems\n');
   });
 
   it('creates map with one usecase', async () => {
-    documentName = 'SMSService';
-    await Create.run([
-      '-t',
-      'map',
-      documentName,
-      '-u',
-      'SendSMS',
-      '-p',
-      'Twillio',
-    ]);
+    documentName = 'sms/service';
+    provider = 'twillio';
+    await Create.run(['map', documentName, '-u', 'SendSMS', '-p', provider]);
     expect(stdout.output).toEqual(
-      `-> Created SMSService.suma (provider = Twillio, id = "https://example.com/Twillio/SMSService")\n`
+      `-> Created ${documentName}.${provider}.suma (profile = "${documentName}@1.0", provider = "${provider}")\n-> Created ${provider}.provider.json\n`
     );
 
-    await Lint.run([`${documentName}.suma`]);
+    await Lint.run([`${documentName}.${provider}.suma`]);
     expect(stdout.output).toContain('Detected 0 problems\n');
   });
 
   it('creates map with mutiple usecases', async () => {
-    documentName = 'SMSService';
+    documentName = 'sms/service';
+    provider = 'twillio';
     await Create.run([
-      '-t',
       'map',
       documentName,
       '-p',
-      'Twillio',
+      'twillio',
       '-u',
       'ReceiveSMS',
       'SendSMS',
     ]);
     expect(stdout.output).toEqual(
-      `-> Created SMSService.suma (provider = Twillio, id = "https://example.com/Twillio/SMSService")\n`
+      `-> Created ${documentName}.${provider}.suma (profile = "${documentName}@1.0", provider = "${provider}")\n-> Created ${provider}.provider.json\n`
     );
 
-    await Lint.run([`${documentName}.suma`]);
+    await Lint.run([`${documentName}.${provider}.suma`]);
     expect(stdout.output).toContain('Detected 0 problems\n');
   });
 
   it('creates profile & map with one usecase (with usecase name from cli)', async () => {
-    documentName = 'SendSMS';
-    await Create.run([documentName, '-p', 'Twillio']);
+    documentName = 'sms/service';
+    provider = 'twillio';
+    await Create.run([documentName, '-p', provider]);
     expect(stdout.output).toEqual(
-      `-> Created SendSMS.supr (id = "https://example.com/profile/SendSMS")\n-> Created SendSMS.suma (provider = Twillio, id = "https://example.com/Twillio/SendSMS")\n`
+      `-> Created ${documentName}.supr (name = "${documentName}", version = "1.0.0")\n-> Created ${documentName}.${provider}.suma (profile = "${documentName}@1.0", provider = "${provider}")\n-> Created ${provider}.provider.json\n`
     );
 
     await Lint.run([`${documentName}.supr`]);
     expect(stdout.output).toContain('Detected 0 problems\n');
 
-    await Lint.run([`${documentName}.suma`]);
+    await Lint.run([`${documentName}.${provider}.suma`]);
     expect(stdout.output).toContain('Detected 0 problems\n');
   });
 
   it('creates profile & map with one usecase', async () => {
-    documentName = 'SMSService';
-    await Create.run([documentName, '-u', 'SendSMS', '-p', 'Twillio']);
+    documentName = 'sms/service';
+    provider = 'twillio';
+    await Create.run([documentName, '-u', 'SendSMS', '-p', 'twillio']);
     expect(stdout.output).toEqual(
-      `-> Created SMSService.supr (id = "https://example.com/profile/SMSService")\n-> Created SMSService.suma (provider = Twillio, id = "https://example.com/Twillio/SMSService")\n`
+      `-> Created ${documentName}.supr (name = "${documentName}", version = "1.0.0")\n-> Created ${documentName}.${provider}.suma (profile = "${documentName}@1.0", provider = "${provider}")\n-> Created ${provider}.provider.json\n`
     );
 
     await Lint.run([`${documentName}.supr`]);
     expect(stdout.output).toContain('Detected 0 problems\n');
 
-    await Lint.run([`${documentName}.suma`]);
+    await Lint.run([`${documentName}.${provider}.suma`]);
     expect(stdout.output).toContain('Detected 0 problems\n');
   });
 
   it('creates profile & map with multiple usecases', async () => {
-    documentName = 'SMSService';
+    documentName = 'sms/service';
+    provider = 'twillio';
     await Create.run([
       documentName,
       '-u',
       'SendSMS',
       'ReceiveSMS',
       '-p',
-      'Twillio',
+      provider,
     ]);
     expect(stdout.output).toEqual(
-      `-> Created SMSService.supr (id = "https://example.com/profile/SMSService")\n-> Created SMSService.suma (provider = Twillio, id = "https://example.com/Twillio/SMSService")\n`
+      `-> Created ${documentName}.supr (name = "${documentName}", version = "1.0.0")\n-> Created ${documentName}.${provider}.suma (profile = "${documentName}@1.0", provider = "${provider}")\n-> Created ${provider}.provider.json\n`
     );
 
     await Lint.run([`${documentName}.supr`]);
     expect(stdout.output).toContain('Detected 0 problems\n');
 
-    await Lint.run([`${documentName}.suma`]);
+    await Lint.run([`${documentName}.${provider}.suma`]);
     expect(stdout.output).toContain('Detected 0 problems\n');
   });
 });

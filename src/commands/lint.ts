@@ -6,8 +6,7 @@ import {
   Source,
   SyntaxError,
   validateMap,
-  ValidationError,
-  ValidationWarning,
+  ValidationIssue,
 } from '@superfaceai/parser';
 
 import {
@@ -18,8 +17,9 @@ import {
   isProfileFile,
   isUnknownFile,
 } from '../common/document';
+import { developerError, userError } from '../common/error';
 import { DocumentTypeFlag, documentTypeFlag } from '../common/flags';
-import { OutputStream, readFilePromise } from '../common/io';
+import { OutputStream, readFile } from '../common/io';
 import { formatWordPlurality } from '../util';
 
 type ReportKind = 'file' | 'compatibility';
@@ -37,8 +37,8 @@ interface FileReport extends Report {
 
 interface ProfileMapReport extends Report {
   kind: 'compatibility';
-  errors: ValidationError[];
-  warnings: ValidationWarning[];
+  errors: ValidationIssue[];
+  warnings: ValidationIssue[];
 }
 
 type ReportFormat = FileReport | ProfileMapReport;
@@ -75,9 +75,7 @@ export default class Lint extends Command {
       parse(input, _context): OutputFormatFlag {
         // Sanity check
         if (input !== 'long' && input !== 'short' && input !== 'json') {
-          throw new CLIError('Internal error: unexpected enum variant', {
-            exit: -1,
-          });
+          throw developerError('unexpected enum variant', 1);
         }
 
         return input;
@@ -162,9 +160,9 @@ export default class Lint extends Command {
     await outputStream.cleanup();
 
     if (totals[0] > 0) {
-      throw new CLIError('Errors were found', { exit: 1 });
-    } else if (!flags.quiet && totals[1] > 0) {
-      throw new CLIError('Warnings were found', { exit: 2 });
+      throw userError('Errors were found', 1);
+    } else if (totals[1] > 0) {
+      throw userError('Warnings were found', 2);
     }
   }
 
@@ -214,13 +212,13 @@ export default class Lint extends Command {
     path: string,
     documentTypeFlag: DocumentTypeFlag
   ): Promise<FileReport> {
-    const documentType = inferDocumentTypeWithFlag(documentTypeFlag, path);
-    if (documentType === DocumentType.UNKNOWN) {
-      throw new CLIError('Could not infer document type', { exit: 1 });
+    const documenType = inferDocumentTypeWithFlag(documentTypeFlag, path);
+    if (documenType === DocumentType.UNKNOWN) {
+      throw userError('Could not infer document type', 3);
     }
 
-    const parse = DOCUMENT_PARSE_FUNCTION[documentType];
-    const content = await readFilePromise(path).then(f => f.toString());
+    const parse = DOCUMENT_PARSE_FUNCTION[documenType];
+    const content = await readFile(path).then(f => f.toString());
     const source = new Source(content, path);
 
     const result: FileReport = {
@@ -288,12 +286,12 @@ export default class Lint extends Command {
     const parseProfile = DOCUMENT_PARSE_FUNCTION[DocumentType.PROFILE];
     const parseMap = DOCUMENT_PARSE_FUNCTION[DocumentType.MAP];
 
-    const content = await readFilePromise(profiles[0]).then(f => f.toString());
+    const content = await readFile(profiles[0]).then(f => f.toString());
     const source = new Source(content, profiles[0]);
     const profileOutput = getProfileOutput(parseProfile(source));
 
     for (const map of maps) {
-      const content = await readFilePromise(map).then(f => f.toString());
+      const content = await readFile(map).then(f => f.toString());
       const source = new Source(content, map);
       const result = validateMap(profileOutput, parseMap(source));
 
