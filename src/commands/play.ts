@@ -2,7 +2,7 @@ import { Command, flags } from '@oclif/command';
 import { grey } from 'chalk';
 import inquirer from 'inquirer';
 import FileTreeSelectionPrompt from 'inquirer-file-tree-selection-prompt';
-import * as nodePath from 'path';
+import { basename } from 'path';
 
 import { validateDocumentName } from '../common/document';
 import { developerError, userError } from '../common/error';
@@ -176,7 +176,7 @@ clean: the \`node_modules\` folder and compilation artifacts are cleaned.`;
             return 'The playground path must not exist.';
           }
 
-          const baseName = nodePath.basename(input);
+          const baseName = basename(input);
           if (!validateDocumentName(baseName)) {
             return 'The playground name must be a valid slang identifier.';
           }
@@ -188,6 +188,14 @@ clean: the \`node_modules\` folder and compilation artifacts are cleaned.`;
       path = response.playground;
     }
     const playgroundPath = path;
+
+    const baseName = basename(playgroundPath);
+    if (!validateDocumentName(baseName)) {
+      throw userError(
+        'The playground name must be a valid slang identifier',
+        11
+      );
+    }
 
     if (providers === undefined || providers.length === 0) {
       const response: { providers: string } = await inquirer.prompt({
@@ -205,7 +213,16 @@ clean: the \`node_modules\` folder and compilation artifacts are cleaned.`;
 
     this.debug('Playground path:', playgroundPath);
     this.debug('Providers:', providers);
-    await initializePlayground(playgroundPath, providers, this.logCallback);
+    await initializePlayground(
+      playgroundPath,
+      {
+        name: baseName,
+        providers,
+      },
+      {
+        logCb: this.logCallback,
+      }
+    );
   }
 
   // EXECUTE //

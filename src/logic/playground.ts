@@ -1,11 +1,11 @@
-import nodePath from 'path';
+import { join as joinPath } from 'path';
 
 import Compile from '../commands/compile';
 import {
+  composeUsecaseName,
   DEFAULT_PROFILE_VERSION,
   MAP_EXTENSIONS,
-  PROFILE_EXTENSIONS,
-  validateDocumentName,
+  PROFILE_EXTENSIONS
 } from '../common/document';
 import {
   assertIsExecError,
@@ -24,15 +24,19 @@ import {
   rimraf,
 } from '../common/io';
 import { formatShellLog } from '../common/log';
-import * as mapTemplate from '../templates/map';
 import * as playgroundTemplate from '../templates/playground';
-import * as profileTemplate from '../templates/profile';
+import { createMap, createProfile, createProviderJson } from './create';
+import { BUILD_DIR, initSuperface, SUPERFACE_DIR } from './init';
 
 export interface PlaygroundInstance {
   /**
    * Absolute path to the playground instance.
    */
   path: string;
+  /**
+   * Scope of the instance.
+   */
+  scope?: string;
   /**
    * Name of the instance. Corresponds to the name of the profile that is executed.
    */
@@ -44,19 +48,16 @@ export interface PlaygroundInstance {
 }
 
 type LogCallback = (message: string) => void;
-const BUILD_DIR = 'build';
+const PLAY_DIR = joinPath(SUPERFACE_DIR, 'play');
 
 type PlaygroundPaths = {
-  /** Path to the playground itself. */
-  base: string;
   /** Path to the profile source. */
   profile: string;
   /** Path to the map sources. */
   maps: string[];
   /** Path to the play script. */
   script: string;
-  /** Path to package.json */
-  npm: string;
+  packageJson: string;
 
   /** Paths to build artifacts. */
   build: {
@@ -68,58 +69,77 @@ type PlaygroundPaths = {
     maps: string[];
     /** Transpiled play script */
     script: string;
-    /** package-lock.json and node_modules */
-    npm: string[];
+    nodeModules: string;
+    packageLock: string;
   };
 };
 
 /** Returns paths for build artifacts for given playground. */
 function playgroundBuildPaths(
-  playgroundPath: string,
-  profileName: string,
-  providers: string[]
+  appPath: string,
+  id: {
+    scope?: string;
+    name: string;
+    providers: string[];
+  }
 ): PlaygroundPaths['build'] {
-  const base = nodePath.join(playgroundPath, BUILD_DIR);
+  const superfacePath = joinPath(appPath, SUPERFACE_DIR);
 
-  const profile = nodePath.join(base, `${profileName}.supr.ast.json`);
-  const maps = providers.map(provider =>
-    nodePath.join(base, `${profileName}.${provider}.suma.ast.json`)
+  let buildPath = joinPath(appPath, BUILD_DIR);
+  if (id.scope) {
+    buildPath = joinPath(buildPath, id.scope);
+  }
+
+  const profile = joinPath(buildPath, `${id.name}.supr.ast.json`);
+  const maps = id.providers.map(provider =>
+    joinPath(buildPath, `${id.name}.${provider}.suma.ast.json`)
   );
-  const script = nodePath.join(base, `${profileName}.play.js`);
-  const npm = [
-    nodePath.join(playgroundPath, 'package-lock.json'),
-    nodePath.join(playgroundPath, 'node_modules'),
-  ];
+  const script = joinPath(buildPath, `${id.name}.play.js`);
+  const packageLock = joinPath(superfacePath, 'package-lock.json');
+  const nodeModules = joinPath(superfacePath, 'node_modules');
 
   return {
-    base,
+    base: buildPath,
     profile,
     maps,
     script,
-    npm,
+    packageLock,
+    nodeModules,
   };
 }
 
 /** Returns paths for all files for given playground. */
 function playgroundFilePaths(
-  base: string,
-  profileName: string,
-  providers: string[]
+  appPath: string,
+  id: {
+    scope?: string;
+    name: string;
+    providers: string[];
+  }
 ): PlaygroundPaths {
-  const profile = nodePath.join(base, `${profileName}.supr`);
-  const maps = providers.map(provider =>
-    nodePath.join(base, `${profileName}.${provider}.suma`)
+  let base = appPath;
+  let playPath = joinPath(appPath, PLAY_DIR);
+  if (id.scope) {
+    base = joinPath(base, id.scope);
+    playPath = joinPath(playPath, id.scope);
+  }
+
+  const superfacePath = joinPath(appPath, SUPERFACE_DIR);
+
+  const profile = joinPath(base, `${id.name}.supr`);
+  const maps = id.providers.map(provider =>
+    joinPath(base, `${id.name}.${provider}.suma`)
   );
-  const script = nodePath.join(base, `${profileName}.play.ts`);
-  const npm = nodePath.join(base, 'package.json');
+
+  const script = joinPath(playPath, `${id.name}.play.ts`);
+  const packageJson = joinPath(superfacePath, 'package.json');
 
   return {
-    base,
     profile,
     maps,
     script,
-    npm,
-    build: playgroundBuildPaths(base, profileName, providers),
+    packageJson,
+    build: playgroundBuildPaths(base, id),
   };
 }
 
@@ -214,76 +234,107 @@ export async function detectPlayground(
   return instances;
 }
 
-// TODO: Make more use of the create command
+/**
+ * Initializes a new playground at `appPath`.
+ * The structure of the whole playground app is
+ * just enhanced `initSuperface` structure:
+ * ```
+ * appPath/
+ *   name.supr
+ *   name.provider.suma
+ *   provider.provider.json
+ *   .npmrc
+ *   superface/
+ *     super.json
+ *     .gitignore
+ *     grid/
+ *     build/
+ *     types/
+ *     package.json
+ *     play/
+ *       scope/
+ *         name.play.ts
+ * ```
+ */
 export async function initializePlayground(
-  playgroundPath: string,
-  providers: string[],
-  logCb?: LogCallback
+  appPath: string,
+  id: {
+    scope?: string;
+    name: string;
+    providers: string[];
+  },
+  options?: {
+    force?: boolean;
+    logCb?: LogCallback;
+  }
 ): Promise<void> {
-  const name = nodePath.basename(playgroundPath);
-  if (!validateDocumentName(name)) {
-    throw userError('The playground name must be a valid slang identifier', 11);
+  const paths = playgroundFilePaths(appPath, id);
+
+  // initialize the superface directory
+  await initSuperface(appPath, options);
+
+  // create appPath/superface/package.json
+  {
+    const created = await OutputStream.writeIfAbsent(
+      paths.packageJson,
+      playgroundTemplate.packageJson,
+      { force: options?.force }
+    );
+
+    if (created) {
+      options?.logCb?.(
+        formatShellLog("echo '<package.json template>' >", [paths.packageJson])
+      );
+    }
   }
 
-  logCb?.(`$ mkdir ${playgroundPath}`);
-  await mkdir(playgroundPath, { recursive: true, mode: 0o744 });
-
-  const packageJsonPath = nodePath.join(playgroundPath, 'package.json');
-  logCb?.(`$ echo '<package template>' > ${packageJsonPath}`);
-  const packageJsonPromise = OutputStream.writeOnce(
-    packageJsonPath,
-    playgroundTemplate.packageJson()
-  );
-
-  const scriptPath = nodePath.join(playgroundPath, `${name}.play.ts`);
-  logCb?.(`$ echo '<script template>' > ${scriptPath}`);
-
-  const scriptPromise = OutputStream.writeOnce(
-    scriptPath,
-    playgroundTemplate.pubs(name)
-  );
-
-  const profilePath = nodePath.join(playgroundPath, `${name}.supr`);
-  logCb?.(`$ echo '<profile template>' > ${profilePath}`);
-  const profilePromise = OutputStream.writeOnce(
-    profilePath,
-    profileTemplate.header(name, DEFAULT_PROFILE_VERSION) +
-      profileTemplate.pubs(name)
-  );
-
-  const mapsPromises = providers.map(provider => {
-    const path = nodePath.join(playgroundPath, `${name}.${provider}.suma`);
-    logCb?.(`$ echo '<map template>' > ${path}`);
-
-    return OutputStream.writeOnce(
-      path,
-      mapTemplate.header(name, provider, DEFAULT_PROFILE_VERSION) +
-        mapTemplate.pubs(name)
+  // create appPath/superface/play/scope/name.play.ts
+  {
+    const created = await OutputStream.writeIfAbsent(
+      paths.script,
+      () => playgroundTemplate.pubs(id.name),
+      { force: options?.force, dirs: true }
     );
-  });
 
-  const npmrcPath = nodePath.join(playgroundPath, '.npmrc');
-  logCb?.(`$ echo '<npmrc template>' > ${npmrcPath}`);
-  const npmrcPromise = OutputStream.writeOnce(
-    npmrcPath,
-    playgroundTemplate.npmRc()
+    if (created) {
+      options?.logCb?.(
+        formatShellLog("echo '<play.ts template>' >", [paths.script])
+      );
+    }
+  }
+
+  // appPath/scope/name.supr
+  const usecases = [composeUsecaseName(id.name)];
+  await createProfile(
+    appPath,
+    {
+      scope: id.scope,
+      name: id.name,
+      version: DEFAULT_PROFILE_VERSION,
+    },
+    usecases,
+    'pubs',
+    options
   );
 
-  const gitignorePath = nodePath.join(playgroundPath, '.gitignore');
-  logCb?.(`$ echo '<gitignore template>' > ${gitignorePath}`);
-  const gitignorePromise = OutputStream.writeOnce(
-    gitignorePath,
-    playgroundTemplate.gitignore()
-  );
+  for (const provider of id.providers) {
+    // appPath/scope/name.provider.supr
+    await createMap(
+      appPath,
+      {
+        scope: id.scope,
+        name: id.name,
+        provider: provider,
+        version: DEFAULT_PROFILE_VERSION,
+      },
+      usecases,
+      'pubs',
+      options
+    );
 
-  await Promise.all([
-    packageJsonPromise,
-    profilePromise,
-    ...mapsPromises,
-    scriptPromise,
-    npmrcPromise,
-    gitignorePromise,
-  ]);
+    // appPath/provider.provider.json
+    await createProviderJson(appPath, provider, options);
+  }
 }
 
 export async function executePlayground(
@@ -295,14 +346,17 @@ export async function executePlayground(
     logCb?: LogCallback;
   }
 ): Promise<void> {
-  const paths = playgroundFilePaths(
-    playground.path,
-    playground.name,
-    providers
-  );
+  const paths = playgroundFilePaths(playground.path, {
+    scope: playground.scope,
+    name: playground.name,
+    providers,
+  });
   await mkdir(paths.build.base, { recursive: true, mode: 0o744 });
 
-  const skipNpm = await resolveSkipFile(skip.npm, paths.build.npm);
+  const skipNpm = await resolveSkipFile(skip.npm, [
+    paths.build.packageLock,
+    paths.build.nodeModules,
+  ]);
   if (!skipNpm) {
     options.logCb?.(formatShellLog('npm install'));
     try {
@@ -347,7 +401,7 @@ export async function executePlayground(
     );
     try {
       await execFile(
-        nodePath.join('node_modules', '.bin', 'tsc'),
+        joinPath(paths.build.nodeModules, '.bin', 'tsc'),
         [
           '--strict',
           '--target',
@@ -408,14 +462,17 @@ export async function cleanPlayground(
   playground: PlaygroundInstance,
   logCb?: LogCallback
 ): Promise<void> {
-  const buildPaths = playgroundBuildPaths(playground.path, playground.name, [
-    ...playground.providers.values(),
-  ]);
+  const buildPaths = playgroundBuildPaths(playground.path, {
+    scope: playground.scope,
+    name: playground.name,
+    providers: [...playground.providers.values()],
+  });
   const files = [
     buildPaths.profile,
     ...buildPaths.maps,
     buildPaths.script,
-    ...buildPaths.npm,
+    buildPaths.packageLock,
+    buildPaths.nodeModules,
   ];
   logCb?.(formatShellLog('rimraf', files));
 

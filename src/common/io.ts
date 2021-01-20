@@ -1,6 +1,7 @@
 import * as childProcess from 'child_process';
 import createDebug from 'debug';
 import * as fs from 'fs';
+import { dirname } from 'path';
 import rimrafCallback from 'rimraf';
 import { Writable } from 'stream';
 import { promisify } from 'util';
@@ -36,7 +37,11 @@ export async function exists(path: string): Promise<boolean> {
   return true;
 }
 
-export async function mkdirQuiet(path: string): Promise<void> {
+/**
+ * Creates a directory without erroring if it already exists.
+ * Returns `true` if the directory was created.
+ */
+export async function mkdirQuiet(path: string): Promise<boolean> {
   try {
     await mkdir(path);
   } catch (err: unknown) {
@@ -44,14 +49,14 @@ export async function mkdirQuiet(path: string): Promise<void> {
 
     // Allow `EEXIST` because scope directory already exists.
     if (err.code === 'EEXIST') {
-      return;
+      return false;
     }
 
     // Rethrow other errors.
     throw err;
   }
 
-  return;
+  return true;
 }
 
 /**
@@ -232,5 +237,41 @@ export class OutputStream {
     await stream.write(data);
 
     return stream.cleanup();
+  }
+
+  /**
+   * Creates file with given contents if it doesn't exist.
+   *
+   * Returns whether the file was created.
+   *
+   * For convenience the `force` option can be provided
+   * to force the creation.
+   *
+   * The `dirs` option additionally recursively creates
+   * directories up until the file path.
+   */
+  static async writeIfAbsent(
+    path: string,
+    data: string | (() => string),
+    options?: {
+      append?: boolean;
+      force?: boolean;
+      dirs?: boolean;
+    }
+  ): Promise<boolean> {
+    if (options?.dirs === true) {
+      const dir = dirname(path);
+      await mkdir(dir, { recursive: true });
+    }
+
+    if (options?.force === true || !(await exists(path))) {
+      const dat = typeof data === 'string' ? data : data();
+
+      await OutputStream.writeOnce(path, dat, options?.append);
+
+      return true;
+    }
+
+    return false;
   }
 }

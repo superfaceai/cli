@@ -87,7 +87,7 @@ $ echo '<gitignore template>' > fixtures/playgrounds/${testPlaygroundName}/.giti
   });
 
   // TODO: Currently skipping this in CI because of access permission issues
-  it.skip('compiles playground and executes it', async () => {
+  it('compiles playground and executes it', async () => {
     stdout.start();
     await Play.run([
       'execute',
@@ -117,7 +117,7 @@ $ echo '<gitignore template>' > fixtures/playgrounds/${testPlaygroundName}/.giti
     ).resolves.toBeDefined();
   }, 30000);
 
-  it.skip('creates, compiles and executes a playground on a real api', async () => {
+  it('creates, compiles and executes a playground on a real api', async () => {
     stdout.start();
     await expect(
       Play.run(['initialize', testPlaygroundPath, '--providers', 'foo'])
