@@ -1,4 +1,5 @@
-profile = "https://example.com/pubs"
+name = "example/pubs"
+version = "1.0.0"
 
 """
 List pub opening hours

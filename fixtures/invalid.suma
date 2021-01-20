@@ -1,4 +1,4 @@
-profile = "http://example.com/profile"
+profile = "example/profile@1"
 
 map Foo {
 	

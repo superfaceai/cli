@@ -1,9 +1,18 @@
+import { join as joinPath } from 'path';
 import { stderr, stdout } from 'stdout-stderr';
 
 import { access, mkdir, readFile, rimraf } from '../common/io';
 import Compile from './compile';
 
-describe.skip('Compile CLI command', () => {
+describe('Compile CLI command', () => {
+  const compileDir = joinPath('fixtures', 'compile');
+  const fixture = {
+    strictProfile: joinPath('fixtures', 'strict.supr'),
+    strictMap: joinPath('fixtures', 'strict.suma'),
+    strictProfileAst: joinPath('fixtures', 'compiled', 'strict.supr.ast.json'),
+    strictMapAst: joinPath('fixtures', 'compiled', 'strict.suma.ast.json'),
+  };
+
   beforeEach(() => {
     stderr.start();
     stdout.start();
@@ -13,50 +22,37 @@ describe.skip('Compile CLI command', () => {
     stderr.stop();
     stdout.stop();
 
-    await rimraf('./fixtures/compile');
+    await rimraf(compileDir);
   });
 
   describe('integration tests', () => {
     it('compiles map', async () => {
       const mapASTFixture = JSON.parse(
-        (
-          await readFile('./fixtures/transpiled/testMap.suma.ast.json')
-        ).toString()
+        (await readFile(fixture.strictMapAst)).toString()
       ) as unknown;
-      await Compile.run(['./fixtures/testMap.suma', '-o', '-']);
+      await Compile.run([fixture.strictMap, '-o', '-']);
 
       expect(JSON.parse(stdout.output)).toEqual(mapASTFixture);
     });
 
     it('compiles profile', async () => {
       const profileASTFixture = JSON.parse(
-        (
-          await readFile('./fixtures/transpiled/testProfile.supr.ast.json')
-        ).toString()
+        (await readFile(fixture.strictProfileAst)).toString()
       ) as unknown;
-      await Compile.run(['./fixtures/testProfile.supr', '-o', '-2']);
+      await Compile.run([fixture.strictProfile, '-o', '-2']);
 
       expect(JSON.parse(stderr.output)).toEqual(profileASTFixture);
     });
 
     it('compiles two files into one stream', async () => {
       const mapASTFixture = JSON.parse(
-        (
-          await readFile('./fixtures/transpiled/testMap.suma.ast.json')
-        ).toString()
+        (await readFile(fixture.strictMapAst)).toString()
       ) as unknown;
       const profileASTFixture = JSON.parse(
-        (
-          await readFile('./fixtures/transpiled/testProfile.supr.ast.json')
-        ).toString()
+        (await readFile(fixture.strictProfileAst)).toString()
       ) as unknown;
 
-      await Compile.run([
-        './fixtures/testMap.suma',
-        './fixtures/testProfile.supr',
-        '-o',
-        '-',
-      ]);
+      await Compile.run([fixture.strictMap, fixture.strictProfile, '-o', '-']);
 
       const output = stdout.output;
       const fileBoundary = output.indexOf('}{');
@@ -74,18 +70,18 @@ describe.skip('Compile CLI command', () => {
   });
 
   it('compiles to outdir', async () => {
-    await mkdir('./fixtures/compile');
+    await mkdir(compileDir);
 
     await Compile.run([
-      './fixtures/testProfile.supr',
-      './fixtures/testMap.suma',
+      fixture.strictProfile,
+      fixture.strictMap,
       '-o',
-      './fixtures/compile',
+      compileDir,
     ]);
 
     const expectedFiles = [
-      './fixtures/compile/testProfile.supr.ast.json',
-      './fixtures/compile/testMap.suma.ast.json',
+      joinPath(compileDir, 'strict.supr.ast.json'),
+      joinPath(compileDir, 'strict.suma.ast.json'),
     ];
 
     await Promise.all(
