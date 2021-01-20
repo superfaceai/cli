@@ -1,13 +1,11 @@
 import { Command, flags } from '@oclif/command';
-import { parseMapId, parseProfileId } from '@superfaceai/parser';
+import { DocumentId, parseDocumentId } from '@superfaceai/parser';
 
 import {
-  composeStructure,
   composeUsecaseName,
   composeVersion,
   CreateMode,
   DEFAULT_PROFILE_VERSION,
-  DocumentStructure,
   inferCreateMode,
   MAP_EXTENSIONS,
   PROFILE_EXTENSIONS,
@@ -125,18 +123,16 @@ export default class Create extends Command {
     const providerName = flags.provider ? `.${flags.provider}` : '';
     const variant = flags.variant ? `.${flags.variant}` : '';
     const documentId = `${documentName}${providerName}${variant}@${flags.version}`;
-    const documentResult =
-      createMode === CreateMode.PROFILE
-        ? parseProfileId(documentId)
-        : parseMapId(documentId);
+    const documentResult = parseDocumentId(documentId);
 
     if (documentResult.kind === 'error') {
       throw userError(documentResult.message, 1);
     }
 
     // compose document structure from the result
-    const documentStructure = composeStructure(documentResult);
-    const { name, scope, provider } = documentStructure;
+    const documentStructure = documentResult.value;
+    const { scope, middle } = documentStructure;
+    const [name, provider] = middle;
 
     // if there is no specified usecase - create usecase with same name as profile name
     const usecases = flags.usecase ?? [composeUsecaseName(name)];
@@ -189,12 +185,17 @@ export default class Create extends Command {
   }
 
   private async createProfile(
-    documentStructure: DocumentStructure,
+    documentStructure: DocumentId,
     useCaseNames: string[],
     template: profileTemplate.UsecaseTemplateType
   ): Promise<void> {
-    const { name, scope } = documentStructure;
+    const { scope, middle } = documentStructure;
 
+    if (!documentStructure.version) {
+      throw developerError('Version is missing', 1);
+    }
+
+    const name = middle[0];
     const documentName = scope ? `${scope}/${name}` : name;
     const version = composeVersion(documentStructure.version);
     const fileName = `${documentName}${PROFILE_EXTENSIONS[0]}`;
@@ -213,18 +214,19 @@ export default class Create extends Command {
   }
 
   private async createMap(
-    documentStructure: DocumentStructure,
+    documentStructure: DocumentId,
     useCaseNames: string[],
     template: mapTemplate.MapTemplateType
   ): Promise<void> {
-    const { name, scope, provider, variant } = documentStructure;
+    const { scope, middle } = documentStructure;
+    const [name, provider, variant] = middle;
 
-    if (!provider) {
-      throw developerError('Document structure is complete', 1);
+    if (!provider || !documentStructure.version) {
+      throw developerError('Provider or version is missing', 1);
     }
 
     const documentName = scope ? `${scope}/${name}` : name;
-    const version = composeVersion(documentStructure.version);
+    const version = composeVersion(documentStructure.version, true);
     const variantName = variant ? `.${variant}` : '';
     const fileName = `${documentName}.${provider}${variantName}${MAP_EXTENSIONS[0]}`;
 
