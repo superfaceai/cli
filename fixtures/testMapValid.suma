@@ -1,9 +1,0 @@
-profile = "https://example.com/profile/myProfile"
-provider = "http://example.com/provider"
-
-map Foo {
-
-    map result if(input.field) 201
-    map result 200
-
-}

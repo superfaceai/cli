@@ -3,6 +3,8 @@ import { CLIError } from '@oclif/errors';
 import {
   formatIssues,
   getProfileOutput,
+  MapDocumentId,
+  ProfileDocumentId,
   Source,
   SyntaxError,
   validateMap,
@@ -20,6 +22,12 @@ import {
 import { developerError, userError } from '../common/error';
 import { DocumentTypeFlag, documentTypeFlag } from '../common/flags';
 import { OutputStream, readFile } from '../common/io';
+import {
+  getMapDocument,
+  getMapHeader,
+  getProfileDocument,
+  getProfileHeader,
+} from '../logic/lint';
 import { formatWordPlurality } from '../util';
 
 type ReportKind = 'file' | 'compatibility';
@@ -252,11 +260,6 @@ export default class Lint extends Command {
     if (profiles.length === 0) {
       throw new CLIError('Cannot validate without profile', { exit: -1 });
     }
-    if (profiles.length > 1) {
-      throw new CLIError('Cannot validate with multiple profiles', {
-        exit: -1,
-      });
-    }
     if (maps.length === 0) {
       throw new CLIError('Cannot validate without map', {
         exit: -1,
@@ -283,46 +286,57 @@ export default class Lint extends Command {
       counts.push([0, unknown.length]);
     }
 
-    const parseProfile = DOCUMENT_PARSE_FUNCTION[DocumentType.PROFILE];
-    const parseMap = DOCUMENT_PARSE_FUNCTION[DocumentType.MAP];
+    const profileHeaders: ProfileDocumentId[] = [];
+    const profileDocuments = [];
+    const mapHeaders: MapDocumentId[] = [];
 
-    const content = await readFile(profiles[0]).then(f => f.toString());
-    const source = new Source(content, profiles[0]);
-    const profileOutput = getProfileOutput(parseProfile(source));
-
-    for (const map of maps) {
-      const content = await readFile(map).then(f => f.toString());
-      const source = new Source(content, map);
-      const result = validateMap(profileOutput, parseMap(source));
-
-      const report: ProfileMapReport = result.pass
-        ? {
-            kind: 'compatibility',
-            path: map,
-            errors: [],
-            warnings: result.warnings ?? [],
-          }
-        : {
-            kind: 'compatibility',
-            path: map,
-            errors: result.errors,
-            warnings: result.warnings ?? [],
-          };
-
-      let output = fn(report);
-      if (outputCounter > 1) {
-        output += outputGlue;
-      }
-      outputCounter -= 1;
-
-      await outputStream.write(output);
-
-      counts.push([
-        result.pass ? 0 : result.errors.length,
-        result.warnings?.length ?? 0,
-      ]);
+    for (const profilePath of profiles) {
+      profileDocuments.push(await getProfileDocument(profilePath));
+      profileHeaders.push(await getProfileHeader(profilePath));
+    }
+    for (const mapPath of profiles) {
+      mapHeaders.push(await getMapHeader(mapPath));
     }
 
+    // loop over profiles and validate only maps that satify condition
+    for (const profile of profileDocuments) {
+      const profileOutput = getProfileOutput(profile);
+
+      for (const mapPath of maps) {
+        // TODO: create condition
+        const result = validateMap(
+          profileOutput,
+          await getMapDocument(mapPath)
+        );
+
+        const report: ProfileMapReport = result.pass
+          ? {
+              kind: 'compatibility',
+              path: mapPath,
+              errors: [],
+              warnings: result.warnings ?? [],
+            }
+          : {
+              kind: 'compatibility',
+              path: mapPath,
+              errors: result.errors,
+              warnings: result.warnings ?? [],
+            };
+
+        let output = fn(report);
+        if (outputCounter > 1) {
+          output += outputGlue;
+        }
+        outputCounter -= 1;
+
+        await outputStream.write(output);
+
+        counts.push([
+          result.pass ? 0 : result.errors.length,
+          result.warnings?.length ?? 0,
+        ]);
+      }
+    }
     return counts;
   }
 

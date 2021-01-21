@@ -1,0 +1,9 @@
+profile =  "example/profile@1.0"
+provider = "test"
+
+map Foo {
+
+    map result if(input.field) 201
+    map result 200
+
+}
