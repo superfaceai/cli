@@ -8,6 +8,7 @@ describe('lint CLI command', () => {
     strictProfile: joinPath('fixtures', 'strict.supr'),
     strictMap: joinPath('fixtures', 'strict.suma'),
     invalidMap: joinPath('fixtures', 'invalid.suma'),
+    validMap: joinPath('fixtures', 'valid.suma')
   };
 
   beforeEach(() => {
@@ -122,9 +123,9 @@ describe('lint CLI command', () => {
     await expect(
       Lint.run([
         '-v',
-        './fixtures/testProfile.supr',
-        './fixtures/testMap.suma',
-        './fixtures/testMapValid.suma',
+        fixture.strictProfile,
+        fixture.invalidMap,
+        fixture.validMap,
       ])
     ).rejects.toHaveProperty(['oclif', 'exit'], 1);
 
@@ -146,18 +147,18 @@ describe('lint CLI command', () => {
     await expect(
       Lint.run([
         '-v',
-        './fixtures/testProfile.supr',
-        './fixtures/testMap.suma',
-        './fixtures/strict.supr',
+        fixture.strictProfile,
+        fixture.invalidMap,
+        fixture.strictProfile,
       ])
     ).rejects.toThrowError('Cannot validate with multiple profiles');
 
     await expect(
       Lint.run([
         '-v',
-        './fixtures/testProfile.supr',
-        './fixtures/testMap.suma',
-        './fixtures/strict.supr',
+        fixture.strictProfile,
+        fixture.invalidMap,
+        fixture.strictProfile,
         './fixtures/strict.unknown',
       ])
     ).rejects.toThrowError('Cannot validate with multiple profiles');
@@ -167,8 +168,8 @@ describe('lint CLI command', () => {
     await expect(
       Lint.run([
         '-v',
-        './fixtures/testProfile.supr',
-        './fixtures/testMapValid.suma',
+        fixture.strictProfile,
+        fixture.validMap,
         './fixtures/strict.unknown',
         './fixtures/some.unknown',
       ])
@@ -182,9 +183,9 @@ describe('lint CLI command', () => {
     await expect(
       Lint.run([
         '-v',
-        './fixtures/testProfile.supr',
-        './fixtures/testMap.suma',
-        './fixtures/testMapValid.suma',
+        fixture.strictProfile,
+        fixture.invalidMap,
+        fixture.validMap,
         './fixtures/strict.unknown',
       ])
     ).rejects.toHaveProperty(['oclif', 'exit'], 1);
@@ -199,8 +200,8 @@ describe('lint CLI command', () => {
     await Lint.run([
       '-v',
       '-q',
-      './fixtures/testProfile.supr',
-      './fixtures/testMapValid.suma',
+      fixture.strictProfile,
+      fixture.validMap,
       './fixtures/strict.unknown',
       './fixtures/some.unknown',
     ]);
@@ -214,9 +215,9 @@ describe('lint CLI command', () => {
       Lint.run([
         '-v',
         '-q',
-        './fixtures/testProfile.supr',
-        './fixtures/testMap.suma',
-        './fixtures/testMapValid.suma',
+        fixture.strictProfile,
+        fixture.invalidMap,
+        fixture.validMap,
         './fixtures/strict.unknown',
       ])
     ).rejects.toHaveProperty(['oclif', 'exit'], 1);
