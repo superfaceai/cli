@@ -63,7 +63,7 @@ export default class Create extends Command {
     '$ superface create sms/service -p twillio -t bugfix -v 1.1-rev133 -u SendSMS ReceiveSMS',
   ];
 
-  private logCallback?: (message: string) => void = m => this.log(m);
+  private logCallback? = (message: string) => this.log(message);
 
   async run(): Promise<void> {
     const { argv, flags } = this.parse(Create);
@@ -128,11 +128,12 @@ export default class Create extends Command {
 
     // compose document structure from the result
     const documentStructure = documentResult.value;
-    if (documentStructure.version === undefined) {
+    const { scope, middle, version } = documentStructure;
+    const [name, provider] = middle;
+
+    if (version === undefined) {
       throw developerError('version must be present', 1);
     }
-    const { scope, middle } = documentStructure;
-    const [name, provider] = middle;
 
     // if there is no specified usecase - create usecase with same name as profile name
     const usecases = flags.usecase ?? [composeUsecaseName(name)];
@@ -160,11 +161,7 @@ export default class Create extends Command {
       case CreateMode.PROFILE:
         await createProfile(
           '',
-          {
-            scope: documentStructure.scope,
-            name,
-            version: documentStructure.version,
-          },
+          { scope, name, version },
           usecases,
           flags.template,
           { logCb: this.logCallback }
@@ -179,12 +176,7 @@ export default class Create extends Command {
         }
         await createMap(
           '',
-          {
-            scope: documentStructure.scope,
-            name,
-            provider,
-            version: documentStructure.version,
-          },
+          { scope, name, provider, version },
           usecases,
           flags.template,
           { logCb: this.logCallback }
@@ -200,23 +192,14 @@ export default class Create extends Command {
         }
         await createProfile(
           '',
-          {
-            scope: documentStructure.scope,
-            name,
-            version: documentStructure.version,
-          },
+          { scope, name, version },
           usecases,
           flags.template,
           { logCb: this.logCallback }
         );
         await createMap(
           '',
-          {
-            scope: documentStructure.scope,
-            name,
-            provider,
-            version: documentStructure.version,
-          },
+          { scope, name, provider, version },
           usecases,
           flags.template,
           { logCb: this.logCallback }

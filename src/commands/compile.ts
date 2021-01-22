@@ -1,6 +1,6 @@
 import { Command, flags } from '@oclif/command';
 import { Source } from '@superfaceai/parser';
-import * as nodePath from 'path';
+import { join as joinPath, basename } from 'path';
 
 import {
   DOCUMENT_PARSE_FUNCTION,
@@ -66,9 +66,9 @@ export default class Compile extends Command {
           if (fileOutputStream === undefined) {
             if (outputPath !== undefined) {
               // Shared directory, name based on file
-              const sharedDirectory = nodePath.join(
+              const sharedDirectory = joinPath(
                 outputPath,
-                nodePath.basename(file) + DEFAULT_EXTENSION
+                basename(file) + DEFAULT_EXTENSION
               );
               this.debug(`Compiling "${file}" to "${sharedDirectory}"`);
 
@@ -117,7 +117,7 @@ export default class Compile extends Command {
 
     const parseFunction = DOCUMENT_PARSE_FUNCTION[documentType];
     const content = (await readFile(path)).toString();
-    const source = new Source(content, nodePath.basename(path));
+    const source = new Source(content, basename(path));
 
     return parseFunction(source);
   }

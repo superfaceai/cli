@@ -92,7 +92,7 @@ clean: the \`node_modules\` folder and compilation artifacts are cleaned.`;
     help: flags.help({ char: 'h' }),
   };
 
-  private logCallback?: (message: string) => void = m => this.log(grey(m));
+  private logCallback? = (message: string) => this.log(grey(message));
 
   async run(): Promise<void> {
     const { args, flags } = this.parse(Play);
