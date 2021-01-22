@@ -10,7 +10,7 @@ export default class Init extends Command {
     quiet: flags.boolean({
       char: 'q',
       description:
-        'When set to true, disables the shell echo output of play actions.',
+        'When set to true, disables the shell echo output of init actions.',
       default: false,
     }),
     help: flags.help({ char: 'h' }),

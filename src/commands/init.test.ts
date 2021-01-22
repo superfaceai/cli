@@ -32,14 +32,14 @@ describe('Init CLI command', () => {
     ];
 
     expect(stdout.output).toBe(
-      `$ mkdir '${testInitFolderPath}'
-$ echo '<.npmrc template>' > '${testInitFolderPath}/.npmrc'
-$ mkdir '${testInitFolderPath}/superface'
-$ echo '<super.json template>' > '${testInitFolderPath}/superface/super.json'
-$ echo '<gitignore template>' > '${testInitFolderPath}/superface/.gitignore'
-$ mkdir '${testInitFolderPath}/superface/grid'
-$ mkdir '${testInitFolderPath}/superface/types'
-$ mkdir '${testInitFolderPath}/superface/build'
+      `$ mkdir 'fixtures/playgrounds/test'
+$ echo '<.npmrc template>' > 'fixtures/playgrounds/test/.npmrc'
+$ mkdir 'fixtures/playgrounds/test/superface'
+$ echo '<super.json template>' > 'fixtures/playgrounds/test/superface/super.json'
+$ echo '<gitignore template>' > 'fixtures/playgrounds/test/superface/.gitignore'
+$ mkdir 'fixtures/playgrounds/test/superface/grid'
+$ mkdir 'fixtures/playgrounds/test/superface/types'
+$ mkdir 'fixtures/playgrounds/test/superface/build'
 `
     );
 
