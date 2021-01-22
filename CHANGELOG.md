@@ -6,6 +6,7 @@
 * Generation of x.provider.json file
 * Workaround for document type flag
 * `isFileQuiet` function
+* Init command
 
 ### Changed
 * Updated parser dependency to v0.0.12
