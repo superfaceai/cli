@@ -2,6 +2,7 @@ import { join as joinPath } from 'path';
 
 import { mkdir, mkdirQuiet, OutputStream } from '../common/io';
 import { formatShellLog } from '../common/log';
+import { ProfileSettings, ProviderSettings } from '../common/super.interfaces';
 import * as initTemplate from '../templates/init';
 
 type LogCallback = (message: string) => void;
@@ -28,7 +29,8 @@ export const BUILD_DIR = joinPath(SUPERFACE_DIR, 'build');
  */
 export async function initSuperface(
   appPath: string,
-  // TODO: args for super.json
+  profiles: ProfileSettings,
+  providers: ProviderSettings,
   options?: {
     force?: boolean;
     logCb?: LogCallback;
@@ -72,7 +74,7 @@ export async function initSuperface(
     const superJsonPath = joinPath(superPath, 'super.json');
     const created = await OutputStream.writeIfAbsent(
       superJsonPath,
-      () => initTemplate.superJson(), // TODO: Params here
+      () => initTemplate.superJson(profiles, providers),
       { force: options?.force }
     );
 

@@ -5,7 +5,8 @@ import {
   composeUsecaseName,
   DEFAULT_PROFILE_VERSION,
   MAP_EXTENSIONS,
-  PROFILE_EXTENSIONS
+  PROFILE_EXTENSIONS,
+  DEFAULT_PROFILE_VERSION_STR,
 } from '../common/document';
 import {
   assertIsExecError,
@@ -24,6 +25,7 @@ import {
   rimraf,
 } from '../common/io';
 import { formatShellLog } from '../common/log';
+import { ProfileSettings, ProviderSettings } from '../common/super.interfaces';
 import * as playgroundTemplate from '../templates/playground';
 import { createMap, createProfile, createProviderJson } from './create';
 import { BUILD_DIR, initSuperface, SUPERFACE_DIR } from './init';
@@ -271,7 +273,15 @@ export async function initializePlayground(
   const paths = playgroundFilePaths(appPath, id);
 
   // initialize the superface directory
-  await initSuperface(appPath, options);
+  const profiles: ProfileSettings = {
+    [(id.scope ? `${id.scope}/` : '') + id.name]: DEFAULT_PROFILE_VERSION_STR,
+  };
+  const providers: ProviderSettings = {};
+  id.providers.forEach(
+    providerName => (providers[providerName] = { auth: {} })
+  );
+
+  await initSuperface(appPath, profiles, providers, options);
 
   // create appPath/superface/package.json
   {
