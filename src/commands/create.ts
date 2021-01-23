@@ -3,11 +3,11 @@ import { parseDocumentId } from '@superfaceai/parser';
 
 import {
   composeUsecaseName,
-  CreateMode,
   DEFAULT_PROFILE_VERSION_STR,
   inferCreateMode,
   validateDocumentName,
 } from '../common/document';
+import { CreateMode } from '../common/document.interfaces';
 import { developerError, userError } from '../common/error';
 import { mkdirQuiet } from '../common/io';
 import { createMap, createProfile, createProviderJson } from '../logic/create';

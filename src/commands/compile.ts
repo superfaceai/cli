@@ -1,13 +1,13 @@
 import { Command, flags } from '@oclif/command';
 import { Source } from '@superfaceai/parser';
-import { join as joinPath, basename } from 'path';
+import { basename, join as joinPath } from 'path';
 
 import {
   DOCUMENT_PARSE_FUNCTION,
-  DocumentType,
   inferDocumentTypeWithFlag,
 } from '../common/document';
 import { userError } from '../common/error';
+import { DocumentType } from '../common/document.interfaces';
 import { DocumentTypeFlag, documentTypeFlag } from '../common/flags';
 import { isDirectoryQuiet, OutputStream, readFile } from '../common/io';
 
