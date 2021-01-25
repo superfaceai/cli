@@ -4,6 +4,8 @@ import nodePath from 'path';
 import Compile from '../commands/compile';
 import {
   DEFAULT_PROFILE_VERSION,
+  MAP_EXTENSIONS,
+  PROFILE_EXTENSIONS,
   validateDocumentName,
 } from '../common/document';
 import {
@@ -129,19 +131,17 @@ function detectPlaygroundProviders(
   entries: readonly string[],
   name: string
 ): Set<string> {
-  const providers: Set<string> = new Set();
-
   const startName = name + '.';
-  entries
-    .filter(entry => entry.startsWith(startName) && entry.endsWith('.suma'))
-    .forEach(entry => {
-      const provider = entry.slice(
-        startName.length,
-        entry.length - '.suma'.length
-      );
-
-      providers.add(provider);
-    });
+  const providers = new Set(
+    entries
+      .filter(
+        entry =>
+          entry.startsWith(startName) && entry.endsWith(MAP_EXTENSIONS[0])
+      )
+      .map(entry =>
+        entry.slice(startName.length, entry.length - MAP_EXTENSIONS[0].length)
+      )
+  );
 
   return providers;
 }
@@ -149,7 +149,7 @@ function detectPlaygroundProviders(
 /**
  * Detects playground at specified directory path or rejects.
  *
- * Looks at all .supr files at specified location. For each of those files,
+ * Looks for `package.json`, `<name>.supr` and corresponding `<name>.<provider>.suma` and `<name>.play.ts`.
  */
 export async function detectPlayground(
   path: string
@@ -178,7 +178,9 @@ export async function detectPlayground(
     );
   }
 
-  const foundProfiles = entries.filter(entry => entry.endsWith('.supr'));
+  const foundProfiles = entries.filter(entry =>
+    entry.endsWith(PROFILE_EXTENSIONS[0])
+  );
   if (foundProfiles.length === 0) {
     throw userError(
       'The directory at playground path is not a playground: no profile found',
@@ -188,19 +190,20 @@ export async function detectPlayground(
 
   const instances = [];
   for (const foundProfile of foundProfiles) {
-    const name = foundProfile.slice(0, foundProfile.length - '.supr'.length);
+    const name = foundProfile.slice(
+      0,
+      foundProfile.length - PROFILE_EXTENSIONS[0].length
+    );
 
     const providers = detectPlaygroundProviders(entries, name);
     const scriptExists = entries.includes(`${name}.play.ts`);
 
-    if (scriptExists) {
-      if (providers.size !== 0) {
-        instances.push({
-          path: realPath,
-          name,
-          providers,
-        });
-      }
+    if (scriptExists && providers.size !== 0) {
+      instances.push({
+        path: realPath,
+        name,
+        providers,
+      });
     }
   }
 
