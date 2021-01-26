@@ -129,10 +129,10 @@ async function main() {
   // Iterate over the input arguments
   // Their expected format is \`scope/name.provider.variant\` (scope and variant are optional)
   for (const arg of process.argv.slice(2)) {
-    let scope: string | undefined = undefined;
+    let scope: string | undefined;
     let name: string = arg;
     let provider: string = name;
-    let variant: string | undefined = undefined;
+    let variant: string | undefined;
 
     const scopeSplit = name.split('/');
     if (scopeSplit.length === 2) {
