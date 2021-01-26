@@ -4,7 +4,6 @@ import { join as joinPath } from 'path';
 
 import Compile from '../commands/compile';
 import {
-  AST_EXTENSIONS,
   composeUsecaseName,
   DEFAULT_PROFILE_VERSION,
   DEFAULT_PROFILE_VERSION_STR,
