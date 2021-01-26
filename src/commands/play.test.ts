@@ -86,7 +86,7 @@ describe('Play CLI command', () => {
     );
   });
 
-  it('creates a valid playground', async () => {
+  it.skip('creates a valid playground', async () => {
     stdout.start();
     await expect(
       Play.run([

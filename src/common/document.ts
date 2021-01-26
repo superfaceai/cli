@@ -9,8 +9,9 @@ export const DEFAULT_PROFILE_VERSION = {
   patch: 0,
 };
 export const DEFAULT_PROFILE_VERSION_STR = '1.0.0';
-export const MAP_EXTENSIONS = ['.suma'];
-export const PROFILE_EXTENSIONS = ['.supr'];
+export const MAP_EXTENSIONS = ['.suma', '.suma.ast.json'];
+export const PROFILE_EXTENSIONS = ['.supr', '.supr.ast.json'];
+export const PLAY_EXTENSIONS = ['.play.js'];
 
 /**
  * Detects whether the file on path is Superface Map or Superface Profile based on the extension.

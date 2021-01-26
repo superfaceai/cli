@@ -4,10 +4,12 @@ import { join as joinPath } from 'path';
 
 import Compile from '../commands/compile';
 import {
+  AST_EXTENSIONS,
   composeUsecaseName,
   DEFAULT_PROFILE_VERSION,
   DEFAULT_PROFILE_VERSION_STR,
   MAP_EXTENSIONS,
+  PLAY_EXTENSIONS,
   PROFILE_EXTENSIONS,
 } from '../common/document';
 import {
@@ -95,11 +97,11 @@ function playgroundBuildPaths(
     buildPath = joinPath(buildPath, id.scope);
   }
 
-  const profile = joinPath(buildPath, `${id.name}.supr.ast.json`);
+  const profile = joinPath(buildPath, `${id.name}${PROFILE_EXTENSIONS[1]}`);
   const maps = id.providers.map(provider =>
-    joinPath(buildPath, `${id.name}.${provider}.suma.ast.json`)
+    joinPath(buildPath, `${id.name}.${provider}${MAP_EXTENSIONS[1]}`)
   );
-  const script = joinPath(buildPath, `${id.name}.play.js`);
+  const script = joinPath(buildPath, `${id.name}${PLAY_EXTENSIONS[0]}`);
   const packageLock = joinPath(superfacePath, 'package-lock.json');
   const nodeModules = joinPath(superfacePath, 'node_modules');
 
@@ -131,12 +133,12 @@ function playgroundFilePaths(
 
   const superfacePath = joinPath(appPath, SUPERFACE_DIR);
 
-  const profile = joinPath(base, `${id.name}.supr`);
+  const profile = joinPath(base, `${id.name}${PROFILE_EXTENSIONS[0]}`);
   const maps = id.providers.map(provider =>
-    joinPath(base, `${id.name}.${provider}.suma`)
+    joinPath(base, `${id.name}.${provider}${MAP_EXTENSIONS[0]}`)
   );
 
-  const script = joinPath(playPath, `${id.name}.play.ts`);
+  const script = joinPath(playPath, `${id.name}${PLAY_EXTENSIONS[0]}`);
   const packageJson = joinPath(superfacePath, 'package.json');
 
   return {
@@ -349,9 +351,14 @@ export async function initializePlayground(
   const paths = playgroundFilePaths(appPath, id);
 
   // initialize the superface directory
+  const scope = id.scope ? `${id.scope}/` : '';
   const profiles: ProfileSettings = {
-    [(id.scope ? `${id.scope}/` : '') + id.name]: DEFAULT_PROFILE_VERSION_STR,
+    [scope + id.name]: {
+      file: paths.profile,
+      version: DEFAULT_PROFILE_VERSION_STR,
+    },
   };
+
   const providers: ProviderSettings = {};
   id.providers.forEach(
     providerName => (providers[providerName] = { auth: {} })
