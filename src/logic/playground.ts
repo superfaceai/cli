@@ -1,4 +1,3 @@
-import { Stats } from 'fs';
 import nodePath from 'path';
 
 import Compile from '../commands/compile';
@@ -16,13 +15,13 @@ import {
 import { SkipFileType } from '../common/flags';
 import {
   execFile,
+  isDirectoryQuiet,
   mkdir,
   OutputStream,
   readdir,
   realpath,
   resolveSkipFile,
   rimraf,
-  stat,
 } from '../common/io';
 import { formatShellLog } from '../common/log';
 import * as mapTemplate from '../templates/map';
@@ -156,14 +155,12 @@ export async function detectPlayground(
 ): Promise<PlaygroundInstance[]> {
   // Ensure that the folder exists, is accesible and is a directory.
   let realPath: string;
-  let statInfo: Stats;
   try {
     realPath = await realpath(path);
-    statInfo = await stat(realPath);
   } catch (e) {
     throw userError('The playground path must exist and be accessible', 31);
   }
-  if (!statInfo.isDirectory()) {
+  if (!(await isDirectoryQuiet(realPath))) {
     throw userError('The playground path must be a directory', 32);
   }
 
