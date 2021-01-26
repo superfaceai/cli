@@ -1,0 +1,12 @@
+profile = "my-scope/my-profile@1.0"
+provider = "twillio"
+
+"""
+MyProfile map
+"""
+map MyProfile {
+    map result 'string'
+    map result 222
+    map result false
+    map result {}
+}
