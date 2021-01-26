@@ -18,7 +18,6 @@ import {
   isMapFile,
   isProfileFile,
   isUnknownFile,
-  PROFILE_EXTENSIONS,
   MAP_EXTENSIONS,
 } from '../common/document';
 import { userError } from '../common/error';
@@ -162,7 +161,7 @@ export async function lintMapsToProfile(
       };
 
       let output = fn(report);
-      if (unknown.length > 1 && output !== '') {
+      if (output !== '') {
         output += outputGlue;
       }
 
