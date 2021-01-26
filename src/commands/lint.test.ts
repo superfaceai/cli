@@ -7,8 +7,9 @@ describe('lint CLI command', () => {
   const fixture = {
     strictProfile: joinPath('fixtures', 'strict.supr'),
     strictMap: joinPath('fixtures', 'strict.suma'),
-    invalidMap: joinPath('fixtures', 'invalid.suma'),
-    validMap: joinPath('fixtures', 'valid.suma')
+    invalidParsedMap: joinPath('fixtures', 'invalid.suma'),
+    validMap: joinPath('fixtures', 'valid-map.provider.suma'),
+    invalidMap: joinPath('fixtures', 'invalid-map.twillio.suma'),
   };
 
   beforeEach(() => {
@@ -31,14 +32,14 @@ describe('lint CLI command', () => {
 
   it('lints a valid and an invalid map', async () => {
     await expect(
-      Lint.run([fixture.strictMap, fixture.invalidMap])
+      Lint.run([fixture.strictMap, fixture.invalidParsedMap])
     ).rejects.toHaveProperty(['oclif', 'exit'], 1);
 
     expect(stdout.output).toContain(`🆗 ${fixture.strictMap}\n` + '\n');
     expect(stdout.output).toContain(
-      `❌ ${fixture.invalidMap}\n` +
+      `❌ ${fixture.invalidParsedMap}\n` +
         'SyntaxError: Expected `provider` but found `map`\n' +
-        ` --> ${fixture.invalidMap}:3:1\n` +
+        ` --> ${fixture.invalidParsedMap}:3:1\n` +
         '2 | \n' +
         '3 | map Foo {\n' +
         '  | ^^^      \n' +
@@ -53,13 +54,13 @@ describe('lint CLI command', () => {
         '--outputFormat',
         'short',
         fixture.strictMap,
-        fixture.invalidMap,
+        fixture.invalidParsedMap,
       ])
     ).rejects.toHaveProperty(['oclif', 'exit'], 1);
 
     expect(stdout.output).toContain(`🆗 ${fixture.strictMap}\n` + '\n');
     expect(stdout.output).toContain(
-      `❌ ${fixture.invalidMap}\n` +
+      `❌ ${fixture.invalidParsedMap}\n` +
         '\t3:1 Expected `provider` but found `map`\n'
     );
     expect(stdout.output).toContain('Detected 1 problem\n');
@@ -71,7 +72,7 @@ describe('lint CLI command', () => {
         '--outputFormat',
         'json',
         fixture.strictMap,
-        fixture.invalidMap,
+        fixture.invalidParsedMap,
       ])
     ).rejects.toHaveProperty(['oclif', 'exit'], 1);
 
@@ -93,7 +94,7 @@ describe('lint CLI command', () => {
     });
     expect(result.reports).toContainEqual({
       kind: 'file',
-      path: fixture.invalidMap,
+      path: fixture.invalidParsedMap,
       errors: [
         {
           category: 1,
@@ -129,39 +130,15 @@ describe('lint CLI command', () => {
       ])
     ).rejects.toHaveProperty(['oclif', 'exit'], 1);
 
-    expect(stdout.output).toContain('❌ ./fixtures/testMap.suma');
-    expect(stdout.output).toContain('🆗 ./fixtures/testMapValid.suma');
+    expect(stdout.output).toContain('❌ fixtures/invalid-map.twillio.suma');
+    expect(stdout.output).toContain('⚠️ fixtures/valid-map.provider.suma');
     expect(stdout.output).toContain(
-      '8:1 ProfileId - Wrong Profile ID: expected https://example.com/profile/myProfile, but got http://example.com/profile'
+      '5:13 PrimitiveLiteral - Wrong Structure: expected number, but got "true"'
     );
     expect(stdout.output).toContain(
-      '20:19 InlineCall - Operation not found: Op'
+      '11:15 ObjectLiteral - Wrong Structure: expected 404 or 400, but got "ObjectLiteral"'
     );
-    expect(stdout.output).toContain(
-      '90:14 ObjectLiteral - Wrong Structure: expected 404 or 400, but got "ObjectLiteral"'
-    );
-    expect(stdout.output).toContain('Detected 12 problems');
-  });
-
-  it('fails when linting multiple maps to multiple profiles', async () => {
-    await expect(
-      Lint.run([
-        '-v',
-        fixture.strictProfile,
-        fixture.invalidMap,
-        fixture.strictProfile,
-      ])
-    ).rejects.toThrowError('Cannot validate with multiple profiles');
-
-    await expect(
-      Lint.run([
-        '-v',
-        fixture.strictProfile,
-        fixture.invalidMap,
-        fixture.strictProfile,
-        './fixtures/strict.unknown',
-      ])
-    ).rejects.toThrowError('Cannot validate with multiple profiles');
+    expect(stdout.output).toContain('Detected 9 problems');
   });
 
   it('lints multiple maps with unknown files to profile', async () => {
@@ -177,8 +154,8 @@ describe('lint CLI command', () => {
 
     expect(stdout.output).toContain('⚠️ ./fixtures/strict.unknown');
     expect(stdout.output).toContain('⚠️ ./fixtures/some.unknown');
-    expect(stdout.output).toContain('🆗 ./fixtures/testMapValid.suma');
-    expect(stdout.output).toContain('Detected 2 problems');
+    expect(stdout.output).toContain('⚠️ fixtures/valid-map.provider.suma');
+    expect(stdout.output).toContain('Detected 6 problems');
 
     await expect(
       Lint.run([
@@ -190,25 +167,26 @@ describe('lint CLI command', () => {
       ])
     ).rejects.toHaveProperty(['oclif', 'exit'], 1);
 
+    expect(stdout.output).toContain('❌ fixtures/invalid-map.twillio.suma');
+    expect(stdout.output).toContain('⚠️ fixtures/valid-map.provider.suma');
     expect(stdout.output).toContain('⚠️ ./fixtures/strict.unknown');
-    expect(stdout.output).toContain('❌ ./fixtures/testMap.suma');
-    expect(stdout.output).toContain('🆗 ./fixtures/testMapValid.suma');
-    expect(stdout.output).toContain('Detected 13 problems');
+    expect(stdout.output).toContain('Detected 10 problems');
   });
 
   it('does not show warnings when linting with flag --quiet', async () => {
-    await Lint.run([
-      '-v',
-      '-q',
-      fixture.strictProfile,
-      fixture.validMap,
-      './fixtures/strict.unknown',
-      './fixtures/some.unknown',
-    ]);
+    await expect(
+      Lint.run([
+        '-v',
+        '-q',
+        fixture.strictProfile,
+        fixture.validMap,
+        './fixtures/strict.unknown',
+        './fixtures/some.unknown',
+      ])
+    ).rejects.toHaveProperty(['oclif', 'exit'], 2);
 
     expect(stdout.output).not.toContain('⚠️ ./fixtures/strict.unknown');
     expect(stdout.output).not.toContain('⚠️ ./fixtures/some.unknown');
-    expect(stdout.output).toContain('🆗 ./fixtures/testMapValid.suma');
     expect(stdout.output).toContain('Detected 0 problems');
 
     await expect(
@@ -223,8 +201,8 @@ describe('lint CLI command', () => {
     ).rejects.toHaveProperty(['oclif', 'exit'], 1);
 
     expect(stdout.output).not.toContain('⚠️ ./fixtures/strict.unknown');
-    expect(stdout.output).toContain('❌ ./fixtures/testMap.suma');
-    expect(stdout.output).toContain('🆗 ./fixtures/testMapValid.suma');
-    expect(stdout.output).toContain('Detected 8 problems');
+    expect(stdout.output).not.toContain('⚠️ fixtures/valid-map.provider.suma');
+    expect(stdout.output).toContain('❌ fixtures/invalid-map.twillio.suma');
+    expect(stdout.output).toContain('Detected 5 problems');
   });
 });
