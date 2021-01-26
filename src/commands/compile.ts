@@ -6,8 +6,8 @@ import {
   DOCUMENT_PARSE_FUNCTION,
   inferDocumentTypeWithFlag,
 } from '../common/document';
-import { userError } from '../common/error';
 import { DocumentType } from '../common/document.interfaces';
+import { userError } from '../common/error';
 import { DocumentTypeFlag, documentTypeFlag } from '../common/flags';
 import { isDirectoryQuiet, OutputStream, readFile } from '../common/io';
 

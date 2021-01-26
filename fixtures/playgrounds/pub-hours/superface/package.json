@@ -1,8 +1,8 @@
 {
-	"name": "valid",
+	"name": "playground",
 	"private": true,
 	"dependencies": {
-		"@superfaceai/sdk": "^0.0.3"
+		"@superfaceai/sdk": "^0.0.7"
 	},
 	"devDependencies": {
 		"typescript": "^4"

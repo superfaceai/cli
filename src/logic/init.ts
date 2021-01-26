@@ -95,7 +95,7 @@ export async function initSuperface(
 
     if (created) {
       options?.logCb?.(
-        formatShellLog("echo '<gitignore template>' >", [gitignorePath])
+        formatShellLog("echo '<.gitignore template>' >", [gitignorePath])
       );
     }
   }

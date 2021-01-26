@@ -253,7 +253,7 @@ clean: the \`node_modules\` folder and compilation artifacts are cleaned.`;
       providers = response.providers;
     } else {
       for (const provider of providers) {
-        if (!playground.providers.has(provider)) {
+        if (!playground.providers.includes(provider)) {
           throw userError(
             `Provider "${provider}" not found for playground "${playground.path}"`,
             21
