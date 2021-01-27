@@ -33,8 +33,13 @@ export default class Init extends Command {
       this.logCallback = undefined;
     }
 
-    await initSuperface(args.path ?? './', {}, {}, {
-      logCb: this.logCallback,
-    });
+    await initSuperface(
+      args.path ?? './',
+      {},
+      {},
+      {
+        logCb: this.logCallback,
+      }
+    );
   }
 }

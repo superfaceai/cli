@@ -9,14 +9,17 @@ describe('Init CLI command', () => {
   const testInitFolder = 'test';
   const testInitFolderPath = joinPath(baseFixture, testInitFolder);
 
+  beforeEach(() => {
+    stdout.start();
+  });
+
   afterEach(async () => {
+    stdout.stop();
     await rimraf(testInitFolderPath);
   });
 
   it('initialize base folder', async () => {
-    stdout.start();
     await expect(Init.run([testInitFolderPath])).resolves.toBeUndefined();
-    stdout.stop();
 
     const expectedFiles = [
       '.npmrc',
@@ -56,12 +59,10 @@ $ mkdir 'fixtures/playgrounds/test/superface/build'
         )
       )
     ).resolves.toBeDefined();
-  });
+  }, 20000);
 
   it('initialize base folder with quiet mode', async () => {
-    stdout.start();
     await expect(Init.run([testInitFolderPath, '-q'])).resolves.toBeUndefined();
-    stdout.stop();
 
     const expectedFiles = [
       '.npmrc',
@@ -91,5 +92,5 @@ $ mkdir 'fixtures/playgrounds/test/superface/build'
         )
       )
     ).resolves.toBeDefined();
-  });
+  }, 20000);
 });
