@@ -5,43 +5,6 @@ import { stdout } from 'stdout-stderr';
 import Play from '../commands/play';
 import { access, mkdir, OutputStream, rimraf } from '../common/io';
 
-// Declare custom matcher for sake of Typescript
-declare global {
-  // eslint-disable-next-line @typescript-eslint/no-namespace
-  namespace jest {
-    interface Matchers<R> {
-      toIncludeStrings(...strings: string[]): R;
-    }
-  }
-}
-expect.extend({
-  toIncludeStrings(base: string, ...strings: string[]) {
-    let pass = true;
-    let message = 'Expected to contain all given strings';
-
-    for (const string of strings) {
-      if (!base.includes(string)) {
-        pass = false;
-        message =
-          this.utils.matcherHint('toIncludeStrings', undefined, undefined, {
-            isNot: this.isNot,
-            promise: this.promise,
-          }) +
-          '\n' +
-          `Expected: ${this.utils.printExpected(string)}\n` +
-          `Received: ${this.utils.printReceived(base)}\n`;
-
-        break;
-      }
-    }
-
-    return {
-      pass,
-      message: () => message,
-    };
-  },
-});
-
 describe('Play CLI command', () => {
   const baseFixtures = realpathSync(joinPath('fixtures', 'playgrounds'));
 
@@ -86,7 +49,7 @@ describe('Play CLI command', () => {
     );
   });
 
-  it.skip('creates a valid playground', async () => {
+  it('creates a valid playground', async () => {
     stdout.start();
     await expect(
       Play.run([
@@ -113,15 +76,29 @@ describe('Play CLI command', () => {
       Promise.all(expectedFiles.map(f => access(f)))
     ).resolves.toBeDefined();
 
-    expect(stdout.output).toIncludeStrings(
-      `$ mkdir '${createdPlayground.path}'`,
-      `$ echo '<.npmrc template>' > '${createdPlayground.path}/.npmrc'`,
-      `$ echo '<super.json template>' > '${expectedFiles[3]}'`,
-      `$ echo '<.gitignore template>' > '${expectedFiles[4]}'`,
-      `$ echo '<package.json template>' > '${expectedFiles[5]}'`,
-      `$ echo '<play.ts template>' > '${expectedFiles[6]}'`,
-      `-> Created ${expectedFiles[0]} (name = "create_test", version = "1.0.0")`,
-      `-> Created ${expectedFiles[1]} (profile = "create_test@1.0", provider = "foo")`,
+    expect(stdout.output).toContain(`$ mkdir '${createdPlayground.path}'`);
+    expect(stdout.output).toContain(
+      `$ echo '<.npmrc template>' > '${createdPlayground.path}/.npmrc'`
+    );
+    expect(stdout.output).toContain(
+      `$ echo '<super.json template>' > '${expectedFiles[3]}'`
+    );
+    expect(stdout.output).toContain(
+      `$ echo '<.gitignore template>' > '${expectedFiles[4]}'`
+    );
+    expect(stdout.output).toContain(
+      `$ echo '<package.json template>' > '${expectedFiles[5]}'`
+    );
+    expect(stdout.output).toContain(
+      `$ echo '<play.ts template>' > '${expectedFiles[6]}'`
+    );
+    expect(stdout.output).toContain(
+      `-> Created ${expectedFiles[0]} (name = "create_test", version = "1.0.0")`
+    );
+    expect(stdout.output).toContain(
+      `-> Created ${expectedFiles[1]} (profile = "create_test@1.0", provider = "foo")`
+    );
+    expect(stdout.output).toContain(
       `-> Created ${expectedFiles[2]} (profile = "create_test@1.0", provider = "bar")`
     );
   });
@@ -164,6 +141,7 @@ describe('Play CLI command', () => {
     ).resolves.toBeDefined();
   }, 30000);
 
+  // TODO: Currently skipping this in CI because of access permission issues
   it.skip('creates, compiles and executes a playground on a real api', async () => {
     stdout.start();
     await expect(
@@ -172,8 +150,10 @@ describe('Play CLI command', () => {
     await Play.run(['execute', createdPlayground.path, '--providers', 'foo']);
     stdout.stop();
 
-    expect(stdout.output).toIncludeStrings(
-      `${createdPlayground.usecaseName}/foo result: Ok {`,
+    expect(stdout.output).toContain(
+      `${createdPlayground.usecaseName}/foo result: Ok {`
+    );
+    expect(stdout.output).toContain(
       `{ name: 'Pivni bar Diego', openingHours: 'Mo-Su,PH 16:30 - 23:45' }`
     );
   }, 30000);
@@ -222,6 +202,8 @@ describe('Play CLI command', () => {
     await expect(
       Promise.all(expectedFiles.map(f => access(f)))
     ).resolves.toBeDefined();
-    expect(stdout.output).toIncludeStrings('$ rimraf', ...deletedFiles);
+
+    expect(stdout.output).toContain('$ rimraf');
+    deletedFiles.forEach(del => expect(stdout.output).toContain(del));
   });
 });

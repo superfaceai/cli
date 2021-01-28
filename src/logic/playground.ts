@@ -7,9 +7,7 @@ import {
   composeUsecaseName,
   DEFAULT_PROFILE_VERSION,
   DEFAULT_PROFILE_VERSION_STR,
-  MAP_EXTENSIONS,
-  PLAY_EXTENSIONS,
-  PROFILE_EXTENSIONS,
+  EXTENSIONS,
 } from '../common/document';
 import {
   assertIsExecError,
@@ -96,11 +94,11 @@ function playgroundBuildPaths(
     buildPath = joinPath(buildPath, id.scope);
   }
 
-  const profile = joinPath(buildPath, `${id.name}${PROFILE_EXTENSIONS[1]}`);
+  const profile = joinPath(buildPath, `${id.name}${EXTENSIONS.profile.build}`);
   const maps = id.providers.map(provider =>
-    joinPath(buildPath, `${id.name}.${provider}${MAP_EXTENSIONS[1]}`)
+    joinPath(buildPath, `${id.name}.${provider}${EXTENSIONS.map.build}`)
   );
-  const script = joinPath(buildPath, `${id.name}${PLAY_EXTENSIONS[0]}`);
+  const script = joinPath(buildPath, `${id.name}${EXTENSIONS.play.build}`);
   const packageLock = joinPath(superfacePath, 'package-lock.json');
   const nodeModules = joinPath(superfacePath, 'node_modules');
 
@@ -132,12 +130,12 @@ function playgroundFilePaths(
 
   const superfacePath = joinPath(appPath, SUPERFACE_DIR);
 
-  const profile = joinPath(base, `${id.name}${PROFILE_EXTENSIONS[0]}`);
+  const profile = joinPath(base, `${id.name}${EXTENSIONS.profile.source}`);
   const maps = id.providers.map(provider =>
-    joinPath(base, `${id.name}.${provider}${MAP_EXTENSIONS[0]}`)
+    joinPath(base, `${id.name}.${provider}${EXTENSIONS.map.source}`)
   );
 
-  const script = joinPath(playPath, `${id.name}${PLAY_EXTENSIONS[0]}`);
+  const script = joinPath(playPath, `${id.name}${EXTENSIONS.play.source}`);
   const packageJson = joinPath(superfacePath, 'package.json');
 
   return {
@@ -229,10 +227,13 @@ async function detectPlayMaps(
       e =>
         e.isFile() &&
         e.name.startsWith(nameStart) &&
-        e.name.endsWith(MAP_EXTENSIONS[0])
+        e.name.endsWith(EXTENSIONS.map.source)
     )
     .map(e =>
-      e.name.slice(nameStart.length, e.name.length - MAP_EXTENSIONS[0].length)
+      e.name.slice(
+        nameStart.length,
+        e.name.length - EXTENSIONS.profile.source.length
+      )
     );
 
   return providers;
@@ -248,7 +249,7 @@ async function detectPlayProfile(
     name: string;
   }
 ): Promise<boolean> {
-  const profileFile = id.name + PROFILE_EXTENSIONS[0];
+  const profileFile = id.name + EXTENSIONS.profile.source;
 
   return isFileQuiet(
     id.scope !== undefined

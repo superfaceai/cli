@@ -9,19 +9,31 @@ export const DEFAULT_PROFILE_VERSION = {
   patch: 0,
 };
 export const DEFAULT_PROFILE_VERSION_STR = '1.0.0';
-export const MAP_EXTENSIONS = ['.suma', '.suma.ast.json'];
-export const PROFILE_EXTENSIONS = ['.supr', '.supr.ast.json'];
-export const PLAY_EXTENSIONS = ['.play.js'];
+
+export const EXTENSIONS = {
+  profile: {
+    source: '.supr',
+    build: '.supr.ast.json',
+  },
+  map: {
+    source: '.suma',
+    build: '.suma.ast.json',
+  },
+  play: {
+    source: '.play.ts',
+    build: '.play.js',
+  },
+};
 
 /**
  * Detects whether the file on path is Superface Map or Superface Profile based on the extension.
  */
 export function inferDocumentType(path: string): DocumentType {
   const normalizedPath = path.toLowerCase().trim();
-  if (MAP_EXTENSIONS.some(ex => normalizedPath.endsWith(ex))) {
+  if (normalizedPath.endsWith(EXTENSIONS.map.source)) {
     return DocumentType.MAP;
   }
-  if (PROFILE_EXTENSIONS.some(ex => normalizedPath.endsWith(ex))) {
+  if (normalizedPath.endsWith(EXTENSIONS.profile.source)) {
     return DocumentType.PROFILE;
   }
 

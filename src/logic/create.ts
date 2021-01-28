@@ -1,11 +1,7 @@
 import { DocumentVersion } from '@superfaceai/parser';
 import { join as joinPath } from 'path';
 
-import {
-  composeVersion,
-  MAP_EXTENSIONS,
-  PROFILE_EXTENSIONS,
-} from '../common/document';
+import { composeVersion, EXTENSIONS } from '../common/document';
 import { OutputStream } from '../common/io';
 import * as mapTemplate from '../templates/map';
 import * as profileTemplate from '../templates/profile';
@@ -31,7 +27,7 @@ export async function createProfile(
   }
 ): Promise<void> {
   let documentName = id.name;
-  let filePath = `${documentName}${PROFILE_EXTENSIONS[0]}`;
+  let filePath = `${documentName}${EXTENSIONS.profile.source}`;
   const version = composeVersion(id.version);
 
   if (id.scope !== undefined) {
@@ -74,7 +70,7 @@ export async function createMap(
 ): Promise<void> {
   let documentName = id.name;
   const variantName = id.variant ? `.${id.variant}` : '';
-  let filePath = `${documentName}.${id.provider}${variantName}${MAP_EXTENSIONS[0]}`;
+  let filePath = `${documentName}.${id.provider}${variantName}${EXTENSIONS.map.source}`;
   const version = composeVersion(id.version, true);
 
   if (id.scope !== undefined) {
