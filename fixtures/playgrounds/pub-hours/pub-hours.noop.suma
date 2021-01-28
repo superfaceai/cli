@@ -1,0 +1,6 @@
+profile = "example/pub-hours@1"
+provider = "noop"
+
+map PubOpeningHours {
+	return map result []
+}
