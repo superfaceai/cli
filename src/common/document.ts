@@ -1,15 +1,14 @@
-import {
-  parseMap,
-  ParseMapIdResult,
-  parseProfile,
-  ParseProfileIdResult,
-} from '@superfaceai/parser';
+import { ProfileDocumentNode } from '@superfaceai/ast';
+import { parseMap, parseProfile, Source } from '@superfaceai/parser';
 
 import { DocumentTypeFlag } from './flags';
+import { readFile } from './io';
 
 export const DEFAULT_PROFILE_VERSION = '1.0.0';
 export const MAP_EXTENSIONS = ['.suma'];
 export const PROFILE_EXTENSIONS = ['.supr'];
+export const SUPER_JSON_EXTENSIONS = ['.super.json'];
+export const AST_EXTENSIONS = ['.ast.json'];
 
 export enum DocumentType {
   UNKNOWN = 'unknown',
@@ -110,31 +109,6 @@ export interface ProviderStructure {
   }[];
 }
 
-export function isMapParsed(
-  result: ParseProfileIdResult | ParseMapIdResult
-): result is ParseMapIdResult {
-  return 'provider' in result;
-}
-
-export function composeStructure(
-  result: Exclude<
-    ParseProfileIdResult | ParseMapIdResult,
-    { kind: 'error'; message: string }
-  >
-): DocumentStructure {
-  return {
-    name: result.name,
-    scope: result.scope,
-    provider: isMapParsed(result) ? result.provider : undefined,
-    variant: isMapParsed(result) ? result.variant : undefined,
-    version: result.version ?? {
-      major: 1,
-      minor: 0,
-      patch: 0,
-    },
-  };
-}
-
 export function composeVersion(version: VersionStructure): string {
   return (
     `${version.major}.${version.minor}.${version.patch}` +
@@ -148,3 +122,13 @@ export const composeUsecaseName = (documentId: string): string =>
     .filter(w => w.trim() !== '')
     .map(w => w[0].toUpperCase() + w.slice(1))
     .join('');
+
+export async function getProfileDocument(
+  path: string
+): Promise<ProfileDocumentNode> {
+  const parseFunction = DOCUMENT_PARSE_FUNCTION[DocumentType.PROFILE];
+  const content = (await readFile(path)).toString();
+  const source = new Source(content, path);
+
+  return parseFunction(source);
+}

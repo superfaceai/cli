@@ -1,5 +1,5 @@
 import { Stats } from 'fs';
-import nodePath from 'path';
+import { basename, join as joinPath } from 'path';
 
 import Compile from '../commands/compile';
 import {
@@ -49,7 +49,7 @@ export async function initializePlayground(
   providers: string[],
   logCb?: LogCallback
 ): Promise<void> {
-  const name = nodePath.basename(playgroundPath);
+  const name = basename(playgroundPath);
   if (!validateDocumentName(name)) {
     throw userError('The playground name must be a valid slang identifier', 11);
   }
@@ -57,7 +57,7 @@ export async function initializePlayground(
   logCb?.(`$ mkdir ${playgroundPath}`);
   await mkdir(playgroundPath, { recursive: true, mode: 0o744 });
 
-  const packageJsonPath = nodePath.join(playgroundPath, 'package.json');
+  const packageJsonPath = joinPath(playgroundPath, 'package.json');
   logCb?.(`$ echo '<package template>' > ${packageJsonPath}`);
   const packageJsonPromise = OutputStream.writeOnce(
     packageJsonPath,
@@ -65,7 +65,7 @@ export async function initializePlayground(
   );
 
   const gluesPromises = providers.map(provider => {
-    const path = nodePath.join(playgroundPath, `${name}.${provider}.ts`);
+    const path = joinPath(playgroundPath, `${name}.${provider}.ts`);
     logCb?.(`$ echo '<glue template>' > ${path}`);
 
     return OutputStream.writeOnce(
@@ -74,7 +74,7 @@ export async function initializePlayground(
     );
   });
 
-  const profilePath = nodePath.join(playgroundPath, `${name}.supr`);
+  const profilePath = joinPath(playgroundPath, `${name}.supr`);
   logCb?.(`$ echo '<profile template>' > ${profilePath}`);
   const profilePromise = OutputStream.writeOnce(
     profilePath,
@@ -83,7 +83,7 @@ export async function initializePlayground(
   );
 
   const mapsPromises = providers.map(provider => {
-    const path = nodePath.join(playgroundPath, `${name}.${provider}.suma`);
+    const path = joinPath(playgroundPath, `${name}.${provider}.suma`);
     logCb?.(`$ echo '<map template>' > ${path}`);
 
     return OutputStream.writeOnce(
@@ -93,14 +93,14 @@ export async function initializePlayground(
     );
   });
 
-  const npmrcPath = nodePath.join(playgroundPath, '.npmrc');
+  const npmrcPath = joinPath(playgroundPath, '.npmrc');
   logCb?.(`$ echo '<npmrc template>' > ${npmrcPath}`);
   const npmrcPromise = OutputStream.writeOnce(
     npmrcPath,
     playgroundTemplate.npmRc()
   );
 
-  const gitignorePath = nodePath.join(playgroundPath, '.gitignore');
+  const gitignorePath = joinPath(playgroundPath, '.gitignore');
   logCb?.(`$ echo '<gitignore template>' > ${gitignorePath}`);
   const gitignorePromise = OutputStream.writeOnce(
     gitignorePath,
@@ -126,12 +126,12 @@ export async function executePlayground(
     logCb?: LogCallback;
   }
 ): Promise<void> {
-  const profilePath = nodePath.join(playground.path, `${playground.name}.supr`);
+  const profilePath = joinPath(playground.path, `${playground.name}.supr`);
   const mapPaths = providers.map(provider =>
-    nodePath.join(playground.path, `${playground.name}.${provider}.suma`)
+    joinPath(playground.path, `${playground.name}.${provider}.suma`)
   );
   const gluePaths = providers.map(provider =>
-    nodePath.join(playground.path, `${playground.name}.${provider}.ts`)
+    joinPath(playground.path, `${playground.name}.${provider}.ts`)
   );
 
   const buildPaths = playgroundBuildPaths(playground, providers);
@@ -180,7 +180,7 @@ export async function executePlayground(
     );
     try {
       await execFile(
-        nodePath.join('node_modules', '.bin', 'tsc'),
+        joinPath('node_modules', '.bin', 'tsc'),
         [
           '--strict',
           '--target',
@@ -361,22 +361,22 @@ function playgroundBuildPaths(
   glues: string[];
   npm: string[];
 } {
-  const buildPath = nodePath.join(playground.path, BUILD_DIR);
+  const buildPath = joinPath(playground.path, BUILD_DIR);
   const maps = providers.map(provider =>
-    nodePath.join(buildPath, `${playground.name}.${provider}.suma.ast.json`)
+    joinPath(buildPath, `${playground.name}.${provider}.suma.ast.json`)
   );
   const glues = providers.map(provider =>
-    nodePath.join(buildPath, `${playground.name}.${provider}.js`)
+    joinPath(buildPath, `${playground.name}.${provider}.js`)
   );
 
   return {
     base: buildPath,
-    profile: nodePath.join(buildPath, `${playground.name}.supr.ast.json`),
+    profile: joinPath(buildPath, `${playground.name}.supr.ast.json`),
     glues,
     maps,
     npm: [
-      nodePath.join(playground.path, 'package-lock.json'),
-      nodePath.join(playground.path, 'node_modules'),
+      joinPath(playground.path, 'package-lock.json'),
+      joinPath(playground.path, 'node_modules'),
     ],
   };
 }

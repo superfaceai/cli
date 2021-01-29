@@ -1,8 +1,7 @@
 import { Command, flags } from '@oclif/command';
-import { parseMapId, parseProfileId } from '@superfaceai/parser';
+import { parseDocumentId } from '@superfaceai/parser';
 
 import {
-  composeStructure,
   composeUsecaseName,
   composeVersion,
   CreateMode,
@@ -125,17 +124,18 @@ export default class Create extends Command {
     const providerName = flags.provider ? `.${flags.provider}` : '';
     const variant = flags.variant ? `.${flags.variant}` : '';
     const documentId = `${documentName}${providerName}${variant}@${flags.version}`;
-    const documentResult =
-      createMode === CreateMode.PROFILE
-        ? parseProfileId(documentId)
-        : parseMapId(documentId);
+    const documentResult = parseDocumentId(documentId);
 
     if (documentResult.kind === 'error') {
       throw userError(documentResult.message, 1);
     }
 
     // compose document structure from the result
-    const documentStructure = composeStructure(documentResult);
+    const documentStructure: DocumentStructure = {
+      name: 'sendsms',
+      provider: 'twillio',
+      version: { major: 1, minor: 1, patch: 0 },
+    };
     const { name, scope, provider } = documentStructure;
 
     // if there is no specified usecase - create usecase with same name as profile name
