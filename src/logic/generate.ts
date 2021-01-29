@@ -148,11 +148,18 @@ export function createClient(
   return variableStatement(profileName + 'Client', initializer);
 }
 
+function pascalize(input: string): string {
+  return capitalize(input).replace(/-(\w)/g, (_, repl) => {
+    return capitalize(repl);
+  });
+}
+
 export function generateInterfaces(
   profileAST: ProfileDocumentNode,
-  profileName: string,
+  profileNam: string,
   untypedType: 'any' | 'unknown'
 ): string {
+  const profileName = pascalize(profileNam);
   const output = getProfileOutput(profileAST);
 
   const imports = [
