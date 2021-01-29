@@ -1,0 +1,19 @@
+name = 'my-profile'
+version = '1.0.1'
+
+usecase Test {
+    input {
+        f1 boolean, 
+        f2 string
+    }
+
+    result {
+        error! Error,
+        message! string
+    }!
+}
+
+model Error enum {
+    NOT_FOUND,
+    INTERNAL
+}

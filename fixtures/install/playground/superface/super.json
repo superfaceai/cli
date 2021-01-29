@@ -1,0 +1,13 @@
+{
+  "profiles": {
+    "my-scope/my-profile": {
+      "file": "file:./grid/my-scope/my-profile.supr",
+      "version": "1.0.1"
+    },
+    "my-profile": {
+      "file": "file:./grid/my-profile.supr",
+      "version": "1.0.1"
+    }
+  },
+  "providers": {}
+}

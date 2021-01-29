@@ -1,0 +1,23 @@
+name = "playground"
+version = "1.0.0"
+
+"""
+List pub opening hours
+"""
+usecase playground {
+	input {
+    "City where to look for pubs"
+    city! string!
+    "Optional regex to match the name against"
+		nameRegex string!
+	}
+
+	result [{ name string, openingHours string }]
+
+	error playgroundError
+}
+
+model playgroundError enum {
+  "The API timed out because the request was too borad"
+  TIMEOUT
+}
