@@ -2,7 +2,7 @@ import { Command, flags } from '@oclif/command';
 
 import { developerError, userError } from '../common/error';
 import { DocumentTypeFlag, documentTypeFlag } from '../common/flags';
-import { OutputStream } from '../common/io';
+import { ListWriter, OutputStream } from '../common/io';
 import { ReportFormat } from '../common/report.interfaces';
 import {
   formatHuman,
@@ -87,11 +87,10 @@ export default class Lint extends Command {
       case 'short':
         {
           totals = await Lint.processFiles(
-            outputStream,
+            new ListWriter(outputStream, '\n'),
             argv,
             flags.documentType,
             flags.validate,
-            '\n',
             report =>
               formatHuman(
                 report,
@@ -113,11 +112,10 @@ export default class Lint extends Command {
         {
           await outputStream.write('{"reports":[');
           totals = await Lint.processFiles(
-            outputStream,
+            new ListWriter(outputStream, ','),
             argv,
             flags.documentType,
             flags.validate,
-            ',',
             report => formatJson(report)
           );
           await outputStream.write(
@@ -137,30 +135,19 @@ export default class Lint extends Command {
   }
 
   static async processFiles(
-    outputStream: OutputStream,
+    writer: ListWriter,
     files: string[],
     documentTypeFlag: DocumentTypeFlag,
     validateFlag: boolean,
-    outputGlue: string,
     fn: (report: ReportFormat) => string
   ): Promise<[errors: number, warnings: number]> {
-    const outputCounter = files.length;
-    const counts = validateFlag
-      ? await lintMapsToProfile(
-          files,
-          outputStream,
-          outputCounter,
-          outputGlue,
-          fn
-        )
-      : await lintFiles(
-          files,
-          outputStream,
-          documentTypeFlag,
-          outputCounter,
-          outputGlue,
-          fn
-        );
+    let counts: [number, number][] = [];
+
+    if (validateFlag) {
+      counts = await lintMapsToProfile(files, writer, fn);
+    } else {
+      counts = await lintFiles(files, writer, documentTypeFlag, fn);
+    }
 
     return counts.reduce((acc, curr) => [acc[0] + curr[0], acc[1] + curr[1]]);
   }

@@ -156,7 +156,9 @@ describe('lint CLI command', () => {
     expect(stdout.output).toContain('⚠️ ./fixtures/some.unknown');
     expect(stdout.output).toContain('⚠️ fixtures/valid-map.provider.suma');
     expect(stdout.output).toContain('Detected 6 problems');
+  });
 
+  it('lints multiple maps with unknown and invalid files to profile', async () => {
     await expect(
       Lint.run([
         '-v',

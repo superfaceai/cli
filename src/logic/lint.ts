@@ -22,7 +22,7 @@ import {
 } from '../common/document';
 import { userError } from '../common/error';
 import { DocumentTypeFlag } from '../common/flags';
-import { OutputStream, readFile } from '../common/io';
+import { ListWriter, readFile } from '../common/io';
 import {
   FileReport,
   ProfileMapReport,
@@ -34,10 +34,8 @@ type MapDocument = ReturnType<typeof parseMap>;
 
 export async function lintFiles(
   files: string[],
-  outputStream: OutputStream,
+  writer: ListWriter,
   documentTypeFlag: DocumentTypeFlag,
-  outputCounter: number,
-  outputGlue: string,
   fn: (report: ReportFormat) => string
 ): Promise<[number, number][]> {
   return await Promise.all(
@@ -45,13 +43,7 @@ export async function lintFiles(
       async (file): Promise<[number, number]> => {
         const report = await lintFile(file, documentTypeFlag);
 
-        let output = fn(report);
-        if (outputCounter > 1) {
-          output += outputGlue;
-        }
-        outputCounter -= 1;
-
-        await outputStream.write(output);
+        await writer.writeElement(fn(report));
 
         return [report.errors.length, report.warnings.length];
       }
@@ -92,10 +84,14 @@ export function isValidHeader(
   profile: ProfileOutput,
   map: MapDocument,
   mapPath: string
-): boolean {
+): {
+  result: boolean;
+  fallback: boolean;
+} {
   const profileHeader = profile.header;
   const mapHeader = map.header;
   let result = true;
+  let fallback = false;
 
   if (
     profileHeader.scope !== mapHeader.profile.scope ||
@@ -125,18 +121,19 @@ export function isValidHeader(
       (profileHeader.version.major === version.major &&
         profileHeader.version.minor === version.minor)
     ) {
-      result = true;
+      fallback = true;
     }
   }
 
-  return result;
+  return {
+    result,
+    fallback,
+  };
 }
 
 export async function lintMapsToProfile(
   files: string[],
-  outputStream: OutputStream,
-  outputCounter: number,
-  outputGlue: string,
+  writer: ListWriter,
   fn: (report: ReportFormat) => string
 ): Promise<[number, number][]> {
   const counts: [number, number][] = [];
@@ -145,10 +142,10 @@ export async function lintMapsToProfile(
   const unknown = files.filter(isUnknownFile);
 
   if (profiles.length === 0) {
-    throw userError('Cannot validate without profile', -1);
+    throw userError('Cannot validate without profile', 1);
   }
   if (maps.length === 0) {
-    throw userError('Cannot validate without map', -1);
+    throw userError('Cannot validate without map', 1);
   }
 
   if (unknown.length > 0) {
@@ -160,12 +157,7 @@ export async function lintMapsToProfile(
         warnings: ['Could not infer document type'],
       };
 
-      let output = fn(report);
-      if (output !== '') {
-        output += outputGlue;
-      }
-
-      await outputStream.write(output);
+      await writer.writeElement(fn(report));
     }
 
     counts.push([0, unknown.length]);
@@ -186,8 +178,13 @@ export async function lintMapsToProfile(
 
     for (const mapPath of maps) {
       const map = await getMapDocument(mapPath);
+      const {result, fallback } =isValidHeader(profileOutput, map, mapPath)
+      
+      if (fallback) {
+        writer.writeElement(`⚠️ map ${mapPath} assumed to belong to profile ${profile.path} based on file name`)
+      }
 
-      if (isValidHeader(profileOutput, map, mapPath)) {
+      if (result || fallback) {
         const result = validateMap(profileOutput, map);
 
         const report: ProfileMapReport = result.pass
@@ -206,13 +203,7 @@ export async function lintMapsToProfile(
               warnings: result.warnings ?? [],
             };
 
-        let output = fn(report);
-        if (outputCounter > 1) {
-          output += outputGlue;
-        }
-        outputCounter -= 1;
-
-        await outputStream.write(output);
+        await writer.writeElement(fn(report));
 
         counts.push([
           result.pass ? 0 : result.errors.length,
@@ -245,8 +236,8 @@ export function formatHuman(
   }
 
   const profileName =
-    'profile' in report ? `➡️ Profile:\t${report.profile}` : '';
-  let buffer = `${profileName}\n${prefix} ${report.path}\n`;
+    'profile' in report ? `➡️ Profile:\t${report.profile}\n` : '';
+  let buffer = `${profileName}${prefix} ${report.path}\n`;
 
   if (prefix === REPORT_WARN && quiet) {
     return '';
@@ -275,7 +266,7 @@ export function formatHuman(
   } else {
     buffer += formatIssues(report.errors);
 
-    if (!quiet && report.warnings.length > 1) {
+    if (!quiet && report.errors.length > 1 && report.warnings.length > 1) {
       buffer += '\n';
     }
 
