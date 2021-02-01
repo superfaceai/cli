@@ -178,10 +178,12 @@ export async function lintMapsToProfile(
 
     for (const mapPath of maps) {
       const map = await getMapDocument(mapPath);
-      const {result, fallback } =isValidHeader(profileOutput, map, mapPath)
-      
+      const { result, fallback } = isValidHeader(profileOutput, map, mapPath);
+
       if (fallback) {
-        writer.writeElement(`⚠️ map ${mapPath} assumed to belong to profile ${profile.path} based on file name`)
+        await writer.writeElement(
+          `⚠️ map ${mapPath} assumed to belong to profile ${profile.path} based on file name`
+        );
       }
 
       if (result || fallback) {
