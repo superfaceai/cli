@@ -1,26 +1,39 @@
 import { DocumentVersion, parseMap, parseProfile } from '@superfaceai/parser';
 
+import { CreateMode, DocumentType } from './document.interfaces';
 import { DocumentTypeFlag } from './flags';
 
-export const DEFAULT_PROFILE_VERSION = '1.0.0';
-export const MAP_EXTENSIONS = ['.suma'];
-export const PROFILE_EXTENSIONS = ['.supr'];
+export const DEFAULT_PROFILE_VERSION = {
+  major: 1,
+  minor: 0,
+  patch: 0,
+};
+export const DEFAULT_PROFILE_VERSION_STR = '1.0.0';
 
-export enum DocumentType {
-  UNKNOWN = 'unknown',
-  MAP = 'map',
-  PROFILE = 'profile',
-}
+export const EXTENSIONS = {
+  profile: {
+    source: '.supr',
+    build: '.supr.ast.json',
+  },
+  map: {
+    source: '.suma',
+    build: '.suma.ast.json',
+  },
+  play: {
+    source: '.play.ts',
+    build: '.play.js',
+  },
+};
 
 /**
  * Detects whether the file on path is Superface Map or Superface Profile based on the extension.
  */
 export function inferDocumentType(path: string): DocumentType {
   const normalizedPath = path.toLowerCase().trim();
-  if (MAP_EXTENSIONS.some(ex => normalizedPath.endsWith(ex))) {
+  if (normalizedPath.endsWith(EXTENSIONS.map.source)) {
     return DocumentType.MAP;
   }
-  if (PROFILE_EXTENSIONS.some(ex => normalizedPath.endsWith(ex))) {
+  if (normalizedPath.endsWith(EXTENSIONS.profile.source)) {
     return DocumentType.PROFILE;
   }
 
@@ -58,43 +71,12 @@ export function validateDocumentName(name: string): boolean {
   return /^[_a-zA-Z][_a-zA-Z0-9]*$/.test(name);
 }
 
-export enum CreateMode {
-  PROFILE = 'profile',
-  MAP = 'map',
-  BOTH = 'both',
-  UNKNOWN = 'unknown',
-}
-
 export function inferCreateMode(value: string): CreateMode {
   return value === 'profile'
     ? CreateMode.PROFILE
     : value === 'map'
     ? CreateMode.MAP
     : CreateMode.UNKNOWN;
-}
-
-export interface VersionStructure {
-  major: number;
-  minor: number;
-  patch: number;
-  label?: string;
-}
-
-export interface ProviderStructure {
-  name: string;
-  deployments: {
-    id: string;
-    baseUrl: string;
-  }[];
-  security?: {
-    auth: {
-      [authType: string]: {
-        type: string;
-        scheme: string;
-      };
-    };
-    hosts: string[];
-  }[];
 }
 
 export function composeVersion(

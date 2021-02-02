@@ -3,24 +3,13 @@ export function packageJson(): string {
   "name": "playground",
   "private": true,
   "dependencies": {
-    "@superfaceai/sdk": "^0.0.6"
+    "@superfaceai/sdk": "^0.0.7"
   },
   "devDependencies": {
     "@types/node": "^14",
     "typescript": "^4"
   }
 }`;
-}
-
-export function npmRc(): string {
-  return '@superfaceai:registry=https://npm.pkg.github.com\n';
-}
-
-export function gitignore(): string {
-  return `build
-node_modules
-package-lock.json
-`;
 }
 
 export type GlueTemplateType = 'empty' | 'pubs';
@@ -62,8 +51,7 @@ async function loadAsts(
   map: MapDocumentNode
 }> {
   // if scope is not undefined, add it to the build path
-  // let buildPath = joinPath('superface', 'build');
-  let buildPath = joinPath('build');
+  let buildPath = joinPath('superface', 'build');
   if (scope !== undefined) {
     buildPath = joinPath(buildPath, scope);
   }

@@ -22,8 +22,7 @@ async function loadAsts(
   map: MapDocumentNode
 }> {
   // if scope is not undefined, add it to the build path
-  // let buildPath = joinPath('superface', 'build');
-  let buildPath = joinPath('build');
+  let buildPath = joinPath('superface', 'build');
   if (scope !== undefined) {
     buildPath = joinPath(buildPath, scope);
   }

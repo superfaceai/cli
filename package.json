@@ -19,9 +19,10 @@
     "test": "jest",
     "test:clean": "jest --clear-cache && jest",
     "lint": "eslint src/",
+    "lint:fix": "yarn lint --fix",
     "format": "prettier -c src/",
     "format:fix": "prettier --write src/",
-    "prepush": "yarn test && yarn lint && yarn format"
+    "prepush": "yarn build && yarn test && yarn lint && yarn format"
   },
   "devDependencies": {
     "@types/debug": "^4.1.5",

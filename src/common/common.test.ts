@@ -1,8 +1,5 @@
-import {
-  DocumentType,
-  inferDocumentType,
-  inferDocumentTypeWithFlag,
-} from './document';
+import { inferDocumentType, inferDocumentTypeWithFlag } from './document';
+import { DocumentType } from './document.interfaces';
 
 describe('inferDocumentType()', () => {
   it('infers map type', () => {

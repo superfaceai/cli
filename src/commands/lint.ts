@@ -3,9 +3,9 @@ import { Source, SyntaxError } from '@superfaceai/parser';
 
 import {
   DOCUMENT_PARSE_FUNCTION,
-  DocumentType,
   inferDocumentTypeWithFlag,
 } from '../common/document';
+import { DocumentType } from '../common/document.interfaces';
 import { developerError, userError } from '../common/error';
 import { DocumentTypeFlag, documentTypeFlag } from '../common/flags';
 import { OutputStream, readFile } from '../common/io';

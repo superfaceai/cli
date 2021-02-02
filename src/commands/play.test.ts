@@ -1,3 +1,4 @@
+import { realpathSync } from 'fs';
 import { join as joinPath } from 'path';
 import { stdout } from 'stdout-stderr';
 
@@ -5,69 +6,104 @@ import Play from '../commands/play';
 import { access, mkdir, OutputStream, rimraf } from '../common/io';
 
 describe('Play CLI command', () => {
-  const baseFixture = joinPath('fixtures', 'playgrounds');
-  const testPlaygroundName = 'create_test';
-  const testPlaygroundPath = joinPath(baseFixture, testPlaygroundName);
+  const baseFixtures = realpathSync(joinPath('fixtures', 'playgrounds'));
+
+  const invalidPlayground = {
+    name: 'invalid',
+    path: joinPath(baseFixtures, 'invalid'),
+  };
+  const createdPlayground = {
+    name: 'create_test',
+    usecaseName: 'CreateTest',
+    path: joinPath(baseFixtures, 'create_test'),
+  };
+  const fixedPlayground = {
+    name: 'pub-hours',
+    path: joinPath(baseFixtures, 'pub-hours'),
+  };
+
+  beforeAll(async () => {
+    // ensure the create-test playground is deleted completely
+    await rimraf(createdPlayground.path);
+  });
 
   afterEach(async () => {
-    await rimraf(testPlaygroundPath);
+    // delete the create-test playground
+    await rimraf(createdPlayground.path);
 
+    // delete the build artifacts in fixture playground
     const testFiles = [
       'package-lock.json',
       'node_modules',
       joinPath('build', 'pub-hours.supr.ast.json'),
       joinPath('build', 'pub-hours.noop.suma.ast.json'),
       joinPath('build', 'pub-hours.play.js'),
-    ];
-    await Promise.all(
-      testFiles.map(file => rimraf(joinPath(baseFixture, 'pub-hours', file)))
-    );
+    ].map(f => joinPath(fixedPlayground.path, 'superface', f));
+    await Promise.all(testFiles.map(f => rimraf(f)));
   });
 
   it('detects a valid playground', async () => {
     await expect(
-      Play.run(['clean', joinPath(baseFixture, 'pub-hours')])
+      Play.run(['clean', fixedPlayground.path])
     ).resolves.toBeUndefined();
   });
 
   it('rejects an an invalid playground', async () => {
-    await expect(
-      Play.run(['clean', joinPath(baseFixture, 'invalid')])
-    ).rejects.toThrow('The directory at playground path is not a playground');
+    await expect(Play.run(['clean', invalidPlayground.path])).rejects.toThrow(
+      'The directory at playground path is not a playground'
+    );
   });
 
   it('creates a valid playground', async () => {
     stdout.start();
     await expect(
-      Play.run(['initialize', testPlaygroundPath, '--providers', 'foo', 'bar'])
+      Play.run([
+        'initialize',
+        createdPlayground.path,
+        '--providers',
+        'foo',
+        'bar',
+      ])
     ).resolves.toBeUndefined();
     stdout.stop();
 
-    await expect(access(testPlaygroundPath)).resolves.toBeUndefined();
+    await expect(access(createdPlayground.path)).resolves.toBeUndefined();
     const expectedFiles = [
-      'package.json',
-      `${testPlaygroundName}.supr`,
-      `${testPlaygroundName}.foo.suma`,
-      `${testPlaygroundName}.bar.suma`,
-      `${testPlaygroundName}.play.ts`,
-      '.gitignore',
-    ];
-    for (const file of expectedFiles) {
-      await expect(
-        access(joinPath(testPlaygroundPath, file))
-      ).resolves.toBeUndefined();
-    }
+      `${createdPlayground.name}.supr`,
+      `${createdPlayground.name}.foo.suma`,
+      `${createdPlayground.name}.bar.suma`,
+      joinPath('superface', 'super.json'),
+      joinPath('superface', '.gitignore'),
+      joinPath('superface', 'package.json'),
+      joinPath('superface', 'play', `${createdPlayground.name}.play.ts`),
+    ].map(f => joinPath(createdPlayground.path, f));
+    await expect(
+      Promise.all(expectedFiles.map(f => access(f)))
+    ).resolves.toBeDefined();
 
-    expect(stdout.output).toBe(
-      `$ mkdir fixtures/playgrounds/${testPlaygroundName}
-$ echo '<package template>' > fixtures/playgrounds/${testPlaygroundName}/package.json
-$ echo '<script template>' > fixtures/playgrounds/${testPlaygroundName}/${testPlaygroundName}.play.ts
-$ echo '<profile template>' > fixtures/playgrounds/${testPlaygroundName}/${testPlaygroundName}.supr
-$ echo '<map template>' > fixtures/playgrounds/${testPlaygroundName}/${testPlaygroundName}.foo.suma
-$ echo '<map template>' > fixtures/playgrounds/${testPlaygroundName}/${testPlaygroundName}.bar.suma
-$ echo '<npmrc template>' > fixtures/playgrounds/${testPlaygroundName}/.npmrc
-$ echo '<gitignore template>' > fixtures/playgrounds/${testPlaygroundName}/.gitignore
-`
+    expect(stdout.output).toContain(
+      `$ echo '<.npmrc template>' > '${createdPlayground.path}/.npmrc'`
+    );
+    expect(stdout.output).toContain(
+      `$ echo '<super.json template>' > '${expectedFiles[3]}'`
+    );
+    expect(stdout.output).toContain(
+      `$ echo '<.gitignore template>' > '${expectedFiles[4]}'`
+    );
+    expect(stdout.output).toContain(
+      `$ echo '<package.json template>' > '${expectedFiles[5]}'`
+    );
+    expect(stdout.output).toContain(
+      `$ echo '<play.ts template>' > '${expectedFiles[6]}'`
+    );
+    expect(stdout.output).toContain(
+      `-> Created ${expectedFiles[0]} (name = "create_test", version = "1.0.0")`
+    );
+    expect(stdout.output).toContain(
+      `-> Created ${expectedFiles[1]} (profile = "create_test@1.0", provider = "foo")`
+    );
+    expect(stdout.output).toContain(
+      `-> Created ${expectedFiles[2]} (profile = "create_test@1.0", provider = "bar")`
     );
   });
 
@@ -75,7 +111,7 @@ $ echo '<gitignore template>' > fixtures/playgrounds/${testPlaygroundName}/.giti
     stdout.start();
     await Play.run([
       'initialize',
-      testPlaygroundPath,
+      createdPlayground.path,
       '--providers',
       'foo',
       'bar',
@@ -89,45 +125,40 @@ $ echo '<gitignore template>' > fixtures/playgrounds/${testPlaygroundName}/.giti
   // TODO: Currently skipping this in CI because of access permission issues
   it.skip('compiles playground and executes it', async () => {
     stdout.start();
-    await Play.run([
-      'execute',
-      joinPath(baseFixture, 'pub-hours'),
-      '--providers',
-      'noop',
-    ]);
+    await Play.run(['execute', fixedPlayground.path, '--providers', 'noop']);
     stdout.stop();
 
     expect(stdout.output).toMatch(
       /PubOpeningHours\/noop result: Ok { value: \[\] }\s*$/
     );
 
+    // check build artifacts
     const expectedFiles = [
       'package-lock.json',
       'node_modules',
       joinPath('build', 'pub-hours.supr.ast.json'),
       joinPath('build', 'pub-hours.noop.suma.ast.json'),
       joinPath('build', 'pub-hours.play.js'),
-    ];
+    ].map(f => joinPath(fixedPlayground.path, 'superface', f));
     await expect(
-      Promise.all(
-        expectedFiles.map(file =>
-          access(joinPath(baseFixture, 'pub-hours', file))
-        )
-      )
+      Promise.all(expectedFiles.map(f => access(f)))
     ).resolves.toBeDefined();
   }, 30000);
 
+  // TODO: Currently skipping this in CI because of access permission issues
   it.skip('creates, compiles and executes a playground on a real api', async () => {
     stdout.start();
     await expect(
-      Play.run(['initialize', testPlaygroundPath, '--providers', 'foo'])
+      Play.run(['initialize', createdPlayground.path, '--providers', 'foo'])
     ).resolves.toBeUndefined();
-    await Play.run(['execute', testPlaygroundPath, '--providers', 'foo']);
+    await Play.run(['execute', createdPlayground.path, '--providers', 'foo']);
     stdout.stop();
 
-    expect(stdout.output).toMatch(/create_test\/foo result: Ok {/);
-    expect(stdout.output).toMatch(
-      /{ name: 'Pivni bar Diego', openingHours: 'Mo-Su,PH 16:30 - 23:45' }/
+    expect(stdout.output).toContain(
+      `${createdPlayground.usecaseName}/foo result: Ok {`
+    );
+    expect(stdout.output).toContain(
+      `{ name: 'Pivni bar Diego', openingHours: 'Mo-Su,PH 16:30 - 23:45' }`
     );
   }, 30000);
 
@@ -135,56 +166,48 @@ $ echo '<gitignore template>' > fixtures/playgrounds/${testPlaygroundName}/.giti
     const deletedFiles = [
       'package-lock.json',
       'node_modules',
-      joinPath('build', `${testPlaygroundName}.supr.ast.json`),
-      joinPath('build', `${testPlaygroundName}.foo.suma.ast.json`),
-      joinPath('build', `${testPlaygroundName}.bar.suma.ast.json`),
-      joinPath('build', `${testPlaygroundName}.play.js`),
-    ];
-    const expectedFiles = [
-      'package.json',
-      `${testPlaygroundName}.supr`,
-      `${testPlaygroundName}.foo.suma`,
-      `${testPlaygroundName}.bar.suma`,
-      `${testPlaygroundName}.play.ts`,
-      '.gitignore',
-    ];
+      joinPath('build', `${createdPlayground.name}.supr.ast.json`),
+      joinPath('build', `${createdPlayground.name}.foo.suma.ast.json`),
+      joinPath('build', `${createdPlayground.name}.bar.suma.ast.json`),
+      joinPath('build', `${createdPlayground.name}.play.js`),
+    ].map(f => joinPath(createdPlayground.path, 'superface', f));
 
-    await mkdir(joinPath(testPlaygroundPath, 'build'), {
+    const expectedFiles = [
+      `${createdPlayground.name}.supr`,
+      `${createdPlayground.name}.foo.suma`,
+      `${createdPlayground.name}.bar.suma`,
+      joinPath('superface', 'package.json'),
+      joinPath('superface', '.gitignore'),
+      joinPath('superface', 'play', `${createdPlayground.name}.play.ts`),
+    ].map(f => joinPath(createdPlayground.path, f));
+
+    await mkdir(joinPath(createdPlayground.path, 'superface', 'build'), {
       recursive: true,
     });
-
+    await mkdir(joinPath(createdPlayground.path, 'superface', 'play'), {
+      recursive: true,
+    });
     await Promise.all(
       [...deletedFiles, ...expectedFiles].map(file =>
-        OutputStream.writeOnce(joinPath(testPlaygroundPath, file), '')
+        OutputStream.writeOnce(file, '')
       )
     );
 
     stdout.start();
     await expect(
-      Play.run(['clean', testPlaygroundPath])
+      Play.run(['clean', createdPlayground.path])
     ).resolves.toBeUndefined();
     stdout.stop();
 
     await Promise.all(
-      deletedFiles.map(file =>
-        expect(access(joinPath(testPlaygroundPath, file))).rejects.toThrowError(
-          'ENOENT'
-        )
-      )
+      deletedFiles.map(f => expect(access(f)).rejects.toThrowError('ENOENT'))
     );
 
     await expect(
-      Promise.all(
-        expectedFiles.map(file => access(joinPath(testPlaygroundPath, file)))
-      )
+      Promise.all(expectedFiles.map(f => access(f)))
     ).resolves.toBeDefined();
 
-    expect(stdout.output).toMatch(/^\$ rimraf /);
-    expect(stdout.output).toMatch(/node_modules'/);
-    expect(stdout.output).toMatch(/package-lock\.json'/);
-    expect(stdout.output).toMatch(/build\/create_test\.supr\.ast\.json'/);
-    expect(stdout.output).toMatch(/build\/create_test\.bar\.suma\.ast\.json'/);
-    expect(stdout.output).toMatch(/build\/create_test\.play\.js'/);
-    expect(stdout.output).toMatch(/build\/create_test\.foo\.suma\.ast\.json'/);
+    expect(stdout.output).toContain('$ rimraf');
+    deletedFiles.forEach(del => expect(stdout.output).toContain(del));
   });
 });
