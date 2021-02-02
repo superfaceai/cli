@@ -1,7 +1,8 @@
 export interface Usecases {
+  // TODO: input can contain non primitive values as well
   [usecaseName: string]: {
     input: {
-      [key: string]: string | number | boolean;
+      [key: string]: unknown;
     };
   };
 }

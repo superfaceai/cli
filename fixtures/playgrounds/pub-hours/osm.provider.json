@@ -1,0 +1,10 @@
+{
+	"name": "osm",
+	"deployments": [
+		{
+			"id": "default",
+			"baseUrl": "https://overpass-api.de"
+		}
+	],
+	"security": []
+}

@@ -12,7 +12,6 @@ import { SkipFileType } from './flags';
 export const readFile = promisify(fs.readFile);
 export const access = promisify(fs.access);
 export const stat = promisify(fs.stat);
-export const lstat = promisify(fs.lstat);
 export const readdir = promisify(fs.readdir);
 export const mkdir = promisify(fs.mkdir);
 export const realpath = promisify(fs.realpath);
@@ -58,6 +57,50 @@ export async function mkdirQuiet(path: string): Promise<boolean> {
   }
 
   return true;
+}
+
+/**
+ * Returns `true` if the given path is a file.
+ *
+ * Uses the `stat` syscall (follows symlinks) and ignores the `ENOENT` error (non-existent file just returns `false`).
+ */
+export async function isFileQuiet(path: string): Promise<boolean> {
+  try {
+    const statInfo = await stat(path);
+
+    return statInfo.isFile();
+  } catch (err: unknown) {
+    assertIsIOError(err);
+
+    // allow ENOENT, which means it is not a directory
+    if (err.code !== 'ENOENT') {
+      throw err;
+    }
+  }
+
+  return false;
+}
+
+/**
+ * Returns `true` if the given path is a directory.
+ *
+ * Uses the `stat` syscall (follows symlinks) and ignores the `ENOENT` error (non-existent directory just returns `false`).
+ */
+export async function isDirectoryQuiet(path: string): Promise<boolean> {
+  try {
+    const statInfo = await stat(path);
+
+    return statInfo.isDirectory();
+  } catch (err: unknown) {
+    assertIsIOError(err);
+
+    // allow ENOENT, which means it is not a directory
+    if (err.code !== 'ENOENT') {
+      throw err;
+    }
+  }
+
+  return false;
 }
 
 export function streamWrite(stream: Writable, data: string): Promise<void> {
@@ -253,26 +296,4 @@ export class OutputStream {
 
     return false;
   }
-}
-
-/**
- * Returns `true` if the given path is a file.
- *
- * Uses the `stat` syscall (follows symlinks) and ignores the `ENOENT` error (non-existent file just returns `false`).
- */
-export async function isFileQuiet(path: string): Promise<boolean> {
-  try {
-    const statInfo = await stat(path);
-
-    return statInfo.isFile();
-  } catch (err: unknown) {
-    assertIsIOError(err);
-
-    // allow ENOENT, which means it is not a directory
-    if (err.code !== 'ENOENT') {
-      throw err;
-    }
-  }
-
-  return false;
 }
