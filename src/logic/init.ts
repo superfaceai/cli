@@ -19,6 +19,7 @@ export const SUPERFACE_DIR = 'superface';
 export const GRID_DIR = joinPath(SUPERFACE_DIR, 'grid');
 export const TYPES_DIR = joinPath(SUPERFACE_DIR, 'types');
 export const BUILD_DIR = joinPath(SUPERFACE_DIR, 'build');
+export const META_FILE = 'super.json';
 
 /**
  * Initializes superface at the given path.
@@ -80,7 +81,7 @@ export async function initSuperface(
   }
 
   {
-    const superJsonPath = joinPath(superPath, 'super.json');
+    const superJsonPath = joinPath(superPath, META_FILE);
     const created = await OutputStream.writeIfAbsent(
       superJsonPath,
       () => initTemplate.superJson(profiles, providers),

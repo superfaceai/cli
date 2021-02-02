@@ -3,7 +3,7 @@ import { stdout } from 'stdout-stderr';
 
 import { EXTENSIONS } from '../common/document';
 import { access, rimraf } from '../common/io';
-import { BUILD_DIR, GRID_DIR, SUPERFACE_DIR, TYPES_DIR } from '../logic/init';
+import { BUILD_DIR, GRID_DIR, META_FILE, SUPERFACE_DIR, TYPES_DIR } from '../logic/init';
 import Init from './init';
 
 describe('Init CLI command', () => {
@@ -26,7 +26,7 @@ describe('Init CLI command', () => {
     const expectedFiles = [
       '.npmrc',
       joinPath(SUPERFACE_DIR, '.gitignore'),
-      joinPath(SUPERFACE_DIR, 'super.json'),
+      joinPath(SUPERFACE_DIR, META_FILE),
     ];
 
     const expectedDirectories = [SUPERFACE_DIR, BUILD_DIR, TYPES_DIR, GRID_DIR];
@@ -66,7 +66,7 @@ $ mkdir 'fixtures/playgrounds/test/superface/build'
     const expectedFiles = [
       '.npmrc',
       joinPath(SUPERFACE_DIR, '.gitignore'),
-      joinPath(SUPERFACE_DIR, 'super.json'),
+      joinPath(SUPERFACE_DIR, META_FILE),
     ];
 
     const expectedDirectories = [SUPERFACE_DIR, BUILD_DIR, TYPES_DIR, GRID_DIR];
