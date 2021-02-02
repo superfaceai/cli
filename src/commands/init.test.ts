@@ -1,7 +1,9 @@
 import { join as joinPath } from 'path';
 import { stdout } from 'stdout-stderr';
 
+import { EXTENSIONS } from '../common/document';
 import { access, rimraf } from '../common/io';
+import { BUILD_DIR, GRID_DIR, SUPERFACE_DIR, TYPES_DIR } from '../logic/init';
 import Init from './init';
 
 describe('Init CLI command', () => {
@@ -18,23 +20,18 @@ describe('Init CLI command', () => {
     await rimraf(testInitFolderPath);
   });
 
-  it('initialize base folder', async () => {
-    await expect(Init.run([testInitFolderPath])).resolves.toBeUndefined();
+  it('initializes base folder', async () => {
+    await expect(Init.run([testInitFolderPath, '-f'])).resolves.toBeUndefined();
 
     const expectedFiles = [
       '.npmrc',
-      joinPath('superface', '.gitignore'),
-      joinPath('superface', 'super.json'),
+      joinPath(SUPERFACE_DIR, '.gitignore'),
+      joinPath(SUPERFACE_DIR, 'super.json'),
     ];
 
-    const expectedDirectories = [
-      'superface',
-      joinPath('superface', 'build'),
-      joinPath('superface', 'types'),
-      joinPath('superface', 'grid'),
-    ];
+    const expectedDirectories = [SUPERFACE_DIR, BUILD_DIR, TYPES_DIR, GRID_DIR];
 
-    expect(stdout.output).toBe(
+    expect(stdout.output).toContain(
       `$ mkdir 'fixtures/playgrounds/test'
 $ echo '<.npmrc template>' > 'fixtures/playgrounds/test/.npmrc'
 $ mkdir 'fixtures/playgrounds/test/superface'
@@ -61,23 +58,20 @@ $ mkdir 'fixtures/playgrounds/test/superface/build'
     ).resolves.toBeDefined();
   }, 20000);
 
-  it('initialize base folder with quiet mode', async () => {
-    await expect(Init.run([testInitFolderPath, '-q'])).resolves.toBeUndefined();
+  it('initializes base folder with quiet mode', async () => {
+    await expect(
+      Init.run([testInitFolderPath, '-q', '-f'])
+    ).resolves.toBeUndefined();
 
     const expectedFiles = [
       '.npmrc',
-      joinPath('superface', '.gitignore'),
-      joinPath('superface', 'super.json'),
+      joinPath(SUPERFACE_DIR, '.gitignore'),
+      joinPath(SUPERFACE_DIR, 'super.json'),
     ];
 
-    const expectedDirectories = [
-      'superface',
-      joinPath('superface', 'build'),
-      joinPath('superface', 'types'),
-      joinPath('superface', 'grid'),
-    ];
+    const expectedDirectories = [SUPERFACE_DIR, BUILD_DIR, TYPES_DIR, GRID_DIR];
 
-    expect(stdout.output).toBe('');
+    expect(stdout.output).not.toContain("$ mkdir 'fixtures/playgrounds/test");
 
     await expect(
       Promise.all(
@@ -93,4 +87,62 @@ $ mkdir 'fixtures/playgrounds/test/superface/build'
       )
     ).resolves.toBeDefined();
   }, 20000);
+
+  it('initilizes base folder with specified profiles', async () => {
+    const profile1 = {
+      id: 'my-profile@1.0.0',
+      scope: undefined,
+      name: 'my-profile',
+      version: '1.0.0',
+    };
+    const profile2 = {
+      id: 'my-scope/my-profile@1.0.0',
+      scope: 'my-scope',
+      name: 'my-profile',
+      version: '1.0.0',
+    };
+
+    await expect(
+      Init.run([
+        testInitFolderPath,
+        '-f',
+        '--profiles',
+        profile1.id,
+        profile2.id,
+      ])
+    ).resolves.toBeUndefined();
+
+    const expectedFiles = [
+      joinPath(GRID_DIR, `${profile1.name}${EXTENSIONS.profile.source}`),
+      joinPath(GRID_DIR, profile2.scope),
+      joinPath(
+        GRID_DIR,
+        profile2.scope,
+        `${profile2.name}${EXTENSIONS.profile.source}`
+      ),
+    ];
+
+    expect(stdout.output).toContain(
+      '-> Created fixtures/playgrounds/test/superface/grid/my-profile.supr (name = "my-profile", version = "1.0.0")'
+    );
+    expect(stdout.output).toContain(
+      '-> Created fixtures/playgrounds/test/superface/grid/my-scope/my-profile.supr (name = "my-scope/my-profile", version = "1.0.0")'
+    );
+
+    await expect(
+      Promise.all(
+        expectedFiles.map(file => access(joinPath(testInitFolderPath, file)))
+      )
+    ).resolves.toBeDefined();
+
+    // TODO: check for super.json
+  });
+
+  it('initilizes base folder with specified providers', async () => {
+    await expect(
+      Init.run([testInitFolderPath, '-f', '--providers', 'twillio', 'osm'])
+    ).resolves.toBeUndefined();
+
+    // TODO: check for super.json
+  });
 });
