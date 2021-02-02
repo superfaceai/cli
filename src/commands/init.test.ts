@@ -39,7 +39,7 @@ describe('Init CLI command', () => {
 $ echo '<.npmrc template>' > 'fixtures/playgrounds/test/.npmrc'
 $ mkdir 'fixtures/playgrounds/test/superface'
 $ echo '<super.json template>' > 'fixtures/playgrounds/test/superface/super.json'
-$ echo '<gitignore template>' > 'fixtures/playgrounds/test/superface/.gitignore'
+$ echo '<.gitignore template>' > 'fixtures/playgrounds/test/superface/.gitignore'
 $ mkdir 'fixtures/playgrounds/test/superface/grid'
 $ mkdir 'fixtures/playgrounds/test/superface/types'
 $ mkdir 'fixtures/playgrounds/test/superface/build'
