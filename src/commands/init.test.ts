@@ -3,7 +3,13 @@ import { stdout } from 'stdout-stderr';
 
 import { EXTENSIONS } from '../common/document';
 import { access, rimraf } from '../common/io';
-import { BUILD_DIR, GRID_DIR, META_FILE, SUPERFACE_DIR, TYPES_DIR } from '../logic/init';
+import {
+  BUILD_DIR,
+  GRID_DIR,
+  META_FILE,
+  SUPERFACE_DIR,
+  TYPES_DIR,
+} from '../logic/init';
 import Init from './init';
 
 describe('Init CLI command', () => {
@@ -32,8 +38,7 @@ describe('Init CLI command', () => {
     const expectedDirectories = [SUPERFACE_DIR, BUILD_DIR, TYPES_DIR, GRID_DIR];
 
     expect(stdout.output).toContain(
-      `$ mkdir 'fixtures/playgrounds/test'
-$ echo '<.npmrc template>' > 'fixtures/playgrounds/test/.npmrc'
+      `$ echo '<.npmrc template>' > 'fixtures/playgrounds/test/.npmrc'
 $ mkdir 'fixtures/playgrounds/test/superface'
 $ echo '<super.json template>' > 'fixtures/playgrounds/test/superface/super.json'
 $ echo '<.gitignore template>' > 'fixtures/playgrounds/test/superface/.gitignore'
@@ -71,7 +76,9 @@ $ mkdir 'fixtures/playgrounds/test/superface/build'
 
     const expectedDirectories = [SUPERFACE_DIR, BUILD_DIR, TYPES_DIR, GRID_DIR];
 
-    expect(stdout.output).not.toContain("$ mkdir 'fixtures/playgrounds/test");
+    expect(stdout.output).not.toContain(
+      "$ mkdir 'fixtures/playgrounds/test/superface"
+    );
 
     await expect(
       Promise.all(
