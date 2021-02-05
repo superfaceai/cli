@@ -1,19 +1,82 @@
 import { join as joinPath } from 'path';
 import { stderr, stdout } from 'stdout-stderr';
 
-import { rimraf } from '../common/io';
+import {
+  getProfileDocument,
+  META_FILE,
+  parseSuperJson,
+  SUPERFACE_DIR,
+  writeSuperJson,
+} from '../common/document';
+import { exists, rimraf } from '../common/io';
+import Install from './install';
 
-describe.skip('Install CLI command', () => {
-  const installDir = joinPath('fixtures', 'install');
-  //   const playground = joinPath(installDir, 'playground');
-  //   const registry = joinPath(installDir, 'registry');
-  //   const fixture = {
-  //     superJson: joinPath(playground, 'super.json'),
-  //     localProfile1: joinPath(playground, 'my-scope', 'my-profile.supr'),
-  //     localProfile2: joinPath(playground, 'my-profile.supr'),
-  //     registryProfile1: joinPath(registry, 'my-scope', 'my-profile.supr'),
-  //     registryProfile2: joinPath(registry, 'my-profile.supr'),
-  //   };
+describe('Install CLI command', () => {
+  const WORKING_DIR = joinPath(
+    'fixtures',
+    'install',
+    'playground',
+    SUPERFACE_DIR
+  );
+
+  const REGISTRY_DIR = joinPath('../../', 'registry');
+
+  const fixture = {
+    superJson: META_FILE,
+    local: {
+      profile: joinPath('grid', 'my-profile.supr'),
+      scope: joinPath('grid', 'my-scope'),
+      profileWithScope: joinPath('grid', 'my-scope', 'my-profile.supr'),
+    },
+    registry: {
+      profile101: joinPath(REGISTRY_DIR, 'my-profile@1.0.1.supr'),
+      profileWithScope101: joinPath(
+        REGISTRY_DIR,
+        'my-scope',
+        'my-profile@1.0.1.supr'
+      ),
+      profile200: joinPath(REGISTRY_DIR, 'my-profile@2.0.0.supr'),
+      profileWithScope200: joinPath(
+        REGISTRY_DIR,
+        'my-scope',
+        'my-profile@2.0.0.supr'
+      ),
+    },
+  };
+
+  const profileName = 'my-profile';
+  const profileWithScopeName = 'my-scope/my-profile';
+  const providerName = 'twillio';
+
+  // restart super.json to initial state
+  async function restartSuperJson() {
+    await writeSuperJson(
+      fixture.superJson,
+      {
+        profiles: {
+          [profileWithScopeName]: {
+            file: 'file://./grid/my-scope/my-profile.supr',
+            version: '1.0.0',
+          },
+        },
+        providers: {
+          [providerName]: {
+            auth: {
+              token: 'value',
+            },
+          },
+        },
+      },
+      { force: true }
+    );
+  }
+
+  beforeAll(async () => {
+    // change cwd to /fixtures/install for establishing registry mock
+    process.chdir(WORKING_DIR);
+
+    await restartSuperJson();
+  });
 
   beforeEach(() => {
     stderr.start();
@@ -21,15 +84,143 @@ describe.skip('Install CLI command', () => {
   });
 
   afterEach(async () => {
+    await restartSuperJson();
+
     stderr.stop();
     stdout.stop();
-
-    await rimraf(installDir);
   });
 
-  //   it('install all profiles from grid folder when no argument is specified', async () => {
-  //   }, 20000);
+  afterAll(async () => {
+    await rimraf(fixture.local.profile);
+    await rimraf(fixture.local.scope);
+  });
 
-  //   it('install profile specified by argument', async () => {
-  //   }, 20000);
+  describe('when profile id is not specified', () => {
+    it('installs profiles in super.json', async () => {
+      const initialSuperJson = await parseSuperJson(fixture.superJson);
+
+      {
+        await expect(
+          Install.run([`${profileWithScopeName}@2.0.0`])
+        ).resolves.toBeUndefined();
+
+        const { profiles } = await parseSuperJson(fixture.superJson);
+        const local = await getProfileDocument(fixture.local.profileWithScope);
+        const registry = await getProfileDocument(
+          fixture.registry.profileWithScope200
+        );
+
+        const localName = local.header.scope
+          ? `${local.header.scope}/${local.header.name}`
+          : local.header.name;
+
+        expect(local).toEqual(registry);
+
+        expect(profiles[localName]).toEqual({
+          file: 'file://./grid/my-scope/my-profile.supr',
+          version: '2.0.0',
+        });
+
+        expect(Object.values(profiles).length).toEqual(
+          Object.values(initialSuperJson.profiles).length
+        );
+      }
+
+      {
+        await rimraf(fixture.local.scope);
+        await expect(Install.run([])).resolves.toBeUndefined();
+        expect(await exists(fixture.local.profileWithScope)).toBe(true);
+
+        const local = await getProfileDocument(fixture.local.profileWithScope);
+        const registry = await getProfileDocument(
+          fixture.registry.profileWithScope200
+        );
+
+        expect(local).toEqual(registry);
+      }
+    });
+  });
+
+  describe('when profile id is specified', () => {
+    it('installs specified profile into super.json', async () => {
+      const initialSuperJson = await parseSuperJson(fixture.superJson);
+
+      {
+        await expect(
+          Install.run([`${profileWithScopeName}@1.0.1`])
+        ).resolves.toBeUndefined();
+
+        const { profiles } = await parseSuperJson(fixture.superJson);
+        const local = await getProfileDocument(fixture.local.profileWithScope);
+        const registry = await getProfileDocument(
+          fixture.registry.profileWithScope101
+        );
+
+        const localName = local.header.scope
+          ? `${local.header.scope}/${local.header.name}`
+          : local.header.name;
+
+        expect(local).toEqual(registry);
+
+        expect(profiles[localName]).toEqual({
+          file: 'file://./grid/my-scope/my-profile.supr',
+          version: '1.0.1',
+        });
+
+        expect(Object.values(profiles).length).toEqual(
+          Object.values(initialSuperJson.profiles).length
+        );
+      }
+
+      {
+        await expect(
+          Install.run([`${profileWithScopeName}@2.0`])
+        ).resolves.toBeUndefined();
+
+        const { profiles } = await parseSuperJson(fixture.superJson);
+        const local = await getProfileDocument(fixture.local.profileWithScope);
+        const registry = await getProfileDocument(
+          fixture.registry.profileWithScope200
+        );
+
+        const localName = local.header.scope
+          ? `${local.header.scope}/${local.header.name}`
+          : local.header.name;
+
+        expect(local).toEqual(registry);
+
+        expect(profiles[localName]).toEqual({
+          file: 'file://./grid/my-scope/my-profile.supr',
+          version: '2.0.0',
+        });
+
+        expect(Object.values(profiles).length).toEqual(
+          Object.values(initialSuperJson.profiles).length
+        );
+      }
+
+      {
+        await expect(
+          Install.run([`${profileName}@1.0.1`])
+        ).resolves.toBeUndefined();
+
+        const { profiles } = await parseSuperJson(fixture.superJson);
+        const local = await getProfileDocument(fixture.local.profile);
+        const registry = await getProfileDocument(fixture.registry.profile101);
+
+        const localName = local.header.scope
+          ? `${local.header.scope}/${local.header.name}`
+          : local.header.name;
+
+        expect(local).toEqual(registry);
+
+        expect(profiles[localName]).toEqual({
+          file: 'file://./grid/my-profile.supr',
+          version: '1.0.1',
+        });
+
+        expect(Object.values(profiles).length).toEqual(2);
+      }
+    });
+  });
 });
