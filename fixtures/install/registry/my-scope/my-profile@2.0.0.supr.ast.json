@@ -5,9 +5,9 @@
     "scope": "my-scope",
     "name": "my-profile",
     "version": {
-      "major": 1,
+      "major": 2,
       "minor": 0,
-      "patch": 1
+      "patch": 0
     },
     "location": {
       "line": 1,
@@ -238,6 +238,178 @@
         "start": 190,
         "end": 238
       }
+    },
+    {
+      "kind": "NamedModelDefinition",
+      "modelName": "Message",
+      "type": {
+        "kind": "EnumDefinition",
+        "values": [
+          {
+            "kind": "EnumValue",
+            "value": "SUCCESS",
+            "location": {
+              "line": 22,
+              "column": 5
+            },
+            "span": {
+              "start": 265,
+              "end": 272
+            }
+          },
+          {
+            "kind": "EnumValue",
+            "value": "FAIL",
+            "location": {
+              "line": 23,
+              "column": 5
+            },
+            "span": {
+              "start": 278,
+              "end": 282
+            }
+          }
+        ],
+        "location": {
+          "line": 21,
+          "column": 15
+        },
+        "span": {
+          "start": 254,
+          "end": 284
+        }
+      },
+      "location": {
+        "line": 21,
+        "column": 1
+      },
+      "span": {
+        "start": 240,
+        "end": 284
+      }
+    },
+    {
+      "kind": "NamedModelDefinition",
+      "modelName": "Data",
+      "type": {
+        "kind": "ObjectDefinition",
+        "fields": [
+          {
+            "kind": "FieldDefinition",
+            "fieldName": "to",
+            "required": false,
+            "type": {
+              "kind": "PrimitiveTypeName",
+              "name": "string",
+              "span": {
+                "start": 306,
+                "end": 312
+              },
+              "location": {
+                "line": 27,
+                "column": 8
+              }
+            },
+            "location": {
+              "line": 27,
+              "column": 5
+            },
+            "span": {
+              "start": 303,
+              "end": 312
+            }
+          },
+          {
+            "kind": "FieldDefinition",
+            "fieldName": "from",
+            "required": false,
+            "type": {
+              "kind": "PrimitiveTypeName",
+              "name": "string",
+              "span": {
+                "start": 322,
+                "end": 328
+              },
+              "location": {
+                "line": 28,
+                "column": 10
+              }
+            },
+            "location": {
+              "line": 28,
+              "column": 5
+            },
+            "span": {
+              "start": 317,
+              "end": 328
+            }
+          }
+        ],
+        "location": {
+          "line": 26,
+          "column": 12
+        },
+        "span": {
+          "start": 297,
+          "end": 330
+        }
+      },
+      "location": {
+        "line": 26,
+        "column": 1
+      },
+      "span": {
+        "start": 286,
+        "end": 330
+      }
+    },
+    {
+      "kind": "NamedFieldDefinition",
+      "fieldName": "f1",
+      "type": {
+        "kind": "ModelTypeName",
+        "name": "Data",
+        "location": {
+          "line": 31,
+          "column": 10
+        },
+        "span": {
+          "start": 341,
+          "end": 345
+        }
+      },
+      "location": {
+        "line": 31,
+        "column": 1
+      },
+      "span": {
+        "start": 332,
+        "end": 345
+      }
+    },
+    {
+      "kind": "NamedFieldDefinition",
+      "fieldName": "f2",
+      "type": {
+        "kind": "ModelTypeName",
+        "name": "Message",
+        "location": {
+          "line": 32,
+          "column": 10
+        },
+        "span": {
+          "start": 355,
+          "end": 362
+        }
+      },
+      "location": {
+        "line": 32,
+        "column": 1
+      },
+      "span": {
+        "start": 346,
+        "end": 362
+      }
     }
   ],
   "location": {
@@ -246,6 +418,6 @@
   },
   "span": {
     "start": 0,
-    "end": 238
+    "end": 362
   }
 }

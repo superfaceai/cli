@@ -1,5 +1,5 @@
-name = 'my-scope/my-profile'
-version = '1.0.1'
+name = 'my-profile'
+version = '2.0.0'
 
 usecase Test {
     input {
@@ -17,3 +17,16 @@ model Error enum {
     NOT_FOUND,
     INTERNAL
 }
+
+model Message enum {
+    SUCCESS,
+    FAIL
+}
+
+model Data {
+    to string
+    from string
+}
+
+field f1 Data
+field f2 Message
