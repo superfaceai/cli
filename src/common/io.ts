@@ -6,6 +6,7 @@ import rimrafCallback from 'rimraf';
 import { Writable } from 'stream';
 import { promisify } from 'util';
 
+import { WritingOptions } from './document.interfaces';
 import { assertIsIOError } from './error';
 import { SkipFileType } from './flags';
 
@@ -275,11 +276,7 @@ export class OutputStream {
   static async writeIfAbsent(
     path: string,
     data: string | (() => string),
-    options?: {
-      append?: boolean;
-      force?: boolean;
-      dirs?: boolean;
-    }
+    options?: WritingOptions
   ): Promise<boolean> {
     if (options?.dirs === true) {
       const dir = dirname(path);

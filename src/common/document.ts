@@ -1,9 +1,22 @@
 import { ProfileDocumentNode } from '@superfaceai/ast';
-import { DocumentVersion, parseMap, parseProfile, Source } from '@superfaceai/parser';
+import {
+  DocumentVersion,
+  parseMap,
+  parseProfile,
+  Source,
+} from '@superfaceai/parser';
+import { basename, join as joinPath } from 'path';
 
-import { CreateMode, DocumentType } from './document.interfaces';
+import * as initTemplate from '../templates/init';
+import {
+  CreateMode,
+  DocumentType,
+  WritingOptions,
+} from './document.interfaces';
+import { userError } from './error';
 import { DocumentTypeFlag } from './flags';
-import { readFile } from './io';
+import { OutputStream, readdir, readFile } from './io';
+import { SuperJsonStructure } from './super.interfaces';
 
 export const DEFAULT_PROFILE_VERSION = {
   major: 1,
@@ -26,6 +39,13 @@ export const EXTENSIONS = {
     build: '.play.js',
   },
 };
+
+export const SUPERFACE_DIR = 'superface';
+export const META_FILE = 'super.json';
+export const SUPER_PATH = joinPath(SUPERFACE_DIR, META_FILE);
+export const GRID_DIR = joinPath(SUPERFACE_DIR, 'grid');
+export const TYPES_DIR = joinPath(SUPERFACE_DIR, 'types');
+export const BUILD_DIR = joinPath(SUPERFACE_DIR, 'build');
 
 /**
  * Detects whether the file on path is Superface Map or Superface Profile based on the extension.
@@ -99,11 +119,129 @@ export const composeUsecaseName = (documentId: string): string =>
     .join('');
 
 export async function getProfileDocument(
-  path: string
+  profilePath: string
 ): Promise<ProfileDocumentNode> {
   const parseFunction = DOCUMENT_PARSE_FUNCTION[DocumentType.PROFILE];
-  const content = (await readFile(path)).toString();
-  const source = new Source(content, path);
+  const content = await readFile(profilePath, { encoding: 'utf-8' });
+  const source = new Source(content, profilePath);
 
   return parseFunction(source);
+}
+
+export async function parseSuperJson(
+  superJsonPath: string
+): Promise<SuperJsonStructure> {
+  try {
+    return JSON.parse(
+      await readFile(superJsonPath, { encoding: 'utf-8' })
+    ) as SuperJsonStructure;
+  } catch (e) {
+    throw userError(e, 1);
+  }
+}
+
+export async function writeSuperJson(
+  superJsonPath: string,
+  data: SuperJsonStructure,
+  options?: WritingOptions
+): Promise<boolean> {
+  return await OutputStream.writeIfAbsent(
+    superJsonPath,
+    initTemplate.superJson(data),
+    options
+  );
+}
+
+export async function writeProfile(
+  profilePath: string,
+  data: string,
+  options?: WritingOptions
+): Promise<boolean> {
+  return await OutputStream.writeIfAbsent(profilePath, data, options);
+}
+
+/**
+ * Returns a path without extension.
+ */
+export function trimExtension(path: string): string {
+  const documentType = inferDocumentType(path);
+
+  switch (documentType) {
+    case DocumentType.PROFILE:
+      return basename(path, EXTENSIONS.profile.source);
+    case DocumentType.MAP:
+      return basename(path, EXTENSIONS.map.source);
+    case DocumentType.UNKNOWN:
+      throw userError('Could not infer document type', 3);
+  }
+
+  // if (documentType.endsWith(EXTENSIONS.profile.build)) {
+  //   return basename(path, EXTENSIONS.profile.source);
+  // }
+
+  // if (documentType.endsWith(EXTENSIONS.map.build)) {
+  //   return basename(path, EXTENSIONS.map.source);
+  // }
+}
+
+/**
+ * Find capability ids in directory given by @param path.
+ *
+ * If a file is found, check its extension and add it to array of results.
+ *
+ * If a directory is found, treat it as a scope, look for profiles inside
+ * and add them to array of results with corresponding scope.
+ *
+ */
+export async function findLocalCapabilities(
+  path: string,
+  capability: 'profile' | 'map',
+  withVersion = false,
+  limit = 2
+): Promise<string[]> {
+  if (!limit) {
+    return [];
+  }
+
+  const dirents = await readdir(path, {
+    withFileTypes: true,
+  });
+
+  const profiles: string[] = [];
+  for (const dirent of dirents) {
+    if (dirent.isFile()) {
+      if (
+        dirent.name.endsWith(
+          capability === 'profile'
+            ? EXTENSIONS.profile.source
+            : EXTENSIONS.map.source
+        )
+      ) {
+        const {
+          header: { version },
+        } = await getProfileDocument(joinPath(path, dirent.name));
+
+        profiles.push(
+          withVersion
+            ? `${trimExtension(dirent.name)}@${composeVersion(version)}`
+            : trimExtension(dirent.name)
+        );
+      }
+    }
+
+    if (dirent.isDirectory()) {
+      const profilesInScope = (
+        await findLocalCapabilities(
+          joinPath(path, dirent.name),
+          capability,
+          withVersion,
+          --limit
+        )
+      ).map(profile => joinPath(dirent.name, profile));
+
+      profiles.push(...profilesInScope);
+    }
+  }
+
+  return profiles;
 }

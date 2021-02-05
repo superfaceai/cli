@@ -1,3 +1,5 @@
+export type LogCallback = (message: string) => void;
+
 export function formatShellLog(
   initial: string | undefined,
   quoted?: string[],

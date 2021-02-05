@@ -126,8 +126,10 @@ You can also use this command in quiet mode with flag \`-q\`.
 
     await initSuperface(
       path,
-      constructProfileSettings(profiles),
-      constructProviderSettings(providers),
+      {
+        profiles: constructProfileSettings(profiles),
+        providers: constructProviderSettings(providers),
+      },
       {
         logCb: this.logCallback,
       }

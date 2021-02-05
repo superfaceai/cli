@@ -1,6 +1,7 @@
 import { Command, flags } from '@oclif/command';
+import { grey } from 'chalk';
 
-import { DEFAULT_PROFILE_VERSION } from '../common/document';
+import { DEFAULT_PROFILE_VERSION_STR, SUPERFACE_DIR } from '../common/document';
 import { initSuperface } from '../logic/init';
 import { detectSuperJson, installProfiles } from '../logic/install';
 
@@ -18,17 +19,6 @@ export default class Install extends Command {
   ];
 
   static flags = {
-    // TODO
-    providers: flags.string({
-      char: 'p',
-      description: 'Name of a Provider',
-    }),
-    // TODO
-    version: flags.string({
-      char: 'v',
-      default: DEFAULT_PROFILE_VERSION,
-      description: 'Version of a profile',
-    }),
     help: flags.help({ char: 'h' }),
   };
 
@@ -39,15 +29,20 @@ export default class Install extends Command {
     '$ superface install sms/service@1.0 -p twillio',
   ];
 
+  private logCallback? = (message: string) => this.log(grey(message));
+
   async run(): Promise<void> {
     const { args } = this.parse(Install);
-    const appPath = './';
+    let superPath = await detectSuperJson();
 
-    if (!(await detectSuperJson(appPath))) {
-      await initSuperface(appPath, {}, {}, {});
+    if (!superPath) {
+      await initSuperface('./', { profiles: {}, providers: {} }, {});
+      superPath = SUPERFACE_DIR;
     }
 
-    await installProfiles(appPath, args.profileId);
+    await installProfiles(superPath, args.profileId, {
+      logCb: this.logCallback,
+    });
 
     // TODO: downloads any missing profiles to <appPath>/superface/grid
 

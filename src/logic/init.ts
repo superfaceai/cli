@@ -2,24 +2,28 @@ import { parseProfileId } from '@superfaceai/parser';
 import { join as joinPath } from 'path';
 
 import {
+  BUILD_DIR,
   composeUsecaseName,
   composeVersion,
   EXTENSIONS,
+  GRID_DIR,
+  META_FILE,
+  SUPERFACE_DIR,
+  TYPES_DIR,
   validateDocumentName,
 } from '../common/document';
 import { userError } from '../common/error';
 import { mkdir, mkdirQuiet, OutputStream } from '../common/io';
 import { formatShellLog } from '../common/log';
-import { ProfileSettings, ProviderSettings } from '../common/super.interfaces';
+import {
+  ProfileSettings,
+  ProviderSettings,
+  SuperJsonStructure,
+} from '../common/super.interfaces';
 import * as initTemplate from '../templates/init';
 import { createProfile } from './create';
 
 type LogCallback = (message: string) => void;
-export const SUPERFACE_DIR = 'superface';
-export const GRID_DIR = joinPath(SUPERFACE_DIR, 'grid');
-export const TYPES_DIR = joinPath(SUPERFACE_DIR, 'types');
-export const BUILD_DIR = joinPath(SUPERFACE_DIR, 'build');
-export const META_FILE = 'super.json';
 
 /**
  * Initializes superface at the given path.
@@ -39,8 +43,7 @@ export const META_FILE = 'super.json';
  */
 export async function initSuperface(
   appPath: string,
-  profiles: ProfileSettings,
-  providers: ProviderSettings,
+  data: SuperJsonStructure,
   options?: {
     force?: boolean;
     logCb?: LogCallback;
@@ -84,7 +87,7 @@ export async function initSuperface(
     const superJsonPath = joinPath(superPath, META_FILE);
     const created = await OutputStream.writeIfAbsent(
       superJsonPath,
-      () => initTemplate.superJson(profiles, providers),
+      () => initTemplate.superJson(data),
       { force: options?.force }
     );
 
@@ -165,7 +168,7 @@ export const constructProfileSettings = (
 
     acc[profileName] = {
       version: composeVersion(version),
-      file: `./grid/${profileName}${EXTENSIONS.profile.source}`,
+      file: `file://./grid/${profileName}${EXTENSIONS.profile.source}`,
     };
 
     return acc;
