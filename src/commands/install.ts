@@ -1,7 +1,7 @@
 import { Command, flags } from '@oclif/command';
 import { grey } from 'chalk';
 
-import { DEFAULT_PROFILE_VERSION_STR, SUPERFACE_DIR } from '../common/document';
+import { SUPERFACE_DIR } from '../common/document';
 import { initSuperface } from '../logic/init';
 import { detectSuperJson, installProfiles } from '../logic/install';
 

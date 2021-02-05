@@ -111,7 +111,10 @@ export default class Compile extends Command {
     documentTypeFlag: DocumentTypeFlag
   ): Promise<unknown> {
     const documentType = inferDocumentTypeWithFlag(documentTypeFlag, path);
-    if (documentType === DocumentType.UNKNOWN) {
+    if (
+      documentType !== DocumentType.MAP &&
+      documentType !== DocumentType.PROFILE
+    ) {
       throw userError('Could not infer document type', 1);
     }
 

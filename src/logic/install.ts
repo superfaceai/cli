@@ -126,7 +126,7 @@ export async function handleProfiles(
     // store path if profile has one specified in super.json
     const profilePath = `${profileName}${EXTENSIONS.profile.source}`;
     let targetProfilePath = joinPath(gridPath, profilePath);
-    
+
     if (
       targetProfile &&
       typeof targetProfile !== 'string' &&
