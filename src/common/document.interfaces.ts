@@ -2,6 +2,8 @@ export enum DocumentType {
   UNKNOWN = 'unknown',
   MAP = 'map',
   PROFILE = 'profile',
+  MAP_AST = 'map.ast',
+  PROFILE_AST = 'profile.ast',
 }
 
 export enum CreateMode {

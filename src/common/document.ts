@@ -58,6 +58,12 @@ export function inferDocumentType(path: string): DocumentType {
   if (normalizedPath.endsWith(EXTENSIONS.profile.source)) {
     return DocumentType.PROFILE;
   }
+  if (normalizedPath.endsWith(EXTENSIONS.map.build)) {
+    return DocumentType.MAP_AST;
+  }
+  if (normalizedPath.endsWith(EXTENSIONS.profile.build)) {
+    return DocumentType.PROFILE_AST;
+  }
 
   return DocumentType.UNKNOWN;
 }
@@ -171,17 +177,13 @@ export function trimExtension(path: string): string {
       return basename(path, EXTENSIONS.profile.source);
     case DocumentType.MAP:
       return basename(path, EXTENSIONS.map.source);
+    case DocumentType.PROFILE_AST:
+      return basename(path, EXTENSIONS.profile.build);
+    case DocumentType.MAP_AST:
+      return basename(path, EXTENSIONS.map.build);
     case DocumentType.UNKNOWN:
       throw userError('Could not infer document type', 3);
   }
-
-  // if (documentType.endsWith(EXTENSIONS.profile.build)) {
-  //   return basename(path, EXTENSIONS.profile.source);
-  // }
-
-  // if (documentType.endsWith(EXTENSIONS.map.build)) {
-  //   return basename(path, EXTENSIONS.map.source);
-  // }
 }
 
 /**
