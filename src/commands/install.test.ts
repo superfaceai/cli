@@ -9,6 +9,7 @@ import {
   writeSuperJson,
 } from '../common/document';
 import { exists, rimraf } from '../common/io';
+import { SuperJsonStructure } from '../common/super.interfaces';
 import Install from './install';
 
 describe('Install CLI command', () => {
@@ -46,7 +47,6 @@ describe('Install CLI command', () => {
 
   const profileName = 'my-profile';
   const profileWithScopeName = 'my-scope/my-profile';
-  const providerName = 'twillio';
 
   // restart super.json to initial state
   async function restartSuperJson() {
@@ -55,17 +55,11 @@ describe('Install CLI command', () => {
       {
         profiles: {
           [profileWithScopeName]: {
-            file: 'file://./grid/my-scope/my-profile.supr',
+            file: 'file://grid/my-scope/my-profile.supr',
             version: '1.0.0',
           },
         },
-        providers: {
-          [providerName]: {
-            auth: {
-              token: 'value',
-            },
-          },
-        },
+        providers: {},
       },
       { force: true }
     );
@@ -76,6 +70,9 @@ describe('Install CLI command', () => {
     process.chdir(WORKING_DIR);
 
     await restartSuperJson();
+
+    await rimraf(fixture.local.profile);
+    await rimraf(fixture.local.scope);
   });
 
   beforeEach(() => {
@@ -86,18 +83,28 @@ describe('Install CLI command', () => {
   afterEach(async () => {
     await restartSuperJson();
 
+    await rimraf(fixture.local.profile);
+    await rimraf(fixture.local.scope);
+
     stderr.stop();
     stdout.stop();
   });
 
   afterAll(async () => {
-    await rimraf(fixture.local.profile);
-    await rimraf(fixture.local.scope);
+    // change cwd back
+    process.chdir('../../../../');
   });
 
   describe('when profile id is not specified', () => {
     it('installs profiles in super.json', async () => {
-      const initialSuperJson = await parseSuperJson(fixture.superJson);
+      const expectedSuperJson: SuperJsonStructure = {
+        profiles: {
+          ['my-scope/my-profile']: {
+            file: 'file://grid/my-scope/my-profile.supr',
+          },
+        },
+        providers: {},
+      };
 
       {
         await expect(
@@ -117,12 +124,12 @@ describe('Install CLI command', () => {
         expect(local).toEqual(registry);
 
         expect(profiles[localName]).toEqual({
-          file: 'file://./grid/my-scope/my-profile.supr',
+          file: 'file://grid/my-scope/my-profile.supr',
           version: '2.0.0',
         });
 
         expect(Object.values(profiles).length).toEqual(
-          Object.values(initialSuperJson.profiles).length
+          Object.values(expectedSuperJson.profiles).length
         );
       }
 
@@ -143,7 +150,14 @@ describe('Install CLI command', () => {
 
   describe('when profile id is specified', () => {
     it('installs specified profile into super.json', async () => {
-      const initialSuperJson = await parseSuperJson(fixture.superJson);
+      const expectedSuperJson: SuperJsonStructure = {
+        profiles: {
+          ['my-scope/my-profile']: {
+            file: 'file://grid/my-scope/my-profile.supr',
+          },
+        },
+        providers: {},
+      };
 
       {
         await expect(
@@ -163,18 +177,18 @@ describe('Install CLI command', () => {
         expect(local).toEqual(registry);
 
         expect(profiles[localName]).toEqual({
-          file: 'file://./grid/my-scope/my-profile.supr',
+          file: 'file://grid/my-scope/my-profile.supr',
           version: '1.0.1',
         });
 
         expect(Object.values(profiles).length).toEqual(
-          Object.values(initialSuperJson.profiles).length
+          Object.values(expectedSuperJson.profiles).length
         );
       }
 
       {
         await expect(
-          Install.run([`${profileWithScopeName}@2.0`])
+          Install.run([`${profileWithScopeName}@2.0`, '-f'])
         ).resolves.toBeUndefined();
 
         const { profiles } = await parseSuperJson(fixture.superJson);
@@ -190,12 +204,12 @@ describe('Install CLI command', () => {
         expect(local).toEqual(registry);
 
         expect(profiles[localName]).toEqual({
-          file: 'file://./grid/my-scope/my-profile.supr',
+          file: 'file://grid/my-scope/my-profile.supr',
           version: '2.0.0',
         });
 
         expect(Object.values(profiles).length).toEqual(
-          Object.values(initialSuperJson.profiles).length
+          Object.values(expectedSuperJson.profiles).length
         );
       }
 
@@ -215,7 +229,7 @@ describe('Install CLI command', () => {
         expect(local).toEqual(registry);
 
         expect(profiles[localName]).toEqual({
-          file: 'file://./grid/my-profile.supr',
+          file: 'file://grid/my-profile.supr',
           version: '1.0.1',
         });
 

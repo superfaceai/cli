@@ -1,5 +1,5 @@
 import { parseProfileId } from '@superfaceai/parser';
-import { join as joinPath, normalize, isAbsolute } from 'path';
+import { isAbsolute, join as joinPath, normalize } from 'path';
 
 import {
   composeVersion,
@@ -162,7 +162,7 @@ File path in super.json can't be absolute and have to be in context of /superfac
 
       if ((await exists(path)) && !options.force) {
         options.warnCb?.(
-          `⚠️  Path already exists: ${path}
+          `⚠️  File already exists: ${path}
 Use flag \`--force/-f\` if you'd like to overwrite profiles specified on path in super.json.`
         );
         continue;

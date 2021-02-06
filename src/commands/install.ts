@@ -41,7 +41,7 @@ export default class Install extends Command {
     '$ superface install sms/service@1.0 -p twillio',
   ];
 
-  private warnCallback? =  (message: string) => this.warn(message)
+  private warnCallback? = (message: string) => this.warn(message);
   private logCallback? = (message: string) => this.log(grey(message));
 
   async run(): Promise<void> {
