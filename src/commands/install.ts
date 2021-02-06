@@ -19,6 +19,18 @@ export default class Install extends Command {
   ];
 
   static flags = {
+    quiet: flags.boolean({
+      char: 'q',
+      description:
+        'When set to true, disables the shell echo output of init actions.',
+      default: false,
+    }),
+    force: flags.boolean({
+      char: 'f',
+      description:
+        'When set to true and when profile exists in local filesystem, overwrite it.',
+      default: false,
+    }),
     help: flags.help({ char: 'h' }),
   };
 
@@ -29,10 +41,17 @@ export default class Install extends Command {
     '$ superface install sms/service@1.0 -p twillio',
   ];
 
+  private warnCallback? =  (message: string) => this.warn(message)
   private logCallback? = (message: string) => this.log(grey(message));
 
   async run(): Promise<void> {
-    const { args } = this.parse(Install);
+    const { args, flags } = this.parse(Install);
+
+    if (flags.quiet) {
+      this.logCallback = undefined;
+      this.warnCallback = undefined;
+    }
+
     let superPath = await detectSuperJson();
 
     if (!superPath) {
@@ -40,9 +59,15 @@ export default class Install extends Command {
       superPath = SUPERFACE_DIR;
     }
 
-    await installProfiles(superPath, args.profileId, {
-      logCb: this.logCallback,
-    });
+    await installProfiles(
+      superPath,
+      {
+        logCb: this.logCallback,
+        warnCb: this.warnCallback,
+        force: flags.force,
+      },
+      args.profileId
+    );
 
     // TODO: downloads any missing profiles to <appPath>/superface/grid
 

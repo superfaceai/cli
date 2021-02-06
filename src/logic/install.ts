@@ -1,5 +1,5 @@
 import { parseProfileId } from '@superfaceai/parser';
-import { join as joinPath } from 'path';
+import { join as joinPath, normalize, isAbsolute } from 'path';
 
 import {
   composeVersion,
@@ -11,7 +11,7 @@ import {
   writeSuperJson,
 } from '../common/document';
 import { userError } from '../common/error';
-import { isFileQuiet, mkdirQuiet, readFile } from '../common/io';
+import { exists, isFileQuiet, mkdirQuiet, readFile } from '../common/io';
 import { formatShellLog, LogCallback } from '../common/log';
 import {
   ProfileSettings,
@@ -77,24 +77,42 @@ export async function getProfileFromRegistry(
   const profilePath = `${filePath}${EXTENSIONS.profile.source}`;
   const profileAstPath = `${filePath}${EXTENSIONS.profile.build}`;
 
-  const profileDocument = await getProfileDocument(profilePath);
-  const profileName = profileDocument.header.scope
-    ? `${profileDocument.header.scope}/${profileDocument.header.name}`
-    : profileDocument.header.name;
+  try {
+    const profileDocument = await getProfileDocument(profilePath);
+    const profileName = profileDocument.header.scope
+      ? `${profileDocument.header.scope}/${profileDocument.header.name}`
+      : profileDocument.header.name;
 
-  const profile = await readFile(profilePath, { encoding: 'utf-8' });
-  const ast = await readFile(profileAstPath, { encoding: 'utf-8' });
+    const profile = await readFile(profilePath, { encoding: 'utf-8' });
+    const ast = await readFile(profileAstPath, { encoding: 'utf-8' });
 
-  return {
-    response: {
-      profileId,
-      profileName,
-      profileVersion: composeVersion(profileDocument.header.version),
-      url: `https://some.url/profiles/${profileId}`,
-    },
-    ast,
-    profile,
-  };
+    return {
+      response: {
+        profileId,
+        profileName,
+        profileVersion: composeVersion(profileDocument.header.version),
+        url: `https://some.url/profiles/${profileId}`,
+      },
+      ast,
+      profile,
+    };
+  } catch (error) {
+    throw userError(error, 1);
+  }
+}
+
+function validateProfilePath(file: string): boolean {
+  const path = normalize(file);
+
+  if (isAbsolute(file)) {
+    return false;
+  }
+
+  if (path.startsWith('../')) {
+    return false;
+  }
+
+  return true;
 }
 
 /**
@@ -106,7 +124,7 @@ export async function handleProfiles(
   superPath: string,
   responses: RegistryResponseMock[],
   { profiles, providers }: SuperJsonStructure,
-  options?: { logCb?: LogCallback }
+  options: { logCb?: LogCallback; warnCb?: LogCallback; force: boolean }
 ): Promise<void> {
   const writingOptions = { force: true, dirs: true };
   const gridPath = joinPath(superPath, 'grid');
@@ -132,7 +150,25 @@ export async function handleProfiles(
       typeof targetProfile !== 'string' &&
       targetProfile.file
     ) {
-      targetProfilePath = targetProfile.file.slice(9);
+      const path = targetProfile.file.slice(7);
+
+      if (!validateProfilePath(path)) {
+        options.warnCb?.(
+          `⚠️  Invalid path: ${targetProfile.file}
+File path in super.json can't be absolute and have to be in context of /superface folder.`
+        );
+        continue;
+      }
+
+      if ((await exists(path)) && !options.force) {
+        options.warnCb?.(
+          `⚠️  Path already exists: ${path}
+Use flag \`--force/-f\` if you'd like to overwrite profiles specified on path in super.json.`
+        );
+        continue;
+      }
+
+      targetProfilePath = targetProfile.file.slice(7);
     }
 
     // save profile name to old path or to /superface/grid
@@ -143,7 +179,7 @@ export async function handleProfiles(
     );
 
     if (profileDownloaded) {
-      options?.logCb?.(
+      options.logCb?.(
         formatShellLog("download '<profile>'", [
           joinPath(superPath, targetProfilePath),
         ])
@@ -159,7 +195,7 @@ export async function handleProfiles(
     );
 
     if (profileAstDownloaded) {
-      options?.logCb?.(
+      options.logCb?.(
         formatShellLog('download <profileAST>', [
           joinPath(buildPath, profileAstPath),
         ])
@@ -168,7 +204,7 @@ export async function handleProfiles(
 
     // write new information to super.json
     profiles[profileName] = {
-      file: `file://./${targetProfilePath}`,
+      file: `file://${targetProfilePath}`,
       version: profileVersion,
     };
 
@@ -182,7 +218,7 @@ export async function handleProfiles(
     );
 
     if (superJsonUpdated) {
-      options?.logCb?.(
+      options.logCb?.(
         formatShellLog('update <super.json>', [joinPath(superPath, META_FILE)])
       );
     }
@@ -225,10 +261,12 @@ export async function getProfileIds(
  */
 export async function installProfiles(
   superPath: string,
-  profileId?: string,
-  options?: {
+  options: {
     logCb?: LogCallback;
-  }
+    warnCb?: LogCallback;
+    force: boolean;
+  },
+  profileId?: string
 ): Promise<void> {
   const superJson = await parseSuperJson(joinPath(superPath, META_FILE));
   const responses: RegistryResponseMock[] = [];
