@@ -134,16 +134,23 @@ export async function getProfileDocument(
   return parseFunction(source);
 }
 
+export function isSuperJson(data: unknown): data is SuperJsonStructure {
+  return (
+    (data as SuperJsonStructure).profiles !== undefined &&
+    (data as SuperJsonStructure).providers !== undefined
+  );
+}
+
 export async function parseSuperJson(
   superJsonPath: string
 ): Promise<SuperJsonStructure> {
-  try {
-    return JSON.parse(
-      await readFile(superJsonPath, { encoding: 'utf-8' })
-    ) as SuperJsonStructure;
-  } catch (e) {
-    throw userError(e, 1);
+  const json = JSON.parse(await readFile(superJsonPath, { encoding: 'utf-8' }));
+
+  if (isSuperJson(json)) {
+    return json;
   }
+
+  throw userError('Invalid super.json', 1);
 }
 
 export async function writeSuperJson(
