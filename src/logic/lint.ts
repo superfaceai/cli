@@ -1,12 +1,16 @@
+import { MapHeaderNode } from '@superfaceai/ast';
 import {
   formatIssues,
   getProfileOutput,
   parseMap,
   parseMapId,
   parseProfile,
+  ProfileHeaderStructure,
   ProfileOutput,
   Source,
+  SyntaxError,
   validateMap,
+  ValidationResult,
 } from '@superfaceai/parser';
 import { basename } from 'path';
 
@@ -81,55 +85,80 @@ export async function lintFile(
 }
 
 export function isValidHeader(
-  profile: ProfileOutput,
-  map: MapDocument,
-  mapPath: string
-): {
-  result: boolean;
-  fallback: boolean;
-} {
-  const profileHeader = profile.header;
-  const mapHeader = map.header;
-  let result = true;
-  let fallback = false;
-
+  profileHeader: ProfileHeaderStructure,
+  mapHeader: MapHeaderNode
+): boolean {
   if (
     profileHeader.scope !== mapHeader.profile.scope ||
     profileHeader.name !== mapHeader.profile.name ||
-    (profileHeader.version.major !== mapHeader.profile.version.major &&
-      profileHeader.version.minor !== mapHeader.profile.version.minor)
+    profileHeader.version.major !== mapHeader.profile.version.major ||
+    profileHeader.version.minor !== mapHeader.profile.version.minor
   ) {
-    result = false;
+    return false;
   }
 
-  // fallback: compare file names
-  if (result === false) {
-    const mapIdentifier = basename(mapPath, MAP_EXTENSIONS[0]);
-    const mapId = mapIdentifier.includes('@')
-      ? mapIdentifier
-      : `${mapIdentifier}@${composeVersion(mapHeader.profile.version, true)}`;
-    const parsedMap = parseMapId(mapId);
-
-    if (parsedMap.kind === 'error') {
-      throw userError(parsedMap.message, 1);
-    }
-
-    const { name, version } = parsedMap.value;
-    if (
-      profileHeader.scope === mapHeader.profile.scope ||
-      profileHeader.name === name ||
-      (profileHeader.version.major === version.major &&
-        profileHeader.version.minor === version.minor)
-    ) {
-      fallback = true;
-    }
-  }
-
-  return {
-    result,
-    fallback,
-  };
+  return true;
 }
+
+export function isValidMapId(
+  profileHeader: ProfileHeaderStructure,
+  mapHeader: MapHeaderNode,
+  mapPath: string
+): boolean {
+  const mapIdentifier = basename(mapPath, MAP_EXTENSIONS[0]);
+  const mapId = mapIdentifier.includes('@')
+    ? mapIdentifier
+    : `${mapIdentifier}@${composeVersion(mapHeader.profile.version, true)}`;
+  const parsedMap = parseMapId(mapId);
+
+  if (parsedMap.kind === 'error') {
+    throw userError(parsedMap.message, 1);
+  }
+
+  const { name, version } = parsedMap.value;
+  if (
+    profileHeader.scope !== mapHeader.profile.scope ||
+    profileHeader.name !== name ||
+    profileHeader.version.major !== version.major ||
+    profileHeader.version.minor !== version.minor
+  ) {
+    return false;
+  }
+
+  return true;
+}
+
+export const createProfileMapReport = (
+  result: ValidationResult,
+  profilePath: string,
+  mapPath: string
+): ProfileMapReport =>
+  result.pass
+    ? {
+        kind: 'compatibility',
+        profile: profilePath,
+        path: mapPath,
+        errors: [],
+        warnings: result.warnings ?? [],
+      }
+    : {
+        kind: 'compatibility',
+        profile: profilePath,
+        path: mapPath,
+        errors: result.errors,
+        warnings: result.warnings ?? [],
+      };
+
+export const createFileReport = (
+  path: string,
+  errors: SyntaxError[],
+  warnings: string[]
+): FileReport => ({
+  kind: 'file',
+  path,
+  errors,
+  warnings,
+});
 
 export async function lintMapsToProfile(
   files: string[],
@@ -150,12 +179,11 @@ export async function lintMapsToProfile(
 
   if (unknown.length > 0) {
     for (const file of unknown) {
-      const report: FileReport = {
-        kind: 'file',
-        path: file,
-        errors: [],
-        warnings: ['Could not infer document type'],
-      };
+      const report = createFileReport(
+        file,
+        [],
+        ['Could not infer document type']
+      );
 
       await writer.writeElement(fn(report));
     }
@@ -163,47 +191,55 @@ export async function lintMapsToProfile(
     counts.push([0, unknown.length]);
   }
 
-  const profileDocuments: Array<ProfileDocument & { path: string }> = [];
+  const profileOutputs: Array<ProfileOutput & { path: string }> = [];
+  const mapDocuments: Array<
+    MapDocument & { path: string; matched: boolean }
+  > = [];
 
   for (const profilePath of profiles) {
-    profileDocuments.push({
-      ...(await getProfileDocument(profilePath)),
+    profileOutputs.push({
+      ...getProfileOutput(await getProfileDocument(profilePath)),
       path: profilePath,
     });
   }
 
+  for (const mapPath of maps) {
+    mapDocuments.push({
+      ...(await getMapDocument(mapPath)),
+      path: mapPath,
+      matched: false,
+    });
+  }
+
   // loop over profiles and validate only maps that have valid header
-  for (const profile of profileDocuments) {
-    const profileOutput = getProfileOutput(profile);
+  for (const profile of profileOutputs) {
+    for (const map of mapDocuments) {
+      if (isValidHeader(profile.header, map.header)) {
+        const result = validateMap(profile, map);
+        const report = createProfileMapReport(result, profile.path, map.path);
 
-    for (const mapPath of maps) {
-      const map = await getMapDocument(mapPath);
-      const { result, fallback } = isValidHeader(profileOutput, map, mapPath);
+        await writer.writeElement(fn(report));
 
-      if (fallback) {
-        await writer.writeElement(
-          `⚠️ map ${mapPath} assumed to belong to profile ${profile.path} based on file name`
-        );
+        counts.push([
+          result.pass ? 0 : result.errors.length,
+          result.warnings?.length ?? 0,
+        ]);
+
+        map.matched = true;
       }
+    }
+  }
 
-      if (result || fallback) {
-        const result = validateMap(profileOutput, map);
+  // loop over profiles and try to validate maps that did not match any profile
+  for (const profile of profileOutputs) {
+    for (const map of mapDocuments.filter(map => !map.matched)) {
+      if (isValidMapId(profile.header, map.header, map.path)) {
+        await writer.writeElement(
+          `⚠️ map ${map.path} assumed to belong to profile ${profile.path} based on file name`
+        );
 
-        const report: ProfileMapReport = result.pass
-          ? {
-              kind: 'compatibility',
-              profile: profile.path,
-              path: mapPath,
-              errors: [],
-              warnings: result.warnings ?? [],
-            }
-          : {
-              kind: 'compatibility',
-              profile: profile.path,
-              path: mapPath,
-              errors: result.errors,
-              warnings: result.warnings ?? [],
-            };
+        const result = validateMap(profile, map);
+        const report = createProfileMapReport(result, profile.path, map.path);
 
         await writer.writeElement(fn(report));
 
@@ -268,7 +304,7 @@ export function formatHuman(
   } else {
     buffer += formatIssues(report.errors);
 
-    if (!quiet && report.errors.length > 1 && report.warnings.length > 1) {
+    if (!quiet && report.errors.length > 0 && report.warnings.length > 0) {
       buffer += '\n';
     }
 
