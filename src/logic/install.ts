@@ -11,7 +11,7 @@ import {
   writeSuperJson,
 } from '../common/document';
 import { userError } from '../common/error';
-import { exists, isFileQuiet, mkdirQuiet, readFile } from '../common/io';
+import { exists, mkdirQuiet, readFile } from '../common/io';
 import { formatShellLog, LogCallback } from '../common/log';
 import {
   ProfileSettings,
@@ -31,10 +31,14 @@ export async function detectSuperJson(limit = 0): Promise<string | undefined> {
     return undefined;
   }
 
+  // check if user has permission to scanned directory
   const cwd = !limit ? './' : '../'.repeat(limit);
-  const path = joinPath(cwd, META_FILE);
+  if (!(await exists(cwd))) {
+    return undefined;
+  }
 
-  if (await isFileQuiet(path)) {
+  // check whether super.json exists in that directory
+  if (await exists(joinPath(cwd, META_FILE))) {
     return cwd;
   }
 
@@ -61,7 +65,7 @@ export async function getProfileFromRegistry(
   profileId: string
 ): Promise<RegistryResponseMock> {
   // const query = `/profiles/${profileId}`
-  const REGISTRY_DIR = joinPath(superPath, '../../registry');
+  const REGISTRY_DIR = joinPath(superPath, '..', '..', 'registry');
 
   const parsedId = parseProfileId(profileId);
   if (parsedId.kind === 'error') {
@@ -102,13 +106,11 @@ export async function getProfileFromRegistry(
 }
 
 function validateProfilePath(file: string): boolean {
-  const path = normalize(file);
-
   if (isAbsolute(file)) {
     return false;
   }
 
-  if (path.startsWith('../')) {
+  if (normalize(file).startsWith('../')) {
     return false;
   }
 
