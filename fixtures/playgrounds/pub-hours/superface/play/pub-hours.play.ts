@@ -1,71 +1,22 @@
-import * as fs from 'fs';
-import { join as joinPath } from 'path';
-import { promisify, inspect } from 'util';
+import { inspect } from 'util';
 
 import { Provider } from '@superfaceai/sdk';
-
-// These types are exported from the ast, but not from the sdk
-type ProfileDocumentNode = ConstructorParameters<typeof Provider>[0];
-type MapDocumentNode = Exclude<ConstructorParameters<typeof Provider>[1], string>;
-// This type is not exported from the sdk, but we want to pass it around for now TODO
-type AuthConfig = Parameters<Provider['bind']>[0];
-
-const readFile = promisify(fs.readFile);
-
-async function loadAsts(
-  scope: string | undefined,
-  name: string,
-  providerName: string,
-  variantName?: string
-): Promise<{
-  profile: ProfileDocumentNode,
-  map: MapDocumentNode
-}> {
-  // if scope is not undefined, add it to the build path
-  let buildPath = joinPath('superface', 'build');
-  if (scope !== undefined) {
-    buildPath = joinPath(buildPath, scope);
-  }
-
-  // Read the profile and map ASTs from the build folder
-  const profileAst = JSON.parse(
-    await readFile(joinPath(buildPath, `${name}.supr.ast.json`), { encoding: 'utf-8' })
-  );
-  const variant = variantName ? '.' + variantName : '';
-  const mapAst = JSON.parse(
-    await readFile(joinPath(buildPath, `${name}.${providerName}${variant}.suma.ast.json`), { encoding: 'utf-8' })
-  );
-
-  // As this is a development script, the correct structure of the loaded asts is not checked
-  // This should not be a problem as long as the input comes from a valid parser
-  return {
-    profile: profileAst,
-    map: mapAst
-  };
-}
 
 /** Execute one specific pair of profile and map. */
 async function execute(
   scope: string | undefined,
   name: string,
   providerName: string,
-  variantName?: string,
-  baseUrl?: string,
-  auth?: AuthConfig
+  variantName?: string
 ) {
-  const asts = await loadAsts(scope, name, providerName, variantName);
-
-  // 1. Create the provider object with the read ASTs
+  // 1. Create the provider object - the build artifacts are located by the sdk according to super.json
   const provider = new Provider(
-    asts.profile,
-    asts.map,
-    baseUrl
+    scope !== undefined ? `${scope}/${name}` : name,
+    `file:${providerName}.provider.json`
   );
 
-  // 2. Bind the provider
-  const boundProvider = await provider.bind({
-    ...auth
-  });
+  // 2. Bind the provider - values are taken from super.json unless overridden here
+  const boundProvider = await provider.bind({});
 
   // 3. Perform the usecase with the bound provider
   const result = await boundProvider.perform(
@@ -117,18 +68,12 @@ async function main() {
       variant = nameSplit[2];
     }
 
-    // TODO: Choose auth and base url based on provider name
-    // Later they will be read by the SDK from provider.json and from the registry
-    const baseUrl = 'https://overpass-api.de';
-    const auth = {};
-
+    // TODO: Variant is unused
     execute(
       scope,
       name,
       provider,
-      variant,
-      baseUrl,
-      auth
+      variant
     );
   }
 }
