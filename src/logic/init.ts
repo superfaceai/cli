@@ -5,7 +5,6 @@ import {
   composeUsecaseName,
   composeVersion,
   EXTENSIONS,
-  validateDocumentName,
 } from '../common/document';
 import { userError } from '../common/error';
 import { mkdir, mkdirQuiet, OutputStream } from '../common/io';
@@ -133,18 +132,6 @@ export async function initSuperface(
     }
   }
 }
-
-export const parseProfileIds = (input: string): string[] =>
-  input
-    .split(' ')
-    .filter(p => p.trim() !== '')
-    .filter(p => parseProfileId(p).kind !== 'error');
-
-export const parseProviders = (input: string): string[] =>
-  input
-    .split(' ')
-    .filter(i => i.trim() !== '')
-    .filter(validateDocumentName);
 
 /**
  * Reconstructs profile ids to correct structure for super.json

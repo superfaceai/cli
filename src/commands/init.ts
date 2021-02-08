@@ -1,14 +1,14 @@
 import { Command, flags } from '@oclif/command';
+import { parseProfileId } from '@superfaceai/parser';
 import { grey } from 'chalk';
 import inquirer from 'inquirer';
 
+import { validateDocumentName } from '../common/document';
 import {
   constructProfileSettings,
   constructProviderSettings,
   generateSpecifiedProfiles,
   initSuperface,
-  parseProfileIds,
-  parseProviders,
 } from '../logic/init';
 
 export default class Init extends Command {
@@ -138,3 +138,15 @@ You can also use this command in quiet mode with flag \`-q\`.
     }
   }
 }
+
+export const parseProfileIds = (input: string): string[] =>
+  input
+    .split(' ')
+    .filter(p => p.trim() !== '')
+    .filter(p => parseProfileId(p).kind !== 'error');
+
+export const parseProviders = (input: string): string[] =>
+  input
+    .split(' ')
+    .filter(i => i.trim() !== '')
+    .filter(validateDocumentName);

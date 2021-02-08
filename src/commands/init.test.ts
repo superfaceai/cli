@@ -61,7 +61,7 @@ $ mkdir 'fixtures/playgrounds/test/superface/build'
         )
       )
     ).resolves.toBeDefined();
-  }, 20000);
+  });
 
   it('initializes base folder with quiet mode', async () => {
     await expect(
@@ -93,7 +93,7 @@ $ mkdir 'fixtures/playgrounds/test/superface/build'
         )
       )
     ).resolves.toBeDefined();
-  }, 20000);
+  });
 
   it('initilizes base folder with specified profiles', async () => {
     const profile1 = {
