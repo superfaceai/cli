@@ -23,6 +23,20 @@ export function composeProvider(name: string): ProviderStructure {
   };
 }
 
+// TODO: This is the new format
+// export function pubsProvider(name: string): ProviderStructure {
+//   return {
+//     name,
+//     services: [
+//       {
+//         id: 'default',
+//         baseUrl: 'https://overpass-api.de'
+//       }
+//     ],
+//     defaultService: "default"
+//   }
+// }
+
 /**
  * Returns default JSON that represents {name}.provider.json file.
  */
