@@ -217,9 +217,10 @@ describe('lint CLI command', () => {
       ])
     ).rejects.toHaveProperty(['oclif', 'exit'], 2);
 
-    expect(stdout.output).not.toContain('⚠️ ./fixtures/strict.unknown');
-    expect(stdout.output).not.toContain('⚠️ ./fixtures/some.unknown');
+    expect(stdout.output).toContain('⚠️ ./fixtures/strict.unknown');
+    expect(stdout.output).toContain('⚠️ ./fixtures/some.unknown');
     expect(stdout.output).toContain('Detected 0 problems');
+
     await expect(
       Lint.run([
         '-v',
@@ -231,8 +232,8 @@ describe('lint CLI command', () => {
       ])
     ).rejects.toHaveProperty(['oclif', 'exit'], 1);
 
-    expect(stdout.output).not.toContain('⚠️ ./fixtures/strict.unknown');
-    expect(stdout.output).not.toContain('⚠️ fixtures/valid-map.provider.suma');
+    expect(stdout.output).toContain('⚠️ ./fixtures/strict.unknown');
+    expect(stdout.output).toContain('⚠️ fixtures/valid-map.provider.suma');
     expect(stdout.output).toContain('❌ fixtures/invalid-map.twillio.suma');
     expect(stdout.output).toContain('Detected 5 problems');
   });

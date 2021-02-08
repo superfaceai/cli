@@ -277,10 +277,6 @@ export function formatHuman(
     'profile' in report ? `➡️ Profile:\t${report.profile}\n` : '';
   let buffer = `${profileName}${prefix} ${report.path}\n`;
 
-  if (prefix === REPORT_WARN && quiet) {
-    return '';
-  }
-
   if (report.kind === 'file') {
     for (const error of report.errors) {
       if (short) {
