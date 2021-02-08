@@ -10,6 +10,16 @@ describe('lint CLI command', () => {
     invalidParsedMap: joinPath('fixtures', 'invalid.suma'),
     validMap: joinPath('fixtures', 'valid-map.provider.suma'),
     invalidMap: joinPath('fixtures', 'invalid-map.twillio.suma'),
+    lint: {
+      profile: {
+        foo: joinPath('fixtures', 'lint', 'foo.supr'),
+        bar: joinPath('fixtures', 'lint', 'bar.supr'),
+      },
+      map: {
+        foo: joinPath('fixtures', 'lint', 'foo.provider.suma'),
+        bar: joinPath('fixtures', 'lint', 'bar.provider.suma'),
+      },
+    },
   };
 
   beforeEach(() => {
@@ -175,6 +185,26 @@ describe('lint CLI command', () => {
     expect(stdout.output).toContain('Detected 10 problems');
   });
 
+  it('lints only maps that meets conditions', async () => {
+    await expect(
+      Lint.run([
+        '-v',
+        fixture.lint.profile.foo,
+        fixture.lint.profile.bar,
+        fixture.lint.map.foo,
+      ])
+    ).rejects.toHaveProperty(['oclif', 'exit'], 1);
+
+    expect(stdout.output).toContain(
+      `⚠️ map ${fixture.lint.map.foo} assumed to belong to profile ${fixture.lint.profile.foo} based on file name`
+    );
+    expect(stdout.output).toContain(`➡️ Profile:\t${fixture.lint.profile.foo}`);
+    expect(stdout.output).not.toContain(
+      `➡️ Profile:\t${fixture.lint.profile.bar}`
+    );
+    expect(stdout.output).toContain('Detected 1 problem');
+  });
+
   it('does not show warnings when linting with flag --quiet', async () => {
     await expect(
       Lint.run([
@@ -190,7 +220,6 @@ describe('lint CLI command', () => {
     expect(stdout.output).not.toContain('⚠️ ./fixtures/strict.unknown');
     expect(stdout.output).not.toContain('⚠️ ./fixtures/some.unknown');
     expect(stdout.output).toContain('Detected 0 problems');
-
     await expect(
       Lint.run([
         '-v',
