@@ -1,0 +1,16 @@
+{
+  "profiles": {
+    "testground": {
+      "file": "testground/testground.supr",
+      "version": "1.0.0"
+    }
+  },
+  "providers": {
+    "osm": {
+      "auth": {}
+    },
+    "noop": {
+      "auth": {}
+    }
+  }
+}
