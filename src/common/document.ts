@@ -144,7 +144,9 @@ export function isSuperJson(data: unknown): data is SuperJsonStructure {
 export async function parseSuperJson(
   superJsonPath: string
 ): Promise<SuperJsonStructure> {
-  const json = JSON.parse(await readFile(superJsonPath, { encoding: 'utf-8' }));
+  const json: unknown = JSON.parse(
+    await readFile(superJsonPath, { encoding: 'utf-8' })
+  );
 
   if (isSuperJson(json)) {
     return json;
