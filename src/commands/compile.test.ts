@@ -25,7 +25,7 @@ describe('Compile CLI command', () => {
     await rimraf(compileDir);
   });
 
-  describe('integration tests', () => {
+  describe.skip('integration tests', () => {
     it('compiles map', async () => {
       const mapASTFixture = JSON.parse(
         (await readFile(fixture.strictMapAst)).toString()

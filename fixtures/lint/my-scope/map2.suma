@@ -1,0 +1,10 @@
+profile = "some-profile@2.0.0"
+provider = "twillio"
+
+"""
+MyProfile map
+"""
+map MyProfile {
+    map result 222
+    map error false
+}
