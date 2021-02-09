@@ -1,6 +1,7 @@
 import * as childProcess from 'child_process';
 import createDebug from 'debug';
 import * as fs from 'fs';
+import { dirname } from 'path';
 import rimrafCallback from 'rimraf';
 import { Writable } from 'stream';
 import { promisify } from 'util';
@@ -11,7 +12,6 @@ import { SkipFileType } from './flags';
 export const readFile = promisify(fs.readFile);
 export const access = promisify(fs.access);
 export const stat = promisify(fs.stat);
-export const lstat = promisify(fs.lstat);
 export const readdir = promisify(fs.readdir);
 export const mkdir = promisify(fs.mkdir);
 export const realpath = promisify(fs.realpath);
@@ -37,7 +37,11 @@ export async function exists(path: string): Promise<boolean> {
   return true;
 }
 
-export async function mkdirQuiet(path: string): Promise<void> {
+/**
+ * Creates a directory without erroring if it already exists.
+ * Returns `true` if the directory was created.
+ */
+export async function mkdirQuiet(path: string): Promise<boolean> {
   try {
     await mkdir(path);
   } catch (err: unknown) {
@@ -45,14 +49,58 @@ export async function mkdirQuiet(path: string): Promise<void> {
 
     // Allow `EEXIST` because scope directory already exists.
     if (err.code === 'EEXIST') {
-      return;
+      return false;
     }
 
     // Rethrow other errors.
     throw err;
   }
 
-  return;
+  return true;
+}
+
+/**
+ * Returns `true` if the given path is a file.
+ *
+ * Uses the `stat` syscall (follows symlinks) and ignores the `ENOENT` error (non-existent file just returns `false`).
+ */
+export async function isFileQuiet(path: string): Promise<boolean> {
+  try {
+    const statInfo = await stat(path);
+
+    return statInfo.isFile();
+  } catch (err: unknown) {
+    assertIsIOError(err);
+
+    // allow ENOENT, which means it is not a directory
+    if (err.code !== 'ENOENT') {
+      throw err;
+    }
+  }
+
+  return false;
+}
+
+/**
+ * Returns `true` if the given path is a directory.
+ *
+ * Uses the `stat` syscall (follows symlinks) and ignores the `ENOENT` error (non-existent directory just returns `false`).
+ */
+export async function isDirectoryQuiet(path: string): Promise<boolean> {
+  try {
+    const statInfo = await stat(path);
+
+    return statInfo.isDirectory();
+  } catch (err: unknown) {
+    assertIsIOError(err);
+
+    // allow ENOENT, which means it is not a directory
+    if (err.code !== 'ENOENT') {
+      throw err;
+    }
+  }
+
+  return false;
 }
 
 export function streamWrite(stream: Writable, data: string): Promise<void> {
@@ -211,6 +259,42 @@ export class OutputStream {
     await stream.write(data);
 
     return stream.cleanup();
+  }
+
+  /**
+   * Creates file with given contents if it doesn't exist.
+   *
+   * Returns whether the file was created.
+   *
+   * For convenience the `force` option can be provided
+   * to force the creation.
+   *
+   * The `dirs` option additionally recursively creates
+   * directories up until the file path.
+   */
+  static async writeIfAbsent(
+    path: string,
+    data: string | (() => string),
+    options?: {
+      append?: boolean;
+      force?: boolean;
+      dirs?: boolean;
+    }
+  ): Promise<boolean> {
+    if (options?.dirs === true) {
+      const dir = dirname(path);
+      await mkdir(dir, { recursive: true });
+    }
+
+    if (options?.force === true || !(await exists(path))) {
+      const dat = typeof data === 'string' ? data : data();
+
+      await OutputStream.writeOnce(path, dat, options?.append);
+
+      return true;
+    }
+
+    return false;
   }
 }
 

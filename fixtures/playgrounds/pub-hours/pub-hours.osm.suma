@@ -1,4 +1,4 @@
-profile = "example/pubs@1.0.0"
+profile = "example/pub-hours@1"
 provider = "osm"
 
 map PubOpeningHours {
@@ -25,9 +25,9 @@ map PubOpeningHours {
 }
 
 operation BuildQuery {
-	regexLine = input.nameRegex ? `node._["name"~"${input.nameRegex}", i];` : '';
+	regexLine = args.nameRegex ? `node._["name"~"${args.nameRegex}", i];` : '';
 	query = (`[out:json][timeout:10];
-		area[boundary=administrative][admin_level=8][name="${input.city}"];
+		area[boundary=administrative][admin_level=8][name="${args.city}"];
 		node[amenity="pub"][opening_hours](area);
 		${regexLine}
 

@@ -584,12 +584,12 @@
 
 "@superfaceai/ast@0.0.20", "@superfaceai/ast@^0.0.20":
   version "0.0.20"
-  resolved "https://npm.pkg.github.com/download/@superfaceai/ast/0.0.20/957dff9bf72e8a26c1ddf4cf4e82726c47edc9b3d91e3b8d576f7c1e9862a7b7#394e1a92cb14c9c62da41c2cdcd8070653e93f47"
+  resolved "https://npm.pkg.github.com/download/@superfaceai/ast/0.0.20/957dff9bf72e8a26c1ddf4cf4e82726c47edc9b3d91e3b8d576f7c1e9862a7b7"
   integrity sha512-vE6D7SXn72Y3PvvLWTFttyt34FRbQbEUlNUpb3wtn9yQrplEWoOw1rcwmoHaAKemRHGQMEWjTcHE9KKW4ocY8A==
 
 "@superfaceai/parser@0.0.12":
   version "0.0.12"
-  resolved "https://npm.pkg.github.com/download/@superfaceai/parser/0.0.12/05108ac24c414879db9660a00c68aca4dce5a688b80792bfa44ed4fc31e91791#261b2944f89f0041608b730da4ab6a91da74df5e"
+  resolved "https://npm.pkg.github.com/download/@superfaceai/parser/0.0.12/05108ac24c414879db9660a00c68aca4dce5a688b80792bfa44ed4fc31e91791"
   integrity sha512-emtahmzZLAA3gscmWTXw6qIR+CIMExsaqWhSnClnpygc48T9Q7br/YJF0kOqsj9yxrmRG9tdPMqIeTHDRvgRtA==
   dependencies:
     "@superfaceai/ast" "^0.0.20"
@@ -600,7 +600,7 @@
 
 "@superfaceai/sdk@^0.0.6":
   version "0.0.6"
-  resolved "https://npm.pkg.github.com/download/@superfaceai/sdk/0.0.6/387912bddad3c5acf3e9b17bd3c330d37845ebd7c5c4d03c8ff491c7b116ad11#c040b4c01a85fc32a66bb59ab50f948279d7e1b5"
+  resolved "https://npm.pkg.github.com/download/@superfaceai/sdk/0.0.6/387912bddad3c5acf3e9b17bd3c330d37845ebd7c5c4d03c8ff491c7b116ad11"
   integrity sha512-i7gYjJuvWazsd7uejxsUZzX5k8ukHWucFymZK+bHKB7ExQur5WC3pmrke8P4r6/bmxP5FQGj5/xOgOmkvNXviQ==
   dependencies:
     "@superfaceai/ast" "0.0.20"
@@ -644,7 +644,7 @@
 
 "@types/debug@^4.1.5":
   version "4.1.5"
-  resolved "https://registry.yarnpkg.com/@types/debug/-/debug-4.1.5.tgz#b14efa8852b7768d898906613c23f688713e02cd"
+  resolved "https://registry.yarnpkg.com/@types/debug/-/debug-4.1.5.tgz"
   integrity sha512-Q1y515GcOdTHgagaVFhHnIFQ38ygs/kmxdNpvpou+raI9UO3YZcHDngBSYKQklcKlvA7iuQlmIKbzvmxcOE9CQ==
 
 "@types/glob@*":
@@ -1367,7 +1367,7 @@ core-util-is@1.0.2:
 
 cross-fetch@^3.0.5:
   version "3.0.6"
-  resolved "https://registry.yarnpkg.com/cross-fetch/-/cross-fetch-3.0.6.tgz#3a4040bc8941e653e0e9cf17f29ebcd177d3365c"
+  resolved "https://registry.yarnpkg.com/cross-fetch/-/cross-fetch-3.0.6.tgz"
   integrity sha512-KBPUbqgFjzWlVcURG+Svp9TlhA5uliYtiNx/0r8nv0pdypeQCRJ9IaSIc3q/x3q8t3F75cHuwxVql1HFGHCNJQ==
   dependencies:
     node-fetch "2.6.1"
@@ -2045,7 +2045,7 @@ forever-agent@~0.6.1:
 
 form-data@^2.3.2:
   version "2.5.1"
-  resolved "https://registry.yarnpkg.com/form-data/-/form-data-2.5.1.tgz#f2cbec57b5e59e23716e128fe44d4e5dd23895f4"
+  resolved "https://registry.yarnpkg.com/form-data/-/form-data-2.5.1.tgz"
   integrity sha512-m21N3WOmEEURgk6B9GLOE4RuWOFf28Lhh9qGYeNlGq4VDXUlJy2th2slBNU8Gp8EzloYZOibZJ7t5ecIrFSjVA==
   dependencies:
     asynckit "^0.4.0"
@@ -2617,7 +2617,7 @@ isobject@^3.0.0, isobject@^3.0.1:
 
 isomorphic-form-data@^2.0.0:
   version "2.0.0"
-  resolved "https://registry.yarnpkg.com/isomorphic-form-data/-/isomorphic-form-data-2.0.0.tgz#9f6adf1c4c61ae3aefd8f110ab60fb9b143d6cec"
+  resolved "https://registry.yarnpkg.com/isomorphic-form-data/-/isomorphic-form-data-2.0.0.tgz"
   integrity sha512-TYgVnXWeESVmQSg4GLVbalmQ+B4NPi/H4eWxqALKj63KsUrcu301YDjBqaOw3h+cbak7Na4Xyps3BiptHtxTfg==
   dependencies:
     form-data "^2.3.2"
@@ -3428,7 +3428,7 @@ nice-try@^1.0.4:
 
 node-fetch@2.6.1:
   version "2.6.1"
-  resolved "https://registry.yarnpkg.com/node-fetch/-/node-fetch-2.6.1.tgz#045bd323631f76ed2e2b55573394416b639a0052"
+  resolved "https://registry.yarnpkg.com/node-fetch/-/node-fetch-2.6.1.tgz"
   integrity sha512-V4aYg89jEoVRxRb2fJdAg8FHvI7cEyYdVAh94HH0UIK8oJxUfkjlDQN9RbMx+bEjP7+ggMiFRprSti032Oipxw==
 
 node-int64@^0.4.0:
@@ -4725,7 +4725,7 @@ verror@1.10.0:
 
 vm2@^3.9.2:
   version "3.9.2"
-  resolved "https://registry.yarnpkg.com/vm2/-/vm2-3.9.2.tgz#a4085d2d88a808a1b3c06d5478c2db3222a9cc30"
+  resolved "https://registry.yarnpkg.com/vm2/-/vm2-3.9.2.tgz"
   integrity sha512-nzyFmHdy2FMg7mYraRytc2jr4QBaUY3TEGe3q3bK8EgS9WC98wxn2jrPxS/ruWm+JGzrEIIeufKweQzVoQEd+Q==
 
 w3c-hr-time@^1.0.2:

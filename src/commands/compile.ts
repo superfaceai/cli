@@ -1,15 +1,15 @@
 import { Command, flags } from '@oclif/command';
 import { Source } from '@superfaceai/parser';
-import * as nodePath from 'path';
+import { basename, join as joinPath } from 'path';
 
 import {
   DOCUMENT_PARSE_FUNCTION,
-  DocumentType,
   inferDocumentTypeWithFlag,
 } from '../common/document';
-import { assertIsIOError, userError } from '../common/error';
+import { DocumentType } from '../common/document.interfaces';
+import { userError } from '../common/error';
 import { DocumentTypeFlag, documentTypeFlag } from '../common/flags';
-import { lstat, OutputStream, readFile } from '../common/io';
+import { isDirectoryQuiet, OutputStream, readFile } from '../common/io';
 
 export default class Compile extends Command {
   static description = 'Compiles the given profile or map to AST.';
@@ -51,18 +51,7 @@ export default class Compile extends Command {
     const outputPath = flags.output?.trim();
     let outputStream: OutputStream | undefined = undefined;
     if (outputPath !== undefined) {
-      let isDirectory = false;
-      try {
-        const lstatInfo = await lstat(outputPath);
-        isDirectory = lstatInfo.isDirectory();
-      } catch (err: unknown) {
-        // eat ENOENT error and keep isDirectory false
-        assertIsIOError(err);
-        if (err.code !== 'ENOENT') {
-          throw err;
-        }
-      }
-
+      const isDirectory = await isDirectoryQuiet(outputPath);
       if (!isDirectory) {
         this.debug(`Compiling all files to "${outputPath}"`);
         outputStream = new OutputStream(outputPath, flags.append);
@@ -77,9 +66,9 @@ export default class Compile extends Command {
           if (fileOutputStream === undefined) {
             if (outputPath !== undefined) {
               // Shared directory, name based on file
-              const sharedDirectory = nodePath.join(
+              const sharedDirectory = joinPath(
                 outputPath,
-                nodePath.basename(file) + DEFAULT_EXTENSION
+                basename(file) + DEFAULT_EXTENSION
               );
               this.debug(`Compiling "${file}" to "${sharedDirectory}"`);
 
@@ -128,7 +117,7 @@ export default class Compile extends Command {
 
     const parseFunction = DOCUMENT_PARSE_FUNCTION[documentType];
     const content = (await readFile(path)).toString();
-    const source = new Source(content, nodePath.basename(path));
+    const source = new Source(content, basename(path));
 
     return parseFunction(source);
   }
