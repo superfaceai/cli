@@ -128,7 +128,11 @@ export default class Create extends Command {
 
     // compose document structure from the result
     const documentStructure = documentResult.value;
-    const { scope, middle: [name, provider], version } = documentStructure;
+    const {
+      scope,
+      middle: [name, provider],
+      version,
+    } = documentStructure;
 
     if (version === undefined) {
       throw developerError('version must be present', 1);

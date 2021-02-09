@@ -17,13 +17,13 @@ import { basename } from 'path';
 import {
   composeVersion,
   DOCUMENT_PARSE_FUNCTION,
-  DocumentType,
+  EXTENSIONS,
   inferDocumentTypeWithFlag,
   isMapFile,
   isProfileFile,
   isUnknownFile,
-  MAP_EXTENSIONS,
 } from '../common/document';
+import { DocumentType } from '../common/document.interfaces';
 import { userError } from '../common/error';
 import { DocumentTypeFlag } from '../common/flags';
 import { ListWriter, readFile } from '../common/io';
@@ -105,7 +105,7 @@ export function isValidMapId(
   mapHeader: MapHeaderNode,
   mapPath: string
 ): boolean {
-  const mapIdentifier = basename(mapPath, MAP_EXTENSIONS[0]);
+  const mapIdentifier = basename(mapPath, EXTENSIONS.map.source);
   const mapId = mapIdentifier.includes('@')
     ? mapIdentifier
     : `${mapIdentifier}@${composeVersion(mapHeader.profile.version, true)}`;
