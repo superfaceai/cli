@@ -27,7 +27,7 @@ describe('Init CLI command', () => {
   });
 
   it('initializes base folder', async () => {
-    await expect(Init.run([testInitFolderPath, '-f'])).resolves.toBeUndefined();
+    await expect(Init.run([testInitFolderPath])).resolves.toBeUndefined();
 
     const expectedFiles = [
       '.npmrc',
@@ -64,9 +64,7 @@ $ mkdir 'fixtures/playgrounds/test/superface/build'
   });
 
   it('initializes base folder with quiet mode', async () => {
-    await expect(
-      Init.run([testInitFolderPath, '-q', '-f'])
-    ).resolves.toBeUndefined();
+    await expect(Init.run([testInitFolderPath, '-q'])).resolves.toBeUndefined();
 
     const expectedFiles = [
       '.npmrc',
@@ -110,13 +108,7 @@ $ mkdir 'fixtures/playgrounds/test/superface/build'
     };
 
     await expect(
-      Init.run([
-        testInitFolderPath,
-        '-f',
-        '--profiles',
-        profile1.id,
-        profile2.id,
-      ])
+      Init.run([testInitFolderPath, '--profiles', profile1.id, profile2.id])
     ).resolves.toBeUndefined();
 
     const expectedFiles = [
@@ -147,7 +139,7 @@ $ mkdir 'fixtures/playgrounds/test/superface/build'
 
   it('initilizes base folder with specified providers', async () => {
     await expect(
-      Init.run([testInitFolderPath, '-f', '--providers', 'twillio', 'osm'])
+      Init.run([testInitFolderPath, '--providers', 'twillio', 'osm'])
     ).resolves.toBeUndefined();
 
     // TODO: check for super.json
