@@ -3,9 +3,10 @@ import { join as joinPath } from 'path';
 
 import { composeVersion, EXTENSIONS } from '../common/document';
 import { LogCallback, OutputStream } from '../common/io';
+import { TemplateType } from '../templates/common';
 import * as mapTemplate from '../templates/map';
 import * as profileTemplate from '../templates/profile';
-import { defaultProvider } from '../templates/provider';
+import * as providerTemplate from '../templates/provider';
 
 /**
  * Creates a new profile
@@ -18,7 +19,7 @@ export async function createProfile(
     version: DocumentVersion;
   },
   usecaseNames: string[],
-  template: profileTemplate.UsecaseTemplateType,
+  template: TemplateType,
   options?: {
     force?: boolean;
     logCb?: LogCallback;
@@ -60,7 +61,7 @@ export async function createMap(
     version: DocumentVersion;
   },
   usecaseNames: string[],
-  template: mapTemplate.MapTemplateType,
+  template: TemplateType,
   options?: {
     force?: boolean;
     logCb?: LogCallback;
@@ -96,6 +97,7 @@ export async function createMap(
 export async function createProviderJson(
   basePath: string,
   name: string,
+  template: TemplateType,
   options?: {
     force?: boolean;
     logCb?: LogCallback;
@@ -103,7 +105,7 @@ export async function createProviderJson(
 ): Promise<void> {
   const created = await OutputStream.writeIfAbsent(
     joinPath(basePath, `${name}.provider.json`),
-    defaultProvider(name),
+    providerTemplate.provider(template, name),
     { force: options?.force }
   );
 
