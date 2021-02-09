@@ -7,13 +7,12 @@ import {
   EXTENSIONS,
 } from '../common/document';
 import { userError } from '../common/error';
-import { mkdir, mkdirQuiet, OutputStream } from '../common/io';
+import { LogCallback, mkdir, mkdirQuiet, OutputStream } from '../common/io';
 import { formatShellLog } from '../common/log';
 import { ProfileSettings, ProviderSettings } from '../common/super.interfaces';
 import * as initTemplate from '../templates/init';
 import { createProfile } from './create';
 
-type LogCallback = (message: string) => void;
 export const SUPERFACE_DIR = 'superface';
 export const GRID_DIR = joinPath(SUPERFACE_DIR, 'grid');
 export const TYPES_DIR = joinPath(SUPERFACE_DIR, 'types');
@@ -43,6 +42,7 @@ export async function initSuperface(
   options?: {
     force?: boolean;
     logCb?: LogCallback;
+    warnCb?: LogCallback;
   }
 ): Promise<void> {
   // create the base path

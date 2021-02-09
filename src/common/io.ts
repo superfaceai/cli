@@ -18,6 +18,8 @@ export const realpath = promisify(fs.realpath);
 
 export const rimraf = promisify(rimrafCallback);
 
+export type LogCallback = (message: string) => void;
+
 export async function exists(path: string): Promise<boolean> {
   try {
     await access(path);

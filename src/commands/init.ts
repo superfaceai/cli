@@ -1,15 +1,90 @@
 import { Command, flags } from '@oclif/command';
 import { parseProfileId } from '@superfaceai/parser';
-import { grey } from 'chalk';
+import { grey, yellow } from 'chalk';
 import inquirer from 'inquirer';
 
 import { validateDocumentName } from '../common/document';
+import { LogCallback } from '../common/io';
 import {
   constructProfileSettings,
   constructProviderSettings,
   generateSpecifiedProfiles,
   initSuperface,
 } from '../logic/init';
+
+export const parseProfileIds = (
+  input: string,
+  options?: { warnCb?: LogCallback }
+): string[] =>
+  input
+    .split(' ')
+    .filter(p => p.trim() !== '')
+    .filter(p => {
+      if (parseProfileId(p).kind === 'error') {
+        options?.warnCb?.('⬅ Invalid profile id');
+
+        return false;
+      }
+
+      return true;
+    });
+
+export const parseProviders = (
+  input: string,
+  options?: { warnCb?: LogCallback }
+): string[] =>
+  input
+    .split(' ')
+    .filter(i => i.trim() !== '')
+    .filter(p => {
+      if (!validateDocumentName(p)) {
+        options?.warnCb?.('⬅ Invalid provider name');
+
+        return false;
+      }
+
+      return true;
+    });
+
+async function promptProfiles(options?: {
+  warnCb?: LogCallback;
+}): Promise<string[]> {
+  const response: { profiles: string } = await inquirer.prompt({
+    name: 'profiles',
+    message: 'Input space separated list of profile ids to initialize.',
+    type: 'input',
+    validate: (input: string): boolean => {
+      // allow empty input
+      if (input === '') {
+        return true;
+      }
+
+      return parseProfileIds(input, options).length > 0;
+    },
+  });
+
+  return parseProfileIds(response.profiles, options);
+}
+
+async function promptProviders(options?: {
+  warnCb?: LogCallback;
+}): Promise<string[]> {
+  const response: { providers: string } = await inquirer.prompt({
+    name: 'providers',
+    message: 'Input space separated list of providers to initialize.',
+    type: 'input',
+    validate: (input: string): boolean => {
+      // allow empty input
+      if (input === '') {
+        return true;
+      }
+
+      return parseProviders(input, options).length > 0;
+    },
+  });
+
+  return parseProviders(response.providers, options);
+}
 
 export default class Init extends Command {
   static description = 'Initializes superface local folder structure.';
@@ -46,73 +121,45 @@ export default class Init extends Command {
       description: 'Provider names.',
       required: false,
     }),
-    force: flags.boolean({
-      char: 'f',
-      description: 'When set to true, default values will be specified.',
+    prompt: flags.boolean({
+      char: 'p',
+      description: 'When set to true, prompt will be executed.',
       default: false,
+      required: false,
     }),
     help: flags.help({ char: 'h' }),
   };
 
   private logCallback? = (message: string) => this.log(grey(message));
+  private warnCallback? = (message: string) => this.warn(yellow(message));
 
   async run(): Promise<void> {
     const { args, flags } = this.parse(Init);
-
-    this
-      .log(`This command will walk you through initializing superface folder structure ( mainly super.json structure ). 
-If no value is specified, the default will be taken in place ( empty super.json ).
-
-You can use flags instead of prompt. \`Use superface init --help\` for more informations.
-You can also use this command in quiet mode with flag \`-q\`.
-`);
 
     if (flags.quiet) {
       this.logCallback = undefined;
     }
 
+    if (flags.prompt) {
+      this
+        .log(`This command will walk you through initializing superface folder structure ( mainly super.json structure ). 
+If no value is specified, the default will be taken in place ( empty super.json ).
+
+You can use flags instead of prompt. \`Use superface init --help\` for more informations.
+You can also use this command in quiet mode with flag \`-q\`.
+`);
+    }
+
     let profiles = flags.profiles;
     let providers = flags.providers;
 
-    if (!flags.force) {
-      // initialize profiles
+    if (flags.prompt) {
       if (!flags.profiles || flags.profiles.length === 0) {
-        const response: { profiles: string } = await inquirer.prompt({
-          name: 'profiles',
-          message: 'Input space separated list of profile ids to initialize.',
-          type: 'input',
-          validate: (input: string): boolean => {
-            // allow empty input
-            if (input === '') {
-              return true;
-            }
-
-            const profiles = parseProfileIds(input);
-
-            return profiles.length > 0;
-          },
-        });
-        profiles = parseProfileIds(response.profiles);
+        profiles = await promptProfiles({ warnCb: this.warnCallback });
       }
 
-      // initialize providers
       if (!flags.providers || flags.providers.length === 0) {
-        const response: { providers: string } = await inquirer.prompt({
-          name: 'providers',
-          message: 'Input space separated list of providers to initialize.',
-          type: 'input',
-          validate: (input: string): boolean => {
-            // allow empty input
-            if (input === '') {
-              return true;
-            }
-
-            const providers = parseProviders(input);
-
-            return providers.length > 0;
-          },
-        });
-        providers = parseProviders(response.providers);
+        providers = await promptProviders({ warnCb: this.warnCallback });
       }
     } else {
       profiles ??= [];
@@ -130,6 +177,7 @@ You can also use this command in quiet mode with flag \`-q\`.
       constructProviderSettings(providers),
       {
         logCb: this.logCallback,
+        warnCb: this.warnCallback,
       }
     );
 
@@ -138,15 +186,3 @@ You can also use this command in quiet mode with flag \`-q\`.
     }
   }
 }
-
-export const parseProfileIds = (input: string): string[] =>
-  input
-    .split(' ')
-    .filter(p => p.trim() !== '')
-    .filter(p => parseProfileId(p).kind !== 'error');
-
-export const parseProviders = (input: string): string[] =>
-  input
-    .split(' ')
-    .filter(i => i.trim() !== '')
-    .filter(validateDocumentName);
