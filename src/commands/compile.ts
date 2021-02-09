@@ -9,7 +9,8 @@ import {
 import { DocumentType } from '../common/document.interfaces';
 import { userError } from '../common/error';
 import { DocumentTypeFlag, documentTypeFlag } from '../common/flags';
-import { isDirectoryQuiet, OutputStream, readFile } from '../common/io';
+import { isDirectoryQuiet, readFile } from '../common/io';
+import { OutputStream } from '../common/output-stream';
 
 export default class Compile extends Command {
   static description = 'Compiles the given profile or map to AST.';

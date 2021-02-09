@@ -11,7 +11,7 @@ import {
   writeSuperJson,
 } from '../common/document';
 import { userError } from '../common/error';
-import { exists, mkdirQuiet, readFile } from '../common/io';
+import { exists, isAccessible, readFile } from '../common/io';
 import { formatShellLog, LogCallback } from '../common/log';
 import {
   ProfileSettings,
@@ -33,12 +33,12 @@ export async function detectSuperJson(limit = 0): Promise<string | undefined> {
 
   // check if user has permission to scanned directory
   const cwd = !limit ? './' : '../'.repeat(limit);
-  if (!(await exists(cwd))) {
+  if (!(await isAccessible(cwd))) {
     return undefined;
   }
 
   // check whether super.json exists in that directory
-  if (await exists(joinPath(cwd, META_FILE))) {
+  if (await isAccessible(joinPath(cwd, META_FILE))) {
     return cwd;
   }
 
@@ -139,10 +139,6 @@ export async function handleProfiles(
   } of responses) {
     const targetProfile = profiles[profileName];
 
-    // make sure /grid and /build exist
-    await mkdirQuiet(gridPath);
-    await mkdirQuiet(buildPath);
-
     // store path if profile has one specified in super.json
     const profilePath = `${profileName}${EXTENSIONS.profile.source}`;
     let targetProfilePath = joinPath(gridPath, profilePath);
@@ -152,7 +148,7 @@ export async function handleProfiles(
       typeof targetProfile !== 'string' &&
       targetProfile.file
     ) {
-      const path = targetProfile.file.slice(7);
+      const path = targetProfile.file.slice('file:'.length);
 
       if (!validateProfilePath(path)) {
         options.warnCb?.(
@@ -170,7 +166,7 @@ Use flag \`--force/-f\` if you'd like to overwrite profiles specified on path in
         continue;
       }
 
-      targetProfilePath = targetProfile.file.slice(7);
+      targetProfilePath = path;
     }
 
     // save profile name to old path or to /superface/grid
@@ -206,7 +202,7 @@ Use flag \`--force/-f\` if you'd like to overwrite profiles specified on path in
 
     // write new information to super.json
     profiles[profileName] = {
-      file: `file://${targetProfilePath}`,
+      file: `file:${targetProfilePath}`,
       version: profileVersion,
     };
 
@@ -233,22 +229,19 @@ Use flag \`--force/-f\` if you'd like to overwrite profiles specified on path in
 export async function getProfileIds(
   profiles: ProfileSettings
 ): Promise<string[]> {
-  return Object.entries(profiles).reduce<string[]>(
-    (acc, [profileName, value]) => {
-      let id = profileName;
+  return Object.entries(profiles).map(([profileName, value]) => {
+    let id = profileName;
 
-      if (typeof value === 'string') {
-        // if profile has only version assigned
-        id += `@${value}`;
-      } else {
-        // TODO: get version out of profile if version is not specified
-        id += `@${value.version ?? '1.0.0'}`;
-      }
+    if (typeof value === 'string') {
+      // if profile has only version assigned
+      id += `@${value}`;
+    } else {
+      // TODO: get version out of profile if version is not specified
+      id += `@${value.version ?? '1.0.0'}`;
+    }
 
-      return [...acc, id];
-    },
-    []
-  );
+    return id;
+  });
 }
 
 /**

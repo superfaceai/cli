@@ -19,9 +19,3 @@ export interface VersionStructure {
   patch: number;
   label?: string;
 }
-
-export interface WritingOptions {
-  append?: boolean;
-  force?: boolean;
-  dirs?: boolean;
-}

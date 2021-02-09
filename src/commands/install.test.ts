@@ -9,7 +9,6 @@ import {
   writeSuperJson,
 } from '../common/document';
 import { exists, rimraf } from '../common/io';
-import { SuperJsonStructure } from '../common/super.interfaces';
 import Install from './install';
 
 describe('Install CLI command', () => {
@@ -20,7 +19,7 @@ describe('Install CLI command', () => {
     SUPERFACE_DIR
   );
 
-  const REGISTRY_DIR = joinPath('../../', 'registry');
+  const REGISTRY_DIR = joinPath('..', '..', 'registry');
 
   const fixture = {
     superJson: META_FILE,
@@ -55,7 +54,7 @@ describe('Install CLI command', () => {
       {
         profiles: {
           [profileWithScopeName]: {
-            file: 'file://grid/my-scope/my-profile.supr',
+            file: 'file:grid/my-scope/my-profile.supr',
             version: '1.0.0',
           },
         },
@@ -97,14 +96,7 @@ describe('Install CLI command', () => {
 
   describe('when profile id is not specified', () => {
     it('installs profiles in super.json', async () => {
-      const expectedSuperJson: SuperJsonStructure = {
-        profiles: {
-          ['my-scope/my-profile']: {
-            file: 'file://grid/my-scope/my-profile.supr',
-          },
-        },
-        providers: {},
-      };
+      const expectedProfilesCount = 1;
 
       {
         await expect(
@@ -124,13 +116,11 @@ describe('Install CLI command', () => {
         expect(local).toEqual(registry);
 
         expect(profiles[localName]).toEqual({
-          file: 'file://grid/my-scope/my-profile.supr',
+          file: 'file:grid/my-scope/my-profile.supr',
           version: '2.0.0',
         });
 
-        expect(Object.values(profiles).length).toEqual(
-          Object.values(expectedSuperJson.profiles).length
-        );
+        expect(Object.values(profiles).length).toEqual(expectedProfilesCount);
       }
 
       {
@@ -150,14 +140,7 @@ describe('Install CLI command', () => {
 
   describe('when profile id is specified', () => {
     it('installs specified profile into super.json', async () => {
-      const expectedSuperJson: SuperJsonStructure = {
-        profiles: {
-          ['my-scope/my-profile']: {
-            file: 'file://grid/my-scope/my-profile.supr',
-          },
-        },
-        providers: {},
-      };
+      const expectedProfilesCount = 1;
 
       {
         await expect(
@@ -177,13 +160,11 @@ describe('Install CLI command', () => {
         expect(local).toEqual(registry);
 
         expect(profiles[localName]).toEqual({
-          file: 'file://grid/my-scope/my-profile.supr',
+          file: 'file:grid/my-scope/my-profile.supr',
           version: '1.0.1',
         });
 
-        expect(Object.values(profiles).length).toEqual(
-          Object.values(expectedSuperJson.profiles).length
-        );
+        expect(Object.values(profiles).length).toEqual(expectedProfilesCount);
       }
 
       {
@@ -204,13 +185,11 @@ describe('Install CLI command', () => {
         expect(local).toEqual(registry);
 
         expect(profiles[localName]).toEqual({
-          file: 'file://grid/my-scope/my-profile.supr',
+          file: 'file:grid/my-scope/my-profile.supr',
           version: '2.0.0',
         });
 
-        expect(Object.values(profiles).length).toEqual(
-          Object.values(expectedSuperJson.profiles).length
-        );
+        expect(Object.values(profiles).length).toEqual(expectedProfilesCount);
       }
 
       {
@@ -229,11 +208,13 @@ describe('Install CLI command', () => {
         expect(local).toEqual(registry);
 
         expect(profiles[localName]).toEqual({
-          file: 'file://grid/my-profile.supr',
+          file: 'file:grid/my-profile.supr',
           version: '1.0.1',
         });
 
-        expect(Object.values(profiles).length).toEqual(2);
+        expect(Object.values(profiles).length).toEqual(
+          expectedProfilesCount + 1
+        );
       }
     });
   });

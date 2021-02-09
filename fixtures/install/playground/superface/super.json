@@ -1,7 +1,7 @@
 {
   "profiles": {
     "my-scope/my-profile": {
-      "file": "file://grid/my-scope/my-profile.supr",
+      "file": "file:grid/my-scope/my-profile.supr",
       "version": "1.0.0"
     }
   },

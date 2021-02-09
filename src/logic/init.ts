@@ -13,8 +13,9 @@ import {
   validateDocumentName,
 } from '../common/document';
 import { userError } from '../common/error';
-import { mkdir, mkdirQuiet, OutputStream } from '../common/io';
+import { mkdir, mkdirQuiet } from '../common/io';
 import { formatShellLog } from '../common/log';
+import { OutputStream } from '../common/output-stream';
 import {
   ProfileSettings,
   ProviderSettings,
@@ -168,7 +169,7 @@ export const constructProfileSettings = (
 
     acc[profileName] = {
       version: composeVersion(version),
-      file: `file://./grid/${profileName}${EXTENSIONS.profile.source}`,
+      file: `file:grid/${profileName}${EXTENSIONS.profile.source}`,
     };
 
     return acc;

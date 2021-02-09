@@ -8,7 +8,8 @@ import {
 import { DocumentType } from '../common/document.interfaces';
 import { developerError, userError } from '../common/error';
 import { DocumentTypeFlag, documentTypeFlag } from '../common/flags';
-import { OutputStream, readFile } from '../common/io';
+import { readFile } from '../common/io';
+import { OutputStream } from '../common/output-stream';
 import { formatWordPlurality } from '../util';
 
 type FileReport = {

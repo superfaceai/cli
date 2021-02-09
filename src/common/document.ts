@@ -8,14 +8,11 @@ import {
 import { basename, join as joinPath } from 'path';
 
 import * as initTemplate from '../templates/init';
-import {
-  CreateMode,
-  DocumentType,
-  WritingOptions,
-} from './document.interfaces';
+import { CreateMode, DocumentType } from './document.interfaces';
 import { userError } from './error';
 import { DocumentTypeFlag } from './flags';
-import { OutputStream, readdir, readFile } from './io';
+import { readdir, readFile, WritingOptions } from './io';
+import { OutputStream } from './output-stream';
 import { SuperJsonStructure } from './super.interfaces';
 
 export const DEFAULT_PROFILE_VERSION = {
