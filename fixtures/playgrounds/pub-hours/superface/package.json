@@ -2,7 +2,7 @@
 	"name": "playground",
 	"private": true,
 	"dependencies": {
-		"@superfaceai/sdk": "^0.0.7"
+		"@superfaceai/sdk": "0.0.8-beta.1"
 	},
 	"devDependencies": {
 		"@types/node": "^14",

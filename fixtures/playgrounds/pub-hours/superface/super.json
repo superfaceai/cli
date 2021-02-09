@@ -1,7 +1,7 @@
 {
   "profiles": {
-    "testground": {
-      "file": "testground/testground.supr",
+    "pub-hours": {
+      "file": "pub-hours.supr",
       "version": "1.0.0"
     }
   },

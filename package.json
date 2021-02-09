@@ -46,7 +46,7 @@
   "dependencies": {
     "@oclif/command": "^1.8.0",
     "@oclif/config": "^1.17.0",
-    "@superfaceai/parser": "0.0.12",
+    "@superfaceai/parser": "0.0.14",
     "chalk": "^4.1.0",
     "debug": "^4.3.1",
     "inquirer": "^7.3.3",
