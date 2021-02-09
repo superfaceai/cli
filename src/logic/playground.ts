@@ -29,6 +29,7 @@ import {
 } from '../common/io';
 import { formatShellLog, LogCallback } from '../common/log';
 import { OutputStream } from '../common/output-stream';
+import { TemplateType } from '../templates/common';
 import * as playgroundTemplate from '../templates/playground';
 import { createMap, createProfile, createProviderJson } from './create';
 import { initSuperface } from './init';
@@ -343,6 +344,7 @@ export async function initializePlayground(
     name: string;
     providers: string[];
   },
+  template: TemplateType,
   options?: {
     force?: boolean;
     logCb?: LogCallback;
@@ -387,7 +389,7 @@ export async function initializePlayground(
   {
     const created = await OutputStream.writeIfAbsent(
       paths.script,
-      () => playgroundTemplate.pubs(usecases[0]),
+      () => playgroundTemplate.glueScript(template, usecases[0]),
       { force: options?.force, dirs: true }
     );
 
@@ -407,7 +409,7 @@ export async function initializePlayground(
       version: DEFAULT_PROFILE_VERSION,
     },
     usecases,
-    'pubs',
+    template,
     options
   );
 
@@ -422,12 +424,12 @@ export async function initializePlayground(
         version: DEFAULT_PROFILE_VERSION,
       },
       usecases,
-      'pubs',
+      template,
       options
     );
 
     // appPath/provider.provider.json
-    await createProviderJson(appPath, provider, options);
+    await createProviderJson(appPath, provider, template, options);
   }
 }
 

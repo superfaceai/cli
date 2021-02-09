@@ -1,9 +1,11 @@
+import { TemplateType } from "./common";
+
 export function packageJson(): string {
   return `{
   "name": "playground",
   "private": true,
   "dependencies": {
-    "@superfaceai/sdk": "^0.0.7"
+    "@superfaceai/sdk": "0.0.8-beta.1"
   },
   "devDependencies": {
     "@types/node": "^14",
@@ -12,12 +14,10 @@ export function packageJson(): string {
 }`;
 }
 
-export type GlueTemplateType = 'empty' | 'pubs';
-
 /**
  * Returns a glue script of given template `type` with given `usecase`.
  */
-export function glueScript(type: GlueTemplateType, usecase: string): string {
+export function glueScript(type: TemplateType, usecase: string): string {
   switch (type) {
     case 'empty':
       return empty(usecase);
