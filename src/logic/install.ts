@@ -1,5 +1,5 @@
 import { parseProfileId } from '@superfaceai/parser';
-import { isAbsolute, join as joinPath, normalize } from 'path';
+import { isAbsolute, join as joinPath, normalize, relative } from 'path';
 
 import {
   composeVersion,
@@ -19,30 +19,34 @@ import {
 } from '../common/super.interfaces';
 
 /**
- * Detects the existence of a `super.json` file in 3 leves of parent directories.
+ * Detects the existence of a `super.json` file in specified number of levels 
+ * of parent directories.
  *
- * Assumes that cwd is either:
- * /superface or /superface/grid or /superface/grid/my-scope
- *
- * Returns relative path to a directory where super.json is detected.
+ * @param cwd - currently scanned working directory 
+ * 
+ * Returns relative path to a directory where `super.json` is detected.
  */
-export async function detectSuperJson(limit = 0): Promise<string | undefined> {
-  if (limit > 2) {
+export async function detectSuperJson(
+  cwd: string,
+  level?: number
+): Promise<string | undefined> {
+  // check whether super.json is accessible in cwd
+  if (await isAccessible(joinPath(cwd, META_FILE))) {
+    return normalize(relative(process.cwd(), cwd));
+  }
+
+  // default behaviour - do not scan outside cwd
+  if (level === undefined || level < 1) {
     return undefined;
   }
 
-  // check if user has permission to scanned directory
-  const cwd = !limit ? './' : '../'.repeat(limit);
+  // check if user has permissions outside cwd
+  cwd = joinPath(cwd, '..');
   if (!(await isAccessible(cwd))) {
     return undefined;
   }
 
-  // check whether super.json exists in that directory
-  if (await isAccessible(joinPath(cwd, META_FILE))) {
-    return cwd;
-  }
-
-  return await detectSuperJson(++limit);
+  return await detectSuperJson(cwd, --level);
 }
 
 interface RegistryResponseMock {
@@ -129,7 +133,6 @@ export async function handleProfiles(
   options: { logCb?: LogCallback; warnCb?: LogCallback; force: boolean }
 ): Promise<void> {
   const writingOptions = { force: true, dirs: true };
-  const gridPath = joinPath(superPath, 'grid');
   const buildPath = joinPath(superPath, 'build');
 
   for (const {
@@ -141,7 +144,7 @@ export async function handleProfiles(
 
     // store path if profile has one specified in super.json
     const profilePath = `${profileName}${EXTENSIONS.profile.source}`;
-    let targetProfilePath = joinPath(gridPath, profilePath);
+    let targetProfilePath = joinPath('grid', profilePath);
 
     if (
       targetProfile &&
@@ -152,16 +155,14 @@ export async function handleProfiles(
 
       if (!validateProfilePath(path)) {
         options.warnCb?.(
-          `⚠️  Invalid path: ${targetProfile.file}
-File path in super.json can't be absolute and have to be in context of /superface folder.`
+          `⚠️  Invalid path: ${targetProfile.file} (File path in 'super.json' can't be outside '/superface' folder)`
         );
         continue;
       }
 
-      if ((await exists(path)) && !options.force) {
+      if ((await exists(joinPath(superPath, path))) && !options.force) {
         options.warnCb?.(
-          `⚠️  File already exists: ${path}
-Use flag \`--force/-f\` if you'd like to overwrite profiles specified on path in super.json.`
+          `⚠️  File already exists: ${path} (Use flag \`--force/-f\` for overwriting profiles)`
         );
         continue;
       }

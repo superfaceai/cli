@@ -82,19 +82,23 @@ describe('Install CLI command', () => {
   afterEach(async () => {
     await restartSuperJson();
 
-    await rimraf(fixture.local.profile);
-    await rimraf(fixture.local.scope);
-
     stderr.stop();
     stdout.stop();
   });
 
   afterAll(async () => {
+    await rimraf(fixture.local.profile);
+    await rimraf(fixture.local.scope);
+
     // change cwd back
     process.chdir('../../../../');
   });
 
   describe('when profile id is not specified', () => {
+    afterEach(async () => {
+      await rimraf(fixture.local.scope);
+    });
+
     it('installs profiles in super.json', async () => {
       const expectedProfilesCount = 1;
 
@@ -124,7 +128,6 @@ describe('Install CLI command', () => {
       }
 
       {
-        await rimraf(fixture.local.scope);
         await expect(Install.run([])).resolves.toBeUndefined();
         expect(await exists(fixture.local.profileWithScope)).toBe(true);
 

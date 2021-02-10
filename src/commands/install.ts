@@ -1,7 +1,8 @@
 import { Command, flags } from '@oclif/command';
-import { grey } from 'chalk';
+import { grey, yellow } from 'chalk';
+import { join as joinPath } from 'path';
 
-import { SUPERFACE_DIR } from '../common/document';
+import { META_FILE, SUPERFACE_DIR } from '../common/document';
 import { initSuperface } from '../logic/init';
 import { detectSuperJson, installProfiles } from '../logic/install';
 
@@ -28,8 +29,14 @@ export default class Install extends Command {
     force: flags.boolean({
       char: 'f',
       description:
-        'When set to true and when profile exists in local filesystem, overwrite it.',
+        'When set to true and when profile exists in local filesystem, overwrites them.',
       default: false,
+    }),
+    scan: flags.integer({
+      char: 's',
+      description:
+        'When number provided, scan outside cwd within range represented by this number.',
+      required: false,
     }),
     help: flags.help({ char: 'h' }),
   };
@@ -41,7 +48,7 @@ export default class Install extends Command {
     '$ superface install sms/service@1.0 -p twillio',
   ];
 
-  private warnCallback? = (message: string) => this.warn(message);
+  private warnCallback? = (message: string) => this.log(yellow(message));
   private logCallback? = (message: string) => this.log(grey(message));
 
   async run(): Promise<void> {
@@ -52,13 +59,27 @@ export default class Install extends Command {
       this.warnCallback = undefined;
     }
 
-    let superPath = await detectSuperJson();
+    let superPath = await detectSuperJson(process.cwd(), flags.scan);
 
     if (!superPath) {
-      await initSuperface('./', { profiles: {}, providers: {} }, {});
+      this.warnCallback?.("File 'super.json' has not been found.");
+      this.logCallback?.(
+        "Initializing superface directory with empty 'super.json'..."
+      );
+      await initSuperface(
+        './',
+        { profiles: {}, providers: {} },
+        { logCb: this.logCallback }
+      );
       superPath = SUPERFACE_DIR;
     }
 
+    this.logCallback?.(
+      `Installing profiles according to 'super.json' on path '${joinPath(
+        superPath,
+        META_FILE
+      )}'`
+    );
     await installProfiles(
       superPath,
       {
