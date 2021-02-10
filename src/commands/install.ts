@@ -1,5 +1,6 @@
 import { Command, flags } from '@oclif/command';
 import { grey, yellow } from 'chalk';
+import inquirer from 'inquirer';
 import { join as joinPath } from 'path';
 
 import { META_FILE, SUPERFACE_DIR } from '../common/document';
@@ -63,6 +64,17 @@ export default class Install extends Command {
 
     if (!superPath) {
       this.warnCallback?.("File 'super.json' has not been found.");
+
+      const response: { init: boolean } = await inquirer.prompt({
+        name: 'init',
+        message: 'Would you like to initialize new superface structure?',
+        type: 'confirm',
+      });
+
+      if (!response.init) {
+        this.exit();
+      }
+
       this.logCallback?.(
         "Initializing superface directory with empty 'super.json'..."
       );

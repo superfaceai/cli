@@ -19,11 +19,11 @@ import {
 } from '../common/super.interfaces';
 
 /**
- * Detects the existence of a `super.json` file in specified number of levels 
+ * Detects the existence of a `super.json` file in specified number of levels
  * of parent directories.
  *
- * @param cwd - currently scanned working directory 
- * 
+ * @param cwd - currently scanned working directory
+ *
  * Returns relative path to a directory where `super.json` is detected.
  */
 export async function detectSuperJson(
