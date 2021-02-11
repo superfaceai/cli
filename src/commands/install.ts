@@ -1,9 +1,11 @@
 import { Command, flags } from '@oclif/command';
+import { parseProfileId } from '@superfaceai/parser';
 import { grey, yellow } from 'chalk';
 import inquirer from 'inquirer';
 import { join as joinPath } from 'path';
 
 import { META_FILE, SUPERFACE_DIR } from '../common/document';
+import { userError } from '../common/error';
 import { initSuperface } from '../logic/init';
 import { detectSuperJson, installProfiles } from '../logic/install';
 
@@ -41,7 +43,7 @@ export default class Install extends Command {
     scan: flags.integer({
       char: 's',
       description:
-        'When number provided, scan outside cwd within range represented by this number.',
+        'When number provided, scan for super.json outside cwd within range represented by this number.',
       required: false,
     }),
     help: flags.help({ char: 'h' }),
@@ -63,6 +65,20 @@ export default class Install extends Command {
     if (flags.quiet) {
       this.logCallback = undefined;
       this.warnCallback = undefined;
+    }
+
+    if (args.profileId) {
+      const parsedProfileId = parseProfileId(args.profileId);
+      if (parsedProfileId.kind === 'error') {
+        throw userError(parsedProfileId.message, 1);
+      }
+    }
+
+    if (flags.scan && (typeof flags.scan !== 'number' || flags.scan > 5)) {
+      throw userError(
+        '--scan/-s : Number of levels to scan cannot be higher than 5',
+        1
+      );
     }
 
     let superPath = await detectSuperJson(process.cwd(), flags.scan);

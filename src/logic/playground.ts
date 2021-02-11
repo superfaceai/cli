@@ -21,14 +21,13 @@ import {
   execFile,
   isDirectoryQuiet,
   isFileQuiet,
-  LogCallback,
   mkdir,
   readdir,
   realpath,
   resolveSkipFile,
   rimraf,
 } from '../common/io';
-import { formatShellLog } from '../common/log';
+import { formatShellLog, LogCallback } from '../common/log';
 import { OutputStream } from '../common/output-stream';
 import { ProfileSettings, ProviderSettings } from '../common/super.interfaces';
 import * as playgroundTemplate from '../templates/playground';

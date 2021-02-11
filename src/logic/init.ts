@@ -14,8 +14,7 @@ import {
 } from '../common/document';
 import { userError } from '../common/error';
 import { mkdir, mkdirQuiet } from '../common/io';
-import {LogCallback} from '../common/log'
-import { formatShellLog } from '../common/log';
+import { formatShellLog, LogCallback } from '../common/log';
 import { OutputStream } from '../common/output-stream';
 import {
   ProfileSettings,
