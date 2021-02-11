@@ -1,7 +1,7 @@
 import { parseDocumentId } from '@superfaceai/parser';
 import { ProfileSettings, ProviderSettings } from '@superfaceai/sdk';
 import { Dirent } from 'fs';
-import { join as joinPath } from 'path';
+import { basename, join as joinPath } from 'path';
 
 import Compile from '../commands/compile';
 import {
@@ -122,18 +122,21 @@ function playgroundFilePaths(
     providers: string[];
   }
 ): PlaygroundPaths {
-  let base = appPath;
+  let sourcesBase = appPath;
   let playPath = joinPath(appPath, PLAY_DIR);
   if (id.scope) {
-    base = joinPath(base, id.scope);
+    sourcesBase = joinPath(sourcesBase, id.scope);
     playPath = joinPath(playPath, id.scope);
   }
 
   const superfacePath = joinPath(appPath, SUPERFACE_DIR);
 
-  const profile = joinPath(base, `${id.name}${EXTENSIONS.profile.source}`);
+  const profile = joinPath(
+    sourcesBase,
+    `${id.name}${EXTENSIONS.profile.source}`
+  );
   const maps = id.providers.map(provider =>
-    joinPath(base, `${id.name}.${provider}${EXTENSIONS.map.source}`)
+    joinPath(sourcesBase, `${id.name}.${provider}${EXTENSIONS.map.source}`)
   );
 
   const script = joinPath(playPath, `${id.name}${EXTENSIONS.play.source}`);
@@ -144,7 +147,7 @@ function playgroundFilePaths(
     maps,
     script,
     packageJson,
-    build: playgroundBuildPaths(base, id),
+    build: playgroundBuildPaths(appPath, id),
   };
 }
 
@@ -160,11 +163,14 @@ async function detectPlayScripts(
 
   const topEntries = await readdir(playDir, { withFileTypes: true });
 
-  const fileParseFn = (basePath: string, entry: Dirent) => {
+  const fileParseFn = (basePath: string, entry: Dirent, nested?: boolean) => {
     if (entry.isFile() && entry.name.endsWith('.play.ts')) {
-      const result = parseDocumentId(
-        entry.name.slice(0, entry.name.length - '.play.ts'.length)
-      );
+      let maybeId = entry.name.slice(0, entry.name.length - '.play.ts'.length);
+      if (nested === true) {
+        maybeId = basename(basePath) + '/' + maybeId;
+      }
+
+      const result = parseDocumentId(maybeId);
       if (result.kind !== 'error') {
         const id = result.value;
         if (id.version === undefined && id.middle.length === 1) {
@@ -188,7 +194,7 @@ async function detectPlayScripts(
         const subEntries = await readdir(subdirPath, { withFileTypes: true });
 
         for (const subEntry of subEntries) {
-          const parseResult = fileParseFn(subdirPath, subEntry);
+          const parseResult = fileParseFn(subdirPath, subEntry, true);
           if (parseResult !== undefined) {
             result.push(parseResult);
           }
@@ -525,9 +531,11 @@ export async function executePlayground(
 
   // execute the play script
   {
-    const scriptArgs = providers.map(
-      provider => `${playground.name}.${provider}`
-    );
+    let playgroundId = playground.name;
+    if (playground.scope !== undefined) {
+      playgroundId = playground.scope + '/' + playgroundId;
+    }
+    const scriptArgs = providers.map(provider => `${playgroundId}.${provider}`);
 
     // log and handle debug level flag
     options.logCb?.(

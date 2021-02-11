@@ -1,10 +1,10 @@
 {
 	"name": "osm",
-	"deployments": [
+	"services": [
 		{
 			"id": "default",
 			"baseUrl": "https://overpass-api.de"
 		}
 	],
-	"security": []
+	"defaultService": "default"
 }

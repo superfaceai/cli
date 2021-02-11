@@ -20,10 +20,10 @@ export function empty(name: string): string {
     services: [
       {
         id: 'default',
-        baseUrl: 'noop.localhost'
-      }
+        baseUrl: 'noop.localhost',
+      },
     ],
-    defaultService: 'default'
+    defaultService: 'default',
   };
 
   return stringifyProvider(struct);
@@ -35,10 +35,10 @@ export function pubs(name: string): string {
     services: [
       {
         id: 'default',
-        baseUrl: 'https://overpass-api.de'
-      }
+        baseUrl: 'https://overpass-api.de',
+      },
     ],
-    defaultService: 'default'
+    defaultService: 'default',
   };
 
   return stringifyProvider(struct);
