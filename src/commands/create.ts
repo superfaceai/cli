@@ -128,7 +128,11 @@ export default class Create extends Command {
 
     // compose document structure from the result
     const documentStructure = documentResult.value;
-    const { scope, middle: [name, provider], version } = documentStructure;
+    const {
+      scope,
+      middle: [name, provider],
+      version,
+    } = documentStructure;
 
     if (version === undefined) {
       throw developerError('version must be present', 1);
@@ -180,7 +184,9 @@ export default class Create extends Command {
           flags.template,
           { logCb: this.logCallback }
         );
-        await createProviderJson('', provider, flags.template, { logCb: this.logCallback });
+        await createProviderJson('', provider, flags.template, {
+          logCb: this.logCallback,
+        });
         break;
       case CreateMode.BOTH:
         if (!provider) {
@@ -203,7 +209,9 @@ export default class Create extends Command {
           flags.template,
           { logCb: this.logCallback }
         );
-        await createProviderJson('', provider, flags.template, { logCb: this.logCallback });
+        await createProviderJson('', provider, flags.template, {
+          logCb: this.logCallback,
+        });
         break;
     }
   }

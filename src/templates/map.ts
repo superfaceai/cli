@@ -1,4 +1,4 @@
-import { TemplateType } from "./common";
+import { TemplateType } from './common';
 
 /**
  * Returns a map header with filled in `name` with `version`, `provider` and `variant`.

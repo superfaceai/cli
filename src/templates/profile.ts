@@ -1,4 +1,4 @@
-import { TemplateType } from "./common";
+import { TemplateType } from './common';
 
 /**
  * Returns a usecase header with filled in `name` and `version`.
