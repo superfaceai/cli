@@ -253,3 +253,5 @@ export async function findLocalCapabilities(
 
   return profiles;
 }
+
+export const trimFileURI = (path: string): string => path.slice('file:'.length);

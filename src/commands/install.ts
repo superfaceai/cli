@@ -21,6 +21,11 @@ export default class Install extends Command {
   ];
 
   static flags = {
+    provider: flags.string({
+      char: 'p',
+      description: 'Provider name.',
+      required: false,
+    }),
     quiet: flags.boolean({
       char: 'q',
       description:
@@ -44,8 +49,8 @@ export default class Install extends Command {
 
   static examples = [
     '$ superface install',
+    '$ superface install --provider twillio',
     '$ superface install sms/service@1.0',
-    '$ superface install sms/service -v 1.0',
     '$ superface install sms/service@1.0 -p twillio',
   ];
 
@@ -92,17 +97,11 @@ export default class Install extends Command {
         META_FILE
       )}'`
     );
-    await installProfiles(
-      superPath,
-      {
-        logCb: this.logCallback,
-        warnCb: this.warnCallback,
-        force: flags.force,
-      },
-      args.profileId
-    );
-
-    // TODO: downloads any missing profiles to <appPath>/superface/grid
+    await installProfiles(superPath, args.profileId, flags.provider, {
+      logCb: this.logCallback,
+      warnCb: this.warnCallback,
+      force: flags.force,
+    });
 
     // TODO: generate typings to <appPath>/superface/types
   }

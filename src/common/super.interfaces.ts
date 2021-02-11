@@ -9,8 +9,8 @@ export interface Usecases {
 
 export interface ProfileProvider {
   [providerName: string]: {
-    mapVariant: string;
-    mapRevision: string;
+    mapVariant?: string;
+    mapRevision?: string;
     defaults?: Usecases;
   };
 }
