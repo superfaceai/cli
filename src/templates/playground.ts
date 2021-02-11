@@ -1,11 +1,11 @@
-import { TemplateType } from "./common";
+import { TemplateType } from './common';
 
 export function packageJson(): string {
   return `{
   "name": "playground",
   "private": true,
   "dependencies": {
-    "@superfaceai/sdk": "0.0.8-beta.1"
+    "@superfaceai/sdk": "0.0.9-beta.1"
   },
   "devDependencies": {
     "@types/node": "^14",

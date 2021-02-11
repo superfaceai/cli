@@ -149,7 +149,11 @@ clean: the \`superface/node_modules\` folder and \`superface/build\` build artif
           throw developerError('Invalid --template flag option', 1);
       }
 
-      await this.runInitialize(args.playground, flags.providers, flags.template);
+      await this.runInitialize(
+        args.playground,
+        flags.providers,
+        flags.template
+      );
     } else if (action === 'execute') {
       await this.runExecute(
         args.playground,
