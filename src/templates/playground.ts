@@ -5,7 +5,7 @@ export function packageJson(): string {
   "name": "playground",
   "private": true,
   "dependencies": {
-    "@superfaceai/sdk": "0.0.9-beta.1"
+    "@superfaceai/sdk": "0.0.9-beta.2"
   },
   "devDependencies": {
     "@types/node": "^14",
