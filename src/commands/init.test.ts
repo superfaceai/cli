@@ -38,7 +38,9 @@ describe('Init CLI command', () => {
     const expectedDirectories = [SUPERFACE_DIR, BUILD_DIR, TYPES_DIR, GRID_DIR];
 
     expect(stdout.output).toContain(
-      `$ echo '<.npmrc template>' > 'fixtures/playgrounds/test/.npmrc'
+      `$ mkdir 'fixtures/playgrounds/test'
+$ echo '<README.md template>' > 'fixtures/playgrounds/test/README.md'
+$ echo '<.npmrc template>' > 'fixtures/playgrounds/test/.npmrc'
 $ mkdir 'fixtures/playgrounds/test/superface'
 $ echo '<super.json template>' > 'fixtures/playgrounds/test/superface/super.json'
 $ echo '<.gitignore template>' > 'fixtures/playgrounds/test/superface/.gitignore'

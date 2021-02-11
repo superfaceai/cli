@@ -2,6 +2,7 @@ import { Command, flags } from '@oclif/command';
 import { parseProfileId } from '@superfaceai/parser';
 import { grey, yellow } from 'chalk';
 import inquirer from 'inquirer';
+import { join as joinPath } from 'path';
 
 import { validateDocumentName } from '../common/document';
 import { LogCallback } from '../common/io';
@@ -12,7 +13,7 @@ import {
   initSuperface,
 } from '../logic/init';
 
-export const parseProfileIds = (
+const parseProfileIds = (
   input: string,
   options?: { warnCb?: LogCallback }
 ): string[] =>
@@ -29,7 +30,7 @@ export const parseProfileIds = (
       return true;
     });
 
-export const parseProviders = (
+const parseProviders = (
   input: string,
   options?: { warnCb?: LogCallback }
 ): string[] =>
@@ -98,8 +99,8 @@ export default class Init extends Command {
 
   static args = [
     {
-      name: 'path',
-      description: 'Path where to initialize folder structure.',
+      name: 'name',
+      description: 'Name of parent directory.',
       required: false,
     },
   ];
@@ -166,10 +167,7 @@ You can also use this command in quiet mode with flag \`-q\`.
       providers ??= [];
     }
 
-    let path = './';
-    if (typeof args.path === 'string') {
-      path = args.path;
-    }
+    const path = args.name ? joinPath('.', args.name) : '.';
 
     await initSuperface(
       path,
