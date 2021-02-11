@@ -3,11 +3,10 @@ import { join as joinPath } from 'path';
 
 import { composeVersion, EXTENSIONS } from '../common/document';
 import { OutputStream } from '../common/output-stream';
+import { LogCallback } from '../common/log';
 import * as mapTemplate from '../templates/map';
 import * as profileTemplate from '../templates/profile';
 import { defaultProvider } from '../templates/provider';
-
-type LogCallback = (message: string) => void;
 
 /**
  * Creates a new profile

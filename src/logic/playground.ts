@@ -21,6 +21,7 @@ import {
   execFile,
   isDirectoryQuiet,
   isFileQuiet,
+  LogCallback,
   mkdir,
   readdir,
   realpath,
@@ -53,7 +54,6 @@ export interface PlaygroundInstance {
   providers: string[];
 }
 
-type LogCallback = (message: string) => void;
 const PLAY_DIR = joinPath(SUPERFACE_DIR, 'play');
 
 type PlaygroundPaths = {

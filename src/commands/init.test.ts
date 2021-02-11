@@ -27,7 +27,7 @@ describe('Init CLI command', () => {
   });
 
   it('initializes base folder', async () => {
-    await expect(Init.run([testInitFolderPath, '-f'])).resolves.toBeUndefined();
+    await expect(Init.run([testInitFolderPath])).resolves.toBeUndefined();
 
     const expectedFiles = [
       '.npmrc',
@@ -38,7 +38,8 @@ describe('Init CLI command', () => {
     const expectedDirectories = [SUPERFACE_DIR, BUILD_DIR, TYPES_DIR, GRID_DIR];
 
     expect(stdout.output).toContain(
-      `$ echo '<.npmrc template>' > 'fixtures/playgrounds/test/.npmrc'
+      `$ echo '<README.md template>' > 'fixtures/playgrounds/test/README.md'
+$ echo '<.npmrc template>' > 'fixtures/playgrounds/test/.npmrc'
 $ mkdir 'fixtures/playgrounds/test/superface'
 $ echo '<super.json template>' > 'fixtures/playgrounds/test/superface/super.json'
 $ echo '<.gitignore template>' > 'fixtures/playgrounds/test/superface/.gitignore'
@@ -61,12 +62,10 @@ $ mkdir 'fixtures/playgrounds/test/superface/build'
         )
       )
     ).resolves.toBeDefined();
-  }, 20000);
+  });
 
   it('initializes base folder with quiet mode', async () => {
-    await expect(
-      Init.run([testInitFolderPath, '-q', '-f'])
-    ).resolves.toBeUndefined();
+    await expect(Init.run([testInitFolderPath, '-q'])).resolves.toBeUndefined();
 
     const expectedFiles = [
       '.npmrc',
@@ -93,7 +92,7 @@ $ mkdir 'fixtures/playgrounds/test/superface/build'
         )
       )
     ).resolves.toBeDefined();
-  }, 20000);
+  });
 
   it('initilizes base folder with specified profiles', async () => {
     const profile1 = {
@@ -110,13 +109,7 @@ $ mkdir 'fixtures/playgrounds/test/superface/build'
     };
 
     await expect(
-      Init.run([
-        testInitFolderPath,
-        '-f',
-        '--profiles',
-        profile1.id,
-        profile2.id,
-      ])
+      Init.run([testInitFolderPath, '--profiles', profile1.id, profile2.id])
     ).resolves.toBeUndefined();
 
     const expectedFiles = [
@@ -147,7 +140,7 @@ $ mkdir 'fixtures/playgrounds/test/superface/build'
 
   it('initilizes base folder with specified providers', async () => {
     await expect(
-      Init.run([testInitFolderPath, '-f', '--providers', 'twillio', 'osm'])
+      Init.run([testInitFolderPath, '--providers', 'twillio', 'osm'])
     ).resolves.toBeUndefined();
 
     // TODO: check for super.json

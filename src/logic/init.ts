@@ -1,5 +1,5 @@
 import { parseProfileId } from '@superfaceai/parser';
-import { join as joinPath } from 'path';
+import { basename, join as joinPath } from 'path';
 
 import {
   BUILD_DIR,
@@ -11,10 +11,10 @@ import {
   NPMRC,
   SUPERFACE_DIR,
   TYPES_DIR,
-  validateDocumentName,
 } from '../common/document';
 import { userError } from '../common/error';
 import { mkdir, mkdirQuiet } from '../common/io';
+import {LogCallback} from '../common/log'
 import { formatShellLog } from '../common/log';
 import { OutputStream } from '../common/output-stream';
 import {
@@ -24,8 +24,6 @@ import {
 } from '../common/super.interfaces';
 import * as initTemplate from '../templates/init';
 import { createProfile } from './create';
-
-type LogCallback = (message: string) => void;
 
 /**
  * Initializes superface at the given path.
@@ -49,6 +47,7 @@ export async function initSuperface(
   options?: {
     force?: boolean;
     logCb?: LogCallback;
+    warnCb?: LogCallback;
   }
 ): Promise<void> {
   // create the base path
@@ -56,6 +55,22 @@ export async function initSuperface(
     const created = await mkdir(appPath, { recursive: true });
     if (created) {
       options?.logCb?.(formatShellLog('mkdir', [appPath]));
+    }
+  }
+
+  // create README.md
+  {
+    const readmePath = joinPath(appPath, 'README.md');
+    const created = await OutputStream.writeIfAbsent(
+      readmePath,
+      initTemplate.readme(basename(appPath)),
+      { force: options?.force }
+    );
+
+    if (created) {
+      options?.logCb?.(
+        formatShellLog("echo '<README.md template>' >", [readmePath])
+      );
     }
   }
 
@@ -138,18 +153,6 @@ export async function initSuperface(
     }
   }
 }
-
-export const parseProfileIds = (input: string): string[] =>
-  input
-    .split(' ')
-    .filter(p => p.trim() !== '')
-    .filter(p => parseProfileId(p).kind !== 'error');
-
-export const parseProviders = (input: string): string[] =>
-  input
-    .split(' ')
-    .filter(i => i.trim() !== '')
-    .filter(validateDocumentName);
 
 /**
  * Reconstructs profile ids to correct structure for super.json

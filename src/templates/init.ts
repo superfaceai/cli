@@ -14,3 +14,33 @@ export function gitignore(): string {
 export function superJson(structure: SuperJsonStructure): string {
   return JSON.stringify(structure, null, 2);
 }
+
+export function readme(name: string): string {
+  return `# ${name}
+
+Welcome to your new Superface project.
+
+## Installation
+
+Use the package manager [npm](https://www.npmjs.com/get-npm) to install necessary tools.
+
+### Go to \`/superface\` directory:
+\`\`\`bash
+cd ${name}/superface
+\`\`\`
+
+### Install packages:
+\`\`\`bash
+npm install
+\`\`\`
+
+## Usage
+TODO - initialize play scripts and other tools to use
+
+## Test
+TODO - initialize basic tests and enable way to test
+
+## License
+TODO
+`;
+}
