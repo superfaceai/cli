@@ -8,6 +8,7 @@ import {
   EXTENSIONS,
   GRID_DIR,
   META_FILE,
+  NPMRC,
   SUPERFACE_DIR,
   TYPES_DIR,
   validateDocumentName,
@@ -61,7 +62,7 @@ export async function initSuperface(
   // TODO: This will not be needed once we migrate
   // to npm repository (since it is the default)
   {
-    const npmrcPath = joinPath(appPath, '.npmrc');
+    const npmrcPath = joinPath(appPath, NPMRC);
     const created = await OutputStream.writeIfAbsent(
       npmrcPath,
       initTemplate.npmRc,

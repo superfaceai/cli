@@ -4,7 +4,7 @@ import { stderr, stdout } from 'stdout-stderr';
 import Create from './create';
 import Lint from './lint';
 
-describe.skip('Create CLI command', () => {
+describe('Create CLI command', () => {
   let documentName: string, provider: string, variant: string | undefined;
 
   beforeEach(() => {
