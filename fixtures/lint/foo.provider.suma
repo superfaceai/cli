@@ -1,0 +1,9 @@
+profile = "unknown@1.0"
+provider = "provider"
+
+"""
+Foo map
+"""
+map Foo {
+    map result true
+}

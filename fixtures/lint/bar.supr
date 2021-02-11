@@ -1,0 +1,9 @@
+name = "bar"
+version = "1.0.0"
+
+"""
+Bar usecase
+"""
+usecase Bar {
+    result number
+}

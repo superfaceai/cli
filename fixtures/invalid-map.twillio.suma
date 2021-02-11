@@ -1,0 +1,12 @@
+profile = "example/profile@1"
+provider = "twillio"
+
+map Foo {
+	map result true
+    map result {}
+    map result {
+        f1: 'string'
+    }
+
+    map error {}
+}

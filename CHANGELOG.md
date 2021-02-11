@@ -6,6 +6,7 @@
 * Generation of x.provider.json file
 * Workaround for document type flag
 * `isFileQuiet` function
+* Validation of maps to profiles within `lint` command (flag `-v`)
 * Init command
 
 ### Changed

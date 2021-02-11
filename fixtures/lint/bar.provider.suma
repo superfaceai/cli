@@ -1,0 +1,9 @@
+profile = "bar@1.0"
+provider = "provider"
+
+"""
+Bar map
+"""
+map Bar {
+    map result true
+}

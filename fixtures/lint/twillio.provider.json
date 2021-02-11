@@ -1,0 +1,22 @@
+{
+  "name": "twillio",
+  "deployments": [
+    {
+      "id": "default",
+      "baseUrl": "api.twillio.localhost"
+    }
+  ],
+  "security": [
+    {
+      "auth": {
+        "BasicAuth": {
+          "type": "http",
+          "scheme": "basic"
+        }
+      },
+      "hosts": [
+        "default"
+      ]
+    }
+  ]
+}

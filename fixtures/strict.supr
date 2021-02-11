@@ -35,7 +35,7 @@ usecase Foo {
 "Title"
 model FooModel {
 	foo bar! | baz!
-} | [enum { FOO, BAR }]
+} | [string]
 
 // https://sfspec.surge.sh/profile#sec-Named-Field
 "Title"
