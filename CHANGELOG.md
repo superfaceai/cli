@@ -7,6 +7,7 @@
 * Workaround for document type flag
 * `isFileQuiet` function
 * Init command
+* Install command
 
 ### Changed
 * Updated parser dependency to v0.0.12
