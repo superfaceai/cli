@@ -600,7 +600,7 @@
 
 "@superfaceai/sdk@^0.0.6":
   version "0.0.6"
-  resolved "https://npm.pkg.github.com/download/@superfaceai/sdk/0.0.6/387912bddad3c5acf3e9b17bd3c330d37845ebd7c5c4d03c8ff491c7b116ad11#c040b4c01a85fc32a66bb59ab50f948279d7e1b5"
+  resolved "https://npm.pkg.github.com/download/@superfaceai/sdk/0.0.6/387912bddad3c5acf3e9b17bd3c330d37845ebd7c5c4d03c8ff491c7b116ad11"
   integrity sha512-i7gYjJuvWazsd7uejxsUZzX5k8ukHWucFymZK+bHKB7ExQur5WC3pmrke8P4r6/bmxP5FQGj5/xOgOmkvNXviQ==
   dependencies:
     "@superfaceai/ast" "0.0.20"

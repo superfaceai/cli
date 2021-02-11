@@ -92,6 +92,18 @@ export const DOCUMENT_PARSE_FUNCTION = {
   [DocumentType.PROFILE]: parseProfile,
 };
 
+export function isProfileFile(file: string): boolean {
+  return inferDocumentType(file) === DocumentType.PROFILE;
+}
+
+export function isMapFile(file: string): boolean {
+  return inferDocumentType(file) === DocumentType.MAP;
+}
+
+export function isUnknownFile(file: string): boolean {
+  return inferDocumentType(file) === DocumentType.UNKNOWN;
+}
+
 export function validateDocumentName(name: string): boolean {
   return /^[_a-zA-Z][_a-zA-Z0-9]*$/.test(name);
 }

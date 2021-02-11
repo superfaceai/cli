@@ -492,10 +492,11 @@ export async function executePlayground(
   const skipTsc = await resolveSkipFile(skip.tsc, [paths.script]);
   if (!skipTsc) {
     const tscPath = joinPath(paths.build.nodeModules, '.bin', 'tsc');
+    const typeRootsPath = joinPath(paths.build.nodeModules, '@types');
     options.logCb?.(
       formatShellLog(
-        `'${tscPath}' --strict --target ES2015 --module commonjs --outDir`,
-        [paths.build.base, paths.script]
+        `'${tscPath}' --strict --target ES2015 --module commonjs --outDir '${paths.build.base}' --typeRoots`,
+        [typeRootsPath, paths.script]
       )
     );
     try {
@@ -509,6 +510,8 @@ export async function executePlayground(
           'commonjs',
           '--outDir',
           paths.build.base,
+          '--typeRoots',
+          typeRootsPath,
           paths.script,
         ],
         {
