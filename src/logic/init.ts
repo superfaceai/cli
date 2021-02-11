@@ -1,5 +1,5 @@
 import { parseProfileId } from '@superfaceai/parser';
-import { join as joinPath } from 'path';
+import { basename, join as joinPath } from 'path';
 
 import {
   composeUsecaseName,
@@ -50,6 +50,22 @@ export async function initSuperface(
     const created = await mkdir(appPath, { recursive: true });
     if (created) {
       options?.logCb?.(formatShellLog('mkdir', [appPath]));
+    }
+  }
+
+  // create README.md
+  {
+    const readmePath = joinPath(appPath, 'README.md');
+    const created = await OutputStream.writeIfAbsent(
+      readmePath,
+      initTemplate.readme(basename(appPath)),
+      { force: options?.force }
+    );
+
+    if (created) {
+      options?.logCb?.(
+        formatShellLog("echo '<README.md template>' >", [readmePath])
+      );
     }
   }
 
