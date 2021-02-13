@@ -215,12 +215,11 @@ export async function generateSpecifiedProfiles(
     }
 
     const { scope, name, version } = parsedProfile.value;
-    const profileName = scope ? `${scope}/${name}` : name;
 
     await createProfile(
       joinPath(path, GRID_DIR),
       { scope, name, version },
-      [composeUsecaseName(profileName)],
+      [composeUsecaseName(name)],
       'empty',
       { logCb }
     );
