@@ -1,8 +1,15 @@
 {
   "profiles": {
     "pub-hours": {
-      "file": "pub-hours.supr",
-      "version": "1.0.0"
+      "file": "file:pub-hours.supr",
+      "providers": {
+        "osm": {
+          "file": "file:pub-hours.osm.suma"
+        },
+        "noop": {
+          "file": "file:pub-hours.noop.suma"
+        }
+      }
     }
   },
   "providers": {

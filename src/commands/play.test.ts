@@ -123,7 +123,7 @@ describe('Play CLI command', () => {
   });
 
   // TODO: Currently skipping this in CI because of access permission issues
-  it.skip('compiles playground and executes it', async () => {
+  it('compiles playground and executes it', async () => {
     stdout.start();
     await Play.run(['execute', fixedPlayground.path, '--providers', 'noop']);
     stdout.stop();
@@ -146,7 +146,7 @@ describe('Play CLI command', () => {
   }, 30000);
 
   // TODO: Currently skipping this in CI because of access permission issues
-  it.skip('creates, compiles and executes a playground on a real api', async () => {
+  it('creates, compiles and executes a playground on a real api', async () => {
     stdout.start();
     await expect(
       Play.run(['initialize', createdPlayground.path, '--providers', 'foo'])
@@ -176,6 +176,7 @@ describe('Play CLI command', () => {
       `${createdPlayground.name}.supr`,
       `${createdPlayground.name}.foo.suma`,
       `${createdPlayground.name}.bar.suma`,
+      joinPath('superface', 'super.json'),
       joinPath('superface', 'package.json'),
       joinPath('superface', '.gitignore'),
       joinPath('superface', 'play', `${createdPlayground.name}.play.ts`),
@@ -189,7 +190,24 @@ describe('Play CLI command', () => {
     });
     await Promise.all(
       [...deletedFiles, ...expectedFiles].map(file =>
-        OutputStream.writeOnce(file, '')
+        OutputStream.writeOnce(
+          file,
+          JSON.stringify({
+            profiles: {
+              [createdPlayground.name]: {
+                file: 'file:' + createdPlayground.name + '.supr',
+                providers: {
+                  foo: {
+                    file: 'file:' + createdPlayground.name + '.foo.suma',
+                  },
+                  bar: {
+                    file: 'file:' + createdPlayground.name + '.bar.suma',
+                  },
+                },
+              },
+            },
+          })
+        )
       )
     );
 

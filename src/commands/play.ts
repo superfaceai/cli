@@ -264,8 +264,8 @@ clean: the \`superface/node_modules\` folder and \`superface/build\` build artif
         name: 'providers',
         message: 'Select a provider to execute',
         type: 'checkbox',
-        choices: [...playground.providers.values()].map(p => {
-          return { name: p };
+        choices: playground.providers.map(p => {
+          return { name: p.name };
         }),
         validate: (input: string[]): boolean => {
           return input.length > 0;
@@ -274,7 +274,7 @@ clean: the \`superface/node_modules\` folder and \`superface/build\` build artif
       providers = response.providers;
     } else {
       for (const provider of providers) {
-        if (!playground.providers.includes(provider)) {
+        if (!playground.providers.find(p => p.name === provider)) {
           throw userError(
             `Provider "${provider}" not found for playground "${playground.path}"`,
             21
