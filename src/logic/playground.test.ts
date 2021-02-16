@@ -13,7 +13,17 @@ describe('playground logic', () => {
   const fixedPlayground = {
     name: 'pub-hours',
     path: joinPath(baseFixtures, 'pub-hours'),
-    providers: ['noop', 'osm'],
+    profilePath: joinPath(baseFixtures, 'pub-hours', 'pub-hours.supr'),
+    providers: [
+      {
+        name: 'osm',
+        mapPath: joinPath(baseFixtures, 'pub-hours', 'pub-hours.osm.suma'),
+      },
+      {
+        name: 'noop',
+        mapPath: joinPath(baseFixtures, 'pub-hours', 'pub-hours.noop.suma'),
+      },
+    ],
   };
 
   it('detects a valid playground', async () => {
@@ -24,7 +34,7 @@ describe('playground logic', () => {
 
   it('rejects an invalid playground', async () => {
     await expect(detectPlayground(invalidPlayground.path)).rejects.toThrowError(
-      'no "superface/package.json" found'
+      '/package.json" found'
     );
   });
 });
