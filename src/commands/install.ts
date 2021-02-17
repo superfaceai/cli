@@ -1,13 +1,36 @@
 import { Command, flags } from '@oclif/command';
-import { parseProfileId } from '@superfaceai/parser';
 import { grey, yellow } from 'chalk';
 import inquirer from 'inquirer';
 import { join as joinPath } from 'path';
 
-import { META_FILE, SUPERFACE_DIR } from '../common/document';
+import {
+  META_FILE,
+  SUPERFACE_DIR,
+  validateDocumentName,
+} from '../common/document';
 import { userError } from '../common/error';
+import { LogCallback } from '../common/log';
 import { initSuperface } from '../logic/init';
 import { detectSuperJson, installProfiles } from '../logic/install';
+
+const parseProviders = (
+  providers?: string[],
+  options?: { warnCb?: LogCallback }
+): string[] => {
+  if (!providers) {
+    return [];
+  }
+
+  return providers.filter(p => {
+    if (!validateDocumentName(p)) {
+      options?.warnCb?.(`Invalid provider name: ${p}`);
+
+      return false;
+    }
+
+    return true;
+  });
+};
 
 export default class Install extends Command {
   static description =
@@ -23,10 +46,11 @@ export default class Install extends Command {
   ];
 
   static flags = {
-    provider: flags.string({
+    providers: flags.string({
       char: 'p',
       description: 'Provider name.',
       required: false,
+      multiple: true,
     }),
     quiet: flags.boolean({
       char: 'q',
@@ -65,13 +89,6 @@ export default class Install extends Command {
     if (flags.quiet) {
       this.logCallback = undefined;
       this.warnCallback = undefined;
-    }
-
-    if (args.profileId) {
-      const parsedProfileId = parseProfileId(args.profileId);
-      if (parsedProfileId.kind === 'error') {
-        throw userError(parsedProfileId.message, 1);
-      }
     }
 
     if (flags.scan && (typeof flags.scan !== 'number' || flags.scan > 5)) {
@@ -113,11 +130,16 @@ export default class Install extends Command {
         META_FILE
       )}'`
     );
-    await installProfiles(superPath, args.profileId, flags.provider, {
-      logCb: this.logCallback,
-      warnCb: this.warnCallback,
-      force: flags.force,
-    });
+    await installProfiles(
+      superPath,
+      args.profileId,
+      parseProviders(flags.providers),
+      {
+        logCb: this.logCallback,
+        warnCb: this.warnCallback,
+        force: flags.force,
+      }
+    );
 
     // TODO: generate typings to <appPath>/superface/types
   }

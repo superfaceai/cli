@@ -1,4 +1,4 @@
-import { parseProfileId } from '@superfaceai/parser';
+import { ProfileDocumentNode } from '@superfaceai/ast';
 import { isAbsolute, join as joinPath, normalize, relative } from 'path';
 
 import {
@@ -14,7 +14,13 @@ import {
   writeSuperJson,
 } from '../common/document';
 import { userError } from '../common/error';
-import { exists, isAccessible, readFile } from '../common/io';
+import {
+  fetchProfile,
+  fetchProfileAST,
+  fetchProfileInfo,
+  ProfileInfo,
+} from '../common/http';
+import { exists, isAccessible } from '../common/io';
 import { formatShellLog, LogCallback } from '../common/log';
 import {
   ProfileProvider,
@@ -59,57 +65,25 @@ export async function detectSuperJson(
 }
 
 interface RegistryResponseMock {
-  response: {
-    profileId: string;
-    profileName: string;
-    profileVersion: string;
-    url: string;
-  };
-  ast: string;
+  info: ProfileInfo;
+  ast: ProfileDocumentNode;
   profile: string;
 }
 
 /**
- * Mock the Superface registry API GET call.
+ * Mock the Superface registry API GET call with calls to Store API.
  * It should query the newest profile in valid scope (https://semver.org/)
  */
 export async function getProfileFromRegistry(
-  superPath: string,
   profileId: string
 ): Promise<RegistryResponseMock> {
-  // const query = `/profiles/${profileId}`
-  const REGISTRY_DIR = joinPath(superPath, '..', '..', 'registry');
-
-  const parsedId = parseProfileId(profileId);
-  if (parsedId.kind === 'error') {
-    throw userError(parsedId.message, 31);
-  }
-
-  const { scope, name, version } = parsedId.value;
-  const fileName = `${name}@${composeVersion(version)}`;
-  const filePath = scope
-    ? joinPath(REGISTRY_DIR, scope, fileName)
-    : joinPath(REGISTRY_DIR, fileName);
-
-  const profilePath = `${filePath}${EXTENSIONS.profile.source}`;
-  const profileAstPath = `${filePath}${EXTENSIONS.profile.build}`;
-
   try {
-    const profileDocument = await getProfileDocument(profilePath);
-    const profileName = profileDocument.header.scope
-      ? `${profileDocument.header.scope}/${profileDocument.header.name}`
-      : profileDocument.header.name;
-
-    const profile = await readFile(profilePath, { encoding: 'utf-8' });
-    const ast = await readFile(profileAstPath, { encoding: 'utf-8' });
+    const info = await fetchProfileInfo(profileId);
+    const profile = await fetchProfile(profileId);
+    const ast = await fetchProfileAST(profileId);
 
     return {
-      response: {
-        profileId,
-        profileName,
-        profileVersion: composeVersion(profileDocument.header.version),
-        url: `https://some.url/profiles/${profileId}`,
-      },
+      info,
       ast,
       profile,
     };
@@ -139,22 +113,22 @@ export async function handleProfiles(
   superPath: string,
   responses: RegistryResponseMock[],
   { profiles, providers }: SuperJsonStructure,
-  provider?: string,
+  givenProviders?: string[],
   options?: { logCb?: LogCallback; warnCb?: LogCallback; force: boolean }
 ): Promise<void> {
   const writingOptions = { force: true, dirs: true };
   const buildPath = joinPath(superPath, 'build');
 
   for (const {
-    response: { profileName, profileVersion },
+    info: { profile_name, profile_version },
     ast,
     profile,
   } of responses) {
-    const targetProfile = profiles[profileName];
+    const targetProfile = profiles[profile_name];
     let targetProfileProviders: ProfileProvider | undefined;
 
     // store path if profile has one specified in super.json
-    const profilePath = `${profileName}${EXTENSIONS.profile.source}`;
+    const profilePath = `${profile_name}${EXTENSIONS.profile.source}`;
     let targetProfilePath = joinPath('grid', profilePath);
 
     if (targetProfile && typeof targetProfile !== 'string') {
@@ -185,7 +159,7 @@ export async function handleProfiles(
     // save profile name to old path or to /superface/grid
     const profileDownloaded = await writeProfile(
       joinPath(superPath, targetProfilePath),
-      profile,
+      profile.toString(),
       writingOptions
     );
 
@@ -198,10 +172,10 @@ export async function handleProfiles(
     }
 
     // save profile AST to /superface/build
-    const profileAstPath = `${profileName}${EXTENSIONS.profile.build}`;
+    const profileAstPath = `${profile_name}${EXTENSIONS.profile.build}`;
     const profileAstDownloaded = await writeProfile(
       joinPath(buildPath, profileAstPath),
-      ast,
+      JSON.stringify(ast, null, 2),
       writingOptions
     );
 
@@ -213,23 +187,23 @@ export async function handleProfiles(
       );
     }
 
-    if (provider) {
-      if (targetProfileProviders?.[provider]) {
-        // TODO: get newest map variant & revision according to specified provider?
-      } else {
-        targetProfileProviders = {
-          ...targetProfileProviders,
-          [provider]: {
-            mapVariant: 'default',
-            mapRevision: '1',
-          },
-        };
+    if (givenProviders) {
+      for (const provider of givenProviders) {
+        if (!targetProfileProviders?.[provider]) {
+          targetProfileProviders = {
+            ...targetProfileProviders,
+            [provider]: {
+              mapVariant: 'default',
+              mapRevision: '1',
+            },
+          };
+        }
       }
     }
 
-    profiles[profileName] = {
+    profiles[profile_name] = {
       file: `file:${targetProfilePath}`,
-      version: profileVersion,
+      version: profile_version,
       providers: targetProfileProviders,
     };
 
@@ -297,7 +271,7 @@ export function getProfileIds(profiles: ProfileSettings): string[] {
 export async function installProfiles(
   superPath: string,
   profileId?: string,
-  provider?: string,
+  providers?: string[],
   options?: {
     logCb?: LogCallback;
     warnCb?: LogCallback;
@@ -308,14 +282,14 @@ export async function installProfiles(
   const responses: RegistryResponseMock[] = [];
 
   if (profileId) {
-    responses.push(await getProfileFromRegistry(superPath, profileId));
+    responses.push(await getProfileFromRegistry(profileId));
   } else {
     const profiles = getProfileIds(superJson.profiles);
 
     for (const profileId of profiles) {
-      responses.push(await getProfileFromRegistry(superPath, profileId));
+      responses.push(await getProfileFromRegistry(profileId));
     }
   }
 
-  await handleProfiles(superPath, responses, superJson, provider, options);
+  await handleProfiles(superPath, responses, superJson, providers, options);
 }
