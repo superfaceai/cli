@@ -14,22 +14,18 @@ Superface CLI provides access to superface tooling from the CLI.
 
 ## Install
 
-To install the package, first create `.npmrc` file in your project root and put the following line into it.
+To install this package, first add the github superface repository to your npm config. Use your github name as your login and generate a personal access token with at least the `repo` and `read:packages` permissions in Github to use as password:
 
 ```
-@superfaceai:registry=https://npm.pkg.github.com
+npm login --scope=@superfaceai --registry=https://npm.pkg.github.com
 ```
 
-Then authenticate to github npm package registry. Use your github name as your login and generate a personal access token with at least the `repo` and `read:packages` permissions in Github to use as password:
+Then install the cli globally using one of the following commands:
 
-```
-npm login --registry=https://npm.pkg.github.com
-```
-
-After doing this, you should be able to install the package globally by running one of the following:
-
-```
+```shell
+# if using yarn
 yarn global add @superfaceai/cli
+# otherwise
 npm install --global @superfaceai/cli
 ```
 
@@ -50,6 +46,7 @@ You can obtain the full CLI help by running `superface --help`.
  `lint`  | Lints given profiles and/or maps locally.
  `play`  | Manages and executes interactive playgrounds.
  `init`  | Initializes local folder structure.
+`install`| Installs capabilities and their AST to a local project.
 
 ## Development
 
