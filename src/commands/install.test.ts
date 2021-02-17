@@ -75,7 +75,7 @@ describe('Install CLI command', () => {
     process.chdir('../../../../');
   });
 
-  describe('when profile id is not specified', () => {
+  describe('when no providers are specified', () => {
     afterEach(async () => {
       await rimraf(fixture.scope);
     });
@@ -110,31 +110,7 @@ describe('Install CLI command', () => {
 
         expect(local).toEqual(registry);
       }
-    });
-  });
-
-  describe('when profile id is specified', () => {
-    it('installs specified profile into super.json', async () => {
-      const expectedProfilesCount = 1;
-
-      {
-        const profileId = `${profileName}@1.0.1`;
-        await expect(Install.run([profileId])).resolves.toBeUndefined();
-
-        const { profiles } = await parseSuperJson(fixture.superJson);
-        const local = await readFile(fixture.profile, { encoding: 'utf-8' });
-        const registry = (await fetchProfile(profileId)).toString();
-
-        expect(local).toEqual(registry);
-
-        expect(profiles[profileName]).toEqual({
-          file: `file:${fixture.profile}`,
-          version: '1.0.1',
-        });
-
-        expect(Object.values(profiles).length).toEqual(expectedProfilesCount);
-      }
-    });
+    }, 10000);
   });
 
   describe('when providers are specified', () => {
