@@ -7,6 +7,7 @@
 * Workaround for document type flag
 * `isFileQuiet` function
 * Validation of maps to profiles within `lint` command (flag `-v`)
+* Init command
 
 ### Changed
 * Updated parser dependency to v0.0.12

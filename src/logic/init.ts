@@ -1,11 +1,18 @@
-import { join as joinPath } from 'path';
+import { parseProfileId } from '@superfaceai/parser';
+import { basename, join as joinPath } from 'path';
 
-import { mkdir, mkdirQuiet, OutputStream } from '../common/io';
+import {
+  composeUsecaseName,
+  composeVersion,
+  EXTENSIONS,
+} from '../common/document';
+import { userError } from '../common/error';
+import { LogCallback, mkdir, mkdirQuiet, OutputStream } from '../common/io';
 import { formatShellLog } from '../common/log';
 import { ProfileSettings, ProviderSettings } from '../common/super.interfaces';
 import * as initTemplate from '../templates/init';
+import { createProfile } from './create';
 
-type LogCallback = (message: string) => void;
 export const SUPERFACE_DIR = 'superface';
 export const GRID_DIR = joinPath(SUPERFACE_DIR, 'grid');
 export const TYPES_DIR = joinPath(SUPERFACE_DIR, 'types');
@@ -35,6 +42,7 @@ export async function initSuperface(
   options?: {
     force?: boolean;
     logCb?: LogCallback;
+    warnCb?: LogCallback;
   }
 ): Promise<void> {
   // create the base path
@@ -42,6 +50,22 @@ export async function initSuperface(
     const created = await mkdir(appPath, { recursive: true });
     if (created) {
       options?.logCb?.(formatShellLog('mkdir', [appPath]));
+    }
+  }
+
+  // create README.md
+  {
+    const readmePath = joinPath(appPath, 'README.md');
+    const created = await OutputStream.writeIfAbsent(
+      readmePath,
+      initTemplate.readme(basename(appPath)),
+      { force: options?.force }
+    );
+
+    if (created) {
+      options?.logCb?.(
+        formatShellLog("echo '<README.md template>' >", [readmePath])
+      );
     }
   }
 
@@ -122,5 +146,79 @@ export async function initSuperface(
     if (created) {
       options?.logCb?.(formatShellLog('mkdir', [buildPath]));
     }
+  }
+}
+
+/**
+ * Reconstructs profile ids to correct structure for super.json
+ * @param profileIds - list of profile ids
+ */
+export const constructProfileSettings = (
+  profileIds: string[]
+): ProfileSettings =>
+  profileIds.reduce<ProfileSettings>((acc, profileId) => {
+    const profile = parseProfileId(profileId);
+
+    if (profile.kind === 'error') {
+      throw userError('Wrong profile Id', 1);
+    }
+
+    const { scope, name, version } = profile.value;
+    const profileName = scope ? `${scope}/${name}` : name;
+
+    acc[profileName] = {
+      version: composeVersion(version),
+      file: `./grid/${profileName}${EXTENSIONS.profile.source}`,
+    };
+
+    return acc;
+  }, {});
+
+/**
+ * Reconstruct providers to correct structure for super.json
+ * @param providers - list of providers
+ */
+export const constructProviderSettings = (
+  providers: string[]
+): ProviderSettings =>
+  providers.reduce<ProviderSettings>((acc, provider) => {
+    acc[provider] = {
+      auth: {
+        token: 'fill-this',
+      },
+    };
+
+    return acc;
+  }, {});
+
+/**
+ * Generates profiles based on profiles specified in `init` command.
+ *
+ * @param path - base path of folder where superface folder structure is initialized
+ * @param profileIds - list of profile ids
+ * @param logCb - logging function
+ */
+export async function generateSpecifiedProfiles(
+  path: string,
+  profileIds: string[],
+  logCb?: LogCallback
+): Promise<void> {
+  for (const profileId of profileIds) {
+    const parsedProfile = parseProfileId(profileId);
+
+    if (parsedProfile.kind === 'error') {
+      throw userError('Wrong profile Id', 1);
+    }
+
+    const { scope, name, version } = parsedProfile.value;
+    const profileName = scope ? `${scope}/${name}` : name;
+
+    await createProfile(
+      joinPath(path, GRID_DIR),
+      { scope, name, version },
+      [composeUsecaseName(profileName)],
+      'empty',
+      { logCb }
+    );
   }
 }

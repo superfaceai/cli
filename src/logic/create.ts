@@ -2,12 +2,10 @@ import { DocumentVersion } from '@superfaceai/parser';
 import { join as joinPath } from 'path';
 
 import { composeVersion, EXTENSIONS } from '../common/document';
-import { OutputStream } from '../common/io';
+import { LogCallback, OutputStream } from '../common/io';
 import * as mapTemplate from '../templates/map';
 import * as profileTemplate from '../templates/profile';
 import { defaultProvider } from '../templates/provider';
-
-type LogCallback = (message: string) => void;
 
 /**
  * Creates a new profile

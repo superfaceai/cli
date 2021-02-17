@@ -45,7 +45,8 @@ You can obtain the full CLI help by running `superface --help`.
  `create`| Creates a new profile and/or map locally.
  `lint`  | Lints given profiles and/or maps locally.
  `play`  | Manages and executes interactive playgrounds.
-`install`| Installs profiles and maps from the registry.
+ `init`  | Initializes local folder structure.
+`install`| Installs capabilities and their AST to a local project.
 
 ## Development
 
