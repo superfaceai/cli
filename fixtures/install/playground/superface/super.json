@@ -1,7 +1,7 @@
 {
   "profiles": {
-    "my-scope/my-profile": {
-      "file": "file:grid/my-scope/my-profile.supr",
+    "starwars/character-information": {
+      "file": "file:grid/starwars/character-information",
       "version": "1.0.0"
     }
   },
