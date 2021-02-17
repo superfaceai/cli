@@ -2,13 +2,13 @@ import { join as joinPath } from 'path';
 import { stderr, stdout } from 'stdout-stderr';
 
 import {
-  getProfileDocument,
   META_FILE,
   parseSuperJson,
   SUPERFACE_DIR,
   writeSuperJson,
 } from '../common/document';
-import { exists, rimraf } from '../common/io';
+import { fetchProfile } from '../common/http';
+import { exists, readFile, rimraf } from '../common/io';
 import Install from './install';
 
 describe('Install CLI command', () => {
@@ -19,33 +19,14 @@ describe('Install CLI command', () => {
     SUPERFACE_DIR
   );
 
-  const REGISTRY_DIR = joinPath('..', '..', 'registry');
+  const STARWARS_SCOPE = 'starwars';
+  const profileName = joinPath(STARWARS_SCOPE, 'character-information');
 
   const fixture = {
     superJson: META_FILE,
-    local: {
-      profile: joinPath('grid', 'my-profile.supr'),
-      scope: joinPath('grid', 'my-scope'),
-      profileWithScope: joinPath('grid', 'my-scope', 'my-profile.supr'),
-    },
-    registry: {
-      profile101: joinPath(REGISTRY_DIR, 'my-profile@1.0.1.supr'),
-      profileWithScope101: joinPath(
-        REGISTRY_DIR,
-        'my-scope',
-        'my-profile@1.0.1.supr'
-      ),
-      profile200: joinPath(REGISTRY_DIR, 'my-profile@2.0.0.supr'),
-      profileWithScope200: joinPath(
-        REGISTRY_DIR,
-        'my-scope',
-        'my-profile@2.0.0.supr'
-      ),
-    },
+    profile: joinPath('grid', profileName),
+    scope: joinPath('grid', STARWARS_SCOPE),
   };
-
-  const profileName = 'my-profile';
-  const profileWithScopeName = 'my-scope/my-profile';
 
   // restart super.json to initial state
   async function restartSuperJson() {
@@ -53,8 +34,8 @@ describe('Install CLI command', () => {
       fixture.superJson,
       {
         profiles: {
-          [profileWithScopeName]: {
-            file: 'file:grid/my-scope/my-profile.supr',
+          [profileName]: {
+            file: `file:${fixture.profile}`,
             version: '1.0.0',
           },
         },
@@ -65,13 +46,13 @@ describe('Install CLI command', () => {
   }
 
   beforeAll(async () => {
-    // change cwd to /fixtures/install for establishing registry mock
+    // change cwd to /fixtures/install
     process.chdir(WORKING_DIR);
 
     await restartSuperJson();
 
-    await rimraf(fixture.local.profile);
-    await rimraf(fixture.local.scope);
+    await rimraf(fixture.profile);
+    await rimraf(fixture.scope);
   });
 
   beforeEach(() => {
@@ -87,8 +68,8 @@ describe('Install CLI command', () => {
   });
 
   afterAll(async () => {
-    await rimraf(fixture.local.profile);
-    await rimraf(fixture.local.scope);
+    await rimraf(fixture.profile);
+    await rimraf(fixture.scope);
 
     // change cwd back
     process.chdir('../../../../');
@@ -96,32 +77,25 @@ describe('Install CLI command', () => {
 
   describe('when profile id is not specified', () => {
     afterEach(async () => {
-      await rimraf(fixture.local.scope);
+      await rimraf(fixture.scope);
     });
 
     it('installs profiles in super.json', async () => {
       const expectedProfilesCount = 1;
+      const profileId = `${profileName}@1`;
 
       {
-        await expect(
-          Install.run([`${profileWithScopeName}@2.0.0`])
-        ).resolves.toBeUndefined();
+        await expect(Install.run([profileId])).resolves.toBeUndefined();
 
         const { profiles } = await parseSuperJson(fixture.superJson);
-        const local = await getProfileDocument(fixture.local.profileWithScope);
-        const registry = await getProfileDocument(
-          fixture.registry.profileWithScope200
-        );
-
-        const localName = local.header.scope
-          ? `${local.header.scope}/${local.header.name}`
-          : local.header.name;
+        const local = await readFile(fixture.profile, { encoding: 'utf-8' });
+        const registry = (await fetchProfile(profileId)).toString();
 
         expect(local).toEqual(registry);
 
-        expect(profiles[localName]).toEqual({
-          file: 'file:grid/my-scope/my-profile.supr',
-          version: '2.0.0',
+        expect(profiles[profileName]).toEqual({
+          file: `file:${fixture.profile}`,
+          version: '1.0.1',
         });
 
         expect(Object.values(profiles).length).toEqual(expectedProfilesCount);
@@ -129,12 +103,10 @@ describe('Install CLI command', () => {
 
       {
         await expect(Install.run([])).resolves.toBeUndefined();
-        expect(await exists(fixture.local.profileWithScope)).toBe(true);
+        expect(await exists(fixture.profile)).toBe(true);
 
-        const local = await getProfileDocument(fixture.local.profileWithScope);
-        const registry = await getProfileDocument(
-          fixture.registry.profileWithScope200
-        );
+        const local = await readFile(fixture.profile, { encoding: 'utf-8' });
+        const registry = (await fetchProfile(profileId)).toString();
 
         expect(local).toEqual(registry);
       }
@@ -146,78 +118,57 @@ describe('Install CLI command', () => {
       const expectedProfilesCount = 1;
 
       {
-        await expect(
-          Install.run([`${profileWithScopeName}@1.0.1`])
-        ).resolves.toBeUndefined();
+        const profileId = `${profileName}@1.0.1`;
+        await expect(Install.run([profileId])).resolves.toBeUndefined();
 
         const { profiles } = await parseSuperJson(fixture.superJson);
-        const local = await getProfileDocument(fixture.local.profileWithScope);
-        const registry = await getProfileDocument(
-          fixture.registry.profileWithScope101
-        );
-
-        const localName = local.header.scope
-          ? `${local.header.scope}/${local.header.name}`
-          : local.header.name;
+        const local = await readFile(fixture.profile, { encoding: 'utf-8' });
+        const registry = (await fetchProfile(profileId)).toString();
 
         expect(local).toEqual(registry);
 
-        expect(profiles[localName]).toEqual({
-          file: 'file:grid/my-scope/my-profile.supr',
+        expect(profiles[profileName]).toEqual({
+          file: `file:${fixture.profile}`,
           version: '1.0.1',
         });
 
         expect(Object.values(profiles).length).toEqual(expectedProfilesCount);
       }
+    });
+  });
 
+  describe('when providers are specified', () => {
+    it('installs specified profile with default provider configuration into super.json', async () => {
       {
+        const profileId = `${profileName}@1.0.1`;
         await expect(
-          Install.run([`${profileWithScopeName}@2.0`, '-f'])
+          Install.run([profileId, '-p', 'twillio', 'osm', 'tyntec', '-f'])
         ).resolves.toBeUndefined();
 
         const { profiles } = await parseSuperJson(fixture.superJson);
-        const local = await getProfileDocument(fixture.local.profileWithScope);
-        const registry = await getProfileDocument(
-          fixture.registry.profileWithScope200
-        );
-
-        const localName = local.header.scope
-          ? `${local.header.scope}/${local.header.name}`
-          : local.header.name;
+        const local = await readFile(fixture.profile, { encoding: 'utf-8' });
+        const registry = (await fetchProfile(profileId)).toString();
 
         expect(local).toEqual(registry);
 
-        expect(profiles[localName]).toEqual({
-          file: 'file:grid/my-scope/my-profile.supr',
-          version: '2.0.0',
-        });
-
-        expect(Object.values(profiles).length).toEqual(expectedProfilesCount);
-      }
-
-      {
-        await expect(
-          Install.run([`${profileName}@1.0.1`])
-        ).resolves.toBeUndefined();
-
-        const { profiles } = await parseSuperJson(fixture.superJson);
-        const local = await getProfileDocument(fixture.local.profile);
-        const registry = await getProfileDocument(fixture.registry.profile101);
-
-        const localName = local.header.scope
-          ? `${local.header.scope}/${local.header.name}`
-          : local.header.name;
-
-        expect(local).toEqual(registry);
-
-        expect(profiles[localName]).toEqual({
-          file: 'file:grid/my-profile.supr',
+        expect(profiles[profileName]).toEqual({
+          file: `file:${fixture.profile}`,
           version: '1.0.1',
+          providers: {
+            twillio: {
+              mapVariant: 'default',
+              mapRevision: '1',
+            },
+            osm: {
+              mapVariant: 'default',
+              mapRevision: '1',
+            },
+            tyntec: {
+              mapVariant: 'default',
+              mapRevision: '1',
+            },
+          },
         });
-
-        expect(Object.values(profiles).length).toEqual(
-          expectedProfilesCount + 1
-        );
       }
     });
   });
