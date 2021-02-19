@@ -1,10 +1,11 @@
+import { SuperJson } from '@superfaceai/sdk';
 import { join as joinPath } from 'path';
 import { stderr, stdout } from 'stdout-stderr';
 
 import {
-  META_FILE,
-  parseSuperJson,
-  SUPERFACE_DIR,
+  EXTENSIONS,
+  GRID_DIR,
+  SUPER_PATH,
   writeSuperJson,
 } from '../common/document';
 import { fetchProfile } from '../common/http';
@@ -12,20 +13,15 @@ import { exists, readFile, rimraf } from '../common/io';
 import Install from './install';
 
 describe('Install CLI command', () => {
-  const WORKING_DIR = joinPath(
-    'fixtures',
-    'install',
-    'playground',
-    SUPERFACE_DIR
-  );
+  const WORKING_DIR = joinPath('fixtures', 'install', 'playground');
 
   const STARWARS_SCOPE = 'starwars';
   const profileName = joinPath(STARWARS_SCOPE, 'character-information');
 
   const fixture = {
-    superJson: META_FILE,
-    profile: joinPath('grid', profileName),
-    scope: joinPath('grid', STARWARS_SCOPE),
+    superJson: SUPER_PATH,
+    profile: joinPath(GRID_DIR, `${profileName}${EXTENSIONS.profile.source}`),
+    scope: joinPath(GRID_DIR, STARWARS_SCOPE),
   };
 
   // restart super.json to initial state
@@ -35,8 +31,8 @@ describe('Install CLI command', () => {
       {
         profiles: {
           [profileName]: {
-            file: `file:${fixture.profile}`,
-            version: '1.0.0',
+            file: `grid/${profileName}${EXTENSIONS.profile.source}`,
+            providers: {},
           },
         },
         providers: {},
@@ -46,7 +42,7 @@ describe('Install CLI command', () => {
   }
 
   beforeAll(async () => {
-    // change cwd to /fixtures/install
+    // change cwd to /fixtures/install/playground/
     process.chdir(WORKING_DIR);
 
     await restartSuperJson();
@@ -72,7 +68,7 @@ describe('Install CLI command', () => {
     await rimraf(fixture.scope);
 
     // change cwd back
-    process.chdir('../../../../');
+    process.chdir('../../../');
   });
 
   describe('when no providers are specified', () => {
@@ -86,16 +82,25 @@ describe('Install CLI command', () => {
 
       {
         await expect(Install.run([profileId])).resolves.toBeUndefined();
+        const { profiles } = new SuperJson(
+          (await SuperJson.loadSuperJson()).match(
+            v => v,
+            err => {
+              console.error(err);
 
-        const { profiles } = await parseSuperJson(fixture.superJson);
+              return {};
+            }
+          )
+        ).normalized;
         const local = await readFile(fixture.profile, { encoding: 'utf-8' });
         const registry = (await fetchProfile(profileId)).toString();
 
         expect(local).toEqual(registry);
 
         expect(profiles[profileName]).toEqual({
-          file: `file:${fixture.profile}`,
-          version: '1.0.1',
+          file: `grid/${profileName}${EXTENSIONS.profile.source}`,
+          providers: {},
+          defaults: {},
         });
 
         expect(Object.values(profiles).length).toEqual(expectedProfilesCount);
@@ -121,27 +126,39 @@ describe('Install CLI command', () => {
           Install.run([profileId, '-p', 'twillio', 'osm', 'tyntec', '-f'])
         ).resolves.toBeUndefined();
 
-        const { profiles } = await parseSuperJson(fixture.superJson);
+        const { profiles } = new SuperJson(
+          (await SuperJson.loadSuperJson()).match(
+            v => v,
+            err => {
+              console.error(err);
+
+              return {};
+            }
+          )
+        ).normalized;
         const local = await readFile(fixture.profile, { encoding: 'utf-8' });
         const registry = (await fetchProfile(profileId)).toString();
 
         expect(local).toEqual(registry);
 
         expect(profiles[profileName]).toEqual({
-          file: `file:${fixture.profile}`,
-          version: '1.0.1',
+          file: `grid/${profileName}${EXTENSIONS.profile.source}`,
+          defaults: {},
           providers: {
             twillio: {
               mapVariant: 'default',
               mapRevision: '1',
+              defaults: {},
             },
             osm: {
               mapVariant: 'default',
               mapRevision: '1',
+              defaults: {},
             },
             tyntec: {
               mapVariant: 'default',
               mapRevision: '1',
+              defaults: {},
             },
           },
         });
