@@ -1,5 +1,5 @@
 import { parseDocumentId } from '@superfaceai/parser';
-import { SuperJson } from '@superfaceai/sdk';
+import { FILE_URI_PROTOCOL, SuperJson } from '@superfaceai/sdk';
 import { Dirent } from 'fs';
 import { basename, join as joinPath, resolve as resolvePath } from 'path';
 
@@ -362,20 +362,19 @@ export async function initializePlayground(
     }
   );
 
+  // TODO: super.json editing in sdk
   const profileProviders: ProfileProvider = {};
   for (let i = 0; i < id.providers.length; i += 1) {
     const key = id.providers[i];
     const file = paths.defaultMaps[i];
 
-    profileProviders[key] = {
-      file: 'file:' + file,
-    };
+    profileProviders[key] = FILE_URI_PROTOCOL + file;
   }
 
   const profileKey = id.scope ? `${id.scope}/${id.name}` : id.name;
   const profiles: ProfileSettings = {
     [profileKey]: {
-      file: 'file:' + paths.defaultProfile,
+      file: paths.defaultProfile,
       version: DEFAULT_PROFILE_VERSION_STR,
       providers: profileProviders,
     },
@@ -383,7 +382,9 @@ export async function initializePlayground(
 
   const providers: ProviderSettings = {};
   id.providers.forEach(
-    providerName => (providers[providerName] = { auth: {} })
+    providerName => {
+      providers[providerName] = `${FILE_URI_PROTOCOL}${providerName}.provider.json`;
+    }
   );
 
   // ensure superface is initialized in the directory

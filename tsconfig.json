@@ -15,6 +15,7 @@
     "strict": true,
     "strictPropertyInitialization": true,
     "target": "ES2015",
+    "resolveJsonModule": true,
     "typeRoots": ["node_modules/@types"]
   },
   "include": ["src/**/*.ts"]

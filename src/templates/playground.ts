@@ -1,3 +1,5 @@
+import { dependencies } from '../../package.json';
+
 import { TemplateType } from './common';
 
 export function packageJson(): string {
@@ -5,7 +7,7 @@ export function packageJson(): string {
   "name": "playground",
   "private": true,
   "dependencies": {
-    "@superfaceai/sdk": "0.0.9-beta.2"
+    "@superfaceai/sdk": "${dependencies['@superfaceai/sdk']}"
   },
   "devDependencies": {
     "@types/node": "^14",

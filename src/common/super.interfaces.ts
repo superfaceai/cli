@@ -13,7 +13,7 @@ export interface ProfileProvider {
     mapRevision?: string;
     file: string;
     defaults?: Usecases;
-  };
+  } | string;
 }
 
 export interface ProfileSettings {
@@ -32,12 +32,7 @@ export interface ProviderSettings {
     auth: {
       [authType: string]: unknown;
     };
-    deployments?: {
-      default: {
-        baseUrl: string;
-      };
-    };
-  };
+  } | string;
 }
 
 export interface SuperJsonStructure {
