@@ -267,6 +267,13 @@ export async function detectPlayground(
   const instances: PlaygroundInstance[] = [];
 
   const playScripts = await detectPlayScripts(realPath);
+  if (playScripts.length === 0) {
+    throw userError(
+      'The directory at playground path is not a playground: no play scripts found',
+      36
+    );
+  }
+
   for (const playScript of playScripts) {
     const key =
       playScript.id.scope !== undefined
@@ -303,8 +310,8 @@ export async function detectPlayground(
 
   if (instances.length === 0) {
     throw userError(
-      'The directory at playground path is not a playground: no providers or play scripts found',
-      36
+      'The directory at playground path is not a playground: no local profile-provider pairs found in super.json',
+      37
     );
   }
 
