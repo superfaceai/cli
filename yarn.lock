@@ -587,6 +587,11 @@
   resolved "https://npm.pkg.github.com/download/@superfaceai/ast/0.0.20/957dff9bf72e8a26c1ddf4cf4e82726c47edc9b3d91e3b8d576f7c1e9862a7b7"
   integrity sha512-vE6D7SXn72Y3PvvLWTFttyt34FRbQbEUlNUpb3wtn9yQrplEWoOw1rcwmoHaAKemRHGQMEWjTcHE9KKW4ocY8A==
 
+"@superfaceai/ast@0.0.21":
+  version "0.0.21"
+  resolved "https://npm.pkg.github.com/download/@superfaceai/ast/0.0.21/48ebed3cda17c82fb3722a6baf649a4b0d6fdbdb6a349962915f705922e68d4e#0db4167b99a4d84f8f43c7651cca6df930d65f6d"
+  integrity sha512-/jsi46JAIbWc1MG+wk5BcejwVvvCjuHXdzJBlU56rkpEgvGR4IMtlPGKVLmXKTK87EkyXOevOhCuUHQpEcfqSg==
+
 "@superfaceai/parser@^0.0.13":
   version "0.0.13"
   resolved "https://npm.pkg.github.com/download/@superfaceai/parser/0.0.13/97f9562684b255991748040a1df1906b51a68d7b61b45c26b04c34fa0924b4b6#257f2525c7ffbead8f0c3e9e562e45d6af7ea178"
@@ -608,6 +613,18 @@
     debug "^4.3.1"
     isomorphic-form-data "^2.0.0"
     vm2 "^3.9.2"
+
+"@superfaceai/sdk@^0.0.9-beta.3":
+  version "0.0.9-beta.3"
+  resolved "https://npm.pkg.github.com/download/@superfaceai/sdk/0.0.9-beta.3/0e421ed925a73d21b6571fba9af5e5fe5b90c45d0a408a4dcc60d94c88e80fa1#5ccf0247735e45d32c4eaffb34507241c0673d19"
+  integrity sha512-rpTurWOvQr+mlsceGNRICuknf2SaflzqXp5vd4740/hTWvheiRtsksxL82qv1dnWi0Od34yNL3yS1YA0CZtpww==
+  dependencies:
+    "@superfaceai/ast" "0.0.21"
+    cross-fetch "^3.0.5"
+    debug "^4.3.1"
+    isomorphic-form-data "^2.0.0"
+    vm2 "^3.9.2"
+    zod "^2.0.0-beta.30"
 
 "@types/babel__core@^7.0.0", "@types/babel__core@^7.1.7":
   version "7.1.12"
@@ -4999,3 +5016,8 @@ yargs@^15.4.1:
     which-module "^2.0.0"
     y18n "^4.0.0"
     yargs-parser "^18.1.2"
+
+zod@^2.0.0-beta.30:
+  version "2.0.0-beta.30"
+  resolved "https://registry.yarnpkg.com/zod/-/zod-2.0.0-beta.30.tgz#67ec3305c4a106a7bf9ef72078de72892d485dbe"
+  integrity sha512-nwCSRXRy1jt0872mMXT2E6VVHXr2hO7jGEtwc/TDqOBb7gGodwAjsQ6UCS4XJLUmjVvmqLsuPvAIN8oL26weCQ==

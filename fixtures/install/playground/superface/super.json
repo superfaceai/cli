@@ -1,8 +1,8 @@
 {
   "profiles": {
     "starwars/character-information": {
-      "file": "file:grid/starwars/character-information",
-      "version": "1.0.0"
+      "file": "grid/starwars/character-information.supr",
+      "providers": {}
     }
   },
   "providers": {}
