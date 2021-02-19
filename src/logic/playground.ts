@@ -1,6 +1,5 @@
 import { parseDocumentId } from '@superfaceai/parser';
 import { SuperJson } from '@superfaceai/sdk';
-
 import { Dirent } from 'fs';
 import { basename, join as joinPath, resolve as resolvePath } from 'path';
 
@@ -140,7 +139,7 @@ function playgroundFilePaths(
     `${playground.name}${EXTENSIONS.profile.source}`
   );
   const defaultMaps = playground.providers.map(provider =>
-    joinPath(sourcesBase, `${playground.name}.${provider}${EXTENSIONS.map.source}`)
+    joinPath(sourcesBase, `${playground.name}.${provider.name}${EXTENSIONS.map.source}`)
   );
 
   const script = joinPath(playPath, `${playground.name}${EXTENSIONS.play.source}`);
