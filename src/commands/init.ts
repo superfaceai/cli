@@ -136,19 +136,28 @@ export default class Init extends Command {
 
   async run(): Promise<void> {
     const { args, flags } = this.parse(Init);
+    const hints: Record<string, string> = {
+      flags: 'You can use flags instead of prompt.',
+      help: '`Use superface init --help` for more informations.',
+      quietMode: 'You can also use this command in quiet mode with flag `-q`.',
+      quiet: '',
+    };
 
     if (flags.quiet) {
       this.logCallback = undefined;
+      this.warnCallback = undefined;
+
+      hints.quiet = yellow('\nYou are in Quiet mode.\n');
     }
 
     if (flags.prompt) {
       this
-        .log(`This command will walk you through initializing superface folder structure ( mainly super.json structure ). 
+        .log(`This command will walk you through initializing superface folder structure ( mainly super.json structure ).
 If no value is specified, the default will be taken in place ( empty super.json ).
 
-You can use flags instead of prompt. \`Use superface init --help\` for more informations.
-You can also use this command in quiet mode with flag \`-q\`.
-`);
+${hints.flags} ${hints.help}
+${hints.quietMode}
+${hints.quiet}`);
     }
 
     let profiles = flags.profiles;
