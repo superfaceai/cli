@@ -123,7 +123,7 @@ describe('Play CLI command', () => {
   });
 
   // TODO: Currently skipping this in CI because of access permission issues
-  it.skip('compiles playground and executes it', async () => {
+  it('compiles playground and executes it', async () => {
     stdout.start();
     await Play.run(['execute', fixedPlayground.path, '--providers', 'noop']);
     stdout.stop();
@@ -134,19 +134,19 @@ describe('Play CLI command', () => {
 
     // check build artifacts
     const expectedFiles = [
-      'package-lock.json',
-      'node_modules',
-      joinPath('build', 'pub-hours.supr.ast.json'),
-      joinPath('build', 'pub-hours.noop.suma.ast.json'),
-      joinPath('build', 'pub-hours.play.js'),
-    ].map(f => joinPath(fixedPlayground.path, 'superface', f));
+      'pub-hours.supr.ast.json',
+      'pub-hours.noop.suma.ast.json',
+      joinPath('superface', 'package-lock.json'),
+      joinPath('superface', 'node_modules'),
+      joinPath('superface', 'build', 'pub-hours.play.js'),
+    ].map(f => joinPath(fixedPlayground.path, f));
     await expect(
       Promise.all(expectedFiles.map(f => access(f)))
     ).resolves.toBeDefined();
   }, 30000);
 
   // TODO: Currently skipping this in CI because of access permission issues
-  it.skip('creates, compiles and executes a playground on a real api', async () => {
+  it('creates, compiles and executes a playground on a real api', async () => {
     stdout.start();
     await expect(
       Play.run(['initialize', createdPlayground.path, '--providers', 'foo'])
@@ -164,13 +164,13 @@ describe('Play CLI command', () => {
 
   it('cleans compilation artifacts', async () => {
     const deletedFiles = [
-      'package-lock.json',
-      'node_modules',
-      joinPath('build', `${createdPlayground.name}.supr.ast.json`),
-      joinPath('build', `${createdPlayground.name}.foo.suma.ast.json`),
-      joinPath('build', `${createdPlayground.name}.bar.suma.ast.json`),
-      joinPath('build', `${createdPlayground.name}.play.js`),
-    ].map(f => joinPath(createdPlayground.path, 'superface', f));
+      `${createdPlayground.name}.supr.ast.json`,
+      `${createdPlayground.name}.foo.suma.ast.json`,
+      `${createdPlayground.name}.bar.suma.ast.json`,
+      joinPath('superface', 'package-lock.json'),
+      joinPath('superface', 'node_modules'),
+      joinPath('superface', 'build', `${createdPlayground.name}.play.js`),
+    ].map(f => joinPath(createdPlayground.path, f));
 
     const expectedFiles = [
       `${createdPlayground.name}.supr`,
@@ -195,13 +195,13 @@ describe('Play CLI command', () => {
           JSON.stringify({
             profiles: {
               [createdPlayground.name]: {
-                file: 'file:' + createdPlayground.name + '.supr',
+                file: expectedFiles[0],
                 providers: {
                   foo: {
-                    file: 'file:' + createdPlayground.name + '.foo.suma',
+                    file: expectedFiles[1],
                   },
                   bar: {
-                    file: 'file:' + createdPlayground.name + '.bar.suma',
+                    file: expectedFiles[2],
                   },
                 },
               },
