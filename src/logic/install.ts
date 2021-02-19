@@ -1,4 +1,10 @@
 import { ProfileDocumentNode } from '@superfaceai/ast';
+import {
+  ProfileEntry,
+  ProfileProviderSettings,
+  SuperJson,
+  SuperJsonDocument,
+} from '@superfaceai/sdk';
 import { isAbsolute, join as joinPath, normalize, relative } from 'path';
 
 import {
@@ -6,10 +12,8 @@ import {
   EXTENSIONS,
   getProfileDocument,
   META_FILE,
-  parseSuperJson,
   SUPER_PATH,
   SUPERFACE_DIR,
-  trimFileURI,
   writeProfile,
   writeSuperJson,
 } from '../common/document';
@@ -22,11 +26,6 @@ import {
 } from '../common/http';
 import { exists, isAccessible } from '../common/io';
 import { formatShellLog, LogCallback } from '../common/log';
-import {
-  ProfileProvider,
-  ProfileSettings,
-  SuperJsonStructure,
-} from '../common/super.interfaces';
 
 /**
  * Detects the existence of a `super.json` file in specified number of levels
@@ -64,7 +63,7 @@ export async function detectSuperJson(
   return await detectSuperJson(cwd, --level);
 }
 
-interface RegistryResponseMock {
+interface ProfileResponse {
   info: ProfileInfo;
   ast: ProfileDocumentNode;
   profile: string;
@@ -72,15 +71,25 @@ interface RegistryResponseMock {
 
 /**
  * Mock the Superface registry API GET call with calls to Store API.
- * It should query the newest profile in valid scope (https://semver.org/)
+ * Query the newest profile in valid scope (https://semver.org/)
  */
-export async function getProfileFromRegistry(
-  profileId: string
-): Promise<RegistryResponseMock> {
+export async function getProfileFromStore(
+  profileId: string,
+  options?: {
+    logCb?: LogCallback;
+  }
+): Promise<ProfileResponse> {
+  options?.logCb?.(`Fetching profile ${profileId} from the Store`);
+
   try {
     const info = await fetchProfileInfo(profileId);
+    options?.logCb?.('GET Profile Info');
+
     const profile = await fetchProfile(profileId);
+    options?.logCb?.('GET Profile Source File');
+
     const ast = await fetchProfileAST(profileId);
+    options?.logCb?.('GET Profile AST');
 
     return {
       info,
@@ -111,46 +120,51 @@ function validateProfilePath(file: string): boolean {
  */
 export async function handleProfiles(
   superPath: string,
-  responses: RegistryResponseMock[],
-  { profiles, providers }: SuperJsonStructure,
+  responses: ProfileResponse[],
+  { profiles, providers }: SuperJsonDocument,
   givenProviders?: string[],
   options?: { logCb?: LogCallback; warnCb?: LogCallback; force: boolean }
-): Promise<void> {
+): Promise<number> {
+  options?.logCb?.('Installing profiles');
   const writingOptions = { force: true, dirs: true };
-  const buildPath = joinPath(superPath, 'build');
+  let installed = 0
 
   for (const {
-    info: { profile_name, profile_version },
+    info: { profile_name },
     ast,
     profile,
   } of responses) {
-    const targetProfile = profiles[profile_name];
-    let targetProfileProviders: ProfileProvider | undefined;
+    options?.logCb?.(`${installed+1}/${responses.length} installing ${profile_name}`)
 
-    // store path if profile has one specified in super.json
-    const profilePath = `${profile_name}${EXTENSIONS.profile.source}`;
-    let targetProfilePath = joinPath('grid', profilePath);
+    const targetProfile = profiles?.[profile_name];
+    const targetProfilePath = joinPath(
+      'grid',
+      `${profile_name}${EXTENSIONS.profile.source}`
+    );
+
+    if (
+      (await exists(joinPath(superPath, targetProfilePath))) &&
+      !options?.force
+    ) {
+      options?.warnCb?.(
+        `⚠️  File already exists: ${targetProfilePath} (Use flag \`--force/-f\` for overwriting profiles)`
+      );
+      continue;
+    }
+
+    let targetProfileProviders:
+      | Record<string, ProfileProviderSettings | string>
+      | undefined;
 
     if (targetProfile && typeof targetProfile !== 'string') {
       // check the file path if it's specified in super.json
-      if (targetProfile.file) {
-        const path = trimFileURI(targetProfile.file);
-
-        if (!validateProfilePath(path)) {
+      if ('file' in targetProfile) {
+        if (!validateProfilePath(targetProfile.file)) {
           options?.warnCb?.(
             `⚠️  Invalid path: ${targetProfile.file} (File path in 'super.json' can't be outside '/superface' folder)`
           );
           continue;
         }
-
-        if ((await exists(joinPath(superPath, path))) && !options?.force) {
-          options?.warnCb?.(
-            `⚠️  File already exists: ${path} (Use flag \`--force/-f\` for overwriting profiles)`
-          );
-          continue;
-        }
-
-        targetProfilePath = path;
       }
 
       targetProfileProviders = targetProfile.providers;
@@ -165,24 +179,24 @@ export async function handleProfiles(
 
     if (profileDownloaded) {
       options?.logCb?.(
-        formatShellLog("download '<profile>'", [
+        formatShellLog("install '<profile>'", [
           joinPath(superPath, targetProfilePath),
         ])
       );
     }
 
     // save profile AST to /superface/build
-    const profileAstPath = `${profile_name}${EXTENSIONS.profile.build}`;
+    const profileAstPath = `${targetProfilePath}.ast.json`;
     const profileAstDownloaded = await writeProfile(
-      joinPath(buildPath, profileAstPath),
+      joinPath(superPath, profileAstPath),
       JSON.stringify(ast, null, 2),
       writingOptions
     );
 
     if (profileAstDownloaded) {
       options?.logCb?.(
-        formatShellLog('download <profileAST>', [
-          joinPath(buildPath, profileAstPath),
+        formatShellLog('install <profileAST>', [
+          joinPath(superPath, profileAstPath),
         ])
       );
     }
@@ -201,9 +215,12 @@ export async function handleProfiles(
       }
     }
 
+    if (!profiles) {
+      profiles = {};
+    }
+
     profiles[profile_name] = {
-      file: `file:${targetProfilePath}`,
-      version: profile_version,
+      file: targetProfilePath,
       providers: targetProfileProviders,
     };
 
@@ -222,40 +239,51 @@ export async function handleProfiles(
         formatShellLog('update <super.json>', [joinPath(superPath, META_FILE)])
       );
     }
+
+    installed++;
   }
+
+  return installed
 }
 
 /**
  * Extracts profile ids from `super.json`.
  */
-export function getProfileIds(profiles: ProfileSettings): string[] {
-  return Object.entries(profiles).map(([profileName, value]) => {
-    const id = profileName;
+export async function getProfileIds(
+  superPath: string,
+  profiles: Record<string, ProfileEntry>
+): Promise<string[]> {
+  return Promise.all(
+    Object.entries(profiles).map(async ([profileName, value]) => {
+      const id = profileName;
 
-    if (typeof value === 'string') {
-      // if profile has only version assigned
-      return `${id}@${value}`;
-    } else {
-      // if profile version field is specified
-      if (value.version) {
-        return `${id}@${value.version}`;
+      if (typeof value === 'string') {
+        // if profile has only version assigned
+        return `${id}@${value}`;
+      } else {
+        // if profile version field is specified
+        if ('version' in value) {
+          return `${id}@${value.version}`;
+        }
+
+        // if profile file field is specified
+        if (value.file) {
+          try {
+            const { header } = await getProfileDocument(
+              joinPath(superPath, value.file)
+            );
+
+            return `${id}@${composeVersion(header.version)}`;
+          } catch (err) {
+            throw userError(err, 1);
+          }
+        }
+
+        // default
+        return `${id}@1.0.0`;
       }
-
-      // if profile file field is specified
-      if (value.file) {
-        getProfileDocument(trimFileURI(value.file))
-          .then(value => {
-            return `${id}@${composeVersion(value.header.version)}`;
-          })
-          .catch(e => {
-            throw userError(e, 1);
-          });
-      }
-
-      // default
-      return `${id}@1.0.0`;
-    }
-  });
+    })
+  );
 }
 
 /**
@@ -278,18 +306,46 @@ export async function installProfiles(
     force: boolean;
   }
 ): Promise<void> {
-  const superJson = await parseSuperJson(joinPath(superPath, META_FILE));
-  const responses: RegistryResponseMock[] = [];
+  const responses: ProfileResponse[] = [];
+  const superJson = new SuperJson(
+    (await SuperJson.loadSuperJson()).match(
+      v => v,
+      err => {
+        options?.warnCb?.(err);
+
+        return {};
+      }
+    )
+  ).normalized;
 
   if (profileId) {
-    responses.push(await getProfileFromRegistry(profileId));
+    responses.push(
+      await getProfileFromStore(profileId, {
+        logCb: options?.logCb,
+      })
+    );
   } else {
-    const profiles = getProfileIds(superJson.profiles);
+    const profiles = await getProfileIds(superPath, superJson.profiles);
 
     for (const profileId of profiles) {
-      responses.push(await getProfileFromRegistry(profileId));
+      responses.push(
+        await getProfileFromStore(profileId, {
+          logCb: options?.logCb,
+        })
+      );
     }
   }
 
-  await handleProfiles(superPath, responses, superJson, providers, options);
+  const numOfInstalled = await handleProfiles(superPath, responses, superJson, providers, options);
+
+
+  if (numOfInstalled === 0) {
+    options?.logCb?.(`❌ No profiles have been installed`)
+  } else if (numOfInstalled < responses.length) {
+    options?.logCb?.(`⚠️ Some profiles have been installed. Installed ${numOfInstalled} out of ${responses.length}`)
+  } else {
+    options?.logCb?.(`🆗 All profiles have been installed successfully.`)
+  }
+   
+  options?.logCb?.('How to use Documentation will be HERE')
 }

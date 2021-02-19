@@ -5,6 +5,7 @@ import {
   parseProfile,
   Source,
 } from '@superfaceai/parser';
+import { SuperJsonDocument } from '@superfaceai/sdk';
 import { basename, join as joinPath } from 'path';
 
 import * as initTemplate from '../templates/init';
@@ -13,7 +14,6 @@ import { userError } from './error';
 import { DocumentTypeFlag } from './flags';
 import { readdir, readFile, WritingOptions } from './io';
 import { OutputStream } from './output-stream';
-import { SuperJsonStructure } from './super.interfaces';
 
 export const DEFAULT_PROFILE_VERSION = {
   major: 1,
@@ -144,30 +144,9 @@ export async function getProfileDocument(
   return parseFunction(source);
 }
 
-export function isSuperJson(data: unknown): data is SuperJsonStructure {
-  return (
-    (data as SuperJsonStructure).profiles !== undefined &&
-    (data as SuperJsonStructure).providers !== undefined
-  );
-}
-
-export async function parseSuperJson(
-  superJsonPath: string
-): Promise<SuperJsonStructure> {
-  const json: unknown = JSON.parse(
-    await readFile(superJsonPath, { encoding: 'utf-8' })
-  );
-
-  if (isSuperJson(json)) {
-    return json;
-  }
-
-  throw userError('Invalid super.json', 1);
-}
-
 export async function writeSuperJson(
   superJsonPath: string,
-  data: SuperJsonStructure,
+  data: SuperJsonDocument,
   options?: WritingOptions
 ): Promise<boolean> {
   return await OutputStream.writeIfAbsent(
@@ -267,4 +246,3 @@ export async function findLocalCapabilities(
   return profiles;
 }
 
-export const trimFileURI = (path: string): string => path.slice('file:'.length);

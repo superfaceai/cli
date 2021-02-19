@@ -34,7 +34,7 @@ const parseProviders = (
 
 export default class Install extends Command {
   static description =
-    'Initializes superface directory if needed, communicates with Superface registry, stores profiles and ASTs to a local system';
+    'Initializes superface directory if needed, communicates with Superface Store API, stores profiles and ASTs to a local system';
 
   static args = [
     {
@@ -114,7 +114,7 @@ export default class Install extends Command {
       }
 
       this.logCallback?.(
-        "Initializing superface directory with empty 'super.json'..."
+        "Initializing superface directory with empty 'super.json'"
       );
       await initSuperface(
         './',
@@ -140,7 +140,5 @@ export default class Install extends Command {
         force: flags.force,
       }
     );
-
-    // TODO: generate typings to <appPath>/superface/types
   }
 }

@@ -1,4 +1,5 @@
 import { parseProfileId } from '@superfaceai/parser';
+import { ProfileEntry, ProviderSettings, SuperJsonDocument } from '@superfaceai/sdk';
 import { basename, join as joinPath } from 'path';
 
 import {
@@ -16,11 +17,6 @@ import { userError } from '../common/error';
 import { mkdir, mkdirQuiet } from '../common/io';
 import { formatShellLog, LogCallback } from '../common/log';
 import { OutputStream } from '../common/output-stream';
-import {
-  ProfileSettings,
-  ProviderSettings,
-  SuperJsonStructure,
-} from '../common/super.interfaces';
 import * as initTemplate from '../templates/init';
 import { createProfile } from './create';
 
@@ -42,7 +38,7 @@ import { createProfile } from './create';
  */
 export async function initSuperface(
   appPath: string,
-  data: SuperJsonStructure,
+  data: SuperJsonDocument,
   options?: {
     force?: boolean;
     logCb?: LogCallback;
@@ -159,8 +155,8 @@ export async function initSuperface(
  */
 export const constructProfileSettings = (
   profileIds: string[]
-): ProfileSettings =>
-  profileIds.reduce<ProfileSettings>((acc, profileId) => {
+): Record<string, ProfileEntry> =>
+  profileIds.reduce<Record<string, ProfileEntry>>((acc, profileId) => {
     const profile = parseProfileId(profileId);
 
     if (profile.kind === 'error') {
@@ -184,8 +180,8 @@ export const constructProfileSettings = (
  */
 export const constructProviderSettings = (
   providers: string[]
-): ProviderSettings =>
-  providers.reduce<ProviderSettings>((acc, provider) => {
+): Record<string, ProviderSettings> =>
+  providers.reduce<Record<string, ProviderSettings>>((acc, provider) => {
     acc[provider] = {
       auth: {
         token: 'fill-this',
