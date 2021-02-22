@@ -1,0 +1,10 @@
+{
+	"name": "swapidev-ela",
+	"services": [
+		{
+			"baseUrl": "https://swapi.dev/api",
+			"id": "default"
+		}
+	],
+	"defaultService": "default"
+}

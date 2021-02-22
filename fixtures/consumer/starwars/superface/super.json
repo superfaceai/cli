@@ -1,0 +1,17 @@
+{
+  "profiles": {
+    "starwars/character-information": {
+      "file": "superface/grid/starwars/character-information@1.0.0.supr",
+      "version": "1.0.0",
+      "providers": {
+        "swapidev-ela": {
+        }
+      }
+    }
+  },
+  "providers": {
+    "swapidev-ela": {
+      "auth": {}
+    }
+  }
+}
