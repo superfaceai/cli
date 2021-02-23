@@ -222,7 +222,10 @@ export async function handleProfiles(
  */
 export async function getProfileIds(
   superPath: string,
-  profiles?: Record<string, ProfileEntry>
+  profiles?: Record<string, ProfileEntry>,
+  options?: {
+    warnCb?: LogCallback
+  }
 ): Promise<string[]> {
   return Promise.all(
     Object.entries(profiles ?? {}).map(async ([profileId, profileEntry]) => {
@@ -243,7 +246,7 @@ export async function getProfileIds(
 
           return `${id}@${composeVersion(header.version)}`;
         } catch (err) {
-          throw userError(err, 1);
+          options?.warnCb?.(`${id} - No version was found, returning default version 1.0.0`)
         }
       }
 
@@ -293,7 +296,8 @@ export async function installProfiles(
   } else {
     const profiles = await getProfileIds(
       superPath,
-      superJson.document.profiles
+      superJson.document.profiles,
+      options
     );
 
     for (const profileId of profiles) {
