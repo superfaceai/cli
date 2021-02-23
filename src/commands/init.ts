@@ -4,14 +4,13 @@ import { grey, yellow } from 'chalk';
 import inquirer from 'inquirer';
 import { join as joinPath } from 'path';
 
-import { validateDocumentName } from '../common/document';
-import { LogCallback } from '../common/log';
 import {
   constructProfileSettings,
   constructProviderSettings,
-  generateSpecifiedProfiles,
-  initSuperface,
-} from '../logic/init';
+  validateDocumentName,
+} from '../common/document';
+import { LogCallback } from '../common/log';
+import { generateSpecifiedProfiles, initSuperface } from '../logic/init';
 
 const parseProfileIds = (
   input: string,

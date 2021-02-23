@@ -1,12 +1,10 @@
 import { parseProfileId } from '@superfaceai/parser';
-import { ProfileEntry, ProviderSettings, SuperJsonDocument } from '@superfaceai/sdk';
+import { SuperJsonDocument } from '@superfaceai/sdk';
 import { basename, join as joinPath } from 'path';
 
 import {
   BUILD_DIR,
   composeUsecaseName,
-  composeVersion,
-  EXTENSIONS,
   GRID_DIR,
   META_FILE,
   NPMRC,
@@ -148,48 +146,6 @@ export async function initSuperface(
     }
   }
 }
-
-/**
- * Reconstructs profile ids to correct structure for super.json
- * @param profileIds - list of profile ids
- */
-export const constructProfileSettings = (
-  profileIds: string[]
-): Record<string, ProfileEntry> =>
-  profileIds.reduce<Record<string, ProfileEntry>>((acc, profileId) => {
-    const profile = parseProfileId(profileId);
-
-    if (profile.kind === 'error') {
-      throw userError('Wrong profile Id', 1);
-    }
-
-    const { scope, name, version } = profile.value;
-    const profileName = scope ? `${scope}/${name}` : name;
-
-    acc[profileName] = {
-      version: composeVersion(version),
-      file: `file:grid/${profileName}${EXTENSIONS.profile.source}`,
-    };
-
-    return acc;
-  }, {});
-
-/**
- * Reconstruct providers to correct structure for super.json
- * @param providers - list of providers
- */
-export const constructProviderSettings = (
-  providers: string[]
-): Record<string, ProviderSettings> =>
-  providers.reduce<Record<string, ProviderSettings>>((acc, provider) => {
-    acc[provider] = {
-      auth: {
-        token: 'fill-this',
-      },
-    };
-
-    return acc;
-  }, {});
 
 /**
  * Generates profiles based on profiles specified in `init` command.

@@ -1,8 +1,5 @@
 import { parseDocumentId } from '@superfaceai/parser';
-import {
-  ProfileSettings,
-  ProviderSettings,
-} from '@superfaceai/sdk';
+import { ProfileSettings, ProviderSettings } from '@superfaceai/sdk';
 import { Dirent } from 'fs';
 import { join as joinPath } from 'path';
 

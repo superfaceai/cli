@@ -1,4 +1,4 @@
-import { SuperJsonDocument } from "@superfaceai/sdk";
+import { SuperJsonDocument } from '@superfaceai/sdk';
 
 export function npmRc(): string {
   return '@superfaceai:registry=https://npm.pkg.github.com\n';

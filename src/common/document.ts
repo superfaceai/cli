@@ -3,9 +3,15 @@ import {
   DocumentVersion,
   parseMap,
   parseProfile,
+  parseProfileId,
   Source,
 } from '@superfaceai/parser';
-import { SuperJsonDocument } from '@superfaceai/sdk';
+import {
+  ProfileEntry,
+  ProfileProviderEntry,
+  ProviderSettings,
+  SuperJsonDocument,
+} from '@superfaceai/sdk';
 import { basename, join as joinPath } from 'path';
 
 import * as initTemplate from '../templates/init';
@@ -246,3 +252,55 @@ export async function findLocalCapabilities(
   return profiles;
 }
 
+/**
+ * Reconstructs profile ids to correct structure for super.json
+ * @param profileIds - list of profile ids
+ */
+export const constructProfileSettings = (
+  profileIds: string[]
+): Record<string, ProfileEntry> =>
+  profileIds.reduce<Record<string, ProfileEntry>>((acc, profileId) => {
+    const profile = parseProfileId(profileId);
+
+    if (profile.kind === 'error') {
+      throw userError('Wrong profile Id', 1);
+    }
+
+    const { scope, name, version } = profile.value;
+    const profileName = scope ? `${scope}/${name}` : name;
+
+    acc[profileName] = {
+      version: composeVersion(version),
+      file: `grid/${profileName}${EXTENSIONS.profile.source}`,
+    };
+
+    return acc;
+  }, {});
+
+/**
+ * Reconstruct providers next to profile settings
+ * @param providers - list of providers
+ */
+export const constructProfileProviderSettings = (
+  providers: string[]
+): Record<string, ProfileProviderEntry> =>
+  providers.reduce<Record<string, ProfileProviderEntry>>((acc, provider) => {
+    acc[provider] = {};
+
+    return acc;
+  }, {});
+
+/**
+ * Reconstruct providers next to profiles in super.json
+ * @param providers - list of providers
+ */
+export const constructProviderSettings = (
+  providers: string[]
+): Record<string, ProviderSettings> =>
+  providers.reduce<Record<string, ProviderSettings>>((acc, provider) => {
+    acc[provider] = {
+      auth: {},
+    };
+
+    return acc;
+  }, {});

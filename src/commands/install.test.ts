@@ -13,6 +13,7 @@ import { exists, readFile, rimraf } from '../common/io';
 import Install from './install';
 
 describe('Install CLI command', () => {
+  const oldCWD = process.cwd();
   const WORKING_DIR = joinPath('fixtures', 'install', 'playground');
 
   const STARWARS_SCOPE = 'starwars';
@@ -68,7 +69,7 @@ describe('Install CLI command', () => {
     await rimraf(fixture.scope);
 
     // change cwd back
-    process.chdir('../../../');
+    process.chdir(oldCWD);
   });
 
   describe('when no providers are specified', () => {
@@ -82,28 +83,29 @@ describe('Install CLI command', () => {
 
       {
         await expect(Install.run([profileId])).resolves.toBeUndefined();
-        const { profiles } = new SuperJson(
-          (await SuperJson.loadSuperJson()).match(
-            v => v,
-            err => {
-              console.error(err);
+        const loadedResult = await SuperJson.loadSuperJson();
+        const { document } = loadedResult.match(
+          v => v,
+          err => {
+            console.error(err);
 
-              return {};
-            }
-          )
-        ).normalized;
+            return new SuperJson({});
+          }
+        );
+
         const local = await readFile(fixture.profile, { encoding: 'utf-8' });
         const registry = (await fetchProfile(profileId)).toString();
 
         expect(local).toEqual(registry);
 
-        expect(profiles[profileName]).toEqual({
+        expect(document.profiles?.[profileName]).toEqual({
           file: `grid/${profileName}${EXTENSIONS.profile.source}`,
           providers: {},
-          defaults: {},
         });
 
-        expect(Object.values(profiles).length).toEqual(expectedProfilesCount);
+        expect(Object.values(document.profiles ?? {}).length).toEqual(
+          expectedProfilesCount
+        );
       }
 
       {
@@ -126,40 +128,27 @@ describe('Install CLI command', () => {
           Install.run([profileId, '-p', 'twillio', 'osm', 'tyntec', '-f'])
         ).resolves.toBeUndefined();
 
-        const { profiles } = new SuperJson(
-          (await SuperJson.loadSuperJson()).match(
-            v => v,
-            err => {
-              console.error(err);
+        const loadedResult = await SuperJson.loadSuperJson();
+        const { document } = loadedResult.match(
+          v => v,
+          err => {
+            console.error(err);
 
-              return {};
-            }
-          )
-        ).normalized;
+            return new SuperJson({});
+          }
+        );
+
         const local = await readFile(fixture.profile, { encoding: 'utf-8' });
         const registry = (await fetchProfile(profileId)).toString();
 
         expect(local).toEqual(registry);
 
-        expect(profiles[profileName]).toEqual({
+        expect(document.profiles?.[profileName]).toEqual({
           file: `grid/${profileName}${EXTENSIONS.profile.source}`,
-          defaults: {},
           providers: {
-            twillio: {
-              mapVariant: 'default',
-              mapRevision: '1',
-              defaults: {},
-            },
-            osm: {
-              mapVariant: 'default',
-              mapRevision: '1',
-              defaults: {},
-            },
-            tyntec: {
-              mapVariant: 'default',
-              mapRevision: '1',
-              defaults: {},
-            },
+            twillio: {},
+            osm: {},
+            tyntec: {},
           },
         });
       }

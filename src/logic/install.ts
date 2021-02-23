@@ -1,14 +1,14 @@
 import { ProfileDocumentNode } from '@superfaceai/ast';
 import {
   ProfileEntry,
-  ProfileProviderSettings,
+  ProfileProviderEntry,
   SuperJson,
-  SuperJsonDocument,
 } from '@superfaceai/sdk';
 import { isAbsolute, join as joinPath, normalize, relative } from 'path';
 
 import {
   composeVersion,
+  constructProfileProviderSettings,
   EXTENSIONS,
   getProfileDocument,
   META_FILE,
@@ -121,40 +121,38 @@ function validateProfilePath(file: string): boolean {
 export async function handleProfiles(
   superPath: string,
   responses: ProfileResponse[],
-  { profiles, providers }: SuperJsonDocument,
-  givenProviders?: string[],
+  superJson: SuperJson,
+  profileProviders?: Record<string, ProfileProviderEntry>,
   options?: { logCb?: LogCallback; warnCb?: LogCallback; force: boolean }
 ): Promise<number> {
-  options?.logCb?.('Installing profiles');
+  let { profiles } = superJson.document;
   const writingOptions = { force: true, dirs: true };
-  let installed = 0
+  let installed = 0;
 
-  for (const {
-    info: { profile_name },
-    ast,
-    profile,
-  } of responses) {
-    options?.logCb?.(`${installed+1}/${responses.length} installing ${profile_name}`)
+  options?.logCb?.('Installing profiles');
 
-    const targetProfile = profiles?.[profile_name];
-    const targetProfilePath = joinPath(
-      'grid',
-      `${profile_name}${EXTENSIONS.profile.source}`
+  if (profiles === undefined) {
+    profiles = {};
+  }
+
+  for (const { info, ast, profile } of responses) {
+    options?.logCb?.(
+      `${installed + 1}/${responses.length} installing ${info.profile_name}`
     );
 
-    if (
-      (await exists(joinPath(superPath, targetProfilePath))) &&
-      !options?.force
-    ) {
+    const targetProfile = profiles?.[info.profile_name];
+    const targetProfilePath = joinPath(
+      'grid',
+      `${info.profile_name}${EXTENSIONS.profile.source}`
+    );
+    const relativeTargetProfilePath = joinPath(superPath, targetProfilePath);
+
+    if ((await exists(relativeTargetProfilePath)) && !options?.force) {
       options?.warnCb?.(
-        `⚠️  File already exists: ${targetProfilePath} (Use flag \`--force/-f\` for overwriting profiles)`
+        `⚠️  File already exists: ${relativeTargetProfilePath} (Use flag \`--force/-f\` for overwriting profiles)`
       );
       continue;
     }
-
-    let targetProfileProviders:
-      | Record<string, ProfileProviderSettings | string>
-      | undefined;
 
     if (targetProfile && typeof targetProfile !== 'string') {
       // check the file path if it's specified in super.json
@@ -166,71 +164,44 @@ export async function handleProfiles(
           continue;
         }
       }
-
-      targetProfileProviders = targetProfile.providers;
     }
 
-    // save profile name to old path or to /superface/grid
+    // save profile to /superface/grid
     const profileDownloaded = await writeProfile(
-      joinPath(superPath, targetProfilePath),
+      relativeTargetProfilePath,
       profile.toString(),
       writingOptions
     );
 
     if (profileDownloaded) {
       options?.logCb?.(
-        formatShellLog("install '<profile>'", [
-          joinPath(superPath, targetProfilePath),
-        ])
+        formatShellLog("install '<profile>'", [relativeTargetProfilePath])
       );
     }
 
-    // save profile AST to /superface/build
-    const profileAstPath = `${targetProfilePath}.ast.json`;
+    // save profile AST next to source
+    const profileAstPath = `${relativeTargetProfilePath}.ast.json`;
     const profileAstDownloaded = await writeProfile(
-      joinPath(superPath, profileAstPath),
+      profileAstPath,
       JSON.stringify(ast, null, 2),
       writingOptions
     );
 
     if (profileAstDownloaded) {
       options?.logCb?.(
-        formatShellLog('install <profileAST>', [
-          joinPath(superPath, profileAstPath),
-        ])
+        formatShellLog('install <profileAST>', [profileAstPath])
       );
     }
 
-    if (givenProviders) {
-      for (const provider of givenProviders) {
-        if (!targetProfileProviders?.[provider]) {
-          targetProfileProviders = {
-            ...targetProfileProviders,
-            [provider]: {
-              mapVariant: 'default',
-              mapRevision: '1',
-            },
-          };
-        }
-      }
-    }
-
-    if (!profiles) {
-      profiles = {};
-    }
-
-    profiles[profile_name] = {
+    superJson.addProfile(info.profile_name, {
       file: targetProfilePath,
-      providers: targetProfileProviders,
-    };
+      providers: profileProviders,
+    });
 
     // write new information to super.json
     const superJsonUpdated = await writeSuperJson(
       joinPath(superPath, META_FILE),
-      {
-        profiles,
-        providers,
-      },
+      superJson.document,
       writingOptions
     );
 
@@ -243,7 +214,7 @@ export async function handleProfiles(
     installed++;
   }
 
-  return installed
+  return installed;
 }
 
 /**
@@ -251,37 +222,33 @@ export async function handleProfiles(
  */
 export async function getProfileIds(
   superPath: string,
-  profiles: Record<string, ProfileEntry>
+  profiles?: Record<string, ProfileEntry>
 ): Promise<string[]> {
   return Promise.all(
-    Object.entries(profiles).map(async ([profileName, value]) => {
-      const id = profileName;
+    Object.entries(profiles ?? {}).map(async ([profileId, profileEntry]) => {
+      const normalizedProfile = SuperJson.normalizeProfileSettings(
+        profileEntry
+      );
+      const id = profileId;
 
-      if (typeof value === 'string') {
-        // if profile has only version assigned
-        return `${id}@${value}`;
-      } else {
-        // if profile version field is specified
-        if ('version' in value) {
-          return `${id}@${value.version}`;
-        }
-
-        // if profile file field is specified
-        if (value.file) {
-          try {
-            const { header } = await getProfileDocument(
-              joinPath(superPath, value.file)
-            );
-
-            return `${id}@${composeVersion(header.version)}`;
-          } catch (err) {
-            throw userError(err, 1);
-          }
-        }
-
-        // default
-        return `${id}@1.0.0`;
+      if ('version' in normalizedProfile) {
+        return `${id}@${normalizedProfile.version}`;
       }
+
+      if ('file' in normalizedProfile) {
+        try {
+          const { header } = await getProfileDocument(
+            joinPath(superPath, normalizedProfile.file)
+          );
+
+          return `${id}@${composeVersion(header.version)}`;
+        } catch (err) {
+          throw userError(err, 1);
+        }
+      }
+
+      // default
+      return `${id}@1.0.0`;
     })
   );
 }
@@ -307,16 +274,15 @@ export async function installProfiles(
   }
 ): Promise<void> {
   const responses: ProfileResponse[] = [];
-  const superJson = new SuperJson(
-    (await SuperJson.loadSuperJson()).match(
-      v => v,
-      err => {
-        options?.warnCb?.(err);
+  const loadedResult = await SuperJson.loadSuperJson();
+  const superJson = loadedResult.match(
+    v => v,
+    err => {
+      options?.warnCb?.(err);
 
-        return {};
-      }
-    )
-  ).normalized;
+      return new SuperJson({});
+    }
+  );
 
   if (profileId) {
     responses.push(
@@ -325,7 +291,10 @@ export async function installProfiles(
       })
     );
   } else {
-    const profiles = await getProfileIds(superPath, superJson.profiles);
+    const profiles = await getProfileIds(
+      superPath,
+      superJson.document.profiles
+    );
 
     for (const profileId of profiles) {
       responses.push(
@@ -336,16 +305,26 @@ export async function installProfiles(
     }
   }
 
-  const numOfInstalled = await handleProfiles(superPath, responses, superJson, providers, options);
+  let numOfInstalled = 0;
+  if (responses.length > 0) {
+    numOfInstalled = await handleProfiles(
+      superPath,
+      responses,
+      superJson,
+      providers ? constructProfileProviderSettings(providers) : undefined,
+      options
+    );
 
-
-  if (numOfInstalled === 0) {
-    options?.logCb?.(`❌ No profiles have been installed`)
-  } else if (numOfInstalled < responses.length) {
-    options?.logCb?.(`⚠️ Some profiles have been installed. Installed ${numOfInstalled} out of ${responses.length}`)
+    if (numOfInstalled === 0) {
+      options?.logCb?.(`❌ No profiles have been installed`);
+    } else if (numOfInstalled < responses.length) {
+      options?.logCb?.(
+        `⚠️ Some profiles have been installed. Installed ${numOfInstalled} out of ${responses.length}`
+      );
+    } else {
+      options?.logCb?.(`🆗 All profiles have been installed successfully.`);
+    }
   } else {
-    options?.logCb?.(`🆗 All profiles have been installed successfully.`)
+    options?.logCb?.(`No profiles found to install`);
   }
-   
-  options?.logCb?.('How to use Documentation will be HERE')
 }
