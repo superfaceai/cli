@@ -1,4 +1,4 @@
-profile = "example/pub-hours@1"
+profile = "pub-hours@1"
 provider = "noop"
 
 map PubOpeningHours {

@@ -177,6 +177,7 @@ describe('Play CLI command', () => {
       `${createdPlayground.name}.supr`,
       `${createdPlayground.name}.foo.suma`,
       `${createdPlayground.name}.bar.suma`,
+      joinPath('superface', 'super.json'),
       joinPath('superface', 'package.json'),
       joinPath('superface', '.gitignore'),
       joinPath('superface', 'play', `${createdPlayground.name}.play.ts`),
@@ -190,7 +191,24 @@ describe('Play CLI command', () => {
     });
     await Promise.all(
       [...deletedFiles, ...expectedFiles].map(file =>
-        OutputStream.writeOnce(file, '')
+        OutputStream.writeOnce(
+          file,
+          JSON.stringify({
+            profiles: {
+              [createdPlayground.name]: {
+                file: 'file:' + createdPlayground.name + '.supr',
+                providers: {
+                  foo: {
+                    file: 'file:' + createdPlayground.name + '.foo.suma',
+                  },
+                  bar: {
+                    file: 'file:' + createdPlayground.name + '.bar.suma',
+                  },
+                },
+              },
+            },
+          })
+        )
       )
     );
 

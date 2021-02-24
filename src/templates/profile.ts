@@ -1,3 +1,5 @@
+import { TemplateType } from './common';
+
 /**
  * Returns a usecase header with filled in `name` and `version`.
  */
@@ -7,11 +9,10 @@ version = "${version}"
 `;
 }
 
-export type UsecaseTemplateType = 'empty' | 'pubs';
 /**
  * Returns a usecase of given template `type` with given `name`.
  */
-export function usecase(type: UsecaseTemplateType, name: string): string {
+export function usecase(type: TemplateType, name: string): string {
   switch (type) {
     case 'empty':
       return empty(name);

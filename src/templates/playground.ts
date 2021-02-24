@@ -1,9 +1,11 @@
+import { TemplateType } from './common';
+
 export function packageJson(): string {
   return `{
   "name": "playground",
   "private": true,
   "dependencies": {
-    "@superfaceai/sdk": "^0.0.7"
+    "@superfaceai/sdk": "0.0.9-beta.2"
   },
   "devDependencies": {
     "@types/node": "^14",
@@ -12,12 +14,10 @@ export function packageJson(): string {
 }`;
 }
 
-export type GlueTemplateType = 'empty' | 'pubs';
-
 /**
  * Returns a glue script of given template `type` with given `usecase`.
  */
-export function glueScript(type: GlueTemplateType, usecase: string): string {
+export function glueScript(type: TemplateType, usecase: string): string {
   switch (type) {
     case 'empty':
       return empty(usecase);
@@ -27,74 +27,36 @@ export function glueScript(type: GlueTemplateType, usecase: string): string {
 }
 
 function common(usecase: string, input: string): string {
-  return `import * as fs from 'fs';
+  return `import { inspect } from 'util';
 import { join as joinPath } from 'path';
-import { promisify, inspect } from 'util';
 
 import { Provider } from '@superfaceai/sdk';
-
-// These types are exported from the ast, but not from the sdk
-type ProfileDocumentNode = ConstructorParameters<typeof Provider>[0];
-type MapDocumentNode = Exclude<ConstructorParameters<typeof Provider>[1], string>;
-// This type is not exported from the sdk, but we want to pass it around for now TODO
-type AuthConfig = Parameters<Provider['bind']>[0];
-
-const readFile = promisify(fs.readFile);
-
-async function loadAsts(
-  scope: string | undefined,
-  name: string,
-  providerName: string,
-  variantName?: string
-): Promise<{
-  profile: ProfileDocumentNode,
-  map: MapDocumentNode
-}> {
-  // if scope is not undefined, add it to the build path
-  let buildPath = joinPath('superface', 'build');
-  if (scope !== undefined) {
-    buildPath = joinPath(buildPath, scope);
-  }
-
-  // Read the profile and map ASTs from the build folder
-  const profileAst = JSON.parse(
-    await readFile(joinPath(buildPath, \`\${name}.supr.ast.json\`), { encoding: 'utf-8' })
-  );
-  const variant = variantName ? '.' + variantName : '';
-  const mapAst = JSON.parse(
-    await readFile(joinPath(buildPath, \`\${name}.\${providerName}\${variant}.suma.ast.json\`), { encoding: 'utf-8' })
-  );
-
-  // As this is a development script, the correct structure of the loaded asts is not checked
-  // This should not be a problem as long as the input comes from a valid parser
-  return {
-    profile: profileAst,
-    map: mapAst
-  };
-}
 
 /** Execute one specific pair of profile and map. */
 async function execute(
   scope: string | undefined,
   name: string,
   providerName: string,
-  variantName?: string,
-  baseUrl?: string,
-  auth?: AuthConfig
+  variantName?: string
 ) {
-  const asts = await loadAsts(scope, name, providerName, variantName);
+  let baseBuildPath = joinPath('superface', 'build');
+  if (scope !== undefined) {
+    baseBuildPath = joinPath(scope);
+  }
 
-  // 1. Create the provider object with the read ASTs
+  const profilePath = joinPath(baseBuildPath, name + '.supr.ast.json');
+  const mapVariant = (variantName !== undefined && variantName !== 'default') ? '.' + variantName : '';
+  const mapPath = joinPath(baseBuildPath, \`\${name}.\${providerName}\${mapVariant}.suma.ast.json\`);
+
+  // 1. Create the provider object - the build artifacts are located by the sdk according to super.json
   const provider = new Provider(
-    asts.profile,
-    asts.map,
-    baseUrl
+    'file:' + profilePath,
+    \`file:\${providerName}.provider.json\`,
+    'file:' + mapPath
   );
 
-  // 2. Bind the provider
-  const boundProvider = await provider.bind({
-    ...auth
-  });
+  // 2. Bind the provider - values are taken from super.json unless overridden here
+  const boundProvider = await provider.bind({});
 
   // 3. Perform the usecase with the bound provider
   const result = await boundProvider.perform(
@@ -143,18 +105,12 @@ async function main() {
       variant = nameSplit[2];
     }
 
-    // TODO: Choose auth and base url based on provider name
-    // Later they will be read by the SDK from provider.json and from the registry
-    const baseUrl = 'https://overpass-api.de';
-    const auth = {};
-
+    // TODO: Variant is unused
     execute(
       scope,
       name,
       provider,
-      variant,
-      baseUrl,
-      auth
+      variant
     );
   }
 }

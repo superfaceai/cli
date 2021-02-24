@@ -1,4 +1,4 @@
-export interface Deployment {
+export interface Service {
   id: string;
   baseUrl: string;
 }
@@ -17,6 +17,7 @@ export interface Security {
 
 export interface ProviderStructure {
   name: string;
-  deployments: Deployment[];
+  services: Service[];
+  defaultService: string;
   security?: Security[];
 }

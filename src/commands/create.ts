@@ -184,7 +184,9 @@ export default class Create extends Command {
           flags.template,
           { logCb: this.logCallback }
         );
-        await createProviderJson('', provider, { logCb: this.logCallback });
+        await createProviderJson('', provider, flags.template, {
+          logCb: this.logCallback,
+        });
         break;
       case CreateMode.BOTH:
         if (!provider) {
@@ -207,7 +209,9 @@ export default class Create extends Command {
           flags.template,
           { logCb: this.logCallback }
         );
-        await createProviderJson('', provider, { logCb: this.logCallback });
+        await createProviderJson('', provider, flags.template, {
+          logCb: this.logCallback,
+        });
         break;
     }
   }

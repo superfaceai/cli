@@ -1,31 +1,45 @@
 import { ProviderStructure } from '../common/provider.interfaces';
+import { TemplateType } from './common';
 
-export function composeProvider(name: string): ProviderStructure {
-  return {
-    name,
-    deployments: [
-      {
-        id: 'default',
-        baseUrl: `api.${name}.localhost`,
-      },
-    ],
-    security: [
-      {
-        auth: {
-          BasicAuth: {
-            type: 'http',
-            scheme: 'basic',
-          },
-        },
-        hosts: ['default'],
-      },
-    ],
-  };
+export function provider(type: TemplateType, name: string): string {
+  switch (type) {
+    case 'empty':
+      return empty(name);
+    case 'pubs':
+      return pubs(name);
+  }
 }
 
-/**
- * Returns default JSON that represents {name}.provider.json file.
- */
-export function defaultProvider(name: string): string {
-  return JSON.stringify(composeProvider(name), null, 2);
+function stringifyProvider(input: ProviderStructure): string {
+  return JSON.stringify(input, null, 2);
+}
+
+export function empty(name: string): string {
+  const struct = {
+    name,
+    services: [
+      {
+        id: 'default',
+        baseUrl: 'noop.localhost',
+      },
+    ],
+    defaultService: 'default',
+  };
+
+  return stringifyProvider(struct);
+}
+
+export function pubs(name: string): string {
+  const struct = {
+    name,
+    services: [
+      {
+        id: 'default',
+        baseUrl: 'https://overpass-api.de',
+      },
+    ],
+    defaultService: 'default',
+  };
+
+  return stringifyProvider(struct);
 }
