@@ -1,8 +1,4 @@
-import {
-  ProfileSettings,
-  ProviderSettings,
-  SuperJsonStructure,
-} from '../common/super.interfaces';
+import { SuperJsonDocument } from '@superfaceai/sdk';
 
 export function npmRc(): string {
   return '@superfaceai:registry=https://npm.pkg.github.com\n';
@@ -15,21 +11,8 @@ export function gitignore(): string {
   `;
 }
 
-export function composeSuperStructure(
-  profiles: ProfileSettings,
-  providers: ProviderSettings
-): SuperJsonStructure {
-  return {
-    profiles,
-    providers,
-  };
-}
-
-export function superJson(
-  profiles: ProfileSettings,
-  providers: ProviderSettings
-): string {
-  return JSON.stringify(composeSuperStructure(profiles, providers), null, 2);
+export function superJson(structure: SuperJsonDocument): string {
+  return JSON.stringify(structure, null, 2);
 }
 
 export function readme(name: string): string {

@@ -1,7 +1,5 @@
 import * as childProcess from 'child_process';
-import createDebug from 'debug';
 import * as fs from 'fs';
-import { dirname } from 'path';
 import rimrafCallback from 'rimraf';
 import { Writable } from 'stream';
 import { promisify } from 'util';
@@ -18,7 +16,11 @@ export const realpath = promisify(fs.realpath);
 
 export const rimraf = promisify(rimrafCallback);
 
-export type LogCallback = (message: string) => void;
+export interface WritingOptions {
+  append?: boolean;
+  force?: boolean;
+  dirs?: boolean;
+}
 
 export async function exists(path: string): Promise<boolean> {
   try {
@@ -181,144 +183,25 @@ export async function resolveSkipFile(
   }
 }
 
-const outputStreamDebug = createDebug('superface:OutputStream');
-export class OutputStream {
-  private readonly name: string;
-  readonly stream: Writable;
+/**
+ * Returns `true` if directory or file
+ * exists, is readable and is writable for the current user.
+ */
+export async function isAccessible(path: string): Promise<boolean> {
+  try {
+    await access(
+      path,
+      fs.constants.F_OK | fs.constants.R_OK | fs.constants.W_OK
+    );
+  } catch (err: unknown) {
+    assertIsIOError(err);
 
-  readonly isStdStream: boolean;
-  readonly isTTY: boolean;
-
-  /**
-   * Constructs the output object.
-   *
-   * `path` accepts 2 special values:
-   * * `-` - initializes output for stdout
-   * * `-2` - initializes output for stderr
-   *
-   * All other `path` values are treated as file system path.
-   *
-   * When `append` is true the file at `path` is opened in append mode rather than in write (truncate) mode.
-   */
-  constructor(path: string, append?: boolean) {
-    switch (path) {
-      case '-':
-        outputStreamDebug('Opening stdout');
-        this.name = 'stdout';
-        this.stream = process.stdout;
-        this.isStdStream = true;
-        this.isTTY = process.stdout.isTTY;
-        break;
-
-      case '-2':
-        outputStreamDebug('Opening stderr');
-        this.name = 'stderr';
-        this.stream = process.stderr;
-        this.isStdStream = true;
-        this.isTTY = process.stdout.isTTY;
-        break;
-
-      default:
-        outputStreamDebug(
-          `Opening/creating "${path}" in ${append ? 'append' : 'write'} mode`
-        );
-        this.name = path;
-        this.stream = fs.createWriteStream(path, {
-          flags: append ? 'a' : 'w',
-          mode: 0o644,
-          encoding: 'utf-8',
-        });
-        this.isStdStream = true;
-        this.isTTY = process.stdout.isTTY;
-        break;
-    }
-  }
-
-  write(data: string): Promise<void> {
-    outputStreamDebug(`Writing ${data.length} characters to "${this.name}"`);
-
-    return streamWrite(this.stream, data);
-  }
-
-  cleanup(): Promise<void> {
-    outputStreamDebug(`Closing stream "${this.name}"`);
-
-    // TODO: Should we also end stdout or stderr?
-    if (!this.isStdStream) {
-      return streamEnd(this.stream);
+    if (err.code === 'ENOENT' || err.code === 'EACCES') {
+      return false;
     }
 
-    return Promise.resolve();
+    throw err;
   }
 
-  static async writeOnce(
-    path: string,
-    data: string,
-    append?: boolean
-  ): Promise<void> {
-    const stream = new OutputStream(path, append);
-
-    await stream.write(data);
-
-    return stream.cleanup();
-  }
-
-  /**
-   * Creates file with given contents if it doesn't exist.
-   *
-   * Returns whether the file was created.
-   *
-   * For convenience the `force` option can be provided
-   * to force the creation.
-   *
-   * The `dirs` option additionally recursively creates
-   * directories up until the file path.
-   */
-  static async writeIfAbsent(
-    path: string,
-    data: string | (() => string),
-    options?: {
-      append?: boolean;
-      force?: boolean;
-      dirs?: boolean;
-    }
-  ): Promise<boolean> {
-    if (options?.dirs === true) {
-      const dir = dirname(path);
-      await mkdir(dir, { recursive: true });
-    }
-
-    if (options?.force === true || !(await exists(path))) {
-      const dat = typeof data === 'string' ? data : data();
-
-      await OutputStream.writeOnce(path, dat, options?.append);
-
-      return true;
-    }
-
-    return false;
-  }
-}
-
-export class ListWriter {
-  private firstOutput: boolean;
-
-  constructor(
-    private outputStream: OutputStream,
-    /** Glue to prepend to every entry but the first (unless `startWithGlue` is specified) */
-    private outputGlue: string,
-    /** If set, the first output will have glue prepended. */
-    private startWithGlue?: boolean
-  ) {
-    this.firstOutput = false;
-  }
-
-  async writeElement(element: string): Promise<void> {
-    if (this.firstOutput || this.startWithGlue === true) {
-      element = this.outputGlue + element;
-    }
-    this.firstOutput = true;
-
-    return this.outputStream.write(element);
-  }
+  return true;
 }

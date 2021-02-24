@@ -8,6 +8,7 @@
 * `isFileQuiet` function
 * Validation of maps to profiles within `lint` command (flag `-v`)
 * Init command
+* Install command
 
 ### Changed
 * Updated parser dependency to v0.0.12

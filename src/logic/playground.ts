@@ -1,13 +1,15 @@
 import { parseDocumentId } from '@superfaceai/parser';
+import { ProfileSettings, ProviderSettings } from '@superfaceai/sdk';
 import { Dirent } from 'fs';
 import { join as joinPath } from 'path';
 
 import Compile from '../commands/compile';
 import {
+  BUILD_DIR,
   composeUsecaseName,
   DEFAULT_PROFILE_VERSION,
-  DEFAULT_PROFILE_VERSION_STR,
   EXTENSIONS,
+  SUPERFACE_DIR,
 } from '../common/document';
 import {
   assertIsExecError,
@@ -19,19 +21,17 @@ import {
   execFile,
   isDirectoryQuiet,
   isFileQuiet,
-  LogCallback,
   mkdir,
-  OutputStream,
   readdir,
   realpath,
   resolveSkipFile,
   rimraf,
 } from '../common/io';
-import { formatShellLog } from '../common/log';
-import { ProfileSettings, ProviderSettings } from '../common/super.interfaces';
+import { formatShellLog, LogCallback } from '../common/log';
+import { OutputStream } from '../common/output-stream';
 import * as playgroundTemplate from '../templates/playground';
 import { createMap, createProfile, createProviderJson } from './create';
-import { BUILD_DIR, initSuperface, SUPERFACE_DIR } from './init';
+import { initSuperface } from './init';
 
 export interface PlaygroundInstance {
   /**
@@ -352,20 +352,19 @@ export async function initializePlayground(
 
   // initialize the superface directory
   const scope = id.scope ? `${id.scope}/` : '';
-  const profiles: ProfileSettings = {
+  const profiles: Record<string, ProfileSettings> = {
     [scope + id.name]: {
       file: paths.profile,
-      version: DEFAULT_PROFILE_VERSION_STR,
     },
   };
 
-  const providers: ProviderSettings = {};
+  const providers: Record<string, ProviderSettings> = {};
   id.providers.forEach(
     providerName => (providers[providerName] = { auth: {} })
   );
 
   // ensure superface is initialized in the directory
-  await initSuperface(appPath, profiles, providers, options);
+  await initSuperface(appPath, { profiles, providers }, options);
 
   // create appPath/superface/package.json
   {

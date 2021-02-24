@@ -9,7 +9,8 @@ import {
 import { DocumentType } from '../common/document.interfaces';
 import { userError } from '../common/error';
 import { DocumentTypeFlag, documentTypeFlag } from '../common/flags';
-import { isDirectoryQuiet, OutputStream, readFile } from '../common/io';
+import { isDirectoryQuiet, readFile } from '../common/io';
+import { OutputStream } from '../common/output-stream';
 
 export default class Compile extends Command {
   static description = 'Compiles the given profile or map to AST.';
@@ -111,7 +112,10 @@ export default class Compile extends Command {
     documentTypeFlag: DocumentTypeFlag
   ): Promise<unknown> {
     const documentType = inferDocumentTypeWithFlag(documentTypeFlag, path);
-    if (documentType === DocumentType.UNKNOWN) {
+    if (
+      documentType !== DocumentType.MAP &&
+      documentType !== DocumentType.PROFILE
+    ) {
       throw userError('Could not infer document type', 1);
     }
 

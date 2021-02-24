@@ -46,7 +46,7 @@ You can obtain the full CLI help by running `superface --help`.
  `lint`  | Lints given profiles and/or maps locally.
  `play`  | Manages and executes interactive playgrounds.
  `init`  | Initializes local folder structure.
-`install`| Installs capabilities and their AST to a local project.
+ `install`| Installs capabilities and their AST to a local project.
 
 ## Development
 

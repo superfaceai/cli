@@ -26,7 +26,8 @@ import {
 import { DocumentType } from '../common/document.interfaces';
 import { userError } from '../common/error';
 import { DocumentTypeFlag } from '../common/flags';
-import { ListWriter, readFile } from '../common/io';
+import { readFile } from '../common/io';
+import { ListWriter } from '../common/list-writer';
 import {
   FileReport,
   ProfileMapReport,
@@ -59,12 +60,15 @@ export async function lintFile(
   path: string,
   documentTypeFlag: DocumentTypeFlag
 ): Promise<FileReport> {
-  const documenType = inferDocumentTypeWithFlag(documentTypeFlag, path);
-  if (documenType === DocumentType.UNKNOWN) {
+  const documentType = inferDocumentTypeWithFlag(documentTypeFlag, path);
+  if (
+    documentType !== DocumentType.MAP &&
+    documentType !== DocumentType.PROFILE
+  ) {
     throw userError('Could not infer document type', 3);
   }
 
-  const parse = DOCUMENT_PARSE_FUNCTION[documenType];
+  const parse = DOCUMENT_PARSE_FUNCTION[documentType];
   const content = await readFile(path).then(f => f.toString());
   const source = new Source(content, path);
 
