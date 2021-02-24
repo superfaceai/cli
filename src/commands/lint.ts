@@ -2,7 +2,8 @@ import { Command, flags } from '@oclif/command';
 
 import { developerError, userError } from '../common/error';
 import { DocumentTypeFlag, documentTypeFlag } from '../common/flags';
-import { ListWriter, OutputStream } from '../common/io';
+import { ListWriter } from '../common/list-writer';
+import { OutputStream } from '../common/output-stream';
 import { ReportFormat } from '../common/report.interfaces';
 import {
   formatHuman,

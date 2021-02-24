@@ -4,14 +4,13 @@ import { grey, yellow } from 'chalk';
 import inquirer from 'inquirer';
 import { join as joinPath } from 'path';
 
-import { validateDocumentName } from '../common/document';
-import { LogCallback } from '../common/io';
 import {
   constructProfileSettings,
   constructProviderSettings,
-  generateSpecifiedProfiles,
-  initSuperface,
-} from '../logic/init';
+  validateDocumentName,
+} from '../common/document';
+import { LogCallback } from '../common/log';
+import { generateSpecifiedProfiles, initSuperface } from '../logic/init';
 
 const parseProfileIds = (
   input: string,
@@ -92,9 +91,9 @@ export default class Init extends Command {
 
   static examples = [
     'superface init',
-    'superface init ./some-dir',
-    'superface init ./some-dir --providers osm gmaps',
-    'superface init ./some-dir --profiles my-profile@1.1.0 another-profile@2.0 --providers osm gmaps',
+    'superface init foo',
+    'superface init foo --providers bar twillio',
+    'superface init foo --profiles my-profile@1.1.0 another-profile@2.0 --providers osm gmaps',
   ];
 
   static args = [
@@ -180,8 +179,10 @@ ${hints.quiet}`);
 
     await initSuperface(
       path,
-      constructProfileSettings(profiles),
-      constructProviderSettings(providers),
+      {
+        profiles: constructProfileSettings(profiles),
+        providers: constructProviderSettings(providers),
+      },
       {
         logCb: this.logCallback,
         warnCb: this.warnCallback,

@@ -5,6 +5,7 @@ import { basename, join as joinPath, resolve as resolvePath } from 'path';
 
 import Compile from '../commands/compile';
 import {
+  BUILD_DIR,
   composeUsecaseName,
   DEFAULT_PROFILE_VERSION,
   DEFAULT_PROFILE_VERSION_STR,
@@ -20,25 +21,19 @@ import {
   execFile,
   isDirectoryQuiet,
   isFileQuiet,
-  LogCallback,
   mkdir,
-  OutputStream,
   readdir,
   readFile,
   realpath,
   resolveSkipFile,
   rimraf,
 } from '../common/io';
-import { formatShellLog } from '../common/log';
-import {
-  ProfileProvider,
-  ProfileSettings,
-  ProviderSettings,
-} from '../common/super.interfaces';
+import { formatShellLog, LogCallback } from '../common/log';
+import { OutputStream } from '../common/output-stream';
 import { TemplateType } from '../templates/common';
 import * as playgroundTemplate from '../templates/playground';
 import { createMap, createProfile, createProviderJson } from './create';
-import { BUILD_DIR, initSuperface, META_FILE, SUPERFACE_DIR } from './init';
+import { initSuperface } from './init';
 
 export interface PlaygroundInstance {
   /**
@@ -380,7 +375,7 @@ export async function initializePlayground(
     },
   };
 
-  const providers: ProviderSettings = {};
+  const providers: Record<string, ProviderSettings> = {};
   id.providers.forEach(
     providerName => {
       providers[providerName] = `${FILE_URI_PROTOCOL}${providerName}.provider.json`;
@@ -388,7 +383,7 @@ export async function initializePlayground(
   );
 
   // ensure superface is initialized in the directory
-  await initSuperface(appPath, profiles, providers, options);
+  await initSuperface(appPath, { profiles, providers }, options);
 
   // create appPath/superface/package.json
   {
@@ -464,15 +459,15 @@ export async function executePlayground(
     logCb?: LogCallback;
   }
 ): Promise<void> {
-  const paths = playgroundFilePaths(playground);
-
   const providers = playground.providers.filter(p =>
     selectedProviders.includes(p.name)
-    );
-    const selectedProvidersMapPaths = playground.providers.filter(
-      p => selectedProviders.includes(p.name)
-    ).map(p => p.mapPath);
-      
+  );
+
+  const paths = playgroundFilePaths(playground.path, {
+    scope: playground.scope,
+    name: playground.name,
+    providers: selectedProviders, // TODO: Or empty array, this is unused
+  });
   await mkdir(paths.build.base, { recursive: true, mode: 0o744 });
 
   const skipNpm = await resolveSkipFile(skip.npm, [

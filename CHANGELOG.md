@@ -8,6 +8,7 @@
 * `isFileQuiet` function
 * Validation of maps to profiles within `lint` command (flag `-v`)
 * Init command
+* Install command
 * `--template` flag to play initialize
 
 ### Changed

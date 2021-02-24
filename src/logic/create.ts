@@ -2,7 +2,8 @@ import { DocumentVersion } from '@superfaceai/parser';
 import { join as joinPath } from 'path';
 
 import { composeVersion, EXTENSIONS } from '../common/document';
-import { LogCallback, OutputStream } from '../common/io';
+import { LogCallback } from '../common/log';
+import { OutputStream } from '../common/output-stream';
 import { TemplateType } from '../templates/common';
 import * as mapTemplate from '../templates/map';
 import * as profileTemplate from '../templates/profile';
