@@ -55,7 +55,7 @@ export default class Compile extends Command {
       const isDirectory = await isDirectoryQuiet(outputPath);
       if (!isDirectory) {
         this.debug(`Compiling all files to "${outputPath}"`);
-        outputStream = new OutputStream(outputPath, flags.append);
+        outputStream = new OutputStream(outputPath, { append: flags.append });
       }
     }
 
@@ -73,19 +73,17 @@ export default class Compile extends Command {
               );
               this.debug(`Compiling "${file}" to "${sharedDirectory}"`);
 
-              fileOutputStream = new OutputStream(
-                sharedDirectory,
-                flags.append
-              );
+              fileOutputStream = new OutputStream(sharedDirectory, {
+                append: flags.append,
+              });
             } else {
               // File specific path based on file path
               this.debug(
                 `Compiling "${file}" to "${file + DEFAULT_EXTENSION}"`
               );
-              fileOutputStream = new OutputStream(
-                file + DEFAULT_EXTENSION,
-                flags.append
-              );
+              fileOutputStream = new OutputStream(file + DEFAULT_EXTENSION, {
+                append: flags.append,
+              });
             }
           }
 

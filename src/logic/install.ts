@@ -4,7 +4,7 @@ import {
   ProfileProviderEntry,
   SuperJson,
 } from '@superfaceai/sdk';
-import { isAbsolute, join as joinPath, normalize, relative } from 'path';
+import { join as joinPath, normalize, relative } from 'path';
 
 import {
   composeVersion,
@@ -14,8 +14,6 @@ import {
   META_FILE,
   SUPER_PATH,
   SUPERFACE_DIR,
-  writeProfile,
-  writeSuperJson,
 } from '../common/document';
 import { userError } from '../common/error';
 import {
@@ -26,6 +24,7 @@ import {
 } from '../common/http';
 import { exists, isAccessible } from '../common/io';
 import { formatShellLog, LogCallback } from '../common/log';
+import { OutputStream } from '../common/output-stream';
 
 /**
  * Detects the existence of a `super.json` file in specified number of levels
@@ -101,117 +100,70 @@ export async function getProfileFromStore(
   }
 }
 
-function validateProfilePath(file: string): boolean {
-  if (isAbsolute(file)) {
-    return false;
-  }
-
-  if (normalize(file).startsWith('../')) {
-    return false;
-  }
-
-  return true;
-}
-
 /**
  * Handle responses from superface registry.
  * It saves profiles and its AST to grid folder and
  * it saves new information about profiles into super.json.
  */
-export async function handleProfiles(
+export async function handleProfileResponses(
   superPath: string,
   responses: ProfileResponse[],
   superJson: SuperJson,
   profileProviders?: Record<string, ProfileProviderEntry>,
   options?: { logCb?: LogCallback; warnCb?: LogCallback; force: boolean }
 ): Promise<number> {
-  let { profiles } = superJson.document;
-  const writingOptions = { force: true, dirs: true };
   let installed = 0;
 
   options?.logCb?.('Installing profiles');
-
-  if (profiles === undefined) {
-    profiles = {};
-  }
-
-  for (const { info, ast, profile } of responses) {
+  for (const response of responses) {
     options?.logCb?.(
-      `${installed + 1}/${responses.length} installing ${info.profile_name}`
+      `${installed + 1}/${responses.length} installing ${
+        response.info.profile_name
+      }`
     );
 
-    const targetProfile = profiles?.[info.profile_name];
-    const targetProfilePath = joinPath(
+    // prepare paths
+    let relativePath = joinPath(
       'grid',
-      `${info.profile_name}${EXTENSIONS.profile.source}`
+      `${response.info.profile_name}${EXTENSIONS.profile.source}`
     );
-    const relativeTargetProfilePath = joinPath(superPath, targetProfilePath);
+    let actualPath = joinPath(superPath, relativePath);
 
-    if ((await exists(relativeTargetProfilePath)) && !options?.force) {
+    // resolve paths already in super.json if present
+    const profileSettings =
+      superJson.normalized.profiles[response.info.profile_name];
+    if (profileSettings !== undefined && 'file' in profileSettings) {
+      relativePath = profileSettings.file;
+      actualPath = superJson.resolvePath(relativePath);
+    }
+
+    // check existence and warn
+    if (options?.force === false && (await exists(actualPath))) {
       options?.warnCb?.(
-        `⚠️  File already exists: ${relativeTargetProfilePath} (Use flag \`--force/-f\` for overwriting profiles)`
+        `⚠️  File already exists: ${actualPath} (Use flag \`--force/-f\` for overwriting profiles)`
       );
       continue;
     }
 
-    if (targetProfile && typeof targetProfile !== 'string') {
-      // check the file path if it's specified in super.json
-      if ('file' in targetProfile) {
-        if (!validateProfilePath(targetProfile.file)) {
-          options?.warnCb?.(
-            `⚠️  Invalid path: ${targetProfile.file} (File path in 'super.json' can't be outside '/superface' folder)`
-          );
-          continue;
-        }
-      }
-    }
-
-    // save profile to /superface/grid
-    const profileDownloaded = await writeProfile(
-      relativeTargetProfilePath,
-      profile.toString(),
-      writingOptions
-    );
-
-    if (profileDownloaded) {
-      options?.logCb?.(
-        formatShellLog("install '<profile>'", [relativeTargetProfilePath])
-      );
-    }
+    // save profile to resolved path
+    await OutputStream.writeOnce(actualPath, response.profile, { dirs: true });
+    options?.logCb?.(formatShellLog("echo '<profile>' >", [actualPath]));
 
     // save profile AST next to source
-    const profileAstPath = `${relativeTargetProfilePath}.ast.json`;
-    const profileAstDownloaded = await writeProfile(
-      profileAstPath,
-      JSON.stringify(ast, null, 2),
-      writingOptions
+    const actualAstPath = `${actualPath}.ast.json`;
+    await OutputStream.writeOnce(
+      actualAstPath,
+      JSON.stringify(response.ast, undefined, 2)
     );
+    options?.logCb?.(formatShellLog("echo '<profileAST>' >", [actualAstPath]));
 
-    if (profileAstDownloaded) {
-      options?.logCb?.(
-        formatShellLog('install <profileAST>', [profileAstPath])
-      );
-    }
-
-    superJson.addProfile(info.profile_name, {
-      file: targetProfilePath,
+    // update super.json
+    superJson.addProfile(response.info.profile_name, {
+      file: relativePath,
       providers: profileProviders,
     });
 
-    // write new information to super.json
-    const superJsonUpdated = await writeSuperJson(
-      joinPath(superPath, META_FILE),
-      superJson.document,
-      writingOptions
-    );
-
-    if (superJsonUpdated) {
-      options?.logCb?.(
-        formatShellLog('update <super.json>', [joinPath(superPath, META_FILE)])
-      );
-    }
-
-    installed++;
+    installed += 1;
   }
 
   return installed;
@@ -224,7 +176,7 @@ export async function getProfileIds(
   superPath: string,
   profiles?: Record<string, ProfileEntry>,
   options?: {
-    warnCb?: LogCallback
+    warnCb?: LogCallback;
   }
 ): Promise<string[]> {
   return Promise.all(
@@ -246,7 +198,9 @@ export async function getProfileIds(
 
           return `${id}@${composeVersion(header.version)}`;
         } catch (err) {
-          options?.warnCb?.(`${id} - No version was found, returning default version 1.0.0`)
+          options?.warnCb?.(
+            `${id} - No version was found, returning default version 1.0.0`
+          );
         }
       }
 
@@ -277,7 +231,8 @@ export async function installProfiles(
   }
 ): Promise<void> {
   const responses: ProfileResponse[] = [];
-  const loadedResult = await SuperJson.loadSuperJson();
+
+  const loadedResult = await SuperJson.load();
   const superJson = loadedResult.match(
     v => v,
     err => {
@@ -294,29 +249,33 @@ export async function installProfiles(
       })
     );
   } else {
-    const profiles = await getProfileIds(
+    const profileIds = await getProfileIds(
       superPath,
       superJson.document.profiles,
       options
     );
 
-    for (const profileId of profiles) {
-      responses.push(
-        await getProfileFromStore(profileId, {
-          logCb: options?.logCb,
-        })
-      );
-    }
+    const response = await Promise.all(
+      profileIds.map(profileId =>
+        getProfileFromStore(profileId, { logCb: options?.logCb })
+      )
+    );
+    responses.push(...response);
   }
-
   let numOfInstalled = 0;
   if (responses.length > 0) {
-    numOfInstalled = await handleProfiles(
+    numOfInstalled = await handleProfileResponses(
       superPath,
       responses,
       superJson,
       providers ? constructProfileProviderSettings(providers) : undefined,
       options
+    );
+
+    // write new information to super.json
+    await OutputStream.writeOnce(superJson.path, superJson.stringified);
+    options?.logCb?.(
+      formatShellLog("echo '<updated super.json>' >", [superJson.path])
     );
 
     if (numOfInstalled === 0) {

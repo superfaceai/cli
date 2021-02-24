@@ -1,9 +1,1 @@
-{
-  "profiles": {
-    "starwars/character-information": {
-      "file": "grid/starwars/character-information.supr",
-      "providers": {}
-    }
-  },
-  "providers": {}
-}
+{"profiles":{"starwars/character-information":{"file":"grid/starwars/character-information.supr","providers":{}}},"providers":{}}

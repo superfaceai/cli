@@ -1,19 +1,21 @@
-const { dependencies } = require('../../package.json');
+import { VERSION } from '@superfaceai/sdk';
 
 import { TemplateType } from './common';
 
 export function packageJson(): string {
+  /* eslint-disable @typescript-eslint/restrict-template-expressions */
   return `{
   "name": "playground",
   "private": true,
   "dependencies": {
-    "@superfaceai/sdk": "${dependencies['@superfaceai/sdk']}"
+    "@superfaceai/sdk": "${VERSION}"
   },
   "devDependencies": {
     "@types/node": "^14",
     "typescript": "^4"
   }
 }`;
+  /* eslint-enable @typescript-eslint/restrict-template-expressions */
 }
 
 /**

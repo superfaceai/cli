@@ -1,15 +1,16 @@
 import { parseDocumentId } from '@superfaceai/parser';
-import { FILE_URI_PROTOCOL, SuperJson } from '@superfaceai/sdk';
+import { SuperJson } from '@superfaceai/sdk';
 import { Dirent } from 'fs';
-import { basename, join as joinPath, resolve as resolvePath } from 'path';
+import { basename, join as joinPath } from 'path';
 
 import Compile from '../commands/compile';
 import {
   BUILD_DIR,
   composeUsecaseName,
   DEFAULT_PROFILE_VERSION,
-  DEFAULT_PROFILE_VERSION_STR,
-  EXTENSIONS
+  EXTENSIONS,
+  META_FILE,
+  SUPERFACE_DIR,
 } from '../common/document';
 import {
   assertIsExecError,
@@ -23,7 +24,6 @@ import {
   isFileQuiet,
   mkdir,
   readdir,
-  readFile,
   realpath,
   resolveSkipFile,
   rimraf,
@@ -92,17 +92,24 @@ function playgroundBuildPaths(
     buildPath = joinPath(buildPath, playground.scope);
   }
 
-  const profile = playground.profilePath.slice(0, playground.profilePath.length - EXTENSIONS.profile.source.length) + EXTENSIONS.profile.build;
-  const maps = playground.providers.map(
-    p => {
-      return {
-        name: p.name,
-        mapPath: p.mapPath.slice(0, p.mapPath.length - EXTENSIONS.map.source.length) + EXTENSIONS.map.build
-      };
-    }
-  );
+  const profile =
+    playground.profilePath.slice(
+      0,
+      playground.profilePath.length - EXTENSIONS.profile.source.length
+    ) + EXTENSIONS.profile.build;
+  const maps = playground.providers.map(p => {
+    return {
+      name: p.name,
+      mapPath:
+        p.mapPath.slice(0, p.mapPath.length - EXTENSIONS.map.source.length) +
+        EXTENSIONS.map.build,
+    };
+  });
 
-  const script = joinPath(buildPath, `${playground.name}${EXTENSIONS.play.build}`);
+  const script = joinPath(
+    buildPath,
+    `${playground.name}${EXTENSIONS.play.build}`
+  );
   const packageLock = joinPath(superfacePath, 'package-lock.json');
   const nodeModules = joinPath(superfacePath, 'node_modules');
 
@@ -117,9 +124,7 @@ function playgroundBuildPaths(
 }
 
 /** Returns paths for all files for given playground. */
-function playgroundFilePaths(
-  playground: PlaygroundInstance
-): PlaygroundPaths {
+function playgroundFilePaths(playground: PlaygroundInstance): PlaygroundPaths {
   let sourcesBase = playground.path;
   let playPath = joinPath(sourcesBase, PLAY_DIR);
   if (playground.scope) {
@@ -134,10 +139,16 @@ function playgroundFilePaths(
     `${playground.name}${EXTENSIONS.profile.source}`
   );
   const defaultMaps = playground.providers.map(provider =>
-    joinPath(sourcesBase, `${playground.name}.${provider.name}${EXTENSIONS.map.source}`)
+    joinPath(
+      sourcesBase,
+      `${playground.name}.${provider.name}${EXTENSIONS.map.source}`
+    )
   );
 
-  const script = joinPath(playPath, `${playground.name}${EXTENSIONS.play.source}`);
+  const script = joinPath(
+    playPath,
+    `${playground.name}${EXTENSIONS.play.source}`
+  );
   const packageJson = joinPath(superfacePath, 'package.json');
 
   return {
@@ -145,7 +156,7 @@ function playgroundFilePaths(
     defaultMaps,
     script,
     packageJson,
-    build: playgroundBuildPaths(playground)
+    build: playgroundBuildPaths(playground),
   };
 }
 
@@ -250,14 +261,7 @@ export async function detectPlayground(
     );
   }
 
-  const superJson = new SuperJson(
-    SuperJson.parseSuperJson(
-      JSON.parse(
-        await readFile(superJsonPath).then(b => b.toString())
-      )
-    ).unwrap()
-  ).normalized;
-
+  const superJson = (await SuperJson.load(superJsonPath)).unwrap();
   const instances: PlaygroundInstance[] = [];
 
   const playScripts = await detectPlayScripts(realPath);
@@ -274,14 +278,16 @@ export async function detectPlayground(
         ? `${playScript.id.scope}/${playScript.id.name}`
         : playScript.id.name;
 
-    const profileSettings = superJson.profiles[key];
-    if ('file' in profileSettings) {
-      const profilePath = resolvePath(realPath, profileSettings.file);
+    const profileSettings = superJson.normalized.profiles[key];
+    if (profileSettings !== undefined && 'file' in profileSettings) {
+      const profilePath = superJson.resolvePath(profileSettings.file);
 
       const localProviders = [];
-      for (const [providerName, profileProviderSettings] of Object.entries(profileSettings.providers)) {
+      for (const [providerName, profileProviderSettings] of Object.entries(
+        profileSettings.providers
+      )) {
         if ('file' in profileProviderSettings) {
-          const mapPath = resolvePath(realPath, profileProviderSettings.file);
+          const mapPath = superJson.resolvePath(profileProviderSettings.file);
 
           localProviders.push({
             name: providerName,
@@ -347,43 +353,16 @@ export async function initializePlayground(
     logCb?: LogCallback;
   }
 ): Promise<void> {
-  const paths = playgroundFilePaths(
-    {
-      path: appPath,
-      scope: id.scope,
-      name: id.name,
-      profilePath: '',
-      providers: id.providers.map(p => ({ name: p, mapPath: '' }))
-    }
-  );
-
-  // TODO: super.json editing in sdk
-  const profileProviders: ProfileProvider = {};
-  for (let i = 0; i < id.providers.length; i += 1) {
-    const key = id.providers[i];
-    const file = paths.defaultMaps[i];
-
-    profileProviders[key] = FILE_URI_PROTOCOL + file;
-  }
-
-  const profileKey = id.scope ? `${id.scope}/${id.name}` : id.name;
-  const profiles: ProfileSettings = {
-    [profileKey]: {
-      file: paths.defaultProfile,
-      version: DEFAULT_PROFILE_VERSION_STR,
-      providers: profileProviders,
-    },
-  };
-
-  const providers: Record<string, ProviderSettings> = {};
-  id.providers.forEach(
-    providerName => {
-      providers[providerName] = `${FILE_URI_PROTOCOL}${providerName}.provider.json`;
-    }
-  );
+  const paths = playgroundFilePaths({
+    path: appPath,
+    scope: id.scope,
+    name: id.name,
+    profilePath: '',
+    providers: id.providers.map(p => ({ name: p, mapPath: '' })),
+  });
 
   // ensure superface is initialized in the directory
-  await initSuperface(appPath, { profiles, providers }, options);
+  const superJson = await initSuperface(appPath, {}, options);
 
   // create appPath/superface/package.json
   {
@@ -420,6 +399,7 @@ export async function initializePlayground(
   // appPath/scope/name.supr
   await createProfile(
     appPath,
+    superJson,
     {
       scope: id.scope,
       name: id.name,
@@ -434,6 +414,7 @@ export async function initializePlayground(
     // appPath/scope/name.provider.supr
     await createMap(
       appPath,
+      superJson,
       {
         scope: id.scope,
         name: id.name,
@@ -446,8 +427,10 @@ export async function initializePlayground(
     );
 
     // appPath/provider.provider.json
-    await createProviderJson(appPath, provider, template, options);
+    await createProviderJson(appPath, superJson, provider, template, options);
   }
+
+  await OutputStream.writeOnce(superJson.path, superJson.stringified);
 }
 
 export async function executePlayground(
@@ -459,15 +442,15 @@ export async function executePlayground(
     logCb?: LogCallback;
   }
 ): Promise<void> {
+  const paths = playgroundFilePaths(playground);
+
   const providers = playground.providers.filter(p =>
     selectedProviders.includes(p.name)
   );
+  const selectedProvidersMapPaths = playground.providers
+    .filter(p => selectedProviders.includes(p.name))
+    .map(p => p.mapPath);
 
-  const paths = playgroundFilePaths(playground.path, {
-    scope: playground.scope,
-    name: playground.name,
-    providers: selectedProviders, // TODO: Or empty array, this is unused
-  });
   await mkdir(paths.build.base, { recursive: true, mode: 0o744 });
 
   const skipNpm = await resolveSkipFile(skip.npm, [
@@ -487,20 +470,22 @@ export async function executePlayground(
     }
   }
 
-  const skipAst = await resolveSkipFile(skip.ast, selectedProvidersMapPaths);
+  const skipAst = await resolveSkipFile(
+    skip.ast,
+    selectedProvidersMapPaths.map(mapPath =>
+      mapPath.replace(EXTENSIONS.map.source, EXTENSIONS.map.build)
+    )
+  );
   if (!skipAst) {
     options.logCb?.(
       formatShellLog('superface compile', [
         playground.profilePath,
-        ...selectedProvidersMapPaths
+        ...selectedProvidersMapPaths,
       ])
     );
 
     try {
-      await Compile.run([
-        playground.profilePath,
-        ...selectedProvidersMapPaths
-      ]);
+      await Compile.run([playground.profilePath, ...selectedProvidersMapPaths]);
     } catch (err) {
       assertIsGenericError(err);
       throw userError(`superface compilation failed: ${err.message}`, 23);

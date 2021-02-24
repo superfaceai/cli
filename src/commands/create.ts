@@ -1,5 +1,6 @@
 import { Command, flags } from '@oclif/command';
 import { parseDocumentId } from '@superfaceai/parser';
+import { SuperJson } from '@superfaceai/sdk';
 
 import {
   composeUsecaseName,
@@ -160,10 +161,14 @@ export default class Create extends Command {
       await mkdirQuiet(scope);
     }
 
+    // TODO: Do we want to initialize superface and/or save super.json somewhere?
+    const superJson = new SuperJson();
+
     switch (createMode) {
       case CreateMode.PROFILE:
         await createProfile(
           '',
+          superJson,
           { scope, name, version },
           usecases,
           flags.template,
@@ -179,12 +184,13 @@ export default class Create extends Command {
         }
         await createMap(
           '',
+          superJson,
           { scope, name, provider, version },
           usecases,
           flags.template,
           { logCb: this.logCallback }
         );
-        await createProviderJson('', provider, flags.template, {
+        await createProviderJson('', superJson, provider, flags.template, {
           logCb: this.logCallback,
         });
         break;
@@ -197,6 +203,7 @@ export default class Create extends Command {
         }
         await createProfile(
           '',
+          superJson,
           { scope, name, version },
           usecases,
           flags.template,
@@ -204,12 +211,13 @@ export default class Create extends Command {
         );
         await createMap(
           '',
+          superJson,
           { scope, name, provider, version },
           usecases,
           flags.template,
           { logCb: this.logCallback }
         );
-        await createProviderJson('', provider, flags.template, {
+        await createProviderJson('', superJson, provider, flags.template, {
           logCb: this.logCallback,
         });
         break;

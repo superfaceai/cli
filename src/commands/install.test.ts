@@ -2,14 +2,10 @@ import { SuperJson } from '@superfaceai/sdk';
 import { join as joinPath } from 'path';
 import { stderr, stdout } from 'stdout-stderr';
 
-import {
-  EXTENSIONS,
-  GRID_DIR,
-  SUPER_PATH,
-  writeSuperJson,
-} from '../common/document';
+import { EXTENSIONS, GRID_DIR, SUPER_PATH } from '../common/document';
 import { fetchProfile } from '../common/http';
 import { exists, readFile, rimraf } from '../common/io';
+import { OutputStream } from '../common/output-stream';
 import Install from './install';
 
 describe('Install CLI command', () => {
@@ -25,11 +21,11 @@ describe('Install CLI command', () => {
     scope: joinPath(GRID_DIR, STARWARS_SCOPE),
   };
 
-  // restart super.json to initial state
-  async function restartSuperJson() {
-    await writeSuperJson(
+  // reset super.json to initial state
+  async function resetSuperJson() {
+    await OutputStream.writeOnce(
       fixture.superJson,
-      {
+      JSON.stringify({
         profiles: {
           [profileName]: {
             file: `grid/${profileName}${EXTENSIONS.profile.source}`,
@@ -37,16 +33,15 @@ describe('Install CLI command', () => {
           },
         },
         providers: {},
-      },
-      { force: true }
+      })
     );
   }
 
   beforeAll(async () => {
-    // change cwd to /fixtures/install/playground/
+    // change cwd to fixtures/install/playground/
     process.chdir(WORKING_DIR);
 
-    await restartSuperJson();
+    await resetSuperJson();
 
     await rimraf(fixture.profile);
     await rimraf(fixture.scope);
@@ -58,7 +53,7 @@ describe('Install CLI command', () => {
   });
 
   afterEach(async () => {
-    await restartSuperJson();
+    await resetSuperJson();
 
     stderr.stop();
     stdout.stop();
@@ -73,28 +68,24 @@ describe('Install CLI command', () => {
   });
 
   describe('when no providers are specified', () => {
-    afterEach(async () => {
-      await rimraf(fixture.scope);
-    });
-
     it('installs profiles in super.json', async () => {
       const expectedProfilesCount = 1;
       const profileId = `${profileName}@1`;
 
       {
         await expect(Install.run([profileId])).resolves.toBeUndefined();
-        const loadedResult = await SuperJson.loadSuperJson();
+        const loadedResult = await SuperJson.load();
         const { document } = loadedResult.match(
           v => v,
           err => {
             console.error(err);
 
-            return new SuperJson({});
+            return new SuperJson();
           }
         );
 
         const local = await readFile(fixture.profile, { encoding: 'utf-8' });
-        const registry = (await fetchProfile(profileId)).toString();
+        const registry = await fetchProfile(profileId);
 
         expect(local).toEqual(registry);
 
@@ -128,7 +119,7 @@ describe('Install CLI command', () => {
           Install.run([profileId, '-p', 'twillio', 'osm', 'tyntec', '-f'])
         ).resolves.toBeUndefined();
 
-        const loadedResult = await SuperJson.loadSuperJson();
+        const loadedResult = await SuperJson.load();
         const { document } = loadedResult.match(
           v => v,
           err => {

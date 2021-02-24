@@ -80,7 +80,9 @@ export default class Lint extends Command {
   async run(): Promise<void> {
     const { argv, flags } = this.parse(Lint);
 
-    const outputStream = new OutputStream(flags.output, flags.append);
+    const outputStream = new OutputStream(flags.output, {
+      append: flags.append,
+    });
     let totals: [errors: number, warnings: number];
 
     switch (flags.outputFormat) {

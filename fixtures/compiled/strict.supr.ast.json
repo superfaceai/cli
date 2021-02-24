@@ -1,1664 +1,457 @@
 {
-	"kind": "MapDocument",
-	"header": {
-	  "kind": "MapHeader",
-	  "profile": {
-		"scope": "example",
-		"name": "profile",
-		"version": {
-		  "major": 1,
-		  "minor": 0,
-		  "patch": 0
-		}
-	  },
-	  "provider": "provider",
-	  "location": {
-		"line": 2,
-		"column": 1
-	  },
-	  "span": {
-		"start": 48,
-		"end": 181
-	  },
-	  "title": "Strict Map",
-	  "description": "Example of the map syntax adhering to the strict syntax."
-	},
-	"definitions": [
-	  {
-		"kind": "MapDefinition",
-		"name": "Foo",
-		"usecaseName": "Foo",
-		"statements": [
-		  {
-			"kind": "SetStatement",
-			"condition": {
-			  "kind": "ConditionAtom",
-			  "expression": {
-				"kind": "JessieExpression",
-				"expression": "!cond",
-				"source": "!cond",
-				"sourceMap": "AAAA,IAAI,CAAC,GAAG,CAAC,IAAI,CAAC",
-				"location": {
-				  "line": 17,
-				  "column": 10
-				},
-				"span": {
-				  "start": 337,
-				  "end": 342
-				}
-			  },
-			  "location": {
-				"line": 17,
-				"column": 6
-			  },
-			  "span": {
-				"start": 333,
-				"end": 343
-			  }
-			},
-			"assignments": [
-			  {
-				"kind": "Assignment",
-				"key": [
-				  "foo",
-				  "a"
-				],
-				"value": {
-				  "kind": "JessieExpression",
-				  "expression": "(function () { return true; })()",
-				  "source": "(() => { return true; })()",
-				  "sourceMap": "AAAA,IAAI,CAAC,GAAG,CAAC,cAAQ,OAAO,IAAI,CAAC,CAAC,CAAC,CAAC,EAAE,CAAC",
-				  "location": {
-					"line": 18,
-					"column": 11
-				  },
-				  "span": {
-					"start": 356,
-					"end": 382
-				  }
-				},
-				"location": {
-				  "line": 18,
-				  "column": 3
-				},
-				"span": {
-				  "start": 348,
-				  "end": 382
-				}
-			  },
-			  {
-				"kind": "Assignment",
-				"key": [
-				  "foo"
-				],
-				"value": {
-				  "kind": "JessieExpression",
-				  "expression": "1 + 1",
-				  "source": "1 + 1",
-				  "sourceMap": "AAAA,IAAI,CAAC,GAAG,CAAC,GAAG,CAAC,CAAC",
-				  "location": {
-					"line": 19,
-					"column": 11
-				  },
-				  "span": {
-					"start": 393,
-					"end": 398
-				  }
-				},
-				"location": {
-				  "line": 19,
-				  "column": 3
-				},
-				"span": {
-				  "start": 385,
-				  "end": 398
-				}
-			  },
-			  {
-				"kind": "Assignment",
-				"key": [
-				  "foo.bar",
-				  "bar"
-				],
-				"value": {
-				  "kind": "InlineCall",
-				  "operationName": "Op",
-				  "arguments": [
-					{
-					  "kind": "Assignment",
-					  "key": [
-						"foo",
-						"bar"
-					  ],
-					  "value": {
-						"kind": "PrimitiveLiteral",
-						"value": 1,
-						"location": {
-						  "line": 20,
-						  "column": 37
-						},
-						"span": {
-						  "start": 435,
-						  "end": 436
-						}
-					  },
-					  "location": {
-						"line": 20,
-						"column": 27
-					  },
-					  "span": {
-						"start": 425,
-						"end": 436
-					  }
-					}
-				  ],
-				  "location": {
-					"line": 20,
-					"column": 19
-				  },
-				  "span": {
-					"start": 417,
-					"end": 437
-				  }
-				},
-				"location": {
-				  "line": 20,
-				  "column": 3
-				},
-				"span": {
-				  "start": 401,
-				  "end": 437
-				}
-			  }
-			],
-			"location": {
-			  "line": 17,
-			  "column": 2
-			},
-			"span": {
-			  "start": 329,
-			  "end": 442
-			}
-		  },
-		  {
-			"kind": "SetStatement",
-			"assignments": [
-			  {
-				"kind": "Assignment",
-				"key": [
-				  "foo"
-				],
-				"value": {
-				  "kind": "PrimitiveLiteral",
-				  "value": 1,
-				  "location": {
-					"line": 24,
-					"column": 9
-				  },
-				  "span": {
-					"start": 459,
-					"end": 460
-				  }
-				},
-				"location": {
-				  "line": 24,
-				  "column": 3
-				},
-				"span": {
-				  "start": 453,
-				  "end": 460
-				}
-			  }
-			],
-			"location": {
-			  "line": 23,
-			  "column": 2
-			},
-			"span": {
-			  "start": 445,
-			  "end": 463
-			}
-		  },
-		  {
-			"kind": "SetStatement",
-			"assignments": [
-			  {
-				"kind": "Assignment",
-				"key": [
-				  "foo"
-				],
-				"value": {
-				  "kind": "PrimitiveLiteral",
-				  "value": 1,
-				  "location": {
-					"line": 27,
-					"column": 8
-				  },
-				  "span": {
-					"start": 472,
-					"end": 473
-				  }
-				},
-				"location": {
-				  "line": 27,
-				  "column": 2
-				},
-				"span": {
-				  "start": 466,
-				  "end": 473
-				}
-			  }
-			],
-			"location": {
-			  "line": 27,
-			  "column": 2
-			},
-			"span": {
-			  "start": 466,
-			  "end": 473
-			}
-		  },
-		  {
-			"kind": "SetStatement",
-			"assignments": [
-			  {
-				"kind": "Assignment",
-				"key": [
-				  "foo.bar",
-				  "bar"
-				],
-				"value": {
-				  "kind": "InlineCall",
-				  "operationName": "Op",
-				  "arguments": [
-					{
-					  "kind": "Assignment",
-					  "key": [
-						"foo",
-						"bar"
-					  ],
-					  "value": {
-						"kind": "PrimitiveLiteral",
-						"value": 1,
-						"location": {
-						  "line": 28,
-						  "column": 36
-						},
-						"span": {
-						  "start": 509,
-						  "end": 510
-						}
-					  },
-					  "location": {
-						"line": 28,
-						"column": 26
-					  },
-					  "span": {
-						"start": 499,
-						"end": 510
-					  }
-					}
-				  ],
-				  "location": {
-					"line": 28,
-					"column": 18
-				  },
-				  "span": {
-					"start": 491,
-					"end": 511
-				  }
-				},
-				"location": {
-				  "line": 28,
-				  "column": 2
-				},
-				"span": {
-				  "start": 475,
-				  "end": 511
-				}
-			  }
-			],
-			"location": {
-			  "line": 28,
-			  "column": 2
-			},
-			"span": {
-			  "start": 475,
-			  "end": 511
-			}
-		  },
-		  {
-			"kind": "CallStatement",
-			"condition": {
-			  "kind": "ConditionAtom",
-			  "expression": {
-				"kind": "JessieExpression",
-				"expression": "true || !![false, 0, undefined, null]",
-				"source": "true || !![false, 0, undefined, null]",
-				"sourceMap": "AAAA,IAAI,CAAC,GAAG,IAAI,IAAI,CAAC,CAAC,CAAC,KAAK,EAAE,CAAC,EAAE,SAAS,EAAE,IAAI,CAAC,CAAC",
-				"location": {
-				  "line": 42,
-				  "column": 8
-				},
-				"span": {
-				  "start": 732,
-				  "end": 769
-				}
-			  },
-			  "location": {
-				"line": 42,
-				"column": 4
-			  },
-			  "span": {
-				"start": 728,
-				"end": 770
-			  }
-			},
-			"operationName": "FooOp",
-			"arguments": [
-			  {
-				"kind": "Assignment",
-				"key": [
-				  "a",
-				  "foo"
-				],
-				"value": {
-				  "kind": "JessieExpression",
-				  "expression": "(function () {\n    var jessieValue = {\n        foo: 1,\n        bar: 2 + 3\n    };\n    return jessieValue;\n})()",
-				  "source": "(() => {\n\t\t\tconst jessieValue = {\n\t\t\t\tfoo: 1,\n\t\t\t\tbar: 2 + 3\n\t\t\t};\n\t\t\t\n\t\t\treturn jessieValue;\n\t\t})()",
-				  "sourceMap": "AAAA,IAAI,CAAC,GAAG,CAAC;IACN,IAAM,WAAW,GAAG;QACnB,GAAG,EAAE,CAAC;QACN,GAAG,EAAE,CAAC,GAAG,CAAC;KACV,CAAC;IAEF,OAAO,WAAW,CAAC;AACpB,CAAC,CAAC,EAAE,CAAC",
-				  "location": {
-					"line": 32,
-					"column": 11
-				  },
-				  "span": {
-					"start": 587,
-					"end": 687
-				  }
-				},
-				"location": {
-				  "line": 32,
-				  "column": 3
-				},
-				"span": {
-				  "start": 579,
-				  "end": 687
-				}
-			  },
-			  {
-				"kind": "Assignment",
-				"key": [
-				  "a.var",
-				  "bar"
-				],
-				"value": {
-				  "kind": "JessieExpression",
-				  "expression": "12;\nbaz.baz = true",
-				  "source": "12\n\t\tbaz.baz = true\n\t",
-				  "sourceMap": "AAAA,IAAI,CAAC,GAAG,EAAE,CAAA;AACR,GAAG,CAAC,GAAG,GAAG,IAAI,CACd",
-				  "location": {
-					"line": 40,
-					"column": 17
-				  },
-				  "span": {
-					"start": 705,
-					"end": 726
-				  }
-				},
-				"location": {
-				  "line": 40,
-				  "column": 3
-				},
-				"span": {
-				  "start": 691,
-				  "end": 726
-				}
-			  }
-			],
-			"location": {
-			  "line": 31,
-			  "column": 2
-			},
-			"span": {
-			  "start": 565,
-			  "end": 802
-			},
-			"statements": [
-			  {
-				"kind": "SetStatement",
-				"assignments": [
-				  {
-					"kind": "Assignment",
-					"key": [
-					  "foo"
-					],
-					"value": {
-					  "kind": "PrimitiveLiteral",
-					  "value": false,
-					  "location": {
-						"line": 44,
-						"column": 10
-					  },
-					  "span": {
-						"start": 790,
-						"end": 795
-					  }
-					},
-					"location": {
-					  "line": 44,
-					  "column": 4
-					},
-					"span": {
-					  "start": 784,
-					  "end": 795
-					}
-				  }
-				],
-				"location": {
-				  "line": 43,
-				  "column": 3
-				},
-				"span": {
-				  "start": 775,
-				  "end": 799
-				}
-			  }
-			]
-		  },
-		  {
-			"kind": "CallStatement",
-			"condition": {
-			  "kind": "ConditionAtom",
-			  "expression": {
-				"kind": "JessieExpression",
-				"expression": "true",
-				"source": "true",
-				"sourceMap": "AAAA,IAAI,CAAC,GAAG,IAAI,CAAC",
-				"location": {
-				  "line": 48,
-				  "column": 36
-				},
-				"span": {
-				  "start": 839,
-				  "end": 843
-				}
-			  },
-			  "location": {
-				"line": 48,
-				"column": 32
-			  },
-			  "span": {
-				"start": 835,
-				"end": 844
-			  }
-			},
-			"operationName": "Op",
-			"arguments": [
-			  {
-				"kind": "Assignment",
-				"key": [
-				  "foo"
-				],
-				"value": {
-				  "kind": "PrimitiveLiteral",
-				  "value": 1,
-				  "location": {
-					"line": 48,
-					"column": 16
-				  },
-				  "span": {
-					"start": 819,
-					"end": 820
-				  }
-				},
-				"location": {
-				  "line": 48,
-				  "column": 10
-				},
-				"span": {
-				  "start": 813,
-				  "end": 820
-				}
-			  },
-			  {
-				"kind": "Assignment",
-				"key": [
-				  "bar"
-				],
-				"value": {
-				  "kind": "JessieExpression",
-				  "expression": "1 + 1",
-				  "source": "1 + 1",
-				  "sourceMap": "AAAA,IAAI,CAAC,GAAG,CAAC,GAAG,CAAC,CAAC",
-				  "location": {
-					"line": 48,
-					"column": 25
-				  },
-				  "span": {
-					"start": 828,
-					"end": 833
-				  }
-				},
-				"location": {
-				  "line": 48,
-				  "column": 19
-				},
-				"span": {
-				  "start": 822,
-				  "end": 833
-				}
-			  }
-			],
-			"location": {
-			  "line": 48,
-			  "column": 2
-			},
-			"span": {
-			  "start": 805,
-			  "end": 1216
-			},
-			"statements": [
-			  {
-				"kind": "OutcomeStatement",
-				"isError": false,
-				"terminateFlow": false,
-				"condition": {
-				  "kind": "ConditionAtom",
-				  "expression": {
-					"kind": "JessieExpression",
-					"expression": "cond",
-					"source": "cond",
-					"sourceMap": "AAAA,IAAI,CAAC,GAAG,IAAI,CAAC",
-					"location": {
-					  "line": 53,
-					  "column": 18
-					},
-					"span": {
-					  "start": 999,
-					  "end": 1003
-					}
-				  },
-				  "location": {
-					"line": 53,
-					"column": 14
-				  },
-				  "span": {
-					"start": 995,
-					"end": 1004
-				  }
-				},
-				"value": {
-				  "kind": "ObjectLiteral",
-				  "fields": [
-					{
-					  "kind": "Assignment",
-					  "key": [
-						"foo"
-					  ],
-					  "value": {
-						"kind": "PrimitiveLiteral",
-						"value": 1,
-						"location": {
-						  "line": 54,
-						  "column": 10
-						},
-						"span": {
-						  "start": 1016,
-						  "end": 1017
-						}
-					  },
-					  "location": {
-						"line": 54,
-						"column": 4
-					  },
-					  "span": {
-						"start": 1010,
-						"end": 1017
-					  }
-					}
-				  ],
-				  "location": {
-					"line": 53,
-					"column": 24
-				  },
-				  "span": {
-					"start": 1005,
-					"end": 1021
-				  }
-				},
-				"location": {
-				  "line": 53,
-				  "column": 3
-				},
-				"span": {
-				  "start": 984,
-				  "end": 1021
-				}
-			  },
-			  {
-				"kind": "OutcomeStatement",
-				"isError": false,
-				"terminateFlow": true,
-				"condition": {
-				  "kind": "ConditionAtom",
-				  "expression": {
-					"kind": "JessieExpression",
-					"expression": "cond",
-					"source": "cond",
-					"sourceMap": "AAAA,IAAI,CAAC,GAAG,IAAI,CAAC",
-					"location": {
-					  "line": 56,
-					  "column": 25
-					},
-					"span": {
-					  "start": 1046,
-					  "end": 1050
-					}
-				  },
-				  "location": {
-					"line": 56,
-					"column": 21
-				  },
-				  "span": {
-					"start": 1042,
-					"end": 1051
-				  }
-				},
-				"value": {
-				  "kind": "ObjectLiteral",
-				  "fields": [
-					{
-					  "kind": "Assignment",
-					  "key": [
-						"foo"
-					  ],
-					  "value": {
-						"kind": "PrimitiveLiteral",
-						"value": 1,
-						"location": {
-						  "line": 57,
-						  "column": 12
-						},
-						"span": {
-						  "start": 1065,
-						  "end": 1066
-						}
-					  },
-					  "location": {
-						"line": 57,
-						"column": 4
-					  },
-					  "span": {
-						"start": 1057,
-						"end": 1066
-					  }
-					}
-				  ],
-				  "location": {
-					"line": 56,
-					"column": 31
-				  },
-				  "span": {
-					"start": 1052,
-					"end": 1070
-				  }
-				},
-				"location": {
-				  "line": 56,
-				  "column": 3
-				},
-				"span": {
-				  "start": 1024,
-				  "end": 1070
-				}
-			  },
-			  {
-				"kind": "OutcomeStatement",
-				"isError": true,
-				"terminateFlow": false,
-				"condition": {
-				  "kind": "ConditionAtom",
-				  "expression": {
-					"kind": "JessieExpression",
-					"expression": "cond",
-					"source": "cond",
-					"sourceMap": "AAAA,IAAI,CAAC,GAAG,IAAI,CAAC",
-					"location": {
-					  "line": 61,
-					  "column": 17
-					},
-					"span": {
-					  "start": 1135,
-					  "end": 1139
-					}
-				  },
-				  "location": {
-					"line": 61,
-					"column": 13
-				  },
-				  "span": {
-					"start": 1131,
-					"end": 1140
-				  }
-				},
-				"value": {
-				  "kind": "ObjectLiteral",
-				  "fields": [
-					{
-					  "kind": "Assignment",
-					  "key": [
-						"foo.bar"
-					  ],
-					  "value": {
-						"kind": "PrimitiveLiteral",
-						"value": 1,
-						"location": {
-						  "line": 62,
-						  "column": 16
-						},
-						"span": {
-						  "start": 1158,
-						  "end": 1159
-						}
-					  },
-					  "location": {
-						"line": 62,
-						"column": 4
-					  },
-					  "span": {
-						"start": 1146,
-						"end": 1159
-					  }
-					}
-				  ],
-				  "location": {
-					"line": 61,
-					"column": 23
-				  },
-				  "span": {
-					"start": 1141,
-					"end": 1163
-				  }
-				},
-				"location": {
-				  "line": 61,
-				  "column": 3
-				},
-				"span": {
-				  "start": 1121,
-				  "end": 1163
-				}
-			  },
-			  {
-				"kind": "OutcomeStatement",
-				"isError": true,
-				"terminateFlow": true,
-				"condition": {
-				  "kind": "ConditionAtom",
-				  "expression": {
-					"kind": "JessieExpression",
-					"expression": "cond",
-					"source": "cond",
-					"sourceMap": "AAAA,IAAI,CAAC,GAAG,IAAI,CAAC",
-					"location": {
-					  "line": 64,
-					  "column": 24
-					},
-					"span": {
-					  "start": 1187,
-					  "end": 1191
-					}
-				  },
-				  "location": {
-					"line": 64,
-					"column": 20
-				  },
-				  "span": {
-					"start": 1183,
-					"end": 1192
-				  }
-				},
-				"value": {
-				  "kind": "ObjectLiteral",
-				  "fields": [
-					{
-					  "kind": "Assignment",
-					  "key": [
-						"foo",
-						"bar"
-					  ],
-					  "value": {
-						"kind": "PrimitiveLiteral",
-						"value": 1,
-						"location": {
-						  "line": 65,
-						  "column": 14
-						},
-						"span": {
-						  "start": 1208,
-						  "end": 1209
-						}
-					  },
-					  "location": {
-						"line": 65,
-						"column": 4
-					  },
-					  "span": {
-						"start": 1198,
-						"end": 1209
-					  }
-					}
-				  ],
-				  "location": {
-					"line": 64,
-					"column": 30
-				  },
-				  "span": {
-					"start": 1193,
-					"end": 1213
-				  }
-				},
-				"location": {
-				  "line": 64,
-				  "column": 3
-				},
-				"span": {
-				  "start": 1166,
-				  "end": 1213
-				}
-			  }
-			]
-		  },
-		  {
-			"kind": "HttpCallStatement",
-			"method": "GET",
-			"url": "/api/{foo}/bar",
-			"request": {
-			  "kind": "HttpRequest",
-			  "contentType": "application/json",
-			  "query": {
-				"kind": "ObjectLiteral",
-				"fields": [
-				  {
-					"kind": "Assignment",
-					"key": [
-					  "foo"
-					],
-					"value": {
-					  "kind": "PrimitiveLiteral",
-					  "value": "hello",
-					  "location": {
-						"line": 80,
-						"column": 11
-					  },
-					  "span": {
-						"start": 1532,
-						"end": 1539
-					  }
-					},
-					"location": {
-					  "line": 80,
-					  "column": 5
-					},
-					"span": {
-					  "start": 1526,
-					  "end": 1539
-					}
-				  },
-				  {
-					"kind": "Assignment",
-					"key": [
-					  "bar"
-					],
-					"value": {
-					  "kind": "PrimitiveLiteral",
-					  "value": "world",
-					  "location": {
-						"line": 81,
-						"column": 11
-					  },
-					  "span": {
-						"start": 1551,
-						"end": 1558
-					  }
-					},
-					"location": {
-					  "line": 81,
-					  "column": 5
-					},
-					"span": {
-					  "start": 1545,
-					  "end": 1558
-					}
-				  }
-				],
-				"location": {
-				  "line": 79,
-				  "column": 10
-				},
-				"span": {
-				  "start": 1520,
-				  "end": 1563
-				}
-			  },
-			  "headers": {
-				"kind": "ObjectLiteral",
-				"fields": [
-				  {
-					"kind": "Assignment",
-					"key": [
-					  "User-Agent"
-					],
-					"value": {
-					  "kind": "PrimitiveLiteral",
-					  "value": "superface v1",
-					  "location": {
-						"line": 86,
-						"column": 20
-					  },
-					  "span": {
-						"start": 1644,
-						"end": 1658
-					  }
-					},
-					"location": {
-					  "line": 86,
-					  "column": 5
-					},
-					"span": {
-					  "start": 1629,
-					  "end": 1658
-					}
-				  }
-				],
-				"location": {
-				  "line": 85,
-				  "column": 12
-				},
-				"span": {
-				  "start": 1623,
-				  "end": 1663
-				}
-			  },
-			  "body": {
-				"kind": "ObjectLiteral",
-				"fields": [
-				  {
-					"kind": "Assignment",
-					"key": [
-					  "foo"
-					],
-					"value": {
-					  "kind": "PrimitiveLiteral",
-					  "value": 1,
-					  "location": {
-						"line": 91,
-						"column": 11
-					  },
-					  "span": {
-						"start": 1729,
-						"end": 1730
-					  }
-					},
-					"location": {
-					  "line": 91,
-					  "column": 5
-					},
-					"span": {
-					  "start": 1723,
-					  "end": 1730
-					}
-				  },
-				  {
-					"kind": "Assignment",
-					"key": [
-					  "bar"
-					],
-					"value": {
-					  "kind": "JessieExpression",
-					  "expression": "1 + 1",
-					  "source": "1 + 1",
-					  "sourceMap": "AAAA,IAAI,CAAC,GAAG,CAAC,GAAG,CAAC,CAAC",
-					  "location": {
-						"line": 92,
-						"column": 11
-					  },
-					  "span": {
-						"start": 1742,
-						"end": 1747
-					  }
-					},
-					"location": {
-					  "line": 92,
-					  "column": 5
-					},
-					"span": {
-					  "start": 1736,
-					  "end": 1747
-					}
-				  },
-				  {
-					"kind": "Assignment",
-					"key": [
-					  "foo.bar",
-					  "bar"
-					],
-					"value": {
-					  "kind": "PrimitiveLiteral",
-					  "value": "3",
-					  "location": {
-						"line": 93,
-						"column": 21
-					  },
-					  "span": {
-						"start": 1769,
-						"end": 1772
-					  }
-					},
-					"location": {
-					  "line": 93,
-					  "column": 5
-					},
-					"span": {
-					  "start": 1753,
-					  "end": 1772
-					}
-				  }
-				],
-				"location": {
-				  "line": 90,
-				  "column": 9
-				},
-				"span": {
-				  "start": 1717,
-				  "end": 1777
-				}
-			  },
-			  "location": {
-				"line": 72,
-				"column": 3
-			  },
-			  "span": {
-				"start": 1336,
-				"end": 1781
-			  },
-			  "security": {
-				"scheme": "apikey",
-				"placement": "header",
-				"name": "apikey-header"
-			  }
-			},
-			"responseHandlers": [
-			  {
-				"kind": "HttpResponseHandler",
-				"statusCode": 100,
-				"statements": [
-				  {
-					"kind": "OutcomeStatement",
-					"isError": false,
-					"terminateFlow": false,
-					"value": {
-					  "kind": "ObjectLiteral",
-					  "fields": [
-						{
-						  "kind": "Assignment",
-						  "key": [
-							"foo"
-						  ],
-						  "value": {
-							"kind": "PrimitiveLiteral",
-							"value": 1,
-							"location": {
-							  "line": 100,
-							  "column": 11
-							},
-							"span": {
-							  "start": 1871,
-							  "end": 1872
-							}
-						  },
-						  "location": {
-							"line": 100,
-							"column": 5
-						  },
-						  "span": {
-							"start": 1865,
-							"end": 1872
-						  }
-						}
-					  ],
-					  "location": {
-						"line": 99,
-						"column": 15
-					  },
-					  "span": {
-						"start": 1859,
-						"end": 1877
-					  }
-					},
-					"location": {
-					  "line": 99,
-					  "column": 4
-					},
-					"span": {
-					  "start": 1848,
-					  "end": 1877
-					}
-				  }
-				],
-				"location": {
-				  "line": 98,
-				  "column": 3
-				},
-				"span": {
-				  "start": 1830,
-				  "end": 1881
-				}
-			  },
-			  {
-				"kind": "HttpResponseHandler",
-				"contentType": "application/json",
-				"statements": [
-				  {
-					"kind": "OutcomeStatement",
-					"isError": true,
-					"terminateFlow": false,
-					"value": {
-					  "kind": "ObjectLiteral",
-					  "fields": [
-						{
-						  "kind": "Assignment",
-						  "key": [
-							"foo"
-						  ],
-						  "value": {
-							"kind": "PrimitiveLiteral",
-							"value": 1,
-							"location": {
-							  "line": 107,
-							  "column": 11
-							},
-							"span": {
-							  "start": 1985,
-							  "end": 1986
-							}
-						  },
-						  "location": {
-							"line": 107,
-							"column": 5
-						  },
-						  "span": {
-							"start": 1979,
-							"end": 1986
-						  }
-						}
-					  ],
-					  "location": {
-						"line": 106,
-						"column": 14
-					  },
-					  "span": {
-						"start": 1973,
-						"end": 1991
-					  }
-					},
-					"location": {
-					  "line": 106,
-					  "column": 4
-					},
-					"span": {
-					  "start": 1963,
-					  "end": 1991
-					}
-				  }
-				],
-				"location": {
-				  "line": 105,
-				  "column": 3
-				},
-				"span": {
-				  "start": 1930,
-				  "end": 1995
-				}
-			  },
-			  {
-				"kind": "HttpResponseHandler",
-				"contentLanguage": "en-US",
-				"statements": [
-				  {
-					"kind": "OutcomeStatement",
-					"isError": false,
-					"terminateFlow": true,
-					"value": {
-					  "kind": "ObjectLiteral",
-					  "fields": [
-						{
-						  "kind": "Assignment",
-						  "key": [
-							"foo"
-						  ],
-						  "value": {
-							"kind": "PrimitiveLiteral",
-							"value": 1,
-							"location": {
-							  "line": 114,
-							  "column": 11
-							},
-							"span": {
-							  "start": 2100,
-							  "end": 2101
-							}
-						  },
-						  "location": {
-							"line": 114,
-							"column": 5
-						  },
-						  "span": {
-							"start": 2094,
-							"end": 2101
-						  }
-						}
-					  ],
-					  "location": {
-						"line": 113,
-						"column": 22
-					  },
-					  "span": {
-						"start": 2088,
-						"end": 2106
-					  }
-					},
-					"location": {
-					  "line": 113,
-					  "column": 4
-					},
-					"span": {
-					  "start": 2070,
-					  "end": 2106
-					}
-				  }
-				],
-				"location": {
-				  "line": 112,
-				  "column": 3
-				},
-				"span": {
-				  "start": 2044,
-				  "end": 2110
-				}
-			  },
-			  {
-				"kind": "HttpResponseHandler",
-				"statements": [
-				  {
-					"kind": "OutcomeStatement",
-					"isError": true,
-					"terminateFlow": true,
-					"value": {
-					  "kind": "ObjectLiteral",
-					  "fields": [
-						{
-						  "kind": "Assignment",
-						  "key": [
-							"foo"
-						  ],
-						  "value": {
-							"kind": "PrimitiveLiteral",
-							"value": 1,
-							"location": {
-							  "line": 121,
-							  "column": 11
-							},
-							"span": {
-							  "start": 2202,
-							  "end": 2203
-							}
-						  },
-						  "location": {
-							"line": 121,
-							"column": 5
-						  },
-						  "span": {
-							"start": 2196,
-							"end": 2203
-						  }
-						}
-					  ],
-					  "location": {
-						"line": 120,
-						"column": 21
-					  },
-					  "span": {
-						"start": 2190,
-						"end": 2208
-					  }
-					},
-					"location": {
-					  "line": 120,
-					  "column": 4
-					},
-					"span": {
-					  "start": 2173,
-					  "end": 2208
-					}
-				  }
-				],
-				"location": {
-				  "line": 119,
-				  "column": 3
-				},
-				"span": {
-				  "start": 2159,
-				  "end": 2212
-				}
-			  }
-			],
-			"location": {
-			  "line": 70,
-			  "column": 2
-			},
-			"span": {
-			  "start": 1260,
-			  "end": 2215
-			}
-		  },
-		  {
-			"kind": "HttpCallStatement",
-			"method": "POST",
-			"url": "/",
-			"request": {
-			  "kind": "HttpRequest",
-			  "body": {
-				"kind": "JessieExpression",
-				"expression": "[1, 2, 3]",
-				"source": "[1, 2, 3]",
-				"sourceMap": "AAAA,IAAI,CAAC,GAAG,CAAC,CAAC,EAAE,CAAC,EAAE,CAAC,CAAC,CAAC",
-				"location": {
-				  "line": 130,
-				  "column": 11
-				},
-				"span": {
-				  "start": 2344,
-				  "end": 2353
-				}
-			  },
-			  "location": {
-				"line": 128,
-				"column": 3
-			  },
-			  "span": {
-				"start": 2281,
-				"end": 2357
-			  }
-			},
-			"responseHandlers": [
-			  {
-				"kind": "HttpResponseHandler",
-				"statusCode": 404,
-				"contentType": "text/html",
-				"contentLanguage": "en-US",
-				"statements": [
-				  {
-					"kind": "SetStatement",
-					"assignments": [
-					  {
-						"kind": "Assignment",
-						"key": [
-						  "foo"
-						],
-						"value": {
-						  "kind": "PrimitiveLiteral",
-						  "value": 1,
-						  "location": {
-							"line": 134,
-							"column": 10
-						  },
-						  "span": {
-							"start": 2405,
-							"end": 2406
-						  }
-						},
-						"location": {
-						  "line": 134,
-						  "column": 4
-						},
-						"span": {
-						  "start": 2399,
-						  "end": 2406
-						}
-					  }
-					],
-					"location": {
-					  "line": 134,
-					  "column": 4
-					},
-					"span": {
-					  "start": 2399,
-					  "end": 2406
-					}
-				  }
-				],
-				"location": {
-				  "line": 133,
-				  "column": 3
-				},
-				"span": {
-				  "start": 2361,
-				  "end": 2410
-				}
-			  }
-			],
-			"location": {
-			  "line": 126,
-			  "column": 2
-			},
-			"span": {
-			  "start": 2218,
-			  "end": 2413
-			}
-		  },
-		  {
-			"kind": "HttpCallStatement",
-			"method": "OPTIONS",
-			"url": "/",
-			"request": {
-			  "kind": "HttpRequest",
-			  "security": {
-				"scheme": "none"
-			  },
-			  "location": {
-				"line": 139,
-				"column": 3
-			  },
-			  "span": {
-				"start": 2437,
-				"end": 2450
-			  }
-			},
-			"responseHandlers": [],
-			"location": {
-			  "line": 138,
-			  "column": 2
-			},
-			"span": {
-			  "start": 2416,
-			  "end": 2453
-			}
-		  }
-		],
-		"location": {
-		  "line": 12,
-		  "column": 1
-		},
-		"span": {
-		  "start": 230,
-		  "end": 2455
-		},
-		"title": "Map Foo",
-		"description": "Description of the map Foo"
-	  },
-	  {
-		"kind": "OperationDefinition",
-		"name": "FooOp",
-		"statements": [
-		  {
-			"kind": "OutcomeStatement",
-			"isError": false,
-			"terminateFlow": true,
-			"condition": {
-			  "kind": "ConditionAtom",
-			  "expression": {
-				"kind": "JessieExpression",
-				"expression": "!![]",
-				"source": "!![]",
-				"sourceMap": "AAAA,IAAI,CAAC,GAAG,CAAC,CAAC,EAAE,CAAC",
-				"location": {
-				  "line": 144,
-				  "column": 13
-				},
-				"span": {
-				  "start": 2487,
-				  "end": 2491
-				}
-			  },
-			  "location": {
-				"line": 144,
-				"column": 9
-			  },
-			  "span": {
-				"start": 2483,
-				"end": 2492
-			  }
-			},
-			"value": {
-			  "kind": "PrimitiveLiteral",
-			  "value": 1,
-			  "location": {
-				"line": 144,
-				"column": 19
-			  },
-			  "span": {
-				"start": 2493,
-				"end": 2494
-			  }
-			},
-			"location": {
-			  "line": 144,
-			  "column": 2
-			},
-			"span": {
-			  "start": 2476,
-			  "end": 2494
-			}
-		  },
-		  {
-			"kind": "OutcomeStatement",
-			"isError": true,
-			"terminateFlow": true,
-			"condition": {
-			  "kind": "ConditionAtom",
-			  "expression": {
-				"kind": "JessieExpression",
-				"expression": "{}",
-				"source": "{}",
-				"sourceMap": "AAAA,IAAI,CAAC,GAAG,EAAE,CAAC",
-				"location": {
-				  "line": 145,
-				  "column": 11
-				},
-				"span": {
-				  "start": 2505,
-				  "end": 2507
-				}
-			  },
-			  "location": {
-				"line": 145,
-				"column": 7
-			  },
-			  "span": {
-				"start": 2501,
-				"end": 2508
-			  }
-			},
-			"value": {
-			  "kind": "PrimitiveLiteral",
-			  "value": 2,
-			  "location": {
-				"line": 145,
-				"column": 15
-			  },
-			  "span": {
-				"start": 2509,
-				"end": 2510
-			  }
-			},
-			"location": {
-			  "line": 145,
-			  "column": 2
-			},
-			"span": {
-			  "start": 2496,
-			  "end": 2510
-			}
-		  },
-		  {
-			"kind": "SetStatement",
-			"assignments": [
-			  {
-				"kind": "Assignment",
-				"key": [
-				  "foo",
-				  "bar",
-				  "baz"
-				],
-				"value": {
-				  "kind": "PrimitiveLiteral",
-				  "value": 1,
-				  "location": {
-					"line": 149,
-					"column": 19
-				  },
-				  "span": {
-					"start": 2545,
-					"end": 2546
-				  }
-				},
-				"location": {
-				  "line": 149,
-				  "column": 3
-				},
-				"span": {
-				  "start": 2529,
-				  "end": 2546
-				}
-			  }
-			],
-			"location": {
-			  "line": 148,
-			  "column": 2
-			},
-			"span": {
-			  "start": 2521,
-			  "end": 2549
-			}
-		  }
-		],
-		"location": {
-		  "line": 143,
-		  "column": 1
-		},
-		"span": {
-		  "start": 2457,
-		  "end": 2551
-		}
-	  }
-	],
-	"location": {
-	  "line": 2,
-	  "column": 1
-	},
-	"span": {
-	  "start": 48,
-	  "end": 2551
-	}
+  "kind": "ProfileDocument",
+  "header": {
+    "kind": "ProfileHeader",
+    "scope": "example",
+    "name": "profile",
+    "version": {
+      "major": 1,
+      "minor": 0,
+      "patch": 0
+    },
+    "location": {
+      "line": 1,
+      "column": 1
+    },
+    "span": {
+      "start": 0,
+      "end": 69
+    },
+    "title": "Title",
+    "description": "Description"
+  },
+  "definitions": [
+    {
+      "kind": "UseCaseDefinition",
+      "useCaseName": "Foo",
+      "input": {
+        "kind": "UseCaseSlotDefinition",
+        "type": {
+          "kind": "ObjectDefinition",
+          "fields": [
+            {
+              "kind": "FieldDefinition",
+              "fieldName": "field",
+              "required": true,
+              "type": {
+                "kind": "NonNullDefinition",
+                "type": {
+                  "kind": "PrimitiveTypeName",
+                  "name": "string",
+                  "span": {
+                    "start": 189,
+                    "end": 195
+                  },
+                  "location": {
+                    "line": 14,
+                    "column": 13
+                  }
+                },
+                "location": {
+                  "line": 14,
+                  "column": 13
+                },
+                "span": {
+                  "start": 189,
+                  "end": 196
+                }
+              },
+              "location": {
+                "line": 13,
+                "column": 6
+              },
+              "span": {
+                "start": 163,
+                "end": 196
+              },
+              "title": "field title"
+            },
+            {
+              "kind": "FieldDefinition",
+              "fieldName": "field",
+              "required": false,
+              "type": {
+                "kind": "UnionDefinition",
+                "types": [
+                  {
+                    "kind": "PrimitiveTypeName",
+                    "name": "number",
+                    "span": {
+                      "start": 259,
+                      "end": 265
+                    },
+                    "location": {
+                      "line": 16,
+                      "column": 15
+                    }
+                  },
+                  {
+                    "kind": "PrimitiveTypeName",
+                    "name": "boolean",
+                    "span": {
+                      "start": 268,
+                      "end": 275
+                    },
+                    "location": {
+                      "line": 16,
+                      "column": 24
+                    }
+                  }
+                ],
+                "location": {
+                  "line": 16,
+                  "column": 15
+                },
+                "span": {
+                  "start": 259,
+                  "end": 275
+                }
+              },
+              "location": {
+                "line": 16,
+                "column": 9
+              },
+              "span": {
+                "start": 253,
+                "end": 275
+              }
+            },
+            {
+              "kind": "FieldDefinition",
+              "fieldName": "field",
+              "required": false,
+              "type": {
+                "kind": "PrimitiveTypeName",
+                "name": "boolean",
+                "span": {
+                  "start": 283,
+                  "end": 290
+                },
+                "location": {
+                  "line": 16,
+                  "column": 39
+                }
+              },
+              "location": {
+                "line": 16,
+                "column": 33
+              },
+              "span": {
+                "start": 277,
+                "end": 290
+              }
+            }
+          ],
+          "location": {
+            "line": 12,
+            "column": 8
+          },
+          "span": {
+            "start": 156,
+            "end": 296
+          }
+        },
+        "location": {
+          "line": 12,
+          "column": 2
+        },
+        "span": {
+          "start": 150,
+          "end": 296
+        }
+      },
+      "result": {
+        "kind": "UseCaseSlotDefinition",
+        "type": {
+          "kind": "PrimitiveTypeName",
+          "name": "number",
+          "span": {
+            "start": 364,
+            "end": 370
+          },
+          "location": {
+            "line": 20,
+            "column": 12
+          }
+        },
+        "location": {
+          "line": 20,
+          "column": 5
+        },
+        "span": {
+          "start": 357,
+          "end": 370
+        }
+      },
+      "asyncResult": {
+        "kind": "UseCaseSlotDefinition",
+        "type": {
+          "kind": "ListDefinition",
+          "elementType": {
+            "kind": "ModelTypeName",
+            "name": "FooModel",
+            "location": {
+              "line": 24,
+              "column": 19
+            },
+            "span": {
+              "start": 500,
+              "end": 508
+            }
+          },
+          "location": {
+            "line": 24,
+            "column": 18
+          },
+          "span": {
+            "start": 499,
+            "end": 509
+          }
+        },
+        "location": {
+          "line": 24,
+          "column": 5
+        },
+        "span": {
+          "start": 486,
+          "end": 509
+        }
+      },
+      "error": {
+        "kind": "UseCaseSlotDefinition",
+        "type": {
+          "kind": "EnumDefinition",
+          "values": [
+            {
+              "kind": "EnumValue",
+              "value": 404,
+              "location": {
+                "line": 28,
+                "column": 6
+              },
+              "span": {
+                "start": 586,
+                "end": 601
+              }
+            },
+            {
+              "kind": "EnumValue",
+              "value": 400,
+              "location": {
+                "line": 29,
+                "column": 9
+              },
+              "span": {
+                "start": 611,
+                "end": 628
+              }
+            }
+          ],
+          "location": {
+            "line": 27,
+            "column": 11
+          },
+          "span": {
+            "start": 574,
+            "end": 634
+          }
+        },
+        "location": {
+          "line": 27,
+          "column": 5
+        },
+        "span": {
+          "start": 568,
+          "end": 634
+        }
+      },
+      "location": {
+        "line": 10,
+        "column": 1
+      },
+      "span": {
+        "start": 119,
+        "end": 637
+      },
+      "title": "usecase title"
+    },
+    {
+      "kind": "NamedModelDefinition",
+      "modelName": "FooModel",
+      "type": {
+        "kind": "UnionDefinition",
+        "types": [
+          {
+            "kind": "ObjectDefinition",
+            "fields": [
+              {
+                "kind": "FieldDefinition",
+                "fieldName": "foo",
+                "required": false,
+                "type": {
+                  "kind": "UnionDefinition",
+                  "types": [
+                    {
+                      "kind": "NonNullDefinition",
+                      "type": {
+                        "kind": "ModelTypeName",
+                        "name": "bar",
+                        "location": {
+                          "line": 37,
+                          "column": 6
+                        },
+                        "span": {
+                          "start": 772,
+                          "end": 775
+                        }
+                      },
+                      "location": {
+                        "line": 37,
+                        "column": 6
+                      },
+                      "span": {
+                        "start": 772,
+                        "end": 776
+                      }
+                    },
+                    {
+                      "kind": "NonNullDefinition",
+                      "type": {
+                        "kind": "ModelTypeName",
+                        "name": "baz",
+                        "location": {
+                          "line": 37,
+                          "column": 13
+                        },
+                        "span": {
+                          "start": 779,
+                          "end": 782
+                        }
+                      },
+                      "location": {
+                        "line": 37,
+                        "column": 13
+                      },
+                      "span": {
+                        "start": 779,
+                        "end": 783
+                      }
+                    }
+                  ],
+                  "location": {
+                    "line": 37,
+                    "column": 6
+                  },
+                  "span": {
+                    "start": 772,
+                    "end": 783
+                  }
+                },
+                "location": {
+                  "line": 37,
+                  "column": 2
+                },
+                "span": {
+                  "start": 768,
+                  "end": 783
+                }
+              }
+            ],
+            "location": {
+              "line": 36,
+              "column": 16
+            },
+            "span": {
+              "start": 765,
+              "end": 785
+            }
+          },
+          {
+            "kind": "ListDefinition",
+            "elementType": {
+              "kind": "PrimitiveTypeName",
+              "name": "string",
+              "span": {
+                "start": 789,
+                "end": 795
+              },
+              "location": {
+                "line": 38,
+                "column": 6
+              }
+            },
+            "location": {
+              "line": 38,
+              "column": 5
+            },
+            "span": {
+              "start": 788,
+              "end": 796
+            }
+          }
+        ],
+        "location": {
+          "line": 36,
+          "column": 16
+        },
+        "span": {
+          "start": 765,
+          "end": 796
+        }
+      },
+      "location": {
+        "line": 35,
+        "column": 1
+      },
+      "span": {
+        "start": 742,
+        "end": 796
+      },
+      "title": "Title"
+    },
+    {
+      "kind": "NamedFieldDefinition",
+      "fieldName": "foo",
+      "type": {
+        "kind": "NonNullDefinition",
+        "type": {
+          "kind": "PrimitiveTypeName",
+          "name": "string",
+          "span": {
+            "start": 867,
+            "end": 873
+          },
+          "location": {
+            "line": 42,
+            "column": 11
+          }
+        },
+        "location": {
+          "line": 42,
+          "column": 11
+        },
+        "span": {
+          "start": 867,
+          "end": 874
+        }
+      },
+      "location": {
+        "line": 41,
+        "column": 1
+      },
+      "span": {
+        "start": 849,
+        "end": 874
+      },
+      "title": "Title"
+    }
+  ],
+  "location": {
+    "line": 1,
+    "column": 1
+  },
+  "span": {
+    "start": 0,
+    "end": 874
   }
+}

@@ -5,11 +5,11 @@ import inquirer from 'inquirer';
 import { join as joinPath } from 'path';
 
 import {
-  constructProfileSettings,
   constructProviderSettings,
   validateDocumentName,
 } from '../common/document';
 import { LogCallback } from '../common/log';
+import { OutputStream } from '../common/output-stream';
 import { generateSpecifiedProfiles, initSuperface } from '../logic/init';
 
 const parseProfileIds = (
@@ -177,10 +177,9 @@ ${hints.quiet}`);
 
     const path = args.name ? joinPath('.', args.name) : '.';
 
-    await initSuperface(
+    const superJson = await initSuperface(
       path,
       {
-        profiles: constructProfileSettings(profiles),
         providers: constructProviderSettings(providers),
       },
       {
@@ -190,7 +189,13 @@ ${hints.quiet}`);
     );
 
     if (profiles.length > 0) {
-      await generateSpecifiedProfiles(path, profiles, this.logCallback);
+      await generateSpecifiedProfiles(
+        path,
+        superJson,
+        profiles,
+        this.logCallback
+      );
+      await OutputStream.writeOnce(superJson.path, superJson.stringified);
     }
   }
 }
