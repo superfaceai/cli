@@ -1,5 +1,7 @@
 ## [Unreleased]
 
+## [0.0.4] - 2021-02-25
+
 ### Added
 * New flags for create command: `--template`, `--version` (`-v`),  `--variant` (`-t`)
 * Generation of scope directory
@@ -47,6 +49,8 @@
 * Transpile command
 * CI github flow
 
-[Unreleased]: https://github.com/superfaceai/cli/compare/v0.0.2...HEAD
+[Unreleased]: https://github.com/superfaceai/cli/compare/v0.0.4...HEAD
+[0.0.4]: https://github.com/superfaceai/cli/compare/v0.0.3...v0.0.4
+[0.0.3]: https://github.com/superfaceai/cli/compare/v0.0.2...v0.0.3
 [0.0.2]: https://github.com/superfaceai/cli/compare/v0.0.1...v0.0.2
 [0.0.1]: https://github.com/superfaceai/cli/releases/tag/v0.0.1
