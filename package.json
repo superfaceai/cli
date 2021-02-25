@@ -58,7 +58,10 @@
     "superagent": "^6.1.0"
   },
   "oclif": {
-    "commands": "./dist/commands",
-    "bin": "superface"
+    "commands": "dist/commands",
+    "bin": "superface",
+    "hooks": {
+      "init": "dist/hooks/init"
+    }
   }
 }
