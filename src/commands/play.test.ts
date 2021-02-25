@@ -193,21 +193,25 @@ describe('Play CLI command', () => {
       [...deletedFiles, ...expectedFiles].map(file =>
         OutputStream.writeOnce(
           file,
-          JSON.stringify({
-            profiles: {
-              [createdPlayground.name]: {
-                file: expectedFiles[0],
-                providers: {
-                  foo: {
-                    file: expectedFiles[1],
-                  },
-                  bar: {
-                    file: expectedFiles[2],
+          JSON.stringify(
+            {
+              profiles: {
+                [createdPlayground.name]: {
+                  file: expectedFiles[0],
+                  providers: {
+                    foo: {
+                      file: expectedFiles[1],
+                    },
+                    bar: {
+                      file: expectedFiles[2],
+                    },
                   },
                 },
               },
             },
-          })
+            undefined,
+            2
+          )
         )
       )
     );

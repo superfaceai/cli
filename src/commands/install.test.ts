@@ -25,15 +25,19 @@ describe('Install CLI command', () => {
   async function resetSuperJson() {
     await OutputStream.writeOnce(
       fixture.superJson,
-      JSON.stringify({
-        profiles: {
-          [profileName]: {
-            file: `grid/${profileName}${EXTENSIONS.profile.source}`,
-            providers: {},
+      JSON.stringify(
+        {
+          profiles: {
+            [profileName]: {
+              file: `grid/${profileName}${EXTENSIONS.profile.source}`,
+              providers: {},
+            },
           },
+          providers: {},
         },
-        providers: {},
-      })
+        undefined,
+        2
+      )
     );
   }
 

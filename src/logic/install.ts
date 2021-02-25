@@ -1,10 +1,6 @@
 import { ProfileDocumentNode } from '@superfaceai/ast';
-import {
-  ProfileEntry,
-  ProfileProviderEntry,
-  SuperJson,
-} from '@superfaceai/sdk';
-import { join as joinPath, normalize, relative } from 'path';
+import { ProfileProviderEntry, SuperJson } from '@superfaceai/sdk';
+import { join as joinPath, normalize, relative as relativePath } from 'path';
 
 import {
   composeVersion,
@@ -40,12 +36,12 @@ export async function detectSuperJson(
 ): Promise<string | undefined> {
   // check whether super.json is accessible in cwd
   if (await isAccessible(joinPath(cwd, META_FILE))) {
-    return normalize(relative(process.cwd(), cwd));
+    return normalize(relativePath(process.cwd(), cwd));
   }
 
   // check whether super.json is accessible in cwd/superface
   if (await isAccessible(joinPath(cwd, SUPER_PATH))) {
-    return normalize(relative(process.cwd(), joinPath(cwd, SUPERFACE_DIR)));
+    return normalize(relativePath(process.cwd(), joinPath(cwd, SUPERFACE_DIR)));
   }
 
   // default behaviour - do not scan outside cwd
@@ -101,14 +97,30 @@ export async function getProfileFromStore(
 }
 
 /**
+ * Returns a number of up levels one has to traverse from `base` to `path`.
+ *
+ * In practice, this is the number of starting `../` parts of the normalized relative path.
+ */
+function pathCommonParentLevel(path: string): number {
+  let current = normalize(path);
+
+  let number = 0;
+  while (current.startsWith('../')) {
+    current = current.slice('../'.length);
+    number += 1;
+  }
+
+  return number;
+}
+
+/**
  * Handle responses from superface registry.
  * It saves profiles and its AST to grid folder and
  * it saves new information about profiles into super.json.
  */
 export async function handleProfileResponses(
-  superPath: string,
-  responses: ProfileResponse[],
   superJson: SuperJson,
+  responses: ProfileResponse[],
   profileProviders?: Record<string, ProfileProviderEntry>,
   options?: { logCb?: LogCallback; warnCb?: LogCallback; force: boolean }
 ): Promise<number> {
@@ -127,7 +139,7 @@ export async function handleProfileResponses(
       'grid',
       `${response.info.profile_name}${EXTENSIONS.profile.source}`
     );
-    let actualPath = joinPath(superPath, relativePath);
+    let actualPath = superJson.resolvePath(relativePath);
 
     // resolve paths already in super.json if present
     const profileSettings =
@@ -135,12 +147,19 @@ export async function handleProfileResponses(
     if (profileSettings !== undefined && 'file' in profileSettings) {
       relativePath = profileSettings.file;
       actualPath = superJson.resolvePath(relativePath);
+
+      if (pathCommonParentLevel(actualPath) > 1) {
+        options?.warnCb?.(
+          `⚠️  Invalid path: "${relativePath}" (Installation path must point to inside "superface" or its parent directory)`
+        );
+        continue;
+      }
     }
 
     // check existence and warn
     if (options?.force === false && (await exists(actualPath))) {
       options?.warnCb?.(
-        `⚠️  File already exists: ${actualPath} (Use flag \`--force/-f\` for overwriting profiles)`
+        `⚠️  File already exists: "${actualPath}" (Use flag \`--force/-f\` for overwriting profiles)`
       );
       continue;
     }
@@ -173,40 +192,38 @@ export async function handleProfileResponses(
  * Extracts profile ids from `super.json`.
  */
 export async function getProfileIds(
-  superPath: string,
-  profiles?: Record<string, ProfileEntry>,
+  superJson: SuperJson,
   options?: {
     warnCb?: LogCallback;
   }
 ): Promise<string[]> {
   return Promise.all(
-    Object.entries(profiles ?? {}).map(async ([profileId, profileEntry]) => {
-      const normalizedProfile = SuperJson.normalizeProfileSettings(
-        profileEntry
-      );
-      const id = profileId;
+    Object.entries(superJson.normalized.profiles).map(
+      async ([profileId, profileSettings]) => {
+        const id = profileId;
 
-      if ('version' in normalizedProfile) {
-        return `${id}@${normalizedProfile.version}`;
-      }
-
-      if ('file' in normalizedProfile) {
-        try {
-          const { header } = await getProfileDocument(
-            joinPath(superPath, normalizedProfile.file)
-          );
-
-          return `${id}@${composeVersion(header.version)}`;
-        } catch (err) {
-          options?.warnCb?.(
-            `${id} - No version was found, returning default version 1.0.0`
-          );
+        if ('version' in profileSettings) {
+          return `${id}@${profileSettings.version}`;
         }
-      }
 
-      // default
-      return `${id}@1.0.0`;
-    })
+        if ('file' in profileSettings) {
+          try {
+            const { header } = await getProfileDocument(
+              superJson.resolvePath(profileSettings.file)
+            );
+
+            return `${id}@${composeVersion(header.version)}`;
+          } catch (err) {
+            options?.warnCb?.(
+              `${id} - No version was found, returning default version 1.0.0`
+            );
+          }
+        }
+
+        // default
+        return `${id}@1.0.0`;
+      }
+    )
   );
 }
 
@@ -232,7 +249,7 @@ export async function installProfiles(
 ): Promise<void> {
   const responses: ProfileResponse[] = [];
 
-  const loadedResult = await SuperJson.load();
+  const loadedResult = await SuperJson.load(joinPath(superPath, META_FILE));
   const superJson = loadedResult.match(
     v => v,
     err => {
@@ -249,11 +266,7 @@ export async function installProfiles(
       })
     );
   } else {
-    const profileIds = await getProfileIds(
-      superPath,
-      superJson.document.profiles,
-      options
-    );
+    const profileIds = await getProfileIds(superJson, options);
 
     const response = await Promise.all(
       profileIds.map(profileId =>
@@ -265,9 +278,8 @@ export async function installProfiles(
   let numOfInstalled = 0;
   if (responses.length > 0) {
     numOfInstalled = await handleProfileResponses(
-      superPath,
-      responses,
       superJson,
+      responses,
       providers ? constructProfileProviderSettings(providers) : undefined,
       options
     );
