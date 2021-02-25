@@ -1,1 +1,457 @@
-{"kind":"ProfileDocument","header":{"kind":"ProfileHeader","scope":"example","name":"profile","version":{"major":1,"minor":0,"patch":0},"location":{"line":1,"column":1},"span":{"start":0,"end":69},"title":"Title","description":"Description"},"definitions":[{"kind":"UseCaseDefinition","useCaseName":"Foo","input":{"kind":"UseCaseSlotDefinition","type":{"kind":"ObjectDefinition","fields":[{"kind":"FieldDefinition","fieldName":"field","required":true,"type":{"kind":"NonNullDefinition","type":{"kind":"PrimitiveTypeName","name":"string","span":{"start":189,"end":195},"location":{"line":14,"column":13}},"location":{"line":14,"column":13},"span":{"start":189,"end":196}},"location":{"line":13,"column":6},"span":{"start":163,"end":196},"title":"field title"},{"kind":"FieldDefinition","fieldName":"field","required":false,"type":{"kind":"UnionDefinition","types":[{"kind":"PrimitiveTypeName","name":"number","span":{"start":259,"end":265},"location":{"line":16,"column":15}},{"kind":"PrimitiveTypeName","name":"boolean","span":{"start":268,"end":275},"location":{"line":16,"column":24}}],"location":{"line":16,"column":15},"span":{"start":259,"end":275}},"location":{"line":16,"column":9},"span":{"start":253,"end":275}},{"kind":"FieldDefinition","fieldName":"field","required":false,"type":{"kind":"PrimitiveTypeName","name":"boolean","span":{"start":283,"end":290},"location":{"line":16,"column":39}},"location":{"line":16,"column":33},"span":{"start":277,"end":290}}],"location":{"line":12,"column":8},"span":{"start":156,"end":296}},"location":{"line":12,"column":2},"span":{"start":150,"end":296}},"result":{"kind":"UseCaseSlotDefinition","type":{"kind":"PrimitiveTypeName","name":"number","span":{"start":364,"end":370},"location":{"line":20,"column":12}},"location":{"line":20,"column":5},"span":{"start":357,"end":370}},"asyncResult":{"kind":"UseCaseSlotDefinition","type":{"kind":"ListDefinition","elementType":{"kind":"ModelTypeName","name":"FooModel","location":{"line":24,"column":19},"span":{"start":500,"end":508}},"location":{"line":24,"column":18},"span":{"start":499,"end":509}},"location":{"line":24,"column":5},"span":{"start":486,"end":509}},"error":{"kind":"UseCaseSlotDefinition","type":{"kind":"EnumDefinition","values":[{"kind":"EnumValue","value":404,"location":{"line":28,"column":6},"span":{"start":586,"end":601}},{"kind":"EnumValue","value":400,"location":{"line":29,"column":9},"span":{"start":611,"end":628}}],"location":{"line":27,"column":11},"span":{"start":574,"end":634}},"location":{"line":27,"column":5},"span":{"start":568,"end":634}},"location":{"line":10,"column":1},"span":{"start":119,"end":637},"title":"usecase title"},{"kind":"NamedModelDefinition","modelName":"FooModel","type":{"kind":"UnionDefinition","types":[{"kind":"ObjectDefinition","fields":[{"kind":"FieldDefinition","fieldName":"foo","required":false,"type":{"kind":"UnionDefinition","types":[{"kind":"NonNullDefinition","type":{"kind":"ModelTypeName","name":"bar","location":{"line":37,"column":6},"span":{"start":772,"end":775}},"location":{"line":37,"column":6},"span":{"start":772,"end":776}},{"kind":"NonNullDefinition","type":{"kind":"ModelTypeName","name":"baz","location":{"line":37,"column":13},"span":{"start":779,"end":782}},"location":{"line":37,"column":13},"span":{"start":779,"end":783}}],"location":{"line":37,"column":6},"span":{"start":772,"end":783}},"location":{"line":37,"column":2},"span":{"start":768,"end":783}}],"location":{"line":36,"column":16},"span":{"start":765,"end":785}},{"kind":"ListDefinition","elementType":{"kind":"PrimitiveTypeName","name":"string","span":{"start":789,"end":795},"location":{"line":38,"column":6}},"location":{"line":38,"column":5},"span":{"start":788,"end":796}}],"location":{"line":36,"column":16},"span":{"start":765,"end":796}},"location":{"line":35,"column":1},"span":{"start":742,"end":796},"title":"Title"},{"kind":"NamedFieldDefinition","fieldName":"foo","type":{"kind":"NonNullDefinition","type":{"kind":"PrimitiveTypeName","name":"string","span":{"start":867,"end":873},"location":{"line":42,"column":11}},"location":{"line":42,"column":11},"span":{"start":867,"end":874}},"location":{"line":41,"column":1},"span":{"start":849,"end":874},"title":"Title"}],"location":{"line":1,"column":1},"span":{"start":0,"end":874}}
+{
+  "kind": "ProfileDocument",
+  "header": {
+    "kind": "ProfileHeader",
+    "scope": "example",
+    "name": "profile",
+    "version": {
+      "major": 1,
+      "minor": 0,
+      "patch": 0
+    },
+    "location": {
+      "line": 1,
+      "column": 1
+    },
+    "span": {
+      "start": 0,
+      "end": 69
+    },
+    "title": "Title",
+    "description": "Description"
+  },
+  "definitions": [
+    {
+      "kind": "UseCaseDefinition",
+      "useCaseName": "Foo",
+      "input": {
+        "kind": "UseCaseSlotDefinition",
+        "type": {
+          "kind": "ObjectDefinition",
+          "fields": [
+            {
+              "kind": "FieldDefinition",
+              "fieldName": "field",
+              "required": true,
+              "type": {
+                "kind": "NonNullDefinition",
+                "type": {
+                  "kind": "PrimitiveTypeName",
+                  "name": "string",
+                  "span": {
+                    "start": 189,
+                    "end": 195
+                  },
+                  "location": {
+                    "line": 14,
+                    "column": 13
+                  }
+                },
+                "location": {
+                  "line": 14,
+                  "column": 13
+                },
+                "span": {
+                  "start": 189,
+                  "end": 196
+                }
+              },
+              "location": {
+                "line": 13,
+                "column": 6
+              },
+              "span": {
+                "start": 163,
+                "end": 196
+              },
+              "title": "field title"
+            },
+            {
+              "kind": "FieldDefinition",
+              "fieldName": "field",
+              "required": false,
+              "type": {
+                "kind": "UnionDefinition",
+                "types": [
+                  {
+                    "kind": "PrimitiveTypeName",
+                    "name": "number",
+                    "span": {
+                      "start": 259,
+                      "end": 265
+                    },
+                    "location": {
+                      "line": 16,
+                      "column": 15
+                    }
+                  },
+                  {
+                    "kind": "PrimitiveTypeName",
+                    "name": "boolean",
+                    "span": {
+                      "start": 268,
+                      "end": 275
+                    },
+                    "location": {
+                      "line": 16,
+                      "column": 24
+                    }
+                  }
+                ],
+                "location": {
+                  "line": 16,
+                  "column": 15
+                },
+                "span": {
+                  "start": 259,
+                  "end": 275
+                }
+              },
+              "location": {
+                "line": 16,
+                "column": 9
+              },
+              "span": {
+                "start": 253,
+                "end": 275
+              }
+            },
+            {
+              "kind": "FieldDefinition",
+              "fieldName": "field",
+              "required": false,
+              "type": {
+                "kind": "PrimitiveTypeName",
+                "name": "boolean",
+                "span": {
+                  "start": 283,
+                  "end": 290
+                },
+                "location": {
+                  "line": 16,
+                  "column": 39
+                }
+              },
+              "location": {
+                "line": 16,
+                "column": 33
+              },
+              "span": {
+                "start": 277,
+                "end": 290
+              }
+            }
+          ],
+          "location": {
+            "line": 12,
+            "column": 8
+          },
+          "span": {
+            "start": 156,
+            "end": 296
+          }
+        },
+        "location": {
+          "line": 12,
+          "column": 2
+        },
+        "span": {
+          "start": 150,
+          "end": 296
+        }
+      },
+      "result": {
+        "kind": "UseCaseSlotDefinition",
+        "type": {
+          "kind": "PrimitiveTypeName",
+          "name": "number",
+          "span": {
+            "start": 364,
+            "end": 370
+          },
+          "location": {
+            "line": 20,
+            "column": 12
+          }
+        },
+        "location": {
+          "line": 20,
+          "column": 5
+        },
+        "span": {
+          "start": 357,
+          "end": 370
+        }
+      },
+      "asyncResult": {
+        "kind": "UseCaseSlotDefinition",
+        "type": {
+          "kind": "ListDefinition",
+          "elementType": {
+            "kind": "ModelTypeName",
+            "name": "FooModel",
+            "location": {
+              "line": 24,
+              "column": 19
+            },
+            "span": {
+              "start": 500,
+              "end": 508
+            }
+          },
+          "location": {
+            "line": 24,
+            "column": 18
+          },
+          "span": {
+            "start": 499,
+            "end": 509
+          }
+        },
+        "location": {
+          "line": 24,
+          "column": 5
+        },
+        "span": {
+          "start": 486,
+          "end": 509
+        }
+      },
+      "error": {
+        "kind": "UseCaseSlotDefinition",
+        "type": {
+          "kind": "EnumDefinition",
+          "values": [
+            {
+              "kind": "EnumValue",
+              "value": 404,
+              "location": {
+                "line": 28,
+                "column": 6
+              },
+              "span": {
+                "start": 586,
+                "end": 601
+              }
+            },
+            {
+              "kind": "EnumValue",
+              "value": 400,
+              "location": {
+                "line": 29,
+                "column": 9
+              },
+              "span": {
+                "start": 611,
+                "end": 628
+              }
+            }
+          ],
+          "location": {
+            "line": 27,
+            "column": 11
+          },
+          "span": {
+            "start": 574,
+            "end": 634
+          }
+        },
+        "location": {
+          "line": 27,
+          "column": 5
+        },
+        "span": {
+          "start": 568,
+          "end": 634
+        }
+      },
+      "location": {
+        "line": 10,
+        "column": 1
+      },
+      "span": {
+        "start": 119,
+        "end": 637
+      },
+      "title": "usecase title"
+    },
+    {
+      "kind": "NamedModelDefinition",
+      "modelName": "FooModel",
+      "type": {
+        "kind": "UnionDefinition",
+        "types": [
+          {
+            "kind": "ObjectDefinition",
+            "fields": [
+              {
+                "kind": "FieldDefinition",
+                "fieldName": "foo",
+                "required": false,
+                "type": {
+                  "kind": "UnionDefinition",
+                  "types": [
+                    {
+                      "kind": "NonNullDefinition",
+                      "type": {
+                        "kind": "ModelTypeName",
+                        "name": "bar",
+                        "location": {
+                          "line": 37,
+                          "column": 6
+                        },
+                        "span": {
+                          "start": 772,
+                          "end": 775
+                        }
+                      },
+                      "location": {
+                        "line": 37,
+                        "column": 6
+                      },
+                      "span": {
+                        "start": 772,
+                        "end": 776
+                      }
+                    },
+                    {
+                      "kind": "NonNullDefinition",
+                      "type": {
+                        "kind": "ModelTypeName",
+                        "name": "baz",
+                        "location": {
+                          "line": 37,
+                          "column": 13
+                        },
+                        "span": {
+                          "start": 779,
+                          "end": 782
+                        }
+                      },
+                      "location": {
+                        "line": 37,
+                        "column": 13
+                      },
+                      "span": {
+                        "start": 779,
+                        "end": 783
+                      }
+                    }
+                  ],
+                  "location": {
+                    "line": 37,
+                    "column": 6
+                  },
+                  "span": {
+                    "start": 772,
+                    "end": 783
+                  }
+                },
+                "location": {
+                  "line": 37,
+                  "column": 2
+                },
+                "span": {
+                  "start": 768,
+                  "end": 783
+                }
+              }
+            ],
+            "location": {
+              "line": 36,
+              "column": 16
+            },
+            "span": {
+              "start": 765,
+              "end": 785
+            }
+          },
+          {
+            "kind": "ListDefinition",
+            "elementType": {
+              "kind": "PrimitiveTypeName",
+              "name": "string",
+              "span": {
+                "start": 789,
+                "end": 795
+              },
+              "location": {
+                "line": 38,
+                "column": 6
+              }
+            },
+            "location": {
+              "line": 38,
+              "column": 5
+            },
+            "span": {
+              "start": 788,
+              "end": 796
+            }
+          }
+        ],
+        "location": {
+          "line": 36,
+          "column": 16
+        },
+        "span": {
+          "start": 765,
+          "end": 796
+        }
+      },
+      "location": {
+        "line": 35,
+        "column": 1
+      },
+      "span": {
+        "start": 742,
+        "end": 796
+      },
+      "title": "Title"
+    },
+    {
+      "kind": "NamedFieldDefinition",
+      "fieldName": "foo",
+      "type": {
+        "kind": "NonNullDefinition",
+        "type": {
+          "kind": "PrimitiveTypeName",
+          "name": "string",
+          "span": {
+            "start": 867,
+            "end": 873
+          },
+          "location": {
+            "line": 42,
+            "column": 11
+          }
+        },
+        "location": {
+          "line": 42,
+          "column": 11
+        },
+        "span": {
+          "start": 867,
+          "end": 874
+        }
+      },
+      "location": {
+        "line": 41,
+        "column": 1
+      },
+      "span": {
+        "start": 849,
+        "end": 874
+      },
+      "title": "Title"
+    }
+  ],
+  "location": {
+    "line": 1,
+    "column": 1
+  },
+  "span": {
+    "start": 0,
+    "end": 874
+  }
+}

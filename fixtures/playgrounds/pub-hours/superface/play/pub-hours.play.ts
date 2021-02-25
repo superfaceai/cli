@@ -1,5 +1,4 @@
 import { inspect } from 'util';
-import { join as joinPath } from 'path';
 
 import { Provider } from '@superfaceai/sdk';
 
@@ -10,26 +9,21 @@ async function execute(
   providerName: string,
   variantName?: string
 ) {
-  let baseBuildPath = joinPath('superface', 'build');
+  let profileId = name;
   if (scope !== undefined) {
-    baseBuildPath = joinPath(scope);
+    profileId = scope + '/' + name;
   }
-
-  const profilePath = joinPath(baseBuildPath, `${name}.supr.ast.json`);
-  const mapVariant = (variantName !== undefined && variantName !== 'default') ? '.' + variantName : '';
-  const mapPath = joinPath(baseBuildPath, `${name}.${providerName}${mapVariant}.suma.ast.json`);
 
   // 1. Create the provider object - the build artifacts are located by the sdk according to super.json
   const provider = new Provider(
-    'file:' + profilePath,
-    `file:${providerName}.provider.json`,
-    'file:' + mapPath
+    profileId,
+    providerName
   );
 
   // 2. Bind the provider - values are taken from super.json unless overridden here
   const boundProvider = await provider.bind();
 
-  // 3. Perform the usecase with the bound provider
+  // 3. Perform the usecase with the bound provider - defaults are taken from super.json again
   const result = await boundProvider.perform(
     'PubOpeningHours',
     {

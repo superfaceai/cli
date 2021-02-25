@@ -39,13 +39,17 @@ export async function fetchProfileInfo(
 ): Promise<ProfileInfo> {
   const query = new URL(profileId, STORE_URL).href;
 
-  return (await fetch(query, ContentType.JSON)).body as ProfileInfo;
+  const response = await fetch(query, ContentType.JSON);
+
+  return response.body as ProfileInfo;
 }
 
 export async function fetchProfile(profileId: string): Promise<string> {
   const query = new URL(profileId, STORE_URL).href;
 
-  return (await fetch(query, ContentType.PROFILE)).body as string;
+  const response = await fetch(query, ContentType.PROFILE);
+
+  return (response.body as Buffer).toString();
 }
 
 export async function fetchProfileAST(
@@ -53,5 +57,7 @@ export async function fetchProfileAST(
 ): Promise<ProfileDocumentNode> {
   const query = new URL(profileId, STORE_URL).href;
 
-  return (await fetch(query, ContentType.AST)).body as ProfileDocumentNode;
+  const response = await fetch(query, ContentType.AST);
+
+  return response.body as ProfileDocumentNode;
 }

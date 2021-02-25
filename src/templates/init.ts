@@ -1,5 +1,3 @@
-import { SuperJsonDocument } from '@superfaceai/sdk';
-
 export function npmRc(): string {
   return '@superfaceai:registry=https://npm.pkg.github.com\n';
 }
@@ -9,10 +7,6 @@ export function gitignore(): string {
   node_modules
   package-lock.json
   `;
-}
-
-export function superJson(structure: SuperJsonDocument): string {
-  return JSON.stringify(structure, null, 2);
 }
 
 export function readme(name: string): string {

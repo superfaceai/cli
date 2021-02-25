@@ -86,7 +86,7 @@ describe('Play CLI command', () => {
       `$ echo '<.npmrc template>' > '${createdPlayground.path}/.npmrc'`
     );
     expect(stdout.output).toContain(
-      `$ echo '<super.json template>' > '${expectedFiles[3]}'`
+      `$ echo '<initial super.json>' > '${expectedFiles[3]}'`
     );
     expect(stdout.output).toContain(
       `$ echo '<.gitignore template>' > '${expectedFiles[4]}'`
@@ -135,12 +135,12 @@ describe('Play CLI command', () => {
 
     // check build artifacts
     const expectedFiles = [
-      'package-lock.json',
-      'node_modules',
-      joinPath('build', 'pub-hours.supr.ast.json'),
-      joinPath('build', 'pub-hours.noop.suma.ast.json'),
-      joinPath('build', 'pub-hours.play.js'),
-    ].map(f => joinPath(fixedPlayground.path, 'superface', f));
+      'pub-hours.supr.ast.json',
+      'pub-hours.noop.suma.ast.json',
+      joinPath('superface', 'package-lock.json'),
+      joinPath('superface', 'node_modules'),
+      joinPath('superface', 'build', 'pub-hours.play.js'),
+    ].map(f => joinPath(fixedPlayground.path, f));
     await expect(
       Promise.all(expectedFiles.map(f => access(f)))
     ).resolves.toBeDefined();
@@ -165,13 +165,13 @@ describe('Play CLI command', () => {
 
   it('cleans compilation artifacts', async () => {
     const deletedFiles = [
-      'package-lock.json',
-      'node_modules',
-      joinPath('build', `${createdPlayground.name}.supr.ast.json`),
-      joinPath('build', `${createdPlayground.name}.foo.suma.ast.json`),
-      joinPath('build', `${createdPlayground.name}.bar.suma.ast.json`),
-      joinPath('build', `${createdPlayground.name}.play.js`),
-    ].map(f => joinPath(createdPlayground.path, 'superface', f));
+      `${createdPlayground.name}.supr.ast.json`,
+      `${createdPlayground.name}.foo.suma.ast.json`,
+      `${createdPlayground.name}.bar.suma.ast.json`,
+      joinPath('superface', 'package-lock.json'),
+      joinPath('superface', 'node_modules'),
+      joinPath('superface', 'build', `${createdPlayground.name}.play.js`),
+    ].map(f => joinPath(createdPlayground.path, f));
 
     const expectedFiles = [
       `${createdPlayground.name}.supr`,
@@ -193,21 +193,25 @@ describe('Play CLI command', () => {
       [...deletedFiles, ...expectedFiles].map(file =>
         OutputStream.writeOnce(
           file,
-          JSON.stringify({
-            profiles: {
-              [createdPlayground.name]: {
-                file: 'file:' + createdPlayground.name + '.supr',
-                providers: {
-                  foo: {
-                    file: 'file:' + createdPlayground.name + '.foo.suma',
-                  },
-                  bar: {
-                    file: 'file:' + createdPlayground.name + '.bar.suma',
+          JSON.stringify(
+            {
+              profiles: {
+                [createdPlayground.name]: {
+                  file: expectedFiles[0],
+                  providers: {
+                    foo: {
+                      file: expectedFiles[1],
+                    },
+                    bar: {
+                      file: expectedFiles[2],
+                    },
                   },
                 },
               },
             },
-          })
+            undefined,
+            2
+          )
         )
       )
     );

@@ -10,16 +10,13 @@ import {
   ProfileEntry,
   ProfileProviderEntry,
   ProviderSettings,
-  SuperJsonDocument,
 } from '@superfaceai/sdk';
 import { basename, join as joinPath } from 'path';
 
-import * as initTemplate from '../templates/init';
 import { CreateMode, DocumentType } from './document.interfaces';
 import { userError } from './error';
 import { DocumentTypeFlag } from './flags';
-import { readdir, readFile, WritingOptions } from './io';
-import { OutputStream } from './output-stream';
+import { readdir, readFile } from './io';
 
 export const DEFAULT_PROFILE_VERSION = {
   major: 1,
@@ -148,26 +145,6 @@ export async function getProfileDocument(
   const source = new Source(content, profilePath);
 
   return parseFunction(source);
-}
-
-export async function writeSuperJson(
-  superJsonPath: string,
-  data: SuperJsonDocument,
-  options?: WritingOptions
-): Promise<boolean> {
-  return await OutputStream.writeIfAbsent(
-    superJsonPath,
-    initTemplate.superJson(data),
-    options
-  );
-}
-
-export async function writeProfile(
-  profilePath: string,
-  data: string,
-  options?: WritingOptions
-): Promise<boolean> {
-  return await OutputStream.writeIfAbsent(profilePath, data, options);
 }
 
 /**

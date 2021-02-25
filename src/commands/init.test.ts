@@ -41,7 +41,7 @@ describe('Init CLI command', () => {
       `$ echo '<README.md template>' > 'fixtures/playgrounds/test/README.md'
 $ echo '<.npmrc template>' > 'fixtures/playgrounds/test/.npmrc'
 $ mkdir 'fixtures/playgrounds/test/superface'
-$ echo '<super.json template>' > 'fixtures/playgrounds/test/superface/super.json'
+$ echo '<initial super.json>' > 'fixtures/playgrounds/test/superface/super.json'
 $ echo '<.gitignore template>' > 'fixtures/playgrounds/test/superface/.gitignore'
 $ mkdir 'fixtures/playgrounds/test/superface/grid'
 $ mkdir 'fixtures/playgrounds/test/superface/types'

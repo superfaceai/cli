@@ -3,7 +3,7 @@ import * as fs from 'fs';
 import { dirname } from 'path';
 import { Writable } from 'stream';
 
-import { exists, mkdir, streamEnd, streamWrite, WritingOptions } from './io';
+import { exists, streamEnd, streamWrite, WritingOptions } from './io';
 
 const outputStreamDebug = createDebug('superface:OutputStream');
 export class OutputStream {
@@ -24,7 +24,7 @@ export class OutputStream {
    *
    * When `append` is true the file at `path` is opened in append mode rather than in write (truncate) mode.
    */
-  constructor(path: string, append?: boolean) {
+  constructor(path: string, options?: WritingOptions) {
     switch (path) {
       case '-':
         outputStreamDebug('Opening stdout');
@@ -44,11 +44,18 @@ export class OutputStream {
 
       default:
         outputStreamDebug(
-          `Opening/creating "${path}" in ${append ? 'append' : 'write'} mode`
+          `Opening/creating "${path}" in ${
+            options?.append ? 'append' : 'write'
+          } mode`
         );
+        if (options?.dirs === true) {
+          const dir = dirname(path);
+          fs.mkdirSync(dir, { recursive: true });
+        }
+
         this.name = path;
         this.stream = fs.createWriteStream(path, {
-          flags: append ? 'a' : 'w',
+          flags: options?.append ? 'a' : 'w',
           mode: 0o644,
           encoding: 'utf-8',
         });
@@ -78,9 +85,9 @@ export class OutputStream {
   static async writeOnce(
     path: string,
     data: string,
-    append?: boolean
+    options?: WritingOptions
   ): Promise<void> {
-    const stream = new OutputStream(path, append);
+    const stream = new OutputStream(path, options);
 
     await stream.write(data);
 
@@ -103,15 +110,10 @@ export class OutputStream {
     data: string | (() => string),
     options?: WritingOptions
   ): Promise<boolean> {
-    if (options?.dirs === true) {
-      const dir = dirname(path);
-      await mkdir(dir, { recursive: true });
-    }
-
     if (options?.force === true || !(await exists(path))) {
       const dat = typeof data === 'string' ? data : data();
 
-      await OutputStream.writeOnce(path, dat, options?.append);
+      await OutputStream.writeOnce(path, dat, options);
 
       return true;
     }

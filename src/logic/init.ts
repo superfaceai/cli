@@ -1,5 +1,5 @@
 import { parseProfileId } from '@superfaceai/parser';
-import { SuperJsonDocument } from '@superfaceai/sdk';
+import { SuperJson, SuperJsonDocument } from '@superfaceai/sdk';
 import { basename, join as joinPath } from 'path';
 
 import {
@@ -33,16 +33,18 @@ import { createProfile } from './create';
  *     build/
  *     types/
  * ```
+ *
+ * For convenience, returns SuperJson instance read from the super.json path.
  */
 export async function initSuperface(
   appPath: string,
-  data: SuperJsonDocument,
+  initialDocument?: SuperJsonDocument,
   options?: {
     force?: boolean;
     logCb?: LogCallback;
     warnCb?: LogCallback;
   }
-): Promise<void> {
+): Promise<SuperJson> {
   // create the base path
   {
     const created = await mkdir(appPath, { recursive: true });
@@ -93,17 +95,17 @@ export async function initSuperface(
     }
   }
 
+  const superJsonPath = joinPath(superPath, META_FILE);
   {
-    const superJsonPath = joinPath(superPath, META_FILE);
     const created = await OutputStream.writeIfAbsent(
       superJsonPath,
-      () => initTemplate.superJson(data),
+      () => new SuperJson(initialDocument ?? {}).stringified,
       { force: options?.force }
     );
 
     if (created) {
       options?.logCb?.(
-        formatShellLog("echo '<super.json template>' >", [superJsonPath])
+        formatShellLog("echo '<initial super.json>' >", [superJsonPath])
       );
     }
   }
@@ -145,6 +147,8 @@ export async function initSuperface(
       options?.logCb?.(formatShellLog('mkdir', [buildPath]));
     }
   }
+
+  return SuperJson.load(superJsonPath).then(v => v.unwrap());
 }
 
 /**
@@ -156,6 +160,7 @@ export async function initSuperface(
  */
 export async function generateSpecifiedProfiles(
   path: string,
+  superJson: SuperJson,
   profileIds: string[],
   logCb?: LogCallback
 ): Promise<void> {
@@ -170,6 +175,7 @@ export async function generateSpecifiedProfiles(
 
     await createProfile(
       joinPath(path, GRID_DIR),
+      superJson,
       { scope, name, version },
       [composeUsecaseName(name)],
       'empty',
