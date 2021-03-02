@@ -137,7 +137,7 @@ export async function handleProfileResponses(
     // prepare paths
     let relativePath = joinPath(
       'grid',
-      `${response.info.profile_name}${EXTENSIONS.profile.source}`
+      `${response.info.profile_name}@${response.info.profile_version}${EXTENSIONS.profile.source}`
     );
     let actualPath = superJson.resolvePath(relativePath);
 
@@ -178,7 +178,7 @@ export async function handleProfileResponses(
 
     // update super.json
     superJson.addProfile(response.info.profile_name, {
-      file: relativePath,
+      version: response.info.profile_version,
       providers: profileProviders,
     });
 

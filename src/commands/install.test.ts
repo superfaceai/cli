@@ -94,7 +94,7 @@ describe('Install CLI command', () => {
         expect(local).toEqual(registry);
 
         expect(document.profiles?.[profileName]).toEqual({
-          file: `grid/${profileName}${EXTENSIONS.profile.source}`,
+          version: '1.0.1',
           providers: {},
         });
 
@@ -139,7 +139,7 @@ describe('Install CLI command', () => {
         expect(local).toEqual(registry);
 
         expect(document.profiles?.[profileName]).toEqual({
-          file: `grid/${profileName}${EXTENSIONS.profile.source}`,
+          version: '1.0.1',
           providers: {
             twillio: {},
             osm: {},
