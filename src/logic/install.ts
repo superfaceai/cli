@@ -144,9 +144,12 @@ export async function handleProfileResponses(
     // resolve paths already in super.json if present
     const profileSettings =
       superJson.normalized.profiles[response.info.profile_name];
+    let isLocal = false;
+
     if (profileSettings !== undefined && 'file' in profileSettings) {
       relativePath = profileSettings.file;
       actualPath = superJson.resolvePath(relativePath);
+      isLocal = true;
 
       if (pathCommonParentLevel(actualPath) > 1) {
         options?.warnCb?.(
@@ -177,10 +180,17 @@ export async function handleProfileResponses(
     options?.logCb?.(formatShellLog("echo '<profileAST>' >", [actualAstPath]));
 
     // update super.json
-    superJson.addProfile(response.info.profile_name, {
-      version: response.info.profile_version,
-      providers: profileProviders,
-    });
+    if (!isLocal) {
+      superJson.addProfile(response.info.profile_name, {
+        version: response.info.profile_version,
+        providers: profileProviders,
+      });
+    } else {
+      superJson.addProfile(response.info.profile_name, {
+        file: relativePath,
+        providers: profileProviders,
+      });
+    }
 
     installed += 1;
   }

@@ -4,149 +4,189 @@ import { stderr, stdout } from 'stdout-stderr';
 
 import { EXTENSIONS, GRID_DIR, SUPER_PATH } from '../common/document';
 import { fetchProfile } from '../common/http';
-import { exists, readFile, rimraf } from '../common/io';
+import { readFile, rimraf } from '../common/io';
 import { OutputStream } from '../common/output-stream';
 import Install from './install';
 
 describe('Install CLI command', () => {
-  const oldCWD = process.cwd();
   const WORKING_DIR = joinPath('fixtures', 'install', 'playground');
 
-  const STARWARS_SCOPE = 'starwars';
-  const profileName = joinPath(STARWARS_SCOPE, 'character-information');
-
-  const fixture = {
-    superJson: SUPER_PATH,
-    profile: joinPath(GRID_DIR, `${profileName}${EXTENSIONS.profile.source}`),
-    scope: joinPath(GRID_DIR, STARWARS_SCOPE),
+  const PROFILE = {
+    scope: 'starwars',
+    name: 'character-information',
+    version: '1.0.1',
   };
 
-  // reset super.json to initial state
+  const FIXTURE = {
+    superJson: SUPER_PATH,
+    scope: joinPath(GRID_DIR, PROFILE.scope),
+    profile: joinPath(
+      GRID_DIR,
+      PROFILE.scope,
+      PROFILE.name + '@' + PROFILE.version + EXTENSIONS.profile.source
+    ),
+  };
+
+  let INITIAL_CWD: string;
+  let INITIAL_SUPER_JSON: SuperJson;
+  const INITIAL_LOCAL_PROFILE: { data: string; path: string } = {
+    data: '',
+    path: '',
+  };
+  beforeAll(async () => {
+    INITIAL_CWD = process.cwd();
+    process.chdir(WORKING_DIR);
+
+    INITIAL_SUPER_JSON = (await SuperJson.load(FIXTURE.superJson)).unwrap();
+
+    INITIAL_LOCAL_PROFILE.path = INITIAL_SUPER_JSON.resolvePath(
+      (INITIAL_SUPER_JSON.normalized.profiles[
+        `${PROFILE.scope}/${PROFILE.name}`
+      ] as { file: string }).file
+    );
+    INITIAL_LOCAL_PROFILE.data = await readFile(
+      INITIAL_LOCAL_PROFILE.path,
+      'utf-8'
+    );
+
+    await rimraf(FIXTURE.scope);
+  });
+
+  afterAll(async () => {
+    await resetSuperJson();
+    await resetLocalProfile();
+    await rimraf(FIXTURE.scope);
+
+    // change cwd back
+    process.chdir(INITIAL_CWD);
+  });
+
+  /** Resets super.json to initial state stored in `INITIAL_SUPER_JSON` */
   async function resetSuperJson() {
     await OutputStream.writeOnce(
-      fixture.superJson,
-      JSON.stringify(
-        {
-          profiles: {
-            [profileName]: {
-              file: `grid/${profileName}${EXTENSIONS.profile.source}`,
-              providers: {},
-            },
-          },
-          providers: {},
-        },
-        undefined,
-        2
-      )
+      FIXTURE.superJson,
+      JSON.stringify(INITIAL_SUPER_JSON.document, undefined, 2)
     );
   }
 
-  beforeAll(async () => {
-    // change cwd to fixtures/install/playground/
-    process.chdir(WORKING_DIR);
+  async function resetLocalProfile() {
+    await OutputStream.writeOnce(
+      INITIAL_LOCAL_PROFILE.path,
+      INITIAL_LOCAL_PROFILE.data
+    );
+    await rimraf(INITIAL_LOCAL_PROFILE.path + '.ast.json');
+  }
 
+  beforeEach(async () => {
     await resetSuperJson();
+    await resetLocalProfile();
+    await rimraf(FIXTURE.scope);
 
-    await rimraf(fixture.profile);
-    await rimraf(fixture.scope);
-  });
-
-  beforeEach(() => {
     stderr.start();
     stdout.start();
   });
 
-  afterEach(async () => {
-    await resetSuperJson();
-
+  afterEach(() => {
     stderr.stop();
     stdout.stop();
   });
 
-  afterAll(async () => {
-    await rimraf(fixture.profile);
-    await rimraf(fixture.scope);
+  describe('when installing new profile', () => {
+    async function cleanSuperJson() {
+      await OutputStream.writeOnce(
+        FIXTURE.superJson,
+        JSON.stringify(
+          {
+            profiles: {},
+          },
+          undefined,
+          2
+        )
+      );
+    }
 
-    // change cwd back
-    process.chdir(oldCWD);
-  });
+    it('installs the newest profile', async () => {
+      await cleanSuperJson();
 
-  describe('when no providers are specified', () => {
-    it('installs profiles in super.json', async () => {
-      const expectedProfilesCount = 1;
-      const profileId = `${profileName}@1`;
+      const profileId = `${PROFILE.scope}/${PROFILE.name}`;
 
-      {
-        await expect(Install.run([profileId])).resolves.toBeUndefined();
-        const loadedResult = await SuperJson.load();
-        const { document } = loadedResult.match(
-          v => v,
-          err => {
-            console.error(err);
+      await expect(Install.run([profileId])).resolves.toBeUndefined();
+      const superJson = (await SuperJson.load()).unwrap();
 
-            return new SuperJson();
-          }
-        );
+      const local = await readFile(FIXTURE.profile, { encoding: 'utf-8' });
+      const registry = await fetchProfile(profileId);
+      expect(local).toEqual(registry);
 
-        const local = await readFile(fixture.profile, { encoding: 'utf-8' });
-        const registry = await fetchProfile(profileId);
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      expect(superJson.document.profiles![profileId]).toEqual({
+        version: PROFILE.version,
+        providers: {},
+      });
+    }, 10000);
 
-        expect(local).toEqual(registry);
+    it('installs the specified profile version with default provider configuration', async () => {
+      await cleanSuperJson();
 
-        expect(document.profiles?.[profileName]).toEqual({
-          version: '1.0.1',
-          providers: {},
-        });
+      const profileId = `${PROFILE.scope}/${PROFILE.name}`;
+      const profileIdRequest = `${profileId}@${PROFILE.version}`;
 
-        expect(Object.values(document.profiles ?? {}).length).toEqual(
-          expectedProfilesCount
-        );
-      }
+      await expect(
+        Install.run([profileIdRequest, '-p', 'twillio', 'osm', 'tyntec'])
+      ).resolves.toBeUndefined();
+      const superJson = (await SuperJson.load()).unwrap();
 
-      {
-        await expect(Install.run([])).resolves.toBeUndefined();
-        expect(await exists(fixture.profile)).toBe(true);
+      const local = await readFile(FIXTURE.profile, { encoding: 'utf-8' });
+      const registry = await fetchProfile(profileIdRequest);
+      expect(local).toEqual(registry);
 
-        const local = await readFile(fixture.profile, { encoding: 'utf-8' });
-        const registry = (await fetchProfile(profileId)).toString();
-
-        expect(local).toEqual(registry);
-      }
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      expect(superJson.document.profiles![profileId]).toEqual({
+        version: PROFILE.version,
+        providers: {
+          twillio: {},
+          osm: {},
+          tyntec: {},
+        },
+      });
     }, 10000);
   });
 
-  describe('when providers are specified', () => {
-    it('installs specified profile with default provider configuration into super.json', async () => {
-      {
-        const profileId = `${profileName}@1.0.1`;
-        await expect(
-          Install.run([profileId, '-p', 'twillio', 'osm', 'tyntec', '-f'])
-        ).resolves.toBeUndefined();
+  describe('when local files are present', () => {
+    it('errors without a force flag', async () => {
+      const profileId = `${PROFILE.scope}/${PROFILE.name}`;
 
-        const loadedResult = await SuperJson.load();
-        const { document } = loadedResult.match(
-          v => v,
-          err => {
-            console.error(err);
+      await expect(Install.run([profileId])).resolves.toBeUndefined();
 
-            return new SuperJson({});
-          }
-        );
+      const superJson = (await SuperJson.load()).unwrap();
+      const localFile = superJson.resolvePath(
+        (superJson.normalized.profiles[profileId] as { file: string }).file
+      );
+      const expectedFile = superJson.resolvePath(
+        (INITIAL_SUPER_JSON.normalized.profiles[profileId] as { file: string })
+          .file
+      );
+      expect(localFile).toBe(expectedFile);
+      expect(stdout.output).toContain(`File already exists: "${localFile}"`);
+    }, 10000);
 
-        const local = await readFile(fixture.profile, { encoding: 'utf-8' });
-        const registry = (await fetchProfile(profileId)).toString();
+    it('preserves file field in super.json', async () => {
+      const profileId = `${PROFILE.scope}/${PROFILE.name}`;
 
-        expect(local).toEqual(registry);
+      await expect(Install.run([profileId, '-f'])).resolves.toBeUndefined();
 
-        expect(document.profiles?.[profileName]).toEqual({
-          version: '1.0.1',
-          providers: {
-            twillio: {},
-            osm: {},
-            tyntec: {},
-          },
-        });
-      }
-    });
+      const superJson = (await SuperJson.load()).unwrap();
+      const localFile = superJson.resolvePath(
+        (superJson.normalized.profiles[profileId] as { file: string }).file
+      );
+      const expectedFile = superJson.resolvePath(
+        (INITIAL_SUPER_JSON.normalized.profiles[profileId] as { file: string })
+          .file
+      );
+      expect(localFile).toBe(expectedFile);
+
+      const local = await readFile(localFile, { encoding: 'utf-8' });
+      const registry = await fetchProfile(profileId);
+      expect(local).toEqual(registry);
+    }, 10000);
   });
 });

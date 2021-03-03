@@ -4,9 +4,9 @@ export function npmRc(): string {
 
 export function gitignore(): string {
   return `build
-  node_modules
-  package-lock.json
-  `;
+node_modules
+package-lock.json
+`;
 }
 
 export function readme(name: string): string {
