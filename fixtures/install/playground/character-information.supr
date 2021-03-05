@@ -1,0 +1,19 @@
+name = "starwars/character-information"
+version = "1.0.0"
+
+"Starwars"
+usecase RetrieveCharacterInformation safe {
+  input {
+    characterName
+  }
+
+  result {
+    height
+    weight
+    yearOfBirth
+  }
+
+  error {
+    message
+  }
+}

@@ -1,5 +1,8 @@
 ## [Unreleased]
 
+### Fixed
+* `install` no longer stores local file path in `super.json` and instead stores the version
+
 ## [0.0.4] - 2021-02-25
 
 ### Added
