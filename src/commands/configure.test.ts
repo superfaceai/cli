@@ -39,8 +39,8 @@ describe('Configure CLI command', () => {
   });
 
   afterAll(async () => {
-    // await resetSuperJson();
-    // await rimraf(FIXTURE.scope);
+    await resetSuperJson();
+    await rimraf(FIXTURE.scope);
 
     // change cwd back
     process.chdir(INITIAL_CWD);
