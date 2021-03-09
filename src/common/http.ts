@@ -2,12 +2,6 @@ import { ProfileDocumentNode } from '@superfaceai/ast';
 import superagent, { Response } from 'superagent';
 
 import { userError } from './error';
-import {
-  ApiKeySecurityIn,
-  AuthSecurityType,
-  BasicAuthSecurityScheme,
-  BearerTokenSecurityScheme,
-} from './provider.enums';
 import { ProviderStructure } from './provider.interfaces';
 
 export interface ProfileInfo {
@@ -72,36 +66,8 @@ export async function fetchProfileAST(
 export async function fetchProviderInfo(
   providerName: string
 ): Promise<ProviderStructure> {
-  // const query = new URL(providerName:, `${STORE_URL}providers/`).href;
-  // const response = await fetch(query, ContentType.JSON);
-  // return response.body as ProviderStructure;
+  const query = new URL(providerName, `${STORE_URL}providers/`).href;
+  const response = await fetch(query, ContentType.JSON);
 
-  return {
-    name: providerName,
-    services: [
-      {
-        id: 'swapidev',
-        baseUrl: 'https://swapi.dev/api',
-      },
-    ],
-    securitySchemes: [
-      {
-        id: 'swapidev',
-        type: AuthSecurityType.HTTP,
-        scheme: BearerTokenSecurityScheme.BEARER,
-      },
-      {
-        id: 'swapidev',
-        type: AuthSecurityType.API_KEY,
-        in: ApiKeySecurityIn.HEADER,
-        name: 'X-API-Key',
-      },
-      {
-        id: 'swapidev',
-        type: AuthSecurityType.HTTP,
-        scheme: BasicAuthSecurityScheme.BASIC,
-      },
-    ],
-    defaultService: 'swapidev',
-  };
+  return response.body as ProviderStructure;
 }
