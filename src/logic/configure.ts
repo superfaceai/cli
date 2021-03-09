@@ -4,6 +4,7 @@ import { join as joinPath } from 'path';
 import { META_FILE } from '../common/document';
 import { userError } from '../common/error';
 import { fetchProviderInfo } from '../common/http';
+import { readFile } from '../common/io';
 import { formatShellLog, LogCallback } from '../common/log';
 import { OutputStream } from '../common/output-stream';
 import {
@@ -22,26 +23,15 @@ export function handleProviderResponse(
   response: ProviderStructure,
   options?: { logCb?: LogCallback; warnCb?: LogCallback; force: boolean }
 ): void {
-  if (!response.securitySchemes) {
-    return;
-  }
-  if (response.securitySchemes.length === 0) {
-    //FIX: security schemes can be empty?
-    return;
-  }
-  options?.logCb?.(`Installing provider: "${response.name}"`);
-
-  // check existence and warn
-  if (
-    options?.force === false &&
-    superJson.normalized.providers[response.name]
-  ) {
+  if (!response.securitySchemes || response.securitySchemes.length === 0) {
     options?.warnCb?.(
-      `⚠️  Provider already exists: "${response.name}" (Use flag \`--force/-f\` for overwriting profiles)`
+      `⚠️  Provider: "${response.name}" does not contain any security schemes`
     );
 
     return;
   }
+  options?.logCb?.(`Installing provider: "${response.name}"`);
+
   const auth: {
     ApiKey?: Record<string, unknown>;
     BesicAuth?: Record<string, unknown>;
@@ -106,15 +96,16 @@ export async function getProviderFromStore(
 /**
  *
  * @param superPath - path to directory where super.json located
- * @param provider - provider name specified as argument
+ * @param provider - provider name or filepath specified as argument
  */
 export async function installProvider(
   superPath: string,
-  providerName: string,
+  provider: string,
   options?: {
     logCb?: LogCallback;
     warnCb?: LogCallback;
     force: boolean;
+    file: boolean;
   }
 ): Promise<void> {
   const loadedResult = await SuperJson.load(joinPath(superPath, META_FILE));
@@ -126,9 +117,33 @@ export async function installProvider(
       return new SuperJson({});
     }
   );
+  //Load provider info
+  let providerInfo: ProviderStructure;
+  //Load from file
+  if (options?.file) {
+    try {
+      const file = await readFile(provider, { encoding: 'utf-8' });
+      providerInfo = JSON.parse(file) as ProviderStructure;
+    } catch (error) {
+      throw userError(error, 1);
+    }
+  } else {
+    //Load from server
+    providerInfo = await getProviderFromStore(provider);
+  }
 
-  const providerInfo = await getProviderFromStore(providerName);
-  handleProviderResponse(superJson, providerInfo);
+  // check existence and warn
+  if (
+    options?.force === false &&
+    superJson.normalized.providers[providerInfo.name]
+  ) {
+    options?.warnCb?.(
+      `⚠️  Provider already exists: "${providerInfo.name}" (Use flag \`--force/-f\` for overwriting profiles)`
+    );
+
+    return;
+  }
+  handleProviderResponse(superJson, providerInfo, options);
 
   // write new information to super.json
   await OutputStream.writeOnce(superJson.path, superJson.stringified, options);

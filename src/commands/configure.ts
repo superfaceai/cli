@@ -32,16 +32,16 @@ export default class Configure extends Command {
       default: false,
     }),
     force: flags.boolean({
-      char: 'f',
+      char: 'F',
       description:
         'When set to true and when provider exists in super.json, overwrites them.',
       default: false,
     }),
-    //TODO: implement
-    file: flags.string({
-      char: 'p', //FIX char conflict with force - remove/rename force?
-      description: 'Path', //FIX
-      default: '',
+    file: flags.boolean({
+      char: 'f', //FIX char conflict with force - remove/rename force?
+      description:
+        'When set to true, provider name argument is used as a filepath to provider.json file', //FIX description?
+      default: false,
     }),
     help: flags.help({ char: 'h' }),
   };
@@ -52,13 +52,13 @@ export default class Configure extends Command {
     '$ superface configure twillio -f',
   ];
 
-  private warnCallback?= (message: string) => this.log(yellow(message));
-  private logCallback?= (message: string) => this.log(grey(message));
+  private warnCallback? = (message: string) => this.log(yellow(message));
+  private logCallback? = (message: string) => this.log(grey(message));
 
   async run(): Promise<void> {
     const { args, flags } = this.parse(Configure);
 
-    if (!validateDocumentName(args.providerName)) {
+    if (!validateDocumentName(args.providerName) && !flags.file) {
       this.warnCallback?.('Invalid provider name');
 
       return;
@@ -95,12 +95,16 @@ export default class Configure extends Command {
     }
 
     this.logCallback?.(
-      `Installing provider to 'super.json' on path '${joinPath(superPath, META_FILE)}'`
+      `Installing provider to 'super.json' on path '${joinPath(
+        superPath,
+        META_FILE
+      )}'`
     );
     await installProvider(superPath, args.providerName, {
       logCb: this.logCallback,
       warnCb: this.warnCallback,
       force: flags.force,
+      file: flags.file,
     });
   }
 }
