@@ -59,14 +59,15 @@ export default class Configure extends Command {
   async run(): Promise<void> {
     const { args, flags } = this.parse(Configure);
 
+    if (flags.quiet) {
+      this.warnCallback = undefined;
+      this.logCallback = undefined;
+    }
+
     if (!validateDocumentName(args.providerName) && !flags.path) {
       this.warnCallback?.('Invalid provider name');
 
       return;
-    }
-    if (flags.quiet) {
-      this.warnCallback = undefined;
-      this.logCallback = undefined;
     }
 
     let superPath = await detectSuperJson(process.cwd());
