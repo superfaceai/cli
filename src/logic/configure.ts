@@ -17,7 +17,7 @@ import {
 /**
  * Handle responses from superface registry.
  * It saves new information about provider into super.json.
- * @returns number of configured security schemes 
+ * @returns number of configured security schemes
  */
 export function handleProviderResponse(
   superJson: SuperJson,
@@ -42,7 +42,7 @@ export function handleProviderResponse(
     for (const scheme of response.securitySchemes) {
       options?.logCb?.(
         `Configuring ${configured + 1}/${
-        response.securitySchemes.length
+          response.securitySchemes.length
         } security schemes`
       );
       if (isApiKeySecurity(scheme)) {
@@ -113,7 +113,7 @@ export async function installProvider(
     logCb?: LogCallback;
     warnCb?: LogCallback;
     force: boolean;
-    file: boolean;
+    path: boolean;
   }
 ): Promise<void> {
   const loadedResult = await SuperJson.load(joinPath(superPath, META_FILE));
@@ -128,7 +128,7 @@ export async function installProvider(
   //Load provider info
   let providerInfo: ProviderStructure;
   //Load from file
-  if (options?.file) {
+  if (options?.path) {
     try {
       const file = await readFile(provider, { encoding: 'utf-8' });
       providerInfo = JSON.parse(file) as ProviderStructure;
