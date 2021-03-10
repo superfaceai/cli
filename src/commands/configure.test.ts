@@ -68,7 +68,7 @@ describe('Configure CLI command', () => {
   });
 
   describe('when configuring new provider', () => {
-    it('configures provider', async () => {
+    it('configures provider with security schemes correctly', async () => {
       //mock provider structure
       (fetchProviderInfo as jest.Mock).mockResolvedValue({
         name: PROVIDER_NAME,
@@ -91,6 +91,11 @@ describe('Configure CLI command', () => {
       });
 
       await expect(Configure.run([PROVIDER_NAME])).resolves.toBeUndefined();
+
+      expect(stdout.output).toContain(
+        '🆗 All security schemes have been configured successfully.'
+      );
+
       const superJson = (await SuperJson.load(FIXTURE.superJson)).unwrap();
       expect(superJson.document.providers![PROVIDER_NAME]).toEqual({
         auth: {
@@ -101,6 +106,92 @@ describe('Configure CLI command', () => {
           },
           // FIX: SuperJson.load loading only first property of auth
         },
+      });
+    }, 10000);
+
+    it('configures provider with empty security schemes correctly', async () => {
+      //mock provider structure
+      (fetchProviderInfo as jest.Mock).mockResolvedValue({
+        name: PROVIDER_NAME,
+        services: [
+          {
+            id: 'swapidev',
+            baseUrl: 'https://swapi.dev/api',
+          },
+        ],
+        //empty
+        securitySchemes: [],
+        defaultService: 'swapidev',
+      });
+
+      await expect(Configure.run([PROVIDER_NAME])).resolves.toBeUndefined();
+
+      expect(stdout.output).toContain(
+        'No security schemes found to configure.'
+      );
+
+      const superJson = (await SuperJson.load(FIXTURE.superJson)).unwrap();
+      expect(superJson.document.providers![PROVIDER_NAME]).toEqual({
+        auth: {},
+      });
+    }, 10000);
+
+    it('configures provider without security schemes correctly', async () => {
+      //mock provider structure
+      (fetchProviderInfo as jest.Mock).mockResolvedValue({
+        name: PROVIDER_NAME,
+        services: [
+          {
+            id: 'swapidev',
+            baseUrl: 'https://swapi.dev/api',
+          },
+        ],
+        defaultService: 'swapidev',
+      });
+
+      await expect(Configure.run([PROVIDER_NAME])).resolves.toBeUndefined();
+
+      expect(stdout.output).toContain(
+        'No security schemes found to configure.'
+      );
+
+      const superJson = (await SuperJson.load(FIXTURE.superJson)).unwrap();
+      expect(superJson.document.providers![PROVIDER_NAME]).toEqual({
+        auth: {},
+      });
+    }, 10000);
+
+    it('configures provider with unknown security scheme correctly', async () => {
+      //mock provider structure
+      (fetchProviderInfo as jest.Mock).mockResolvedValue({
+        name: PROVIDER_NAME,
+        services: [
+          {
+            id: 'swapidev',
+            baseUrl: 'https://swapi.dev/api',
+          },
+        ],
+        securitySchemes: [
+          {
+            id: 'swapidev',
+            //unknown
+            type: 'unknown',
+            in: ApiKeySecurityIn.HEADER,
+            name: 'X-API-Key',
+          },
+        ],
+        defaultService: 'swapidev',
+      });
+
+      await expect(Configure.run([PROVIDER_NAME])).resolves.toBeUndefined();
+
+      expect(stdout.output).toContain(
+        '❌ No security schemes have been configured.'
+      );
+
+      const superJson = (await SuperJson.load(FIXTURE.superJson)).unwrap();
+      expect(superJson.document.providers![PROVIDER_NAME]).toEqual({
+        auth: {},
       });
     }, 10000);
 
