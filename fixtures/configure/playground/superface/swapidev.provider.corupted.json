@@ -9,7 +9,7 @@
   "securitySchemes": [
     {
       "id": "test"
-      "type": "api",
+      "type": "apiKey",
       "in": "header",
       "name": "X-API-Key"
     }
