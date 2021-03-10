@@ -14,7 +14,7 @@ import { detectSuperJson } from '../logic/install';
 
 export default class Configure extends Command {
   static description =
-    'Initializes superface directory if needed, communicates with Superface Store API, stores provider to a local system';
+    'Initializes superface directory if needed, communicates with Superface Store API, stores provider configuration in super.json';
 
   static args = [
     {

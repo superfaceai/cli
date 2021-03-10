@@ -50,7 +50,7 @@ describe('Configure CLI command', () => {
   async function resetSuperJson() {
     await OutputStream.writeOnce(
       FIXTURE.superJson,
-      JSON.stringify(INITIAL_SUPER_JSON.document, undefined, 2)
+      INITIAL_SUPER_JSON.stringified
     );
   }
 
@@ -67,23 +67,8 @@ describe('Configure CLI command', () => {
     stdout.stop();
   });
 
-  async function cleanSuperJson() {
-    await OutputStream.writeOnce(
-      FIXTURE.superJson,
-      JSON.stringify(
-        {
-          profiles: {},
-          providers: {},
-        },
-        undefined,
-        2
-      )
-    );
-  }
-
   describe('when configuring new provider', () => {
     it('configures provider', async () => {
-      await cleanSuperJson();
       //mock provider structure
       (fetchProviderInfo as jest.Mock).mockResolvedValue({
         name: PROVIDER_NAME,
@@ -107,7 +92,6 @@ describe('Configure CLI command', () => {
 
       await expect(Configure.run([PROVIDER_NAME])).resolves.toBeUndefined();
       const superJson = (await SuperJson.load(FIXTURE.superJson)).unwrap();
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       expect(superJson.document.providers![PROVIDER_NAME]).toEqual({
         auth: {
           ApiKey: {
@@ -121,7 +105,6 @@ describe('Configure CLI command', () => {
     }, 10000);
 
     it('does not log to stdout with --quiet', async () => {
-      await cleanSuperJson();
       //mock provider structure
       (fetchProviderInfo as jest.Mock).mockResolvedValue({
         name: PROVIDER_NAME,
@@ -147,7 +130,6 @@ describe('Configure CLI command', () => {
         Configure.run([PROVIDER_NAME, '-q'])
       ).resolves.toBeUndefined();
       const superJson = (await SuperJson.load(FIXTURE.superJson)).unwrap();
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       expect(superJson.document.providers![PROVIDER_NAME]).toEqual({
         auth: {
           ApiKey: {
@@ -165,7 +147,6 @@ describe('Configure CLI command', () => {
 
   describe('when providers are present in super.json', () => {
     it('errors without a force flag', async () => {
-      await cleanSuperJson();
       //set existing super.json
       const localSuperJson = {
         profiles: {},
@@ -212,12 +193,10 @@ describe('Configure CLI command', () => {
 
       const superJson = (await SuperJson.load(FIXTURE.superJson)).unwrap();
 
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       expect(superJson.document.providers).toEqual(localSuperJson.providers);
     }, 10000);
 
     it('overrides existing super.json with a force flag', async () => {
-      await cleanSuperJson();
       //set existing super.json
       const localSuperJson = {
         profiles: {},
@@ -266,7 +245,6 @@ describe('Configure CLI command', () => {
 
       const superJson = (await SuperJson.load(FIXTURE.superJson)).unwrap();
 
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       expect(superJson.document.providers![PROVIDER_NAME]).toEqual({
         auth: {
           Bearer: {
@@ -280,7 +258,6 @@ describe('Configure CLI command', () => {
 
   describe('when there is a file flag', () => {
     it('loads provider data from file', async () => {
-      await cleanSuperJson();
       //file flag
       await expect(
         Configure.run(['./superface/swapidev.provider.json', '-f'])
@@ -288,7 +265,6 @@ describe('Configure CLI command', () => {
 
       const superJson = (await SuperJson.load(FIXTURE.superJson)).unwrap();
 
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       expect(superJson.document.providers![PROVIDER_NAME]).toEqual({
         auth: {
           ApiKey: {
@@ -301,7 +277,6 @@ describe('Configure CLI command', () => {
     }, 10000);
 
     it('does not load provider data from corupted file', async () => {
-      await cleanSuperJson();
       //file flag
       await expect(
         Configure.run(['./superface/swapidev.provider.corupted.json', '-f'])
@@ -311,12 +286,10 @@ describe('Configure CLI command', () => {
 
       const superJson = (await SuperJson.load(FIXTURE.superJson)).unwrap();
 
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       expect(superJson.document).toEqual(INITIAL_SUPER_JSON.document);
     }, 10000);
 
     it('does not load provider data from nonexistent file', async () => {
-      await cleanSuperJson();
       //file flag
       await expect(
         Configure.run([
@@ -332,7 +305,6 @@ describe('Configure CLI command', () => {
 
       const superJson = (await SuperJson.load(FIXTURE.superJson)).unwrap();
 
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       expect(superJson.document).toEqual(INITIAL_SUPER_JSON.document);
     }, 10000);
   });
