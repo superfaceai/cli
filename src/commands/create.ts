@@ -1,23 +1,17 @@
 import { Command, flags } from '@oclif/command';
-import { parseMapId, parseProfileId } from '@superfaceai/parser';
+import { parseDocumentId } from '@superfaceai/parser';
+import { SuperJson } from '@superfaceai/sdk';
 
 import {
-  composeStructure,
   composeUsecaseName,
-  composeVersion,
-  CreateMode,
-  DEFAULT_PROFILE_VERSION,
-  DocumentStructure,
+  DEFAULT_PROFILE_VERSION_STR,
   inferCreateMode,
-  MAP_EXTENSIONS,
-  PROFILE_EXTENSIONS,
   validateDocumentName,
 } from '../common/document';
+import { CreateMode } from '../common/document.interfaces';
 import { developerError, userError } from '../common/error';
-import { mkdirQuiet, OutputStream } from '../common/io';
-import * as mapTemplate from '../templates/map';
-import * as profileTemplate from '../templates/profile';
-import { defaultProvider } from '../templates/provider';
+import { mkdirQuiet } from '../common/io';
+import { createMap, createProfile, createProviderJson } from '../logic/create';
 
 export default class Create extends Command {
   static strict = false;
@@ -50,7 +44,7 @@ export default class Create extends Command {
     }),
     version: flags.string({
       char: 'v',
-      default: DEFAULT_PROFILE_VERSION,
+      default: DEFAULT_PROFILE_VERSION_STR,
       description: 'Version of a profile',
     }),
     template: flags.string({
@@ -69,6 +63,8 @@ export default class Create extends Command {
     '$ superface create sms/service -p twillio -u SendSMS ReceiveSMS',
     '$ superface create sms/service -p twillio -t bugfix -v 1.1-rev133 -u SendSMS ReceiveSMS',
   ];
+
+  private logCallback? = (message: string) => this.log(message);
 
   async run(): Promise<void> {
     const { argv, flags } = this.parse(Create);
@@ -113,30 +109,35 @@ export default class Create extends Command {
     // output a warning when generating map only and version is not in default format
     if (
       createMode === CreateMode.MAP &&
-      flags.version !== DEFAULT_PROFILE_VERSION
+      flags.version !== DEFAULT_PROFILE_VERSION_STR
     ) {
       this.warn(
         'Profile version should not be specified when generating map only'
       );
-      flags.version = DEFAULT_PROFILE_VERSION;
+      flags.version = DEFAULT_PROFILE_VERSION_STR;
     }
 
     // parse document name and flags
     const providerName = flags.provider ? `.${flags.provider}` : '';
     const variant = flags.variant ? `.${flags.variant}` : '';
     const documentId = `${documentName}${providerName}${variant}@${flags.version}`;
-    const documentResult =
-      createMode === CreateMode.PROFILE
-        ? parseProfileId(documentId)
-        : parseMapId(documentId);
+    const documentResult = parseDocumentId(documentId);
 
     if (documentResult.kind === 'error') {
       throw userError(documentResult.message, 1);
     }
 
     // compose document structure from the result
-    const documentStructure = composeStructure(documentResult);
-    const { name, scope, provider } = documentStructure;
+    const documentStructure = documentResult.value;
+    const {
+      scope,
+      middle: [name, provider],
+      version,
+    } = documentStructure;
+
+    if (version === undefined) {
+      throw developerError('version must be present', 1);
+    }
 
     // if there is no specified usecase - create usecase with same name as profile name
     const usecases = flags.usecase ?? [composeUsecaseName(name)];
@@ -160,9 +161,19 @@ export default class Create extends Command {
       await mkdirQuiet(scope);
     }
 
+    // TODO: Do we want to initialize superface and/or save super.json somewhere?
+    const superJson = new SuperJson();
+
     switch (createMode) {
       case CreateMode.PROFILE:
-        await this.createProfile(documentStructure, usecases, flags.template);
+        await createProfile(
+          '',
+          superJson,
+          { scope, name, version },
+          usecases,
+          flags.template,
+          { logCb: this.logCallback }
+        );
         break;
       case CreateMode.MAP:
         if (!provider) {
@@ -171,8 +182,17 @@ export default class Create extends Command {
             2
           );
         }
-        await this.createMap(documentStructure, usecases, flags.template);
-        await this.createProviderJson(provider);
+        await createMap(
+          '',
+          superJson,
+          { scope, name, provider, version },
+          usecases,
+          flags.template,
+          { logCb: this.logCallback }
+        );
+        await createProviderJson('', superJson, provider, flags.template, {
+          logCb: this.logCallback,
+        });
         break;
       case CreateMode.BOTH:
         if (!provider) {
@@ -181,70 +201,26 @@ export default class Create extends Command {
             2
           );
         }
-        await this.createProfile(documentStructure, usecases, flags.template);
-        await this.createMap(documentStructure, usecases, flags.template);
-        await this.createProviderJson(provider);
+        await createProfile(
+          '',
+          superJson,
+          { scope, name, version },
+          usecases,
+          flags.template,
+          { logCb: this.logCallback }
+        );
+        await createMap(
+          '',
+          superJson,
+          { scope, name, provider, version },
+          usecases,
+          flags.template,
+          { logCb: this.logCallback }
+        );
+        await createProviderJson('', superJson, provider, flags.template, {
+          logCb: this.logCallback,
+        });
         break;
     }
-  }
-
-  private async createProfile(
-    documentStructure: DocumentStructure,
-    useCaseNames: string[],
-    template: profileTemplate.UsecaseTemplateType
-  ): Promise<void> {
-    const { name, scope } = documentStructure;
-
-    const documentName = scope ? `${scope}/${name}` : name;
-    const version = composeVersion(documentStructure.version);
-    const fileName = `${documentName}${PROFILE_EXTENSIONS[0]}`;
-
-    await OutputStream.writeOnce(
-      fileName,
-      profileTemplate.header(documentName, version) +
-        useCaseNames
-          .map(usecase => profileTemplate.usecase(template, usecase))
-          .join('')
-    );
-
-    this.log(
-      `-> Created ${fileName} (name = "${documentName}", version = "${version}")`
-    );
-  }
-
-  private async createMap(
-    documentStructure: DocumentStructure,
-    useCaseNames: string[],
-    template: mapTemplate.MapTemplateType
-  ): Promise<void> {
-    const { name, scope, provider, variant } = documentStructure;
-
-    if (!provider) {
-      throw developerError('Document structure is complete', 1);
-    }
-
-    const documentName = scope ? `${scope}/${name}` : name;
-    const version = composeVersion(documentStructure.version);
-    const variantName = variant ? `.${variant}` : '';
-    const fileName = `${documentName}.${provider}${variantName}${MAP_EXTENSIONS[0]}`;
-
-    await OutputStream.writeOnce(
-      fileName,
-      mapTemplate.header(documentName, provider, version, variant) +
-        useCaseNames.map(usecase => mapTemplate.map(template, usecase)).join('')
-    );
-
-    this.log(
-      `-> Created ${fileName} (profile = "${documentName}@${version}", provider = "${provider}")`
-    );
-  }
-
-  private async createProviderJson(name: string): Promise<void> {
-    await OutputStream.writeOnce(
-      `${name}.provider.json`,
-      defaultProvider(name)
-    );
-
-    this.log(`-> Created ${name}.provider.json`);
   }
 }

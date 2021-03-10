@@ -1,23 +1,20 @@
 import { Command, flags } from '@oclif/command';
-import { Source, SyntaxError } from '@superfaceai/parser';
 
-import {
-  DOCUMENT_PARSE_FUNCTION,
-  DocumentType,
-  inferDocumentTypeWithFlag,
-} from '../common/document';
 import { developerError, userError } from '../common/error';
 import { DocumentTypeFlag, documentTypeFlag } from '../common/flags';
-import { OutputStream, readFile } from '../common/io';
+import { ListWriter } from '../common/list-writer';
+import { OutputStream } from '../common/output-stream';
+import { ReportFormat } from '../common/report.interfaces';
+import {
+  formatHuman,
+  formatJson,
+  lintFiles,
+  lintMapsToProfile,
+} from '../logic/lint';
 import { formatWordPlurality } from '../util';
 
-type FileReport = {
-  path: string;
-  errors: SyntaxError[];
-  warnings: unknown[];
-};
-
 type OutputFormatFlag = 'long' | 'short' | 'json';
+
 export default class Lint extends Command {
   static description =
     'Lints a map or profile file. Outputs the linter issues to STDOUT by default.\nLinter ends with non zero exit code if errors are found.';
@@ -28,12 +25,14 @@ export default class Lint extends Command {
 
   static flags = {
     documentType: documentTypeFlag,
+
     output: flags.string({
       char: 'o',
       description:
         'Filename where the output will be written. `-` is stdout, `-2` is stderr.',
       default: '-',
     }),
+
     append: flags.boolean({
       default: false,
       description:
@@ -53,6 +52,7 @@ export default class Lint extends Command {
         return input;
       },
     })({ default: 'long' }),
+
     color: flags.boolean({
       // TODO: Hidden because it doesn't do anything right now
       hidden: true,
@@ -61,13 +61,28 @@ export default class Lint extends Command {
         'Output colorized report. Only works for `human` output format. Set by default for stdout and stderr output.',
     }),
 
+    validate: flags.boolean({
+      // TODO: extend or modify this
+      char: 'v',
+      default: false,
+      description: 'Validate maps to specific profile.',
+    }),
+
+    quiet: flags.boolean({
+      char: 'q',
+      default: false,
+      description: 'When set to true, disables output of warnings.',
+    }),
+
     help: flags.help({ char: 'h' }),
   };
 
   async run(): Promise<void> {
     const { argv, flags } = this.parse(Lint);
 
-    const outputStream = new OutputStream(flags.output, flags.append);
+    const outputStream = new OutputStream(flags.output, {
+      append: flags.append,
+    });
     let totals: [errors: number, warnings: number];
 
     switch (flags.outputFormat) {
@@ -75,20 +90,21 @@ export default class Lint extends Command {
       case 'short':
         {
           totals = await Lint.processFiles(
-            outputStream,
+            new ListWriter(outputStream, '\n'),
             argv,
             flags.documentType,
-            '\n',
+            flags.validate,
             report =>
-              Lint.formatHuman(
+              formatHuman(
                 report,
+                flags.quiet,
                 flags.outputFormat === 'short',
                 flags.color ?? outputStream.isTTY
               )
           );
           await outputStream.write(
             `\nDetected ${formatWordPlurality(
-              totals[0] + totals[1],
+              totals[0] + (flags.quiet ? 0 : totals[1]),
               'problem'
             )}\n`
           );
@@ -99,11 +115,11 @@ export default class Lint extends Command {
         {
           await outputStream.write('{"reports":[');
           totals = await Lint.processFiles(
-            outputStream,
+            new ListWriter(outputStream, ','),
             argv,
             flags.documentType,
-            ',',
-            report => Lint.formatJson(report)
+            flags.validate,
+            report => formatJson(report)
           );
           await outputStream.write(
             `],"total":{"errors":${totals[0]},"warnings":${totals[1]}}}\n`
@@ -122,113 +138,20 @@ export default class Lint extends Command {
   }
 
   static async processFiles(
-    outputStream: OutputStream,
+    writer: ListWriter,
     files: string[],
     documentTypeFlag: DocumentTypeFlag,
-    outputGlue: string,
-    fn: (report: FileReport) => string
+    validateFlag: boolean,
+    fn: (report: ReportFormat) => string
   ): Promise<[errors: number, warnings: number]> {
-    let outputCounter = files.length;
+    let counts: [number, number][] = [];
 
-    const counts = await Promise.all(
-      files.map(
-        async (file): Promise<[number, number]> => {
-          const report = await Lint.lintFile(file, documentTypeFlag);
-
-          let output = fn(report);
-          if (outputCounter > 1) {
-            output += outputGlue;
-          }
-          outputCounter -= 1;
-
-          await outputStream.write(output);
-
-          return [report.errors.length, report.warnings.length];
-        }
-      )
-    );
+    if (validateFlag) {
+      counts = await lintMapsToProfile(files, writer, fn);
+    } else {
+      counts = await lintFiles(files, writer, documentTypeFlag, fn);
+    }
 
     return counts.reduce((acc, curr) => [acc[0] + curr[0], acc[1] + curr[1]]);
-  }
-
-  static async lintFile(
-    path: string,
-    documentTypeFlag: DocumentTypeFlag
-  ): Promise<FileReport> {
-    const documentType = inferDocumentTypeWithFlag(documentTypeFlag, path);
-    if (
-      documentType !== DocumentType.MAP &&
-      documentType !== DocumentType.PROFILE
-    ) {
-      throw userError('Could not infer document type', 3);
-    }
-
-    const parse = DOCUMENT_PARSE_FUNCTION[documentType];
-    const content = await readFile(path).then(f => f.toString());
-    const source = new Source(content, path);
-
-    const result: FileReport = {
-      path,
-      errors: [],
-      warnings: [],
-    };
-
-    try {
-      parse(source);
-    } catch (e) {
-      result.errors.push(e);
-    }
-
-    return result;
-  }
-
-  private static formatHuman(
-    report: FileReport,
-    short?: boolean,
-    _color?: boolean
-  ): string {
-    const FILE_OK = '🆗';
-    const FILE_WARN = '⚠️';
-    const FILE_ERR = '❌';
-
-    let prefix;
-    if (report.errors.length > 0) {
-      prefix = FILE_ERR;
-    } else if (report.warnings.length > 0) {
-      prefix = FILE_WARN;
-    } else {
-      prefix = FILE_OK;
-    }
-
-    let buffer = `${prefix} ${report.path}\n`;
-
-    for (const error of report.errors) {
-      if (short) {
-        buffer += `\t${error.location.line}:${error.location.column} ${error.message}\n`;
-      } else {
-        buffer += error.format();
-      }
-    }
-    if (report.errors.length > 0 && report.warnings.length > 0) {
-      buffer += '\n';
-    }
-
-    // TODO
-    // for (const _warning of report.warnings) {
-    // }
-
-    return buffer;
-  }
-
-  private static formatJson(report: FileReport): string {
-    return JSON.stringify(report, (key, value) => {
-      if (key === 'source') {
-        return undefined;
-      }
-
-      // we are just passing the value along, nothing unsafe about that
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-      return value;
-    });
   }
 }

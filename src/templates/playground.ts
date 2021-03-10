@@ -1,152 +1,125 @@
-export function packageJson(name: string): string {
+import { VERSION } from '@superfaceai/sdk';
+
+import { TemplateType } from './common';
+
+export function packageJson(): string {
+  /* eslint-disable @typescript-eslint/restrict-template-expressions */
   return `{
-  "name": "${name}",
+  "name": "playground",
   "private": true,
   "dependencies": {
-    "@superfaceai/sdk": "^0.0.4"
+    "@superfaceai/sdk": "${VERSION}"
   },
   "devDependencies": {
-    "@types/node": "^14.14.14",
+    "@types/node": "^14",
     "typescript": "^4"
   }
 }`;
+  /* eslint-enable @typescript-eslint/restrict-template-expressions */
 }
 
-export function npmRc(): string {
-  return '@superfaceai:registry=https://npm.pkg.github.com\n';
-}
-
-export function gitignore(): string {
-  return `build
-node_modules
-package-lock.json
-`;
-}
-
-export type GlueTemplateType = 'empty' | 'pubs';
 /**
- * Returns a glue script of given template `type` with given `name` and `provider`.
+ * Returns a glue script of given template `type` with given `usecase`.
  */
-export function glueScript(
-  type: GlueTemplateType,
-  name: string,
-  provider: string
-): string {
+export function glueScript(type: TemplateType, usecase: string): string {
   switch (type) {
     case 'empty':
-      return empty(name, provider);
+      return empty(usecase);
     case 'pubs':
-      return pubs(name, provider);
+      return pubs(usecase);
   }
 }
 
-function common(name: string, provider: string, body: string): string {
-  return `
-import * as fs from 'fs';
-import * as nodePath from 'path';
-import { promisify, inspect } from 'util';
-import { Provider } from '@superfaceai/sdk'; // The sdk is where the main work is performed
+function common(usecase: string, input: string): string {
+  return `import { inspect } from 'util';
 
-const readFile = promisify(fs.readFile);
-
-async function main() {
-  // Load the compiled JSON ASTs from local files
-  // These files are compiled when running \`superface play execute ${name}\` or \`superface compile --output build ${name}.supr ${name}.${provider}.suma\` in the current directory
-  const profileAst = JSON.parse(
-    await readFile(nodePath.join('build', '${name}.supr.ast.json'), { encoding: 'utf-8' })
-  );
-  const mapAst = JSON.parse(
-    await readFile(nodePath.join('build', '${name}.${provider}.suma.ast.json'), { encoding: 'utf-8' })
-  );
-
-${body}
-}
-
-main()
-`;
-}
-
-export function empty(name: string, provider: string): string {
-  return common(
-    name,
-    provider,
-    `
-  // Crate a new provider from local files.
-  const provider = new Provider(
-    // the loaded ASTs
-    profileAst,
-    mapAst,
-    // base url for relative request url in maps
-  );
-
-  // Bind authentication configuration to the provider
-  const boundProvider = await provider.bind(
-    {
-      // TODO: Add your auth keys for provider '${provider}' here
+  import { Provider } from '@superfaceai/sdk';
+  
+  /** Execute one specific pair of profile and map. */
+  async function execute(
+    scope: string | undefined,
+    name: string,
+    providerName: string,
+    variantName?: string
+  ) {
+    let profileId = name;
+    if (scope !== undefined) {
+      profileId = scope + '/' + name;
     }
-  );
-
-  // Perform the map with the given input and return the result as defined in the profile usecase
-  const result = await boundProvider.perform(
-    // name of the usecase to execute
-    '${name}',
-    {}
-  );
-
-  // TODO: Do something with the result, here we just print in
-  console.log(
-    "${name}/${provider} result:",
-    inspect(result, {
-      depth: 5,
-      colors: true
-    })
-  );
-`
-  );
+  
+    // 1. Create the provider object - the build artifacts are located by the sdk according to super.json
+    const provider = new Provider(
+      profileId,
+      providerName
+    );
+  
+    // 2. Bind the provider - values are taken from super.json unless overridden here
+    const boundProvider = await provider.bind();
+  
+    // 3. Perform the usecase with the bound provider - defaults are taken from super.json again
+    const result = await boundProvider.perform(
+      '${usecase}',
+      ${input}
+    );
+  
+    // Do something with the result
+    // Here we just print it
+    console.log(
+      \`${usecase}/\${providerName}\${variantName ? '.' + variantName : ''} result:\`,
+      inspect(result, {
+        depth: 5,
+        colors: true,
+      })
+    );
+  }
+  
+  async function main() {
+    // Iterate over the input arguments
+    // Their expected format is \`scope/name.provider.variant\` (scope and variant are optional)
+    for (const arg of process.argv.slice(2)) {
+      let scope: string | undefined;
+      let name: string = arg;
+      let provider: string = name;
+      let variant: string | undefined;
+  
+      const scopeSplit = name.split('/');
+      if (scopeSplit.length === 2) {
+        scope = scopeSplit[0];
+        name = scopeSplit[1];
+      } else if (scopeSplit.length !== 1) {
+        console.warn('Skipping argument', arg);
+        continue;
+      }
+  
+      const nameSplit = name.split('.');
+      if (nameSplit.length === 1 || nameSplit.length >= 4) {
+        console.warn('Skipping argument', arg);
+        continue;
+      }
+  
+      name = nameSplit[0];
+      provider = nameSplit[1];
+      if (nameSplit.length === 3) {
+        variant = nameSplit[2];
+      }
+  
+      execute(
+        scope,
+        name,
+        provider,
+        variant
+      );
+    }
+  }
+  
+  main();
+  `;
 }
 
-export function pubs(name: string, provider: string): string {
-  return common(
-    name,
-    provider,
-    `
-  // Crate a new provider from local files.
-  const provider = new Provider(
-    // the loaded ASTs
-    profileAst,
-    mapAst,
-    // base url for relative request url in maps
-    // for example, the same Overpass API is mirrored on more servers:
-    // https://wiki.openstreetmap.org/wiki/Overpass_API#Public_Overpass_API_instances
-    'https://overpass-api.de'
-  );
+export function empty(usecase: string): string {
+  return common(usecase, '{}');
+}
 
-  // Bind authentication configuration to the provider
-  const boundProvider = await provider.bind(
-    {
-      // TODO: Add your auth keys for provider '${provider}' here
-      // No keys are needed for OSM
-    }
-  );
-
-  // Perform the map with the given input and return the result as defined in the profile usecase
-  const result = await boundProvider.perform(
-    // name of the usecase to execute
-    '${name}',
-    {
-      city: "Praha",
-      nameRegex: "Diego"
-    },
-  );
-
-  // TODO: Do something with the result, here we just print in
-  console.log(
-    "${name}/${provider} result:",
-    inspect(result, {
-      depth: 5,
-      colors: true
-    })
-  );
-`
-  );
+export function pubs(usecase: string): string {
+  return common(usecase, '{ city: "Praha", nameRegex: "Diego" }');
 }

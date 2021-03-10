@@ -1,0 +1,7 @@
+name = "my-scope/my-profile"
+version = "1.0.0"
+
+"""
+MyProfile usecase
+"""
+usecase MyProfile {}

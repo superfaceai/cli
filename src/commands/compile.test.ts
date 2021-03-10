@@ -1,7 +1,7 @@
 import { join as joinPath } from 'path';
 import { stderr, stdout } from 'stdout-stderr';
 
-import { access, createDirectory, readFile, rimraf } from '../common/io';
+import { access, mkdir, readFile, rimraf } from '../common/io';
 import Compile from './compile';
 
 describe('Compile CLI command', () => {
@@ -70,7 +70,7 @@ describe('Compile CLI command', () => {
   });
 
   it('compiles to outdir', async () => {
-    await createDirectory(compileDir);
+    await mkdir(compileDir);
 
     await Compile.run([
       fixture.strictProfile,

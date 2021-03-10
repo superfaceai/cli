@@ -1,15 +1,16 @@
 import { Command, flags } from '@oclif/command';
 import { Source } from '@superfaceai/parser';
-import * as nodePath from 'path';
+import { basename, join as joinPath } from 'path';
 
 import {
   DOCUMENT_PARSE_FUNCTION,
-  DocumentType,
   inferDocumentTypeWithFlag,
 } from '../common/document';
+import { DocumentType } from '../common/document.interfaces';
 import { userError } from '../common/error';
 import { DocumentTypeFlag, documentTypeFlag } from '../common/flags';
-import { isDirectory, OutputStream, readFile } from '../common/io';
+import { isDirectoryQuiet, readFile } from '../common/io';
+import { OutputStream } from '../common/output-stream';
 
 export default class Compile extends Command {
   static description = 'Compiles the given profile or map to AST.';
@@ -51,11 +52,10 @@ export default class Compile extends Command {
     const outputPath = flags.output?.trim();
     let outputStream: OutputStream | undefined = undefined;
     if (outputPath !== undefined) {
-      const outputPathisDirectory = await isDirectory(outputPath);
-
-      if (!outputPathisDirectory) {
+      const isDirectory = await isDirectoryQuiet(outputPath);
+      if (!isDirectory) {
         this.debug(`Compiling all files to "${outputPath}"`);
-        outputStream = new OutputStream(outputPath, flags.append);
+        outputStream = new OutputStream(outputPath, { append: flags.append });
       }
     }
 
@@ -67,25 +67,23 @@ export default class Compile extends Command {
           if (fileOutputStream === undefined) {
             if (outputPath !== undefined) {
               // Shared directory, name based on file
-              const sharedDirectory = nodePath.join(
+              const sharedDirectory = joinPath(
                 outputPath,
-                nodePath.basename(file) + DEFAULT_EXTENSION
+                basename(file) + DEFAULT_EXTENSION
               );
               this.debug(`Compiling "${file}" to "${sharedDirectory}"`);
 
-              fileOutputStream = new OutputStream(
-                sharedDirectory,
-                flags.append
-              );
+              fileOutputStream = new OutputStream(sharedDirectory, {
+                append: flags.append,
+              });
             } else {
               // File specific path based on file path
               this.debug(
                 `Compiling "${file}" to "${file + DEFAULT_EXTENSION}"`
               );
-              fileOutputStream = new OutputStream(
-                file + DEFAULT_EXTENSION,
-                flags.append
-              );
+              fileOutputStream = new OutputStream(file + DEFAULT_EXTENSION, {
+                append: flags.append,
+              });
             }
           }
 
@@ -121,7 +119,7 @@ export default class Compile extends Command {
 
     const parseFunction = DOCUMENT_PARSE_FUNCTION[documentType];
     const content = (await readFile(path)).toString();
-    const source = new Source(content, nodePath.basename(path));
+    const source = new Source(content, basename(path));
 
     return parseFunction(source);
   }

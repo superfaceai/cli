@@ -1,24 +1,25 @@
-import { blue, green } from 'chalk';
 import * as childProcess from 'child_process';
-import createDebug from 'debug';
 import * as fs from 'fs';
-import { basename } from 'path';
 import rimrafCallback from 'rimraf';
 import { Writable } from 'stream';
 import { promisify } from 'util';
 
-import { assertIsIOError, userError } from './error';
+import { assertIsIOError } from './error';
 import { SkipFileType } from './flags';
-import { LogCallback } from './types';
 
 export const readFile = promisify(fs.readFile);
 export const access = promisify(fs.access);
 export const stat = promisify(fs.stat);
-export const lstat = promisify(fs.lstat);
 export const readdir = promisify(fs.readdir);
-const mkdir = promisify(fs.mkdir);
+export const mkdir = promisify(fs.mkdir);
 export const realpath = promisify(fs.realpath);
 export const rimraf = promisify(rimrafCallback);
+
+export interface WritingOptions {
+  append?: boolean;
+  force?: boolean;
+  dirs?: boolean;
+}
 
 export async function exists(path: string): Promise<boolean> {
   try {
@@ -39,7 +40,11 @@ export async function exists(path: string): Promise<boolean> {
   return true;
 }
 
-export async function mkdirQuiet(path: string): Promise<void> {
+/**
+ * Creates a directory without erroring if it already exists.
+ * Returns `true` if the directory was created.
+ */
+export async function mkdirQuiet(path: string): Promise<boolean> {
   try {
     await mkdir(path);
   } catch (err: unknown) {
@@ -47,14 +52,58 @@ export async function mkdirQuiet(path: string): Promise<void> {
 
     // Allow `EEXIST` because scope directory already exists.
     if (err.code === 'EEXIST') {
-      return;
+      return false;
     }
 
     // Rethrow other errors.
     throw err;
   }
 
-  return;
+  return true;
+}
+
+/**
+ * Returns `true` if the given path is a file.
+ *
+ * Uses the `stat` syscall (follows symlinks) and ignores the `ENOENT` error (non-existent file just returns `false`).
+ */
+export async function isFileQuiet(path: string): Promise<boolean> {
+  try {
+    const statInfo = await stat(path);
+
+    return statInfo.isFile();
+  } catch (err: unknown) {
+    assertIsIOError(err);
+
+    // allow ENOENT, which means it is not a directory
+    if (err.code !== 'ENOENT') {
+      throw err;
+    }
+  }
+
+  return false;
+}
+
+/**
+ * Returns `true` if the given path is a directory.
+ *
+ * Uses the `stat` syscall (follows symlinks) and ignores the `ENOENT` error (non-existent directory just returns `false`).
+ */
+export async function isDirectoryQuiet(path: string): Promise<boolean> {
+  try {
+    const statInfo = await stat(path);
+
+    return statInfo.isDirectory();
+  } catch (err: unknown) {
+    assertIsIOError(err);
+
+    // allow ENOENT, which means it is not a directory
+    if (err.code !== 'ENOENT') {
+      throw err;
+    }
+  }
+
+  return false;
 }
 
 export function streamWrite(stream: Writable, data: string): Promise<void> {
@@ -133,127 +182,25 @@ export async function resolveSkipFile(
   }
 }
 
-export async function isDirectory(path: string): Promise<boolean> {
+/**
+ * Returns `true` if directory or file
+ * exists, is readable and is writable for the current user.
+ */
+export async function isAccessible(path: string): Promise<boolean> {
   try {
-    const lstatInfo = await lstat(path);
-
-    return lstatInfo.isDirectory();
+    await access(
+      path,
+      fs.constants.F_OK | fs.constants.R_OK | fs.constants.W_OK
+    );
   } catch (err: unknown) {
     assertIsIOError(err);
-    if (err.code !== 'ENOENT') {
-      throw err;
-    }
-  }
 
-  return false;
-}
-
-// TODO: This is naive implementation
-export function baseName(path: string): string {
-  const filename = basename(path);
-
-  return filename.split('.')[0];
-}
-
-export async function createDirectory(path: string): Promise<void> {
-  if ((await exists(path)) && !(await isDirectory(path))) {
-    throw userError(`Path '${path}' already exists and is not a directory!`, 1);
-  }
-
-  await mkdir(path, { recursive: true, mode: 0o744 });
-}
-
-const outputStreamDebug = createDebug('superface:OutputStream');
-export class OutputStream {
-  private readonly name: string;
-  readonly stream: Writable;
-
-  readonly isStdStream: boolean;
-  readonly isTTY: boolean;
-
-  /**
-   * Constructs the output object.
-   *
-   * `path` accepts 2 special values:
-   * * `-` - initializes output for stdout
-   * * `-2` - initializes output for stderr
-   *
-   * All other `path` values are treated as file system path.
-   *
-   * When `append` is true the file at `path` is opened in append mode rather than in write (truncate) mode.
-   */
-  constructor(path: string, append?: boolean) {
-    switch (path) {
-      case '-':
-        outputStreamDebug('Opening stdout');
-        this.name = 'stdout';
-        this.stream = process.stdout;
-        this.isStdStream = true;
-        this.isTTY = process.stdout.isTTY;
-        break;
-
-      case '-2':
-        outputStreamDebug('Opening stderr');
-        this.name = 'stderr';
-        this.stream = process.stderr;
-        this.isStdStream = true;
-        this.isTTY = process.stdout.isTTY;
-        break;
-
-      default:
-        outputStreamDebug(
-          `Opening/creating "${path}" in ${append ? 'append' : 'write'} mode`
-        );
-        this.name = path;
-        this.stream = fs.createWriteStream(path, {
-          flags: append ? 'a' : 'w',
-          mode: 0o644,
-          encoding: 'utf-8',
-        });
-        this.isStdStream = true;
-        this.isTTY = process.stdout.isTTY;
-        break;
-    }
-  }
-
-  write(data: string): Promise<void> {
-    outputStreamDebug(`Writing ${data.length} characters to "${this.name}"`);
-
-    return streamWrite(this.stream, data);
-  }
-
-  cleanup(): Promise<void> {
-    outputStreamDebug(`Closing stream "${this.name}"`);
-
-    // TODO: Should we also end stdout or stderr?
-    if (!this.isStdStream) {
-      return streamEnd(this.stream);
+    if (err.code === 'ENOENT' || err.code === 'EACCES') {
+      return false;
     }
 
-    return Promise.resolve();
+    throw err;
   }
 
-  static async writeOnce(
-    path: string,
-    data: string,
-    append?: boolean
-  ): Promise<void> {
-    const stream = new OutputStream(path, append);
-
-    await stream.write(data);
-
-    return stream.cleanup();
-  }
-}
-
-export async function writeFile(
-  filename: string,
-  content: string,
-  logCb?: LogCallback
-): Promise<void> {
-  logCb?.(`-> Writing ${blue(filename)}`);
-  const fileStream = new OutputStream(filename);
-  await fileStream.write(content);
-  await fileStream.cleanup();
-  logCb?.(green('\tSuccess!'));
+  return true;
 }

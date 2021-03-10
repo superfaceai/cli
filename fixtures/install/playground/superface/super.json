@@ -1,0 +1,9 @@
+{
+  "profiles": {
+    "starwars/character-information": {
+      "file": "../character-information.supr",
+      "providers": {}
+    }
+  },
+  "providers": {}
+}

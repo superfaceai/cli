@@ -2,7 +2,7 @@ import { Command, flags } from '@oclif/command';
 import { grey } from 'chalk';
 import inquirer from 'inquirer';
 import FileTreeSelectionPrompt from 'inquirer-file-tree-selection-prompt';
-import * as nodePath from 'path';
+import { basename } from 'path';
 
 import { validateDocumentName } from '../common/document';
 import { developerError, userError } from '../common/error';
@@ -14,6 +14,7 @@ import {
   executePlayground,
   initializePlayground,
 } from '../logic/playground';
+import { TemplateType } from '../templates/common';
 
 inquirer.registerPrompt('file-tree-selection', FileTreeSelectionPrompt);
 
@@ -26,11 +27,11 @@ function isActionType(input: unknown): input is ActionType {
 }
 
 export default class Play extends Command {
-  static description = `Manages and executes interactive playgrounds. Missing arguments are interactively prompted.
-Playground is a folder F which contains a profile (\`F.supr\`), maps (\`F.*.suma\`) and glue scripts (\`F.*.ts\`) where \`*\` denotes provider name.
-initialize: a playground is populated with an example profile, and a pair of a map and a glue script for each provider.
-execute: the profile, and the selected pairs of a map and a glue script are compiled and the specified provider glue scripts are executed.
-clean: the \`node_modules\` folder and compilation artifacts are cleaned.`;
+  static description = `Manages and executes playgrounds. Missing arguments are interactively prompted.
+Playground is a scaffolded application representing a minimum working example needed to make use of superface. This command has the following action subcommands:
+initialize: a playground is populated with an templated profile, a pair of map and provider.json for each provider and a play script in the \`superface/play\` directory.
+execute: the profile, the selected maps and the play script are compiled and the script is executed.
+clean: the \`superface/node_modules\` folder and \`superface/build\` build artifacts are cleaned.`;
 
   static examples = [
     'superface play',
@@ -58,6 +59,11 @@ clean: the \`node_modules\` folder and compilation artifacts are cleaned.`;
       char: 'p',
       multiple: true,
       description: 'Providers to initialize or execute.',
+    }),
+    template: flags.string({
+      options: ['empty', 'pubs'],
+      default: 'pubs',
+      description: 'Template to initialize the profiles and maps with.',
     }),
 
     skip: skipFileFlag({
@@ -92,7 +98,7 @@ clean: the \`node_modules\` folder and compilation artifacts are cleaned.`;
     help: flags.help({ char: 'h' }),
   };
 
-  private logCallback?: (message: string) => void = m => this.log(grey(m));
+  private logCallback? = (message: string) => this.log(grey(message));
 
   async run(): Promise<void> {
     const { args, flags } = this.parse(Play);
@@ -134,7 +140,20 @@ clean: the \`node_modules\` folder and compilation artifacts are cleaned.`;
     }
 
     if (action === 'initialize') {
-      await this.runInitialize(args.playground, flags.providers);
+      // typecheck the template flag
+      switch (flags.template) {
+        case 'empty':
+        case 'pubs':
+          break;
+        default:
+          throw developerError('Invalid --template flag option', 1);
+      }
+
+      await this.runInitialize(
+        args.playground,
+        flags.providers,
+        flags.template
+      );
     } else if (action === 'execute') {
       await this.runExecute(
         args.playground,
@@ -155,7 +174,8 @@ clean: the \`node_modules\` folder and compilation artifacts are cleaned.`;
 
   private async runInitialize(
     path: string | undefined,
-    providers: string[] | undefined
+    providers: string[] | undefined,
+    template: TemplateType
   ): Promise<void> {
     if (path === undefined) {
       const response: { playground: string } = await inquirer.prompt({
@@ -176,7 +196,7 @@ clean: the \`node_modules\` folder and compilation artifacts are cleaned.`;
             return 'The playground path must not exist.';
           }
 
-          const baseName = nodePath.basename(input);
+          const baseName = basename(input);
           if (!validateDocumentName(baseName)) {
             return 'The playground name must be a valid slang identifier.';
           }
@@ -188,6 +208,14 @@ clean: the \`node_modules\` folder and compilation artifacts are cleaned.`;
       path = response.playground;
     }
     const playgroundPath = path;
+
+    const baseName = basename(playgroundPath);
+    if (!validateDocumentName(baseName)) {
+      throw userError(
+        'The playground name must be a valid slang identifier',
+        11
+      );
+    }
 
     if (providers === undefined || providers.length === 0) {
       const response: { providers: string } = await inquirer.prompt({
@@ -205,7 +233,17 @@ clean: the \`node_modules\` folder and compilation artifacts are cleaned.`;
 
     this.debug('Playground path:', playgroundPath);
     this.debug('Providers:', providers);
-    await initializePlayground(playgroundPath, providers, this.logCallback);
+    await initializePlayground(
+      playgroundPath,
+      {
+        name: baseName,
+        providers,
+      },
+      template,
+      {
+        logCb: this.logCallback,
+      }
+    );
   }
 
   // EXECUTE //
@@ -219,15 +257,15 @@ clean: the \`node_modules\` folder and compilation artifacts are cleaned.`;
     if (playgroundPath === undefined) {
       playgroundPath = await Play.promptExistingPlayground();
     }
-    const playground = await detectPlayground(playgroundPath);
+    const playground = (await detectPlayground(playgroundPath))[0]; // TODO: Do something about multiple instances
 
     if (providers === undefined || providers.length === 0) {
       const response: { providers: string[] } = await inquirer.prompt({
         name: 'providers',
         message: 'Select a provider to execute',
         type: 'checkbox',
-        choices: [...playground.providers.values()].map(p => {
-          return { name: p };
+        choices: playground.providers.map(p => {
+          return { name: p.name };
         }),
         validate: (input: string[]): boolean => {
           return input.length > 0;
@@ -236,7 +274,7 @@ clean: the \`node_modules\` folder and compilation artifacts are cleaned.`;
       providers = response.providers;
     } else {
       for (const provider of providers) {
-        if (!playground.providers.has(provider)) {
+        if (!playground.providers.find(p => p.name === provider)) {
           throw userError(
             `Provider "${provider}" not found for playground "${playground.path}"`,
             21
@@ -260,7 +298,7 @@ clean: the \`node_modules\` folder and compilation artifacts are cleaned.`;
     if (playgroundPath === undefined) {
       playgroundPath = await Play.promptExistingPlayground();
     }
-    const playground = await detectPlayground(playgroundPath);
+    const playground = (await detectPlayground(playgroundPath))[0]; // TODO: Do something about multiple instances
 
     this.debug('Playground:', playground);
     await cleanPlayground(playground, this.logCallback);

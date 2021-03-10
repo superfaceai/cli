@@ -1,3 +1,5 @@
+import { TemplateType } from './common';
+
 /**
  * Returns a map header with filled in `name` with `version`, `provider` and `variant`.
  */
@@ -14,11 +16,10 @@ provider = "${provider}"
 ${variantAssignment}`;
 }
 
-export type MapTemplateType = 'empty' | 'pubs';
 /**
  * Returns a map of given template `type` with given `name`.
  */
-export function map(type: MapTemplateType, name: string): string {
+export function map(type: TemplateType, name: string): string {
   switch (type) {
     case 'empty':
       return empty(name);

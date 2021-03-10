@@ -1,5 +1,5 @@
-name = "example/pubs"
-version = "1.0.0"
+name = "pub-hours"
+version = "1"
 
 """
 List pub opening hours

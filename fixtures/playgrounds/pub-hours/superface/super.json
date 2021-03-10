@@ -1,0 +1,25 @@
+{
+  "profiles": {
+    "pub-hours": {
+      "file": "../pub-hours.supr",
+      "providers": {
+        "osm": {
+          "file": "../pub-hours.osm.suma"
+        },
+        "noop": {
+          "file": "../pub-hours.noop.suma"
+        }
+      }
+    }
+  },
+  "providers": {
+    "osm": {
+      "file": "../osm.provider.json",
+      "auth": {}
+    },
+    "noop": {
+      "file": "../noop.provider.json",
+      "auth": {}
+    }
+  }
+}

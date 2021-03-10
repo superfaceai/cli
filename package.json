@@ -1,6 +1,6 @@
 {
   "name": "@superfaceai/cli",
-  "version": "0.0.0",
+  "version": "0.0.4",
   "description": "Superface CLI utility",
   "main": "dist/index.js",
   "repository": "git@github.com:superfaceai/cli.git",
@@ -19,15 +19,17 @@
     "test": "jest",
     "test:clean": "jest --clear-cache && jest",
     "lint": "eslint src/",
+    "lint:fix": "yarn lint --fix",
     "format": "prettier -c src/",
     "format:fix": "prettier --write src/",
-    "prepush": "yarn test && yarn lint && yarn format"
+    "prepush": "yarn build && yarn test && yarn lint && yarn format"
   },
   "devDependencies": {
     "@types/debug": "^4.1.5",
     "@types/inquirer": "^7.3.1",
     "@types/jest": "^26.0.15",
     "@types/rimraf": "^3.0.0",
+    "@types/superagent": "^4.1.10",
     "@typescript-eslint/eslint-plugin": "^4.7.0",
     "@typescript-eslint/parser": "^4.7.0",
     "eslint": "^7.13.0",
@@ -44,17 +46,22 @@
   "dependencies": {
     "@oclif/command": "^1.8.0",
     "@oclif/config": "^1.17.0",
-    "@superfaceai/ast": "^0.0.20",
-    "@superfaceai/parser": "0.0.10",
+    "@superfaceai/ast": "^0.0.21",
+    "@superfaceai/parser": "0.0.14",
+    "@superfaceai/sdk": "0.0.9",
     "chalk": "^4.1.0",
     "debug": "^4.3.1",
     "inquirer": "^7.3.3",
     "inquirer-file-tree-selection-prompt": "^1.0.7",
     "rimraf": "^3.0.2",
-    "typescript": "^4.0.5"
+    "typescript": "^4.0.5",
+    "superagent": "^6.1.0"
   },
   "oclif": {
-    "commands": "./dist/commands",
-    "bin": "superface"
+    "commands": "dist/commands",
+    "bin": "superface",
+    "hooks": {
+      "init": "dist/hooks/init"
+    }
   }
 }
