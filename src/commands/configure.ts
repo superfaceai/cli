@@ -32,15 +32,15 @@ export default class Configure extends Command {
       default: false,
     }),
     force: flags.boolean({
-      char: 'F',
+      char: 'f',
       description:
         'When set to true and when provider exists in super.json, overwrites them.',
       default: false,
     }),
-    file: flags.boolean({
-      char: 'f', //FIX char conflict with force - remove/rename force?
+    path: flags.boolean({
+      char: 'p',
       description:
-        'When set to true, provider name argument is used as a filepath to provider.json file', //FIX description?
+        'When set to true, provider name argument is used as a filepath to provider.json file',
       default: false,
     }),
     help: flags.help({ char: 'h' }),
@@ -50,6 +50,7 @@ export default class Configure extends Command {
     '$ superface configure twillio',
     '$ superface configure twillio -q',
     '$ superface configure twillio -f',
+    '$ superface configure twillio -p',
   ];
 
   private warnCallback? = (message: string) => this.log(yellow(message));
@@ -58,7 +59,7 @@ export default class Configure extends Command {
   async run(): Promise<void> {
     const { args, flags } = this.parse(Configure);
 
-    if (!validateDocumentName(args.providerName) && !flags.file) {
+    if (!validateDocumentName(args.providerName) && !flags.path) {
       this.warnCallback?.('Invalid provider name');
 
       return;
@@ -104,7 +105,7 @@ export default class Configure extends Command {
       logCb: this.logCallback,
       warnCb: this.warnCallback,
       force: flags.force,
-      file: flags.file,
+      path: flags.path,
     });
   }
 }

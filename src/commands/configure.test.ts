@@ -327,7 +327,7 @@ describe('Configure CLI command', () => {
       });
       //force flag
       await expect(
-        Configure.run([PROVIDER_NAME, '-F'])
+        Configure.run([PROVIDER_NAME, '-f'])
       ).resolves.toBeUndefined();
 
       expect(stdout.output).not.toContain(
@@ -347,11 +347,11 @@ describe('Configure CLI command', () => {
     }, 10000);
   });
 
-  describe('when there is a file flag', () => {
+  describe('when there is a path flag', () => {
     it('loads provider data from file', async () => {
       //file flag
       await expect(
-        Configure.run(['./superface/swapidev.provider.json', '-f'])
+        Configure.run(['./superface/swapidev.provider.json', '-p'])
       ).resolves.toBeUndefined();
 
       const superJson = (await SuperJson.load(FIXTURE.superJson)).unwrap();
@@ -370,7 +370,7 @@ describe('Configure CLI command', () => {
     it('does not load provider data from corupted file', async () => {
       //file flag
       await expect(
-        Configure.run(['./superface/swapidev.provider.corupted.json', '-f'])
+        Configure.run(['./superface/swapidev.provider.corupted.json', '-p'])
       ).rejects.toEqual(
         userError('Unexpected string in JSON at position 168', 1)
       );
@@ -385,7 +385,7 @@ describe('Configure CLI command', () => {
       await expect(
         Configure.run([
           './very/nice/path/superface/swapidev.provider.json',
-          '-f',
+          '-p',
         ])
       ).rejects.toEqual(
         userError(
