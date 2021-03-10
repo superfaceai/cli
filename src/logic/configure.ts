@@ -17,19 +17,14 @@ import {
 /**
  * Handle responses from superface registry.
  * It saves new information about provider into super.json.
+ * @returns number of configured security schemes 
  */
 export function handleProviderResponse(
   superJson: SuperJson,
   response: ProviderStructure,
   options?: { logCb?: LogCallback; warnCb?: LogCallback; force: boolean }
-): void {
-  if (!response.securitySchemes || response.securitySchemes.length === 0) {
-    options?.warnCb?.(
-      `⚠️  Provider: "${response.name}" does not contain any security schemes`
-    );
-
-    return;
-  }
+): number {
+  let configured = 0;
   options?.logCb?.(`Installing provider: "${response.name}"`);
 
   const auth: {
@@ -41,34 +36,47 @@ export function handleProviderResponse(
     BesicAuth: undefined,
     Bearer: undefined,
   };
+
   // FIX: multiple same schemes in response
-  for (const scheme of response.securitySchemes) {
-    if (isApiKeySecurity(scheme)) {
-      auth.ApiKey = {
-        in: scheme.in,
-        name: scheme.name,
-        value: `$${response.name.toUpperCase()}_API_KEY`,
-      };
-    } else if (isBasicAuthSecurity(scheme)) {
-      auth.BesicAuth = {
-        username: `$${response.name.toUpperCase()}_USERNAME`,
-        password: `$${response.name.toUpperCase()}_PASSWORD`,
-      };
-    } else if (isBearerTokenSecurity(scheme)) {
-      auth.Bearer = {
-        //FIX: get name from sdk
-        name: 'Authorization',
-        value: `$${response.name.toUpperCase()}_TOKEN`,
-      };
-    } else {
-      options?.warnCb?.(
-        `⚠️  Provider: "${response.name}" contains unknown security scheme`
+  if (response.securitySchemes) {
+    for (const scheme of response.securitySchemes) {
+      options?.logCb?.(
+        `Configuring ${configured + 1}/${
+        response.securitySchemes.length
+        } security schemes`
       );
+      if (isApiKeySecurity(scheme)) {
+        auth.ApiKey = {
+          in: scheme.in,
+          name: scheme.name,
+          value: `$${response.name.toUpperCase()}_API_KEY`,
+        };
+        configured += 1;
+      } else if (isBasicAuthSecurity(scheme)) {
+        auth.BesicAuth = {
+          username: `$${response.name.toUpperCase()}_USERNAME`,
+          password: `$${response.name.toUpperCase()}_PASSWORD`,
+        };
+        configured += 1;
+      } else if (isBearerTokenSecurity(scheme)) {
+        auth.Bearer = {
+          //FIX: get name from sdk
+          name: 'Authorization',
+          value: `$${response.name.toUpperCase()}_TOKEN`,
+        };
+        configured += 1;
+      } else {
+        options?.warnCb?.(
+          `⚠️  Provider: "${response.name}" contains unknown security scheme`
+        );
+      }
     }
   }
 
   // update super.json
   superJson.addProvider(response.name, { auth });
+
+  return configured;
 }
 
 /**
@@ -143,11 +151,31 @@ export async function installProvider(
 
     return;
   }
-  handleProviderResponse(superJson, providerInfo, options);
+  const numOfConfigured = handleProviderResponse(
+    superJson,
+    providerInfo,
+    options
+  );
 
   // write new information to super.json
   await OutputStream.writeOnce(superJson.path, superJson.stringified, options);
   options?.logCb?.(
     formatShellLog("echo '<updated super.json>' >", [superJson.path])
   );
+  if (providerInfo.securitySchemes && providerInfo.securitySchemes.length > 0) {
+    // inform user about instlaled security schemes
+    if (numOfConfigured === 0) {
+      options?.logCb?.(`❌ No security schemes have been configured.`);
+    } else if (numOfConfigured < providerInfo.securitySchemes.length) {
+      options?.logCb?.(
+        `⚠️ Some security schemes have been configured. Configured ${numOfConfigured} out of ${providerInfo.securitySchemes.length}.`
+      );
+    } else {
+      options?.logCb?.(
+        `🆗 All security schemes have been configured successfully.`
+      );
+    }
+  } else {
+    options?.logCb?.(`No security schemes found to configure.`);
+  }
 }
