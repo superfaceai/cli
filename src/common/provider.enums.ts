@@ -1,5 +1,5 @@
 export enum AuthSecurityType {
-  API_KEY = 'api',
+  API_KEY = 'apiKey',
   HTTP = 'http',
 }
 
