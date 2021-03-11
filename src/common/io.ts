@@ -1,5 +1,6 @@
 import * as childProcess from 'child_process';
 import * as fs from 'fs';
+import { basename } from 'path';
 import rimrafCallback from 'rimraf';
 import { Writable } from 'stream';
 import { promisify } from 'util';
@@ -203,4 +204,12 @@ export async function isAccessible(path: string): Promise<boolean> {
   }
 
   return true;
+}
+
+/**
+ * Returns file name with path and all extensions stripped
+ */
+export function basenameWithoutExt(path: string): string {
+  // NOTE: Naive implementation, but should work for any case
+  return basename(path).split('.')[0];
 }

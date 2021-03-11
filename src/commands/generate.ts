@@ -2,10 +2,12 @@ import { Command, flags } from '@oclif/command';
 import { ProfileDocumentNode } from '@superfaceai/ast';
 import { join as joinPath } from 'path';
 
-import { DocumentType, inferDocumentType } from '../common/document';
+import { inferDocumentType } from '../common/document';
+import { DocumentType } from '../common/document.interfaces';
 import { userError } from '../common/error';
 import { ErrorCodes } from '../common/error-codes';
-import { baseName, createDirectory, readFile, writeFile } from '../common/io';
+import { basenameWithoutExt, mkdir, readFile } from '../common/io';
+import { OutputStream } from '../common/output-stream';
 import { generateInterfaces } from '../logic/generate';
 import Compile from './compile';
 
@@ -50,7 +52,7 @@ export default class Generate extends Command {
     );
 
     const promises = profiles.map(async profile => {
-      const profileName = baseName(profile);
+      const profileName = basenameWithoutExt(profile);
       let profileAST: ProfileDocumentNode;
       const documentType = inferDocumentType(profile);
 
@@ -70,7 +72,7 @@ export default class Generate extends Command {
         );
       }
 
-      await createDirectory(outputDirectory.trim());
+      await mkdir(outputDirectory.trim());
 
       const generated = generateInterfaces(
         profileAST,
@@ -78,15 +80,13 @@ export default class Generate extends Command {
         untypedType
       );
 
-      await writeFile(
+      await OutputStream.writeOnce(
         joinPath(outputDirectory, profileName + '.ts'),
-        generated,
-        this.log.bind(this)
+        generated
       );
-      await writeFile(
+      await OutputStream.writeOnce(
         joinPath(outputDirectory, profileName + '.supr.ast.json'),
-        JSON.stringify(profileAST),
-        this.log.bind(this)
+        JSON.stringify(profileAST)
       );
     });
 
