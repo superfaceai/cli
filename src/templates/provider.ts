@@ -1,4 +1,5 @@
-import { ProviderStructure } from '../common/provider.interfaces';
+import { ProviderJson } from '@superfaceai/sdk';
+
 import { TemplateType } from './common';
 
 export function provider(type: TemplateType, name: string): string {
@@ -10,7 +11,7 @@ export function provider(type: TemplateType, name: string): string {
   }
 }
 
-function stringifyProvider(input: ProviderStructure): string {
+function stringifyProvider(input: ProviderJson): string {
   return JSON.stringify(input, null, 2);
 }
 

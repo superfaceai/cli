@@ -14,7 +14,6 @@ import { fetchProviderInfo } from '../common/http';
 import { readFile } from '../common/io';
 import { formatShellLog, LogCallback } from '../common/log';
 import { OutputStream } from '../common/output-stream';
-import { ProviderStructure } from '../common/provider.interfaces';
 
 /**
  * Handle responses from superface registry.
@@ -90,7 +89,7 @@ export async function getProviderFromStore(
   options?: {
     logCb?: LogCallback;
   }
-): Promise<ProviderStructure> {
+): Promise<ProviderJson> {
   options?.logCb?.(`Fetching provider ${providerName} from the Store`);
 
   try {
