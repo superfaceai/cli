@@ -1,4 +1,11 @@
-import { SuperJson } from '@superfaceai/sdk';
+import {
+  isApiKeySecurity,
+  isBasicAuthSecurity,
+  isBearerTokenSecurity,
+  parseProviderJson,
+  ProviderJson,
+  SuperJson,
+} from '@superfaceai/sdk';
 import { join as joinPath } from 'path';
 
 import { META_FILE } from '../common/document';
@@ -7,12 +14,7 @@ import { fetchProviderInfo } from '../common/http';
 import { readFile } from '../common/io';
 import { formatShellLog, LogCallback } from '../common/log';
 import { OutputStream } from '../common/output-stream';
-import {
-  isApiKeySecurity,
-  isBasicAuthSecurity,
-  isBearerTokenSecurity,
-  ProviderStructure,
-} from '../common/provider.interfaces';
+import { ProviderStructure } from '../common/provider.interfaces';
 
 /**
  * Handle responses from superface registry.
@@ -21,7 +23,7 @@ import {
  */
 export function handleProviderResponse(
   superJson: SuperJson,
-  response: ProviderStructure,
+  response: ProviderJson,
   options?: { logCb?: LogCallback; warnCb?: LogCallback; force: boolean }
 ): number {
   let configured = 0;
@@ -126,12 +128,13 @@ export async function installProvider(
     }
   );
   //Load provider info
-  let providerInfo: ProviderStructure;
+  let providerInfo: ProviderJson;
   //Load from file
   if (options?.path) {
     try {
       const file = await readFile(provider, { encoding: 'utf-8' });
-      providerInfo = JSON.parse(file) as ProviderStructure;
+      // providerInfo = JSON.parse(file) as ProviderJson;
+      providerInfo = parseProviderJson(JSON.parse(file));
     } catch (error) {
       throw userError(error, 1);
     }

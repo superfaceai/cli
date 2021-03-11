@@ -1,4 +1,10 @@
-import { SuperJson } from '@superfaceai/sdk';
+import {
+  API_KEY_AUTH_SECURITY_TYPE,
+  ApiKeySecurityIn,
+  BEARER_AUTH_SECURITY_SCHEME,
+  HTTP_AUTH_SECURITY_TYPE,
+  SuperJson,
+} from '@superfaceai/sdk';
 import { join as joinPath } from 'path';
 import { stderr, stdout } from 'stdout-stderr';
 
@@ -7,11 +13,6 @@ import { userError } from '../common/error';
 import { fetchProviderInfo } from '../common/http';
 import { rimraf } from '../common/io';
 import { OutputStream } from '../common/output-stream';
-import {
-  ApiKeySecurityIn,
-  AuthSecurityType,
-  BearerTokenSecurityScheme,
-} from '../common/provider.enums';
 import Configure from './configure';
 
 //Mock sdk response
@@ -81,7 +82,7 @@ describe('Configure CLI command', () => {
         securitySchemes: [
           {
             id: 'swapidev',
-            type: AuthSecurityType.API_KEY,
+            type: API_KEY_AUTH_SECURITY_TYPE,
             in: ApiKeySecurityIn.HEADER,
             name: 'X-API-Key',
           },
@@ -208,7 +209,7 @@ describe('Configure CLI command', () => {
         securitySchemes: [
           {
             id: 'swapidev',
-            type: AuthSecurityType.API_KEY,
+            type: API_KEY_AUTH_SECURITY_TYPE,
             in: ApiKeySecurityIn.HEADER,
             name: 'X-API-Key',
           },
@@ -269,8 +270,8 @@ describe('Configure CLI command', () => {
         securitySchemes: [
           {
             id: 'swapidev',
-            type: AuthSecurityType.HTTP,
-            scheme: BearerTokenSecurityScheme.BEARER,
+            type: HTTP_AUTH_SECURITY_TYPE,
+            scheme: BEARER_AUTH_SECURITY_SCHEME,
           },
         ],
         defaultService: 'swapidev',
@@ -319,8 +320,8 @@ describe('Configure CLI command', () => {
         securitySchemes: [
           {
             id: 'swapidev',
-            type: AuthSecurityType.HTTP,
-            scheme: BearerTokenSecurityScheme.BEARER,
+            type: HTTP_AUTH_SECURITY_TYPE,
+            scheme: BEARER_AUTH_SECURITY_SCHEME,
           },
         ],
         defaultService: 'swapidev',
