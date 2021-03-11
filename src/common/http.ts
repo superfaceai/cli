@@ -1,8 +1,8 @@
 import { ProfileDocumentNode } from '@superfaceai/ast';
+import { parseProviderJson, ProviderJson } from '@superfaceai/sdk';
 import superagent, { Response } from 'superagent';
 
 import { userError } from './error';
-import { ProviderStructure } from './provider.interfaces';
 
 export interface ProfileInfo {
   owner: string;
@@ -65,9 +65,9 @@ export async function fetchProfileAST(
 
 export async function fetchProviderInfo(
   providerName: string
-): Promise<ProviderStructure> {
+): Promise<ProviderJson> {
   const query = new URL(providerName, `${STORE_URL}providers/`).href;
   const response = await fetch(query, ContentType.JSON);
 
-  return response.body as ProviderStructure;
+  return parseProviderJson(response.body);
 }
