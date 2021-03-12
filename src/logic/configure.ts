@@ -1,4 +1,5 @@
 import {
+  AuthVariables,
   isApiKeySecurity,
   isBasicAuthSecurity,
   isBearerTokenSecurity,
@@ -25,47 +26,33 @@ export function handleProviderResponse(
   response: ProviderJson,
   options?: { logCb?: LogCallback; warnCb?: LogCallback; force: boolean }
 ): number {
-  let configured = 0;
   options?.logCb?.(`Installing provider: "${response.name}"`);
 
-  const auth: {
-    ApiKey?: Record<string, unknown>;
-    BesicAuth?: Record<string, unknown>;
-    Bearer?: Record<string, unknown>;
-  } = {
-    ApiKey: undefined,
-    BesicAuth: undefined,
-    Bearer: undefined,
-  };
+  const security: AuthVariables = [];
 
-  // FIX: multiple same schemes in response
   if (response.securitySchemes) {
     for (const scheme of response.securitySchemes) {
       options?.logCb?.(
-        `Configuring ${configured + 1}/${
+        `Configuring ${security.length + 1}/${
           response.securitySchemes.length
         } security schemes`
       );
       if (isApiKeySecurity(scheme)) {
-        auth.ApiKey = {
-          in: scheme.in,
-          name: scheme.name,
-          value: `$${response.name.toUpperCase()}_API_KEY`,
-        };
-        configured += 1;
+        security.push({
+          id: scheme.id,
+          apikey: `$${response.name.toUpperCase()}_API_KEY`,
+        });
       } else if (isBasicAuthSecurity(scheme)) {
-        auth.BesicAuth = {
+        security.push({
+          id: scheme.id,
           username: `$${response.name.toUpperCase()}_USERNAME`,
           password: `$${response.name.toUpperCase()}_PASSWORD`,
-        };
-        configured += 1;
+        });
       } else if (isBearerTokenSecurity(scheme)) {
-        auth.Bearer = {
-          //FIX: get name from sdk
-          name: 'Authorization',
-          value: `$${response.name.toUpperCase()}_TOKEN`,
-        };
-        configured += 1;
+        security.push({
+          id: scheme.id,
+          token: `$${response.name.toUpperCase()}_TOKEN`,
+        });
       } else {
         options?.warnCb?.(
           `⚠️  Provider: "${response.name}" contains unknown security scheme`
@@ -73,11 +60,11 @@ export function handleProviderResponse(
       }
     }
   }
-
+  console.log('sec', security);
   // update super.json
-  superJson.addProvider(response.name, { auth });
+  superJson.addProvider(response.name, { security });
 
-  return configured;
+  return security.length;
 }
 
 /**
