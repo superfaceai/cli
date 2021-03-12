@@ -60,7 +60,6 @@ export function handleProviderResponse(
       }
     }
   }
-  console.log('sec', security);
   // update super.json
   superJson.addProvider(response.name, { security });
 
