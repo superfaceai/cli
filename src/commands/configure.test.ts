@@ -3,6 +3,7 @@ import {
   ApiKeySecurityIn,
   BASIC_AUTH_SECURITY_SCHEME,
   BEARER_AUTH_SECURITY_SCHEME,
+  DIGEST_AUTH_SECURITY_SCHEME,
   HTTP_AUTH_SECURITY_TYPE,
   SuperJson,
 } from '@superfaceai/sdk';
@@ -97,6 +98,11 @@ describe('Configure CLI command', () => {
             type: HTTP_AUTH_SECURITY_TYPE,
             scheme: BASIC_AUTH_SECURITY_SCHEME,
           },
+          {
+            id: 'digest',
+            type: HTTP_AUTH_SECURITY_TYPE,
+            scheme: DIGEST_AUTH_SECURITY_SCHEME,
+          },
         ],
         defaultService: 'swapidev',
       });
@@ -121,6 +127,10 @@ describe('Configure CLI command', () => {
           id: 'basic',
           username: `$${PROVIDER_NAME.toUpperCase()}_USERNAME`,
           password: `$${PROVIDER_NAME.toUpperCase()}_PASSWORD`,
+        },
+        {
+          id: 'digest',
+          digest: `$${PROVIDER_NAME.toUpperCase()}_DIGEST`,
         },
       ]);
     }, 10000);
@@ -369,8 +379,12 @@ describe('Configure CLI command', () => {
 
       expect(superJson.normalized.providers[PROVIDER_NAME].security).toEqual([
         {
-          id: 'test',
+          id: 'api',
           apikey: '$TEST_API_KEY',
+        },
+        {
+          id: 'digest',
+          digest: '$TEST_DIGEST',
         },
       ]);
     }, 10000);
