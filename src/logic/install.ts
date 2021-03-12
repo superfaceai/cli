@@ -65,7 +65,8 @@ interface ProfileResponse {
 }
 
 /**
- * Mock the Superface registry API GET call with calls to Store API.
+ * Fetches all content types of given profile from the store.
+ *
  * Query the newest profile in valid scope (https://semver.org/)
  */
 export async function getProfileFromStore(

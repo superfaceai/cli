@@ -131,7 +131,7 @@ describe('Install CLI command', () => {
       const profileIdRequest = `${profileId}@${PROFILE.version}`;
 
       await expect(
-        Install.run([profileIdRequest, '-p', 'twillio', 'osm', 'tyntec'])
+        Install.run([profileIdRequest, '-p', 'test', 'test2'])
       ).resolves.toBeUndefined();
       const superJson = (await SuperJson.load()).unwrap();
 
@@ -143,10 +143,27 @@ describe('Install CLI command', () => {
       expect(superJson.document.profiles![profileId]).toEqual({
         version: PROFILE.version,
         providers: {
-          twillio: {},
-          osm: {},
-          tyntec: {},
+          test: {},
+          test2: {},
         },
+      });
+
+      expect(superJson.document.providers!['test']).toEqual({
+        security: [{ id: 'test', apikey: '$TEST_API_KEY' }],
+      });
+
+      expect(superJson.document.providers!['test2']).toEqual({
+        security: [
+          {
+            id: 'my-basic-auth',
+            username: '$TEST2_USERNAME',
+            password: '$TEST2_PASSWORD',
+          },
+          {
+            id: 'my-api-key-auth',
+            apikey: '$TEST2_API_KEY',
+          },
+        ],
       });
     }, 10000);
   });

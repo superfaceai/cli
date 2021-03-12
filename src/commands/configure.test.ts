@@ -148,7 +148,7 @@ describe('Configure CLI command', () => {
 
       const superJson = (await SuperJson.load(FIXTURE.superJson)).unwrap();
       expect(superJson.document.providers![PROVIDER_NAME]).toEqual({
-        auth: {},
+        security: [],
       });
     }, 10000);
 
@@ -173,7 +173,7 @@ describe('Configure CLI command', () => {
 
       const superJson = (await SuperJson.load(FIXTURE.superJson)).unwrap();
       expect(superJson.document.providers![PROVIDER_NAME]).toEqual({
-        auth: {},
+        security: [],
       });
     }, 10000);
 
@@ -207,7 +207,7 @@ describe('Configure CLI command', () => {
 
       const superJson = (await SuperJson.load(FIXTURE.superJson)).unwrap();
       expect(superJson.document.providers![PROVIDER_NAME]).toEqual({
-        auth: {},
+        security: [],
       });
     }, 10000);
 
@@ -228,7 +228,6 @@ describe('Configure CLI command', () => {
             in: ApiKeySecurityIn.HEADER,
             name: 'X-API-Key',
           },
-          // FIX: SuperJson.load loading only first property of auth
         ],
         defaultService: 'swapidev',
       });
@@ -237,16 +236,12 @@ describe('Configure CLI command', () => {
         Configure.run([PROVIDER_NAME, '-q'])
       ).resolves.toBeUndefined();
       const superJson = (await SuperJson.load(FIXTURE.superJson)).unwrap();
-      expect(superJson.document.providers![PROVIDER_NAME]).toEqual({
-        auth: {
-          ApiKey: {
-            in: 'header',
-            name: 'X-API-Key',
-            value: '$TEST_API_KEY',
-          },
-          // FIX: SuperJson.load loading only first property of auth
+      expect(superJson.normalized.providers[PROVIDER_NAME].security).toEqual([
+        {
+          id: 'swapidev',
+          apikey: '$TEST_API_KEY',
         },
-      });
+      ]);
 
       expect(stdout.output).toBe('');
     });
@@ -259,13 +254,12 @@ describe('Configure CLI command', () => {
         profiles: {},
         providers: {
           [PROVIDER_NAME]: {
-            auth: {
-              ApiKey: {
-                in: 'header',
-                name: 'X-API-Key',
-                value: '$TEST_API_KEY',
+            security: [
+              {
+                id: 'apiKey',
+                apikey: '$TEST_API_KEY',
               },
-            },
+            ],
           },
         },
       };
@@ -309,13 +303,12 @@ describe('Configure CLI command', () => {
         profiles: {},
         providers: {
           [PROVIDER_NAME]: {
-            auth: {
-              ApiKey: {
-                in: 'header',
-                name: 'X-API-Key',
-                value: '$TEST_API_KEY',
+            security: [
+              {
+                id: 'swapidev',
+                apikey: '$TEST_API_KEY',
               },
-            },
+            ],
           },
         },
       };
@@ -352,14 +345,12 @@ describe('Configure CLI command', () => {
 
       const superJson = (await SuperJson.load(FIXTURE.superJson)).unwrap();
 
-      expect(superJson.document.providers![PROVIDER_NAME]).toEqual({
-        auth: {
-          Bearer: {
-            name: 'Authorization',
-            value: '$TEST_TOKEN',
-          },
+      expect(superJson.normalized.providers[PROVIDER_NAME].security).toEqual([
+        {
+          id: 'swapidev',
+          token: '$TEST_TOKEN',
         },
-      });
+      ]);
     }, 10000);
   });
 
@@ -372,15 +363,12 @@ describe('Configure CLI command', () => {
 
       const superJson = (await SuperJson.load(FIXTURE.superJson)).unwrap();
 
-      expect(superJson.document.providers![PROVIDER_NAME]).toEqual({
-        auth: {
-          ApiKey: {
-            in: 'header',
-            name: 'X-API-Key',
-            value: '$TEST_API_KEY',
-          },
+      expect(superJson.normalized.providers[PROVIDER_NAME].security).toEqual([
+        {
+          id: 'test',
+          apikey: '$TEST_API_KEY',
         },
-      });
+      ]);
     }, 10000);
 
     it('does not load provider data from corupted file', async () => {

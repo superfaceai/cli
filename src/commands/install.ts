@@ -125,7 +125,7 @@ export default class Install extends Command {
       superPath = SUPERFACE_DIR;
     }
 
-    const providers = parseProviders(flags.providers)
+    const providers = parseProviders(flags.providers);
 
     this.logCallback?.(
       `Installing profiles according to 'super.json' on path '${joinPath(
@@ -133,16 +133,11 @@ export default class Install extends Command {
         META_FILE
       )}'`
     );
-    await installProfiles(
-      superPath,
-      args.profileId,
-      providers,
-      {
-        logCb: this.logCallback,
-        warnCb: this.warnCallback,
-        force: flags.force,
-      }
-    );
+    await installProfiles(superPath, args.profileId, providers, {
+      logCb: this.logCallback,
+      warnCb: this.warnCallback,
+      force: flags.force,
+    });
 
     this.logCallback?.(`\n\nConfiguring providers`);
     for (const providerName of providers) {
