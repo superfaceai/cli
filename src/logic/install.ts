@@ -74,7 +74,7 @@ export async function getProfileFromStore(
     logCb?: LogCallback;
   }
 ): Promise<ProfileResponse> {
-  options?.logCb?.(`Fetching profile ${profileId} from the Store`);
+  options?.logCb?.(`\nFetching profile ${profileId} from the Store`);
 
   try {
     const info = await fetchProfileInfo(profileId);
@@ -126,7 +126,7 @@ export async function handleProfileResponses(
 ): Promise<number> {
   let installed = 0;
 
-  options?.logCb?.('Installing profiles');
+  options?.logCb?.('\n\nInstalling profiles');
   for (const response of responses) {
     options?.logCb?.(
       `${installed + 1}/${responses.length} installing ${

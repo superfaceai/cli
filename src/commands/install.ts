@@ -10,6 +10,7 @@ import {
 } from '../common/document';
 import { userError } from '../common/error';
 import { LogCallback } from '../common/log';
+import { installProvider } from '../logic/configure';
 import { initSuperface } from '../logic/init';
 import { detectSuperJson, installProfiles } from '../logic/install';
 
@@ -124,6 +125,8 @@ export default class Install extends Command {
       superPath = SUPERFACE_DIR;
     }
 
+    const providers = parseProviders(flags.providers)
+
     this.logCallback?.(
       `Installing profiles according to 'super.json' on path '${joinPath(
         superPath,
@@ -133,12 +136,22 @@ export default class Install extends Command {
     await installProfiles(
       superPath,
       args.profileId,
-      parseProviders(flags.providers),
+      providers,
       {
         logCb: this.logCallback,
         warnCb: this.warnCallback,
         force: flags.force,
       }
     );
+
+    this.logCallback?.(`\n\nConfiguring providers`);
+    for (const providerName of providers) {
+      await installProvider(superPath, providerName, {
+        logCb: this.logCallback,
+        warnCb: this.warnCallback,
+        force: flags.force,
+        path: false,
+      });
+    }
   }
 }
