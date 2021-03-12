@@ -3,6 +3,7 @@ import {
   isApiKeySecurity,
   isBasicAuthSecurity,
   isBearerTokenSecurity,
+  isDigestAuthSecurity,
   parseProviderJson,
   ProviderJson,
   SuperJson,
@@ -52,6 +53,11 @@ export function handleProviderResponse(
         security.push({
           id: scheme.id,
           token: `$${response.name.toUpperCase()}_TOKEN`,
+        });
+      } else if (isDigestAuthSecurity(scheme)) {
+        security.push({
+          id: scheme.id,
+          digest: `$${response.name.toUpperCase()}_DIGEST`,
         });
       } else {
         options?.warnCb?.(
