@@ -1,6 +1,7 @@
 import {
   API_KEY_AUTH_SECURITY_TYPE,
   ApiKeySecurityIn,
+  BASIC_AUTH_SECURITY_SCHEME,
   BEARER_AUTH_SECURITY_SCHEME,
   HTTP_AUTH_SECURITY_TYPE,
   SuperJson,
@@ -81,12 +82,21 @@ describe('Configure CLI command', () => {
         ],
         securitySchemes: [
           {
-            id: 'swapidev',
+            id: 'api',
             type: API_KEY_AUTH_SECURITY_TYPE,
             in: ApiKeySecurityIn.HEADER,
             name: 'X-API-Key',
           },
-          // FIX: SuperJson.load loading only first property of auth
+          {
+            id: 'bearer',
+            type: HTTP_AUTH_SECURITY_TYPE,
+            scheme: BEARER_AUTH_SECURITY_SCHEME,
+          },
+          {
+            id: 'basic',
+            type: HTTP_AUTH_SECURITY_TYPE,
+            scheme: BASIC_AUTH_SECURITY_SCHEME,
+          },
         ],
         defaultService: 'swapidev',
       });
@@ -98,16 +108,21 @@ describe('Configure CLI command', () => {
       );
 
       const superJson = (await SuperJson.load(FIXTURE.superJson)).unwrap();
-      expect(superJson.document.providers![PROVIDER_NAME]).toEqual({
-        auth: {
-          ApiKey: {
-            in: 'header',
-            name: 'X-API-Key',
-            value: '$TEST_API_KEY',
-          },
-          // FIX: SuperJson.load loading only first property of auth
+      expect(superJson.normalized.providers[PROVIDER_NAME].security).toEqual([
+        {
+          id: 'api',
+          apikey: `$${PROVIDER_NAME.toUpperCase()}_API_KEY`,
         },
-      });
+        {
+          id: 'bearer',
+          token: `$${PROVIDER_NAME.toUpperCase()}_TOKEN`,
+        },
+        {
+          id: 'basic',
+          username: `$${PROVIDER_NAME.toUpperCase()}_USERNAME`,
+          password: `$${PROVIDER_NAME.toUpperCase()}_PASSWORD`,
+        },
+      ]);
     }, 10000);
 
     it('configures provider with empty security schemes correctly', async () => {
