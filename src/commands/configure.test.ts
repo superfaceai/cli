@@ -10,24 +10,48 @@ import {
 import { join as joinPath } from 'path';
 import { stderr, stdout } from 'stdout-stderr';
 
-import { SUPER_PATH } from '../common/document';
+import { EXTENSIONS, GRID_DIR, SUPER_PATH } from '../common/document';
 import { userError } from '../common/error';
-import { fetchProviderInfo } from '../common/http';
-import { rimraf } from '../common/io';
+import { fetchProfile, fetchProviderInfo } from '../common/http';
+import { readFile, rimraf } from '../common/io';
 import { OutputStream } from '../common/output-stream';
 import Configure from './configure';
 
-//Mock sdk response
-jest.mock('../common/http');
+//Mock only fetchProviderInfo response
+jest.mock('../common/http', () => ({
+  /* eslint-disable */
+  ...(jest.requireActual('../common/http') as {}),
+  /* eslint-ensable */
+  fetchProviderInfo: jest.fn(),
+}));
 
 describe('Configure CLI command', () => {
   const WORKING_DIR = joinPath('fixtures', 'configure', 'playground');
 
+  const PROFILE = {
+    scope: 'starwars',
+    name: 'character-information',
+    version: '1.0.1',
+  };
   const PROVIDER_NAME = 'test';
 
   const FIXTURE = {
     superJson: SUPER_PATH,
-    scope: PROVIDER_NAME,
+    scope: joinPath(GRID_DIR, PROFILE.scope),
+    profile: joinPath(
+      GRID_DIR,
+      PROFILE.scope,
+      PROFILE.name + '@' + PROFILE.version + EXTENSIONS.profile.source
+    ),
+    ast: joinPath(
+      GRID_DIR,
+      PROFILE.scope,
+      PROFILE.name +
+        '@' +
+        PROFILE.version +
+        EXTENSIONS.profile.source +
+        '.ast.json'
+    ),
   };
 
   let INITIAL_CWD: string;
@@ -107,13 +131,18 @@ describe('Configure CLI command', () => {
         defaultService: 'swapidev',
       });
 
-      await expect(Configure.run([PROVIDER_NAME])).resolves.toBeUndefined();
+      const profileId = `${PROFILE.scope}/${PROFILE.name}`;
+
+      await expect(
+        Configure.run([PROVIDER_NAME, `-p ${profileId}`])
+      ).resolves.toBeUndefined();
 
       expect(stdout.output).toContain(
         '🆗 All security schemes have been configured successfully.'
       );
 
       const superJson = (await SuperJson.load(FIXTURE.superJson)).unwrap();
+      //Check super.json
       expect(superJson.normalized.providers[PROVIDER_NAME].security).toEqual([
         {
           id: 'api',
@@ -133,6 +162,16 @@ describe('Configure CLI command', () => {
           digest: `$${PROVIDER_NAME.toUpperCase()}_DIGEST`,
         },
       ]);
+      expect(superJson.document.profiles![profileId]).toEqual({
+        version: PROFILE.version,
+        providers: { [PROVIDER_NAME]: {} },
+      });
+      //Check profiles
+      const localProfile = await readFile(FIXTURE.profile, {
+        encoding: 'utf-8',
+      });
+      const registryProfile = await fetchProfile(profileId);
+      expect(localProfile).toEqual(registryProfile);
     }, 10000);
 
     it('configures provider with empty security schemes correctly', async () => {
@@ -150,7 +189,11 @@ describe('Configure CLI command', () => {
         defaultService: 'swapidev',
       });
 
-      await expect(Configure.run([PROVIDER_NAME])).resolves.toBeUndefined();
+      const profileId = `${PROFILE.scope}/${PROFILE.name}`;
+
+      await expect(
+        Configure.run([PROVIDER_NAME, `-p ${profileId}`])
+      ).resolves.toBeUndefined();
 
       expect(stdout.output).toContain(
         'No security schemes found to configure.'
@@ -160,6 +203,17 @@ describe('Configure CLI command', () => {
       expect(superJson.document.providers![PROVIDER_NAME]).toEqual({
         security: [],
       });
+
+      expect(superJson.document.profiles![profileId]).toEqual({
+        version: PROFILE.version,
+        providers: { [PROVIDER_NAME]: {} },
+      });
+      //Check profiles
+      const localProfile = await readFile(FIXTURE.profile, {
+        encoding: 'utf-8',
+      });
+      const registryProfile = await fetchProfile(profileId);
+      expect(localProfile).toEqual(registryProfile);
     }, 10000);
 
     it('configures provider without security schemes correctly', async () => {
@@ -174,8 +228,11 @@ describe('Configure CLI command', () => {
         ],
         defaultService: 'swapidev',
       });
+      const profileId = `${PROFILE.scope}/${PROFILE.name}`;
 
-      await expect(Configure.run([PROVIDER_NAME])).resolves.toBeUndefined();
+      await expect(
+        Configure.run([PROVIDER_NAME, `-p ${profileId}`])
+      ).resolves.toBeUndefined();
 
       expect(stdout.output).toContain(
         'No security schemes found to configure.'
@@ -185,6 +242,17 @@ describe('Configure CLI command', () => {
       expect(superJson.document.providers![PROVIDER_NAME]).toEqual({
         security: [],
       });
+
+      expect(superJson.document.profiles![profileId]).toEqual({
+        version: PROFILE.version,
+        providers: { [PROVIDER_NAME]: {} },
+      });
+      //Check profiles
+      const localProfile = await readFile(FIXTURE.profile, {
+        encoding: 'utf-8',
+      });
+      const registryProfile = await fetchProfile(profileId);
+      expect(localProfile).toEqual(registryProfile);
     }, 10000);
 
     it('configures provider with unknown security scheme correctly', async () => {
@@ -208,8 +276,11 @@ describe('Configure CLI command', () => {
         ],
         defaultService: 'swapidev',
       });
+      const profileId = `${PROFILE.scope}/${PROFILE.name}`;
 
-      await expect(Configure.run([PROVIDER_NAME])).resolves.toBeUndefined();
+      await expect(
+        Configure.run([PROVIDER_NAME, `-p ${profileId}`])
+      ).resolves.toBeUndefined();
 
       expect(stdout.output).toContain(
         '❌ No security schemes have been configured.'
@@ -219,6 +290,17 @@ describe('Configure CLI command', () => {
       expect(superJson.document.providers![PROVIDER_NAME]).toEqual({
         security: [],
       });
+
+      expect(superJson.document.profiles![profileId]).toEqual({
+        version: PROFILE.version,
+        providers: { [PROVIDER_NAME]: {} },
+      });
+      //Check profiles
+      const localProfile = await readFile(FIXTURE.profile, {
+        encoding: 'utf-8',
+      });
+      const registryProfile = await fetchProfile(profileId);
+      expect(localProfile).toEqual(registryProfile);
     }, 10000);
 
     it('does not log to stdout with --quiet', async () => {
@@ -241,9 +323,10 @@ describe('Configure CLI command', () => {
         ],
         defaultService: 'swapidev',
       });
+      const profileId = `${PROFILE.scope}/${PROFILE.name}`;
 
       await expect(
-        Configure.run([PROVIDER_NAME, '-q'])
+        Configure.run([PROVIDER_NAME, `-p ${profileId}`, '-q'])
       ).resolves.toBeUndefined();
       const superJson = (await SuperJson.load(FIXTURE.superJson)).unwrap();
       expect(
@@ -253,15 +336,35 @@ describe('Configure CLI command', () => {
         id: 'swapidev',
       });
 
+      expect(superJson.document.profiles![profileId]).toEqual({
+        version: PROFILE.version,
+        providers: { [PROVIDER_NAME]: {} },
+      });
+      //Check profiles
+      const localProfile = await readFile(FIXTURE.profile, {
+        encoding: 'utf-8',
+      });
+      const registryProfile = await fetchProfile(profileId);
+      expect(localProfile).toEqual(registryProfile);
+
       expect(stdout.output).toBe('');
     });
   });
 
   describe('when providers are present in super.json', () => {
     it('errors without a force flag', async () => {
+      const profileId = `${PROFILE.scope}/${PROFILE.name}`;
+
       //set existing super.json
       const localSuperJson = {
-        profiles: {},
+        profiles: {
+          [profileId]: {
+            version: PROFILE.version,
+            providers: {
+              [PROVIDER_NAME]: {},
+            },
+          },
+        },
         providers: {
           [PROVIDER_NAME]: {
             security: [
@@ -296,7 +399,9 @@ describe('Configure CLI command', () => {
         defaultService: 'swapidev',
       });
 
-      await expect(Configure.run([PROVIDER_NAME])).resolves.toBeUndefined();
+      await expect(
+        Configure.run([PROVIDER_NAME, `-p ${profileId}`])
+      ).resolves.toBeUndefined();
 
       expect(stdout.output).toContain(
         `Provider already exists: "${PROVIDER_NAME}"`
@@ -304,13 +409,22 @@ describe('Configure CLI command', () => {
 
       const superJson = (await SuperJson.load(FIXTURE.superJson)).unwrap();
 
-      expect(superJson.document.providers).toEqual(localSuperJson.providers);
+      expect(superJson.document).toEqual(localSuperJson);
     }, 10000);
 
     it('overrides existing super.json with a force flag', async () => {
+      const profileId = `${PROFILE.scope}/${PROFILE.name}`;
+
       //set existing super.json
       const localSuperJson = {
-        profiles: {},
+        profiles: {
+          [profileId]: {
+            version: PROFILE.version,
+            providers: {
+              [PROVIDER_NAME]: {},
+            },
+          },
+        },
         providers: {
           [PROVIDER_NAME]: {
             security: [
@@ -344,9 +458,10 @@ describe('Configure CLI command', () => {
         ],
         defaultService: 'swapidev',
       });
+
       //force flag
       await expect(
-        Configure.run([PROVIDER_NAME, '-f'])
+        Configure.run([PROVIDER_NAME, `-p ${profileId}`, '-f'])
       ).resolves.toBeUndefined();
 
       expect(stdout.output).not.toContain(
@@ -365,14 +480,31 @@ describe('Configure CLI command', () => {
           token: '$TEST_TOKEN',
         },
       ]);
+
+      expect(superJson.document.profiles![profileId]).toEqual({
+        version: PROFILE.version,
+        providers: { [PROVIDER_NAME]: {} },
+      });
+      //Check profiles
+      const localProfile = await readFile(FIXTURE.profile, {
+        encoding: 'utf-8',
+      });
+      const registryProfile = await fetchProfile(profileId);
+      expect(localProfile).toEqual(registryProfile);
     }, 10000);
   });
 
   describe('when there is a path flag', () => {
     it('loads provider data from file', async () => {
-      //file flag
+      const profileId = `${PROFILE.scope}/${PROFILE.name}`;
+
+      //local flag
       await expect(
-        Configure.run(['./superface/swapidev.provider.json', '-p'])
+        Configure.run([
+          './superface/swapidev.provider.json',
+          `-p ${profileId}`,
+          '-l',
+        ])
       ).resolves.toBeUndefined();
 
       const superJson = (await SuperJson.load(FIXTURE.superJson)).unwrap();
@@ -387,12 +519,29 @@ describe('Configure CLI command', () => {
           digest: '$TEST_DIGEST',
         },
       ]);
+
+      expect(superJson.document.profiles![profileId]).toEqual({
+        version: PROFILE.version,
+        providers: { [PROVIDER_NAME]: {} },
+      });
+      //Check profiles
+      const localProfile = await readFile(FIXTURE.profile, {
+        encoding: 'utf-8',
+      });
+      const registryProfile = await fetchProfile(profileId);
+      expect(localProfile).toEqual(registryProfile);
     }, 10000);
 
     it('does not load provider data from corupted file', async () => {
-      //file flag
+      const profileId = `${PROFILE.scope}/${PROFILE.name}`;
+
+      //local flag
       await expect(
-        Configure.run(['./superface/swapidev.provider.corupted.json', '-p'])
+        Configure.run([
+          './superface/swapidev.provider.corupted.json',
+          `-p ${profileId}`,
+          '-l',
+        ])
       ).rejects.toEqual(
         userError('Unexpected string in JSON at position 168', 1)
       );
@@ -403,11 +552,14 @@ describe('Configure CLI command', () => {
     }, 10000);
 
     it('does not load provider data from nonexistent file', async () => {
-      //file flag
+      const profileId = `${PROFILE.scope}/${PROFILE.name}`;
+
+      //local flag
       await expect(
         Configure.run([
           './very/nice/path/superface/swapidev.provider.json',
-          '-p',
+          `-p ${profileId}`,
+          '-l',
         ])
       ).rejects.toEqual(
         userError(
