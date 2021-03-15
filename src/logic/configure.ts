@@ -10,12 +10,16 @@ import {
 } from '@superfaceai/sdk';
 import { join as joinPath } from 'path';
 
-import { META_FILE } from '../common/document';
+import {
+  constructProfileProviderSettings,
+  META_FILE,
+} from '../common/document';
 import { userError } from '../common/error';
 import { fetchProviderInfo } from '../common/http';
 import { readFile } from '../common/io';
 import { formatShellLog, LogCallback } from '../common/log';
 import { OutputStream } from '../common/output-stream';
+import { getProfileFromStore, handleProfileResponses } from './install';
 
 /**
  * Handle responses from superface registry.
@@ -102,11 +106,12 @@ export async function getProviderFromStore(
 export async function installProvider(
   superPath: string,
   provider: string,
+  profileId: string,
   options?: {
     logCb?: LogCallback;
     warnCb?: LogCallback;
     force: boolean;
-    path: boolean;
+    local: boolean;
   }
 ): Promise<void> {
   const loadedResult = await SuperJson.load(joinPath(superPath, META_FILE));
@@ -121,10 +126,9 @@ export async function installProvider(
   //Load provider info
   let providerInfo: ProviderJson;
   //Load from file
-  if (options?.path) {
+  if (options?.local) {
     try {
       const file = await readFile(provider, { encoding: 'utf-8' });
-      // providerInfo = JSON.parse(file) as ProviderJson;
       providerInfo = parseProviderJson(JSON.parse(file));
     } catch (error) {
       throw userError(error, 1);
@@ -134,7 +138,7 @@ export async function installProvider(
     providerInfo = await getProviderFromStore(provider);
   }
 
-  // check existence and warn
+  // Check existence and warn
   if (
     options?.force === false &&
     superJson.normalized.providers[providerInfo.name]
@@ -145,6 +149,26 @@ export async function installProvider(
 
     return;
   }
+  //Load profile info
+  const response = await getProfileFromStore(profileId, {
+    logCb: options?.logCb,
+  });
+  const numOfInstalled = await handleProfileResponses(
+    superJson,
+    [response],
+    //Provider from args can be path
+    constructProfileProviderSettings([providerInfo.name]),
+    options
+  );
+  if (numOfInstalled === 0) {
+    options?.logCb?.(`❌ No profiles have been installed`);
+  } else {
+    options?.logCb?.(
+      `🆗 Profile ${profileId} have been installed successfully.`
+    );
+  }
+
+  //Write provider to super.json
   const numOfConfigured = handleProviderResponse(
     superJson,
     providerInfo,

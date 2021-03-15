@@ -25,6 +25,11 @@ export default class Configure extends Command {
   ];
 
   static flags = {
+    profile: flags.string({
+      char: 'p',
+      description: 'Specifies profile to associate with provider',
+      required: true,
+    }),
     quiet: flags.boolean({
       char: 'q',
       description:
@@ -37,8 +42,8 @@ export default class Configure extends Command {
         'When set to true and when provider exists in super.json, overwrites them.',
       default: false,
     }),
-    path: flags.boolean({
-      char: 'p',
+    local: flags.boolean({
+      char: 'l',
       description:
         'When set to true, provider name argument is used as a filepath to provider.json file',
       default: false,
@@ -47,10 +52,10 @@ export default class Configure extends Command {
   };
 
   static examples = [
-    '$ superface configure twillio',
+    '$ superface configure twillio -p send-sms',
     '$ superface configure twillio -q',
     '$ superface configure twillio -f',
-    '$ superface configure twillio -p',
+    '$ superface configure twillio -l',
   ];
 
   private warnCallback? = (message: string) => this.log(yellow(message));
@@ -64,7 +69,7 @@ export default class Configure extends Command {
       this.logCallback = undefined;
     }
 
-    if (!validateDocumentName(args.providerName) && !flags.path) {
+    if (!validateDocumentName(args.providerName) && !flags.local) {
       this.warnCallback?.('Invalid provider name');
 
       return;
@@ -102,11 +107,11 @@ export default class Configure extends Command {
         META_FILE
       )}'`
     );
-    await installProvider(superPath, args.providerName, {
+    await installProvider(superPath, args.providerName, flags.profile, {
       logCb: this.logCallback,
       warnCb: this.warnCallback,
       force: flags.force,
-      path: flags.path,
+      local: flags.local,
     });
   }
 }
