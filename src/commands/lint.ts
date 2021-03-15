@@ -1,5 +1,6 @@
-import { Command, flags } from '@oclif/command';
+import { flags } from '@oclif/command';
 
+import Command from '../common/command.abstract';
 import { developerError, userError } from '../common/error';
 import { DocumentTypeFlag, documentTypeFlag } from '../common/flags';
 import { ListWriter } from '../common/list-writer';
@@ -24,6 +25,7 @@ export default class Lint extends Command {
   static strict = false;
 
   static flags = {
+    ...Command.flags,
     documentType: documentTypeFlag,
 
     output: flags.string({
