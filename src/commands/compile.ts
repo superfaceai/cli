@@ -2,7 +2,7 @@ import { flags } from '@oclif/command';
 import { Source } from '@superfaceai/parser';
 import { basename, join as joinPath } from 'path';
 
-import Command from '../common/command.abstract';
+import { Command } from '../common/command.abstract';
 import {
   DOCUMENT_PARSE_FUNCTION,
   inferDocumentTypeWithFlag,

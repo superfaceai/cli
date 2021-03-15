@@ -3,7 +3,7 @@ import { grey, yellow } from 'chalk';
 import inquirer from 'inquirer';
 import { join as joinPath } from 'path';
 
-import Command from '../common/command.abstract';
+import { Command } from '../common/command.abstract';
 import {
   META_FILE,
   SUPERFACE_DIR,

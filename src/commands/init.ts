@@ -4,7 +4,7 @@ import { grey, yellow } from 'chalk';
 import inquirer from 'inquirer';
 import { join as joinPath } from 'path';
 
-import Command from '../common/command.abstract';
+import { Command } from '../common/command.abstract';
 import {
   constructProviderSettings,
   validateDocumentName,

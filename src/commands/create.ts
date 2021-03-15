@@ -2,7 +2,7 @@ import { flags } from '@oclif/command';
 import { parseDocumentId } from '@superfaceai/parser';
 import { SuperJson } from '@superfaceai/sdk';
 
-import Command from '../common/command.abstract';
+import { Command } from '../common/command.abstract';
 import {
   composeUsecaseName,
   DEFAULT_PROFILE_VERSION_STR,

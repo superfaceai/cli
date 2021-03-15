@@ -4,7 +4,7 @@ import inquirer from 'inquirer';
 import FileTreeSelectionPrompt from 'inquirer-file-tree-selection-prompt';
 import { basename } from 'path';
 
-import Command from '../common/command.abstract';
+import { Command } from '../common/command.abstract';
 import { validateDocumentName } from '../common/document';
 import { developerError, userError } from '../common/error';
 import { skipFileFlag, SkipFileType } from '../common/flags';

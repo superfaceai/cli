@@ -1,6 +1,6 @@
-import { Command, flags } from '@oclif/command';
+import { Command as OclifCommand, flags } from '@oclif/command';
 
-export default abstract class extends Command {
+export abstract class Command extends OclifCommand {
   static flags = {
     quiet: flags.boolean({
       char: 'q',

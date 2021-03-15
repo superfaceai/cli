@@ -1,6 +1,6 @@
 import { flags } from '@oclif/command';
 
-import Command from '../common/command.abstract';
+import { Command } from '../common/command.abstract';
 import { developerError, userError } from '../common/error';
 import { DocumentTypeFlag, documentTypeFlag } from '../common/flags';
 import { ListWriter } from '../common/list-writer';
