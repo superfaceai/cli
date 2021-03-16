@@ -138,16 +138,10 @@ describe('IO functions', () => {
   });
 
   describe('when calling stream end', () => {
-    it('rejects if a stream error occurs', async () => {
-      const mockWriteable = new MockWritable(false);
-      await expect(streamEnd(mockWriteable)).resolves.toBeUndefined();
-    }, 10000);
-
     it('resolves if close occurs', async () => {
       const mockWriteable = new MockWritable(false);
       const actualPromise = streamEnd(mockWriteable);
       setTimeout(() => {
-        mockWriteable.emit('close');
         mockWriteable.emit('end');
       }, 100);
       await expect(actualPromise).resolves.toBeUndefined();
