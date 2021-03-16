@@ -1,9 +1,10 @@
-import { Command, flags } from '@oclif/command';
+import { flags } from '@oclif/command';
 import { parseProfileId } from '@superfaceai/parser';
 import { grey, yellow } from 'chalk';
 import inquirer from 'inquirer';
 import { join as joinPath } from 'path';
 
+import { Command } from '../common/command.abstract';
 import {
   constructProviderSettings,
   validateDocumentName,
@@ -105,12 +106,7 @@ export default class Init extends Command {
   ];
 
   static flags = {
-    quiet: flags.boolean({
-      char: 'q',
-      description:
-        'When set to true, disables the shell echo output of init actions.',
-      default: false,
-    }),
+    ...Command.flags,
     profiles: flags.string({
       multiple: true,
       description: 'Profile identifiers.',
@@ -127,7 +123,6 @@ export default class Init extends Command {
       default: false,
       required: false,
     }),
-    help: flags.help({ char: 'h' }),
   };
 
   private logCallback? = (message: string) => this.log(grey(message));

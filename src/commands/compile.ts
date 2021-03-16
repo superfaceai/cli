@@ -1,7 +1,8 @@
-import { Command, flags } from '@oclif/command';
+import { flags } from '@oclif/command';
 import { Source } from '@superfaceai/parser';
 import { basename, join as joinPath } from 'path';
 
+import { Command } from '../common/command.abstract';
 import {
   DOCUMENT_PARSE_FUNCTION,
   inferDocumentTypeWithFlag,
@@ -16,6 +17,7 @@ export default class Compile extends Command {
   static description = 'Compiles the given profile or map to AST.';
 
   static flags = {
+    ...Command.flags,
     documentType: documentTypeFlag,
     output: flags.string({
       char: 'o',
@@ -34,7 +36,6 @@ export default class Compile extends Command {
       default: false,
       description: 'Use compact JSON representation of the AST.',
     }),
-    help: flags.help({ char: 'h' }),
   };
 
   // Require at least one file but allow multiple files
