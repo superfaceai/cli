@@ -1,9 +1,21 @@
 import { SuperJson } from '@superfaceai/sdk';
 import { join as joinPath } from 'path';
-import { exists, mkdirQuiet, rimraf, isFileQuiet, isDirectoryQuiet, isAccessible, resolveSkipFile, streamWrite, streamEnd, execFile } from '../common/io';
+import { Writable } from 'stream';
+
+import {
+  execFile,
+  exists,
+  isAccessible,
+  isDirectoryQuiet,
+  isFileQuiet,
+  mkdirQuiet,
+  resolveSkipFile,
+  rimraf,
+  streamEnd,
+  streamWrite,
+} from '../common/io';
 import { OutputStream } from '../common/output-stream';
 import { SUPER_PATH } from './document';
-import { Writable } from 'stream';
 
 describe('IO functions', () => {
   const WORKING_DIR = joinPath('fixtures', 'io');
@@ -48,7 +60,6 @@ describe('IO functions', () => {
     );
   }
 
-
   beforeEach(async () => {
     await resetSuperJson();
   });
@@ -79,7 +90,9 @@ describe('IO functions', () => {
     it('checks if path is a file correctly', async () => {
       await expect(isFileQuiet(FIXTURE.superJson)).resolves.toEqual(true);
       await expect(isFileQuiet('superface')).resolves.toEqual(false);
-      await expect(isFileQuiet('some/made/up/file.json')).resolves.toEqual(false);
+      await expect(isFileQuiet('some/made/up/file.json')).resolves.toEqual(
+        false
+      );
     }, 10000);
   });
 
@@ -87,82 +100,87 @@ describe('IO functions', () => {
     it('checks if path is a directory correctly', async () => {
       await expect(isDirectoryQuiet('superface')).resolves.toEqual(true);
       await expect(isDirectoryQuiet(FIXTURE.superJson)).resolves.toEqual(false);
-      await expect(isDirectoryQuiet('some/made/up/file.json')).resolves.toEqual(false);
+      await expect(isDirectoryQuiet('some/made/up/file.json')).resolves.toEqual(
+        false
+      );
     }, 10000);
   });
 
   describe('when writing to stream', () => {
     it('rejects if a stream error occurs', async () => {
-      const mockWriteable = new MockWritable(false)
-      const actualPromise = streamWrite(mockWriteable, 'test/mockFile.json')
+      const mockWriteable = new MockWritable(false);
+      const actualPromise = streamWrite(mockWriteable, 'test/mockFile.json');
       setTimeout(() => {
-        mockWriteable.emit('error')
-        mockWriteable.emit('end')
-      }, 100)
-      await expect(actualPromise).rejects.toBeUndefined()
+        mockWriteable.emit('error');
+        mockWriteable.emit('end');
+      }, 100);
+      await expect(actualPromise).rejects.toBeUndefined();
     }, 10000);
 
     it('resolves if drain occurs', async () => {
-      const mockWriteable = new MockWritable(false)
-      const actualPromise = streamWrite(mockWriteable, 'test/mockFile.json')
+      const mockWriteable = new MockWritable(false);
+      const actualPromise = streamWrite(mockWriteable, 'test/mockFile.json');
       setTimeout(() => {
-        mockWriteable.emit('drain')
-        mockWriteable.emit('end')
-      }, 100)
-      await expect(actualPromise).resolves.toBeUndefined()
+        mockWriteable.emit('drain');
+        mockWriteable.emit('end');
+      }, 100);
+      await expect(actualPromise).resolves.toBeUndefined();
     }, 10000);
 
     it('resolves if stream is not backpressured', async () => {
-      const mockWriteable = new MockWritable(true)
-      const actualPromise = streamWrite(mockWriteable, 'test/mockFile.json')
+      const mockWriteable = new MockWritable(true);
+      const actualPromise = streamWrite(mockWriteable, 'test/mockFile.json');
       setTimeout(() => {
-        mockWriteable.emit('end')
-      }, 100)
-      await expect(actualPromise).resolves.toBeUndefined()
+        mockWriteable.emit('end');
+      }, 100);
+      await expect(actualPromise).resolves.toBeUndefined();
     }, 10000);
-  })
+  });
 
   describe('when calling stream end', () => {
     it('rejects if a stream error occurs', async () => {
-      const mockWriteable = new MockWritable(false)
-      const actualPromise = streamEnd(mockWriteable)
+      const mockWriteable = new MockWritable(false);
+      const actualPromise = streamEnd(mockWriteable);
       setTimeout(() => {
-        mockWriteable.emit('error')
-        mockWriteable.emit('end')
-      }, 100)
-      await expect(actualPromise).rejects.toBeUndefined()
+        mockWriteable.emit('error');
+        mockWriteable.emit('end');
+      }, 100);
+      await expect(actualPromise).rejects.toBeUndefined();
     }, 10000);
 
     it('resolves if close occurs', async () => {
-      const mockWriteable = new MockWritable(false)
-      const actualPromise = streamEnd(mockWriteable)
+      const mockWriteable = new MockWritable(false);
+      const actualPromise = streamEnd(mockWriteable);
       setTimeout(() => {
-        mockWriteable.emit('close')
-        mockWriteable.emit('end')
-      }, 100)
-      await expect(actualPromise).resolves.toBeUndefined()
+        mockWriteable.emit('close');
+        mockWriteable.emit('end');
+      }, 100);
+      await expect(actualPromise).resolves.toBeUndefined();
     }, 10000);
-  })
+  });
 
   describe('when calling exec file', () => {
     it('rejects if command does not exist', async () => {
-      const actualPromise = execFile('not-existing')
-      await expect(actualPromise).rejects.not.toBeUndefined()
+      const actualPromise = execFile('not-existing');
+      await expect(actualPromise).rejects.not.toBeUndefined();
     }, 10000);
 
     it('resolves command is executed', async () => {
-      const actualPromise = execFile('node', ['--version'])
-      await expect(actualPromise).resolves.toBeUndefined()
+      const actualPromise = execFile('node', ['--version']);
+      await expect(actualPromise).resolves.toBeUndefined();
     }, 10000);
-  })
+  });
 
   describe('when resolving skip file', () => {
     it('resolve skip file correctly', async () => {
       await expect(resolveSkipFile('never', [])).resolves.toEqual(false);
       await expect(resolveSkipFile('always', [])).resolves.toEqual(true);
-      await expect(resolveSkipFile('exists', [FIXTURE.superJson])).resolves.toEqual(true);
-      await expect(resolveSkipFile('exists', [FIXTURE.superJson, 'some/made/up/file.json'])).resolves.toEqual(false);
-
+      await expect(
+        resolveSkipFile('exists', [FIXTURE.superJson])
+      ).resolves.toEqual(true);
+      await expect(
+        resolveSkipFile('exists', [FIXTURE.superJson, 'some/made/up/file.json'])
+      ).resolves.toEqual(false);
     }, 10000);
   });
 
@@ -170,7 +188,9 @@ describe('IO functions', () => {
     it('checks if path is accessible correctly', async () => {
       await expect(isAccessible('superface')).resolves.toEqual(true);
       await expect(isAccessible(FIXTURE.superJson)).resolves.toEqual(true);
-      await expect(isAccessible('some/made/up/file.json')).resolves.toEqual(false);
+      await expect(isAccessible('some/made/up/file.json')).resolves.toEqual(
+        false
+      );
     }, 10000);
   });
 });
