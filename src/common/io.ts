@@ -76,7 +76,7 @@ export async function isFileQuiet(path: string): Promise<boolean> {
   } catch (err: unknown) {
     assertIsIOError(err);
 
-    // allow ENOENT, which means it is not a directory
+    // allow ENOENT, which means it is not a file
     if (err.code !== 'ENOENT') {
       throw err;
     }
