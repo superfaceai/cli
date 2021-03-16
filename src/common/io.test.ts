@@ -145,7 +145,7 @@ describe('IO functions', () => {
         mockWriteable.emit('error');
         mockWriteable.emit('end');
       }, 100);
-      await expect(actualPromise).rejects.toBeUndefined();
+      await expect(actualPromise).resolves.toBeUndefined();
     }, 10000);
 
     it('resolves if close occurs', async () => {

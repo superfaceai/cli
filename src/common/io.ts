@@ -124,6 +124,7 @@ export function streamEnd(stream: Writable): Promise<void> {
   return new Promise((resolve, reject) => {
     stream.once('error', reject);
     stream.once('close', resolve);
+    stream.end();
   });
 }
 
