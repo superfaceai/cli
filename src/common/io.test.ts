@@ -142,6 +142,7 @@ describe('IO functions', () => {
       const mockWriteable = new MockWritable(false);
       const actualPromise = streamEnd(mockWriteable);
       setTimeout(() => {
+        mockWriteable.emit('close');
         mockWriteable.emit('end');
       }, 100);
       await expect(actualPromise).resolves.toBeUndefined();
