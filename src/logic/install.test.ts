@@ -1,6 +1,8 @@
 import { CLIError } from '@oclif/errors';
+import { ProfileDocumentNode } from '@superfaceai/ast';
 import { ok, SuperJson } from '@superfaceai/sdk';
-import { join as joinPath } from 'path';
+import { join } from 'path';
+import { mocked } from 'ts-jest/utils';
 
 import { getProfileDocument } from '../common/document';
 import {
@@ -16,6 +18,7 @@ import {
   getProfileIds,
   handleProfileResponses,
   installProfiles,
+  ProfileResponse,
 } from './install';
 
 //Mock http
@@ -48,7 +51,7 @@ describe('Install CLI logic', () => {
       OutputStream.writeOnce = mockWrite;
 
       //create mock nested paths
-      let path = joinPath(
+      let path = join(
         'fixtures',
         'install',
         'playground',
@@ -56,7 +59,7 @@ describe('Install CLI logic', () => {
         'nested1'
       );
       await mkdirQuiet(path);
-      path = joinPath(
+      path = join(
         'fixtures',
         'install',
         'playground',
@@ -71,7 +74,7 @@ describe('Install CLI logic', () => {
       OutputStream.writeOnce = originalWriteOnce;
       process.chdir(INITIAL_CWD);
       await rimraf(
-        joinPath('fixtures', 'install', 'playground', 'superface', 'nested1')
+        join('fixtures', 'install', 'playground', 'superface', 'nested1')
       );
     });
 
@@ -81,30 +84,30 @@ describe('Install CLI logic', () => {
     });
 
     it('detects super.json in cwd', async () => {
-      process.chdir(joinPath('fixtures', 'install', 'playground', 'superface'));
+      process.chdir(join('fixtures', 'install', 'playground', 'superface'));
       expect(await detectSuperJson(process.cwd())).toEqual('.');
     }, 10000);
 
     it('detects super.json from 1 level above', async () => {
-      process.chdir(joinPath('fixtures', 'install', 'playground'));
+      process.chdir(join('fixtures', 'install', 'playground'));
       expect(await detectSuperJson(process.cwd())).toEqual('superface');
     }, 10000);
 
     it('does not detect super.json from 2 levels above', async () => {
-      process.chdir(joinPath('fixtures', 'install'));
+      process.chdir(join('fixtures', 'install'));
       expect(await detectSuperJson(process.cwd())).toBeUndefined();
     }, 10000);
 
     it('detects super.json from 1 level below', async () => {
       process.chdir(
-        joinPath('fixtures', 'install', 'playground', 'superface', 'nested1')
+        join('fixtures', 'install', 'playground', 'superface', 'nested1')
       );
       expect(await detectSuperJson(process.cwd(), 1)).toEqual('..');
     }, 10000);
 
     it('detects super.json from 2 levels below', async () => {
       process.chdir(
-        joinPath(
+        join(
           'fixtures',
           'install',
           'playground',
@@ -118,7 +121,7 @@ describe('Install CLI logic', () => {
 
     it('does not detect super.json from 2 levels below without level', async () => {
       process.chdir(
-        joinPath(
+        join(
           'fixtures',
           'install',
           'playground',
@@ -144,9 +147,9 @@ describe('Install CLI logic', () => {
         published_at: '2021-01-29T08:10:50.925Z',
         published_by: 'Ondrej Musil <mail@ondrejmusil.cz>',
       };
-      (fetchProfileInfo as jest.Mock).mockResolvedValue(mockProfileInfo);
+      mocked(fetchProfileInfo).mockResolvedValue(mockProfileInfo);
       //mock profile ast
-      const mockProfileAst = {
+      const mockProfileAst: ProfileDocumentNode = {
         kind: 'ProfileDocument',
         header: {
           kind: 'ProfileHeader',
@@ -161,21 +164,16 @@ describe('Install CLI logic', () => {
             kind: 'UseCaseDefinition',
             useCaseName: 'RetrieveCharacterInformation',
             safety: 'safe',
-            input: [],
-            result: [],
-            error: [],
-            location: [],
-            span: [],
             title: 'Starwars',
           },
         ],
         location: { line: 1, column: 1 },
         span: { start: 0, end: 228 },
       };
-      (fetchProfileAST as jest.Mock).mockResolvedValue(mockProfileAst);
+      mocked(fetchProfileAST).mockResolvedValue(mockProfileAst);
       //mock profile
       const mockProfile = 'mock profile';
-      (fetchProfile as jest.Mock).mockResolvedValue(mockProfile);
+      mocked(fetchProfile).mockResolvedValue(mockProfile);
 
       const profileId = 'starwars/character-information';
 
@@ -193,7 +191,7 @@ describe('Install CLI logic', () => {
     }, 10000);
 
     it('throws user error on invalid profileId', async () => {
-      (fetchProfileInfo as jest.Mock).mockRejectedValue(
+      mocked(fetchProfileInfo).mockRejectedValue(
         new CLIError('Not Found', { exit: 1 })
       );
 
@@ -215,7 +213,7 @@ describe('Install CLI logic', () => {
     const mockWrite = jest.fn();
 
     //mock profile response
-    const mockProfileResponse = {
+    const mockProfileResponse: ProfileResponse = {
       info: {
         profile_id: 'starwars/character-information@1.0.1',
         profile_name: 'starwars/character-information',
@@ -227,9 +225,9 @@ describe('Install CLI logic', () => {
         published_by: 'Ondrej Musil <mail@ondrejmusil.cz>',
       },
       ast: {
-        kind: 'ProfileDocument"' as 'ProfileDocument',
+        kind: 'ProfileDocument',
         header: {
-          kind: 'ProfileHeader' as const,
+          kind: 'ProfileHeader',
           scope: 'starwars',
           name: 'character-information',
           version: { major: 1, minor: 0, patch: 1 },
@@ -238,7 +236,7 @@ describe('Install CLI logic', () => {
         },
         definitions: [
           {
-            kind: 'UseCaseDefinition' as const,
+            kind: 'UseCaseDefinition',
             useCaseName: 'RetrieveCharacterInformation',
             title: 'Starwars',
           },
@@ -355,8 +353,15 @@ describe('Install CLI logic', () => {
     });
 
     it('returns correct id and version from file', async () => {
-      const mockHeader = { version: { major: 1 } };
-      (getProfileDocument as jest.Mock).mockResolvedValue(mockHeader);
+      mocked(getProfileDocument).mockResolvedValue({
+        header: {
+          kind: 'ProfileHeader',
+          name: 'test',
+          version: { major: 1, minor: 0, patch: 0 },
+        },
+        kind: 'ProfileDocument',
+        definitions: [],
+      });
       const profileName = 'starwars/character-information';
       const stubSuperJson = new SuperJson({});
       stubSuperJson.addProfile(profileName, {
@@ -384,7 +389,7 @@ describe('Install CLI logic', () => {
         published_by: 'Ondrej Musil <mail@ondrejmusil.cz>',
       };
       //mock profile ast
-      const mockProfileAst = {
+      const mockProfileAst: ProfileDocumentNode = {
         kind: 'ProfileDocument',
         header: {
           kind: 'ProfileHeader',
@@ -399,11 +404,6 @@ describe('Install CLI logic', () => {
             kind: 'UseCaseDefinition',
             useCaseName: 'RetrieveCharacterInformation',
             safety: 'safe',
-            input: [],
-            result: [],
-            error: [],
-            location: [],
-            span: [],
             title: 'Starwars',
           },
         ],
@@ -426,9 +426,9 @@ describe('Install CLI logic', () => {
       });
 
       it('installs single profile', async () => {
-        (fetchProfileAST as jest.Mock).mockResolvedValue(mockProfileAst);
-        (fetchProfile as jest.Mock).mockResolvedValue(mockProfile);
-        (fetchProfileInfo as jest.Mock).mockResolvedValue(mockProfileInfo);
+        mocked(fetchProfileAST).mockResolvedValue(mockProfileAst);
+        mocked(fetchProfile).mockResolvedValue(mockProfile);
+        mocked(fetchProfileInfo).mockResolvedValue(mockProfileInfo);
 
         const profileName = 'starwars/character-information';
 
@@ -474,9 +474,9 @@ describe('Install CLI logic', () => {
       });
 
       it('installs profiles from super.json', async () => {
-        (fetchProfileAST as jest.Mock).mockResolvedValue(mockProfileAst);
-        (fetchProfile as jest.Mock).mockResolvedValue(mockProfile);
-        (fetchProfileInfo as jest.Mock).mockResolvedValue(mockProfileInfo);
+        mocked(fetchProfileAST).mockResolvedValue(mockProfileAst);
+        mocked(fetchProfile).mockResolvedValue(mockProfile);
+        mocked(fetchProfileInfo).mockResolvedValue(mockProfileInfo);
 
         //Mock super json load
         // eslint-disable-next-line @typescript-eslint/unbound-method

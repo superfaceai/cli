@@ -1,4 +1,4 @@
-import { join as joinPath } from 'path';
+import { join } from 'path';
 
 import { rimraf, streamEnd, streamWrite } from '../common/io';
 import { OutputStream } from '../common/output-stream';
@@ -12,7 +12,7 @@ jest.mock('../common/io', () => ({
   streamEnd: jest.fn(),
 }));
 describe('OutputStream', () => {
-  const WORKING_DIR = joinPath('fixtures', 'io');
+  const WORKING_DIR = join('fixtures', 'io');
 
   let INITIAL_CWD: string;
 

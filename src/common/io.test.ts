@@ -1,5 +1,5 @@
 import { SuperJson } from '@superfaceai/sdk';
-import { join as joinPath } from 'path';
+import { join } from 'path';
 import { Writable } from 'stream';
 
 import {
@@ -18,7 +18,7 @@ import { OutputStream } from '../common/output-stream';
 import { SUPER_PATH } from './document';
 
 describe('IO functions', () => {
-  const WORKING_DIR = joinPath('fixtures', 'io');
+  const WORKING_DIR = join('fixtures', 'io');
 
   const FIXTURE = {
     superJson: SUPER_PATH,

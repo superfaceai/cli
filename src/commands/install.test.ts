@@ -1,6 +1,8 @@
 import { CLIError } from '@oclif/errors';
+import { SuperJson } from '@superfaceai/sdk';
 import inquirer from 'inquirer';
 import { stderr, stdout } from 'stdout-stderr';
+import { mocked } from 'ts-jest/utils';
 
 import { initSuperface } from '../logic/init';
 import { detectSuperJson, installProfiles } from '../logic/install';
@@ -34,11 +36,9 @@ describe('Install CLI command', () => {
 
   describe('when running install command', () => {
     it('calls install profiles correctly - non existing super.json - create new one', async () => {
-      (detectSuperJson as jest.Mock).mockResolvedValue(undefined);
-      ((inquirer.prompt as unknown) as jest.Mock) = jest
-        .fn()
-        .mockResolvedValue({ init: true });
-      (initSuperface as jest.Mock).mockResolvedValue(undefined);
+      mocked(detectSuperJson).mockResolvedValue(undefined);
+      mocked(inquirer).prompt.mockResolvedValue({ init: true });
+      mocked(initSuperface).mockResolvedValue(new SuperJson({}));
 
       const profileName = 'starwars/character-information';
 
@@ -57,11 +57,9 @@ describe('Install CLI command', () => {
     }, 10000);
 
     it('calls install profiles correctly - non existing super.json - do NOT create new one', async () => {
-      (detectSuperJson as jest.Mock).mockResolvedValue(undefined);
-      ((inquirer.prompt as unknown) as jest.Mock) = jest
-        .fn()
-        .mockResolvedValue({ init: false });
-      (initSuperface as jest.Mock).mockResolvedValue(undefined);
+      mocked(detectSuperJson).mockResolvedValue(undefined);
+      mocked(inquirer).prompt.mockResolvedValue({ init: false });
+      mocked(initSuperface).mockResolvedValue(new SuperJson({}));
 
       const profileName = 'starwars/character-information';
 
@@ -72,7 +70,7 @@ describe('Install CLI command', () => {
     }, 10000);
 
     it('calls install profiles correctly', async () => {
-      (detectSuperJson as jest.Mock).mockResolvedValue('.');
+      mocked(detectSuperJson).mockResolvedValue('.');
       const profileName = 'starwars/character-information';
 
       await expect(Install.run([profileName])).resolves.toBeUndefined();
@@ -85,7 +83,7 @@ describe('Install CLI command', () => {
     }, 10000);
 
     it('calls install profiles correctly with quiet flag', async () => {
-      (detectSuperJson as jest.Mock).mockResolvedValue('.');
+      mocked(detectSuperJson).mockResolvedValue('.');
       const profileName = 'starwars/character-information';
 
       await expect(Install.run([profileName, '-q'])).resolves.toBeUndefined();
@@ -98,7 +96,7 @@ describe('Install CLI command', () => {
     }, 10000);
 
     it('throws error on empty providers flag', async () => {
-      (detectSuperJson as jest.Mock).mockResolvedValue('.');
+      mocked(detectSuperJson).mockResolvedValue('.');
       const profileName = 'starwars/character-information';
 
       await expect(Install.run([profileName, '-p'])).rejects.toEqual(
@@ -108,7 +106,7 @@ describe('Install CLI command', () => {
     }, 10000);
 
     it('throws error on invalid scan flag', async () => {
-      (detectSuperJson as jest.Mock).mockResolvedValue('.');
+      mocked(detectSuperJson).mockResolvedValue('.');
       const profileName = 'starwars/character-information';
 
       await expect(Install.run([profileName, '-s test'])).rejects.toEqual(
@@ -118,7 +116,7 @@ describe('Install CLI command', () => {
     }, 10000);
 
     it('throws error on scan flag higher than 5', async () => {
-      (detectSuperJson as jest.Mock).mockResolvedValue('.');
+      mocked(detectSuperJson).mockResolvedValue('.');
       const profileName = 'starwars/character-information';
 
       await expect(Install.run([profileName, '-s', '6'])).rejects.toEqual(
@@ -130,7 +128,7 @@ describe('Install CLI command', () => {
     }, 10000);
 
     it('calls install profiles correctly - one invalid provider', async () => {
-      (detectSuperJson as jest.Mock).mockResolvedValue('.');
+      mocked(detectSuperJson).mockResolvedValue('.');
       const mockProviders = ['tyntec', 'twilio', 'made-up'];
       const profileName = 'starwars/character-information';
 

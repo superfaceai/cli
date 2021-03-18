@@ -58,7 +58,7 @@ export async function detectSuperJson(
   return await detectSuperJson(cwd, --level);
 }
 
-interface ProfileResponse {
+export interface ProfileResponse {
   info: ProfileInfo;
   ast: ProfileDocumentNode;
   profile: string;
