@@ -8,7 +8,7 @@ import { SUPER_PATH } from './document';
 jest.mock('../common/io', () => ({
   /* eslint-disable */
   ...(jest.requireActual('../common/io') as {}),
-  /* eslint-ensable */
+  /* eslint-enable */
   streamWrite: jest.fn(),
   streamEnd: jest.fn(),
 }));

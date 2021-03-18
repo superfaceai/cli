@@ -22,7 +22,7 @@ import {
 jest.mock('../common/http', () => ({
   /* eslint-disable */
   ...(jest.requireActual('../common/http') as {}),
-  /* eslint-ensable */
+  /* eslint-enable */
   fetchProfileInfo: jest.fn(),
   fetchProfile: jest.fn(),
   fetchProfileAST: jest.fn(),
@@ -32,7 +32,7 @@ jest.mock('../common/http', () => ({
 jest.mock('../common/document', () => ({
   /* eslint-disable */
   ...(jest.requireActual('../common/document') as {}),
-  /* eslint-ensable */
+  /* eslint-enable */
   getProfileDocument: jest.fn(),
 }));
 describe('Install CLI logic', () => {
@@ -42,6 +42,7 @@ describe('Install CLI logic', () => {
 
   describe('when detecting super json', () => {
     let INITIAL_CWD: string;
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     const originalWriteOnce = OutputStream.writeOnce;
 
     beforeAll(async () => {
@@ -58,7 +59,7 @@ describe('Install CLI logic', () => {
         'superface',
         'nested1'
       );
-      mkdirQuiet(path);
+      await mkdirQuiet(path);
       path = joinPath(
         'fixtures',
         'install',
@@ -67,13 +68,13 @@ describe('Install CLI logic', () => {
         'nested1',
         'nested2'
       );
-      mkdirQuiet(path);
+      await mkdirQuiet(path);
     });
 
-    afterAll(() => {
+    afterAll(async () => {
       OutputStream.writeOnce = originalWriteOnce;
       process.chdir(INITIAL_CWD);
-      rimraf(
+      await rimraf(
         joinPath('fixtures', 'install', 'playground', 'superface', 'nested1')
       );
     });
@@ -213,6 +214,7 @@ describe('Install CLI logic', () => {
   });
 
   describe('when handling profile responses', () => {
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     const originalWriteOnce = OutputStream.writeOnce;
     const mockWrite = jest.fn();
 
@@ -231,7 +233,7 @@ describe('Install CLI logic', () => {
       ast: {
         kind: 'ProfileDocument"' as 'ProfileDocument',
         header: {
-          kind: 'ProfileHeader' as 'ProfileHeader',
+          kind: 'ProfileHeader' as const,
           scope: 'starwars',
           name: 'character-information',
           version: { major: 1, minor: 0, patch: 1 },
@@ -240,7 +242,7 @@ describe('Install CLI logic', () => {
         },
         definitions: [
           {
-            kind: 'UseCaseDefinition' as 'UseCaseDefinition',
+            kind: 'UseCaseDefinition' as const,
             useCaseName: 'RetrieveCharacterInformation',
             title: 'Starwars',
           },
@@ -285,6 +287,7 @@ describe('Install CLI logic', () => {
         JSON.stringify(mockProfileResponse.ast, undefined, 2)
       );
       //super json
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       expect(stubSuperJson.document.profiles![profileName]).toEqual({
         version: mockProfileResponse.info.profile_version,
       });
@@ -316,6 +319,7 @@ describe('Install CLI logic', () => {
         JSON.stringify(mockProfileResponse.ast, undefined, 2)
       );
       //super json
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       expect(stubSuperJson.document.profiles![profileName]).toEqual({
         file: '../fixtures/install/playground/character-information.supr',
         defaults: undefined,
@@ -323,7 +327,7 @@ describe('Install CLI logic', () => {
       });
     }, 10000);
 
-    it('returns correct number of installed profiles - use aleready existing local file', async () => {
+    it('returns correct number of installed profiles - use already existing local file', async () => {
       const profileName = 'starwars/character-information';
 
       const stubSuperJson = new SuperJson({});
@@ -337,25 +341,7 @@ describe('Install CLI logic', () => {
 
       expect(mockWrite).toHaveBeenCalledTimes(0);
       //super json
-      expect(stubSuperJson.document.profiles![profileName]).toEqual({
-        file: 'fixtures/install/playground/character-information.supr',
-      });
-    }, 10000);
-
-    it('returns correct number of installed profiles - use aleready existing local file', async () => {
-      const profileName = 'starwars/character-information';
-
-      const stubSuperJson = new SuperJson({});
-      stubSuperJson.addProfile(profileName, {
-        file: 'fixtures/install/playground/character-information.supr',
-      });
-
-      await expect(
-        handleProfileResponses(stubSuperJson, [mockProfileResponse])
-      ).resolves.toEqual(0);
-
-      expect(mockWrite).toHaveBeenCalledTimes(0);
-      //super json
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       expect(stubSuperJson.document.profiles![profileName]).toEqual({
         file: 'fixtures/install/playground/character-information.supr',
       });
@@ -386,6 +372,7 @@ describe('Install CLI logic', () => {
     });
 
     describe('when installing profiles', () => {
+      // eslint-disable-next-line @typescript-eslint/unbound-method
       const originalWriteOnce = OutputStream.writeOnce;
       const mockWrite = jest.fn();
 
@@ -496,6 +483,7 @@ describe('Install CLI logic', () => {
         (fetchProfileInfo as jest.Mock).mockResolvedValue(mockProfileInfo);
 
         //Mock super json load
+        // eslint-disable-next-line @typescript-eslint/unbound-method
         const originalLoad = SuperJson.load;
         const mockLoad = jest.fn();
 

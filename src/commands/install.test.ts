@@ -10,7 +10,7 @@ import Install from './install';
 jest.mock('../logic/install', () => ({
   /* eslint-disable */
   ...(jest.requireActual('../logic/install') as {}),
-  /* eslint-ensable */
+  /* eslint-enable */
   detectSuperJson: jest.fn(),
   installProfiles: jest.fn(),
 }));
@@ -22,7 +22,7 @@ jest.mock('inquirer');
 jest.mock('../logic/init', () => ({
   /* eslint-disable */
   ...(jest.requireActual('../logic/init') as {}),
-  /* eslint-ensable */
+  /* eslint-enable */
   initSuperface: jest.fn(),
 }));
 
