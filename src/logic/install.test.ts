@@ -20,9 +20,6 @@ import {
 
 //Mock http
 jest.mock('../common/http', () => ({
-  /* eslint-disable */
-  ...(jest.requireActual('../common/http') as {}),
-  /* eslint-enable */
   fetchProfileInfo: jest.fn(),
   fetchProfile: jest.fn(),
   fetchProfileAST: jest.fn(),
@@ -30,9 +27,8 @@ jest.mock('../common/http', () => ({
 
 //Mock document
 jest.mock('../common/document', () => ({
-  /* eslint-disable */
-  ...(jest.requireActual('../common/document') as {}),
-  /* eslint-enable */
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+  ...(jest.requireActual('../common/document') as Record<string, unknown>),
   getProfileDocument: jest.fn(),
 }));
 describe('Install CLI logic', () => {
