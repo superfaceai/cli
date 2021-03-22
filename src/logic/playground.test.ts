@@ -488,25 +488,6 @@ describe('playground logic', () => {
       expect(resolveSkipFile).toHaveBeenCalledTimes(3);
 
       expect(execFile).toHaveBeenCalledTimes(1);
-      expect(execFile).toHaveBeenCalledWith(
-        '/usr/local/bin/node',
-        [
-          'users/real/path/to/test-playground/superface/build/first.play.js',
-          'first.first-provider',
-        ],
-        {
-          cwd: 'users/real/path/to/test-playground',
-          env: {
-            ...process.env,
-            DEBUG_COLORS: '',
-            DEBUG: 'info',
-          },
-        },
-        {
-          forwardStdout: true,
-          forwardStderr: true,
-        }
-      );
     });
 
     it('executes playground correctly - executing npm install', async () => {
@@ -540,29 +521,6 @@ describe('playground logic', () => {
       expect(resolveSkipFile).toHaveBeenCalledTimes(3);
 
       expect(execFile).toHaveBeenCalledTimes(2);
-      expect(execFile).toHaveBeenNthCalledWith(1, 'npm', ['install'], {
-        cwd: 'users/real/path/to/test-playground/superface',
-      });
-      expect(execFile).toHaveBeenNthCalledWith(
-        2,
-        '/usr/local/bin/node',
-        [
-          'users/real/path/to/test-playground/superface/build/scope/first.play.js',
-          'scope/first.first-provider',
-        ],
-        {
-          cwd: 'users/real/path/to/test-playground',
-          env: {
-            ...process.env,
-            DEBUG_COLORS: '',
-            DEBUG: 'info',
-          },
-        },
-        {
-          forwardStdout: true,
-          forwardStderr: true,
-        }
-      );
     });
 
     it('throws error when there is an error executing npm install', async () => {
@@ -633,25 +591,6 @@ describe('playground logic', () => {
       ]);
 
       expect(execFile).toHaveBeenCalledTimes(1);
-      expect(execFile).toHaveBeenCalledWith(
-        '/usr/local/bin/node',
-        [
-          'users/real/path/to/test-playground/superface/build/first.play.js',
-          'first.first-provider',
-        ],
-        {
-          cwd: 'users/real/path/to/test-playground',
-          env: {
-            ...process.env,
-            DEBUG_COLORS: '',
-            DEBUG: 'info',
-          },
-        },
-        {
-          forwardStdout: true,
-          forwardStderr: true,
-        }
-      );
     });
 
     it('throws error when there is an error executing superface compile', async () => {
@@ -723,43 +662,6 @@ describe('playground logic', () => {
       expect(resolveSkipFile).toHaveBeenCalledTimes(3);
 
       expect(execFile).toHaveBeenCalledTimes(2);
-      expect(execFile).toHaveBeenNthCalledWith(
-        1,
-        'users/real/path/to/test-playground/superface/node_modules/.bin/tsc',
-        [
-          '--strict',
-          '--target',
-          'ES2015',
-          '--module',
-          'commonjs',
-          '--outDir',
-          'users/real/path/to/test-playground/superface/build',
-          '--typeRoots',
-          'users/real/path/to/test-playground/superface/node_modules/@types',
-          'users/real/path/to/test-playground/superface/play/first.play.ts',
-        ],
-        { cwd: 'users/real/path/to/test-playground' }
-      );
-      expect(execFile).toHaveBeenNthCalledWith(
-        2,
-        '/usr/local/bin/node',
-        [
-          'users/real/path/to/test-playground/superface/build/first.play.js',
-          'first.first-provider',
-        ],
-        {
-          cwd: 'users/real/path/to/test-playground',
-          env: {
-            ...process.env,
-            DEBUG_COLORS: '',
-            DEBUG: 'info',
-          },
-        },
-        {
-          forwardStdout: true,
-          forwardStderr: true,
-        }
-      );
     });
 
     it('throws error when there is an error executing tsc', async () => {
@@ -795,24 +697,6 @@ describe('playground logic', () => {
       expect(resolveSkipFile).toHaveBeenCalledTimes(3);
 
       expect(execFile).toHaveBeenCalledTimes(1);
-      expect(
-        execFile
-      ).toHaveBeenCalledWith(
-        'users/real/path/to/test-playground/superface/node_modules/.bin/tsc',
-        [
-          '--strict',
-          '--target',
-          'ES2015',
-          '--module',
-          'commonjs',
-          '--outDir',
-          'users/real/path/to/test-playground/superface/build',
-          '--typeRoots',
-          'users/real/path/to/test-playground/superface/node_modules/@types',
-          'users/real/path/to/test-playground/superface/play/first.play.ts',
-        ],
-        { cwd: 'users/real/path/to/test-playground' }
-      );
     });
   });
   describe('when claning playground', () => {
