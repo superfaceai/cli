@@ -57,15 +57,15 @@ describe('playground logic', () => {
   });
   describe('when detecting playground', () => {
     it('builds paths correctly', async () => {
+      const basepath = process.cwd();
       const mockPlaygroundInstances: PlaygroundInstance[] = [
         {
           path: 'users/real/path/to/test-playground',
           name: 'first',
-          profilePath: '/Users/jakubvacek/superface/cli/first/profile/file',
+          profilePath: basepath + '/first/profile/file',
           providers: [
             {
-              mapPath:
-                '/Users/jakubvacek/superface/cli/first/profile/first/provider/file',
+              mapPath: basepath + '/first/profile/first/provider/file',
               name: 'first-provider',
             },
           ],
@@ -74,11 +74,10 @@ describe('playground logic', () => {
         {
           path: 'users/real/path/to/test-playground',
           name: 'second',
-          profilePath: '/Users/jakubvacek/superface/cli/second/profile/file',
+          profilePath: basepath + '/second/profile/file',
           providers: [
             {
-              mapPath:
-                '/Users/jakubvacek/superface/cli/second/profile/first/provider/file',
+              mapPath: basepath + '/second/profile/first/provider/file',
               name: 'first-provider',
             },
           ],
@@ -441,21 +440,20 @@ describe('playground logic', () => {
   });
 
   describe('when executing playground', () => {
+    const basepath = process.cwd();
     let mockPlaygroundInstance: PlaygroundInstance;
     beforeEach(() => {
       mockPlaygroundInstance = {
         path: 'users/real/path/to/test-playground',
         name: 'first',
-        profilePath: '/Users/jakubvacek/superface/cli/first/profile/file',
+        profilePath: basepath + '/first/profile/file',
         providers: [
           {
-            mapPath:
-              '/Users/jakubvacek/superface/cli/first/profile/first/provider/file',
+            mapPath: basepath + '/first/profile/first/provider/file',
             name: 'first-provider',
           },
           {
-            mapPath:
-              '/Users/jakubvacek/superface/cli/first/profile/second/provider/file',
+            mapPath: basepath + '/first/profile/second/provider/file',
             name: 'second-provider',
           },
         ],
@@ -630,8 +628,8 @@ describe('playground logic', () => {
 
       expect(compileSpy).toHaveBeenCalledTimes(1);
       expect(compileSpy).toHaveBeenCalledWith([
-        '/Users/jakubvacek/superface/cli/first/profile/file',
-        '/Users/jakubvacek/superface/cli/first/profile/first/provider/file',
+        basepath + '/first/profile/file',
+        basepath + '/first/profile/first/provider/file',
       ]);
 
       expect(execFile).toHaveBeenCalledTimes(1);
@@ -690,8 +688,8 @@ describe('playground logic', () => {
 
       expect(compileSpy).toHaveBeenCalledTimes(1);
       expect(compileSpy).toHaveBeenCalledWith([
-        '/Users/jakubvacek/superface/cli/first/profile/file',
-        '/Users/jakubvacek/superface/cli/first/profile/first/provider/file',
+        basepath + '/first/profile/file',
+        basepath + '/first/profile/first/provider/file',
       ]);
     });
 
@@ -818,19 +816,18 @@ describe('playground logic', () => {
     });
   });
   describe('when claning playground', () => {
+    const basepath = process.cwd();
     const mockPlaygroundInstance: PlaygroundInstance = {
       path: 'users/real/path/to/test-playground',
       name: 'first',
-      profilePath: '/Users/jakubvacek/superface/cli/first/profile/file',
+      profilePath: basepath + '/first/profile/file',
       providers: [
         {
-          mapPath:
-            '/Users/jakubvacek/superface/cli/first/profile/first/provider/file',
+          mapPath: basepath + '/first/profile/first/provider/file',
           name: 'first-provider',
         },
         {
-          mapPath:
-            '/Users/jakubvacek/superface/cli/first/profile/second/provider/file',
+          mapPath: basepath + '/first/profile/second/provider/file',
           name: 'second-provider',
         },
       ],
