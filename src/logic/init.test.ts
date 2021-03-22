@@ -84,8 +84,7 @@ describe('Init logic', () => {
 
       expect(loadSpy).toHaveBeenCalledTimes(1);
       expect(loadSpy).toHaveBeenCalledWith('test/superface/super.json');
-    }),
-      10000;
+    });
   });
 
   describe('when generating profiles', () => {
@@ -141,8 +140,7 @@ describe('Init logic', () => {
         'empty',
         { logCb: undefined }
       );
-    }),
-      10000;
+    });
 
     it('does not create profile if there is a parse error', async () => {
       mocked(parseProfileId).mockReturnValue({
@@ -162,7 +160,6 @@ describe('Init logic', () => {
       expect(parseProfileId).toHaveBeenCalledWith('first-profile-id');
 
       expect(createProfile).not.toHaveBeenCalled();
-    }),
-      10000;
+    });
   });
 });
