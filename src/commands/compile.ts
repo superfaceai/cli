@@ -1,5 +1,6 @@
 import { flags } from '@oclif/command';
 import { Source } from '@superfaceai/parser';
+import { parseEnvFeatures } from '@superfaceai/parser/dist/language/syntax/features';
 import { basename, join as joinPath } from 'path';
 
 import { Command } from '../common/command.abstract';
@@ -44,6 +45,8 @@ export default class Compile extends Command {
 
   async run(): Promise<void> {
     const DEFAULT_EXTENSION = '.ast.json';
+    // TODO: This should be called in parser automatically
+    parseEnvFeatures();
 
     const { argv, flags } = this.parse(Compile);
 
