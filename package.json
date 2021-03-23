@@ -47,8 +47,8 @@
   "dependencies": {
     "@oclif/command": "^1.8.0",
     "@oclif/config": "^1.17.0",
-    "@superfaceai/ast": "^0.0.21",
-    "@superfaceai/parser": "0.0.14",
+    "@superfaceai/ast": "^0.0.22",
+    "@superfaceai/parser": "0.0.15",
     "@superfaceai/sdk": "0.0.11",
     "chalk": "^4.1.0",
     "debug": "^4.3.1",
