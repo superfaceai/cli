@@ -29,9 +29,6 @@ describe('Compile CLI command', () => {
   });
 
   describe('running compile command', () => {
-    afterEach(() => {
-      jest.resetAllMocks();
-    });
     const mockContent = 'mock-file-content';
 
     const mockMapPath = 'test.suma';
