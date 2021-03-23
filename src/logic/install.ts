@@ -21,6 +21,7 @@ import {
 import { exists, isAccessible } from '../common/io';
 import { formatShellLog, LogCallback } from '../common/log';
 import { OutputStream } from '../common/output-stream';
+import { generateTypesFile, generateTypingsForProfile } from './generate';
 
 /**
  * Detects the existence of a `super.json` file in specified number of levels
@@ -122,7 +123,12 @@ export async function handleProfileResponses(
   superJson: SuperJson,
   responses: ProfileResponse[],
   profileProviders?: Record<string, ProfileProviderEntry>,
-  options?: { logCb?: LogCallback; warnCb?: LogCallback; force: boolean }
+  options?: {
+    logCb?: LogCallback;
+    warnCb?: LogCallback;
+    force: boolean;
+    typings: boolean;
+  }
 ): Promise<number> {
   let installed = 0;
 
@@ -192,7 +198,25 @@ export async function handleProfileResponses(
       });
     }
 
+    if (options?.typings) {
+      const typing = generateTypingsForProfile(
+        response.info.profile_name,
+        response.ast
+      );
+      const typingPath = joinPath('types', `${response.info.profile_name}.ts`);
+      const actualTypingPath = superJson.resolvePath(typingPath);
+      await OutputStream.writeOnce(actualTypingPath, typing, { dirs: true });
+    }
+
     installed += 1;
+  }
+
+  if (options?.typings) {
+    const typesFile = generateTypesFile(
+      responses.map(response => response.info.profile_name)
+    );
+    const sdkPath = superJson.resolvePath('sdk.ts');
+    await OutputStream.writeOnce(sdkPath, typesFile, { dirs: true });
   }
 
   return installed;
@@ -255,6 +279,7 @@ export async function installProfiles(
     logCb?: LogCallback;
     warnCb?: LogCallback;
     force: boolean;
+    typings: boolean;
   }
 ): Promise<void> {
   const responses: ProfileResponse[] = [];

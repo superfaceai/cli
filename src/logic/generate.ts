@@ -13,25 +13,23 @@ import {
 } from 'typescript';
 
 import {
-  asExpression,
+  callExpression,
+  camelize,
+  capitalize,
   createSource,
-  defaultImport,
   interfaceType,
-  literal,
   literalUnion,
   namedImport,
-  namedTuple,
-  newTypedExpression,
+  objectLiteral,
+  pascalize,
+  propertyAssignment,
   propertySignature,
   typeAlias,
-  typeLiteral,
+  typedClientStatement,
+  typeDefinitions,
   variableStatement,
   variableType,
 } from './generate.utils';
-
-function capitalize(input: string): string {
-  return input.charAt(0).toUpperCase() + input.substring(1);
-}
 
 export function isDocumentedStructure(
   structure: StructureType
@@ -114,73 +112,49 @@ export function createUsecasesType(
   profileName: string,
   usecaseNames: string[]
 ): Statement {
-  const type = typeLiteral(
-    usecaseNames.map(usecaseName =>
-      propertySignature(
-        usecaseName,
-        true,
-        namedTuple([
-          ['input', usecaseName + 'Input'],
-          ['result', usecaseName + 'Result'],
-        ])
-      )
-    )
-  );
+  const usecases = usecaseNames.map(usecaseName => {
+    const pascalizedUsecaseName = pascalize(usecaseName);
+    const helperCall = callExpression(
+      'typeHelper',
+      [],
+      [pascalizedUsecaseName + 'Input', pascalizedUsecaseName + 'Result']
+    );
 
-  return typeAlias(profileName + 'Usecases', type);
-}
-
-export function createClient(
-  profileId: string,
-  profileName: string
-): Statement {
-  const args = [
-    literal(profileId),
-    asExpression('profileAST', 'ProfileDocumentNode'),
-  ];
-
-  const initializer = newTypedExpression(
-    'TypedServiceFinderQuery',
-    [profileName + 'Usecases'],
-    args
-  );
-
-  return variableStatement(profileName + 'Client', initializer);
-}
-
-function pascalize(input: string): string {
-  return capitalize(input).replace(/-(\w)/g, (_, repl) => {
-    return capitalize(repl);
+    return propertyAssignment(usecaseName, helperCall);
   });
+  const profile = objectLiteral([
+    propertyAssignment(profileName, objectLiteral(usecases)),
+  ]);
+
+  return variableStatement(camelize(profileName), profile);
 }
 
-export function generateInterfaces(
-  profileAST: ProfileDocumentNode,
-  profileNam: string,
-  untypedType: 'any' | 'unknown'
-): string {
-  const profileName = pascalize(profileNam);
-  const output = getProfileOutput(profileAST);
-
-  const imports = [
-    namedImport(['ProfileDocumentNode'], '@superfaceai/ast'),
-    namedImport(['TypedServiceFinderQuery'], '@superfaceai/sdk'),
-    defaultImport('profileAST', './' + profileName + '.ast.json'),
+export function generateTypesFile(profiles: string[]): string {
+  const statements = [
+    namedImport(['createTypedClient'], '@superfaceai/sdk'),
+    ...typeDefinitions(profiles),
+    typedClientStatement(),
   ];
 
+  return createSource(statements);
+}
+
+export function generateTypingsForProfile(
+  profileName: string,
+  profileAST: ProfileDocumentNode
+): string {
+  const output = getProfileOutput(profileAST);
   const inputTypes = output.usecases.map(usecase =>
-    createUsecaseTypes(usecase, untypedType)
-  );
-  const usecasesType = createUsecasesType(
-    profileName,
-    output.usecases.map(usecase => usecase.useCaseName)
+    createUsecaseTypes(usecase, 'unknown')
   );
 
   const statements = [
-    ...imports,
+    namedImport(['typeHelper'], '@superfaceai/sdk'),
     ...inputTypes.reduce((acc, input) => [...acc, ...input], []),
-    usecasesType,
-    createClient(output.header.name, profileName),
+    createUsecasesType(
+      profileName,
+      output.usecases.map(usecase => usecase.useCaseName)
+    ),
   ];
 
   return createSource(statements);

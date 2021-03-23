@@ -1,7 +1,9 @@
 import { StructureType } from '@superfaceai/parser';
 import {
   addSyntheticLeadingComment,
+  ArrayTypeNode,
   AsExpression,
+  CallExpression,
   createPrinter,
   EmitHint,
   Expression,
@@ -16,7 +18,11 @@ import {
   Node,
   NodeFlags,
   NumericLiteral,
+  ObjectLiteralElementLike,
+  ObjectLiteralExpression,
+  PropertyAssignment,
   PropertySignature,
+  SpreadAssignment,
   Statement,
   StringLiteral,
   SyntaxKind,
@@ -55,6 +61,20 @@ function addDoc<T extends Node>(
     text,
     true
   );
+}
+
+export function capitalize(input: string): string {
+  return input.charAt(0).toUpperCase() + input.substring(1);
+}
+
+export function camelize(input: string): string {
+  return input.replace(/[-/](\w)/g, (_, repl) => {
+    return capitalize(repl);
+  });
+}
+
+export function pascalize(input: string): string {
+  return capitalize(camelize(input));
 }
 
 export function id(name: string): Identifier {
@@ -109,7 +129,7 @@ export function variableType(
   prefix: string,
   structure: StructureType,
   untypedType: 'any' | 'unknown'
-): KeywordTypeNode | TypeReferenceNode {
+): KeywordTypeNode | TypeReferenceNode | ArrayTypeNode | TypeLiteralNode {
   switch (structure.kind) {
     case 'PrimitiveStructure':
       return keyword(structure.type);
@@ -120,8 +140,27 @@ export function variableType(
     case 'EnumStructure':
       return factory.createTypeReferenceNode(prefix);
 
+    case 'ListStructure':
+      return factory.createArrayTypeNode(
+        variableType(prefix, structure.value, untypedType)
+      );
+
+    case 'ObjectStructure': {
+      const properties = Object.entries(
+        structure.fields ?? {}
+      ).map(([name, innerStructure]) =>
+        propertySignature(
+          name,
+          innerStructure.required,
+          variableType('', innerStructure, untypedType)
+        )
+      );
+
+      return factory.createTypeLiteralNode(properties);
+    }
+
     default:
-      throw new Error(`err, ${structure.kind}`);
+      throw new Error(`Variable type not implemented for: ${structure.kind}`);
   }
 }
 
@@ -261,6 +300,65 @@ export function asExpression(name: string, asType: string): AsExpression {
     id(name),
     factory.createTypeReferenceNode(asType)
   );
+}
+
+export function typeReference(name: string): TypeReferenceNode {
+  return factory.createTypeReferenceNode(name);
+}
+
+export function callExpression(
+  functionName: string,
+  functionArguments: Expression[],
+  typeArguments?: string[]
+): CallExpression {
+  return factory.createCallExpression(
+    id(functionName),
+    typeArguments?.map(typeReference) ?? [],
+    functionArguments
+  );
+}
+
+export function objectLiteral(
+  properties: ObjectLiteralElementLike[]
+): ObjectLiteralExpression {
+  return factory.createObjectLiteralExpression(properties, true);
+}
+
+export function spreadAssignment(name: string): SpreadAssignment {
+  return factory.createSpreadAssignment(id(name));
+}
+
+export function stringLiteral(text: string): StringLiteral {
+  return factory.createStringLiteral(text);
+}
+
+export function propertyAssignment(
+  name: string,
+  initializer: Expression
+): PropertyAssignment {
+  return factory.createPropertyAssignment(stringLiteral(name), initializer);
+}
+
+export function typeDefinitions(profiles: string[]): Statement[] {
+  const camelizedProfiles = profiles.map(camelize);
+  const imports = profiles.map((profile, index) =>
+    namedImport([camelizedProfiles[index]], './types/' + profile)
+  );
+  const definitions = variableStatement(
+    'typeDefinitions',
+    objectLiteral(camelizedProfiles.map(spreadAssignment))
+  );
+
+  return [...imports, definitions];
+}
+
+export function typedClientStatement(): VariableStatement {
+  const statement = variableStatement(
+    'SuperfaceClient',
+    callExpression('createTypedClient', [id('typeDefinitions')])
+  );
+
+  return statement;
 }
 
 export function createSource(statements: Statement[]): string {
