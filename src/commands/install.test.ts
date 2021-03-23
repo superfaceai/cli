@@ -169,7 +169,7 @@ describe('Install CLI command', () => {
       expect(stdout.output).toContain(`File already exists: "${localFile}"`);
     }, 10000);
 
-    it('preserves file field in super.json', async () => {
+    it.skip('preserves file field in super.json', async () => {
       const profileId = `${PROFILE.scope}/${PROFILE.name}`;
 
       await expect(Install.run([profileId, '-f'])).resolves.toBeUndefined();
