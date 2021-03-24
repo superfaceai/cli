@@ -58,7 +58,7 @@ export async function detectSuperJson(
   return await detectSuperJson(cwd, --level);
 }
 
-interface ProfileResponse {
+export interface ProfileResponse {
   info: ProfileInfo;
   ast: ProfileDocumentNode;
   profile: string;
@@ -160,7 +160,7 @@ export async function handleProfileResponses(
     }
 
     // check existence and warn
-    if (options?.force === false && (await exists(actualPath))) {
+    if (options?.force !== true && (await exists(actualPath))) {
       options?.warnCb?.(
         `⚠️  File already exists: "${actualPath}" (Use flag \`--force/-f\` for overwriting profiles)`
       );
