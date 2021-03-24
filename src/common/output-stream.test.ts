@@ -7,7 +7,7 @@ import { SUPER_PATH } from './document';
 //Mock only streamWrite and streamEnd response
 jest.mock('../common/io', () => ({
   // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
-  ...(jest.requireActual('../common/io') as Record<string, unknown>),
+  ...jest.requireActual<Record<string, unknown>>('../common/io'),
   streamWrite: jest.fn(),
   streamEnd: jest.fn(),
 }));

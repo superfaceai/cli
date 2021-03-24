@@ -10,7 +10,7 @@ jest.mock('../common/output-stream');
 
 jest.mock('../logic/lint', () => ({
   // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
-  ...(jest.requireActual('../logic/lint') as Record<string, unknown>),
+  ...jest.requireActual<Record<string, unknown>>('../logic/lint'),
   lintFiles: jest.fn(),
   lintMapsToProfile: jest.fn(),
 }));

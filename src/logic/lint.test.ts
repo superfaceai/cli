@@ -50,7 +50,7 @@ jest.mock('../common/output-stream');
 
 jest.mock('@superfaceai/parser', () => ({
   // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
-  ...(jest.requireActual('@superfaceai/parser') as Record<string, unknown>),
+  ...jest.requireActual<Record<string, unknown>>('@superfaceai/parser'),
   parseMap: jest.fn(),
   parseMapId: jest.fn(),
   parseProfile: jest.fn(),
@@ -60,6 +60,23 @@ describe('Lint logic', () => {
   afterEach(() => {
     jest.resetAllMocks();
   });
+
+  const mockSyntaxErr = {
+    source: new Source('test'),
+    location: {
+      line: 0,
+      column: 0,
+    },
+    span: {
+      start: 0,
+      end: 0,
+    },
+    category: 1,
+    detail: '',
+    format: () => 'detail',
+    message: 'message',
+  };
+
   describe('when linting multiple files', () => {
     const mockContent = 'file-content';
     const mockMapDocument: MapDocumentNode = {
@@ -250,16 +267,7 @@ describe('Lint logic', () => {
     it('lints profile type file with errors', async () => {
       const mockContent = 'file-content';
       const mockPath = 'test';
-      const mockErr = SyntaxError.fromSyntaxRuleNoMatch(
-        new Source(mockContent, mockPath),
-        {
-          kind: 'nomatch',
-          attempts: ({
-            token: undefined,
-            rules: [],
-          } as unknown) as MatchAttempts,
-        }
-      );
+      const mockErr = new Error('mockSyntaxError');
 
       mocked(readFile).mockResolvedValue(mockContent);
       mocked(parseProfile).mockImplementation(() => {
@@ -286,16 +294,7 @@ describe('Lint logic', () => {
     it('lints map type file with errors', async () => {
       const mockContent = 'file-content';
       const mockPath = 'test';
-      const mockErr = SyntaxError.fromSyntaxRuleNoMatch(
-        new Source(mockContent, mockPath),
-        {
-          kind: 'nomatch',
-          attempts: ({
-            token: undefined,
-            rules: [],
-          } as unknown) as MatchAttempts,
-        }
-      );
+      const mockErr = new Error('mockSyntaxError');
 
       mocked(readFile).mockResolvedValue(mockContent);
       mocked(parseMap).mockImplementation(() => {
@@ -600,22 +599,14 @@ describe('Lint logic', () => {
   describe('when creating file report', () => {
     it('creates file report correctly', async () => {
       const mockPath = 'test-path';
-      const mockErr = SyntaxError.fromSyntaxRuleNoMatch(
-        new Source('mock-content', mockPath),
-        {
-          kind: 'nomatch',
-          attempts: ({
-            token: undefined,
-            rules: [],
-          } as unknown) as MatchAttempts,
-        }
-      );
       const mockWarning = 'ouch!';
 
-      expect(createFileReport(mockPath, [mockErr], [mockWarning])).toEqual({
+      expect(
+        createFileReport(mockPath, [mockSyntaxErr], [mockWarning])
+      ).toEqual({
         kind: 'file',
         path: mockPath,
-        errors: [mockErr],
+        errors: [mockSyntaxErr],
         warnings: [mockWarning],
       });
     });
@@ -804,76 +795,46 @@ describe('Lint logic', () => {
 
     it('formats file with errors and warnings correctly - short output', async () => {
       const mockPath = 'some/path';
-      const mockErr = SyntaxError.fromSyntaxRuleNoMatch(
-        new Source('mock-content', mockPath),
-        {
-          kind: 'nomatch',
-          attempts: ({
-            token: undefined,
-            rules: [],
-          } as unknown) as MatchAttempts,
-        }
-      );
 
       const mockFileReport: ReportFormat = {
         path: mockPath,
         kind: 'file',
-        errors: [mockErr],
+        errors: [mockSyntaxErr],
         warnings: ['ouch!'],
       };
 
       expect(formatHuman(mockFileReport, false, true)).toEqual(
-        `❌ ${mockPath}\n\t0:0 Expected  but found <NONE>\n\n\touch!\n`
+        `❌ ${mockPath}\n\t0:0 message\n\n\touch!\n`
       );
     });
 
     it('formats file with errors and warnings correctly - quiet', async () => {
       const mockPath = 'some/path';
-      const mockErr = SyntaxError.fromSyntaxRuleNoMatch(
-        new Source('mock-content', mockPath),
-        {
-          kind: 'nomatch',
-          attempts: ({
-            token: undefined,
-            rules: [],
-          } as unknown) as MatchAttempts,
-        }
-      );
 
       const mockFileReport: ReportFormat = {
         path: mockPath,
         kind: 'file',
-        errors: [mockErr],
+        errors: [mockSyntaxErr],
         warnings: ['ouch!'],
       };
 
       expect(formatHuman(mockFileReport, true)).toEqual(
-        `❌ ${mockPath}\nSyntaxError: Expected  but found <NONE>\n --> some/path:0:0\n-1 | mock-content\n  |             \n\n\n`
+        `❌ some/path\ndetail\n`
       );
     });
 
     it('formats file with errors correctly', async () => {
       const mockPath = 'some/path';
-      const mockErr = SyntaxError.fromSyntaxRuleNoMatch(
-        new Source('mock-content', mockPath),
-        {
-          kind: 'nomatch',
-          attempts: ({
-            token: undefined,
-            rules: [],
-          } as unknown) as MatchAttempts,
-        }
-      );
 
       const mockFileReport: ReportFormat = {
         path: mockPath,
         kind: 'file',
-        errors: [mockErr],
+        errors: [mockSyntaxErr],
         warnings: [],
       };
 
       expect(formatHuman(mockFileReport, false)).toEqual(
-        `❌ ${mockPath}\nSyntaxError: Expected  but found <NONE>\n --> some/path:0:0\n-1 | mock-content\n  |             \n\n`
+        `❌ ${mockPath}\ndetail`
       );
     });
 
@@ -940,23 +901,15 @@ describe('Lint logic', () => {
   describe('when formating json', () => {
     const mockPath = 'some/path';
 
-    const mockErr = SyntaxError.fromSyntaxRuleNoMatch(
-      new Source('mock-content', mockPath),
-      {
-        kind: 'nomatch',
-        attempts: ({ token: undefined, rules: [] } as unknown) as MatchAttempts,
-      }
-    );
-
     const mockFileReport: ReportFormat = {
       path: mockPath,
       kind: 'file',
-      errors: [mockErr],
+      errors: [mockSyntaxErr],
       warnings: [],
     };
     it('formats json correctly', async () => {
       expect(formatJson(mockFileReport)).toEqual(
-        '{"path":"some/path","kind":"file","errors":[{"location":{"line":0,"column":0},"span":{"start":0,"end":0},"category":1,"detail":"Expected  but found <NONE>"}],"warnings":[]}'
+        '{"path":"some/path","kind":"file","errors":[{"location":{"line":0,"column":0},"span":{"start":0,"end":0},"category":1,"detail":"","message":"message"}],"warnings":[]}'
       );
     });
   });

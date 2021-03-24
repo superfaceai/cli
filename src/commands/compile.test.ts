@@ -18,7 +18,7 @@ jest.mock('../common/output-stream');
 
 jest.mock('@superfaceai/parser', () => ({
   // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
-  ...(jest.requireActual('@superfaceai/parser') as Record<string, unknown>),
+  ...jest.requireActual<Record<string, unknown>>('@superfaceai/parser'),
   parseMap: jest.fn(),
   parseProfile: jest.fn(),
 }));
