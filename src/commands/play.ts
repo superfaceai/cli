@@ -323,7 +323,7 @@ clean: the \`superface/node_modules\` folder and \`superface/build\` build artif
       onlyShowValid: false,
       onlyShowDir: true,
       hideChildrenOfValid: true,
-      validate: Play.validatePlygroundPath,
+      validate: (input: unknown) => Play.validatePlygroundPath(input),
     } as typeof FileTreeSelectionPrompt); // have to cast because the registration of the new prompt is not known to typescript
 
     return response.playground;

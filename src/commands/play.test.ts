@@ -2,6 +2,7 @@ import { CLIError } from '@oclif/errors';
 import inquirer from 'inquirer';
 import { mocked } from 'ts-jest/utils';
 
+import Play from '../commands/play';
 import { validateDocumentName } from '../common/document';
 import {
   cleanPlayground,
@@ -10,7 +11,6 @@ import {
   initializePlayground,
   PlaygroundInstance,
 } from '../logic/playground';
-import Play from './play';
 
 //Mock inquirer
 jest.mock('inquirer');
@@ -21,7 +21,7 @@ jest.mock('../common/document');
 //Mock logic
 jest.mock('../logic/playground', () => ({
   // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
-  ...(jest.requireActual('../logic/playground') as Record<string, unknown>),
+  ...jest.requireActual<Record<string, unknown>>('../logic/playground'),
   cleanPlayground: jest.fn(),
   detectPlayground: jest.fn(),
   executePlayground: jest.fn(),
@@ -148,23 +148,6 @@ describe('Play CLI command', () => {
       );
     });
 
-    it('throw error on invalid document when initializing playground - prompts for input', async () => {
-      const mockPath = 'test';
-      mocked(validateDocumentName).mockReturnValue(false);
-      mocked(initializePlayground).mockResolvedValue(undefined);
-      const promptSpy = jest
-        .spyOn(inquirer, 'prompt')
-        .mockResolvedValueOnce({ providers: 'foo bar' });
-
-      await expect(Play.run(['initialize', mockPath])).rejects.toEqual(
-        new CLIError('The playground name must be a valid slang identifier')
-      );
-
-      expect(promptSpy).toHaveBeenCalledTimes(0);
-
-      expect(initializePlayground).toHaveBeenCalledTimes(0);
-    });
-
     it('executes playground - use inputs from cli', async () => {
       const mockPath = 'test';
       mocked(executePlayground).mockResolvedValue(undefined);
@@ -193,6 +176,57 @@ describe('Play CLI command', () => {
         }
       );
     });
+
+    it('executes playground - prompts for input', async () => {
+      const mockPath = 'test';
+      mocked(executePlayground).mockResolvedValue(undefined);
+      mocked(detectPlayground).mockResolvedValue([mockPlaygroundInstance]);
+      const promptSpy = jest
+        .spyOn(inquirer, 'prompt')
+        .mockResolvedValueOnce({
+          providers: ['first-provider', 'second-provider'],
+        })
+        .mockResolvedValue({ playground: 'first' });
+
+      await expect(Play.run(['execute', mockPath])).resolves.toBeUndefined();
+
+      expect(promptSpy).toHaveBeenCalledTimes(1);
+      expect(promptSpy).toHaveBeenCalledWith({
+        name: 'providers',
+        message: 'Select a provider to execute',
+        type: 'checkbox',
+        choices: [{ name: 'first-provider' }, { name: 'second-provider' }],
+        validate: expect.anything(),
+      });
+      expect(executePlayground).toHaveBeenCalledTimes(1);
+      expect(executePlayground).toHaveBeenCalledWith(
+        mockPlaygroundInstance,
+        ['first-provider', 'second-provider'],
+        { ast: 'never', npm: 'never', tsc: 'never' },
+        {
+          debugLevel: '*',
+          logCb: expect.anything(),
+        }
+      );
+    });
+
+    it('throw error on invalid document when initializing playground - prompts for input', async () => {
+      const mockPath = 'test';
+      mocked(validateDocumentName).mockReturnValue(false);
+      mocked(initializePlayground).mockResolvedValue(undefined);
+      const promptSpy = jest
+        .spyOn(inquirer, 'prompt')
+        .mockResolvedValueOnce({ providers: 'foo bar' });
+
+      await expect(Play.run(['initialize', mockPath])).rejects.toEqual(
+        new CLIError('The playground name must be a valid slang identifier')
+      );
+
+      expect(promptSpy).toHaveBeenCalledTimes(0);
+
+      expect(initializePlayground).toHaveBeenCalledTimes(0);
+    });
+
     it('executes playground - prompts for providers', async () => {
       const mockPath = 'test';
       mocked(executePlayground).mockResolvedValue(undefined);
