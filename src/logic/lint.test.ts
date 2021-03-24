@@ -129,7 +129,6 @@ describe('Lint logic', () => {
     });
 
     it('lints profile files', async () => {
-      mocked(readFile).mockResolvedValue('file-content');
       const mockPath = 'test';
       mocked(readFile).mockResolvedValue(mockContent);
       mocked(parseProfile).mockReturnValue(mockProfileDocument);
