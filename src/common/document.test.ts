@@ -387,12 +387,8 @@ describe('Document functions', () => {
   describe('when constructing provider settings', () => {
     it('constructs provider settings correctly', async () => {
       expect(constructProviderSettings(['first', 'second'])).toEqual({
-        first: {
-          auth: {},
-        },
-        second: {
-          auth: {},
-        },
+        first: {},
+        second: {},
       });
     });
   });
