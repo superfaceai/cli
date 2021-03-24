@@ -1,7 +1,7 @@
 {
   "profiles": {
     "starwars/character-information": {
-      "file": "../character-information.supr",
+      "version": "1.0.1",
       "providers": {}
     }
   },
