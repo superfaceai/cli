@@ -1,9 +1,10 @@
-import { Command, flags } from '@oclif/command';
+import { flags } from '@oclif/command';
 import { grey } from 'chalk';
 import inquirer from 'inquirer';
 import FileTreeSelectionPrompt from 'inquirer-file-tree-selection-prompt';
 import { basename } from 'path';
 
+import { Command } from '../common/command.abstract';
 import { validateDocumentName } from '../common/document';
 import { developerError, userError } from '../common/error';
 import { skipFileFlag, SkipFileType } from '../common/flags';
@@ -55,6 +56,7 @@ clean: the \`superface/node_modules\` folder and \`superface/build\` build artif
   ];
 
   static flags = {
+    ...Command.flags,
     providers: flags.string({
       char: 'p',
       multiple: true,
@@ -94,8 +96,6 @@ clean: the \`superface/node_modules\` folder and \`superface/build\` build artif
       description:
         '[default: *] Controls the value of the env variable `DEBUG` passed when executing the playground glue.\nPass an empty string to disable. Defaults to an empty string when `--quiet` is also passed.',
     }),
-
-    help: flags.help({ char: 'h' }),
   };
 
   private logCallback? = (message: string) => this.log(grey(message));

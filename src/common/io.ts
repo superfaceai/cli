@@ -76,7 +76,7 @@ export async function isFileQuiet(path: string): Promise<boolean> {
   } catch (err: unknown) {
     assertIsIOError(err);
 
-    // allow ENOENT, which means it is not a directory
+    // allow ENOENT, which means it is not a file
     if (err.code !== 'ENOENT') {
       throw err;
     }
@@ -124,6 +124,7 @@ export function streamEnd(stream: Writable): Promise<void> {
   return new Promise((resolve, reject) => {
     stream.once('error', reject);
     stream.once('close', resolve);
+    stream.end();
   });
 }
 

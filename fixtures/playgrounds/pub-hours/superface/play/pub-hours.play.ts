@@ -1,41 +1,40 @@
 import { inspect } from 'util';
 
-import { Provider } from '@superfaceai/sdk';
+import { SuperfaceClient } from '@superfaceai/sdk';
 
 /** Execute one specific pair of profile and map. */
 async function execute(
   scope: string | undefined,
   name: string,
-  providerName: string,
-  variantName?: string
+  providerName: string
 ) {
   let profileId = name;
   if (scope !== undefined) {
     profileId = scope + '/' + name;
   }
 
-  // 1. Create the provider object - the build artifacts are located by the sdk according to super.json
-  const provider = new Provider(
-    profileId,
-    providerName
-  );
+  // 0. Create the client
+  const client = new SuperfaceClient();
 
-  // 2. Bind the provider - values are taken from super.json unless overridden here
-  const boundProvider = await provider.bind();
+  // 1. Get profile from the client (as specified in super.json)
+  const profile = await client.getProfile(profileId);
 
-  // 3. Perform the usecase with the bound provider - defaults are taken from super.json again
-  const result = await boundProvider.perform(
-    'PubOpeningHours',
+  // 2. Get provider from the client (as configured in super.json)
+  const provider = await client.getProvider(providerName);
+
+  // 3. Get usecase from the profile and execute it with the given provider
+  const result = await profile.getUseCase('PubOpeningHours').perform(
     {
       city: "Praha",
       nameRegex: "Diego"
-    }
+    },
+    { provider }
   );
 
   // Do something with the result
   // Here we just print it
   console.log(
-    `PubOpeningHours/${providerName}${variantName ? '.' + variantName : ''} result:`,
+    `PubOpeningHours/${providerName} result:`,
     inspect(result, {
       depth: 5,
       colors: true,
@@ -76,8 +75,7 @@ async function main() {
     execute(
       scope,
       name,
-      provider,
-      variant
+      provider
     );
   }
 }

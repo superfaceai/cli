@@ -609,20 +609,25 @@
   dependencies:
     "@sinonjs/commons" "^1.7.0"
 
-"@superfaceai/ast@0.0.21", "@superfaceai/ast@^0.0.21":
+"@superfaceai/ast@0.0.21":
   version "0.0.21"
   resolved "https://npm.pkg.github.com/download/@superfaceai/ast/0.0.21/48ebed3cda17c82fb3722a6baf649a4b0d6fdbdb6a349962915f705922e68d4e#0db4167b99a4d84f8f43c7651cca6df930d65f6d"
   integrity sha1-DbQWe5mk2E+PQ8dlHMpt+TDWX20=
 
-"@superfaceai/parser@0.0.14":
-  version "0.0.14"
-  resolved "https://npm.pkg.github.com/download/@superfaceai/parser/0.0.14/1f50e337a8cd1c3bad514a0374ad9f4a793aceb07d4fea0be04c376eff01021d#9d9406b8947ef6298a3058433a30397c53f566a0"
-  integrity sha1-nZQGuJR+9imKMFhDOjA5fFP1ZqA=
+"@superfaceai/ast@^0.0.22":
+  version "0.0.22"
+  resolved "https://npm.pkg.github.com/download/@superfaceai/ast/0.0.22/32dd1accfce252f3a3e4d84fe702c0c2a927dbf329e6a62aacc44d52e7db3e15#becfa4a20a9639e13f8b48b776509a44be09ba2e"
+  integrity sha512-3cRkhl9RFyPmIcwS7fJZ3l0NaBWCW4FlMM9f/wt+SUAs9M0pn3TZbY2QZTe0jw+tZhKm76w1y/UD4b87PuIaFw==
+
+"@superfaceai/parser@0.0.15":
+  version "0.0.15"
+  resolved "https://npm.pkg.github.com/download/@superfaceai/parser/0.0.15/bb86a0e3bb404404b8a559f0af45f8d9a8c4cf9aaf46eb8fecfa0fc3baffd6e1#394df17c88b8a64a87073e2af007dd44801fbdf2"
+  integrity sha512-R864JiWupGpNM/azqI8AfAFSMvEEcC8InfYjdzfGxm0i83WbhUxp3Q52q0RgWcXzUE8ifqvTwWfkm/1Bw6v2uw==
   dependencies:
-    "@superfaceai/ast" "^0.0.21"
+    "@superfaceai/ast" "^0.0.22"
     "@types/debug" "^4.1.5"
     debug "^4.3.1"
-    typescript "^4.0.2"
+    typescript "^4.1.5"
 
 "@superfaceai/sdk@0.0.14-beta.0":
   version "0.0.14-beta.0"
@@ -4802,10 +4807,15 @@ typedarray-to-buffer@^3.1.5:
   dependencies:
     is-typedarray "^1.0.0"
 
-typescript@^4.0.2, typescript@^4.0.5:
+typescript@^4.0.5:
   version "4.2.2"
   resolved "https://registry.yarnpkg.com/typescript/-/typescript-4.2.2.tgz#1450f020618f872db0ea17317d16d8da8ddb8c4c"
   integrity sha512-tbb+NVrLfnsJy3M59lsDgrzWIflR4d4TIUjz+heUnHZwdF7YsrMTKoRERiIvI2lvBG95dfpLxB21WZhys1bgaQ==
+
+typescript@^4.1.5:
+  version "4.2.3"
+  resolved "https://registry.yarnpkg.com/typescript/-/typescript-4.2.3.tgz#39062d8019912d43726298f09493d598048c1ce3"
+  integrity sha512-qOcYwxaByStAWrBf4x0fibwZvMRG+r4cQoTjbPtUlrWjBHbmCAww1i448U0GJ+3cNNEtebDteo/cHOR3xJ4wEw==
 
 unbox-primitive@^1.0.0:
   version "1.0.0"

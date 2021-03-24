@@ -1,7 +1,8 @@
-import { Command, flags } from '@oclif/command';
+import { flags } from '@oclif/command';
 import { parseDocumentId } from '@superfaceai/parser';
 import { SuperJson } from '@superfaceai/sdk';
 
+import { Command } from '../common/command.abstract';
 import {
   composeUsecaseName,
   DEFAULT_PROFILE_VERSION_STR,
@@ -28,6 +29,7 @@ export default class Create extends Command {
   ];
 
   static flags = {
+    ...Command.flags,
     usecase: flags.string({
       char: 'u',
       multiple: true,
@@ -52,7 +54,6 @@ export default class Create extends Command {
       default: 'empty',
       description: 'Template to initialize the usecases and maps with',
     }),
-    help: flags.help({ char: 'h' }),
   };
 
   static examples = [
