@@ -19,7 +19,6 @@ import { fetchProviderInfo } from '../common/http';
 import { readFile } from '../common/io';
 import { formatShellLog, LogCallback } from '../common/log';
 import { OutputStream } from '../common/output-stream';
-import { getProfileFromStore, handleProfileResponses } from './install';
 
 /**
  * Handle responses from superface registry.
@@ -28,8 +27,9 @@ import { getProfileFromStore, handleProfileResponses } from './install';
  */
 export function handleProviderResponse(
   superJson: SuperJson,
+  profileId: string,
   response: ProviderJson,
-  options?: { logCb?: LogCallback; warnCb?: LogCallback; force: boolean }
+  options?: { logCb?: LogCallback; warnCb?: LogCallback }
 ): number {
   options?.logCb?.(`Installing provider: "${response.name}"`);
 
@@ -39,7 +39,7 @@ export function handleProviderResponse(
     for (const scheme of response.securitySchemes) {
       options?.logCb?.(
         `Configuring ${security.length + 1}/${
-        response.securitySchemes.length
+          response.securitySchemes.length
         } security schemes`
       );
       if (isApiKeySecurityScheme(scheme)) {
@@ -72,6 +72,13 @@ export function handleProviderResponse(
   }
   // update super.json
   superJson.addProvider(response.name, { security });
+
+  //constructProfileProviderSettings returns Record<string, ProfileProviderEntry>
+  superJson.addProfileProvider(
+    profileId,
+    response.name,
+    constructProfileProviderSettings([response.name])[response.name]
+  );
 
   return security.length;
 }
@@ -110,7 +117,7 @@ export async function installProvider(
   options?: {
     logCb?: LogCallback;
     warnCb?: LogCallback;
-    force: boolean;
+    force?: boolean;
     local: boolean;
   }
 ): Promise<void> {
@@ -123,6 +130,14 @@ export async function installProvider(
       return new SuperJson({});
     }
   );
+  //Check profile existance
+  if (!superJson.normalized.profiles[profileId]) {
+    throw userError(
+      `❌ profile ${profileId} not found in ${superPath}. Forgot to install?`,
+      1
+    );
+  }
+
   //Load provider info
   let providerInfo: ProviderJson;
   //Load from file
@@ -140,7 +155,7 @@ export async function installProvider(
 
   // Check existence and warn
   if (
-    options?.force === false &&
+    options?.force !== true &&
     superJson.normalized.providers[providerInfo.name]
   ) {
     options?.warnCb?.(
@@ -149,28 +164,11 @@ export async function installProvider(
 
     return;
   }
-  //Load profile info
-  const response = await getProfileFromStore(profileId, {
-    logCb: options?.logCb,
-  });
-  const numOfInstalled = await handleProfileResponses(
-    superJson,
-    [response],
-    //Provider from args can be path
-    constructProfileProviderSettings([providerInfo.name]),
-    options
-  );
-  if (numOfInstalled === 0) {
-    options?.logCb?.(`❌ No profiles have been installed`);
-  } else {
-    options?.logCb?.(
-      `🆗 Profile ${profileId} have been installed successfully.`
-    );
-  }
 
   //Write provider to super.json
   const numOfConfigured = handleProviderResponse(
     superJson,
+    profileId,
     providerInfo,
     options
   );
