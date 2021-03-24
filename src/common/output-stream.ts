@@ -59,7 +59,7 @@ export class OutputStream {
           mode: 0o644,
           encoding: 'utf-8',
         });
-        this.isStdStream = true;
+        this.isStdStream = false;
         this.isTTY = process.stdout.isTTY;
         break;
     }

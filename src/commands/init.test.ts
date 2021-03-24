@@ -1,148 +1,162 @@
-import { join as joinPath } from 'path';
-import { stdout } from 'stdout-stderr';
+import { SuperJson } from '@superfaceai/sdk';
+import inquirer from 'inquirer';
+import { stderr, stdout } from 'stdout-stderr';
+import { mocked } from 'ts-jest/utils';
 
-import {
-  BUILD_DIR,
-  EXTENSIONS,
-  GRID_DIR,
-  SUPER_PATH,
-  SUPERFACE_DIR,
-  TYPES_DIR,
-} from '../common/document';
-import { access, rimraf } from '../common/io';
+import { constructProviderSettings } from '../common/document';
+import { OutputStream } from '../common/output-stream';
+import { generateSpecifiedProfiles, initSuperface } from '../logic/init';
 import Init from './init';
 
+//Mock init logic
+jest.mock('../logic/init', () => ({
+  initSuperface: jest.fn(),
+  generateSpecifiedProfiles: jest.fn(),
+}));
+
+//Mock inquirer
+jest.mock('inquirer');
+
 describe('Init CLI command', () => {
-  const baseFixture = joinPath('fixtures', 'playgrounds');
-  const testInitFolder = 'test';
-  const testInitFolderPath = joinPath(baseFixture, testInitFolder);
+  describe('when running init command', () => {
+    beforeEach(async () => {
+      stderr.start();
+      stdout.start();
+    });
 
-  beforeEach(() => {
-    stdout.start();
-  });
+    afterEach(() => {
+      jest.resetAllMocks();
+      stderr.stop();
+      stdout.stop();
+    });
 
-  afterEach(async () => {
-    stdout.stop();
-    await rimraf(testInitFolderPath);
-  });
+    const mockPath = 'test';
 
-  it('initializes base folder', async () => {
-    await expect(Init.run([testInitFolderPath])).resolves.toBeUndefined();
+    it('initializes superface with prompt', async () => {
+      mocked(initSuperface).mockResolvedValue(new SuperJson({}));
+      mocked(generateSpecifiedProfiles).mockResolvedValue(undefined);
+      const writeOnceSpy = jest
+        .spyOn(OutputStream, 'writeOnce')
+        .mockResolvedValue(undefined);
 
-    const expectedFiles = [
-      '.npmrc',
-      joinPath(SUPERFACE_DIR, '.gitignore'),
-      SUPER_PATH,
-    ];
+      const promptSpy = jest
+        .spyOn(inquirer, 'prompt')
+        .mockResolvedValueOnce({ profiles: 'first@1.0.0 second@1.0.0' })
+        .mockResolvedValueOnce({ providers: 'twilio tyntec' });
 
-    const expectedDirectories = [SUPERFACE_DIR, BUILD_DIR, TYPES_DIR, GRID_DIR];
+      await expect(Init.run([mockPath, '-p'])).resolves.toBeUndefined();
 
-    expect(stdout.output).toContain(
-      `$ echo '<README.md template>' > 'fixtures/playgrounds/test/README.md'
-$ echo '<.npmrc template>' > 'fixtures/playgrounds/test/.npmrc'
-$ mkdir 'fixtures/playgrounds/test/superface'
-$ echo '<initial super.json>' > 'fixtures/playgrounds/test/superface/super.json'
-$ echo '<.gitignore template>' > 'fixtures/playgrounds/test/superface/.gitignore'
-$ mkdir 'fixtures/playgrounds/test/superface/grid'
-$ mkdir 'fixtures/playgrounds/test/superface/types'
-$ mkdir 'fixtures/playgrounds/test/superface/build'
-`
-    );
+      expect(initSuperface).toHaveBeenCalledTimes(1);
+      expect(initSuperface).toHaveBeenCalledWith(
+        mockPath,
+        {
+          providers: constructProviderSettings(['twilio', 'tyntec']),
+        },
+        {
+          logCb: expect.anything(),
+          warnCb: expect.anything(),
+        }
+      );
 
-    await expect(
-      Promise.all(
-        expectedFiles.map(file => access(joinPath(testInitFolderPath, file)))
-      )
-    ).resolves.toBeDefined();
+      expect(promptSpy).toHaveBeenCalledTimes(2);
 
-    await expect(
-      Promise.all(
-        expectedDirectories.map(dir =>
-          access(joinPath(testInitFolderPath, dir))
-        )
-      )
-    ).resolves.toBeDefined();
-  });
+      expect(writeOnceSpy).toHaveBeenCalledTimes(1);
+      expect(writeOnceSpy).toHaveBeenCalledWith(
+        '',
+        new SuperJson({}).stringified
+      );
+    });
 
-  it('initializes base folder with quiet mode', async () => {
-    await expect(Init.run([testInitFolderPath, '-q'])).resolves.toBeUndefined();
+    it('initializes superface with invalid profiles and providers', async () => {
+      mocked(initSuperface).mockResolvedValue(new SuperJson({}));
+      mocked(generateSpecifiedProfiles).mockResolvedValue(undefined);
+      const writeOnceSpy = jest
+        .spyOn(OutputStream, 'writeOnce')
+        .mockResolvedValue(undefined);
 
-    const expectedFiles = [
-      '.npmrc',
-      joinPath(SUPERFACE_DIR, '.gitignore'),
-      SUPER_PATH,
-    ];
+      const promptSpy = jest
+        .spyOn(inquirer, 'prompt')
+        .mockResolvedValueOnce({ profiles: 'first second@1.0.0' })
+        .mockResolvedValueOnce({ providers: 'twilio t7!c' });
 
-    const expectedDirectories = [SUPERFACE_DIR, BUILD_DIR, TYPES_DIR, GRID_DIR];
+      await expect(Init.run([mockPath, '-p'])).resolves.toBeUndefined();
 
-    expect(stdout.output).not.toContain(
-      "$ mkdir 'fixtures/playgrounds/test/superface"
-    );
+      expect(initSuperface).toHaveBeenCalledTimes(1);
+      expect(initSuperface).toHaveBeenCalledWith(
+        mockPath,
+        {
+          providers: constructProviderSettings(['twilio']),
+        },
+        {
+          logCb: expect.anything(),
+          warnCb: expect.anything(),
+        }
+      );
 
-    await expect(
-      Promise.all(
-        expectedFiles.map(file => access(joinPath(testInitFolderPath, file)))
-      )
-    ).resolves.toBeDefined();
+      expect(promptSpy).toHaveBeenCalledTimes(2);
 
-    await expect(
-      Promise.all(
-        expectedDirectories.map(dir =>
-          access(joinPath(testInitFolderPath, dir))
-        )
-      )
-    ).resolves.toBeDefined();
-  });
+      expect(writeOnceSpy).toHaveBeenCalledTimes(1);
+      expect(writeOnceSpy).toHaveBeenCalledWith(
+        '',
+        new SuperJson({}).stringified
+      );
+    });
 
-  it('initilizes base folder with specified profiles', async () => {
-    const profile1 = {
-      id: 'my-profile@1.0.0',
-      scope: undefined,
-      name: 'my-profile',
-      version: '1.0.0',
-    };
-    const profile2 = {
-      id: 'my-scope/my-profile@1.0.0',
-      scope: 'my-scope',
-      name: 'my-profile',
-      version: '1.0.0',
-    };
+    it('initializes superface without prompt', async () => {
+      mocked(initSuperface).mockResolvedValue(new SuperJson({}));
+      mocked(generateSpecifiedProfiles).mockResolvedValue(undefined);
+      const writeOnceSpy = jest
+        .spyOn(OutputStream, 'writeOnce')
+        .mockResolvedValue(undefined);
 
-    await expect(
-      Init.run([testInitFolderPath, '--profiles', profile1.id, profile2.id])
-    ).resolves.toBeUndefined();
+      const promptSpy = jest.spyOn(inquirer, 'prompt');
 
-    const expectedFiles = [
-      joinPath(GRID_DIR, `${profile1.name}${EXTENSIONS.profile.source}`),
-      joinPath(GRID_DIR, profile2.scope),
-      joinPath(
-        GRID_DIR,
-        profile2.scope,
-        `${profile2.name}${EXTENSIONS.profile.source}`
-      ),
-    ];
+      await expect(Init.run([mockPath])).resolves.toBeUndefined();
 
-    expect(stdout.output).toContain(
-      '-> Created fixtures/playgrounds/test/superface/grid/my-profile.supr (name = "my-profile", version = "1.0.0")'
-    );
-    expect(stdout.output).toContain(
-      '-> Created fixtures/playgrounds/test/superface/grid/my-scope/my-profile.supr (name = "my-scope/my-profile", version = "1.0.0")'
-    );
+      expect(initSuperface).toHaveBeenCalledTimes(1);
+      expect(initSuperface).toHaveBeenCalledWith(
+        mockPath,
+        {
+          providers: constructProviderSettings([]),
+        },
+        {
+          logCb: expect.anything(),
+          warnCb: expect.anything(),
+        }
+      );
 
-    await expect(
-      Promise.all(
-        expectedFiles.map(file => access(joinPath(testInitFolderPath, file)))
-      )
-    ).resolves.toBeDefined();
+      expect(promptSpy).toHaveBeenCalledTimes(0);
 
-    // TODO: check for super.json
-  });
+      expect(writeOnceSpy).toHaveBeenCalledTimes(0);
+    });
 
-  it('initilizes base folder with specified providers', async () => {
-    await expect(
-      Init.run([testInitFolderPath, '--providers', 'twillio', 'osm'])
-    ).resolves.toBeUndefined();
+    it('initializes superface with quiet flag', async () => {
+      mocked(initSuperface).mockResolvedValue(new SuperJson({}));
+      mocked(generateSpecifiedProfiles).mockResolvedValue(undefined);
+      const writeOnceSpy = jest
+        .spyOn(OutputStream, 'writeOnce')
+        .mockResolvedValue(undefined);
 
-    // TODO: check for super.json
+      const promptSpy = jest.spyOn(inquirer, 'prompt');
+
+      await expect(Init.run([mockPath, '-q'])).resolves.toBeUndefined();
+
+      expect(initSuperface).toHaveBeenCalledTimes(1);
+      expect(initSuperface).toHaveBeenCalledWith(
+        mockPath,
+        {
+          providers: constructProviderSettings([]),
+        },
+        {
+          logCb: undefined,
+          warnCb: undefined,
+        }
+      );
+
+      expect(promptSpy).toHaveBeenCalledTimes(0);
+
+      expect(writeOnceSpy).toHaveBeenCalledTimes(0);
+      expect(stdout.output).toEqual('');
+    });
   });
 });
