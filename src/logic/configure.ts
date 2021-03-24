@@ -1,11 +1,11 @@
 import {
-  AuthVariables,
-  isApiKeySecurity,
-  isBasicAuthSecurity,
-  isBearerTokenSecurity,
-  isDigestAuthSecurity,
+  isApiKeySecurityScheme,
+  isBasicAuthSecurityScheme,
+  isBearerTokenSecurityScheme,
+  isDigestSecurityScheme,
   parseProviderJson,
   ProviderJson,
+  SecurityValues,
   SuperJson,
 } from '@superfaceai/sdk';
 import { join as joinPath } from 'path';
@@ -33,7 +33,7 @@ export function handleProviderResponse(
 ): number {
   options?.logCb?.(`Installing provider: "${response.name}"`);
 
-  const security: AuthVariables = [];
+  const security: SecurityValues[] = [];
 
   if (response.securitySchemes) {
     for (const scheme of response.securitySchemes) {
@@ -42,23 +42,23 @@ export function handleProviderResponse(
           response.securitySchemes.length
         } security schemes`
       );
-      if (isApiKeySecurity(scheme)) {
+      if (isApiKeySecurityScheme(scheme)) {
         security.push({
           id: scheme.id,
           apikey: `$${response.name.toUpperCase()}_API_KEY`,
         });
-      } else if (isBasicAuthSecurity(scheme)) {
+      } else if (isBasicAuthSecurityScheme(scheme)) {
         security.push({
           id: scheme.id,
           username: `$${response.name.toUpperCase()}_USERNAME`,
           password: `$${response.name.toUpperCase()}_PASSWORD`,
         });
-      } else if (isBearerTokenSecurity(scheme)) {
+      } else if (isBearerTokenSecurityScheme(scheme)) {
         security.push({
           id: scheme.id,
           token: `$${response.name.toUpperCase()}_TOKEN`,
         });
-      } else if (isDigestAuthSecurity(scheme)) {
+      } else if (isDigestSecurityScheme(scheme)) {
         security.push({
           id: scheme.id,
           digest: `$${response.name.toUpperCase()}_DIGEST`,
