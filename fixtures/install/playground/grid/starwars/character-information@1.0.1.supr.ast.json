@@ -1,0 +1,182 @@
+{
+  "kind": "ProfileDocument",
+  "header": {
+    "kind": "ProfileHeader",
+    "scope": "starwars",
+    "name": "character-information",
+    "version": {
+      "major": 1,
+      "minor": 0,
+      "patch": 1
+    },
+    "location": {
+      "line": 1,
+      "column": 1
+    },
+    "span": {
+      "start": 0,
+      "end": 57
+    }
+  },
+  "definitions": [
+    {
+      "kind": "UseCaseDefinition",
+      "useCaseName": "RetrieveCharacterInformation",
+      "safety": "safe",
+      "input": {
+        "kind": "UseCaseSlotDefinition",
+        "type": {
+          "kind": "ObjectDefinition",
+          "fields": [
+            {
+              "kind": "FieldDefinition",
+              "fieldName": "characterName",
+              "required": false,
+              "location": {
+                "line": 7,
+                "column": 5
+              },
+              "span": {
+                "start": 128,
+                "end": 141
+              }
+            }
+          ],
+          "location": {
+            "line": 6,
+            "column": 9
+          },
+          "span": {
+            "start": 122,
+            "end": 145
+          }
+        },
+        "location": {
+          "line": 6,
+          "column": 3
+        },
+        "span": {
+          "start": 116,
+          "end": 145
+        }
+      },
+      "result": {
+        "kind": "UseCaseSlotDefinition",
+        "type": {
+          "kind": "ObjectDefinition",
+          "fields": [
+            {
+              "kind": "FieldDefinition",
+              "fieldName": "height",
+              "required": false,
+              "location": {
+                "line": 11,
+                "column": 5
+              },
+              "span": {
+                "start": 162,
+                "end": 168
+              }
+            },
+            {
+              "kind": "FieldDefinition",
+              "fieldName": "weight",
+              "required": false,
+              "location": {
+                "line": 12,
+                "column": 5
+              },
+              "span": {
+                "start": 173,
+                "end": 179
+              }
+            },
+            {
+              "kind": "FieldDefinition",
+              "fieldName": "yearOfBirth",
+              "required": false,
+              "location": {
+                "line": 13,
+                "column": 5
+              },
+              "span": {
+                "start": 184,
+                "end": 195
+              }
+            }
+          ],
+          "location": {
+            "line": 10,
+            "column": 10
+          },
+          "span": {
+            "start": 156,
+            "end": 199
+          }
+        },
+        "location": {
+          "line": 10,
+          "column": 3
+        },
+        "span": {
+          "start": 149,
+          "end": 199
+        }
+      },
+      "error": {
+        "kind": "UseCaseSlotDefinition",
+        "type": {
+          "kind": "ObjectDefinition",
+          "fields": [
+            {
+              "kind": "FieldDefinition",
+              "fieldName": "message",
+              "required": false,
+              "location": {
+                "line": 17,
+                "column": 5
+              },
+              "span": {
+                "start": 215,
+                "end": 222
+              }
+            }
+          ],
+          "location": {
+            "line": 16,
+            "column": 9
+          },
+          "span": {
+            "start": 209,
+            "end": 226
+          }
+        },
+        "location": {
+          "line": 16,
+          "column": 3
+        },
+        "span": {
+          "start": 203,
+          "end": 226
+        }
+      },
+      "location": {
+        "line": 4,
+        "column": 1
+      },
+      "span": {
+        "start": 59,
+        "end": 228
+      },
+      "title": "Starwars"
+    }
+  ],
+  "location": {
+    "line": 1,
+    "column": 1
+  },
+  "span": {
+    "start": 0,
+    "end": 228
+  }
+}
