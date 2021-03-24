@@ -1,5 +1,4 @@
 import {
-
   ApiKeyPlacement,
   HttpScheme,
   SecurityType,
@@ -10,8 +9,8 @@ import { stderr, stdout } from 'stdout-stderr';
 
 import { EXTENSIONS, GRID_DIR, SUPER_PATH } from '../common/document';
 import { userError } from '../common/error';
-import { fetchProfile, fetchProviderInfo } from '../common/http';
-import { readFile, rimraf } from '../common/io';
+import { fetchProviderInfo } from '../common/http';
+import { rimraf } from '../common/io';
 import { OutputStream } from '../common/output-stream';
 import Configure from './configure';
 
@@ -45,10 +44,10 @@ describe('Configure CLI command', () => {
       GRID_DIR,
       PROFILE.scope,
       PROFILE.name +
-      '@' +
-      PROFILE.version +
-      EXTENSIONS.profile.source +
-      '.ast.json'
+        '@' +
+        PROFILE.version +
+        EXTENSIONS.profile.source +
+        '.ast.json'
     ),
   };
 
@@ -69,6 +68,10 @@ describe('Configure CLI command', () => {
 
     // change cwd back
     process.chdir(INITIAL_CWD);
+  });
+
+  afterEach(() => {
+    jest.resetAllMocks();
   });
 
   /** Resets super.json to initial state stored in `INITIAL_SUPER_JSON` */
@@ -164,12 +167,6 @@ describe('Configure CLI command', () => {
         version: PROFILE.version,
         providers: { [PROVIDER_NAME]: {} },
       });
-      //Check profiles
-      const localProfile = await readFile(FIXTURE.profile, {
-        encoding: 'utf-8',
-      });
-      const registryProfile = await fetchProfile(profileId);
-      expect(localProfile).toEqual(registryProfile);
     }, 10000);
 
     it('configures provider with empty security schemes correctly', async () => {
@@ -206,12 +203,6 @@ describe('Configure CLI command', () => {
         version: PROFILE.version,
         providers: { [PROVIDER_NAME]: {} },
       });
-      //Check profiles
-      const localProfile = await readFile(FIXTURE.profile, {
-        encoding: 'utf-8',
-      });
-      const registryProfile = await fetchProfile(profileId);
-      expect(localProfile).toEqual(registryProfile);
     }, 10000);
 
     it('configures provider without security schemes correctly', async () => {
@@ -245,12 +236,6 @@ describe('Configure CLI command', () => {
         version: PROFILE.version,
         providers: { [PROVIDER_NAME]: {} },
       });
-      //Check profiles
-      const localProfile = await readFile(FIXTURE.profile, {
-        encoding: 'utf-8',
-      });
-      const registryProfile = await fetchProfile(profileId);
-      expect(localProfile).toEqual(registryProfile);
     }, 10000);
 
     it('configures provider with unknown security scheme correctly', async () => {
@@ -293,12 +278,6 @@ describe('Configure CLI command', () => {
         version: PROFILE.version,
         providers: { [PROVIDER_NAME]: {} },
       });
-      //Check profiles
-      const localProfile = await readFile(FIXTURE.profile, {
-        encoding: 'utf-8',
-      });
-      const registryProfile = await fetchProfile(profileId);
-      expect(localProfile).toEqual(registryProfile);
     }, 10000);
 
     it('does not log to stdout with --quiet', async () => {
@@ -338,14 +317,6 @@ describe('Configure CLI command', () => {
         version: PROFILE.version,
         providers: { [PROVIDER_NAME]: {} },
       });
-      //Check profiles
-      const localProfile = await readFile(FIXTURE.profile, {
-        encoding: 'utf-8',
-      });
-      const registryProfile = await fetchProfile(profileId);
-      expect(localProfile).toEqual(registryProfile);
-
-      expect(stdout.output).toBe('');
     });
   });
 
@@ -483,12 +454,6 @@ describe('Configure CLI command', () => {
         version: PROFILE.version,
         providers: { [PROVIDER_NAME]: {} },
       });
-      //Check profiles
-      const localProfile = await readFile(FIXTURE.profile, {
-        encoding: 'utf-8',
-      });
-      const registryProfile = await fetchProfile(profileId);
-      expect(localProfile).toEqual(registryProfile);
     }, 10000);
   });
 
@@ -522,12 +487,6 @@ describe('Configure CLI command', () => {
         version: PROFILE.version,
         providers: { [PROVIDER_NAME]: {} },
       });
-      //Check profiles
-      const localProfile = await readFile(FIXTURE.profile, {
-        encoding: 'utf-8',
-      });
-      const registryProfile = await fetchProfile(profileId);
-      expect(localProfile).toEqual(registryProfile);
     }, 10000);
 
     it('does not load provider data from corupted file', async () => {
