@@ -609,12 +609,7 @@
   dependencies:
     "@sinonjs/commons" "^1.7.0"
 
-"@superfaceai/ast@0.0.21":
-  version "0.0.21"
-  resolved "https://npm.pkg.github.com/download/@superfaceai/ast/0.0.21/48ebed3cda17c82fb3722a6baf649a4b0d6fdbdb6a349962915f705922e68d4e#0db4167b99a4d84f8f43c7651cca6df930d65f6d"
-  integrity sha1-DbQWe5mk2E+PQ8dlHMpt+TDWX20=
-
-"@superfaceai/ast@^0.0.22":
+"@superfaceai/ast@0.0.22", "@superfaceai/ast@^0.0.22":
   version "0.0.22"
   resolved "https://npm.pkg.github.com/download/@superfaceai/ast/0.0.22/32dd1accfce252f3a3e4d84fe702c0c2a927dbf329e6a62aacc44d52e7db3e15#becfa4a20a9639e13f8b48b776509a44be09ba2e"
   integrity sha512-3cRkhl9RFyPmIcwS7fJZ3l0NaBWCW4FlMM9f/wt+SUAs9M0pn3TZbY2QZTe0jw+tZhKm76w1y/UD4b87PuIaFw==
@@ -629,12 +624,12 @@
     debug "^4.3.1"
     typescript "^4.1.5"
 
-"@superfaceai/sdk@0.0.11":
-  version "0.0.11"
-  resolved "https://npm.pkg.github.com/download/@superfaceai/sdk/0.0.11/c8cafc99ad8a72f1dc805cf5a6aa46ba1705e3ae05f216f9dab1d35ace449289#ba100986f7147cddcdae5b742eb1236260304cb0"
-  integrity sha512-PInaKscW3e7prurGueHoay1/WEPvpt3vkbArloAY0qgvd6cp4U8Qbz3068W829R2Jw/j/ZvIEjkj1uXIbCnA0g==
+"@superfaceai/sdk@0.0.14-ela.0":
+  version "0.0.14-ela.0"
+  resolved "https://npm.pkg.github.com/download/@superfaceai/sdk/0.0.14-ela.0/2a467aa1b2dacd1614d2a78209961eba409730ae48997ad020a03a4d17cb88d8#f7e281eb5fd063a28d9bfe23d16278d6b9ef19be"
+  integrity sha512-KcYwLuZShH+W5rOQpHZ9DIuO7c2/LbQGmgNCH9uzGqnxvhp3BaT8thOelsNKqk9ydiyXyWMD6USKjE/RQ3rx6w==
   dependencies:
-    "@superfaceai/ast" "0.0.21"
+    "@superfaceai/ast" "0.0.22"
     cross-fetch "^3.0.5"
     debug "^4.3.1"
     isomorphic-form-data "^2.0.0"
