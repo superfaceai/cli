@@ -1,10 +1,8 @@
 import {
-  API_KEY_AUTH_SECURITY_TYPE,
-  ApiKeySecurityIn,
-  BASIC_AUTH_SECURITY_SCHEME,
-  BEARER_AUTH_SECURITY_SCHEME,
-  DIGEST_AUTH_SECURITY_SCHEME,
-  HTTP_AUTH_SECURITY_TYPE,
+
+  ApiKeyPlacement,
+  HttpScheme,
+  SecurityType,
   SuperJson,
 } from '@superfaceai/sdk';
 import { join as joinPath } from 'path';
@@ -47,10 +45,10 @@ describe('Configure CLI command', () => {
       GRID_DIR,
       PROFILE.scope,
       PROFILE.name +
-        '@' +
-        PROFILE.version +
-        EXTENSIONS.profile.source +
-        '.ast.json'
+      '@' +
+      PROFILE.version +
+      EXTENSIONS.profile.source +
+      '.ast.json'
     ),
   };
 
@@ -108,24 +106,24 @@ describe('Configure CLI command', () => {
         securitySchemes: [
           {
             id: 'api',
-            type: API_KEY_AUTH_SECURITY_TYPE,
-            in: ApiKeySecurityIn.HEADER,
+            type: SecurityType.APIKEY,
+            in: ApiKeyPlacement.HEADER,
             name: 'X-API-Key',
           },
           {
             id: 'bearer',
-            type: HTTP_AUTH_SECURITY_TYPE,
-            scheme: BEARER_AUTH_SECURITY_SCHEME,
+            type: SecurityType.HTTP,
+            scheme: HttpScheme.BEARER,
           },
           {
             id: 'basic',
-            type: HTTP_AUTH_SECURITY_TYPE,
-            scheme: BASIC_AUTH_SECURITY_SCHEME,
+            type: SecurityType.HTTP,
+            scheme: HttpScheme.BASIC,
           },
           {
             id: 'digest',
-            type: HTTP_AUTH_SECURITY_TYPE,
-            scheme: DIGEST_AUTH_SECURITY_SCHEME,
+            type: SecurityType.HTTP,
+            scheme: HttpScheme.DIGEST,
           },
         ],
         defaultService: 'swapidev',
@@ -270,7 +268,7 @@ describe('Configure CLI command', () => {
             id: 'swapidev',
             //unknown
             type: 'unknown',
-            in: ApiKeySecurityIn.HEADER,
+            in: ApiKeyPlacement.HEADER,
             name: 'X-API-Key',
           },
         ],
@@ -316,8 +314,8 @@ describe('Configure CLI command', () => {
         securitySchemes: [
           {
             id: 'swapidev',
-            type: API_KEY_AUTH_SECURITY_TYPE,
-            in: ApiKeySecurityIn.HEADER,
+            type: SecurityType.APIKEY,
+            in: ApiKeyPlacement.HEADER,
             name: 'X-API-Key',
           },
         ],
@@ -392,8 +390,8 @@ describe('Configure CLI command', () => {
         securitySchemes: [
           {
             id: 'swapidev',
-            type: HTTP_AUTH_SECURITY_TYPE,
-            scheme: BEARER_AUTH_SECURITY_SCHEME,
+            type: SecurityType.HTTP,
+            scheme: HttpScheme.BEARER,
           },
         ],
         defaultService: 'swapidev',
@@ -452,8 +450,8 @@ describe('Configure CLI command', () => {
         securitySchemes: [
           {
             id: 'swapidev',
-            type: HTTP_AUTH_SECURITY_TYPE,
-            scheme: BEARER_AUTH_SECURITY_SCHEME,
+            type: SecurityType.HTTP,
+            scheme: HttpScheme.BEARER,
           },
         ],
         defaultService: 'swapidev',

@@ -1,8 +1,9 @@
-import { Command, flags } from '@oclif/command';
+import { flags } from '@oclif/command';
 import { grey, yellow } from 'chalk';
 import inquirer from 'inquirer';
 import { join as joinPath } from 'path';
 
+import { Command } from '../common/command.abstract';
 import {
   META_FILE,
   SUPERFACE_DIR,
@@ -46,17 +47,12 @@ export default class Install extends Command {
   ];
 
   static flags = {
+    ...Command.flags,
     providers: flags.string({
       char: 'p',
       description: 'Provider name.',
       required: false,
       multiple: true,
-    }),
-    quiet: flags.boolean({
-      char: 'q',
-      description:
-        'When set to true, disables the shell echo output of init actions.',
-      default: false,
     }),
     force: flags.boolean({
       char: 'f',
@@ -70,7 +66,6 @@ export default class Install extends Command {
         'When number provided, scan for super.json outside cwd within range represented by this number.',
       required: false,
     }),
-    help: flags.help({ char: 'h' }),
   };
 
   static examples = [
