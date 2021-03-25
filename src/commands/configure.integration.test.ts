@@ -6,6 +6,7 @@ import {
 } from '@superfaceai/sdk';
 import { join as joinPath } from 'path';
 import { stderr, stdout } from 'stdout-stderr';
+import { mocked } from 'ts-jest/utils';
 
 import { EXTENSIONS, GRID_DIR, SUPER_PATH } from '../common/document';
 import { userError } from '../common/error';
@@ -16,9 +17,7 @@ import Configure from './configure';
 
 //Mock only fetchProviderInfo response
 jest.mock('../common/http', () => ({
-  /* eslint-disable */
-  ...(jest.requireActual('../common/http') as {}),
-  /* eslint-ensable */
+  ...jest.requireActual<Record<string, unknown>>('../common/http'),
   fetchProviderInfo: jest.fn(),
 }));
 
@@ -98,7 +97,7 @@ describe('Configure CLI command', () => {
   describe('when configuring new provider', () => {
     it('configures provider with security schemes correctly', async () => {
       //mock provider structure
-      (fetchProviderInfo as jest.Mock).mockResolvedValue({
+      mocked(fetchProviderInfo).mockResolvedValue({
         name: PROVIDER_NAME,
         services: [
           {
@@ -171,7 +170,7 @@ describe('Configure CLI command', () => {
 
     it('configures provider with empty security schemes correctly', async () => {
       //mock provider structure
-      (fetchProviderInfo as jest.Mock).mockResolvedValue({
+      mocked(fetchProviderInfo).mockResolvedValue({
         name: PROVIDER_NAME,
         services: [
           {
@@ -207,7 +206,7 @@ describe('Configure CLI command', () => {
 
     it('configures provider without security schemes correctly', async () => {
       //mock provider structure
-      (fetchProviderInfo as jest.Mock).mockResolvedValue({
+      mocked(fetchProviderInfo).mockResolvedValue({
         name: PROVIDER_NAME,
         services: [
           {
@@ -240,7 +239,7 @@ describe('Configure CLI command', () => {
 
     it('configures provider with unknown security scheme correctly', async () => {
       //mock provider structure
-      (fetchProviderInfo as jest.Mock).mockResolvedValue({
+      mocked(fetchProviderInfo).mockResolvedValue({
         name: PROVIDER_NAME,
         services: [
           {
@@ -252,7 +251,7 @@ describe('Configure CLI command', () => {
           {
             id: 'swapidev',
             //unknown
-            type: 'unknown',
+            type: 'unknown' as SecurityType.APIKEY,
             in: ApiKeyPlacement.HEADER,
             name: 'X-API-Key',
           },
@@ -282,7 +281,7 @@ describe('Configure CLI command', () => {
 
     it('does not log to stdout with --quiet', async () => {
       //mock provider structure
-      (fetchProviderInfo as jest.Mock).mockResolvedValue({
+      mocked(fetchProviderInfo).mockResolvedValue({
         name: PROVIDER_NAME,
         services: [
           {
@@ -350,7 +349,7 @@ describe('Configure CLI command', () => {
         JSON.stringify(localSuperJson, undefined, 2)
       );
       //mock provider structure with same provider name but different auth scheme
-      (fetchProviderInfo as jest.Mock).mockResolvedValue({
+      mocked(fetchProviderInfo).mockResolvedValue({
         name: PROVIDER_NAME,
         services: [
           {
@@ -410,7 +409,7 @@ describe('Configure CLI command', () => {
         JSON.stringify(localSuperJson, undefined, 2)
       );
       //mock provider structure with same provider name but different auth scheme
-      (fetchProviderInfo as jest.Mock).mockResolvedValue({
+      mocked(fetchProviderInfo).mockResolvedValue({
         name: PROVIDER_NAME,
         services: [
           {

@@ -20,7 +20,6 @@ jest.mock('../common/document');
 
 //Mock logic
 jest.mock('../logic/playground', () => ({
-  // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
   ...jest.requireActual<Record<string, unknown>>('../logic/playground'),
   cleanPlayground: jest.fn(),
   detectPlayground: jest.fn(),

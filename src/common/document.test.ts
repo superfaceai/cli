@@ -25,7 +25,6 @@ import { readdir, readFile } from './io';
 
 //Mock parser
 jest.mock('@superfaceai/parser', () => ({
-  // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
   ...jest.requireActual<Record<string, unknown>>('@superfaceai/parser'),
   parseProfile: jest.fn(),
   parseProfileId: jest.fn(),

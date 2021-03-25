@@ -1,8 +1,9 @@
-import { Command, flags } from '@oclif/command';
+import { flags } from '@oclif/command';
 import { grey, yellow } from 'chalk';
 import inquirer from 'inquirer';
 import { join as joinPath } from 'path';
 
+import { Command } from '../common/command.abstract';
 import {
   META_FILE,
   SUPERFACE_DIR,
@@ -25,16 +26,11 @@ export default class Configure extends Command {
   ];
 
   static flags = {
+    ...Command.flags,
     profile: flags.string({
       char: 'p',
       description: 'Specifies profile to associate with provider',
       required: true,
-    }),
-    quiet: flags.boolean({
-      char: 'q',
-      description:
-        'When set to true, disables the shell echo output of init actions.',
-      default: false,
     }),
     force: flags.boolean({
       char: 'f',
@@ -48,7 +44,6 @@ export default class Configure extends Command {
         'When set to true, provider name argument is used as a filepath to provider.json file',
       default: false,
     }),
-    help: flags.help({ char: 'h' }),
   };
 
   static examples = [
