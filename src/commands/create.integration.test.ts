@@ -1,13 +1,66 @@
+import { SuperJson } from '@superfaceai/sdk';
 import * as fs from 'fs';
+import { join as joinPath } from 'path';
 import { stderr, stdout } from 'stdout-stderr';
 
+import { EXTENSIONS, GRID_DIR, SUPER_PATH } from '../common/document';
+import { rimraf } from '../common/io';
+import { OutputStream } from '../common/output-stream';
 import Create from './create';
 import Lint from './lint';
 
 describe('Create CLI command', () => {
-  let documentName: string, provider: string, variant: string | undefined;
+  let documentName: string, provider: string, variant: string;
 
-  beforeEach(() => {
+  const WORKING_DIR = joinPath('fixtures', 'create', 'playground');
+
+  const PROFILE = {
+    scope: 'starwars',
+    name: 'character-information',
+    version: '1.0.1',
+  };
+
+  const FIXTURE = {
+    superJson: SUPER_PATH,
+    scope: joinPath(GRID_DIR, PROFILE.scope),
+    profile: joinPath(
+      GRID_DIR,
+      PROFILE.scope,
+      PROFILE.name + '@' + PROFILE.version + EXTENSIONS.profile.source
+    ),
+  };
+
+  let INITIAL_CWD: string;
+  let INITIAL_SUPER_JSON: SuperJson;
+
+  beforeAll(async () => {
+    INITIAL_CWD = process.cwd();
+    process.chdir(WORKING_DIR);
+
+    INITIAL_SUPER_JSON = (await SuperJson.load(FIXTURE.superJson)).unwrap();
+
+    await rimraf(FIXTURE.scope);
+  });
+
+  afterAll(async () => {
+    await resetSuperJson();
+    await rimraf(FIXTURE.scope);
+
+    // change cwd back
+    process.chdir(INITIAL_CWD);
+  });
+
+  /** Resets super.json to initial state stored in `INITIAL_SUPER_JSON` */
+  async function resetSuperJson() {
+    await OutputStream.writeOnce(
+      FIXTURE.superJson,
+      JSON.stringify(INITIAL_SUPER_JSON.document, undefined, 2)
+    );
+  }
+
+  beforeEach(async () => {
+    await resetSuperJson();
+    await rimraf(FIXTURE.scope);
     stderr.start();
     stdout.start();
   });
@@ -51,34 +104,67 @@ describe('Create CLI command', () => {
   it('creates profile with one usecase (with usecase name from cli)', async () => {
     documentName = 'sendsms';
     await Create.run(['profile', documentName]);
-    expect(stdout.output).toEqual(
+    expect(stdout.output).toContain(
       `-> Created ${documentName}.supr (name = "${documentName}", version = "1.0.0")\n`
     );
 
     await Lint.run([`${documentName}.supr`]);
     expect(stdout.output).toContain('Detected 0 problems\n');
+
+    const superJson = (await SuperJson.load()).unwrap();
+
+    expect(superJson.document).toEqual({
+      profiles: {
+        [documentName]: {
+          file: `../${documentName}.supr`,
+        },
+      },
+      providers: {},
+    });
   });
 
   it('creates profile with one usecase', async () => {
     documentName = 'sms/service';
     await Create.run(['profile', documentName, '-u', 'SendSMS']);
-    expect(stdout.output).toEqual(
+    expect(stdout.output).toContain(
       `-> Created ${documentName}.supr (name = "${documentName}", version = "1.0.0")\n`
     );
 
     await Lint.run([`${documentName}.supr`]);
     expect(stdout.output).toContain('Detected 0 problems\n');
+
+    const superJson = (await SuperJson.load()).unwrap();
+
+    expect(superJson.document).toEqual({
+      profiles: {
+        [documentName]: {
+          file: `../${documentName}.supr`,
+        },
+      },
+      providers: {},
+    });
   });
 
   it('creates profile with multiple usecases', async () => {
     documentName = 'sms/service';
     await Create.run(['profile', documentName, '-u', 'ReceiveSMS', 'SendSMS']);
-    expect(stdout.output).toEqual(
+    expect(stdout.output).toContain(
       `-> Created ${documentName}.supr (name = "${documentName}", version = "1.0.0")\n`
     );
 
     await Lint.run([`${documentName}.supr`]);
     expect(stdout.output).toContain('Detected 0 problems\n');
+
+    const superJson = (await SuperJson.load()).unwrap();
+
+    expect(superJson.document).toEqual({
+      profiles: {
+        [documentName]: {
+          file: `../${documentName}.supr`,
+        },
+      },
+      providers: {},
+    });
   });
 
   it('creates map with one usecase (with usecase name from cli)', async () => {
@@ -91,6 +177,28 @@ describe('Create CLI command', () => {
 
     await Lint.run([`${documentName}.${provider}.suma`]);
     expect(stdout.output).toContain('Detected 0 problems\n');
+
+    const superJson = (await SuperJson.load()).unwrap();
+
+    expect(superJson.document).toEqual({
+      profiles: {
+        [documentName]: {
+          defaults: {},
+          providers: {
+            [provider]: {
+              file: `../${documentName}.${provider}.suma`,
+            },
+          },
+          version: '0.0.0',
+        },
+      },
+      providers: {
+        [provider]: {
+          file: `../${provider}.provider.json`,
+          security: [],
+        },
+      },
+    });
   });
 
   it('creates map with one usecase', async () => {
@@ -103,6 +211,28 @@ describe('Create CLI command', () => {
 
     await Lint.run([`${documentName}.${provider}.suma`]);
     expect(stdout.output).toContain('Detected 0 problems\n');
+
+    const superJson = (await SuperJson.load()).unwrap();
+
+    expect(superJson.document).toEqual({
+      profiles: {
+        [documentName]: {
+          defaults: {},
+          providers: {
+            [provider]: {
+              file: `../${documentName}.${provider}.suma`,
+            },
+          },
+          version: '0.0.0',
+        },
+      },
+      providers: {
+        [provider]: {
+          file: `../${provider}.provider.json`,
+          security: [],
+        },
+      },
+    });
   });
 
   it('creates map with mutiple usecases', async () => {
@@ -123,6 +253,28 @@ describe('Create CLI command', () => {
 
     await Lint.run([`${documentName}.${provider}.suma`]);
     expect(stdout.output).toContain('Detected 0 problems\n');
+
+    const superJson = (await SuperJson.load()).unwrap();
+
+    expect(superJson.document).toEqual({
+      profiles: {
+        [documentName]: {
+          defaults: {},
+          providers: {
+            [provider]: {
+              file: `../${documentName}.${provider}.suma`,
+            },
+          },
+          version: '0.0.0',
+        },
+      },
+      providers: {
+        [provider]: {
+          file: `../${provider}.provider.json`,
+          security: [],
+        },
+      },
+    });
   });
 
   it('creates profile & map with one usecase (with usecase name from cli)', async () => {
@@ -138,6 +290,27 @@ describe('Create CLI command', () => {
 
     await Lint.run([`${documentName}.${provider}.suma`]);
     expect(stdout.output).toContain('Detected 0 problems\n');
+
+    const superJson = (await SuperJson.load()).unwrap();
+
+    expect(superJson.document).toEqual({
+      profiles: {
+        [documentName]: {
+          file: `../${documentName}.supr`,
+          providers: {
+            [provider]: {
+              file: `../${documentName}.${provider}.suma`,
+            },
+          },
+        },
+      },
+      providers: {
+        [provider]: {
+          file: `../${provider}.provider.json`,
+          security: [],
+        },
+      },
+    });
   });
 
   it('creates profile & map with one usecase', async () => {
@@ -153,6 +326,27 @@ describe('Create CLI command', () => {
 
     await Lint.run([`${documentName}.${provider}.suma`]);
     expect(stdout.output).toContain('Detected 0 problems\n');
+
+    const superJson = (await SuperJson.load()).unwrap();
+
+    expect(superJson.document).toEqual({
+      profiles: {
+        [documentName]: {
+          file: `../${documentName}.supr`,
+          providers: {
+            [provider]: {
+              file: `../${documentName}.${provider}.suma`,
+            },
+          },
+        },
+      },
+      providers: {
+        [provider]: {
+          file: `../${provider}.provider.json`,
+          security: [],
+        },
+      },
+    });
   });
 
   it('creates profile & map with multiple usecases', async () => {
@@ -175,5 +369,26 @@ describe('Create CLI command', () => {
 
     await Lint.run([`${documentName}.${provider}.suma`]);
     expect(stdout.output).toContain('Detected 0 problems\n');
+
+    const superJson = (await SuperJson.load()).unwrap();
+
+    expect(superJson.document).toEqual({
+      profiles: {
+        [documentName]: {
+          file: `../${documentName}.supr`,
+          providers: {
+            [provider]: {
+              file: `../${documentName}.${provider}.suma`,
+            },
+          },
+        },
+      },
+      providers: {
+        [provider]: {
+          file: `../${provider}.provider.json`,
+          security: [],
+        },
+      },
+    });
   });
 });
