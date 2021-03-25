@@ -624,10 +624,10 @@
     debug "^4.3.1"
     typescript "^4.1.5"
 
-"@superfaceai/sdk@0.0.14-ela.0":
-  version "0.0.14-ela.0"
-  resolved "https://npm.pkg.github.com/download/@superfaceai/sdk/0.0.14-ela.0/2a467aa1b2dacd1614d2a78209961eba409730ae48997ad020a03a4d17cb88d8#f7e281eb5fd063a28d9bfe23d16278d6b9ef19be"
-  integrity sha512-KcYwLuZShH+W5rOQpHZ9DIuO7c2/LbQGmgNCH9uzGqnxvhp3BaT8thOelsNKqk9ydiyXyWMD6USKjE/RQ3rx6w==
+"@superfaceai/sdk@0.0.14":
+  version "0.0.14"
+  resolved "https://npm.pkg.github.com/download/@superfaceai/sdk/0.0.14/209c757e76799a6a6384b2dcf590ead13322607f3151e838ba942face81f4e9d#8ec7e72c224c789df977c925369090c87bf0c8ea"
+  integrity sha512-HdlCPzjRhnOXfjuK/boZ94tHGiW8AXjWu/JX/vmZp96pQYIIFhXB40Bypl7aVtOv6IQ9PVm40NqBaETNYDie9w==
   dependencies:
     "@superfaceai/ast" "0.0.22"
     cross-fetch "^3.0.5"
