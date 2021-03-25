@@ -7,11 +7,17 @@ import { mocked } from 'ts-jest/utils';
 import { initSuperface } from '../logic/init';
 import { detectSuperJson, installProfiles } from '../logic/install';
 import Install from './install';
+import { installProvider } from '../logic/configure';
 
 //Mock install logic
 jest.mock('../logic/install', () => ({
   detectSuperJson: jest.fn(),
   installProfiles: jest.fn(),
+}));
+
+//Mock configure logic
+jest.mock('../logic/configure', () => ({
+  installProvider: jest.fn(),
 }));
 
 //Mock inquirer
@@ -129,6 +135,7 @@ describe('Install CLI command', () => {
 
     it('calls install profiles correctly - one invalid provider', async () => {
       mocked(detectSuperJson).mockResolvedValue('.');
+      mocked(installProvider).mockResolvedValue(undefined)
       const mockProviders = ['tyntec', 'twilio', 'made-up'];
       const profileName = 'starwars/character-information';
 

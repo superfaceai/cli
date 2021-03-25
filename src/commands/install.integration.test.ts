@@ -131,7 +131,7 @@ describe('Install CLI command', () => {
       const profileIdRequest = `${profileId}@${PROFILE.version}`;
 
       await expect(
-        Install.run([profileIdRequest, '-p', 'twillio', 'osm', 'tyntec'])
+        Install.run([profileIdRequest, '-p', 'twilio', 'tyntec'])
       ).resolves.toBeUndefined();
       const superJson = (await SuperJson.load()).unwrap();
 
@@ -143,8 +143,7 @@ describe('Install CLI command', () => {
       expect(superJson.document.profiles![profileId]).toEqual({
         version: PROFILE.version,
         providers: {
-          twillio: {},
-          osm: {},
+          twilio: {},
           tyntec: {},
         },
       });

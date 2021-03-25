@@ -130,6 +130,9 @@ export async function installProvider(
       return new SuperJson({});
     }
   );
+  //Check if there is a version inside profile id
+  profileId = profileId.split('@')[0]
+
   //Check profile existance
   if (!superJson.normalized.profiles[profileId]) {
     throw userError(
