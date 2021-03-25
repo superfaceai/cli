@@ -39,7 +39,7 @@ export function handleProviderResponse(
     for (const scheme of response.securitySchemes) {
       options?.logCb?.(
         `Configuring ${security.length + 1}/${
-        response.securitySchemes.length
+          response.securitySchemes.length
         } security schemes`
       );
       if (isApiKeySecurityScheme(scheme)) {
@@ -131,7 +131,7 @@ export async function installProvider(
     }
   );
   //Check if there is a version inside profile id
-  profileId = profileId.split('@')[0]
+  profileId = profileId.split('@')[0];
 
   //Check profile existance
   if (!superJson.normalized.profiles[profileId]) {
