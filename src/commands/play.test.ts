@@ -383,12 +383,12 @@ describe('Play CLI command', () => {
       );
     });
 
-    it('returns true whent path is a playground', async () => {
+    it('returns true when path is a playground', async () => {
       mocked(detectPlayground).mockResolvedValue([mockPlaygroundInstance]);
       await expect(Play.validatePlygroundPath('test')).resolves.toEqual(true);
     });
 
-    it('returns false whent path is not a playground', async () => {
+    it('returns false when path is not a playground', async () => {
       mocked(detectPlayground).mockRejectedValue(new Error('Test'));
       await expect(Play.validatePlygroundPath('test')).resolves.toEqual(false);
     });
