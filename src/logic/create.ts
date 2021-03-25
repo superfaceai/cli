@@ -5,7 +5,7 @@ import { dirname, join as joinPath, relative as relativePath } from 'path';
 import { composeVersion, EXTENSIONS, META_FILE } from '../common/document';
 import { CreateMode } from '../common/document.interfaces';
 import { userError } from '../common/error';
-import { LogCallback } from '../common/log';
+import { formatShellLog, LogCallback } from '../common/log';
 import { OutputStream } from '../common/output-stream';
 import { TemplateType } from '../templates/common';
 import * as mapTemplate from '../templates/map';
@@ -235,7 +235,7 @@ export async function create(
 
   // write new information to super.json
   await OutputStream.writeOnce(superJson.path, superJson.stringified);
-  // options?.logCb?.(
-  //   formatShellLog("echo '<updated super.json>' >", [superJson.path])
-  // );
+  options?.logCb?.(
+    formatShellLog("echo '<updated super.json>' >", [superJson.path])
+  );
 }

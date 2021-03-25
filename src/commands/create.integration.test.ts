@@ -171,7 +171,7 @@ describe('Create CLI command', () => {
     documentName = 'sms/service';
     provider = 'twillio';
     await Create.run(['map', documentName, '-p', provider]);
-    expect(stdout.output).toEqual(
+    expect(stdout.output).toContain(
       `-> Created ${documentName}.${provider}.suma (profile = "${documentName}@1.0", provider = "${provider}")\n-> Created ${provider}.provider.json\n`
     );
 
@@ -205,7 +205,7 @@ describe('Create CLI command', () => {
     documentName = 'sms/service';
     provider = 'twillio';
     await Create.run(['map', documentName, '-u', 'SendSMS', '-p', provider]);
-    expect(stdout.output).toEqual(
+    expect(stdout.output).toContain(
       `-> Created ${documentName}.${provider}.suma (profile = "${documentName}@1.0", provider = "${provider}")\n-> Created ${provider}.provider.json\n`
     );
 
@@ -247,7 +247,7 @@ describe('Create CLI command', () => {
       'ReceiveSMS',
       'SendSMS',
     ]);
-    expect(stdout.output).toEqual(
+    expect(stdout.output).toContain(
       `-> Created ${documentName}.${provider}.suma (profile = "${documentName}@1.0", provider = "${provider}")\n-> Created ${provider}.provider.json\n`
     );
 
@@ -281,7 +281,7 @@ describe('Create CLI command', () => {
     documentName = 'sms/service';
     provider = 'twillio';
     await Create.run([documentName, '-p', provider]);
-    expect(stdout.output).toEqual(
+    expect(stdout.output).toContain(
       `-> Created ${documentName}.supr (name = "${documentName}", version = "1.0.0")\n-> Created ${documentName}.${provider}.suma (profile = "${documentName}@1.0", provider = "${provider}")\n-> Created ${provider}.provider.json\n`
     );
 
@@ -317,7 +317,7 @@ describe('Create CLI command', () => {
     documentName = 'sms/service';
     provider = 'twillio';
     await Create.run([documentName, '-u', 'SendSMS', '-p', 'twillio']);
-    expect(stdout.output).toEqual(
+    expect(stdout.output).toContain(
       `-> Created ${documentName}.supr (name = "${documentName}", version = "1.0.0")\n-> Created ${documentName}.${provider}.suma (profile = "${documentName}@1.0", provider = "${provider}")\n-> Created ${provider}.provider.json\n`
     );
 
@@ -360,7 +360,7 @@ describe('Create CLI command', () => {
       '-p',
       provider,
     ]);
-    expect(stdout.output).toEqual(
+    expect(stdout.output).toContain(
       `-> Created ${documentName}.supr (name = "${documentName}", version = "1.0.0")\n-> Created ${documentName}.${provider}.suma (profile = "${documentName}@1.0", provider = "${provider}")\n-> Created ${provider}.provider.json\n`
     );
 
