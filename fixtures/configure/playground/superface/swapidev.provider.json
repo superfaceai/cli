@@ -1,0 +1,23 @@
+{
+  "name": "test",
+  "services": [
+    {
+      "baseUrl": "https://swapi.dev/api",
+      "id": "test"
+    }
+  ],
+  "securitySchemes": [
+    {
+      "id": "api",
+      "type": "apiKey",
+      "in": "header",
+      "name": "X-API-Key"
+    },
+    {
+      "id": "digest",
+      "type": "http",
+      "scheme": "digest"
+    }
+  ],
+  "defaultService": "test"
+}

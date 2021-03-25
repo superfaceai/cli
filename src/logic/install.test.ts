@@ -30,7 +30,6 @@ jest.mock('../common/http', () => ({
 
 //Mock document
 jest.mock('../common/document', () => ({
-  // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
   ...jest.requireActual<Record<string, unknown>>('../common/document'),
   getProfileDocument: jest.fn(),
 }));

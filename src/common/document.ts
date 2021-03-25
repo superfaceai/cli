@@ -275,9 +275,7 @@ export const constructProviderSettings = (
   providers: string[]
 ): Record<string, ProviderSettings> =>
   providers.reduce<Record<string, ProviderSettings>>((acc, provider) => {
-    acc[provider] = {
-      auth: {},
-    };
+    acc[provider] = {};
 
     return acc;
   }, {});
