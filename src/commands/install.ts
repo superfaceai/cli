@@ -1,8 +1,9 @@
-import { Command, flags } from '@oclif/command';
+import { flags } from '@oclif/command';
 import { grey, yellow } from 'chalk';
 import inquirer from 'inquirer';
 import { join as joinPath } from 'path';
 
+import { Command } from '../common/command.abstract';
 import {
   META_FILE,
   SUPERFACE_DIR,
@@ -47,17 +48,12 @@ export default class Install extends Command {
   ];
 
   static flags = {
+    ...Command.flags,
     providers: flags.string({
       char: 'p',
       description: 'Provider name.',
       required: false,
       multiple: true,
-    }),
-    quiet: flags.boolean({
-      char: 'q',
-      description:
-        'When set to true, disables the shell echo output of init actions.',
-      default: false,
     }),
     force: flags.boolean({
       char: 'f',
@@ -71,7 +67,6 @@ export default class Install extends Command {
         'When number provided, scan for super.json outside cwd within range represented by this number.',
       required: false,
     }),
-    help: flags.help({ char: 'h' }),
   };
 
   static examples = [
@@ -81,8 +76,8 @@ export default class Install extends Command {
     '$ superface install sms/service@1.0 -p twillio',
   ];
 
-  private warnCallback? = (message: string) => this.log(yellow(message));
-  private logCallback? = (message: string) => this.log(grey(message));
+  private warnCallback?= (message: string) => this.log(yellow(message));
+  private logCallback?= (message: string) => this.log(grey(message));
 
   async run(): Promise<void> {
     const { args, flags } = this.parse(Install);
@@ -141,11 +136,11 @@ export default class Install extends Command {
 
     this.logCallback?.(`\n\nConfiguring providers`);
     for (const providerName of providers) {
-      await installProvider(superPath, providerName, {
+      await installProvider(superPath, providerName, args.profileId, {
         logCb: this.logCallback,
         warnCb: this.warnCallback,
         force: flags.force,
-        path: false,
+        local: false,
       });
     }
   }

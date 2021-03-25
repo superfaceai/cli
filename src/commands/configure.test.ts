@@ -1,406 +1,140 @@
-import {
-  API_KEY_AUTH_SECURITY_TYPE,
-  ApiKeySecurityIn,
-  BASIC_AUTH_SECURITY_SCHEME,
-  BEARER_AUTH_SECURITY_SCHEME,
-  HTTP_AUTH_SECURITY_TYPE,
-  SuperJson,
-} from '@superfaceai/sdk';
-import { join as joinPath } from 'path';
-import { stderr, stdout } from 'stdout-stderr';
+import { SuperJson } from '@superfaceai/sdk';
+import inquirer from 'inquirer';
+import { mocked } from 'ts-jest/utils';
 
-import { SUPER_PATH } from '../common/document';
-import { userError } from '../common/error';
-import { fetchProviderInfo } from '../common/http';
-import { rimraf } from '../common/io';
-import { OutputStream } from '../common/output-stream';
+import { validateDocumentName } from '../common/document';
+import { installProvider } from '../logic/configure';
+import { initSuperface } from '../logic/init';
+import { detectSuperJson } from '../logic/install';
 import Configure from './configure';
 
-//Mock sdk response
-jest.mock('../common/http');
+//Mock init logic
+jest.mock('../logic/init', () => ({
+  initSuperface: jest.fn(),
+}));
+
+//Mock install logic
+jest.mock('../logic/install', () => ({
+  detectSuperJson: jest.fn(),
+}));
+
+//Mock configure logic
+jest.mock('../logic/configure', () => ({
+  installProvider: jest.fn(),
+}));
+
+//Mock inquirer
+jest.mock('inquirer');
+
+//Mock document
+jest.mock('../common/document');
 
 describe('Configure CLI command', () => {
-  const WORKING_DIR = joinPath('fixtures', 'configure', 'playground');
-
-  const PROVIDER_NAME = 'test';
-
-  const FIXTURE = {
-    superJson: SUPER_PATH,
-    scope: PROVIDER_NAME,
-  };
-
-  let INITIAL_CWD: string;
-  let INITIAL_SUPER_JSON: SuperJson;
-
-  beforeAll(async () => {
-    INITIAL_CWD = process.cwd();
-    process.chdir(WORKING_DIR);
-
-    INITIAL_SUPER_JSON = (await SuperJson.load(FIXTURE.superJson)).unwrap();
-    await rimraf(FIXTURE.scope);
-  });
-
-  afterAll(async () => {
-    await resetSuperJson();
-    await rimraf(FIXTURE.scope);
-
-    // change cwd back
-    process.chdir(INITIAL_CWD);
-  });
-
-  /** Resets super.json to initial state stored in `INITIAL_SUPER_JSON` */
-  async function resetSuperJson() {
-    await OutputStream.writeOnce(
-      FIXTURE.superJson,
-      INITIAL_SUPER_JSON.stringified
-    );
-  }
-
-  beforeEach(async () => {
-    await resetSuperJson();
-    await rimraf(FIXTURE.scope);
-
-    stderr.start();
-    stdout.start();
-  });
-
   afterEach(() => {
-    stderr.stop();
-    stdout.stop();
+    jest.resetAllMocks();
   });
 
-  describe('when configuring new provider', () => {
-    it('configures provider with security schemes correctly', async () => {
-      //mock provider structure
-      (fetchProviderInfo as jest.Mock).mockResolvedValue({
-        name: PROVIDER_NAME,
-        services: [
-          {
-            id: 'swapidev',
-            baseUrl: 'https://swapi.dev/api',
-          },
-        ],
-        securitySchemes: [
-          {
-            id: 'api',
-            type: API_KEY_AUTH_SECURITY_TYPE,
-            in: ApiKeySecurityIn.HEADER,
-            name: 'X-API-Key',
-          },
-          {
-            id: 'bearer',
-            type: HTTP_AUTH_SECURITY_TYPE,
-            scheme: BEARER_AUTH_SECURITY_SCHEME,
-          },
-          {
-            id: 'basic',
-            type: HTTP_AUTH_SECURITY_TYPE,
-            scheme: BASIC_AUTH_SECURITY_SCHEME,
-          },
-        ],
-        defaultService: 'swapidev',
-      });
+  describe('when running play command', () => {
+    const mockProvider = 'twilio';
+    const mockPath = 'some/path';
+    const mockProfile = 'sms';
 
-      await expect(Configure.run([PROVIDER_NAME])).resolves.toBeUndefined();
-
-      expect(stdout.output).toContain(
-        '🆗 All security schemes have been configured successfully.'
-      );
-
-      const superJson = (await SuperJson.load(FIXTURE.superJson)).unwrap();
-      expect(superJson.normalized.providers[PROVIDER_NAME].security).toEqual([
-        {
-          id: 'api',
-          apikey: `$${PROVIDER_NAME.toUpperCase()}_API_KEY`,
-        },
-        {
-          id: 'bearer',
-          token: `$${PROVIDER_NAME.toUpperCase()}_TOKEN`,
-        },
-        {
-          id: 'basic',
-          username: `$${PROVIDER_NAME.toUpperCase()}_USERNAME`,
-          password: `$${PROVIDER_NAME.toUpperCase()}_PASSWORD`,
-        },
-      ]);
-    }, 10000);
-
-    it('configures provider with empty security schemes correctly', async () => {
-      //mock provider structure
-      (fetchProviderInfo as jest.Mock).mockResolvedValue({
-        name: PROVIDER_NAME,
-        services: [
-          {
-            id: 'swapidev',
-            baseUrl: 'https://swapi.dev/api',
-          },
-        ],
-        //empty
-        securitySchemes: [],
-        defaultService: 'swapidev',
-      });
-
-      await expect(Configure.run([PROVIDER_NAME])).resolves.toBeUndefined();
-
-      expect(stdout.output).toContain(
-        'No security schemes found to configure.'
-      );
-
-      const superJson = (await SuperJson.load(FIXTURE.superJson)).unwrap();
-      expect(superJson.document.providers![PROVIDER_NAME]).toEqual({
-        security: [],
-      });
-    }, 10000);
-
-    it('configures provider without security schemes correctly', async () => {
-      //mock provider structure
-      (fetchProviderInfo as jest.Mock).mockResolvedValue({
-        name: PROVIDER_NAME,
-        services: [
-          {
-            id: 'swapidev',
-            baseUrl: 'https://swapi.dev/api',
-          },
-        ],
-        defaultService: 'swapidev',
-      });
-
-      await expect(Configure.run([PROVIDER_NAME])).resolves.toBeUndefined();
-
-      expect(stdout.output).toContain(
-        'No security schemes found to configure.'
-      );
-
-      const superJson = (await SuperJson.load(FIXTURE.superJson)).unwrap();
-      expect(superJson.document.providers![PROVIDER_NAME]).toEqual({
-        security: [],
-      });
-    }, 10000);
-
-    it('configures provider with unknown security scheme correctly', async () => {
-      //mock provider structure
-      (fetchProviderInfo as jest.Mock).mockResolvedValue({
-        name: PROVIDER_NAME,
-        services: [
-          {
-            id: 'swapidev',
-            baseUrl: 'https://swapi.dev/api',
-          },
-        ],
-        securitySchemes: [
-          {
-            id: 'swapidev',
-            //unknown
-            type: 'unknown',
-            in: ApiKeySecurityIn.HEADER,
-            name: 'X-API-Key',
-          },
-        ],
-        defaultService: 'swapidev',
-      });
-
-      await expect(Configure.run([PROVIDER_NAME])).resolves.toBeUndefined();
-
-      expect(stdout.output).toContain(
-        '❌ No security schemes have been configured.'
-      );
-
-      const superJson = (await SuperJson.load(FIXTURE.superJson)).unwrap();
-      expect(superJson.document.providers![PROVIDER_NAME]).toEqual({
-        security: [],
-      });
-    }, 10000);
-
-    it('does not log to stdout with --quiet', async () => {
-      //mock provider structure
-      (fetchProviderInfo as jest.Mock).mockResolvedValue({
-        name: PROVIDER_NAME,
-        services: [
-          {
-            id: 'swapidev',
-            baseUrl: 'https://swapi.dev/api',
-          },
-        ],
-        securitySchemes: [
-          {
-            id: 'swapidev',
-            type: API_KEY_AUTH_SECURITY_TYPE,
-            in: ApiKeySecurityIn.HEADER,
-            name: 'X-API-Key',
-          },
-        ],
-        defaultService: 'swapidev',
-      });
+    it('does not configure on invalid provider name', async () => {
+      mocked(validateDocumentName).mockReturnValue(false);
+      const promptSpy = jest.spyOn(inquirer, 'prompt');
 
       await expect(
-        Configure.run([PROVIDER_NAME, '-q'])
+        Configure.run(['U7!O', '-p', 'test'])
       ).resolves.toBeUndefined();
-      const superJson = (await SuperJson.load(FIXTURE.superJson)).unwrap();
-      expect(superJson.normalized.providers[PROVIDER_NAME].security).toEqual([
-        {
-          id: 'swapidev',
-          apikey: '$TEST_API_KEY',
-        },
-      ]);
 
-      expect(stdout.output).toBe('');
+      expect(detectSuperJson).not.toHaveBeenCalled();
+      expect(installProvider).not.toHaveBeenCalled();
+      expect(promptSpy).not.toHaveBeenCalled();
     });
-  });
 
-  describe('when providers are present in super.json', () => {
-    it('errors without a force flag', async () => {
-      //set existing super.json
-      const localSuperJson = {
-        profiles: {},
-        providers: {
-          [PROVIDER_NAME]: {
-            security: [
-              {
-                id: 'apiKey',
-                apikey: '$TEST_API_KEY',
-              },
-            ],
-          },
-        },
-      };
-      await OutputStream.writeOnce(
-        FIXTURE.superJson,
-        JSON.stringify(localSuperJson, undefined, 2)
-      );
-      //mock provider structure with same provider name but different auth scheme
-      (fetchProviderInfo as jest.Mock).mockResolvedValue({
-        name: PROVIDER_NAME,
-        services: [
-          {
-            id: 'swapidev',
-            baseUrl: 'https://swapi.dev/api',
-          },
-        ],
-        securitySchemes: [
-          {
-            id: 'swapidev',
-            type: HTTP_AUTH_SECURITY_TYPE,
-            scheme: BEARER_AUTH_SECURITY_SCHEME,
-          },
-        ],
-        defaultService: 'swapidev',
-      });
+    it('configures provider', async () => {
+      mocked(validateDocumentName).mockReturnValue(true);
+      mocked(detectSuperJson).mockResolvedValue(mockPath);
+      const promptSpy = jest.spyOn(inquirer, 'prompt');
 
-      await expect(Configure.run([PROVIDER_NAME])).resolves.toBeUndefined();
-
-      expect(stdout.output).toContain(
-        `Provider already exists: "${PROVIDER_NAME}"`
-      );
-
-      const superJson = (await SuperJson.load(FIXTURE.superJson)).unwrap();
-
-      expect(superJson.document.providers).toEqual(localSuperJson.providers);
-    }, 10000);
-
-    it('overrides existing super.json with a force flag', async () => {
-      //set existing super.json
-      const localSuperJson = {
-        profiles: {},
-        providers: {
-          [PROVIDER_NAME]: {
-            security: [
-              {
-                id: 'swapidev',
-                apikey: '$TEST_API_KEY',
-              },
-            ],
-          },
-        },
-      };
-      await OutputStream.writeOnce(
-        FIXTURE.superJson,
-        JSON.stringify(localSuperJson, undefined, 2)
-      );
-      //mock provider structure with same provider name but different auth scheme
-      (fetchProviderInfo as jest.Mock).mockResolvedValue({
-        name: PROVIDER_NAME,
-        services: [
-          {
-            id: 'swapidev',
-            baseUrl: 'https://swapi.dev/api',
-          },
-        ],
-        securitySchemes: [
-          {
-            id: 'swapidev',
-            type: HTTP_AUTH_SECURITY_TYPE,
-            scheme: BEARER_AUTH_SECURITY_SCHEME,
-          },
-        ],
-        defaultService: 'swapidev',
-      });
-      //force flag
       await expect(
-        Configure.run([PROVIDER_NAME, '-f'])
+        Configure.run([mockProvider, '-p', mockProfile])
       ).resolves.toBeUndefined();
 
-      expect(stdout.output).not.toContain(
-        `Provider already exists: "${PROVIDER_NAME}"`
-      );
+      expect(detectSuperJson).toHaveBeenCalledTimes(1);
 
-      const superJson = (await SuperJson.load(FIXTURE.superJson)).unwrap();
+      expect(promptSpy).not.toHaveBeenCalled();
 
-      expect(superJson.normalized.providers[PROVIDER_NAME].security).toEqual([
+      expect(installProvider).toHaveBeenCalledTimes(1);
+      expect(installProvider).toHaveBeenCalledWith(
+        mockPath,
+        mockProvider,
+        mockProfile,
         {
-          id: 'swapidev',
-          token: '$TEST_TOKEN',
-        },
-      ]);
-    }, 10000);
-  });
+          force: false,
+          local: false,
+          logCb: expect.any(Function),
+          warnCb: expect.any(Function),
+        }
+      );
+    });
 
-  describe('when there is a path flag', () => {
-    it('loads provider data from file', async () => {
-      //file flag
+    it('configures provider with superface initialization', async () => {
+      mocked(validateDocumentName).mockReturnValue(true);
+      mocked(detectSuperJson).mockResolvedValue(undefined);
+      const promptSpy = jest
+        .spyOn(inquirer, 'prompt')
+        .mockResolvedValue({ init: true });
+      mocked(initSuperface).mockResolvedValue(new SuperJson());
+
       await expect(
-        Configure.run(['./superface/swapidev.provider.json', '-p'])
+        Configure.run([mockProvider, '-p', mockProfile, '-q'])
       ).resolves.toBeUndefined();
 
-      const superJson = (await SuperJson.load(FIXTURE.superJson)).unwrap();
+      expect(detectSuperJson).toHaveBeenCalledTimes(1);
 
-      expect(superJson.normalized.providers[PROVIDER_NAME].security).toEqual([
+      expect(promptSpy).toHaveBeenCalledTimes(1);
+
+      expect(initSuperface).toHaveBeenCalledTimes(1);
+      expect(initSuperface).toHaveBeenCalledWith(
+        './',
+        { profiles: {}, providers: {} },
+        { logCb: undefined }
+      );
+
+      expect(installProvider).toHaveBeenCalledTimes(1);
+      expect(installProvider).toHaveBeenCalledWith(
+        'superface',
+        mockProvider,
+        mockProfile,
         {
-          id: 'test',
-          apikey: '$TEST_API_KEY',
-        },
-      ]);
-    }, 10000);
-
-    it('does not load provider data from corupted file', async () => {
-      //file flag
-      await expect(
-        Configure.run(['./superface/swapidev.provider.corupted.json', '-p'])
-      ).rejects.toEqual(
-        userError('Unexpected string in JSON at position 168', 1)
+          force: false,
+          local: false,
+          logCb: undefined,
+          warnCb: undefined,
+        }
       );
+    });
 
-      const superJson = (await SuperJson.load(FIXTURE.superJson)).unwrap();
+    it('does not configure provider - rejected superface initialization', async () => {
+      mocked(validateDocumentName).mockReturnValue(true);
+      mocked(detectSuperJson).mockResolvedValue(undefined);
+      const promptSpy = jest
+        .spyOn(inquirer, 'prompt')
+        .mockResolvedValue({ init: false });
+      mocked(initSuperface).mockResolvedValue(new SuperJson());
 
-      expect(superJson.document).toEqual(INITIAL_SUPER_JSON.document);
-    }, 10000);
-
-    it('does not load provider data from nonexistent file', async () => {
-      //file flag
       await expect(
-        Configure.run([
-          './very/nice/path/superface/swapidev.provider.json',
-          '-p',
-        ])
-      ).rejects.toEqual(
-        userError(
-          `Error: ENOENT: no such file or directory, open './very/nice/path/superface/swapidev.provider.json'`,
-          1
-        )
-      );
+        Configure.run([mockProvider, '-p', mockProfile, '-q'])
+      ).rejects.toEqual(new Error('EEXIT: 0'));
 
-      const superJson = (await SuperJson.load(FIXTURE.superJson)).unwrap();
+      expect(detectSuperJson).toHaveBeenCalledTimes(1);
 
-      expect(superJson.document).toEqual(INITIAL_SUPER_JSON.document);
-    }, 10000);
+      expect(promptSpy).toHaveBeenCalledTimes(1);
+
+      expect(initSuperface).not.toHaveBeenCalled();
+
+      expect(installProvider).not.toHaveBeenCalled();
+    });
   });
 });

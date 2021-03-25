@@ -1,15 +1,19 @@
 import {
-  AuthVariables,
-  isApiKeySecurity,
-  isBasicAuthSecurity,
-  isBearerTokenSecurity,
+  isApiKeySecurityScheme,
+  isBasicAuthSecurityScheme,
+  isBearerTokenSecurityScheme,
+  isDigestSecurityScheme,
   parseProviderJson,
   ProviderJson,
+  SecurityValues,
   SuperJson,
 } from '@superfaceai/sdk';
 import { join as joinPath } from 'path';
 
-import { META_FILE } from '../common/document';
+import {
+  constructProfileProviderSettings,
+  META_FILE,
+} from '../common/document';
 import { userError } from '../common/error';
 import { fetchProviderInfo } from '../common/http';
 import { readFile } from '../common/io';
@@ -23,35 +27,41 @@ import { OutputStream } from '../common/output-stream';
  */
 export function handleProviderResponse(
   superJson: SuperJson,
+  profileId: string,
   response: ProviderJson,
-  options?: { logCb?: LogCallback; warnCb?: LogCallback; force: boolean }
+  options?: { logCb?: LogCallback; warnCb?: LogCallback }
 ): number {
   options?.logCb?.(`Installing provider: "${response.name}"`);
 
-  const security: AuthVariables = [];
+  const security: SecurityValues[] = [];
 
   if (response.securitySchemes) {
     for (const scheme of response.securitySchemes) {
       options?.logCb?.(
         `Configuring ${security.length + 1}/${
-          response.securitySchemes.length
+        response.securitySchemes.length
         } security schemes`
       );
-      if (isApiKeySecurity(scheme)) {
+      if (isApiKeySecurityScheme(scheme)) {
         security.push({
           id: scheme.id,
           apikey: `$${response.name.toUpperCase()}_API_KEY`,
         });
-      } else if (isBasicAuthSecurity(scheme)) {
+      } else if (isBasicAuthSecurityScheme(scheme)) {
         security.push({
           id: scheme.id,
           username: `$${response.name.toUpperCase()}_USERNAME`,
           password: `$${response.name.toUpperCase()}_PASSWORD`,
         });
-      } else if (isBearerTokenSecurity(scheme)) {
+      } else if (isBearerTokenSecurityScheme(scheme)) {
         security.push({
           id: scheme.id,
           token: `$${response.name.toUpperCase()}_TOKEN`,
+        });
+      } else if (isDigestSecurityScheme(scheme)) {
+        security.push({
+          id: scheme.id,
+          digest: `$${response.name.toUpperCase()}_DIGEST`,
         });
       } else {
         options?.warnCb?.(
@@ -60,9 +70,15 @@ export function handleProviderResponse(
       }
     }
   }
-
   // update super.json
   superJson.addProvider(response.name, { security });
+
+  //constructProfileProviderSettings returns Record<string, ProfileProviderEntry>
+  superJson.addProfileProvider(
+    profileId,
+    response.name,
+    constructProfileProviderSettings([response.name])[response.name]
+  );
 
   return security.length;
 }
@@ -97,11 +113,12 @@ export async function getProviderFromStore(
 export async function installProvider(
   superPath: string,
   provider: string,
+  profileId: string,
   options?: {
     logCb?: LogCallback;
     warnCb?: LogCallback;
-    force: boolean;
-    path: boolean;
+    force?: boolean;
+    local: boolean;
   }
 ): Promise<void> {
   const loadedResult = await SuperJson.load(joinPath(superPath, META_FILE));
@@ -113,13 +130,20 @@ export async function installProvider(
       return new SuperJson({});
     }
   );
+  //Check profile existance
+  if (!superJson.normalized.profiles[profileId]) {
+    throw userError(
+      `❌ profile ${profileId} not found in ${superPath}. Forgot to install?`,
+      1
+    );
+  }
+
   //Load provider info
   let providerInfo: ProviderJson;
   //Load from file
-  if (options?.path) {
+  if (options?.local) {
     try {
       const file = await readFile(provider, { encoding: 'utf-8' });
-      // providerInfo = JSON.parse(file) as ProviderJson;
       providerInfo = parseProviderJson(JSON.parse(file));
     } catch (error) {
       throw userError(error, 1);
@@ -129,9 +153,9 @@ export async function installProvider(
     providerInfo = await getProviderFromStore(provider);
   }
 
-  // check existence and warn
+  // Check existence and warn
   if (
-    options?.force === false &&
+    options?.force !== true &&
     superJson.normalized.providers[providerInfo.name]
   ) {
     options?.warnCb?.(
@@ -140,8 +164,11 @@ export async function installProvider(
 
     return;
   }
+
+  //Write provider to super.json
   const numOfConfigured = handleProviderResponse(
     superJson,
+    profileId,
     providerInfo,
     options
   );

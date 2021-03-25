@@ -1,209 +1,151 @@
+import { CLIError } from '@oclif/errors';
 import { SuperJson } from '@superfaceai/sdk';
-import { join as joinPath } from 'path';
+import inquirer from 'inquirer';
 import { stderr, stdout } from 'stdout-stderr';
+import { mocked } from 'ts-jest/utils';
 
-import { EXTENSIONS, GRID_DIR, SUPER_PATH } from '../common/document';
-import { fetchProfile } from '../common/http';
-import { readFile, rimraf } from '../common/io';
-import { OutputStream } from '../common/output-stream';
+import { initSuperface } from '../logic/init';
+import { detectSuperJson, installProfiles } from '../logic/install';
 import Install from './install';
 
+//Mock install logic
+jest.mock('../logic/install', () => ({
+  detectSuperJson: jest.fn(),
+  installProfiles: jest.fn(),
+}));
+
+//Mock inquirer
+jest.mock('inquirer');
+
+//Mock init logic
+jest.mock('../logic/init', () => ({
+  initSuperface: jest.fn(),
+}));
+
 describe('Install CLI command', () => {
-  const WORKING_DIR = joinPath('fixtures', 'install', 'playground');
-
-  const PROFILE = {
-    scope: 'starwars',
-    name: 'character-information',
-    version: '1.0.1',
-  };
-
-  const FIXTURE = {
-    superJson: SUPER_PATH,
-    scope: joinPath(GRID_DIR, PROFILE.scope),
-    profile: joinPath(
-      GRID_DIR,
-      PROFILE.scope,
-      PROFILE.name + '@' + PROFILE.version + EXTENSIONS.profile.source
-    ),
-  };
-
-  let INITIAL_CWD: string;
-  let INITIAL_SUPER_JSON: SuperJson;
-  const INITIAL_LOCAL_PROFILE: { data: string; path: string } = {
-    data: '',
-    path: '',
-  };
-  beforeAll(async () => {
-    INITIAL_CWD = process.cwd();
-    process.chdir(WORKING_DIR);
-
-    INITIAL_SUPER_JSON = (await SuperJson.load(FIXTURE.superJson)).unwrap();
-
-    INITIAL_LOCAL_PROFILE.path = INITIAL_SUPER_JSON.resolvePath(
-      (INITIAL_SUPER_JSON.normalized.profiles[
-        `${PROFILE.scope}/${PROFILE.name}`
-      ] as { file: string }).file
-    );
-    INITIAL_LOCAL_PROFILE.data = await readFile(
-      INITIAL_LOCAL_PROFILE.path,
-      'utf-8'
-    );
-
-    await rimraf(FIXTURE.scope);
-  });
-
-  afterAll(async () => {
-    await resetSuperJson();
-    await resetLocalProfile();
-    await rimraf(FIXTURE.scope);
-
-    // change cwd back
-    process.chdir(INITIAL_CWD);
-  });
-
-  /** Resets super.json to initial state stored in `INITIAL_SUPER_JSON` */
-  async function resetSuperJson() {
-    await OutputStream.writeOnce(
-      FIXTURE.superJson,
-      JSON.stringify(INITIAL_SUPER_JSON.document, undefined, 2)
-    );
-  }
-
-  async function resetLocalProfile() {
-    await OutputStream.writeOnce(
-      INITIAL_LOCAL_PROFILE.path,
-      INITIAL_LOCAL_PROFILE.data
-    );
-    await rimraf(INITIAL_LOCAL_PROFILE.path + '.ast.json');
-  }
-
   beforeEach(async () => {
-    await resetSuperJson();
-    await resetLocalProfile();
-    await rimraf(FIXTURE.scope);
-
     stderr.start();
     stdout.start();
   });
 
   afterEach(() => {
+    jest.resetAllMocks();
     stderr.stop();
     stdout.stop();
   });
 
-  describe('when installing new profile', () => {
-    async function cleanSuperJson() {
-      await OutputStream.writeOnce(
-        FIXTURE.superJson,
-        JSON.stringify(
-          {
-            profiles: {},
-          },
-          undefined,
-          2
+  describe('when running install command', () => {
+    it('calls install profiles correctly - non existing super.json - create new one', async () => {
+      mocked(detectSuperJson).mockResolvedValue(undefined);
+      mocked(inquirer).prompt.mockResolvedValue({ init: true });
+      mocked(initSuperface).mockResolvedValue(new SuperJson({}));
+
+      const profileName = 'starwars/character-information';
+
+      await expect(Install.run([profileName])).resolves.toBeUndefined();
+      expect(installProfiles).toHaveBeenCalledTimes(1);
+      expect(installProfiles).toHaveBeenCalledWith(
+        'superface',
+        profileName,
+        [],
+        {
+          logCb: expect.anything(),
+          warnCb: expect.anything(),
+          force: false,
+        }
+      );
+    }, 10000);
+
+    it('calls install profiles correctly - non existing super.json - do NOT create new one', async () => {
+      mocked(detectSuperJson).mockResolvedValue(undefined);
+      mocked(inquirer).prompt.mockResolvedValue({ init: false });
+      mocked(initSuperface).mockResolvedValue(new SuperJson({}));
+
+      const profileName = 'starwars/character-information';
+
+      await expect(Install.run([profileName])).rejects.toEqual(
+        new CLIError('EEXIT: 0')
+      );
+      expect(installProfiles).not.toHaveBeenCalled();
+    }, 10000);
+
+    it('calls install profiles correctly', async () => {
+      mocked(detectSuperJson).mockResolvedValue('.');
+      const profileName = 'starwars/character-information';
+
+      await expect(Install.run([profileName])).resolves.toBeUndefined();
+      expect(installProfiles).toHaveBeenCalledTimes(1);
+      expect(installProfiles).toHaveBeenCalledWith('.', profileName, [], {
+        logCb: expect.anything(),
+        warnCb: expect.anything(),
+        force: false,
+      });
+    }, 10000);
+
+    it('calls install profiles correctly with quiet flag', async () => {
+      mocked(detectSuperJson).mockResolvedValue('.');
+      const profileName = 'starwars/character-information';
+
+      await expect(Install.run([profileName, '-q'])).resolves.toBeUndefined();
+      expect(installProfiles).toHaveBeenCalledTimes(1);
+      expect(installProfiles).toHaveBeenCalledWith('.', profileName, [], {
+        logCb: undefined,
+        warnCb: undefined,
+        force: false,
+      });
+    }, 10000);
+
+    it('throws error on empty providers flag', async () => {
+      mocked(detectSuperJson).mockResolvedValue('.');
+      const profileName = 'starwars/character-information';
+
+      await expect(Install.run([profileName, '-p'])).rejects.toEqual(
+        new CLIError('Flag --providers expects a value')
+      );
+      expect(installProfiles).toHaveBeenCalledTimes(0);
+    }, 10000);
+
+    it('throws error on invalid scan flag', async () => {
+      mocked(detectSuperJson).mockResolvedValue('.');
+      const profileName = 'starwars/character-information';
+
+      await expect(Install.run([profileName, '-s test'])).rejects.toEqual(
+        new CLIError('Expected an integer but received:  test')
+      );
+      expect(installProfiles).toHaveBeenCalledTimes(0);
+    }, 10000);
+
+    it('throws error on scan flag higher than 5', async () => {
+      mocked(detectSuperJson).mockResolvedValue('.');
+      const profileName = 'starwars/character-information';
+
+      await expect(Install.run([profileName, '-s', '6'])).rejects.toEqual(
+        new CLIError(
+          '--scan/-s : Number of levels to scan cannot be higher than 5'
         )
       );
-    }
-
-    it('installs the newest profile', async () => {
-      await cleanSuperJson();
-
-      const profileId = `${PROFILE.scope}/${PROFILE.name}`;
-
-      await expect(Install.run([profileId])).resolves.toBeUndefined();
-      const superJson = (await SuperJson.load()).unwrap();
-
-      const local = await readFile(FIXTURE.profile, { encoding: 'utf-8' });
-      const registry = await fetchProfile(profileId);
-      expect(local).toEqual(registry);
-
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      expect(superJson.document.profiles![profileId]).toEqual({
-        version: PROFILE.version,
-        providers: {},
-      });
+      expect(installProfiles).toHaveBeenCalledTimes(0);
     }, 10000);
 
-    it('installs the specified profile version with default provider configuration', async () => {
-      await cleanSuperJson();
-
-      const profileId = `${PROFILE.scope}/${PROFILE.name}`;
-      const profileIdRequest = `${profileId}@${PROFILE.version}`;
+    it('calls install profiles correctly - one invalid provider', async () => {
+      mocked(detectSuperJson).mockResolvedValue('.');
+      const mockProviders = ['tyntec', 'twilio', 'made-up'];
+      const profileName = 'starwars/character-information';
 
       await expect(
-        Install.run([profileIdRequest, '-p', 'test', 'test2'])
+        Install.run([profileName, '-p', ...mockProviders])
       ).resolves.toBeUndefined();
-      const superJson = (await SuperJson.load()).unwrap();
-
-      const local = await readFile(FIXTURE.profile, { encoding: 'utf-8' });
-      const registry = await fetchProfile(profileIdRequest);
-      expect(local).toEqual(registry);
-
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      expect(superJson.document.profiles![profileId]).toEqual({
-        version: PROFILE.version,
-        providers: {
-          test: {},
-          test2: {},
-        },
-      });
-
-      expect(superJson.document.providers!['test']).toEqual({
-        security: [{ id: 'test', apikey: '$TEST_API_KEY' }],
-      });
-
-      expect(superJson.document.providers!['test2']).toEqual({
-        security: [
-          {
-            id: 'my-basic-auth',
-            username: '$TEST2_USERNAME',
-            password: '$TEST2_PASSWORD',
-          },
-          {
-            id: 'my-api-key-auth',
-            apikey: '$TEST2_API_KEY',
-          },
-        ],
-      });
-    }, 10000);
-  });
-
-  describe('when local files are present', () => {
-    it('errors without a force flag', async () => {
-      const profileId = `${PROFILE.scope}/${PROFILE.name}`;
-
-      await expect(Install.run([profileId])).resolves.toBeUndefined();
-
-      const superJson = (await SuperJson.load()).unwrap();
-      const localFile = superJson.resolvePath(
-        (superJson.normalized.profiles[profileId] as { file: string }).file
+      expect(installProfiles).toHaveBeenCalledTimes(1);
+      expect(installProfiles).toHaveBeenCalledWith(
+        '.',
+        profileName,
+        ['tyntec', 'twilio'],
+        {
+          logCb: expect.anything(),
+          warnCb: expect.anything(),
+          force: false,
+        }
       );
-      const expectedFile = superJson.resolvePath(
-        (INITIAL_SUPER_JSON.normalized.profiles[profileId] as { file: string })
-          .file
-      );
-      expect(localFile).toBe(expectedFile);
-      expect(stdout.output).toContain(`File already exists: "${localFile}"`);
-    }, 10000);
-
-    it('preserves file field in super.json', async () => {
-      const profileId = `${PROFILE.scope}/${PROFILE.name}`;
-
-      await expect(Install.run([profileId, '-f'])).resolves.toBeUndefined();
-
-      const superJson = (await SuperJson.load()).unwrap();
-      const localFile = superJson.resolvePath(
-        (superJson.normalized.profiles[profileId] as { file: string }).file
-      );
-      const expectedFile = superJson.resolvePath(
-        (INITIAL_SUPER_JSON.normalized.profiles[profileId] as { file: string })
-          .file
-      );
-      expect(localFile).toBe(expectedFile);
-
-      const local = await readFile(localFile, { encoding: 'utf-8' });
-      const registry = await fetchProfile(profileId);
-      expect(local).toEqual(registry);
     }, 10000);
   });
 });

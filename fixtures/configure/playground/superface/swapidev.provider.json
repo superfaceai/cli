@@ -8,10 +8,15 @@
   ],
   "securitySchemes": [
     {
-      "id": "test",
+      "id": "api",
       "type": "apiKey",
       "in": "header",
       "name": "X-API-Key"
+    },
+    {
+      "id": "digest",
+      "type": "http",
+      "scheme": "digest"
     }
   ],
   "defaultService": "test"

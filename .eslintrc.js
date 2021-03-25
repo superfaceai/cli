@@ -30,7 +30,7 @@ module.exports = {
     'import/no-duplicates': 'error',
     'no-multiple-empty-lines': 'error',
     'lines-between-class-members': 'off',
-    '@typescript-eslint/lines-between-class-members': ['error', 'always', {exceptAfterSingleLine: true, exceptAfterOverload: true}],
+    '@typescript-eslint/lines-between-class-members': ['error', 'always', { exceptAfterSingleLine: true, exceptAfterOverload: true }],
     '@typescript-eslint/require-await': 'off',
   },
   settings: {
@@ -47,6 +47,7 @@ module.exports = {
     files: '*.test.ts',
     rules: {
       '@typescript-eslint/no-explicit-any': 'off',
+      '@typescript-eslint/no-unsafe-assignment': 'off',
       '@typescript-eslint/no-non-null-assertion': 'off'
     }
   }],
