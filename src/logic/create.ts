@@ -2,8 +2,10 @@ import { DocumentVersion } from '@superfaceai/parser';
 import { SuperJson } from '@superfaceai/sdk';
 import { dirname, join as joinPath, relative as relativePath } from 'path';
 
-import { composeVersion, EXTENSIONS } from '../common/document';
-import { LogCallback } from '../common/log';
+import { composeVersion, EXTENSIONS, META_FILE } from '../common/document';
+import { CreateMode } from '../common/document.interfaces';
+import { userError } from '../common/error';
+import { formatShellLog, LogCallback } from '../common/log';
 import { OutputStream } from '../common/output-stream';
 import { TemplateType } from '../templates/common';
 import * as mapTemplate from '../templates/map';
@@ -58,6 +60,9 @@ export async function createProfile(
   }
 }
 
+/**
+ * Creates a new map
+ */
 export async function createMap(
   basePath: string,
   superJson: SuperJson,
@@ -106,7 +111,9 @@ export async function createMap(
     });
   }
 }
-
+/**
+ * Creates a new provider
+ */
 export async function createProviderJson(
   basePath: string,
   superJson: SuperJson,
@@ -131,4 +138,104 @@ export async function createProviderJson(
       file: relativePath(dirname(superJson.path), filePath),
     });
   }
+}
+
+/**
+ * Creates a new document
+ */
+export async function create(
+  superPath: string,
+  createMode: CreateMode.PROFILE | CreateMode.MAP | CreateMode.BOTH,
+  usecases: string[],
+  documentStructure: {
+    scope?: string;
+    middle: string[];
+    version: DocumentVersion;
+  },
+  template: TemplateType,
+  options?: {
+    logCb?: LogCallback;
+    warnCb?: LogCallback;
+  }
+): Promise<void> {
+  //Load super json
+  const loadedResult = await SuperJson.load(joinPath(superPath, META_FILE));
+  const superJson = loadedResult.match(
+    v => v,
+    err => {
+      options?.warnCb?.(err);
+
+      return new SuperJson({});
+    }
+  );
+  const {
+    scope,
+    middle: [name, provider],
+    version,
+  } = documentStructure;
+
+  switch (createMode) {
+    case CreateMode.PROFILE:
+      await createProfile(
+        '',
+        superJson,
+        { scope, name, version },
+        usecases,
+        template,
+        { logCb: options?.logCb }
+      );
+      break;
+    case CreateMode.MAP:
+      if (!provider) {
+        throw userError(
+          'Provider name must be provided when generating a map.',
+          2
+        );
+      }
+      await createMap(
+        '',
+        superJson,
+        { scope, name, provider, version },
+        usecases,
+        template,
+        { logCb: options?.logCb }
+      );
+      await createProviderJson('', superJson, provider, template, {
+        logCb: options?.logCb,
+      });
+      break;
+    case CreateMode.BOTH:
+      if (!provider) {
+        throw userError(
+          'Provider name must be provided when generating a map.',
+          2
+        );
+      }
+      await createProfile(
+        '',
+        superJson,
+        { scope, name, version },
+        usecases,
+        template,
+        { logCb: options?.logCb }
+      );
+      await createMap(
+        '',
+        superJson,
+        { scope, name, provider, version },
+        usecases,
+        template,
+        { logCb: options?.logCb }
+      );
+      await createProviderJson('', superJson, provider, template, {
+        logCb: options?.logCb,
+      });
+      break;
+  }
+
+  // write new information to super.json
+  await OutputStream.writeOnce(superJson.path, superJson.stringified);
+  options?.logCb?.(
+    formatShellLog("echo '<updated super.json>' >", [superJson.path])
+  );
 }

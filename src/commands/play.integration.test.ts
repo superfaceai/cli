@@ -2,9 +2,9 @@ import { realpathSync } from 'fs';
 import { join as joinPath } from 'path';
 import { stdout } from 'stdout-stderr';
 
-import Play from '../commands/play';
 import { access, mkdir, rimraf } from '../common/io';
 import { OutputStream } from '../common/output-stream';
+import Play from './play';
 
 describe('Play CLI command', () => {
   const baseFixtures = realpathSync(joinPath('fixtures', 'playgrounds'));

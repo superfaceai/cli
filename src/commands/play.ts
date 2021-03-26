@@ -46,12 +46,14 @@ clean: the \`superface/node_modules\` folder and \`superface/build\` build artif
       name: 'action',
       description: 'Action to take.',
       required: false,
+      default: undefined,
       options: ['initialize', 'execute', 'clean'],
     },
     {
       name: 'playground',
       description: 'Path to the playground to initialize or execute.',
       required: false,
+      default: undefined,
     },
   ];
 
@@ -321,21 +323,22 @@ clean: the \`superface/node_modules\` folder and \`superface/build\` build artif
       onlyShowValid: false,
       onlyShowDir: true,
       hideChildrenOfValid: true,
-      validate: async (input: unknown): Promise<boolean> => {
-        if (typeof input !== 'string') {
-          throw developerError('unexpected argument type', 21);
-        }
-
-        try {
-          await detectPlayground(input);
-        } catch (e) {
-          return false;
-        }
-
-        return true;
-      },
+      validate: (input: unknown) => Play.validatePlygroundPath(input),
     } as typeof FileTreeSelectionPrompt); // have to cast because the registration of the new prompt is not known to typescript
 
     return response.playground;
+  }
+
+  static async validatePlygroundPath(input: unknown): Promise<boolean> {
+    if (typeof input !== 'string') {
+      throw developerError('unexpected argument type', 21);
+    }
+    try {
+      await detectPlayground(input);
+    } catch (e) {
+      return false;
+    }
+
+    return true;
   }
 }
