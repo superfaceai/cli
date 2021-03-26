@@ -33,7 +33,7 @@ describe('Compile CLI command', () => {
       await Compile.run([fixture.strictMap, '-o', '-']);
 
       expect(JSON.parse(stdout.output)).toEqual(mapASTFixture);
-    });
+    }, 10000);
 
     it('compiles profile', async () => {
       const profileASTFixture = JSON.parse(
@@ -42,7 +42,7 @@ describe('Compile CLI command', () => {
       await Compile.run([fixture.strictProfile, '-o', '-2']);
 
       expect(JSON.parse(stderr.output)).toEqual(profileASTFixture);
-    });
+    }, 10000);
 
     it('compiles two files into one stream', async () => {
       const mapASTFixture = JSON.parse(
@@ -66,7 +66,7 @@ describe('Compile CLI command', () => {
 
       expect(files).toContainEqual(mapASTFixture);
       expect(files).toContainEqual(profileASTFixture);
-    });
+    }, 10000);
   });
 
   it('compiles to outdir', async () => {
