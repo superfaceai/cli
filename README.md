@@ -47,6 +47,65 @@ You can obtain the full CLI help by running `superface --help`.
  `play`  | Manages and executes interactive playgrounds.
  `init`  | Initializes local folder structure.
  `install`| Installs capabilities and their AST to a local project.
+ `configure`| Configures capability provider.
+
+#### Compile
+
+<!---TODO-->
+
+#### Create
+
+<!---TODO-->
+
+#### Lint
+
+<!---TODO-->
+
+#### Play
+
+<!---TODO-->
+
+#### Init
+
+<!---TODO-->
+
+#### Install
+
+Install command initializes superface directory if needed and installs profile and ASTs locally. It takes ony one argument - profile identifier - consisting of scope (optional), profile name and its version. You can look up profiles in capability store <!--- FIX: add url -->. Examples of use:
+
+Installs profile with specific version:
+
+`superface install send-sms@1.0`
+
+Install profile with specific version and scope:
+
+`superface install sms/send-sms@1.0`
+
+Installs profile and configures multiple providers in one command:
+
+`superface install sms/service@1.0 -p twillio tyntec`
+
+When working in non-standard directory structure you can use scan (`-s`) flag. When number provided, install command scans for super.json outside cwd within range represented by this number.
+
+There are also quiet (`-q`) and force (`-f`) flags.
+
+#### Configure
+
+This command configures capability provider. It takes provider name (you can look that up in capability store <!--- FIX: add url -->) as a first argument and profile name as a second. Profile name specifies profile to associate with provider. Recommended use:
+
+Install profile:
+
+`superface install send-sms@1.0`
+
+Configure provider:
+
+`superface configure twillio -p send-sms`
+
+You can use your local provider.json by setting `-l` flag:
+
+`superface configure path/to/twillio -p send-sms`
+
+There are also quiet (`-q`) and force (`-f`) flags.
 
 ## Development
 
