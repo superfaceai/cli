@@ -103,7 +103,7 @@ Configure provider:
 
 You can use your local provider.json by setting `-l` flag:
 
-`superface configure path/to/twillio -p send-sms`
+`superface configure path/to/twillio -p send-sms -l`
 
 There are also quiet (`-q`) and force (`-f`) flags.
 
