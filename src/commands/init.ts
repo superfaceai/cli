@@ -90,6 +90,9 @@ async function promptProviders(options?: {
 export default class Init extends Command {
   static description = 'Initializes superface local folder structure.';
 
+  // hide the command from help
+  static hidden = true;
+
   static examples = [
     'superface init',
     'superface init foo',

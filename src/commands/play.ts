@@ -34,6 +34,9 @@ initialize: a playground is populated with an templated profile, a pair of map a
 execute: the profile, the selected maps and the play script are compiled and the script is executed.
 clean: the \`superface/node_modules\` folder and \`superface/build\` build artifacts are cleaned.`;
 
+  // hide the command from help
+  static hidden = true;
+
   static examples = [
     'superface play',
     'superface play initialize PubHours --providers osm gmaps',

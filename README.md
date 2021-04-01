@@ -31,81 +31,168 @@ npm install --global @superfaceai/cli
 
 ## Usage
 
+  <!-- commands -->
+* [`superface compile FILE`](#superface-compile-file)
+* [`superface configure PROVIDERNAME`](#superface-configure-providername)
+* [`superface create DOCUMENTINFO`](#superface-create-documentinfo)
+* [`superface install [PROFILEID]`](#superface-install-profileid)
+* [`superface lint FILE`](#superface-lint-file)
+
+## `superface compile FILE`
+
+Compiles the given profile or map to AST.
+
 ```
-superface play
+USAGE
+  $ superface compile FILE
+
+OPTIONS
+  -c, --compact                        Use compact JSON representation of the AST.
+  -h, --help                           show CLI help
+
+  -o, --output=output                  Specifies directory or filename where the compiled file should be written. `-` is
+                                       stdout, `-2` is stderr. By default, the output is written alongside the input
+                                       file with `.ast.json` suffix added.
+
+  -q, --quiet                          When set to true, disables the shell echo output of init actions.
+
+  -t, --documentType=auto|map|profile  [default: auto] Document type to parse. `auto` attempts to infer from file
+                                       extension.
+
+  --append                             Open output file in append mode instead of truncating it if it exists. Has no
+                                       effect with stdout and stderr streams.
 ```
 
-### CLI
+_See code: [dist/commands/compile.ts](https://github.com/superfaceai/cli/blob/v0.0.5/dist/commands/compile.ts)_
 
-You can obtain the full CLI help by running `superface --help`.
+## `superface configure PROVIDERNAME`
 
- Command | Description
----------|-------------
-`compile`| Compiles given profiles and/or maps into ASTs locally.
- `create`| Creates a new profile and/or map locally.
- `lint`  | Lints given profiles and/or maps locally.
- `play`  | Manages and executes interactive playgrounds.
- `init`  | Initializes local folder structure.
- `install`| Installs capabilities and their AST to a local project.
- `configure`| Configures capability provider.
+Initializes superface directory if needed, communicates with Superface Store API, stores provider configuration in super.json
 
-#### Compile
+```
+USAGE
+  $ superface configure PROVIDERNAME
 
-<!---TODO-->
+ARGUMENTS
+  PROVIDERNAME  Provider name.
 
-#### Create
+OPTIONS
+  -f, --force            When set to true and when provider exists in super.json, overwrites them.
+  -h, --help             show CLI help
+  -l, --local            When set to true, provider name argument is used as a filepath to provider.json file
+  -p, --profile=profile  (required) Specifies profile to associate with provider
+  -q, --quiet            When set to true, disables the shell echo output of init actions.
 
-<!---TODO-->
+EXAMPLES
+  $ superface configure twillio -p send-sms
+  $ superface configure twillio -q
+  $ superface configure twillio -f
+  $ superface configure twillio -l
+```
 
-#### Lint
+_See code: [dist/commands/configure.ts](https://github.com/superfaceai/cli/blob/v0.0.5/dist/commands/configure.ts)_
 
-<!---TODO-->
+## `superface create DOCUMENTINFO`
 
-#### Play
+Creates empty map and profile on a local filesystem.
 
-<!---TODO-->
+```
+USAGE
+  $ superface create DOCUMENTINFO
 
-#### Init
+ARGUMENTS
+  DOCUMENTINFO  Two arguments containing informations about the document.
+                1. Document Type (optional) - type of document that will be created (profile or map), if not specified,
+                utility will create both
+                2. Document Name - name of a file that will be created
 
-<!---TODO-->
+OPTIONS
+  -h, --help               show CLI help
+  -p, --provider=provider  Name of a Provider
+  -q, --quiet              When set to true, disables the shell echo output of init actions.
 
-#### Install
+  -s, --scan=scan          When number provided, scan for super.json outside cwd within range represented by this
+                           number.
 
-Install command initializes superface directory if needed and installs profile and ASTs locally. It takes ony one argument - profile identifier - consisting of scope (optional), profile name and its version. You can look up profiles in capability store <!--- FIX: add url -->. Examples of use:
+  -t, --variant=variant    Variant of a map
 
-Installs profile with specific version:
+  -u, --usecase=usecase    Usecases that profile or map contains
 
-`superface install send-sms@1.0`
+  -v, --version=version    [default: 1.0.0] Version of a profile
 
-Install profile with specific version and scope:
+  --template=empty|pubs    [default: empty] Template to initialize the usecases and maps with
 
-`superface install sms/send-sms@1.0`
+EXAMPLES
+  $ superface create profile sms/service
+  $ superface create profile sms/service -u SendSMS ReceiveSMS
+  $ superface create map sms/service -p twillio
+  $ superface create map sms/service -p twillio -u SendSMS ReceiveSMS
+  $ superface create sms/service -p twillio -u SendSMS ReceiveSMS
+  $ superface create sms/service -p twillio -t bugfix -v 1.1-rev133 -u SendSMS ReceiveSMS
+```
 
-Installs profile and configures multiple providers in one command:
+_See code: [dist/commands/create.ts](https://github.com/superfaceai/cli/blob/v0.0.5/dist/commands/create.ts)_
 
-`superface install sms/service@1.0 -p twillio tyntec`
+## `superface install [PROFILEID]`
 
-When working in non-standard directory structure you can use scan (`-s`) flag. When number provided, install command scans for super.json outside cwd within range represented by this number.
+Initializes superface directory if needed, communicates with Superface Store API, stores profiles and ASTs to a local system
 
-There are also quiet (`-q`) and force (`-f`) flags.
+```
+USAGE
+  $ superface install [PROFILEID]
 
-#### Configure
+ARGUMENTS
+  PROFILEID  Profile identifier consisting of scope (optional), profile name and its version.
 
-This command configures capability provider. It takes provider name (you can look that up in capability store <!--- FIX: add url -->) as a first argument and profile name as a second. Profile name specifies profile to associate with provider. Recommended use:
+OPTIONS
+  -f, --force                When set to true and when profile exists in local filesystem, overwrites them.
+  -h, --help                 show CLI help
+  -p, --providers=providers  Provider name.
+  -q, --quiet                When set to true, disables the shell echo output of init actions.
 
-Install profile:
+  -s, --scan=scan            When number provided, scan for super.json outside cwd within range represented by this
+                             number.
 
-`superface install send-sms@1.0`
+EXAMPLES
+  $ superface install
+  $ superface install --provider twillio
+  $ superface install sms/service@1.0
+  $ superface install sms/service@1.0 -p twillio
+```
 
-Configure provider:
+_See code: [dist/commands/install.ts](https://github.com/superfaceai/cli/blob/v0.0.5/dist/commands/install.ts)_
 
-`superface configure twillio -p send-sms`
+## `superface lint FILE`
 
-You can use your local provider.json by setting `-l` flag:
+Lints a map or profile file. Outputs the linter issues to STDOUT by default.
 
-`superface configure path/to/twillio -p send-sms`
+```
+USAGE
+  $ superface lint FILE
 
-There are also quiet (`-q`) and force (`-f`) flags.
+OPTIONS
+  -f, --outputFormat=long|short|json   [default: long] Output format to use to display errors and warnings.
+  -h, --help                           show CLI help
+
+  -o, --output=output                  [default: -] Filename where the output will be written. `-` is stdout, `-2` is
+                                       stderr.
+
+  -q, --quiet                          When set to true, disables output of warnings.
+
+  -t, --documentType=auto|map|profile  [default: auto] Document type to parse. `auto` attempts to infer from file
+                                       extension.
+
+  -v, --validate                       Validate maps to specific profile.
+
+  --append                             Open output file in append mode instead of truncating it if it exists. Has no
+                                       effect with stdout and stderr streams.
+
+DESCRIPTION
+  Linter ends with non zero exit code if errors are found.
+```
+
+_See code: [dist/commands/lint.ts](https://github.com/superfaceai/cli/blob/v0.0.5/dist/commands/lint.ts)_
+<!-- commandsstop -->
 
 ## Development
 
