@@ -14,10 +14,10 @@ import { exists, mkdirQuiet, rimraf } from '../common/io';
 import { OutputStream } from '../common/output-stream';
 import {
   detectSuperJson,
-  getProfileFromStore,
   getExistingProfileIds,
+  getProfileFromStore,
   installProfiles,
-  resolveInstallationRequests
+  resolveInstallationRequests,
 } from './install';
 
 //Mock http
@@ -35,7 +35,7 @@ jest.mock('../common/document', () => ({
 
 jest.mock('../common/io', () => ({
   ...jest.requireActual<Record<string, unknown>>('../common/io'),
-  exists: jest.fn()
+  exists: jest.fn(),
 }));
 
 describe('Install CLI logic', () => {
@@ -209,7 +209,6 @@ describe('Install CLI logic', () => {
     }, 10000);
   });
 
-
   describe('when resolving installation requests', () => {
     afterEach(() => {
       jest.resetAllMocks();
@@ -219,45 +218,61 @@ describe('Install CLI logic', () => {
       const stubSuperJson = new SuperJson({
         profiles: {
           'se/cond': {
-            file: 'second'
-          }
-        }
+            file: 'second',
+          },
+        },
       });
 
       mocked(getProfileDocument)
-        .mockResolvedValueOnce({ kind: 'ProfileDocument', header: { kind: 'ProfileHeader', name: 'first', version: { major: 1, minor: 1, patch: 0 } }, definitions: [] })
-        .mockRejectedValueOnce("error")
-        .mockResolvedValueOnce({ kind: 'ProfileDocument', header: { kind: 'ProfileHeader', name: 'se/cond', version: { major: 2, minor: 2, patch: 0 } }, definitions: [] })
-      ;
+        .mockResolvedValueOnce({
+          kind: 'ProfileDocument',
+          header: {
+            kind: 'ProfileHeader',
+            name: 'first',
+            version: { major: 1, minor: 1, patch: 0 },
+          },
+          definitions: [],
+        })
+        .mockRejectedValueOnce('error')
+        .mockResolvedValueOnce({
+          kind: 'ProfileDocument',
+          header: {
+            kind: 'ProfileHeader',
+            name: 'se/cond',
+            version: { major: 2, minor: 2, patch: 0 },
+          },
+          definitions: [],
+        });
 
       await expect(
-        resolveInstallationRequests(stubSuperJson, [{ kind: 'local', path: 'first' }, { kind: 'local', path: 'none' }, { kind: 'local', path: 'second' }])
+        resolveInstallationRequests(stubSuperJson, [
+          { kind: 'local', path: 'first' },
+          { kind: 'local', path: 'none' },
+          { kind: 'local', path: 'second' },
+        ])
       ).resolves.toEqual(1);
 
-      expect(stubSuperJson.document).toEqual(
-        {
-          profiles: {
-            'first': {
-              file: 'first'
-            },
-            'se/cond': {
-              file: 'second'
-            }
-          }
-        }
-      )
+      expect(stubSuperJson.document).toEqual({
+        profiles: {
+          first: {
+            file: 'first',
+          },
+          'se/cond': {
+            file: 'second',
+          },
+        },
+      });
     });
 
     it('checks and fetched store requests', async () => {
-      const originalWriteOnce = OutputStream.writeOnce;
-      OutputStream.writeOnce = jest.fn(() => Promise.resolve());
+      jest.spyOn(OutputStream, 'writeOnce').mockResolvedValue();
 
       const stubSuperJson = new SuperJson({
         profiles: {
           'se/cond': {
-            file: 'second.supr'
-          }
-        }
+            file: 'second.supr',
+          },
+        },
       });
 
       const mockInfoResponse = {
@@ -271,17 +286,21 @@ describe('Install CLI logic', () => {
         published_by: '',
       };
 
-      const existsMock = mocked(exists).mockResolvedValueOnce(false).mockResolvedValue(true);
+      const existsMock = mocked(exists)
+        .mockResolvedValueOnce(false)
+        .mockResolvedValue(true);
       const fetchProfileInfoMock = mocked(fetchProfileInfo).mockImplementation(
-        (profileId) => {
+        profileId => {
           if (profileId === 'none') {
             return Promise.reject('none does not exist');
           } else {
-            return Promise.resolve(mockInfoResponse)
+            return Promise.resolve(mockInfoResponse);
           }
         }
       );
-      const fetchProfileMock = mocked(fetchProfile).mockResolvedValue("mock profile");
+      const fetchProfileMock = mocked(fetchProfile).mockResolvedValue(
+        'mock profile'
+      );
       const fetchProfileASTMock = mocked(fetchProfileAST).mockResolvedValue({
         kind: 'ProfileDocument',
         header: {
@@ -290,10 +309,10 @@ describe('Install CLI logic', () => {
           version: {
             major: 1,
             minor: 0,
-            patch: 1
-          }
+            patch: 1,
+          },
         },
-        definitions: []
+        definitions: [],
       });
       const warnCbMock = jest.fn();
 
@@ -304,7 +323,7 @@ describe('Install CLI logic', () => {
             { kind: 'store', profileId: 'first', version: '1.0.1' },
             { kind: 'store', profileId: 'none' },
             { kind: 'store', profileId: 'se/cond', version: '2.2.0' },
-            { kind: 'store', profileId: 'third' }
+            { kind: 'store', profileId: 'third' },
           ],
           { warnCb: warnCbMock }
         )
@@ -319,18 +338,16 @@ describe('Install CLI logic', () => {
       expect(existsMock).toHaveBeenCalledWith(
         expect.stringContaining('third@1.0.1.supr')
       );
-      expect(stubSuperJson.document).toEqual(
-        {
-          profiles: {
-            'first': {
-              version: '1.0.1'
-            },
-            'se/cond': {
-              file: 'second.supr'
-            }
-          }
-        }
-      );
+      expect(stubSuperJson.document).toEqual({
+        profiles: {
+          first: {
+            version: '1.0.1',
+          },
+          'se/cond': {
+            file: 'second.supr',
+          },
+        },
+      });
 
       expect(fetchProfileInfoMock).toHaveBeenCalledTimes(3);
       expect(fetchProfileMock).toHaveBeenCalledTimes(2);
@@ -342,8 +359,6 @@ describe('Install CLI logic', () => {
       expect(warnCbMock).toHaveBeenCalledWith(
         expect.stringContaining('File already exists:')
       );
-
-      OutputStream.writeOnce = originalWriteOnce;
     });
   });
 
@@ -353,7 +368,7 @@ describe('Install CLI logic', () => {
       const stubSuperJson = new SuperJson({});
       stubSuperJson.addProfile(profileName, { version: '1.0.1' });
       await expect(getExistingProfileIds(stubSuperJson)).resolves.toEqual([
-        { profileId: 'starwars/character-information', version: '1.0.1' }
+        { profileId: 'starwars/character-information', version: '1.0.1' },
       ]);
     });
 
@@ -373,7 +388,7 @@ describe('Install CLI logic', () => {
         file: 'fixtures/install/playground/character-information.supr',
       });
       await expect(getExistingProfileIds(stubSuperJson)).resolves.toEqual([
-        { profileId: 'starwars/character-information', version: '1.0.0' }
+        { profileId: 'starwars/character-information', version: '1.0.0' },
       ]);
     });
 
@@ -552,7 +567,7 @@ describe('Install CLI logic', () => {
                 },
                 ['starwars/second']: {
                   version: mockProfileInfo.profile_version,
-                }
+                },
               },
             },
             undefined,

@@ -119,7 +119,7 @@ describe('Install CLI command', () => {
 
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       expect(superJson.document.profiles![profileId]).toEqual({
-        version: PROFILE.version
+        version: PROFILE.version,
       });
     }, 10000);
 
@@ -147,6 +147,22 @@ describe('Install CLI command', () => {
         },
       });
     }, 10000);
+
+    it('install local profile', async () => {
+      await cleanSuperJson();
+
+      const profileId = 'starwars/character-information';
+      const profileIdRequest = 'character-information.supr';
+
+      await expect(
+        Install.run(['--local', profileIdRequest])
+      ).resolves.toBeUndefined();
+      const superJson = (await SuperJson.load()).unwrap();
+
+      expect(superJson.document.profiles![profileId]).toEqual({
+        file: `../${profileIdRequest}`,
+      });
+    });
   });
 
   describe('when local files are present', () => {

@@ -13,7 +13,12 @@ import { userError } from '../common/error';
 import { LogCallback } from '../common/log';
 import { installProvider } from '../logic/configure';
 import { initSuperface } from '../logic/init';
-import { detectSuperJson, installProfiles, LocalRequest as LocalInstallRequest, StoreRequest as StoreInstallRequest } from '../logic/install';
+import {
+  detectSuperJson,
+  installProfiles,
+  LocalRequest as LocalInstallRequest,
+  StoreRequest as StoreInstallRequest,
+} from '../logic/install';
 
 const parseProviders = (
   providers?: string[],
@@ -80,10 +85,11 @@ export default class Install extends Command {
     '$ superface install --provider twillio',
     '$ superface install sms/service@1.0',
     '$ superface install sms/service@1.0 -p twillio',
-    '$ superface install --local sms/service.supr'
+    '$ superface install --local sms/service.supr',
   ];
 
-  private warnCallback? = (message: string) => this.log('⚠️  ' + yellow(message));
+  private warnCallback? = (message: string) =>
+    this.log('⚠️  ' + yellow(message));
   private logCallback? = (message: string) => this.log(grey(message));
 
   async run(): Promise<void> {
@@ -134,38 +140,31 @@ export default class Install extends Command {
         META_FILE
       )}'`
     );
-    
-    let installRequests: (LocalInstallRequest | StoreInstallRequest)[] = [];
-    if (args.profileId !== undefined) {
+
+    const installRequests: (LocalInstallRequest | StoreInstallRequest)[] = [];
+    const profileArg = args.profileId as string | undefined;
+    if (profileArg !== undefined) {
       if (flags.local) {
-        installRequests.push(
-          {
-            kind: 'local',
-            path: args.profileId
-          }
-        );
+        installRequests.push({
+          kind: 'local',
+          path: profileArg,
+        });
       } else {
-        const [profileId, version] = args.profileId.split('@');
+        const [profileId, version] = profileArg.split('@');
 
-        installRequests.push(
-          {
-            kind: 'store',
-            profileId,
-            version
-          }
-        );
+        installRequests.push({
+          kind: 'store',
+          profileId,
+          version,
+        });
       }
-    };
+    }
 
-    await installProfiles(
-      superPath,
-      installRequests,
-      {
-        logCb: this.logCallback,
-        warnCb: this.warnCallback,
-        force: flags.force
-      }
-    );
+    await installProfiles(superPath, installRequests, {
+      logCb: this.logCallback,
+      warnCb: this.warnCallback,
+      force: flags.force,
+    });
 
     this.logCallback?.(`\n\nConfiguring providers`);
     for (const providerName of providers) {
