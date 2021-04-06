@@ -42,6 +42,8 @@ If you are experiencing bug or undocumented behavior please open an Issue with b
 
 Help us improve Superface documentation, you can report typos, improve examples.
 
+**NOTE: If editing the README, please conform to the [standard-readme](https://github.com/RichardLitt/standard-readme) specification.**
+
 ## Copyright and Licensing
 
 The Superface CLI open source project is licensed under the [MIT License](LICENSE).
