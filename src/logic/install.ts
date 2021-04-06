@@ -441,8 +441,8 @@ async function fetchStoreRequestCheckedOrDeferred(
     await OutputStream.writeOnce(sourcePath, fetched.profile, { dirs: true });
     options?.logCb?.(formatShellLog("echo '<profile>' >", [sourcePath]));
   } catch (err) {
-    // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
     options?.warnCb?.(
+      // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
       `Could not write profile ${request.profileId} source: ${err}`
     );
 
@@ -456,8 +456,8 @@ async function fetchStoreRequestCheckedOrDeferred(
     );
     options?.logCb?.(formatShellLog("echo '<profileAST>' >", [astPath]));
   } catch (err) {
-    // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
     options?.warnCb?.(
+      // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
       `Could not write built profile ${request.profileId}: ${err}`
     );
 

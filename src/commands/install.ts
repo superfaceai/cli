@@ -90,6 +90,7 @@ export default class Install extends Command {
 
   private warnCallback? = (message: string) =>
     this.log('⚠️  ' + yellow(message));
+
   private logCallback? = (message: string) => this.log(grey(message));
 
   async run(): Promise<void> {
