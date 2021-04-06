@@ -24,7 +24,4 @@ Provide a link to a live example, or an unambiguous set of steps to reproduce th
 4.
 
 ## Your Environment
-Include as many relevant details about the environment you experienced the bug in
-* Version used:
-* Environment name and version (e.g. Node 8):
-* Operating System and version:
+Include as many relevant details about the environment you experienced the bug in. Preferably include result of `superface --version`
