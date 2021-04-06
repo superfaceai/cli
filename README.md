@@ -63,7 +63,7 @@ OPTIONS
                                        effect with stdout and stderr streams.
 ```
 
-_See code: [dist/commands/compile.ts](https://github.com/superfaceai/cli/blob/v0.0.5/dist/commands/compile.ts)_
+_See code: [src/commands/compile.ts](https://github.com/superfaceai/cli/tree/main/src/commands/compile.ts)_
 
 ## `superface configure PROVIDERNAME`
 
@@ -90,7 +90,7 @@ EXAMPLES
   $ superface configure twillio -l
 ```
 
-_See code: [dist/commands/configure.ts](https://github.com/superfaceai/cli/blob/v0.0.5/dist/commands/configure.ts)_
+_See code: [src/commands/configure.ts](https://github.com/superfaceai/cli/tree/main/src/commands/configure.ts)_
 
 ## `superface create DOCUMENTINFO`
 
@@ -131,7 +131,7 @@ EXAMPLES
   $ superface create sms/service -p twillio -t bugfix -v 1.1-rev133 -u SendSMS ReceiveSMS
 ```
 
-_See code: [dist/commands/create.ts](https://github.com/superfaceai/cli/blob/v0.0.5/dist/commands/create.ts)_
+_See code: [src/commands/create.ts](https://github.com/superfaceai/cli/tree/main/src/commands/create.ts)_
 
 ## `superface install [PROFILEID]`
 
@@ -160,7 +160,7 @@ EXAMPLES
   $ superface install sms/service@1.0 -p twillio
 ```
 
-_See code: [dist/commands/install.ts](https://github.com/superfaceai/cli/blob/v0.0.5/dist/commands/install.ts)_
+_See code: [src/commands/install.ts](https://github.com/superfaceai/cli/tree/main/src/commands/install.ts)_
 
 ## `superface lint FILE`
 
@@ -191,7 +191,7 @@ DESCRIPTION
   Linter ends with non zero exit code if errors are found.
 ```
 
-_See code: [dist/commands/lint.ts](https://github.com/superfaceai/cli/blob/v0.0.5/dist/commands/lint.ts)_
+_See code: [src/commands/lint.ts](https://github.com/superfaceai/cli/tree/main/src/commands/lint.ts)_
 <!-- commandsstop -->
 
 ## Development
