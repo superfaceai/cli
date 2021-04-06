@@ -1,5 +1,5 @@
 import { flags } from '@oclif/command';
-import { grey } from 'chalk';
+import { grey, yellow } from 'chalk';
 import inquirer from 'inquirer';
 import FileTreeSelectionPrompt from 'inquirer-file-tree-selection-prompt';
 import { basename } from 'path';
@@ -107,6 +107,13 @@ clean: the \`superface/node_modules\` folder and \`superface/build\` build artif
 
   async run(): Promise<void> {
     const { args, flags } = this.parse(Play);
+
+    //Warn user
+    this.warn(
+      yellow(
+        'You are using a hidden command. This command is not intended for public consumption yet. It might be broken, hard to use or simply redundant. Thread with care.'
+      )
+    );
 
     let action: unknown = args.action;
     if (action === undefined) {
