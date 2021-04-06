@@ -21,7 +21,7 @@ export function userError(message: string, code: number): CLIError {
  *
  * It should only be returned from unexpected states and unreachable code.
  *
- * Has a negative exit code.
+ * Has a negative exit code (the parameter `code` must be positive).
  */
 export function developerError(message: string, code: number): CLIError {
   if (code <= 0) {

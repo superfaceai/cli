@@ -119,8 +119,7 @@ describe('Install CLI command', () => {
 
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       expect(superJson.document.profiles![profileId]).toEqual({
-        version: PROFILE.version,
-        providers: {},
+        version: PROFILE.version
       });
     }, 10000);
 

@@ -52,8 +52,7 @@ describe('Install CLI command', () => {
       expect(installProfiles).toHaveBeenCalledTimes(1);
       expect(installProfiles).toHaveBeenCalledWith(
         'superface',
-        profileName,
-        [],
+        [{ kind: 'store', profileId: profileName }],
         {
           logCb: expect.anything(),
           warnCb: expect.anything(),
@@ -81,7 +80,7 @@ describe('Install CLI command', () => {
 
       await expect(Install.run([profileName])).resolves.toBeUndefined();
       expect(installProfiles).toHaveBeenCalledTimes(1);
-      expect(installProfiles).toHaveBeenCalledWith('.', profileName, [], {
+      expect(installProfiles).toHaveBeenCalledWith('.', [{ kind: 'store', profileId: profileName }], {
         logCb: expect.anything(),
         warnCb: expect.anything(),
         force: false,
@@ -94,7 +93,7 @@ describe('Install CLI command', () => {
 
       await expect(Install.run([profileName, '-q'])).resolves.toBeUndefined();
       expect(installProfiles).toHaveBeenCalledTimes(1);
-      expect(installProfiles).toHaveBeenCalledWith('.', profileName, [], {
+      expect(installProfiles).toHaveBeenCalledWith('.', [{ kind: 'store', profileId: profileName }], {
         logCb: undefined,
         warnCb: undefined,
         force: false,
@@ -145,8 +144,7 @@ describe('Install CLI command', () => {
       expect(installProfiles).toHaveBeenCalledTimes(1);
       expect(installProfiles).toHaveBeenCalledWith(
         '.',
-        profileName,
-        ['tyntec', 'twilio'],
+        [{ kind: 'store', profileId: profileName }],
         {
           logCb: expect.anything(),
           warnCb: expect.anything(),

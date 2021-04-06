@@ -12,7 +12,7 @@ import {
   lintFiles,
   lintMapsToProfile,
 } from '../logic/lint';
-import { formatWordPlurality } from '../util';
+import { formatWordPlurality } from '../common/format';
 
 type OutputFormatFlag = 'long' | 'short' | 'json';
 
