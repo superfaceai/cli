@@ -2,6 +2,8 @@
 
 We welcome contributions to our [open source project on GitHub](https://github.com/superfaceai/cli).
 
+**Please open an issue first if you want to make larger changes**
+
 ## Introduction
 
 We are glad that you are interested in Superface in the way of contributing. We value the pro-community developers as you are.
@@ -33,6 +35,8 @@ Follow these steps:
 5. Submit a **Pull Request** so that we can review your changes
 
 **NOTE: Be sure to merge the latest from "upstream" before making a pull request.**
+
+**NOTE: Please open an issue first if you want to make larger changes**
 
 ### Contribute by reporting bugs
 
