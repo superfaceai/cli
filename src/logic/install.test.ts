@@ -329,15 +329,20 @@ describe('Install CLI logic', () => {
         )
       ).resolves.toEqual(1);
 
-      expect(existsMock).toHaveBeenCalledWith(
+      expect(existsMock).toHaveBeenNthCalledWith(
+        1,
         expect.stringContaining('first@1.0.1.supr')
       );
-      expect(existsMock).toHaveBeenCalledWith(
+      expect(existsMock).toHaveBeenNthCalledWith(
+        2,
         expect.stringContaining('second.supr')
       );
-      expect(existsMock).toHaveBeenCalledWith(
+      expect(existsMock).toHaveBeenNthCalledWith(
+        3,
         expect.stringContaining('third@1.0.1.supr')
       );
+      expect(existsMock).toHaveBeenCalledTimes(3);
+
       expect(stubSuperJson.document).toEqual({
         profiles: {
           first: {
@@ -353,12 +358,19 @@ describe('Install CLI logic', () => {
       expect(fetchProfileMock).toHaveBeenCalledTimes(2);
       expect(fetchProfileASTMock).toHaveBeenCalledTimes(2);
 
-      expect(warnCbMock).toHaveBeenCalledWith(
-        expect.stringContaining('Could not fetch none: none does not exist')
-      );
-      expect(warnCbMock).toHaveBeenCalledWith(
+      expect(warnCbMock).toHaveBeenNthCalledWith(
+        1,
         expect.stringContaining('File already exists:')
       );
+      expect(warnCbMock).toHaveBeenNthCalledWith(
+        2,
+        expect.stringContaining('Could not fetch none: none does not exist')
+      );
+      expect(warnCbMock).toHaveBeenNthCalledWith(
+        3,
+        expect.stringContaining('File already exists:')
+      );
+      expect(warnCbMock).toHaveBeenCalledTimes(3);
     });
   });
 

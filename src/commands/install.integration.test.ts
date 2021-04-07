@@ -148,7 +148,7 @@ describe('Install CLI command', () => {
       });
     }, 10000);
 
-    it('install local profile', async () => {
+    it('installs local profile', async () => {
       await cleanSuperJson();
 
       const profileId = 'starwars/character-information';
@@ -162,6 +162,21 @@ describe('Install CLI command', () => {
       expect(superJson.document.profiles![profileId]).toEqual({
         file: `../${profileIdRequest}`,
       });
+    });
+
+    it('error when installing non-existent local profile', async () => {
+      await cleanSuperJson();
+
+      const profileIdRequest = 'none.supr';
+
+      await expect(
+        Install.run(['--local', profileIdRequest])
+      ).resolves.toBeUndefined();
+      const superJson = (await SuperJson.load()).unwrap();
+
+      expect(superJson.document.profiles).toStrictEqual({});
+
+      expect(stdout.output).toContain('❌ No profiles have been installed');
     });
   });
 
