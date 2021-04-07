@@ -237,7 +237,9 @@ Github Actions workflow will pick up the release and publish it as one of the [p
 
 ## Contributing
 
-PRs accepted.
+**Please open an issue first if you want to make larger changes**
+
+Feel free to contribute! Please follow the [Contribution Guide](CONTRIBUTION_GUIDE.md).
 
 Licenses of node_modules are checked during CI/CD for every commit. Only the following licenses are allowed:
 
@@ -257,4 +259,5 @@ Note: If editing the README, please conform to the [standard-readme](https://git
 
 ## License
 
-`<TBD>` © 2020 Superface
+The Superface is licensed under the [MIT](LICENSE).
+© 2021 Superface
