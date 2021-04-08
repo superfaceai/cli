@@ -52,8 +52,7 @@ describe('Install CLI command', () => {
       expect(installProfiles).toHaveBeenCalledTimes(1);
       expect(installProfiles).toHaveBeenCalledWith(
         'superface',
-        profileName,
-        [],
+        [{ kind: 'store', profileId: profileName }],
         {
           logCb: expect.anything(),
           warnCb: expect.anything(),
@@ -81,11 +80,15 @@ describe('Install CLI command', () => {
 
       await expect(Install.run([profileName])).resolves.toBeUndefined();
       expect(installProfiles).toHaveBeenCalledTimes(1);
-      expect(installProfiles).toHaveBeenCalledWith('.', profileName, [], {
-        logCb: expect.anything(),
-        warnCb: expect.anything(),
-        force: false,
-      });
+      expect(installProfiles).toHaveBeenCalledWith(
+        '.',
+        [{ kind: 'store', profileId: profileName }],
+        {
+          logCb: expect.anything(),
+          warnCb: expect.anything(),
+          force: false,
+        }
+      );
     }, 10000);
 
     it('calls install profiles correctly with quiet flag', async () => {
@@ -94,11 +97,15 @@ describe('Install CLI command', () => {
 
       await expect(Install.run([profileName, '-q'])).resolves.toBeUndefined();
       expect(installProfiles).toHaveBeenCalledTimes(1);
-      expect(installProfiles).toHaveBeenCalledWith('.', profileName, [], {
-        logCb: undefined,
-        warnCb: undefined,
-        force: false,
-      });
+      expect(installProfiles).toHaveBeenCalledWith(
+        '.',
+        [{ kind: 'store', profileId: profileName }],
+        {
+          logCb: undefined,
+          warnCb: undefined,
+          force: false,
+        }
+      );
     }, 10000);
 
     it('throws error on empty providers flag', async () => {
@@ -145,8 +152,7 @@ describe('Install CLI command', () => {
       expect(installProfiles).toHaveBeenCalledTimes(1);
       expect(installProfiles).toHaveBeenCalledWith(
         '.',
-        profileName,
-        ['tyntec', 'twilio'],
+        [{ kind: 'store', profileId: profileName }],
         {
           logCb: expect.anything(),
           warnCb: expect.anything(),

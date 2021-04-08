@@ -13,7 +13,12 @@ import { userError } from '../common/error';
 import { LogCallback } from '../common/log';
 import { installProvider } from '../logic/configure';
 import { initSuperface } from '../logic/init';
-import { detectSuperJson, installProfiles } from '../logic/install';
+import {
+  detectSuperJson,
+  installProfiles,
+  LocalRequest as LocalInstallRequest,
+  StoreRequest as StoreInstallRequest,
+} from '../logic/install';
 
 const parseProviders = (
   providers?: string[],
@@ -61,6 +66,12 @@ export default class Install extends Command {
         'When set to true and when profile exists in local filesystem, overwrites them.',
       default: false,
     }),
+    local: flags.boolean({
+      char: 'l',
+      description:
+        'When set to true, profile id argument is used as a filepath to profile.supr file',
+      default: false,
+    }),
     scan: flags.integer({
       char: 's',
       description:
@@ -74,9 +85,12 @@ export default class Install extends Command {
     '$ superface install --provider twillio',
     '$ superface install sms/service@1.0',
     '$ superface install sms/service@1.0 -p twillio',
+    '$ superface install --local sms/service.supr',
   ];
 
-  private warnCallback? = (message: string) => this.log(yellow(message));
+  private warnCallback? = (message: string) =>
+    this.log('⚠️  ' + yellow(message));
+
   private logCallback? = (message: string) => this.log(grey(message));
 
   async run(): Promise<void> {
@@ -95,7 +109,6 @@ export default class Install extends Command {
     }
 
     let superPath = await detectSuperJson(process.cwd(), flags.scan);
-
     if (!superPath) {
       this.warnCallback?.("File 'super.json' has not been found.");
 
@@ -128,7 +141,27 @@ export default class Install extends Command {
         META_FILE
       )}'`
     );
-    await installProfiles(superPath, args.profileId, providers, {
+
+    const installRequests: (LocalInstallRequest | StoreInstallRequest)[] = [];
+    const profileArg = args.profileId as string | undefined;
+    if (profileArg !== undefined) {
+      if (flags.local) {
+        installRequests.push({
+          kind: 'local',
+          path: profileArg,
+        });
+      } else {
+        const [profileId, version] = profileArg.split('@');
+
+        installRequests.push({
+          kind: 'store',
+          profileId,
+          version,
+        });
+      }
+    }
+
+    await installProfiles(superPath, installRequests, {
       logCb: this.logCallback,
       warnCb: this.warnCallback,
       force: flags.force,
