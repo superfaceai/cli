@@ -25,11 +25,10 @@ Follow these steps:
 1. **Fork & Clone** the repository  
 2. **Setup** the Superface CLI
    - Login to NPM `npm login --scope=@superfaceai --registry=https://npm.pkg.github.com`  
-   - Install Superface with `yarn global add @superfaceai/cli` or `npm install --global @superfaceai/cli`
    - Install packages with `yarn install` or `npm install`
-   - Build with `yarn build` or `npm build`
+   - Build with `yarn build` or `npm run build`
    - Run tests with `yarn test` or `npm test`
-   - Lint code with `yarn lint:fix` or `npm lint:fix`
+   - Lint code with `yarn lint:fix` or `npm run lint:fix`
 3. **Update** [CHANGELOG](CHANGELOG.md). See https://keepachangelog.com/en/1.0.0/
 4. **Commit** changes to your own branch by convention. See https://www.conventionalcommits.org/en/v1.0.0/
 5. **Push** your work back up to your fork  
