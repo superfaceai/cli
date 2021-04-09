@@ -10,6 +10,7 @@ Superface CLI provides access to superface tooling from the CLI.
 - [Background](#background)
 - [Install](#install)
 - [Usage](#usage)
+- [Security](#security)
 - [Development](#development)
 - [Publishing](#publishing)
 - [Maintainers](#maintainers)
@@ -216,7 +217,7 @@ _See code: [src/commands/lint.ts](https://github.com/superfaceai/cli/tree/main/s
 
 ## Security
 
-
+Superface is not man-in-the-middle so it does not require any access to secrets that are needed to communicate with provider API. Superface CLI only prepares super.json file with authorization fields in form of environment variable. You just set correct variables and communicate directly with provider API.  
 
 ## Development
 
