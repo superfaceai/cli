@@ -1,4 +1,7 @@
+
 # Superface CLI
+
+![alt text](https://github.com/superfaceai/cli/blob/chore/add-background-section/docs/LogoGreen.svg)
 
 Superface CLI provides access to superface tooling from the CLI.
 
