@@ -25,7 +25,6 @@ Follow these steps:
 1. **Fork & Clone** the repository  
 2. **Setup** the Superface CLI
    - Login to NPM `npm login --scope=@superfaceai --registry=https://npm.pkg.github.com`  
-   - Install Superface with `yarn global add @superfaceai/cli` or `npm install --global @superfaceai/cli`
    - Install packages with `yarn install` or `npm install`
    - Build with `yarn build` or `npm build`
    - Run tests with `yarn test` or `npm test`
