@@ -4,6 +4,7 @@ Superface CLI provides access to superface tooling from the CLI.
 
 ## Table of Contents
 
+- [Background](#background)
 - [Install](#install)
 - [Usage](#usage)
 - [Development](#development)
@@ -11,6 +12,22 @@ Superface CLI provides access to superface tooling from the CLI.
 - [Maintainers](#maintainers)
 - [Contributing](#contributing)
 - [License](#license)
+
+## Background
+<!-- Stolen from Z -->
+Superface (super-interface) is a higher-order API, an abstraction on top of the modern APIs like GraphQL and REST. Superface is one interface to discover, connect, and query any capabilities available via conventional APIs. 
+
+Through its focus on application-level semantics, Superface decouples the clients from servers, enabling fully autonomous evolution. As such it minimizes the code base as well as errors and downtimes while providing unmatched resiliency and redundancy. 
+
+Superface allows for switching capability providers without development at a runtime in milliseconds. Furthermore, Superface decentralizes the composition and aggregation, and thus creates an Autonomous Integration Mesh.
+
+Motivation behind Superface is nicely described in this [video](https://www.youtube.com/watch?v=BCvq3NXFb94) from APIdays conference.
+
+<!-- Link to starwars tutorial? -->
+
+You can get more information at https://superface.ai.
+
+<!-- Link to superface registry? -->
 
 ## Install
 
@@ -193,6 +210,10 @@ DESCRIPTION
 
 _See code: [src/commands/lint.ts](https://github.com/superfaceai/cli/tree/main/src/commands/lint.ts)_
 <!-- commandsstop -->
+
+## Security
+
+
 
 ## Development
 
