@@ -5,11 +5,11 @@ export type MockStd = {
   readonly output: string;
 };
 
-export const mockStd = () => {
+export const mockStd: () => MockStd = () => {
   const writes: string[] = [];
 
   return {
-    implementation(input: string | Uint8Array) {
+    implementation(input: string | Uint8Array): boolean {
       if (Array.isArray(input)) {
         writes.push(String.fromCharCode.apply(null, input));
       } else if (typeof input === 'string') {
@@ -18,7 +18,7 @@ export const mockStd = () => {
 
       return true;
     },
-    get output() {
+    get output(): string {
       return writes.map(stripAnsi).join('');
     },
   };
