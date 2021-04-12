@@ -1,11 +1,11 @@
 import { SuperJson } from '@superfaceai/sdk';
 import { join as joinPath } from 'path';
-import { stderr, stdout } from 'stdout-stderr';
 
 import { EXTENSIONS, GRID_DIR, SUPER_PATH } from '../common/document';
 import { fetchProfile } from '../common/http';
 import { readFile, rimraf } from '../common/io';
 import { OutputStream } from '../common/output-stream';
+import { MockStd, mockStd } from '../test/mock-std';
 import Install from './install';
 
 describe('Install CLI command', () => {
@@ -33,6 +33,10 @@ describe('Install CLI command', () => {
     data: '',
     path: '',
   };
+
+  let stderr: MockStd;
+  let stdout: MockStd;
+
   beforeAll(async () => {
     INITIAL_CWD = process.cwd();
     process.chdir(WORKING_DIR);
@@ -82,13 +86,19 @@ describe('Install CLI command', () => {
     await resetLocalProfile();
     await rimraf(FIXTURE.scope);
 
-    stderr.start();
-    stdout.start();
+    stdout = mockStd();
+    stderr = mockStd();
+
+    jest
+      .spyOn(process['stdout'], 'write')
+      .mockImplementation(stdout.implementation);
+    jest
+      .spyOn(process['stderr'], 'write')
+      .mockImplementation(stderr.implementation);
   });
 
   afterEach(() => {
-    stderr.stop();
-    stdout.stop();
+    jest.resetAllMocks();
   });
 
   describe('when installing new profile', () => {

@@ -1,9 +1,9 @@
 import { realpathSync } from 'fs';
 import { join as joinPath } from 'path';
-import { stdout } from 'stdout-stderr';
 
 import { access, mkdir, rimraf } from '../common/io';
 import { OutputStream } from '../common/output-stream';
+import { MockStd, mockStd } from '../test/mock-std';
 import Play from './play';
 
 describe('Play CLI command', () => {
@@ -28,7 +28,18 @@ describe('Play CLI command', () => {
     await rimraf(createdPlayground.path);
   });
 
+  let stdout: MockStd;
+
+  beforeEach(async () => {
+    stdout = mockStd();
+    jest
+      .spyOn(process['stdout'], 'write')
+      .mockImplementation(stdout.implementation);
+  });
+
   afterEach(async () => {
+    jest.resetAllMocks();
+
     // delete the create-test playground
     await rimraf(createdPlayground.path);
 
@@ -56,7 +67,6 @@ describe('Play CLI command', () => {
   });
 
   it('creates a valid playground', async () => {
-    stdout.start();
     await expect(
       Play.run([
         'initialize',
@@ -66,7 +76,6 @@ describe('Play CLI command', () => {
         'bar',
       ])
     ).resolves.toBeUndefined();
-    stdout.stop();
 
     await expect(access(createdPlayground.path)).resolves.toBeUndefined();
     const expectedFiles = [
@@ -109,7 +118,6 @@ describe('Play CLI command', () => {
   });
 
   it('does not log to stdout with --quiet', async () => {
-    stdout.start();
     await Play.run([
       'initialize',
       createdPlayground.path,
@@ -118,16 +126,13 @@ describe('Play CLI command', () => {
       'bar',
       '--quiet',
     ]);
-    stdout.stop();
 
     expect(stdout.output).toBe('');
   });
 
   // TODO: Currently skipping this in CI because of access permission issues
   it.skip('compiles playground and executes it', async () => {
-    stdout.start();
     await Play.run(['execute', fixedPlayground.path, '--providers', 'noop']);
-    stdout.stop();
 
     expect(stdout.output).toMatch(
       /PubOpeningHours\/noop result: Ok { value: \[\] }\s*$/
@@ -148,16 +153,11 @@ describe('Play CLI command', () => {
 
   // TODO: Currently skipping this in CI because of access permission issues
   it.skip('creates, compiles and executes a playground on a real api', async () => {
-    stdout.start();
     await expect(
       Play.run(['initialize', createdPlayground.path, '--providers', 'foo'])
     ).resolves.toBeUndefined();
     await Play.run(['execute', createdPlayground.path, '--providers', 'foo']);
-    stdout.stop();
 
-    expect(stdout.output).toContain(
-      `${createdPlayground.usecaseName}/foo result: Ok {`
-    );
     expect(stdout.output).toContain(
       `{ name: 'Pivni bar Diego', openingHours: 'Mo-Su,PH 16:30 - 23:45' }`
     );
@@ -216,11 +216,9 @@ describe('Play CLI command', () => {
       )
     );
 
-    stdout.start();
     await expect(
       Play.run(['clean', createdPlayground.path])
     ).resolves.toBeUndefined();
-    stdout.stop();
 
     await Promise.all(
       deletedFiles.map(f => expect(access(f)).rejects.toThrowError('ENOENT'))
