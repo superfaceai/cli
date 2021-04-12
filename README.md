@@ -40,14 +40,14 @@ npm install --global @superfaceai/cli
 
 ## `superface compile FILE`
 
-Compiles the given profile or map to AST.
+Compiles the given profile or map.
 
 ```
 USAGE
   $ superface compile FILE
 
 OPTIONS
-  -c, --compact                        Use compact JSON representation of the AST.
+  -c, --compact                        Use compact JSON representation of the compiled file.
   -h, --help                           show CLI help
 
   -o, --output=output                  Specifies directory or filename where the compiled file should be written. `-` is
@@ -135,7 +135,7 @@ _See code: [src/commands/create.ts](https://github.com/superfaceai/cli/tree/main
 
 ## `superface install [PROFILEID]`
 
-Initializes superface directory if needed, communicates with Superface Store API, stores profiles and ASTs to a local system
+Initializes superface directory if needed, communicates with Superface Store API, stores profiles and compiled files to a local system
 
 ```
 USAGE
@@ -147,6 +147,7 @@ ARGUMENTS
 OPTIONS
   -f, --force                When set to true and when profile exists in local filesystem, overwrites them.
   -h, --help                 show CLI help
+  -l, --local                When set to true, profile id argument is used as a filepath to profile.supr file
   -p, --providers=providers  Provider name.
   -q, --quiet                When set to true, disables the shell echo output of init actions.
 
@@ -158,6 +159,7 @@ EXAMPLES
   $ superface install --provider twillio
   $ superface install sms/service@1.0
   $ superface install sms/service@1.0 -p twillio
+  $ superface install --local sms/service.supr
 ```
 
 _See code: [src/commands/install.ts](https://github.com/superfaceai/cli/tree/main/src/commands/install.ts)_

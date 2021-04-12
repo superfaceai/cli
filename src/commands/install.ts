@@ -41,7 +41,7 @@ const parseProviders = (
 
 export default class Install extends Command {
   static description =
-    'Initializes superface directory if needed, communicates with Superface Store API, stores profiles and ASTs to a local system';
+    'Initializes superface directory if needed, communicates with Superface Store API, stores profiles and compiled files to a local system';
 
   static args = [
     {
