@@ -386,7 +386,7 @@ export async function getProfileFromStore(
     options?.logCb?.(`GET Profile Source File ${profileId}`);
 
     ast = await fetchProfileAST(profileId);
-    options?.logCb?.(`GET Profile AST ${profileId}`);
+    options?.logCb?.(`GET compiled Profile ${profileId}`);
   } catch (error) {
     // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
     options?.warnCb?.(`Could not fetch ${profileId}: ${error}`);
@@ -454,7 +454,7 @@ async function fetchStoreRequestCheckedOrDeferred(
       astPath,
       JSON.stringify(fetched.ast, undefined, 2)
     );
-    options?.logCb?.(formatShellLog("echo '<profileAST>' >", [astPath]));
+    options?.logCb?.(formatShellLog("echo '<compiled profile>' >", [astPath]));
   } catch (err) {
     options?.warnCb?.(
       // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
