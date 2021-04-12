@@ -15,7 +15,7 @@ import { isDirectoryQuiet, readFile } from '../common/io';
 import { OutputStream } from '../common/output-stream';
 
 export default class Compile extends Command {
-  static description = 'Compiles the given profile or map to AST.';
+  static description = 'Compiles the given profile or map.';
 
   static flags = {
     ...Command.flags,
@@ -35,7 +35,7 @@ export default class Compile extends Command {
     compact: flags.boolean({
       char: 'c',
       default: false,
-      description: 'Use compact JSON representation of the AST.',
+      description: 'Use compact JSON representation of the compiled file.',
     }),
   };
 
