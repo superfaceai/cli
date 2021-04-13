@@ -1,5 +1,5 @@
 
-# Superface CLI
+# CLI
 
 ![superface logo](https://github.com/superfaceai/cli/blob/chore/add-background-section/docs/LogoGreen.svg)
 
