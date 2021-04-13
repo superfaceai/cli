@@ -6,6 +6,7 @@ Superface CLI provides access to superface tooling from the CLI.
 
 - [Install](#install)
 - [Usage](#usage)
+- [Support](#support)
 - [Development](#development)
 - [Publishing](#publishing)
 - [Maintainers](#maintainers)
@@ -195,6 +196,10 @@ DESCRIPTION
 
 _See code: [src/commands/lint.ts](https://github.com/superfaceai/cli/tree/main/src/commands/lint.ts)_
 <!-- commandsstop -->
+
+## Support
+
+If you need any additional support,have any questions or you just want to talk you can do that through our [documentation page](https://developer.superface.dev). 
 
 ## Development
 
