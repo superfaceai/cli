@@ -5,7 +5,6 @@ import {
   SuperJson,
 } from '@superfaceai/sdk';
 import { join as joinPath } from 'path';
-import { stderr, stdout } from 'stdout-stderr';
 import { mocked } from 'ts-jest/utils';
 
 import { EXTENSIONS, GRID_DIR, SUPER_PATH } from '../common/document';
@@ -13,6 +12,7 @@ import { userError } from '../common/error';
 import { fetchProviderInfo } from '../common/http';
 import { rimraf } from '../common/io';
 import { OutputStream } from '../common/output-stream';
+import { MockStd, mockStd } from '../test/mock-std';
 import Configure from './configure';
 
 //Mock only fetchProviderInfo response
@@ -80,18 +80,20 @@ describe('Configure CLI command', () => {
       INITIAL_SUPER_JSON.stringified
     );
   }
+  let stdout: MockStd;
 
   beforeEach(async () => {
     await resetSuperJson();
     await rimraf(FIXTURE.scope);
 
-    stderr.start();
-    stdout.start();
+    stdout = mockStd();
+    jest
+      .spyOn(process['stdout'], 'write')
+      .mockImplementation(stdout.implementation);
   });
 
   afterEach(() => {
-    stderr.stop();
-    stdout.stop();
+    jest.resetAllMocks();
   });
 
   describe('when configuring new provider', () => {

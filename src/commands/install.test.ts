@@ -1,12 +1,12 @@
 import { CLIError } from '@oclif/errors';
 import { SuperJson } from '@superfaceai/sdk';
 import inquirer from 'inquirer';
-import { stderr, stdout } from 'stdout-stderr';
 import { mocked } from 'ts-jest/utils';
 
 import { installProvider } from '../logic/configure';
 import { initSuperface } from '../logic/init';
 import { detectSuperJson, installProfiles } from '../logic/install';
+import { MockStd, mockStd } from '../test/mock-std';
 import Install from './install';
 
 //Mock install logic
@@ -29,15 +29,22 @@ jest.mock('../logic/init', () => ({
 }));
 
 describe('Install CLI command', () => {
+  let stdout: MockStd;
+  let stderr: MockStd;
+
   beforeEach(async () => {
-    stderr.start();
-    stdout.start();
+    stdout = mockStd();
+    jest
+      .spyOn(process['stdout'], 'write')
+      .mockImplementation(stdout.implementation);
+    stderr = mockStd();
+    jest
+      .spyOn(process['stderr'], 'write')
+      .mockImplementation(stderr.implementation);
   });
 
   afterEach(() => {
     jest.resetAllMocks();
-    stderr.stop();
-    stdout.stop();
   });
 
   describe('when running install command', () => {

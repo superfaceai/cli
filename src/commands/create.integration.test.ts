@@ -1,11 +1,11 @@
 import { SuperJson } from '@superfaceai/sdk';
 import * as fs from 'fs';
 import { join as joinPath } from 'path';
-import { stderr, stdout } from 'stdout-stderr';
 
 import { EXTENSIONS, GRID_DIR, SUPER_PATH } from '../common/document';
 import { rimraf } from '../common/io';
 import { OutputStream } from '../common/output-stream';
+import { MockStd, mockStd } from '../test/mock-std';
 import Create from './create';
 import Lint from './lint';
 
@@ -57,17 +57,20 @@ describe('Create CLI command', () => {
       JSON.stringify(INITIAL_SUPER_JSON.document, undefined, 2)
     );
   }
+  let stdout: MockStd;
 
   beforeEach(async () => {
     await resetSuperJson();
     await rimraf(FIXTURE.scope);
-    stderr.start();
-    stdout.start();
+
+    stdout = mockStd();
+    jest
+      .spyOn(process['stdout'], 'write')
+      .mockImplementation(stdout.implementation);
   });
 
   afterEach(() => {
-    stderr.stop();
-    stdout.stop();
+    jest.resetAllMocks();
 
     // handle profile
     if (fs.existsSync(`${documentName}.supr`)) {

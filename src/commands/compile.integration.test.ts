@@ -1,7 +1,7 @@
 import { join as joinPath } from 'path';
-import { stderr, stdout } from 'stdout-stderr';
 
 import { access, mkdir, readFile, rimraf } from '../common/io';
+import { MockStd, mockStd } from '../test/mock-std';
 import Compile from './compile';
 
 describe('Compile CLI command', () => {
@@ -13,14 +13,22 @@ describe('Compile CLI command', () => {
     strictMapAst: joinPath('fixtures', 'compiled', 'strict.suma.ast.json'),
   };
 
+  let stderr: MockStd;
+  let stdout: MockStd;
+
   beforeEach(() => {
-    stderr.start();
-    stdout.start();
+    stderr = mockStd();
+    stdout = mockStd();
+    jest
+      .spyOn(process['stderr'], 'write')
+      .mockImplementation(stderr.implementation);
+    jest
+      .spyOn(process['stdout'], 'write')
+      .mockImplementation(stdout.implementation);
   });
 
   afterEach(async () => {
-    stderr.stop();
-    stdout.stop();
+    jest.resetAllMocks();
 
     await rimraf(compileDir);
   });
