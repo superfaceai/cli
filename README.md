@@ -26,7 +26,7 @@ Superface allows for switching capability providers without development at a run
 
 Motivation behind Superface is nicely described in this [video](https://www.youtube.com/watch?v=BCvq3NXFb94) from APIdays conference.
 
-You can get more information at https://superface.ai.
+You can get more information at https://superface.ai and https://developer.superface.dev.
 
 ## Install
 
