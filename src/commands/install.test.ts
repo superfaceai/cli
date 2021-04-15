@@ -1,17 +1,23 @@
 import { CLIError } from '@oclif/errors';
 import { SuperJson } from '@superfaceai/sdk';
 import inquirer from 'inquirer';
-import { stderr, stdout } from 'stdout-stderr';
 import { mocked } from 'ts-jest/utils';
 
+import { installProvider } from '../logic/configure';
 import { initSuperface } from '../logic/init';
 import { detectSuperJson, installProfiles } from '../logic/install';
+import { MockStd, mockStd } from '../test/mock-std';
 import Install from './install';
 
 //Mock install logic
 jest.mock('../logic/install', () => ({
   detectSuperJson: jest.fn(),
   installProfiles: jest.fn(),
+}));
+
+//Mock configure logic
+jest.mock('../logic/configure', () => ({
+  installProvider: jest.fn(),
 }));
 
 //Mock inquirer
@@ -23,15 +29,22 @@ jest.mock('../logic/init', () => ({
 }));
 
 describe('Install CLI command', () => {
+  let stdout: MockStd;
+  let stderr: MockStd;
+
   beforeEach(async () => {
-    stderr.start();
-    stdout.start();
+    stdout = mockStd();
+    jest
+      .spyOn(process['stdout'], 'write')
+      .mockImplementation(stdout.implementation);
+    stderr = mockStd();
+    jest
+      .spyOn(process['stderr'], 'write')
+      .mockImplementation(stderr.implementation);
   });
 
   afterEach(() => {
     jest.resetAllMocks();
-    stderr.stop();
-    stdout.stop();
   });
 
   describe('when running install command', () => {
@@ -46,8 +59,7 @@ describe('Install CLI command', () => {
       expect(installProfiles).toHaveBeenCalledTimes(1);
       expect(installProfiles).toHaveBeenCalledWith(
         'superface',
-        profileName,
-        [],
+        [{ kind: 'store', profileId: profileName }],
         {
           logCb: expect.anything(),
           warnCb: expect.anything(),
@@ -75,11 +87,15 @@ describe('Install CLI command', () => {
 
       await expect(Install.run([profileName])).resolves.toBeUndefined();
       expect(installProfiles).toHaveBeenCalledTimes(1);
-      expect(installProfiles).toHaveBeenCalledWith('.', profileName, [], {
-        logCb: expect.anything(),
-        warnCb: expect.anything(),
-        force: false,
-      });
+      expect(installProfiles).toHaveBeenCalledWith(
+        '.',
+        [{ kind: 'store', profileId: profileName }],
+        {
+          logCb: expect.anything(),
+          warnCb: expect.anything(),
+          force: false,
+        }
+      );
     }, 10000);
 
     it('calls install profiles correctly with quiet flag', async () => {
@@ -88,11 +104,15 @@ describe('Install CLI command', () => {
 
       await expect(Install.run([profileName, '-q'])).resolves.toBeUndefined();
       expect(installProfiles).toHaveBeenCalledTimes(1);
-      expect(installProfiles).toHaveBeenCalledWith('.', profileName, [], {
-        logCb: undefined,
-        warnCb: undefined,
-        force: false,
-      });
+      expect(installProfiles).toHaveBeenCalledWith(
+        '.',
+        [{ kind: 'store', profileId: profileName }],
+        {
+          logCb: undefined,
+          warnCb: undefined,
+          force: false,
+        }
+      );
     }, 10000);
 
     it('throws error on empty providers flag', async () => {
@@ -129,6 +149,7 @@ describe('Install CLI command', () => {
 
     it('calls install profiles correctly - one invalid provider', async () => {
       mocked(detectSuperJson).mockResolvedValue('.');
+      mocked(installProvider).mockResolvedValue(undefined);
       const mockProviders = ['tyntec', 'twilio', 'made-up'];
       const profileName = 'starwars/character-information';
 
@@ -138,8 +159,7 @@ describe('Install CLI command', () => {
       expect(installProfiles).toHaveBeenCalledTimes(1);
       expect(installProfiles).toHaveBeenCalledWith(
         '.',
-        profileName,
-        ['tyntec', 'twilio'],
+        [{ kind: 'store', profileId: profileName }],
         {
           logCb: expect.anything(),
           warnCb: expect.anything(),

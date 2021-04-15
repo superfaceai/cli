@@ -1,7 +1,7 @@
 import { join as joinPath } from 'path';
-import { stderr, stdout } from 'stdout-stderr';
 
 import { access, mkdir, readFile, rimraf } from '../common/io';
+import { MockStd, mockStd } from '../test/mock-std';
 import Compile from './compile';
 
 describe('Compile CLI command', () => {
@@ -13,14 +13,22 @@ describe('Compile CLI command', () => {
     strictMapAst: joinPath('fixtures', 'compiled', 'strict.suma.ast.json'),
   };
 
+  let stderr: MockStd;
+  let stdout: MockStd;
+
   beforeEach(() => {
-    stderr.start();
-    stdout.start();
+    stderr = mockStd();
+    stdout = mockStd();
+    jest
+      .spyOn(process['stderr'], 'write')
+      .mockImplementation(stderr.implementation);
+    jest
+      .spyOn(process['stdout'], 'write')
+      .mockImplementation(stdout.implementation);
   });
 
   afterEach(async () => {
-    stderr.stop();
-    stdout.stop();
+    jest.resetAllMocks();
 
     await rimraf(compileDir);
   });
@@ -33,7 +41,7 @@ describe('Compile CLI command', () => {
       await Compile.run([fixture.strictMap, '-o', '-']);
 
       expect(JSON.parse(stdout.output)).toEqual(mapASTFixture);
-    });
+    }, 10000);
 
     it('compiles profile', async () => {
       const profileASTFixture = JSON.parse(
@@ -42,7 +50,7 @@ describe('Compile CLI command', () => {
       await Compile.run([fixture.strictProfile, '-o', '-2']);
 
       expect(JSON.parse(stderr.output)).toEqual(profileASTFixture);
-    });
+    }, 10000);
 
     it('compiles two files into one stream', async () => {
       const mapASTFixture = JSON.parse(
@@ -66,7 +74,7 @@ describe('Compile CLI command', () => {
 
       expect(files).toContainEqual(mapASTFixture);
       expect(files).toContainEqual(profileASTFixture);
-    });
+    }, 10000);
   });
 
   it('compiles to outdir', async () => {

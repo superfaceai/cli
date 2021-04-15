@@ -2,6 +2,12 @@
 ### Added
 * Generate command
 
+### Added
+* Support for installing local files with `install` command
+
+### Changed
+* Refactored install logic
+
 ## [0.0.5] - 2021-03-15
 
 ### Changed

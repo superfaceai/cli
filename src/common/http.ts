@@ -1,4 +1,5 @@
 import { ProfileDocumentNode } from '@superfaceai/ast';
+import { parseProviderJson, ProviderJson } from '@superfaceai/sdk';
 import superagent, { Response } from 'superagent';
 
 import { userError } from './error';
@@ -60,4 +61,13 @@ export async function fetchProfileAST(
   const response = await fetch(query, ContentType.AST);
 
   return response.body as ProfileDocumentNode;
+}
+
+export async function fetchProviderInfo(
+  providerName: string
+): Promise<ProviderJson> {
+  const query = new URL(providerName, `${STORE_URL}providers/`).href;
+  const response = await fetch(query, ContentType.JSON);
+
+  return parseProviderJson(response.body);
 }

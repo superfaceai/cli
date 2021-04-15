@@ -1,6 +1,6 @@
 import { join as joinPath } from 'path';
-import { stderr, stdout } from 'stdout-stderr';
 
+import { MockStd, mockStd } from '../test/mock-std';
 import Lint from './lint';
 
 describe('lint CLI command', () => {
@@ -22,14 +22,23 @@ describe('lint CLI command', () => {
     },
   };
 
+  let stderr: MockStd;
+  let stdout: MockStd;
+
   beforeEach(() => {
-    stderr.start();
-    stdout.start();
+    stdout = mockStd();
+    stderr = mockStd();
+
+    jest
+      .spyOn(process['stdout'], 'write')
+      .mockImplementation(stdout.implementation);
+    jest
+      .spyOn(process['stderr'], 'write')
+      .mockImplementation(stderr.implementation);
   });
 
   afterEach(() => {
-    stderr.stop();
-    stdout.stop();
+    jest.resetAllMocks();
   });
 
   it('lints one profile and one map file with autodetect', async () => {

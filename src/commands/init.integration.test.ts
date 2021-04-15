@@ -1,5 +1,4 @@
 import { join as joinPath } from 'path';
-import { stdout } from 'stdout-stderr';
 
 import {
   BUILD_DIR,
@@ -10,19 +9,24 @@ import {
   TYPES_DIR,
 } from '../common/document';
 import { access, rimraf } from '../common/io';
+import { MockStd, mockStd } from '../test/mock-std';
 import Init from './init';
 
 describe('Init CLI command', () => {
   const baseFixture = joinPath('fixtures', 'playgrounds');
   const testInitFolder = 'test';
   const testInitFolderPath = joinPath(baseFixture, testInitFolder);
+  let stdout: MockStd;
 
   beforeEach(() => {
-    stdout.start();
+    stdout = mockStd();
+    jest
+      .spyOn(process['stdout'], 'write')
+      .mockImplementation(stdout.implementation);
   });
 
   afterEach(async () => {
-    stdout.stop();
+    jest.resetAllMocks();
     await rimraf(testInitFolderPath);
   });
 

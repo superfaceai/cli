@@ -1,5 +1,5 @@
 import { flags } from '@oclif/command';
-import { grey } from 'chalk';
+import { grey, yellow } from 'chalk';
 import inquirer from 'inquirer';
 import FileTreeSelectionPrompt from 'inquirer-file-tree-selection-prompt';
 import { basename } from 'path';
@@ -34,6 +34,9 @@ initialize: a playground is populated with an templated profile, a pair of map a
 execute: the profile, the selected maps and the play script are compiled and the script is executed.
 clean: the \`superface/node_modules\` folder and \`superface/build\` build artifacts are cleaned.`;
 
+  // hide the command from help
+  static hidden = true;
+
   static examples = [
     'superface play',
     'superface play initialize PubHours --providers osm gmaps',
@@ -46,12 +49,14 @@ clean: the \`superface/node_modules\` folder and \`superface/build\` build artif
       name: 'action',
       description: 'Action to take.',
       required: false,
+      default: undefined,
       options: ['initialize', 'execute', 'clean'],
     },
     {
       name: 'playground',
       description: 'Path to the playground to initialize or execute.',
       required: false,
+      default: undefined,
     },
   ];
 
@@ -102,6 +107,13 @@ clean: the \`superface/node_modules\` folder and \`superface/build\` build artif
 
   async run(): Promise<void> {
     const { args, flags } = this.parse(Play);
+
+    //Warn user
+    this.warn(
+      yellow(
+        'You are using a hidden command. This command is not intended for public consumption yet. It might be broken, hard to use or simply redundant. Thread with care.'
+      )
+    );
 
     let action: unknown = args.action;
     if (action === undefined) {
@@ -321,21 +333,22 @@ clean: the \`superface/node_modules\` folder and \`superface/build\` build artif
       onlyShowValid: false,
       onlyShowDir: true,
       hideChildrenOfValid: true,
-      validate: async (input: unknown): Promise<boolean> => {
-        if (typeof input !== 'string') {
-          throw developerError('unexpected argument type', 21);
-        }
-
-        try {
-          await detectPlayground(input);
-        } catch (e) {
-          return false;
-        }
-
-        return true;
-      },
+      validate: (input: unknown) => Play.validatePlygroundPath(input),
     } as typeof FileTreeSelectionPrompt); // have to cast because the registration of the new prompt is not known to typescript
 
     return response.playground;
+  }
+
+  static async validatePlygroundPath(input: unknown): Promise<boolean> {
+    if (typeof input !== 'string') {
+      throw developerError('unexpected argument type', 21);
+    }
+    try {
+      await detectPlayground(input);
+    } catch (e) {
+      return false;
+    }
+
+    return true;
   }
 }

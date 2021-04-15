@@ -25,7 +25,6 @@ import { readdir, readFile } from './io';
 
 //Mock parser
 jest.mock('@superfaceai/parser', () => ({
-  // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
   ...jest.requireActual<Record<string, unknown>>('@superfaceai/parser'),
   parseProfile: jest.fn(),
   parseProfileId: jest.fn(),
@@ -387,12 +386,8 @@ describe('Document functions', () => {
   describe('when constructing provider settings', () => {
     it('constructs provider settings correctly', async () => {
       expect(constructProviderSettings(['first', 'second'])).toEqual({
-        first: {
-          auth: {},
-        },
-        second: {
-          auth: {},
-        },
+        first: {},
+        second: {},
       });
     });
   });

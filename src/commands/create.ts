@@ -1,18 +1,22 @@
 import { flags } from '@oclif/command';
 import { parseDocumentId } from '@superfaceai/parser';
-import { SuperJson } from '@superfaceai/sdk';
+import { grey, yellow } from 'chalk';
+import inquirer from 'inquirer';
 
 import { Command } from '../common/command.abstract';
 import {
   composeUsecaseName,
   DEFAULT_PROFILE_VERSION_STR,
   inferCreateMode,
+  SUPERFACE_DIR,
   validateDocumentName,
 } from '../common/document';
 import { CreateMode } from '../common/document.interfaces';
 import { developerError, userError } from '../common/error';
 import { mkdirQuiet } from '../common/io';
-import { createMap, createProfile, createProviderJson } from '../logic/create';
+import { create } from '../logic/create';
+import { initSuperface } from '../logic/init';
+import { detectSuperJson } from '../logic/install';
 
 export default class Create extends Command {
   static strict = false;
@@ -54,6 +58,12 @@ export default class Create extends Command {
       default: 'empty',
       description: 'Template to initialize the usecases and maps with',
     }),
+    scan: flags.integer({
+      char: 's',
+      description:
+        'When number provided, scan for super.json outside cwd within range represented by this number.',
+      required: false,
+    }),
   };
 
   static examples = [
@@ -65,10 +75,16 @@ export default class Create extends Command {
     '$ superface create sms/service -p twillio -t bugfix -v 1.1-rev133 -u SendSMS ReceiveSMS',
   ];
 
-  private logCallback? = (message: string) => this.log(message);
+  private warnCallback? = (message: string) => this.log(yellow(message));
+  private logCallback? = (message: string) => this.log(grey(message));
 
   async run(): Promise<void> {
     const { argv, flags } = this.parse(Create);
+
+    if (flags.quiet) {
+      this.logCallback = undefined;
+      this.warnCallback = undefined;
+    }
 
     if (argv.length > 2) {
       throw userError('Invalid command!', 1);
@@ -132,8 +148,8 @@ export default class Create extends Command {
     const documentStructure = documentResult.value;
     const {
       scope,
-      middle: [name, provider],
       version,
+      middle: [name],
     } = documentStructure;
 
     if (version === undefined) {
@@ -162,66 +178,46 @@ export default class Create extends Command {
       await mkdirQuiet(scope);
     }
 
-    // TODO: Do we want to initialize superface and/or save super.json somewhere?
-    const superJson = new SuperJson();
+    let superPath = await detectSuperJson(process.cwd(), flags.scan);
 
-    switch (createMode) {
-      case CreateMode.PROFILE:
-        await createProfile(
-          '',
-          superJson,
-          { scope, name, version },
-          usecases,
-          flags.template,
-          { logCb: this.logCallback }
-        );
-        break;
-      case CreateMode.MAP:
-        if (!provider) {
-          throw userError(
-            'Provider name must be provided when generating a map.',
-            2
-          );
-        }
-        await createMap(
-          '',
-          superJson,
-          { scope, name, provider, version },
-          usecases,
-          flags.template,
-          { logCb: this.logCallback }
-        );
-        await createProviderJson('', superJson, provider, flags.template, {
-          logCb: this.logCallback,
-        });
-        break;
-      case CreateMode.BOTH:
-        if (!provider) {
-          throw userError(
-            'Provider name must be provided when generating a map.',
-            2
-          );
-        }
-        await createProfile(
-          '',
-          superJson,
-          { scope, name, version },
-          usecases,
-          flags.template,
-          { logCb: this.logCallback }
-        );
-        await createMap(
-          '',
-          superJson,
-          { scope, name, provider, version },
-          usecases,
-          flags.template,
-          { logCb: this.logCallback }
-        );
-        await createProviderJson('', superJson, provider, flags.template, {
-          logCb: this.logCallback,
-        });
-        break;
+    if (!superPath) {
+      this.warnCallback?.("File 'super.json' has not been found.");
+
+      const response: { init: boolean } = await inquirer.prompt({
+        name: 'init',
+        message: 'Would you like to initialize new superface structure?',
+        type: 'confirm',
+      });
+
+      if (!response.init) {
+        this.exit();
+      }
+
+      this.logCallback?.(
+        "Initializing superface directory with empty 'super.json'"
+      );
+      await initSuperface(
+        './',
+        { profiles: {}, providers: {} },
+        { logCb: this.logCallback }
+      );
+      superPath = SUPERFACE_DIR;
     }
+
+    await create(
+      superPath,
+      createMode,
+      usecases,
+      {
+        scope,
+        version,
+        middle: documentStructure.middle,
+      },
+      flags.template,
+      {
+        logCb: this.logCallback,
+        warnCb: this.warnCallback,
+      }
+    );
   }
 }
