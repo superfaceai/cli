@@ -5,6 +5,7 @@ import {
   AsExpression,
   CallExpression,
   createPrinter,
+  createSourceFile,
   EmitHint,
   Expression,
   factory,
@@ -12,6 +13,9 @@ import {
   Identifier,
   ImportDeclaration,
   InterfaceDeclaration,
+  isIdentifier,
+  isImportSpecifier,
+  isNamedImports,
   KeywordTypeNode,
   LiteralTypeNode,
   NewExpression,
@@ -22,6 +26,7 @@ import {
   ObjectLiteralExpression,
   PropertyAssignment,
   PropertySignature,
+  ScriptTarget,
   SpreadAssignment,
   Statement,
   StringLiteral,
@@ -341,15 +346,12 @@ export function propertyAssignment(
 
 export function typeDefinitions(profiles: string[]): Statement[] {
   const camelizedProfiles = profiles.map(camelize);
-  const imports = profiles.map((profile, index) =>
-    namedImport([camelizedProfiles[index]], './types/' + profile)
-  );
   const definitions = variableStatement(
     'typeDefinitions',
     objectLiteral(camelizedProfiles.map(spreadAssignment))
   );
 
-  return [...imports, definitions];
+  return [definitions];
 }
 
 export function typedClientStatement(): VariableStatement {
@@ -359,6 +361,12 @@ export function typedClientStatement(): VariableStatement {
   );
 
   return statement;
+}
+
+export function parseSource(source: string): Statement[] {
+  const sourceFile = createSourceFile('', source, ScriptTarget.Latest);
+
+  return sourceFile.statements.map(statement => statement);
 }
 
 export function createSource(statements: Statement[]): string {
@@ -371,4 +379,27 @@ export function createSource(statements: Statement[]): string {
   const printer = createPrinter();
 
   return printer.printNode(EmitHint.SourceFile, document, document);
+}
+
+export function getImportText(node: ImportDeclaration): string | undefined {
+  if (
+    node.importClause?.namedBindings &&
+    isNamedImports(node.importClause.namedBindings)
+  ) {
+    return node.importClause.namedBindings.elements.find(isImportSpecifier)
+      ?.name.text;
+  }
+
+  return undefined;
+}
+
+export function getVariableName(node: VariableStatement): string | undefined {
+  if (
+    node.declarationList.declarations.length > 0 &&
+    isIdentifier(node.declarationList.declarations[0].name)
+  ) {
+    return node.declarationList.declarations[0].name.escapedText.toString();
+  }
+
+  return undefined;
 }

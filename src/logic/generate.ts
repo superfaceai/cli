@@ -8,19 +8,30 @@ import {
 } from '@superfaceai/parser';
 import {
   InterfaceDeclaration,
+  isIdentifier,
+  isImportDeclaration,
+  isObjectLiteralExpression,
+  isSpreadAssignment,
+  isVariableStatement,
   Statement,
   TypeAliasDeclaration,
+  VariableStatement,
 } from 'typescript';
 
+import { developerError } from '../common/error';
+import { filterUndefined } from '../common/util';
 import {
   callExpression,
   camelize,
   capitalize,
   createSource,
+  getImportText,
+  getVariableName,
   interfaceType,
   literalUnion,
   namedImport,
   objectLiteral,
+  parseSource,
   pascalize,
   propertyAssignment,
   propertySignature,
@@ -129,14 +140,99 @@ export function createUsecasesType(
   return variableStatement(camelize(profileName), profile);
 }
 
-export function generateTypesFile(profiles: string[]): string {
+export function generateTypesFile(
+  profiles: string[],
+  typesFile?: string
+): string {
+  const imports = profiles.map(profile =>
+    namedImport([camelize(profile)], './types/' + profile)
+  );
   const statements = [
     namedImport(['createTypedClient'], '@superfaceai/sdk'),
+    ...imports,
     ...typeDefinitions(profiles),
     typedClientStatement(),
   ];
 
+  if (typesFile !== undefined) {
+    return updateTypesFile(statements, typesFile);
+  }
+
   return createSource(statements);
+}
+
+export function updateTypesFile(
+  statements: Statement[],
+  typesFile: string
+): string {
+  const extractIdentifiers = (typeDefinition?: VariableStatement): string[] =>
+    typeDefinition?.declarationList.declarations
+      .map(declaration => declaration.initializer)
+      .filter(filterUndefined)
+      .filter(isObjectLiteralExpression)
+      .flatMap(expression =>
+        expression.properties
+          .filter(isSpreadAssignment)
+          .map(assignment => assignment.expression)
+          .filter(isIdentifier)
+          .map(identifier => identifier.text)
+      ) ?? [];
+
+  const originalStatements = parseSource(typesFile);
+  const newImports = statements.filter(isImportDeclaration);
+  const originalImports = originalStatements.filter(isImportDeclaration);
+  const newTypeDefinition = statements
+    .filter(isVariableStatement)
+    .find(node => getVariableName(node) === 'typeDefinitions');
+  const originalTypeDefinition = originalStatements
+    .filter(isVariableStatement)
+    .find(node => getVariableName(node) === 'typeDefinitions');
+
+  const mergedStatements: Statement[] = [...originalImports];
+
+  for (const newImport of newImports) {
+    const importText = getImportText(newImport);
+    if (
+      importText !== undefined &&
+      originalImports.find(
+        originalImport => getImportText(originalImport) === importText
+      ) === undefined
+    ) {
+      mergedStatements.push(newImport);
+    }
+  }
+
+  if (newTypeDefinition === undefined && originalTypeDefinition !== undefined) {
+    mergedStatements.push(originalTypeDefinition);
+  } else if (
+    newTypeDefinition !== undefined &&
+    originalTypeDefinition === undefined
+  ) {
+    mergedStatements.push(newTypeDefinition);
+  } else if (
+    newTypeDefinition === undefined &&
+    originalTypeDefinition === undefined
+  ) {
+    throw developerError(
+      'Something unexpected happened. This should not be reachable.',
+      9001
+    );
+  } else {
+    const originalTypeDefinitions = extractIdentifiers(originalTypeDefinition);
+    const newTypeDefinitions = extractIdentifiers(newTypeDefinition);
+    const mergedTypeDefinitions = [
+      ...originalTypeDefinitions,
+      ...newTypeDefinitions?.filter(
+        definition => !originalTypeDefinitions?.includes(definition)
+      ),
+    ];
+
+    mergedStatements.push(...typeDefinitions(mergedTypeDefinitions));
+  }
+
+  mergedStatements.push(typedClientStatement());
+
+  return createSource(mergedStatements);
 }
 
 export function generateTypingsForProfile(

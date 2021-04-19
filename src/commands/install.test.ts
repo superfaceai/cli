@@ -64,6 +64,7 @@ describe('Install CLI command', () => {
           logCb: expect.anything(),
           warnCb: expect.anything(),
           force: false,
+          typings: true,
         }
       );
     }, 10000);
@@ -94,6 +95,7 @@ describe('Install CLI command', () => {
           logCb: expect.anything(),
           warnCb: expect.anything(),
           force: false,
+          typings: true,
         }
       );
     }, 10000);
@@ -111,6 +113,7 @@ describe('Install CLI command', () => {
           logCb: undefined,
           warnCb: undefined,
           force: false,
+          typings: true,
         }
       );
     }, 10000);
@@ -164,6 +167,7 @@ describe('Install CLI command', () => {
           logCb: expect.anything(),
           warnCb: expect.anything(),
           force: false,
+          typings: true,
         }
       );
     }, 10000);

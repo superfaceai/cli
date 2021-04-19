@@ -16,11 +16,12 @@ import {
   fetchProfileInfo,
   ProfileInfo,
 } from '../common/http';
-import { exists, isAccessible } from '../common/io';
+import { exists, isAccessible, readFileQuiet } from '../common/io';
 import { formatShellLog, LogCallback } from '../common/log';
 import { OutputStream } from '../common/output-stream';
 import { pathParentLevel, replaceExt } from '../common/path';
-// import { generateTypesFile, generateTypingsForProfile } from './generate';
+import { arrayFilterUndefined } from '../common/util';
+import { generateTypesFile, generateTypingsForProfile } from './generate';
 
 const INSTALL_LOCAL_PATH_PARENT_LIMIT = (() => {
   let value = 1;
@@ -86,6 +87,7 @@ export type LocalRequest = {
 };
 type LocalRequestRead = LocalRequest & {
   profileId: string;
+  profileAst: ProfileDocumentNode;
 };
 type LocalRequestChecked = LocalRequestRead;
 
@@ -107,10 +109,6 @@ type StoreRequestFetched = StoreRequestChecked & {
   profileSource: string;
   profileAst: ProfileDocumentNode;
 };
-
-function filterUndefined<T>(array: T[]): Exclude<T, undefined>[] {
-  return array.filter((v): v is Exclude<T, undefined> => v !== undefined);
-}
 
 /**
  * Installation request resolution sequence:
@@ -150,7 +148,7 @@ export async function resolveInstallationRequests(
 
       return request;
     })
-  ).then(filterUndefined);
+  ).then(arrayFilterUndefined);
 
   // phase 2 - check against super.json
   const phase2 = await Promise.all(
@@ -170,7 +168,7 @@ export async function resolveInstallationRequests(
         }
       }
     )
-  ).then(filterUndefined);
+  ).then(arrayFilterUndefined);
 
   // phase 3 - fetch from store
   const phase3 = await Promise.all(
@@ -181,7 +179,11 @@ export async function resolveInstallationRequests(
 
       return request;
     })
-  ).then(filterUndefined);
+  ).then(arrayFilterUndefined);
+
+  if (options?.typings) {
+    await generateTypes(phase3, superJson);
+  }
 
   // phase 4 - write to super.json
   for (const entry of phase3) {
@@ -205,6 +207,27 @@ export async function resolveInstallationRequests(
   return phase3.length;
 }
 
+async function generateTypes(
+  requests: (LocalRequestRead | StoreRequestFetched)[],
+  superJson: SuperJson
+) {
+  for (const request of requests) {
+    const typing = generateTypingsForProfile(
+      request.profileId,
+      request.profileAst
+    );
+    const typingPath = joinPath('types', `${request.profileId}.ts`);
+    const actualTypingPath = superJson.resolvePath(typingPath);
+    await OutputStream.writeOnce(actualTypingPath, typing, { dirs: true });
+  }
+  const sdkPath = superJson.resolvePath('sdk.ts');
+  const typesFile = generateTypesFile(
+    requests.map(request => request.profileId),
+    await readFileQuiet(sdkPath)
+  );
+  await OutputStream.writeOnce(sdkPath, typesFile, { dirs: true });
+}
+
 /**
  * Reads the profile file from a local installation request.
  */
@@ -213,24 +236,23 @@ async function readLocalRequest(
   request: LocalRequest,
   options?: InstallOptions
 ): Promise<LocalRequestRead | undefined> {
-  let header;
   try {
-    const profile = await getProfileDocument(request.path);
-    header = profile.header;
+    const profileAst = await getProfileDocument(request.path);
+
+    return {
+      ...request,
+      profileId:
+        profileAst.header.scope !== undefined
+          ? `${profileAst.header.scope}/${profileAst.header.name}`
+          : profileAst.header.name,
+      profileAst,
+    };
   } catch (err) {
     // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
     options?.warnCb?.(`Could not read profile file ${request.path}: ${err}`);
 
     return undefined;
   }
-
-  return {
-    ...request,
-    profileId:
-      header.scope !== undefined
-        ? `${header.scope}/${header.name}`
-        : header.name,
-  };
 }
 
 /**
@@ -431,30 +453,6 @@ async function fetchStoreRequestCheckedOrDeferred(
       return undefined;
     }
 
-    // <<<<<<< HEAD
-    //     if (options?.typings) {
-    //       const typing = generateTypingsForProfile(
-    //         response.info.profile_name,
-    //         response.ast
-    //       );
-    //       const typingPath = joinPath('types', `${response.info.profile_name}.ts`);
-    //       const actualTypingPath = superJson.resolvePath(typingPath);
-    //       await OutputStream.writeOnce(actualTypingPath, typing, { dirs: true });
-    //     }
-
-    //     installed += 1;
-    //   }
-
-    //   if (options?.typings) {
-    //     const typesFile = generateTypesFile(
-    //       responses.map(response => response.info.profile_name)
-    //     );
-    //     const sdkPath = superJson.resolvePath('sdk.ts');
-    //     await OutputStream.writeOnce(sdkPath, typesFile, { dirs: true });
-    //   }
-
-    //   return installed;
-    // =======
     sourcePath = paths.sourcePath;
     astPath = paths.astPath;
   } else {
@@ -501,7 +499,6 @@ async function fetchStoreRequestCheckedOrDeferred(
     profileSource: fetched.profile,
     profileAst: fetched.ast,
   };
-  // >>>>>>> main
 }
 
 /**

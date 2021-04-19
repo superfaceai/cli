@@ -4,7 +4,7 @@
     "downlevelIteration": true,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
-    "lib": [],
+    "lib": ["ES2019.Array"],
     "rootDir": "src",
     "module": "CommonJS",
     "moduleResolution": "node",

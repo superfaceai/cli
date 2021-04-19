@@ -42,6 +42,20 @@ export async function exists(path: string): Promise<boolean> {
 }
 
 /**
+ * Reads a file and converts to string.
+ * Returns `undefined` if reading fails for any reason.
+ */
+export async function readFileQuiet(path: string): Promise<string | undefined> {
+  try {
+    const file = await readFile(path, { encoding: 'utf8' });
+
+    return file.toString();
+  } catch (_) {
+    return undefined;
+  }
+}
+
+/**
  * Creates a directory without erroring if it already exists.
  * Returns `true` if the directory was created.
  */
