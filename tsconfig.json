@@ -4,7 +4,7 @@
     "downlevelIteration": true,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
-    "lib": ["ES2019.Array"],
+    "lib": ["ES2019"],
     "rootDir": "src",
     "module": "CommonJS",
     "moduleResolution": "node",
@@ -16,7 +16,7 @@
     "sourceMap": true,
     "strict": true,
     "strictPropertyInitialization": true,
-    "target": "ES2015",
+    "target": "ES2019",
     "typeRoots": ["node_modules/@types"]
   },
   "include": ["src/**/*.ts"]
