@@ -96,7 +96,7 @@ export default class Init extends Command {
   static examples = [
     'superface init',
     'superface init foo',
-    'superface init foo --providers bar twillio',
+    'superface init foo --providers bar twilio',
     'superface init foo --profiles my-profile@1.1.0 another-profile@2.0 --providers osm gmaps',
   ];
 

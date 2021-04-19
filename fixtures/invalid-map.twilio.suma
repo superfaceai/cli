@@ -1,5 +1,5 @@
 profile = "example/profile@1"
-provider = "twillio"
+provider = "twilio"
 
 map Foo {
 	map result true

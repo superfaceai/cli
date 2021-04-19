@@ -172,7 +172,7 @@ describe('Create CLI command', () => {
 
   it('creates map with one usecase (with usecase name from cli)', async () => {
     documentName = 'sms/service';
-    provider = 'twillio';
+    provider = 'twilio';
     await Create.run(['map', documentName, '-p', provider]);
     expect(stdout.output).toContain(
       `-> Created ${documentName}.${provider}.suma (profile = "${documentName}@1.0", provider = "${provider}")\n-> Created ${provider}.provider.json\n`
@@ -206,7 +206,7 @@ describe('Create CLI command', () => {
 
   it('creates map with one usecase', async () => {
     documentName = 'sms/service';
-    provider = 'twillio';
+    provider = 'twilio';
     await Create.run(['map', documentName, '-u', 'SendSMS', '-p', provider]);
     expect(stdout.output).toContain(
       `-> Created ${documentName}.${provider}.suma (profile = "${documentName}@1.0", provider = "${provider}")\n-> Created ${provider}.provider.json\n`
@@ -240,12 +240,12 @@ describe('Create CLI command', () => {
 
   it('creates map with mutiple usecases', async () => {
     documentName = 'sms/service';
-    provider = 'twillio';
+    provider = 'twilio';
     await Create.run([
       'map',
       documentName,
       '-p',
-      'twillio',
+      'twilio',
       '-u',
       'ReceiveSMS',
       'SendSMS',
@@ -282,7 +282,7 @@ describe('Create CLI command', () => {
 
   it('creates profile & map with one usecase (with usecase name from cli)', async () => {
     documentName = 'sms/service';
-    provider = 'twillio';
+    provider = 'twilio';
     await Create.run([documentName, '-p', provider]);
     expect(stdout.output).toContain(
       `-> Created ${documentName}.supr (name = "${documentName}", version = "1.0.0")\n-> Created ${documentName}.${provider}.suma (profile = "${documentName}@1.0", provider = "${provider}")\n-> Created ${provider}.provider.json\n`
@@ -318,8 +318,8 @@ describe('Create CLI command', () => {
 
   it('creates profile & map with one usecase', async () => {
     documentName = 'sms/service';
-    provider = 'twillio';
-    await Create.run([documentName, '-u', 'SendSMS', '-p', 'twillio']);
+    provider = 'twilio';
+    await Create.run([documentName, '-u', 'SendSMS', '-p', 'twilio']);
     expect(stdout.output).toContain(
       `-> Created ${documentName}.supr (name = "${documentName}", version = "1.0.0")\n-> Created ${documentName}.${provider}.suma (profile = "${documentName}@1.0", provider = "${provider}")\n-> Created ${provider}.provider.json\n`
     );
@@ -354,7 +354,7 @@ describe('Create CLI command', () => {
 
   it('creates profile & map with multiple usecases', async () => {
     documentName = 'sms/service';
-    provider = 'twillio';
+    provider = 'twilio';
     await Create.run([
       documentName,
       '-u',

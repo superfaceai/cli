@@ -109,7 +109,7 @@ describe('Create CLI command', () => {
       jest.spyOn(inquirer, 'prompt').mockResolvedValueOnce({ init: true });
 
       documentName = 'sms/service';
-      provider = 'twillio';
+      provider = 'twilio';
       await expect(
         Create.run(['map', documentName, '-p', provider])
       ).resolves.toBeUndefined();
@@ -120,7 +120,7 @@ describe('Create CLI command', () => {
         'map',
         ['Service'],
         {
-          middle: ['service', 'twillio'],
+          middle: ['service', 'twilio'],
           scope: 'sms',
           version: { label: undefined, major: 1, minor: 0, patch: 0 },
         },
@@ -134,7 +134,7 @@ describe('Create CLI command', () => {
       jest.spyOn(inquirer, 'prompt').mockResolvedValueOnce({ init: true });
 
       documentName = 'sms/service';
-      provider = 'twillio';
+      provider = 'twilio';
       await expect(
         Create.run(['map', documentName, '-u', 'SendSMS', '-p', provider])
       ).resolves.toBeUndefined();
@@ -145,7 +145,7 @@ describe('Create CLI command', () => {
         'map',
         ['SendSMS'],
         {
-          middle: ['service', 'twillio'],
+          middle: ['service', 'twilio'],
           scope: 'sms',
           version: { label: undefined, major: 1, minor: 0, patch: 0 },
         },
@@ -159,13 +159,13 @@ describe('Create CLI command', () => {
       jest.spyOn(inquirer, 'prompt').mockResolvedValueOnce({ init: true });
 
       documentName = 'sms/service';
-      provider = 'twillio';
+      provider = 'twilio';
       await expect(
         Create.run([
           'map',
           documentName,
           '-p',
-          'twillio',
+          'twilio',
           '-u',
           'ReceiveSMS',
           'SendSMS',
@@ -177,7 +177,7 @@ describe('Create CLI command', () => {
         'map',
         ['ReceiveSMS', 'SendSMS'],
         {
-          middle: ['service', 'twillio'],
+          middle: ['service', 'twilio'],
           scope: 'sms',
           version: { label: undefined, major: 1, minor: 0, patch: 0 },
         },
@@ -191,7 +191,7 @@ describe('Create CLI command', () => {
       jest.spyOn(inquirer, 'prompt').mockResolvedValueOnce({ init: true });
 
       documentName = 'sms/service';
-      provider = 'twillio';
+      provider = 'twilio';
       await expect(
         Create.run([documentName, '-p', provider])
       ).resolves.toBeUndefined();
@@ -202,7 +202,7 @@ describe('Create CLI command', () => {
         'both',
         ['Service'],
         {
-          middle: ['service', 'twillio'],
+          middle: ['service', 'twilio'],
           scope: 'sms',
           version: { label: undefined, major: 1, minor: 0, patch: 0 },
         },
@@ -216,9 +216,9 @@ describe('Create CLI command', () => {
       jest.spyOn(inquirer, 'prompt').mockResolvedValueOnce({ init: true });
 
       documentName = 'sms/service';
-      provider = 'twillio';
+      provider = 'twilio';
       await expect(
-        Create.run([documentName, '-u', 'SendSMS', '-p', 'twillio'])
+        Create.run([documentName, '-u', 'SendSMS', '-p', 'twilio'])
       ).resolves.toBeUndefined();
 
       expect(create).toHaveBeenCalledTimes(1);
@@ -227,7 +227,7 @@ describe('Create CLI command', () => {
         'both',
         ['SendSMS'],
         {
-          middle: ['service', 'twillio'],
+          middle: ['service', 'twilio'],
           scope: 'sms',
           version: { label: undefined, major: 1, minor: 0, patch: 0 },
         },
@@ -241,7 +241,7 @@ describe('Create CLI command', () => {
       jest.spyOn(inquirer, 'prompt').mockResolvedValueOnce({ init: true });
 
       documentName = 'sms/service';
-      provider = 'twillio';
+      provider = 'twilio';
       await expect(
         Create.run([
           documentName,
@@ -258,7 +258,7 @@ describe('Create CLI command', () => {
         'both',
         ['SendSMS', 'ReceiveSMS'],
         {
-          middle: ['service', 'twillio'],
+          middle: ['service', 'twilio'],
           scope: 'sms',
           version: { label: undefined, major: 1, minor: 0, patch: 0 },
         },
