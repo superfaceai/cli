@@ -47,10 +47,10 @@ export default class Configure extends Command {
   };
 
   static examples = [
-    '$ superface configure twillio -p send-sms',
-    '$ superface configure twillio -q',
-    '$ superface configure twillio -f',
-    '$ superface configure twillio -l',
+    '$ superface configure twilio -p send-sms',
+    '$ superface configure twilio -q',
+    '$ superface configure twilio -f',
+    '$ superface configure twilio -l',
   ];
 
   private warnCallback? = (message: string) => this.log(yellow(message));

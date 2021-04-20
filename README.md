@@ -101,10 +101,10 @@ OPTIONS
   -q, --quiet            When set to true, disables the shell echo output of init actions.
 
 EXAMPLES
-  $ superface configure twillio -p send-sms
-  $ superface configure twillio -q
-  $ superface configure twillio -f
-  $ superface configure twillio -l
+  $ superface configure twilio -p send-sms
+  $ superface configure twilio -q
+  $ superface configure twilio -f
+  $ superface configure twilio -l
 ```
 
 _See code: [src/commands/configure.ts](https://github.com/superfaceai/cli/tree/main/src/commands/configure.ts)_
@@ -142,10 +142,10 @@ OPTIONS
 EXAMPLES
   $ superface create profile sms/service
   $ superface create profile sms/service -u SendSMS ReceiveSMS
-  $ superface create map sms/service -p twillio
-  $ superface create map sms/service -p twillio -u SendSMS ReceiveSMS
-  $ superface create sms/service -p twillio -u SendSMS ReceiveSMS
-  $ superface create sms/service -p twillio -t bugfix -v 1.1-rev133 -u SendSMS ReceiveSMS
+  $ superface create map sms/service -p twilio
+  $ superface create map sms/service -p twilio -u SendSMS ReceiveSMS
+  $ superface create sms/service -p twilio -u SendSMS ReceiveSMS
+  $ superface create sms/service -p twilio -t bugfix -v 1.1-rev133 -u SendSMS ReceiveSMS
 ```
 
 _See code: [src/commands/create.ts](https://github.com/superfaceai/cli/tree/main/src/commands/create.ts)_
@@ -173,9 +173,9 @@ OPTIONS
 
 EXAMPLES
   $ superface install
-  $ superface install --provider twillio
+  $ superface install --provider twilio
   $ superface install sms/service@1.0
-  $ superface install sms/service@1.0 -p twillio
+  $ superface install sms/service@1.0 -p twilio
   $ superface install --local sms/service.supr
 ```
 

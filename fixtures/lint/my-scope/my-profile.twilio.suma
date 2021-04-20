@@ -1,5 +1,5 @@
 profile = "my-scope/my-profile@1.0"
-provider = "twillio"
+provider = "twilio"
 
 """
 MyProfile map

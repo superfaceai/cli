@@ -1,5 +1,5 @@
 profile = "some-profile@2.0.0"
-provider = "twillio"
+provider = "twilio"
 
 """
 MyProfile map
