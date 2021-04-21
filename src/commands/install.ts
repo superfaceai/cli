@@ -40,7 +40,7 @@ const parseProviders = (
 
 export default class Install extends Command {
   static description =
-    'Automatically initializes superface directory in current working directory if needed, communicates with Superface Store API, stores profiles and compiled files to a local system';
+    'Automatically initializes superface directory in current working directory if needed, communicates with Superface Store API, stores profiles and compiled files to a local system. Install without any arguments tries to install profiles and providers listed in super.json';
 
   static args = [
     {
@@ -48,6 +48,7 @@ export default class Install extends Command {
       required: false,
       description:
         'Profile identifier consisting of scope (optional), profile name and its version.',
+      default: undefined,
     },
   ];
 
@@ -81,8 +82,8 @@ export default class Install extends Command {
 
   static examples = [
     '$ superface install',
-    '$ superface install --provider twilio',
     '$ superface install sms/service@1.0',
+    '$ superface install sms/service@1.0 --providers twilio',
     '$ superface install sms/service@1.0 -p twilio',
     '$ superface install --local sms/service.supr',
   ];
@@ -145,6 +146,14 @@ export default class Install extends Command {
           profileId,
           version,
         });
+      }
+    } else {
+      //Do not install providers without profile
+      if (providers.length > 0) {
+        this.warnCallback?.(
+          'Unable to install providers without profile. Please, specify profile'
+        );
+        this.exit();
       }
     }
 

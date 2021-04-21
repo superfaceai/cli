@@ -97,6 +97,27 @@ describe('Install CLI command', () => {
       );
     }, 10000);
 
+    it('calls install profiles correctly without profileId', async () => {
+      mocked(detectSuperJson).mockResolvedValue('.');
+
+      await expect(Install.run([])).resolves.toBeUndefined();
+      expect(installProfiles).toHaveBeenCalledTimes(1);
+      expect(installProfiles).toHaveBeenCalledWith('.', [], {
+        logCb: expect.any(Function),
+        warnCb: expect.any(Function),
+        force: false,
+      });
+    }, 10000);
+
+    it('throws error on empty profileId argument with providers flag', async () => {
+      mocked(detectSuperJson).mockResolvedValue('.');
+
+      await expect(Install.run(['--providers', 'twilio'])).rejects.toEqual(
+        new CLIError('EEXIT: 0')
+      );
+      expect(installProfiles).not.toHaveBeenCalled();
+    }, 10000);
+
     it('throws error on empty providers flag', async () => {
       mocked(detectSuperJson).mockResolvedValue('.');
       const profileName = 'starwars/character-information';
