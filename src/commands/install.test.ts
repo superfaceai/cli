@@ -1,6 +1,5 @@
 import { CLIError } from '@oclif/errors';
 import { SuperJson } from '@superfaceai/sdk';
-import inquirer from 'inquirer';
 import { mocked } from 'ts-jest/utils';
 
 import { installProvider } from '../logic/configure';
@@ -19,9 +18,6 @@ jest.mock('../logic/install', () => ({
 jest.mock('../logic/configure', () => ({
   installProvider: jest.fn(),
 }));
-
-//Mock inquirer
-jest.mock('inquirer');
 
 //Mock init logic
 jest.mock('../logic/init', () => ({
@@ -50,7 +46,6 @@ describe('Install CLI command', () => {
   describe('when running install command', () => {
     it('calls install profiles correctly - non existing super.json - create new one', async () => {
       mocked(detectSuperJson).mockResolvedValue(undefined);
-      mocked(inquirer).prompt.mockResolvedValue({ init: true });
       mocked(initSuperface).mockResolvedValue(new SuperJson({}));
 
       const profileName = 'starwars/character-information';
@@ -66,19 +61,6 @@ describe('Install CLI command', () => {
           force: false,
         }
       );
-    }, 10000);
-
-    it('calls install profiles correctly - non existing super.json - do NOT create new one', async () => {
-      mocked(detectSuperJson).mockResolvedValue(undefined);
-      mocked(inquirer).prompt.mockResolvedValue({ init: false });
-      mocked(initSuperface).mockResolvedValue(new SuperJson({}));
-
-      const profileName = 'starwars/character-information';
-
-      await expect(Install.run([profileName])).rejects.toEqual(
-        new CLIError('EEXIT: 0')
-      );
-      expect(installProfiles).not.toHaveBeenCalled();
     }, 10000);
 
     it('calls install profiles correctly', async () => {

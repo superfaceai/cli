@@ -1,6 +1,5 @@
 import { flags } from '@oclif/command';
 import { grey, yellow } from 'chalk';
-import inquirer from 'inquirer';
 import { join as joinPath } from 'path';
 
 import { Command } from '../common/command.abstract';
@@ -15,7 +14,7 @@ import { detectSuperJson } from '../logic/install';
 
 export default class Configure extends Command {
   static description =
-    'Initializes superface directory if needed, communicates with Superface Store API, stores provider configuration in super.json';
+    'Automatically initializes superface directory in current working directory if needed, communicates with Superface Store API, stores provider configuration in super.json';
 
   static args = [
     {
@@ -73,18 +72,6 @@ export default class Configure extends Command {
     let superPath = await detectSuperJson(process.cwd());
 
     if (!superPath) {
-      this.warnCallback?.("File 'super.json' has not been found.");
-
-      const response: { init: boolean } = await inquirer.prompt({
-        name: 'init',
-        message: 'Would you like to initialize new superface structure?',
-        type: 'confirm',
-      });
-
-      if (!response.init) {
-        this.exit();
-      }
-
       this.logCallback?.(
         "Initializing superface directory with empty 'super.json'"
       );

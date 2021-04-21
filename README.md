@@ -84,7 +84,7 @@ _See code: [src/commands/compile.ts](https://github.com/superfaceai/cli/tree/mai
 
 ## `superface configure PROVIDERNAME`
 
-Initializes superface directory if needed, communicates with Superface Store API, stores provider configuration in super.json
+Automatically initializes superface directory in current working directory if needed, communicates with Superface Store API, stores provider configuration in super.json
 
 ```
 USAGE
@@ -152,7 +152,7 @@ _See code: [src/commands/create.ts](https://github.com/superfaceai/cli/tree/main
 
 ## `superface install [PROFILEID]`
 
-Initializes superface directory if needed, communicates with Superface Store API, stores profiles and compiled files to a local system
+Automatically initializes superface directory in current working directory if needed, communicates with Superface Store API, stores profiles and compiled files to a local system
 
 ```
 USAGE
