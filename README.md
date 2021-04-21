@@ -1,7 +1,7 @@
 
 # CLI
 
-![superface logo](https://github.com/superfaceai/cli/blob/main/docs/LogoGreen.png)
+<img src="https://github.com/superfaceai/cli/blob/chore/logo/docs/LogoGreen.png" alt="superface logo" width="200" height="200">
 
 Superface CLI provides access to superface tooling from the CLI.
 
