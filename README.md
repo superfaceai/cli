@@ -31,13 +31,7 @@ You can get more information at https://superface.ai and https://developer.super
 
 ## Install
 
-To install this package, first add the github superface repository to your npm config. Use your github name as your login and generate a personal access token with at least the `repo` and `read:packages` permissions in Github to use as password:
-
-```
-npm login --scope=@superfaceai --registry=https://npm.pkg.github.com
-```
-
-Then install the cli globally using one of the following commands:
+To install this package just install the cli globally using one of the following commands:
 
 ```shell
 # if using yarn
