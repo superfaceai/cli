@@ -275,6 +275,7 @@ Licenses of node_modules are checked during CI/CD for every commit. Only the fol
 - CC-BY-4.0
 - CC-BY-3.0;BSD
 - CC0-1.0
+- Unlicense
 
 Note: If editing the README, please conform to the [standard-readme](https://github.com/RichardLitt/standard-readme) specification.
 
