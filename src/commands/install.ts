@@ -1,6 +1,5 @@
 import { flags } from '@oclif/command';
 import { grey, yellow } from 'chalk';
-import inquirer from 'inquirer';
 import { join as joinPath } from 'path';
 
 import { Command } from '../common/command.abstract';
@@ -41,7 +40,7 @@ const parseProviders = (
 
 export default class Install extends Command {
   static description =
-    'Initializes superface directory if needed, communicates with Superface Store API, stores profiles and compiled files to a local system. Install without any arguments tries to install profiles and providers listed in super.json';
+    'Automatically initializes superface directory in current working directory if needed, communicates with Superface Store API, stores profiles and compiled files to a local system. Install without any arguments tries to install profiles and providers listed in super.json';
 
   static args = [
     {
@@ -111,18 +110,6 @@ export default class Install extends Command {
 
     let superPath = await detectSuperJson(process.cwd(), flags.scan);
     if (!superPath) {
-      this.warnCallback?.("File 'super.json' has not been found.");
-
-      const response: { init: boolean } = await inquirer.prompt({
-        name: 'init',
-        message: 'Would you like to initialize new superface structure?',
-        type: 'confirm',
-      });
-
-      if (!response.init) {
-        this.exit();
-      }
-
       this.logCallback?.(
         "Initializing superface directory with empty 'super.json'"
       );
