@@ -146,7 +146,7 @@ _See code: [src/commands/create.ts](https://github.com/superfaceai/cli/tree/main
 
 ## `superface install [PROFILEID]`
 
-Initializes superface directory if needed, communicates with Superface Store API, stores profiles and compiled files to a local system
+Initializes superface directory if needed, communicates with Superface Store API, stores profiles and compiled files to a local system. Install without any arguments tries to install profiles and providers listed in super.json
 
 ```
 USAGE
@@ -167,8 +167,8 @@ OPTIONS
 
 EXAMPLES
   $ superface install
-  $ superface install --provider twilio
   $ superface install sms/service@1.0
+  $ superface install sms/service@1.0 --providers twilio
   $ superface install sms/service@1.0 -p twilio
   $ superface install --local sms/service.supr
 ```
