@@ -19,6 +19,7 @@ Superface CLI provides access to superface tooling from the CLI.
 - [License](#license)
 
 ## Background
+
 Superface (super-interface) is a higher-order API, an abstraction on top of the modern APIs like GraphQL and REST. Superface is one interface to discover, connect, and query any capabilities available via conventional APIs. 
 
 Through its focus on application-level semantics, Superface decouples the clients from servers, enabling fully autonomous evolution. As such it minimizes the code base as well as errors and downtimes while providing unmatched resiliency and redundancy. 
@@ -211,7 +212,7 @@ _See code: [src/commands/lint.ts](https://github.com/superfaceai/cli/tree/main/s
 
 Superface is not man-in-the-middle so it does not require any access to secrets that are needed to communicate with provider API. Superface CLI only prepares super.json file with authorization fields in form of environment variable. You just set correct variables and communicate directly with provider API.
 
-You can find more information in [SDK repository](https://github.com/superfaceai/sdk-js/blob/master/SECURITY.md).
+You can find more information in [SDK repository](https://github.com/superfaceai/one-sdk-js/blob/main/SECURITY.md).
 
 ## Support
 
@@ -249,7 +250,7 @@ Package publishing is done through GitHub release functionality.
 
 Use semver for the version tag. It must be in format of `v<major>.<minor>.<patch>`.
 
-Github Actions workflow will pick up the release and publish it as one of the [packages](https://github.com/superfaceai/cli/packages).
+Github Actions workflow will pick up the release and publish it as one of the [packages](https://www.npmjs.com/package/@superfaceai/cli).
 
 ## Maintainers
 

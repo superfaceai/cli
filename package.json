@@ -3,7 +3,7 @@
   "version": "0.0.5",
   "description": "Superface CLI utility",
   "main": "dist/index.js",
-  "repository": "git@github.com:superfaceai/cli.git",
+  "repository": "https://github.com/superfaceai/cli.git",
   "author": "Superface Team",
   "private": false,
   "bin": {
