@@ -109,6 +109,7 @@ describe('Install CLI command', () => {
         logCb: expect.any(Function),
         warnCb: expect.any(Function),
         force: false,
+        typings: true,
       });
     }, 10000);
 

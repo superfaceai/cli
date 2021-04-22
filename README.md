@@ -164,6 +164,7 @@ OPTIONS
 
   -s, --scan=scan            When number provided, scan for super.json outside cwd within range represented by this
                              number.
+  -t, --types                When set to true, generates TypeScript typings for profiles
 
 EXAMPLES
   $ superface install
