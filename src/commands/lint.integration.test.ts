@@ -9,7 +9,7 @@ describe('lint CLI command', () => {
     strictMap: joinPath('fixtures', 'strict.suma'),
     invalidParsedMap: joinPath('fixtures', 'invalid.suma'),
     validMap: joinPath('fixtures', 'valid-map.provider.suma'),
-    invalidMap: joinPath('fixtures', 'invalid-map.twillio.suma'),
+    invalidMap: joinPath('fixtures', 'invalid-map.twilio.suma'),
     lint: {
       profile: {
         foo: joinPath('fixtures', 'lint', 'foo.supr'),
@@ -149,7 +149,7 @@ describe('lint CLI command', () => {
       ])
     ).rejects.toHaveProperty(['oclif', 'exit'], 1);
 
-    expect(stdout.output).toContain('❌ fixtures/invalid-map.twillio.suma');
+    expect(stdout.output).toContain('❌ fixtures/invalid-map.twilio.suma');
     expect(stdout.output).toContain('⚠️ fixtures/valid-map.provider.suma');
     expect(stdout.output).toContain(
       '5:13 PrimitiveLiteral - Wrong Structure: expected number, but got "true"'
@@ -188,7 +188,7 @@ describe('lint CLI command', () => {
       ])
     ).rejects.toHaveProperty(['oclif', 'exit'], 1);
 
-    expect(stdout.output).toContain('❌ fixtures/invalid-map.twillio.suma');
+    expect(stdout.output).toContain('❌ fixtures/invalid-map.twilio.suma');
     expect(stdout.output).toContain('⚠️ fixtures/valid-map.provider.suma');
     expect(stdout.output).toContain('⚠️ ./fixtures/strict.unknown');
     expect(stdout.output).toContain('Detected 10 problems');
@@ -243,7 +243,7 @@ describe('lint CLI command', () => {
 
     expect(stdout.output).toContain('⚠️ ./fixtures/strict.unknown');
     expect(stdout.output).toContain('⚠️ fixtures/valid-map.provider.suma');
-    expect(stdout.output).toContain('❌ fixtures/invalid-map.twillio.suma');
+    expect(stdout.output).toContain('❌ fixtures/invalid-map.twilio.suma');
     expect(stdout.output).toContain('Detected 5 problems');
   });
 });

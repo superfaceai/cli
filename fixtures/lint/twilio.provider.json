@@ -1,9 +1,9 @@
 {
-  "name": "twillio",
+  "name": "twilio",
   "deployments": [
     {
       "id": "default",
-      "baseUrl": "api.twillio.localhost"
+      "baseUrl": "api.twilio.localhost"
     }
   ],
   "security": [

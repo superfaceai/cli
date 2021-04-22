@@ -96,7 +96,7 @@ export default class Init extends Command {
   static examples = [
     'superface init',
     'superface init foo',
-    'superface init foo --providers bar twillio',
+    'superface init foo --providers bar twilio',
     'superface init foo --profiles my-profile@1.1.0 another-profile@2.0 --providers osm gmaps',
   ];
 
@@ -142,7 +142,7 @@ export default class Init extends Command {
     //Warn user
     this.warn(
       yellow(
-        'You are using a hidden command. This command is not intended for public consumption yet. It might be broken, hard to use or simply redundant. Thread with care.'
+        'You are using a hidden command. This command is not intended for public consumption yet. It might be broken, hard to use or simply redundant. Tread with care.'
       )
     );
 

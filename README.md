@@ -1,26 +1,37 @@
-# Superface CLI
+
+# CLI
+
+<img src="https://github.com/superfaceai/cli/blob/main/docs/LogoGreen.png" alt="superface logo" width="150" height="150">
 
 Superface CLI provides access to superface tooling from the CLI.
 
 ## Table of Contents
 
+- [Background](#background)
 - [Install](#install)
 - [Usage](#usage)
+- [Security](#security)
+- [Support](#support)
 - [Development](#development)
 - [Publishing](#publishing)
 - [Maintainers](#maintainers)
 - [Contributing](#contributing)
 - [License](#license)
 
+## Background
+Superface (super-interface) is a higher-order API, an abstraction on top of the modern APIs like GraphQL and REST. Superface is one interface to discover, connect, and query any capabilities available via conventional APIs. 
+
+Through its focus on application-level semantics, Superface decouples the clients from servers, enabling fully autonomous evolution. As such it minimizes the code base as well as errors and downtimes while providing unmatched resiliency and redundancy. 
+
+Superface allows for switching capability providers without development at a runtime in milliseconds. Furthermore, Superface decentralizes the composition and aggregation, and thus creates an Autonomous Integration Mesh.
+
+Motivation behind Superface is nicely described in this [video](https://www.youtube.com/watch?v=BCvq3NXFb94) from APIdays conference.
+
+You can get more information at https://superface.ai and https://developer.superface.dev.
+
 ## Install
 
-To install this package, first add the github superface repository to your npm config. Use your github name as your login and generate a personal access token with at least the `repo` and `read:packages` permissions in Github to use as password:
-
-```
-npm login --scope=@superfaceai --registry=https://npm.pkg.github.com
-```
-
-Then install the cli globally using one of the following commands:
+To install this package just install the cli globally using one of the following commands:
 
 ```shell
 # if using yarn
@@ -67,7 +78,7 @@ _See code: [src/commands/compile.ts](https://github.com/superfaceai/cli/tree/mai
 
 ## `superface configure PROVIDERNAME`
 
-Initializes superface directory if needed, communicates with Superface Store API, stores provider configuration in super.json
+Automatically initializes superface directory in current working directory if needed, communicates with Superface Store API, stores provider configuration in super.json
 
 ```
 USAGE
@@ -84,10 +95,10 @@ OPTIONS
   -q, --quiet            When set to true, disables the shell echo output of init actions.
 
 EXAMPLES
-  $ superface configure twillio -p send-sms
-  $ superface configure twillio -q
-  $ superface configure twillio -f
-  $ superface configure twillio -l
+  $ superface configure twilio -p send-sms
+  $ superface configure twilio -q
+  $ superface configure twilio -f
+  $ superface configure twilio -l
 ```
 
 _See code: [src/commands/configure.ts](https://github.com/superfaceai/cli/tree/main/src/commands/configure.ts)_
@@ -125,17 +136,17 @@ OPTIONS
 EXAMPLES
   $ superface create profile sms/service
   $ superface create profile sms/service -u SendSMS ReceiveSMS
-  $ superface create map sms/service -p twillio
-  $ superface create map sms/service -p twillio -u SendSMS ReceiveSMS
-  $ superface create sms/service -p twillio -u SendSMS ReceiveSMS
-  $ superface create sms/service -p twillio -t bugfix -v 1.1-rev133 -u SendSMS ReceiveSMS
+  $ superface create map sms/service -p twilio
+  $ superface create map sms/service -p twilio -u SendSMS ReceiveSMS
+  $ superface create sms/service -p twilio -u SendSMS ReceiveSMS
+  $ superface create sms/service -p twilio -t bugfix -v 1.1-rev133 -u SendSMS ReceiveSMS
 ```
 
 _See code: [src/commands/create.ts](https://github.com/superfaceai/cli/tree/main/src/commands/create.ts)_
 
 ## `superface install [PROFILEID]`
 
-Initializes superface directory if needed, communicates with Superface Store API, stores profiles and compiled files to a local system
+Automatically initializes superface directory in current working directory if needed, communicates with Superface Store API, stores profiles and compiled files to a local system. Install without any arguments tries to install profiles and providers listed in super.json
 
 ```
 USAGE
@@ -156,9 +167,9 @@ OPTIONS
 
 EXAMPLES
   $ superface install
-  $ superface install --provider twillio
   $ superface install sms/service@1.0
-  $ superface install sms/service@1.0 -p twillio
+  $ superface install sms/service@1.0 --providers twilio
+  $ superface install sms/service@1.0 -p twilio
   $ superface install --local sms/service.supr
 ```
 
@@ -195,6 +206,16 @@ DESCRIPTION
 
 _See code: [src/commands/lint.ts](https://github.com/superfaceai/cli/tree/main/src/commands/lint.ts)_
 <!-- commandsstop -->
+
+## Security
+
+Superface is not man-in-the-middle so it does not require any access to secrets that are needed to communicate with provider API. Superface CLI only prepares super.json file with authorization fields in form of environment variable. You just set correct variables and communicate directly with provider API.
+
+You can find more information in [SDK repository](https://github.com/superfaceai/sdk-js/blob/master/SECURITY.md).
+
+## Support
+
+If you need any additional support, have any questions or you just want to talk you can do that through our [documentation page](https://developer.superface.dev). 
 
 ## Development
 

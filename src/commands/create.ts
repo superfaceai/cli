@@ -69,10 +69,10 @@ export default class Create extends Command {
   static examples = [
     '$ superface create profile sms/service',
     '$ superface create profile sms/service -u SendSMS ReceiveSMS',
-    '$ superface create map sms/service -p twillio',
-    '$ superface create map sms/service -p twillio -u SendSMS ReceiveSMS',
-    '$ superface create sms/service -p twillio -u SendSMS ReceiveSMS',
-    '$ superface create sms/service -p twillio -t bugfix -v 1.1-rev133 -u SendSMS ReceiveSMS',
+    '$ superface create map sms/service -p twilio',
+    '$ superface create map sms/service -p twilio -u SendSMS ReceiveSMS',
+    '$ superface create sms/service -p twilio -u SendSMS ReceiveSMS',
+    '$ superface create sms/service -p twilio -t bugfix -v 1.1-rev133 -u SendSMS ReceiveSMS',
   ];
 
   private warnCallback? = (message: string) => this.log(yellow(message));

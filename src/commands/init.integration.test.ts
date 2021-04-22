@@ -144,7 +144,7 @@ $ mkdir 'fixtures/playgrounds/test/superface/build'
 
   it('initilizes base folder with specified providers', async () => {
     await expect(
-      Init.run([testInitFolderPath, '--providers', 'twillio', 'osm'])
+      Init.run([testInitFolderPath, '--providers', 'twilio', 'osm'])
     ).resolves.toBeUndefined();
 
     // TODO: check for super.json
