@@ -1,4 +1,4 @@
-import { SuperJson } from '@superfaceai/sdk';
+import { SuperJson } from '@superfaceai/one-sdk';
 import { join as joinPath } from 'path';
 
 import { EXTENSIONS, GRID_DIR, SUPER_PATH } from '../common/document';

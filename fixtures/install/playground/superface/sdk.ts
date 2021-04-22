@@ -1,4 +1,4 @@
-import { createTypedClient } from "@superfaceai/sdk";
+import { createTypedClient } from "@superfaceai/one-sdk";
 import { starwarsCharacterInformation } from "./types/starwars/character-information";
 export const typeDefinitions = {
     ...starwarsCharacterInformation

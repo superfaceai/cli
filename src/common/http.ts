@@ -1,5 +1,5 @@
 import { ProfileDocumentNode } from '@superfaceai/ast';
-import { parseProviderJson, ProviderJson } from '@superfaceai/sdk';
+import { parseProviderJson, ProviderJson } from '@superfaceai/one-sdk';
 import superagent, { Response } from 'superagent';
 
 import { userError } from './error';

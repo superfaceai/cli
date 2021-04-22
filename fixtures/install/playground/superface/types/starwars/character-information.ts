@@ -1,4 +1,4 @@
-import { typeHelper } from '@superfaceai/sdk';
+import { typeHelper } from '@superfaceai/one-sdk';
 /** Starwars **/
 export interface RetrieveCharacterInformationInput {
     characterName?: unknown;

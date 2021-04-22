@@ -1,5 +1,5 @@
 import { CLIError } from '@oclif/errors';
-import { ok, SuperJson } from '@superfaceai/sdk';
+import { ok, SuperJson } from '@superfaceai/one-sdk';
 import * as fs from 'fs';
 import { mocked } from 'ts-jest/utils';
 

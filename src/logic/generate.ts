@@ -148,7 +148,7 @@ export function generateTypesFile(
     namedImport([camelize(profile)], './types/' + profile)
   );
   const statements = [
-    namedImport(['createTypedClient'], '@superfaceai/sdk'),
+    namedImport(['createTypedClient'], '@superfaceai/one-sdk'),
     ...imports,
     ...typeDefinitions(profiles),
     typedClientStatement(),
@@ -245,7 +245,7 @@ export function generateTypingsForProfile(
   );
 
   const statements = [
-    namedImport(['typeHelper'], '@superfaceai/sdk'),
+    namedImport(['typeHelper'], '@superfaceai/one-sdk'),
     ...inputTypes.reduce((acc, input) => [...acc, ...input], []),
     createUsecasesType(
       profileName,

@@ -1,5 +1,5 @@
 import { ProfileDocumentNode } from '@superfaceai/ast';
-import { SuperJson } from '@superfaceai/sdk';
+import { SuperJson } from '@superfaceai/one-sdk';
 import { join as joinPath, normalize, relative as relativePath } from 'path';
 
 import {

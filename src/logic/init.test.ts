@@ -1,6 +1,6 @@
 import { CLIError } from '@oclif/errors';
+import { ok, SuperJson } from '@superfaceai/one-sdk';
 import { parseProfileId } from '@superfaceai/parser';
-import { ok, SuperJson } from '@superfaceai/sdk';
 import { basename } from 'path';
 import { mocked } from 'ts-jest/utils';
 

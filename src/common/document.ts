@@ -1,16 +1,16 @@
 import { ProfileDocumentNode } from '@superfaceai/ast';
 import {
+  ProfileEntry,
+  ProfileProviderEntry,
+  ProviderSettings,
+} from '@superfaceai/one-sdk';
+import {
   DocumentVersion,
   parseMap,
   parseProfile,
   parseProfileId,
   Source,
 } from '@superfaceai/parser';
-import {
-  ProfileEntry,
-  ProfileProviderEntry,
-  ProviderSettings,
-} from '@superfaceai/sdk';
 import { basename, join as joinPath } from 'path';
 
 import { CreateMode, DocumentType } from './document.interfaces';

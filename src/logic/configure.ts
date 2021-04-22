@@ -7,7 +7,7 @@ import {
   ProviderJson,
   SecurityValues,
   SuperJson,
-} from '@superfaceai/sdk';
+} from '@superfaceai/one-sdk';
 import { join as joinPath } from 'path';
 
 import {
