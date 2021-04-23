@@ -614,6 +614,18 @@
   resolved "https://npm.pkg.github.com/download/@superfaceai/ast/0.0.22/32dd1accfce252f3a3e4d84fe702c0c2a927dbf329e6a62aacc44d52e7db3e15#becfa4a20a9639e13f8b48b776509a44be09ba2e"
   integrity sha512-3cRkhl9RFyPmIcwS7fJZ3l0NaBWCW4FlMM9f/wt+SUAs9M0pn3TZbY2QZTe0jw+tZhKm76w1y/UD4b87PuIaFw==
 
+"@superfaceai/one-sdk@0.0.17":
+  version "0.0.17"
+  resolved "https://npm.pkg.github.com/download/@superfaceai/one-sdk/0.0.17/2f1b185bda7e34d779dc1fb3b8c54e581678b6e62b06efce2f6c4ebf08e0df46#2ab3c45323e7011bf0b5fd228fd96551c9e97971"
+  integrity sha512-PapWpvwNOCMTbrsehzXjlHMXY5wnvDhaZOq1xj8snjyuGZHP4kTfXuD7NpMSMjHiRTggxzVmoE8EyDzjq/qz/g==
+  dependencies:
+    "@superfaceai/ast" "0.0.22"
+    cross-fetch "^3.0.5"
+    debug "^4.3.1"
+    isomorphic-form-data "^2.0.0"
+    vm2 "^3.9.2"
+    zod "^2.0.0-beta.30"
+
 "@superfaceai/parser@0.0.15":
   version "0.0.15"
   resolved "https://npm.pkg.github.com/download/@superfaceai/parser/0.0.15/bb86a0e3bb404404b8a559f0af45f8d9a8c4cf9aaf46eb8fecfa0fc3baffd6e1#394df17c88b8a64a87073e2af007dd44801fbdf2"
@@ -623,18 +635,6 @@
     "@types/debug" "^4.1.5"
     debug "^4.3.1"
     typescript "^4.1.5"
-
-"@superfaceai/sdk@0.0.14":
-  version "0.0.14"
-  resolved "https://npm.pkg.github.com/download/@superfaceai/sdk/0.0.14/209c757e76799a6a6384b2dcf590ead13322607f3151e838ba942face81f4e9d#8ec7e72c224c789df977c925369090c87bf0c8ea"
-  integrity sha512-HdlCPzjRhnOXfjuK/boZ94tHGiW8AXjWu/JX/vmZp96pQYIIFhXB40Bypl7aVtOv6IQ9PVm40NqBaETNYDie9w==
-  dependencies:
-    "@superfaceai/ast" "0.0.22"
-    cross-fetch "^3.0.5"
-    debug "^4.3.1"
-    isomorphic-form-data "^2.0.0"
-    vm2 "^3.9.2"
-    zod "^2.0.0-beta.30"
 
 "@types/babel__core@^7.0.0", "@types/babel__core@^7.1.7":
   version "7.1.12"

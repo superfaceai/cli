@@ -1,5 +1,5 @@
 import { CLIError } from '@oclif/errors';
-import { err, ok, SuperJson } from '@superfaceai/sdk';
+import { err, ok, SuperJson } from '@superfaceai/one-sdk';
 
 import { CreateMode } from '../common/document.interfaces';
 import { OutputStream } from '../common/output-stream';

@@ -1,4 +1,4 @@
-import { SuperJson } from '@superfaceai/sdk';
+import { SuperJson } from '@superfaceai/one-sdk';
 import { mocked } from 'ts-jest/utils';
 
 import { validateDocumentName } from '../common/document';

@@ -142,7 +142,7 @@ export default class Init extends Command {
     //Warn user
     this.warn(
       yellow(
-        'You are using a hidden command. This command is not intended for public consumption yet. It might be broken, hard to use or simply redundant. Thread with care.'
+        'You are using a hidden command. This command is not intended for public consumption yet. It might be broken, hard to use or simply redundant. Tread with care.'
       )
     );
 

@@ -1,5 +1,5 @@
+import { SuperJson } from '@superfaceai/one-sdk';
 import { parseDocumentId } from '@superfaceai/parser';
-import { SuperJson } from '@superfaceai/sdk';
 import { Dirent } from 'fs';
 import { basename, join as joinPath } from 'path';
 

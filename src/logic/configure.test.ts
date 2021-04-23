@@ -6,7 +6,7 @@ import {
   ProviderJson,
   SecurityType,
   SuperJson,
-} from '@superfaceai/sdk';
+} from '@superfaceai/one-sdk';
 import { mocked } from 'ts-jest/utils';
 
 import { fetchProviderInfo } from '../common/http';
@@ -25,7 +25,7 @@ jest.mock('../common/http', () => ({
 
 jest.mock('../common/io');
 
-jest.mock('@superfaceai/sdk/dist/internal/superjson');
+jest.mock('@superfaceai/one-sdk/dist/internal/superjson');
 
 describe('Configure CLI logic', () => {
   const providerName = 'test';

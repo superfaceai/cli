@@ -1,4 +1,4 @@
-import { SuperJson } from '@superfaceai/sdk';
+import { SuperJson } from '@superfaceai/one-sdk';
 import { join } from 'path';
 import { Writable } from 'stream';
 

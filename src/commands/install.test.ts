@@ -1,5 +1,5 @@
 import { CLIError } from '@oclif/errors';
-import { SuperJson } from '@superfaceai/sdk';
+import { SuperJson } from '@superfaceai/one-sdk';
 import { mocked } from 'ts-jest/utils';
 
 import { installProvider } from '../logic/configure';
@@ -59,6 +59,7 @@ describe('Install CLI command', () => {
           logCb: expect.anything(),
           warnCb: expect.anything(),
           force: false,
+          typings: true,
         }
       );
     }, 10000);
@@ -76,6 +77,7 @@ describe('Install CLI command', () => {
           logCb: expect.anything(),
           warnCb: expect.anything(),
           force: false,
+          typings: true,
         }
       );
     }, 10000);
@@ -93,6 +95,7 @@ describe('Install CLI command', () => {
           logCb: undefined,
           warnCb: undefined,
           force: false,
+          typings: true,
         }
       );
     }, 10000);
@@ -106,6 +109,7 @@ describe('Install CLI command', () => {
         logCb: expect.any(Function),
         warnCb: expect.any(Function),
         force: false,
+        typings: true,
       });
     }, 10000);
 
@@ -167,6 +171,7 @@ describe('Install CLI command', () => {
           logCb: expect.anything(),
           warnCb: expect.anything(),
           force: false,
+          typings: true,
         }
       );
     }, 10000);

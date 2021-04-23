@@ -1,5 +1,5 @@
 const { inspect } = require('util');
-const { Provider } = require('@superfaceai/sdk');
+const { Provider } = require('@superfaceai/one-sdk');
 
 async function execute(characterName) {
     // 1. Create the provider object - the build artifacts are located by the sdk according to super.json

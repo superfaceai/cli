@@ -78,6 +78,14 @@ export default class Install extends Command {
         'When number provided, scan for super.json outside cwd within range represented by this number.',
       required: false,
     }),
+    help: flags.help({ char: 'h' }),
+    types: flags.boolean({
+      char: 't',
+      description:
+        'When set to true, generates TypeScript typings for profiles',
+      default: true,
+      required: false,
+    }),
   };
 
   static examples = [
@@ -161,6 +169,7 @@ export default class Install extends Command {
       logCb: this.logCallback,
       warnCb: this.warnCallback,
       force: flags.force,
+      typings: flags.types,
     });
 
     this.logCallback?.(`\n\nConfiguring providers`);
