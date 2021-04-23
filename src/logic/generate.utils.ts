@@ -261,7 +261,7 @@ export function propertySignature(
     type
   );
 
-  if (doc) {
+  if (doc !== undefined) {
     return addDoc(signature, doc);
   }
 
