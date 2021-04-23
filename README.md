@@ -96,9 +96,9 @@ OPTIONS
 
 EXAMPLES
   $ superface configure twilio -p send-sms
-  $ superface configure twilio -q
-  $ superface configure twilio -f
-  $ superface configure twilio -l
+  $ superface configure twilio -p send-sms -q
+  $ superface configure twilio -p send-sms -f
+  $ superface configure providers/twilio.provider.json -p send-sms -l
 ```
 
 _See code: [src/commands/configure.ts](https://github.com/superfaceai/cli/tree/main/src/commands/configure.ts)_
