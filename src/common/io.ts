@@ -1,5 +1,6 @@
 import * as childProcess from 'child_process';
 import * as fs from 'fs';
+import { basename } from 'path';
 import rimrafCallback from 'rimraf';
 import { Writable } from 'stream';
 import { promisify } from 'util';
@@ -13,7 +14,6 @@ export const stat = promisify(fs.stat);
 export const readdir = promisify(fs.readdir);
 export const mkdir = promisify(fs.mkdir);
 export const realpath = promisify(fs.realpath);
-
 export const rimraf = promisify(rimrafCallback);
 
 export interface WritingOptions {
@@ -39,6 +39,20 @@ export async function exists(path: string): Promise<boolean> {
 
   // No error, no problem.
   return true;
+}
+
+/**
+ * Reads a file and converts to string.
+ * Returns `undefined` if reading fails for any reason.
+ */
+export async function readFileQuiet(path: string): Promise<string | undefined> {
+  try {
+    const file = await readFile(path, { encoding: 'utf8' });
+
+    return file.toString();
+  } catch (_) {
+    return undefined;
+  }
 }
 
 /**
@@ -205,4 +219,12 @@ export async function isAccessible(path: string): Promise<boolean> {
   }
 
   return true;
+}
+
+/**
+ * Returns file name with path and all extensions stripped
+ */
+export function basenameWithoutExt(path: string): string {
+  // NOTE: Naive implementation, but should work for any case
+  return basename(path).split('.')[0];
 }

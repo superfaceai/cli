@@ -1,4 +1,4 @@
-import { VERSION } from '@superfaceai/sdk';
+import { VERSION } from '@superfaceai/one-sdk';
 
 import { TemplateType } from './common';
 
@@ -8,7 +8,7 @@ export function packageJson(): string {
   "name": "playground",
   "private": true,
   "dependencies": {
-    "@superfaceai/sdk": "${VERSION}"
+    "@superfaceai/one-sdk": "${VERSION}"
   },
   "devDependencies": {
     "@types/node": "^14",
@@ -33,7 +33,7 @@ export function glueScript(type: TemplateType, usecase: string): string {
 function common(usecase: string, input: string): string {
   return `import { inspect } from 'util';
 
-import { SuperfaceClient } from '@superfaceai/sdk';
+import { SuperfaceClient } from '@superfaceai/one-sdk';
 
 /** Execute one specific pair of profile and map. */
 async function execute(

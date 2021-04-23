@@ -1,4 +1,6 @@
 ## [Unreleased]
+### Added
+* Generate command
 
 ### Added
 * Support for installing local files with `install` command

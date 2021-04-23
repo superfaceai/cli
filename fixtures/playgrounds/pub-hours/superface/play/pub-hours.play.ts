@@ -1,6 +1,6 @@
 import { inspect } from 'util';
 
-import { SuperfaceClient } from '@superfaceai/sdk';
+import { SuperfaceClient } from '@superfaceai/one-sdk';
 
 /** Execute one specific pair of profile and map. */
 async function execute(
@@ -25,8 +25,8 @@ async function execute(
   // 3. Get usecase from the profile and execute it with the given provider
   const result = await profile.getUseCase('PubOpeningHours').perform(
     {
-      city: "Praha",
-      nameRegex: "Diego"
+      city: 'Praha',
+      nameRegex: 'Diego',
     },
     { provider }
   );
@@ -72,11 +72,7 @@ async function main() {
       variant = nameSplit[2];
     }
 
-    execute(
-      scope,
-      name,
-      provider
-    );
+    execute(scope, name, provider);
   }
 }
 

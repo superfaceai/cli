@@ -1,4 +1,4 @@
-import { ProviderJson } from '@superfaceai/sdk';
+import { ProviderJson } from '@superfaceai/one-sdk';
 
 import { TemplateType } from './common';
 

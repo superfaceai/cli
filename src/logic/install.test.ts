@@ -1,6 +1,6 @@
 import { CLIError } from '@oclif/errors';
 import { ProfileDocumentNode } from '@superfaceai/ast';
-import { ok, SuperJson } from '@superfaceai/sdk';
+import { ok, SuperJson } from '@superfaceai/one-sdk';
 import { join } from 'path';
 import { mocked } from 'ts-jest/utils';
 

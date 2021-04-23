@@ -165,6 +165,7 @@ OPTIONS
 
   -s, --scan=scan            When number provided, scan for super.json outside cwd within range represented by this
                              number.
+  -t, --types                When set to true, generates TypeScript typings for profiles
 
 EXAMPLES
   $ superface install
@@ -277,7 +278,6 @@ Licenses of node_modules are checked during CI/CD for every commit. Only the fol
 - CC-BY-3.0;BSD
 - CC0-1.0
 - Unlicense
-- UNLICENSED
 
 Note: If editing the README, please conform to the [standard-readme](https://github.com/RichardLitt/standard-readme) specification.
 

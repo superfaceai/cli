@@ -1,5 +1,5 @@
+import { SuperJson } from '@superfaceai/one-sdk';
 import { DocumentVersion } from '@superfaceai/parser';
-import { SuperJson } from '@superfaceai/sdk';
 import { dirname, join as joinPath, relative as relativePath } from 'path';
 
 import { composeVersion, EXTENSIONS, META_FILE } from '../common/document';

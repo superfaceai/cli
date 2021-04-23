@@ -1,4 +1,4 @@
-import { SuperJson } from '@superfaceai/sdk';
+import { SuperJson } from '@superfaceai/one-sdk';
 import * as fs from 'fs';
 import { join as joinPath } from 'path';
 
