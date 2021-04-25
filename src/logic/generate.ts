@@ -8,6 +8,7 @@ import {
 } from '@superfaceai/parser';
 import {
   InterfaceDeclaration,
+  isExportDeclaration,
   isIdentifier,
   isImportDeclaration,
   isObjectLiteralExpression,
@@ -25,8 +26,10 @@ import {
   camelize,
   capitalize,
   createSource,
+  getExportText,
   getImportText,
   getVariableName,
+  id,
   interfaceType,
   literalUnion,
   namedImport,
@@ -35,9 +38,12 @@ import {
   pascalize,
   propertyAssignment,
   propertySignature,
+  reexport,
   typeAlias,
   typedClientStatement,
   typeDefinitions,
+  typeQuery,
+  typeReference,
   variableStatement,
   variableType,
 } from './generate.utils';
@@ -119,10 +125,10 @@ export function createUsecaseTypes(
   return [...inputs, ...results];
 }
 
-export function createUsecasesType(
+export function createProfileType(
   profileName: string,
   usecaseNames: string[]
-): Statement {
+): Statement[] {
   const usecases = usecaseNames.map(usecaseName => {
     const pascalizedUsecaseName = pascalize(usecaseName);
     const helperCall = callExpression(
@@ -133,20 +139,28 @@ export function createUsecasesType(
 
     return propertyAssignment(usecaseName, helperCall);
   });
-  const profile = objectLiteral([
-    propertyAssignment(profileName, objectLiteral(usecases)),
-  ]);
 
-  return variableStatement(camelize(profileName), profile);
+  const profile = variableStatement('profile', objectLiteral(usecases));
+  const profileType = typeAlias(
+    pascalize(profileName) + 'Profile',
+    typeReference('TypedProfile', [typeQuery('profile')])
+  );
+  const profileWrapper = variableStatement(
+    profileName,
+    objectLiteral([propertyAssignment(profileName, id('profile'))])
+  );
+
+  return [profile, profileType, profileWrapper];
 }
 
 export function generateTypesFile(
   profiles: string[],
   typesFile?: string
 ): string {
-  const imports = profiles.map(profile =>
-    namedImport([camelize(profile)], './types/' + profile)
-  );
+  const imports = profiles.flatMap(profile => [
+    namedImport([camelize(profile)], './types/' + profile),
+    reexport([pascalize(profile) + 'Profile'], './types/' + profile),
+  ]);
   const statements = [
     namedImport(['createTypedClient'], '@superfaceai/one-sdk'),
     ...imports,
@@ -180,7 +194,9 @@ export function updateTypesFile(
 
   const originalStatements = parseSource(typesFile);
   const newImports = statements.filter(isImportDeclaration);
+  const newExports = statements.filter(isExportDeclaration);
   const originalImports = originalStatements.filter(isImportDeclaration);
+  const originalExports = originalStatements.filter(isExportDeclaration);
   const newTypeDefinition = statements
     .filter(isVariableStatement)
     .find(node => getVariableName(node) === 'typeDefinitions');
@@ -188,7 +204,10 @@ export function updateTypesFile(
     .filter(isVariableStatement)
     .find(node => getVariableName(node) === 'typeDefinitions');
 
-  const mergedStatements: Statement[] = [...originalImports];
+  const mergedStatements: Statement[] = [
+    ...originalImports,
+    ...originalExports,
+  ];
 
   for (const newImport of newImports) {
     const importText = getImportText(newImport);
@@ -199,6 +218,18 @@ export function updateTypesFile(
       ) === undefined
     ) {
       mergedStatements.push(newImport);
+    }
+  }
+
+  for (const newExport of newExports) {
+    const exportText = getExportText(newExport);
+    if (
+      exportText !== undefined &&
+      originalExports.find(
+        originalExport => getExportText(originalExport) === exportText
+      ) === undefined
+    ) {
+      mergedStatements.push(newExport);
     }
   }
 
@@ -240,14 +271,14 @@ export function generateTypingsForProfile(
   profileAST: ProfileDocumentNode
 ): string {
   const output = getProfileOutput(profileAST);
-  const inputTypes = output.usecases.map(usecase =>
+  const inputTypes = output.usecases.flatMap(usecase =>
     createUsecaseTypes(usecase, 'unknown')
   );
 
   const statements = [
-    namedImport(['typeHelper'], '@superfaceai/one-sdk'),
-    ...inputTypes.reduce((acc, input) => [...acc, ...input], []),
-    createUsecasesType(
+    namedImport(['typeHelper', 'TypedProfile'], '@superfaceai/one-sdk'),
+    ...inputTypes,
+    ...createProfileType(
       profileName,
       output.usecases.map(usecase => usecase.useCaseName)
     ),
