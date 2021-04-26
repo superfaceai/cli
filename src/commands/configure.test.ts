@@ -60,7 +60,6 @@ describe('Configure CLI command', () => {
         mockPath,
         mockProvider,
         mockProfile,
-        expect.any(String),
         {
           force: false,
           local: false,
@@ -93,7 +92,6 @@ describe('Configure CLI command', () => {
         'superface',
         mockProvider,
         mockProfile,
-        expect.any(String),
         {
           force: false,
           local: false,

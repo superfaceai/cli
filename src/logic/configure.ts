@@ -89,7 +89,6 @@ export function handleProviderResponse(
  */
 export async function getProviderFromStore(
   providerName: string,
-  userAgent: string,
   options?: {
     logCb?: LogCallback;
   }
@@ -97,7 +96,7 @@ export async function getProviderFromStore(
   options?.logCb?.(`Fetching provider ${providerName} from the Store`);
 
   try {
-    const info = await fetchProviderInfo(providerName, userAgent);
+    const info = await fetchProviderInfo(providerName);
     options?.logCb?.('GET Provider Info');
 
     return info;
@@ -115,7 +114,6 @@ export async function installProvider(
   superPath: string,
   provider: string,
   profileId: string,
-  userAgent: string,
   options?: {
     logCb?: LogCallback;
     warnCb?: LogCallback;
@@ -155,7 +153,7 @@ export async function installProvider(
     }
   } else {
     //Load from server
-    providerInfo = await getProviderFromStore(provider, userAgent);
+    providerInfo = await getProviderFromStore(provider);
   }
 
   // Check existence and warn

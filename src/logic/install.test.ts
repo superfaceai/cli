@@ -39,8 +39,6 @@ jest.mock('../common/io', () => ({
 }));
 
 describe('Install CLI logic', () => {
-  const userAgent = '@superfaceai/cli/0.0.5 darwin-x64 node-v14.16.0';
-
   afterEach(() => {
     jest.resetAllMocks();
   });
@@ -183,7 +181,7 @@ describe('Install CLI logic', () => {
 
       const profileId = 'starwars/character-information';
 
-      await expect(getProfileFromStore(profileId, userAgent)).resolves.toEqual({
+      await expect(getProfileFromStore(profileId)).resolves.toEqual({
         ast: mockProfileAst,
         info: mockProfileInfo,
         profile: mockProfile,
@@ -191,9 +189,9 @@ describe('Install CLI logic', () => {
       expect(fetchProfile).toHaveBeenCalledTimes(1);
       expect(fetchProfileAST).toHaveBeenCalledTimes(1);
       expect(fetchProfileInfo).toHaveBeenCalledTimes(1);
-      expect(fetchProfile).toHaveBeenCalledWith(profileId, userAgent);
-      expect(fetchProfileInfo).toHaveBeenCalledWith(profileId, userAgent);
-      expect(fetchProfileAST).toHaveBeenCalledWith(profileId, userAgent);
+      expect(fetchProfile).toHaveBeenCalledWith(profileId);
+      expect(fetchProfileInfo).toHaveBeenCalledWith(profileId);
+      expect(fetchProfileAST).toHaveBeenCalledWith(profileId);
     }, 10000);
 
     it('throws user error on invalid profileId', async () => {
@@ -203,11 +201,9 @@ describe('Install CLI logic', () => {
 
       const profileId = 'made-up';
 
-      await expect(
-        getProfileFromStore(profileId, userAgent)
-      ).resolves.toBeUndefined();
+      await expect(getProfileFromStore(profileId)).resolves.toBeUndefined();
       expect(fetchProfileInfo).toHaveBeenCalledTimes(1);
-      expect(fetchProfileInfo).toHaveBeenCalledWith(profileId, userAgent);
+      expect(fetchProfileInfo).toHaveBeenCalledWith(profileId);
       expect(fetchProfile).not.toHaveBeenCalled();
       expect(fetchProfileAST).not.toHaveBeenCalled();
     }, 10000);
@@ -249,7 +245,7 @@ describe('Install CLI logic', () => {
         });
 
       await expect(
-        resolveInstallationRequests(stubSuperJson, userAgent, [
+        resolveInstallationRequests(stubSuperJson, [
           { kind: 'local', path: 'first' },
           { kind: 'local', path: 'none' },
           { kind: 'local', path: 'second' },
@@ -323,7 +319,6 @@ describe('Install CLI logic', () => {
       await expect(
         resolveInstallationRequests(
           stubSuperJson,
-          userAgent,
           [
             { kind: 'store', profileId: 'first', version: '1.0.1' },
             { kind: 'store', profileId: 'none' },
@@ -470,17 +465,15 @@ describe('Install CLI logic', () => {
         const profileName = 'starwars/character-information';
 
         await expect(
-          installProfiles('.', userAgent, [
-            { kind: 'store', profileId: profileName },
-          ])
+          installProfiles('.', [{ kind: 'store', profileId: profileName }])
         ).resolves.toBeUndefined();
 
         expect(fetchProfileInfo).toHaveBeenCalledTimes(1);
         expect(fetchProfile).toHaveBeenCalledTimes(1);
         expect(fetchProfileAST).toHaveBeenCalledTimes(1);
-        expect(fetchProfile).toHaveBeenCalledWith(profileName, userAgent);
-        expect(fetchProfileInfo).toHaveBeenCalledWith(profileName, userAgent);
-        expect(fetchProfileAST).toHaveBeenCalledWith(profileName, userAgent);
+        expect(fetchProfile).toHaveBeenCalledWith(profileName);
+        expect(fetchProfileInfo).toHaveBeenCalledWith(profileName);
+        expect(fetchProfileAST).toHaveBeenCalledWith(profileName);
 
         expect(mockWrite).toHaveBeenCalledTimes(3);
         //actual path is changing
@@ -529,42 +522,31 @@ describe('Install CLI logic', () => {
         mockLoad.mockResolvedValue(ok(stubSuperJson));
         SuperJson.load = mockLoad;
 
-        await expect(
-          installProfiles('.', userAgent, [])
-        ).resolves.toBeUndefined();
+        await expect(installProfiles('.', [])).resolves.toBeUndefined();
 
         expect(fetchProfileInfo).toHaveBeenCalledTimes(2);
         expect(fetchProfile).toHaveBeenCalledTimes(2);
         expect(fetchProfileAST).toHaveBeenCalledTimes(2);
-        expect(fetchProfile).toHaveBeenNthCalledWith(
-          1,
-          'starwars/first@1.0.0',
-          userAgent
-        );
+        expect(fetchProfile).toHaveBeenNthCalledWith(1, 'starwars/first@1.0.0');
         expect(fetchProfile).toHaveBeenNthCalledWith(
           2,
-          'starwars/second@2.0.0',
-          userAgent
+          'starwars/second@2.0.0'
         );
         expect(fetchProfileInfo).toHaveBeenNthCalledWith(
           1,
-          'starwars/first@1.0.0',
-          userAgent
+          'starwars/first@1.0.0'
         );
         expect(fetchProfileInfo).toHaveBeenNthCalledWith(
           2,
-          'starwars/second@2.0.0',
-          userAgent
+          'starwars/second@2.0.0'
         );
         expect(fetchProfileAST).toHaveBeenNthCalledWith(
           1,
-          'starwars/first@1.0.0',
-          userAgent
+          'starwars/first@1.0.0'
         );
         expect(fetchProfileAST).toHaveBeenNthCalledWith(
           2,
-          'starwars/second@2.0.0',
-          userAgent
+          'starwars/second@2.0.0'
         );
 
         expect(mockWrite).toHaveBeenCalledTimes(5);

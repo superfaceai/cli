@@ -1,7 +1,13 @@
 import { ProfileDocumentNode } from '@superfaceai/ast';
-import { parseProviderJson, ProviderJson } from '@superfaceai/one-sdk';
+import {
+  parseProviderJson,
+  ProviderJson,
+  VERSION as SDK_VERSION,
+} from '@superfaceai/one-sdk';
+import { VERSION as PARSER_VERSION } from '@superfaceai/parser';
 import superagent, { Response } from 'superagent';
 
+import { VERSION } from '..';
 import { userError } from './error';
 
 export interface ProfileInfo {
@@ -27,11 +33,8 @@ export enum ContentType {
 
 export const STORE_URL = new URL('https://superface.dev/').href;
 
-export async function fetch(
-  url: string,
-  type: ContentType,
-  userAgent: string
-): Promise<Response> {
+export async function fetch(url: string, type: ContentType): Promise<Response> {
+  const userAgent = `superface cli/${VERSION} (${process.platform}-${process.arch}) ${process.release.name}-${process.version} (with @superfaceai/one-sdk@${SDK_VERSION}, @superfaceai/parser@${PARSER_VERSION})`;
   try {
     return superagent.get(url).set('Accept', type).set('User-Agent', userAgent);
   } catch (err) {
@@ -40,44 +43,38 @@ export async function fetch(
 }
 
 export async function fetchProfileInfo(
-  profileId: string,
-  userAgent: string
+  profileId: string
 ): Promise<ProfileInfo> {
   const query = new URL(profileId, STORE_URL).href;
 
-  const response = await fetch(query, ContentType.JSON, userAgent);
+  const response = await fetch(query, ContentType.JSON);
 
   return response.body as ProfileInfo;
 }
 
-export async function fetchProfile(
-  profileId: string,
-  userAgent: string
-): Promise<string> {
+export async function fetchProfile(profileId: string): Promise<string> {
   const query = new URL(profileId, STORE_URL).href;
 
-  const response = await fetch(query, ContentType.PROFILE, userAgent);
+  const response = await fetch(query, ContentType.PROFILE);
 
   return (response.body as Buffer).toString();
 }
 
 export async function fetchProfileAST(
-  profileId: string,
-  userAgent: string
+  profileId: string
 ): Promise<ProfileDocumentNode> {
   const query = new URL(profileId, STORE_URL).href;
 
-  const response = await fetch(query, ContentType.AST, userAgent);
+  const response = await fetch(query, ContentType.AST);
 
   return response.body as ProfileDocumentNode;
 }
 
 export async function fetchProviderInfo(
-  providerName: string,
-  userAgent: string
+  providerName: string
 ): Promise<ProviderJson> {
   const query = new URL(providerName, `${STORE_URL}providers/`).href;
-  const response = await fetch(query, ContentType.JSON, userAgent);
+  const response = await fetch(query, ContentType.JSON);
 
   return parseProviderJson(response.body);
 }

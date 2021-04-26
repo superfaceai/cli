@@ -89,17 +89,11 @@ export default class Configure extends Command {
         META_FILE
       )}'`
     );
-    await installProvider(
-      superPath,
-      args.providerName,
-      flags.profile.trim(),
-      this.config.userAgent,
-      {
-        logCb: this.logCallback,
-        warnCb: this.warnCallback,
-        force: flags.force,
-        local: flags.local,
-      }
-    );
+    await installProvider(superPath, args.providerName, flags.profile.trim(), {
+      logCb: this.logCallback,
+      warnCb: this.warnCallback,
+      force: flags.force,
+      local: flags.local,
+    });
   }
 }
