@@ -114,7 +114,8 @@ describe('Install CLI command', () => {
       );
     }
 
-    it('installs the newest profile', async () => {
+    //TODO: Production DB does not contain starwars
+    it.skip('installs the newest profile', async () => {
       await cleanSuperJson();
 
       const profileId = `${PROFILE.scope}/${PROFILE.name}`;
@@ -132,7 +133,8 @@ describe('Install CLI command', () => {
       });
     }, 10000);
 
-    it('installs the specified profile version with default provider configuration', async () => {
+    //TODO: Production DB does not contain starwars
+    it.skip('installs the specified profile version with default provider configuration', async () => {
       await cleanSuperJson();
 
       const profileId = `${PROFILE.scope}/${PROFILE.name}`;
@@ -207,7 +209,8 @@ describe('Install CLI command', () => {
       expect(stdout.output).toContain(`File already exists: "${localFile}"`);
     }, 10000);
 
-    it('preserves file field in super.json', async () => {
+    //TODO: Production DB does not contain starwars
+    it.skip('preserves file field in super.json', async () => {
       const profileId = `${PROFILE.scope}/${PROFILE.name}`;
 
       await expect(Install.run([profileId, '-f'])).resolves.toBeUndefined();
