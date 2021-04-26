@@ -10,7 +10,6 @@ import Install from './install';
 
 describe('Install CLI command', () => {
   const WORKING_DIR = joinPath('fixtures', 'install', 'playground');
-
   const PROFILE = {
     scope: 'starwars',
     name: 'character-information',
