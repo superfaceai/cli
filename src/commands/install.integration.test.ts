@@ -10,7 +10,6 @@ import Install from './install';
 
 describe('Install CLI command', () => {
   const WORKING_DIR = joinPath('fixtures', 'install', 'playground');
-  const mockUserAgent = '@superfaceai/cli/0.0.5 darwin-x64 node-v14.16.0';
   const PROFILE = {
     scope: 'starwars',
     name: 'character-information',
@@ -124,7 +123,7 @@ describe('Install CLI command', () => {
       const superJson = (await SuperJson.load()).unwrap();
 
       const local = await readFile(FIXTURE.profile, { encoding: 'utf-8' });
-      const registry = await fetchProfile(profileId, mockUserAgent);
+      const registry = await fetchProfile(profileId);
       expect(local).toEqual(registry);
 
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -145,7 +144,7 @@ describe('Install CLI command', () => {
       const superJson = (await SuperJson.load()).unwrap();
 
       const local = await readFile(FIXTURE.profile, { encoding: 'utf-8' });
-      const registry = await fetchProfile(profileIdRequest, mockUserAgent);
+      const registry = await fetchProfile(profileIdRequest);
       expect(local).toEqual(registry);
 
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -224,7 +223,7 @@ describe('Install CLI command', () => {
       expect(localFile).toBe(expectedFile);
 
       const local = await readFile(localFile, { encoding: 'utf-8' });
-      const registry = await fetchProfile(profileId, mockUserAgent);
+      const registry = await fetchProfile(profileId);
       expect(local).toEqual(registry);
     }, 10000);
   });
