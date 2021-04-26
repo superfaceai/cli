@@ -1,4 +1,7 @@
 ## [Unreleased]
+
+## [0.0.10] - 2021-04-26
+
 ### Added
 * Generate command
 
@@ -66,7 +69,8 @@
 * Transpile command
 * CI github flow
 
-[Unreleased]: https://github.com/superfaceai/cli/compare/v0.0.5...HEAD
+[Unreleased]: https://github.com/superfaceai/cli/compare/v0.0.10...HEAD
+[0.0.10]: https://github.com/superfaceai/cli/compare/v0.0.5...v0.0.10
 [0.0.5]: https://github.com/superfaceai/cli/compare/v0.0.4...v0.0.5
 [0.0.4]: https://github.com/superfaceai/cli/compare/v0.0.3...v0.0.4
 [0.0.3]: https://github.com/superfaceai/cli/compare/v0.0.2...v0.0.3
