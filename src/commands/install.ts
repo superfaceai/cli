@@ -165,7 +165,7 @@ export default class Install extends Command {
       }
     }
 
-    await installProfiles(superPath, installRequests, {
+    await installProfiles(superPath, this.config.userAgent, installRequests, {
       logCb: this.logCallback,
       warnCb: this.warnCallback,
       force: flags.force,
@@ -174,12 +174,18 @@ export default class Install extends Command {
 
     this.logCallback?.(`\n\nConfiguring providers`);
     for (const providerName of providers) {
-      await installProvider(superPath, providerName, args.profileId, {
-        logCb: this.logCallback,
-        warnCb: this.warnCallback,
-        force: flags.force,
-        local: false,
-      });
+      await installProvider(
+        superPath,
+        providerName,
+        args.profileId,
+        this.config.userAgent,
+        {
+          logCb: this.logCallback,
+          warnCb: this.warnCallback,
+          force: flags.force,
+          local: false,
+        }
+      );
     }
   }
 }

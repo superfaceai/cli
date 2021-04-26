@@ -136,6 +136,7 @@ type StoreRequestFetched = StoreRequestChecked & {
  */
 export async function resolveInstallationRequests(
   superJson: SuperJson,
+  userAgent: string,
   requests: (LocalRequest | StoreRequest)[],
   options?: InstallOptions
 ): Promise<number> {
@@ -174,7 +175,12 @@ export async function resolveInstallationRequests(
   const phase3 = await Promise.all(
     phase2.map(async request => {
       if (request.kind === 'store') {
-        return fetchStoreRequestCheckedOrDeferred(superJson, request, options);
+        return fetchStoreRequestCheckedOrDeferred(
+          superJson,
+          userAgent,
+          request,
+          options
+        );
       }
 
       return request;
@@ -389,6 +395,7 @@ export type ProfileResponse = {
 };
 export async function getProfileFromStore(
   profileId: string,
+  userAgent: string,
   version?: string,
   options?: { logCb?: LogCallback; warnCb?: LogCallback }
 ): Promise<ProfileResponse | undefined> {
@@ -403,13 +410,13 @@ export async function getProfileFromStore(
   options?.logCb?.(`\nFetching profile ${profileId} from the Store`);
 
   try {
-    info = await fetchProfileInfo(profileId);
+    info = await fetchProfileInfo(profileId, userAgent);
     options?.logCb?.(`GET Profile Info ${profileId}`);
 
-    profile = await fetchProfile(profileId);
+    profile = await fetchProfile(profileId, userAgent);
     options?.logCb?.(`GET Profile Source File ${profileId}`);
 
-    ast = await fetchProfileAST(profileId);
+    ast = await fetchProfileAST(profileId, userAgent);
     options?.logCb?.(`GET compiled Profile ${profileId}`);
   } catch (error) {
     // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
@@ -427,11 +434,13 @@ export async function getProfileFromStore(
 
 async function fetchStoreRequestCheckedOrDeferred(
   superJson: SuperJson,
+  userAgent: string,
   request: StoreRequestChecked | StoreRequestDeferredCheck,
   options?: InstallOptions
 ): Promise<StoreRequestFetched | undefined> {
   const fetched = await getProfileFromStore(
     request.profileId,
+    userAgent,
     request.version,
     options
   );
@@ -548,6 +557,7 @@ export async function getExistingProfileIds(
  */
 export async function installProfiles(
   superPath: string,
+  userAgent: string,
   requests: (LocalRequest | StoreRequest)[],
   options?: InstallOptions
 ): Promise<void> {
@@ -571,6 +581,7 @@ export async function installProfiles(
 
   const installed = await resolveInstallationRequests(
     superJson,
+    userAgent,
     requests,
     options
   );

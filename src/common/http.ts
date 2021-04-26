@@ -27,47 +27,57 @@ export enum ContentType {
 
 export const STORE_URL = new URL('https://superface.dev/').href;
 
-export async function fetch(url: string, type: ContentType): Promise<Response> {
+export async function fetch(
+  url: string,
+  type: ContentType,
+  userAgent: string
+): Promise<Response> {
   try {
-    return await superagent.get(url).set('Accept', type);
+    return superagent.get(url).set('Accept', type).set('User-Agent', userAgent);
   } catch (err) {
     throw userError(err, 1);
   }
 }
 
 export async function fetchProfileInfo(
-  profileId: string
+  profileId: string,
+  userAgent: string
 ): Promise<ProfileInfo> {
   const query = new URL(profileId, STORE_URL).href;
 
-  const response = await fetch(query, ContentType.JSON);
+  const response = await fetch(query, ContentType.JSON, userAgent);
 
   return response.body as ProfileInfo;
 }
 
-export async function fetchProfile(profileId: string): Promise<string> {
+export async function fetchProfile(
+  profileId: string,
+  userAgent: string
+): Promise<string> {
   const query = new URL(profileId, STORE_URL).href;
 
-  const response = await fetch(query, ContentType.PROFILE);
+  const response = await fetch(query, ContentType.PROFILE, userAgent);
 
   return (response.body as Buffer).toString();
 }
 
 export async function fetchProfileAST(
-  profileId: string
+  profileId: string,
+  userAgent: string
 ): Promise<ProfileDocumentNode> {
   const query = new URL(profileId, STORE_URL).href;
 
-  const response = await fetch(query, ContentType.AST);
+  const response = await fetch(query, ContentType.AST, userAgent);
 
   return response.body as ProfileDocumentNode;
 }
 
 export async function fetchProviderInfo(
-  providerName: string
+  providerName: string,
+  userAgent: string
 ): Promise<ProviderJson> {
   const query = new URL(providerName, `${STORE_URL}providers/`).href;
-  const response = await fetch(query, ContentType.JSON);
+  const response = await fetch(query, ContentType.JSON, userAgent);
 
   return parseProviderJson(response.body);
 }
