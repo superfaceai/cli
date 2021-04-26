@@ -146,7 +146,7 @@ export function createProfileType(
     typeReference('TypedProfile', [typeQuery('profile')])
   );
   const profileWrapper = variableStatement(
-    profileName,
+    camelize(profileName),
     objectLiteral([propertyAssignment(profileName, id('profile'))])
   );
 

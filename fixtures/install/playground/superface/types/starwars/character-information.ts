@@ -13,6 +13,6 @@ export const profile = {
     "RetrieveCharacterInformation": typeHelper<RetrieveCharacterInformationInput, RetrieveCharacterInformationResult>()
 };
 export type StarwarsCharacterInformationProfile = TypedProfile<typeof profile>;
-export const starwars/character-information = {
+export const starwarsCharacterInformation = {
     "starwars/character-information": profile
 };
