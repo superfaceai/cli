@@ -7,14 +7,17 @@ import {
   createPrinter,
   createSourceFile,
   EmitHint,
+  ExportDeclaration,
   Expression,
   factory,
   FalseLiteral,
   Identifier,
   ImportDeclaration,
   InterfaceDeclaration,
+  isExportSpecifier,
   isIdentifier,
   isImportSpecifier,
+  isNamedExports,
   isNamedImports,
   KeywordTypeNode,
   LiteralTypeNode,
@@ -37,6 +40,7 @@ import {
   TypeElement,
   TypeLiteralNode,
   TypeNode,
+  TypeQueryNode,
   TypeReferenceNode,
   UnionTypeNode,
   VariableStatement,
@@ -307,8 +311,11 @@ export function asExpression(name: string, asType: string): AsExpression {
   );
 }
 
-export function typeReference(name: string): TypeReferenceNode {
-  return factory.createTypeReferenceNode(name);
+export function typeReference(
+  name: string,
+  typeArguments?: TypeNode[]
+): TypeReferenceNode {
+  return factory.createTypeReferenceNode(name, typeArguments);
 }
 
 export function callExpression(
@@ -318,7 +325,7 @@ export function callExpression(
 ): CallExpression {
   return factory.createCallExpression(
     id(functionName),
-    typeArguments?.map(typeReference) ?? [],
+    typeArguments?.map(argument => typeReference(argument)) ?? [],
     functionArguments
   );
 }
@@ -383,11 +390,19 @@ export function createSource(statements: Statement[]): string {
 
 export function getImportText(node: ImportDeclaration): string | undefined {
   if (
-    node.importClause?.namedBindings &&
+    node.importClause?.namedBindings !== undefined &&
     isNamedImports(node.importClause.namedBindings)
   ) {
     return node.importClause.namedBindings.elements.find(isImportSpecifier)
       ?.name.text;
+  }
+
+  return undefined;
+}
+
+export function getExportText(node: ExportDeclaration): string | undefined {
+  if (node.exportClause !== undefined && isNamedExports(node.exportClause)) {
+    return node.exportClause.elements.find(isExportSpecifier)?.name.text;
   }
 
   return undefined;
@@ -402,4 +417,20 @@ export function getVariableName(node: VariableStatement): string | undefined {
   }
 
   return undefined;
+}
+
+export function typeQuery(name: string): TypeQueryNode {
+  return factory.createTypeQueryNode(id(name));
+}
+
+export function reexport(names: string[], from: string): ExportDeclaration {
+  return factory.createExportDeclaration(
+    undefined,
+    undefined,
+    false,
+    factory.createNamedExports(
+      names.map(name => factory.createExportSpecifier(undefined, name))
+    ),
+    stringLiteral(from)
+  );
 }

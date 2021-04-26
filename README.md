@@ -28,7 +28,7 @@ Superface allows for switching capability providers without development at a run
 
 Motivation behind Superface is nicely described in this [video](https://www.youtube.com/watch?v=BCvq3NXFb94) from APIdays conference.
 
-You can get more information at https://superface.ai and https://developer.superface.dev.
+You can get more information at https://superface.ai and https://docs.superface.ai/.
 
 ## Install
 
@@ -97,9 +97,9 @@ OPTIONS
 
 EXAMPLES
   $ superface configure twilio -p send-sms
-  $ superface configure twilio -q
-  $ superface configure twilio -f
-  $ superface configure twilio -l
+  $ superface configure twilio -p send-sms -q
+  $ superface configure twilio -p send-sms -f
+  $ superface configure providers/twilio.provider.json -p send-sms -l
 ```
 
 _See code: [src/commands/configure.ts](https://github.com/superfaceai/cli/tree/main/src/commands/configure.ts)_

@@ -1,7 +1,13 @@
 import { ProfileDocumentNode } from '@superfaceai/ast';
-import { parseProviderJson, ProviderJson } from '@superfaceai/one-sdk';
+import {
+  parseProviderJson,
+  ProviderJson,
+  VERSION as SDK_VERSION,
+} from '@superfaceai/one-sdk';
+import { VERSION as PARSER_VERSION } from '@superfaceai/parser';
 import superagent, { Response } from 'superagent';
 
+import { VERSION } from '..';
 import { userError } from './error';
 
 export interface ProfileInfo {
@@ -25,11 +31,12 @@ export enum ContentType {
   AST = 'application/vnd.superface.profile+json',
 }
 
-export const STORE_URL = new URL('https://superface.dev/').href;
+export const STORE_URL = new URL('https://superface.ai/').href;
 
 export async function fetch(url: string, type: ContentType): Promise<Response> {
+  const userAgent = `superface cli/${VERSION} (${process.platform}-${process.arch}) ${process.release.name}-${process.version} (with @superfaceai/one-sdk@${SDK_VERSION}, @superfaceai/parser@${PARSER_VERSION})`;
   try {
-    return await superagent.get(url).set('Accept', type);
+    return superagent.get(url).set('Accept', type).set('User-Agent', userAgent);
   } catch (err) {
     throw userError(err, 1);
   }
