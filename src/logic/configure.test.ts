@@ -29,6 +29,7 @@ jest.mock('@superfaceai/one-sdk/dist/internal/superjson');
 
 describe('Configure CLI logic', () => {
   const providerName = 'test';
+  const userAgent = '@superfaceai/cli/0.0.5 darwin-x64 node-v14.16.0';
   const mockProviderJson: ProviderJson = {
     name: providerName,
     services: [
@@ -149,17 +150,17 @@ describe('Configure CLI logic', () => {
     it('returns correct result', async () => {
       mocked(fetchProviderInfo).mockResolvedValue(mockProviderJson);
 
-      await expect(getProviderFromStore(providerName)).resolves.toEqual(
-        mockProviderJson
-      );
+      await expect(
+        getProviderFromStore(providerName, userAgent)
+      ).resolves.toEqual(mockProviderJson);
     });
 
     it('throws on error', async () => {
       mocked(fetchProviderInfo).mockRejectedValue(new Error('test'));
 
-      await expect(getProviderFromStore(providerName)).rejects.toEqual(
-        new CLIError('test')
-      );
+      await expect(
+        getProviderFromStore(providerName, userAgent)
+      ).rejects.toEqual(new CLIError('test'));
     });
   });
 
@@ -207,7 +208,7 @@ describe('Configure CLI logic', () => {
         .mockResolvedValue(undefined);
 
       await expect(
-        installProvider('some/path', providerName, mockProfileId)
+        installProvider('some/path', providerName, mockProfileId, userAgent)
       ).resolves.toBeUndefined();
 
       expect(loadSpy).toHaveBeenCalledTimes(1);
@@ -270,7 +271,7 @@ describe('Configure CLI logic', () => {
       mocked(readFile).mockResolvedValue(JSON.stringify(mockProviderJson));
 
       await expect(
-        installProvider('some/path', providerName, mockProfileId, {
+        installProvider('some/path', providerName, mockProfileId, userAgent, {
           local: true,
         })
       ).resolves.toBeUndefined();
@@ -324,7 +325,7 @@ describe('Configure CLI logic', () => {
       mocked(readFile).mockRejectedValue(new Error('test'));
 
       await expect(
-        installProvider('some/path', providerName, mockProfileId, {
+        installProvider('some/path', providerName, mockProfileId, userAgent, {
           local: true,
         })
       ).rejects.toEqual(new CLIError('test'));
@@ -348,7 +349,7 @@ describe('Configure CLI logic', () => {
         .mockResolvedValue(ok(mockSuperJson));
 
       await expect(
-        installProvider('some/path', providerName, mockProfileId)
+        installProvider('some/path', providerName, mockProfileId, userAgent)
       ).rejects.toEqual(
         new CLIError(
           `❌ profile ${mockProfileId} not found in some/path. Forgot to install?`
@@ -394,7 +395,7 @@ describe('Configure CLI logic', () => {
         .mockResolvedValue(undefined);
 
       await expect(
-        installProvider('some/path', providerName, mockProfileId)
+        installProvider('some/path', providerName, mockProfileId, userAgent)
       ).resolves.toBeUndefined();
 
       expect(loadSpy).toHaveBeenCalledTimes(1);

@@ -11,11 +11,14 @@ import {
 } from '../common/http';
 
 //Mock superagent
-const mockSet = jest.fn();
+const mockInnerSet = jest.fn();
+const mockSet = jest.fn().mockReturnValue({ set: mockInnerSet });
+
 jest.mock('superagent');
 
 describe('HTTP functions', () => {
   const profileId = 'starwars/character-information';
+  const userAgent = '@superfaceai/cli/0.0.5 darwin-x64 node-v14.16.0';
 
   afterEach(async () => {
     jest.resetAllMocks();
@@ -23,37 +26,45 @@ describe('HTTP functions', () => {
 
   describe('when fetching data', () => {
     it('calls superagent correctly', async () => {
-      mockSet.mockResolvedValue({ body: 'test' });
+      mockInnerSet.mockResolvedValue({ body: 'test' });
+      mockSet.mockImplementation(() => ({ set: mockInnerSet }));
       (jest.spyOn(superagent, 'get') as jest.Mock).mockReturnValue({
         set: mockSet,
       });
 
       const mockUrl = new URL(profileId, STORE_URL).href;
 
-      await expect(fetch(mockUrl, ContentType.JSON)).resolves.toEqual({
+      await expect(
+        fetch(mockUrl, ContentType.JSON, userAgent)
+      ).resolves.toEqual({
         body: 'test',
       });
 
       expect(mockSet).toHaveBeenCalledTimes(1);
       expect(mockSet).toHaveBeenCalledWith('Accept', ContentType.JSON);
+      expect(mockInnerSet).toHaveBeenCalledTimes(1);
+      expect(mockInnerSet).toHaveBeenCalledWith('User-Agent', userAgent);
       expect(jest.spyOn(superagent, 'get')).toHaveBeenCalledTimes(1);
       expect(jest.spyOn(superagent, 'get')).toHaveBeenCalledWith(mockUrl);
     }, 10000);
 
     it('catches error during superagent call', async () => {
-      mockSet.mockRejectedValue(new Error('Not found'));
+      mockInnerSet.mockRejectedValue(new Error('Not found'));
+      mockSet.mockImplementation(() => ({ set: mockInnerSet }));
       (jest.spyOn(superagent, 'get') as jest.Mock).mockReturnValue({
         set: mockSet,
       });
 
       const mockUrl = new URL(profileId, STORE_URL).href;
 
-      await expect(fetch(mockUrl, ContentType.JSON)).rejects.toEqual(
+      await expect(fetch(mockUrl, ContentType.JSON, userAgent)).rejects.toEqual(
         new CLIError('Not found')
       );
 
       expect(mockSet).toHaveBeenCalledTimes(1);
       expect(mockSet).toHaveBeenCalledWith('Accept', ContentType.JSON);
+      expect(mockInnerSet).toHaveBeenCalledTimes(1);
+      expect(mockInnerSet).toHaveBeenCalledWith('User-Agent', userAgent);
       expect(jest.spyOn(superagent, 'get')).toHaveBeenCalledTimes(1);
       expect(jest.spyOn(superagent, 'get')).toHaveBeenCalledWith(mockUrl);
     }, 10000);
@@ -72,19 +83,22 @@ describe('HTTP functions', () => {
         published_at: '2021-01-29T08:10:50.925Z',
         published_by: 'Ondrej Musil <mail@ondrejmusil.cz>',
       };
-      mockSet.mockResolvedValue({ body: mockProfileInfo });
+      mockInnerSet.mockResolvedValue({ body: mockProfileInfo });
+      mockSet.mockImplementation(() => ({ set: mockInnerSet }));
       (jest.spyOn(superagent, 'get') as jest.Mock).mockReturnValue({
         set: mockSet,
       });
 
       const mockUrl = new URL(profileId, STORE_URL).href;
 
-      await expect(fetchProfileInfo(profileId)).resolves.toEqual(
+      await expect(fetchProfileInfo(profileId, userAgent)).resolves.toEqual(
         mockProfileInfo
       );
 
       expect(mockSet).toHaveBeenCalledTimes(1);
       expect(mockSet).toHaveBeenCalledWith('Accept', ContentType.JSON);
+      expect(mockInnerSet).toHaveBeenCalledTimes(1);
+      expect(mockInnerSet).toHaveBeenCalledWith('User-Agent', userAgent);
       expect(jest.spyOn(superagent, 'get')).toHaveBeenCalledTimes(1);
       expect(jest.spyOn(superagent, 'get')).toHaveBeenCalledWith(mockUrl);
     }, 10000);
@@ -94,17 +108,22 @@ describe('HTTP functions', () => {
     it('calls superagent correctly', async () => {
       const mockProfile = 'mock profile';
 
-      mockSet.mockResolvedValue({ body: mockProfile });
+      mockInnerSet.mockResolvedValue({ body: mockProfile });
+      mockSet.mockImplementation(() => ({ set: mockInnerSet }));
       (jest.spyOn(superagent, 'get') as jest.Mock).mockReturnValue({
         set: mockSet,
       });
 
       const mockUrl = new URL(profileId, STORE_URL).href;
 
-      await expect(fetchProfile(profileId)).resolves.toEqual(mockProfile);
+      await expect(fetchProfile(profileId, userAgent)).resolves.toEqual(
+        mockProfile
+      );
 
       expect(mockSet).toHaveBeenCalledTimes(1);
       expect(mockSet).toHaveBeenCalledWith('Accept', ContentType.PROFILE);
+      expect(mockInnerSet).toHaveBeenCalledTimes(1);
+      expect(mockInnerSet).toHaveBeenCalledWith('User-Agent', userAgent);
       expect(jest.spyOn(superagent, 'get')).toHaveBeenCalledTimes(1);
       expect(jest.spyOn(superagent, 'get')).toHaveBeenCalledWith(mockUrl);
     }, 10000);
@@ -139,17 +158,22 @@ describe('HTTP functions', () => {
         location: { line: 1, column: 1 },
         span: { start: 0, end: 228 },
       };
-      mockSet.mockResolvedValue({ body: mockProfileAst });
+      mockInnerSet.mockResolvedValue({ body: mockProfileAst });
+      mockSet.mockImplementation(() => ({ set: mockInnerSet }));
       (jest.spyOn(superagent, 'get') as jest.Mock).mockReturnValue({
         set: mockSet,
       });
 
       const mockUrl = new URL(profileId, STORE_URL).href;
 
-      await expect(fetchProfileAST(profileId)).resolves.toEqual(mockProfileAst);
+      await expect(fetchProfileAST(profileId, userAgent)).resolves.toEqual(
+        mockProfileAst
+      );
 
       expect(mockSet).toHaveBeenCalledTimes(1);
       expect(mockSet).toHaveBeenCalledWith('Accept', ContentType.AST);
+      expect(mockInnerSet).toHaveBeenCalledTimes(1);
+      expect(mockInnerSet).toHaveBeenCalledWith('User-Agent', userAgent);
       expect(jest.spyOn(superagent, 'get')).toHaveBeenCalledTimes(1);
       expect(jest.spyOn(superagent, 'get')).toHaveBeenCalledWith(mockUrl);
     }, 10000);

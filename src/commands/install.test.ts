@@ -54,6 +54,7 @@ describe('Install CLI command', () => {
       expect(installProfiles).toHaveBeenCalledTimes(1);
       expect(installProfiles).toHaveBeenCalledWith(
         'superface',
+        expect.any(String),
         [{ kind: 'store', profileId: profileName }],
         {
           logCb: expect.anything(),
@@ -72,6 +73,7 @@ describe('Install CLI command', () => {
       expect(installProfiles).toHaveBeenCalledTimes(1);
       expect(installProfiles).toHaveBeenCalledWith(
         '.',
+        expect.any(String),
         [{ kind: 'store', profileId: profileName }],
         {
           logCb: expect.anything(),
@@ -90,6 +92,7 @@ describe('Install CLI command', () => {
       expect(installProfiles).toHaveBeenCalledTimes(1);
       expect(installProfiles).toHaveBeenCalledWith(
         '.',
+        expect.any(String),
         [{ kind: 'store', profileId: profileName }],
         {
           logCb: undefined,
@@ -105,12 +108,17 @@ describe('Install CLI command', () => {
 
       await expect(Install.run([])).resolves.toBeUndefined();
       expect(installProfiles).toHaveBeenCalledTimes(1);
-      expect(installProfiles).toHaveBeenCalledWith('.', [], {
-        logCb: expect.any(Function),
-        warnCb: expect.any(Function),
-        force: false,
-        typings: true,
-      });
+      expect(installProfiles).toHaveBeenCalledWith(
+        '.',
+        expect.any(String),
+        [],
+        {
+          logCb: expect.any(Function),
+          warnCb: expect.any(Function),
+          force: false,
+          typings: true,
+        }
+      );
     }, 10000);
 
     it('throws error on empty profileId argument with providers flag', async () => {
@@ -166,6 +174,7 @@ describe('Install CLI command', () => {
       expect(installProfiles).toHaveBeenCalledTimes(1);
       expect(installProfiles).toHaveBeenCalledWith(
         '.',
+        expect.any(String),
         [{ kind: 'store', profileId: profileName }],
         {
           logCb: expect.anything(),

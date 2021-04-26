@@ -30,7 +30,7 @@ describe('Configure CLI command', () => {
     jest.resetAllMocks();
   });
 
-  describe('when running play command', () => {
+  describe('when running configure command', () => {
     const mockProvider = 'twilio';
     const mockPath = 'some/path';
     const mockProfile = 'sms';
@@ -60,6 +60,7 @@ describe('Configure CLI command', () => {
         mockPath,
         mockProvider,
         mockProfile,
+        expect.any(String),
         {
           force: false,
           local: false,
@@ -92,6 +93,7 @@ describe('Configure CLI command', () => {
         'superface',
         mockProvider,
         mockProfile,
+        expect.any(String),
         {
           force: false,
           local: false,
