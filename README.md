@@ -13,7 +13,6 @@ Superface CLI provides access to superface tooling from the CLI.
 - [Security](#security)
 - [Support](#support)
 - [Development](#development)
-- [Publishing](#publishing)
 - [Maintainers](#maintainers)
 - [Contributing](#contributing)
 - [License](#license)
@@ -244,16 +243,6 @@ To install a local artifact globally, symlink the binary (`ln -s bin/superface <
 **Note**: The project needs to be built (into the `dist` folder) to run cli commands.
 
 **Note**: You can change url of API requests by setting `SUPERFACE_API_URL` environment variable to desired base url.
-
-## Publishing
-
-Package publishing is done through GitHub release functionality.
-
-[Draft a new release](https://github.com/superfaceai/cli/releases/new) to publish a new version of the package.
-
-Use semver for the version tag. It must be in format of `v<major>.<minor>.<patch>`.
-
-Github Actions workflow will pick up the release and publish it as one of the [packages](https://www.npmjs.com/package/@superfaceai/cli).
 
 ## Maintainers
 
