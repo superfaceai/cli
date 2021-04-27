@@ -7,7 +7,7 @@ import {
   fetchProfile,
   fetchProfileAST,
   fetchProfileInfo,
-  STORE_URL,
+  getStoreUrl,
 } from '../common/http';
 
 //Mock superagent
@@ -31,7 +31,7 @@ describe('HTTP functions', () => {
         set: mockSet,
       });
 
-      const mockUrl = new URL(profileId, STORE_URL).href;
+      const mockUrl = new URL(profileId, getStoreUrl()).href;
 
       await expect(fetch(mockUrl, ContentType.JSON)).resolves.toEqual({
         body: 'test',
@@ -55,7 +55,7 @@ describe('HTTP functions', () => {
         set: mockSet,
       });
 
-      const mockUrl = new URL(profileId, STORE_URL).href;
+      const mockUrl = new URL(profileId, getStoreUrl()).href;
 
       await expect(fetch(mockUrl, ContentType.JSON)).rejects.toEqual(
         new CLIError('Not found')
@@ -92,7 +92,7 @@ describe('HTTP functions', () => {
         set: mockSet,
       });
 
-      const mockUrl = new URL(profileId, STORE_URL).href;
+      const mockUrl = new URL(profileId, getStoreUrl()).href;
 
       await expect(fetchProfileInfo(profileId)).resolves.toEqual(
         mockProfileInfo
@@ -120,7 +120,7 @@ describe('HTTP functions', () => {
         set: mockSet,
       });
 
-      const mockUrl = new URL(profileId, STORE_URL).href;
+      const mockUrl = new URL(profileId, getStoreUrl()).href;
 
       await expect(fetchProfile(profileId)).resolves.toEqual(mockProfile);
 
@@ -171,7 +171,7 @@ describe('HTTP functions', () => {
         set: mockSet,
       });
 
-      const mockUrl = new URL(profileId, STORE_URL).href;
+      const mockUrl = new URL(profileId, getStoreUrl()).href;
 
       await expect(fetchProfileAST(profileId)).resolves.toEqual(mockProfileAst);
 

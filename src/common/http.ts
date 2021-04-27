@@ -30,8 +30,11 @@ export enum ContentType {
   PROFILE = 'application/vnd.superface.profile',
   AST = 'application/vnd.superface.profile+json',
 }
-const apiUrl = process.env.SUPERFACE_API_URL
-export const STORE_URL = apiUrl ? new URL(apiUrl).href : new URL('https://superface.ai/').href;
+export function getStoreUrl(): string {
+  const envUrl = process.env.SUPERFACE_API_URL;
+
+  return envUrl ? new URL(envUrl).href : new URL('https://superface.ai/').href;
+}
 
 export async function fetch(url: string, type: ContentType): Promise<Response> {
   const userAgent = `superface cli/${VERSION} (${process.platform}-${process.arch}) ${process.release.name}-${process.version} (with @superfaceai/one-sdk@${SDK_VERSION}, @superfaceai/parser@${PARSER_VERSION})`;
@@ -45,7 +48,7 @@ export async function fetch(url: string, type: ContentType): Promise<Response> {
 export async function fetchProfileInfo(
   profileId: string
 ): Promise<ProfileInfo> {
-  const query = new URL(profileId, STORE_URL).href;
+  const query = new URL(profileId, getStoreUrl()).href;
 
   const response = await fetch(query, ContentType.JSON);
 
@@ -53,7 +56,7 @@ export async function fetchProfileInfo(
 }
 
 export async function fetchProfile(profileId: string): Promise<string> {
-  const query = new URL(profileId, STORE_URL).href;
+  const query = new URL(profileId, getStoreUrl()).href;
 
   const response = await fetch(query, ContentType.PROFILE);
 
@@ -63,7 +66,7 @@ export async function fetchProfile(profileId: string): Promise<string> {
 export async function fetchProfileAST(
   profileId: string
 ): Promise<ProfileDocumentNode> {
-  const query = new URL(profileId, STORE_URL).href;
+  const query = new URL(profileId, getStoreUrl()).href;
 
   const response = await fetch(query, ContentType.AST);
 
@@ -73,7 +76,7 @@ export async function fetchProfileAST(
 export async function fetchProviderInfo(
   providerName: string
 ): Promise<ProviderJson> {
-  const query = new URL(providerName, `${STORE_URL}providers/`).href;
+  const query = new URL(providerName, `${getStoreUrl()}providers/`).href;
   const response = await fetch(query, ContentType.JSON);
 
   return parseProviderJson(response.body);
