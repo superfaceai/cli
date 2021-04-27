@@ -327,7 +327,6 @@ export async function detectPlayground(
  *   name.supr
  *   name.provider.suma
  *   provider.provider.json
- *   .npmrc
  *   superface/
  *     super.json
  *     .gitignore

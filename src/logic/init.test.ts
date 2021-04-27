@@ -56,7 +56,7 @@ describe('Init logic', () => {
       expect(mkdirQuiet).toHaveBeenNthCalledWith(3, 'test/superface/types');
       expect(mkdirQuiet).toHaveBeenNthCalledWith(4, 'test/superface/build');
 
-      expect(writeIfAbsentSpy).toHaveBeenCalledTimes(4);
+      expect(writeIfAbsentSpy).toHaveBeenCalledTimes(3);
       expect(writeIfAbsentSpy).toHaveBeenNthCalledWith(
         1,
         'test/README.md',
@@ -65,18 +65,12 @@ describe('Init logic', () => {
       );
       expect(writeIfAbsentSpy).toHaveBeenNthCalledWith(
         2,
-        'test/.npmrc',
-        initTemplate.npmRc,
-        { force: undefined }
-      );
-      expect(writeIfAbsentSpy).toHaveBeenNthCalledWith(
-        3,
         'test/superface/super.json',
         expect.anything(),
         { force: undefined }
       );
       expect(writeIfAbsentSpy).toHaveBeenNthCalledWith(
-        4,
+        3,
         'test/superface/.gitignore',
         initTemplate.gitignore,
         { force: undefined }

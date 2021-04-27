@@ -7,7 +7,6 @@ import {
   composeUsecaseName,
   GRID_DIR,
   META_FILE,
-  NPMRC,
   SUPERFACE_DIR,
   TYPES_DIR,
 } from '../common/document';
@@ -25,7 +24,6 @@ import { createProfile } from './create';
  * Inside the path the following structure is generated:
  * ```
  * appPath/
- *   .npmrc
  *   superface/
  *     super.json
  *     .gitignore
@@ -65,23 +63,6 @@ export async function initSuperface(
     if (created) {
       options?.logCb?.(
         formatShellLog("echo '<README.md template>' >", [readmePath])
-      );
-    }
-  }
-
-  // TODO: This will not be needed once we migrate
-  // to npm repository (since it is the default)
-  {
-    const npmrcPath = joinPath(appPath, NPMRC);
-    const created = await OutputStream.writeIfAbsent(
-      npmrcPath,
-      initTemplate.npmRc,
-      { force: options?.force }
-    );
-
-    if (created) {
-      options?.logCb?.(
-        formatShellLog("echo '<.npmrc template>' >", [npmrcPath])
       );
     }
   }
