@@ -92,9 +92,6 @@ describe('Play CLI command', () => {
     ).resolves.toBeDefined();
 
     expect(stdout.output).toContain(
-      `$ echo '<.npmrc template>' > '${createdPlayground.path}/.npmrc'`
-    );
-    expect(stdout.output).toContain(
       `$ echo '<initial super.json>' > '${expectedFiles[3]}'`
     );
     expect(stdout.output).toContain(

@@ -33,17 +33,12 @@ describe('Init CLI command', () => {
   it('initializes base folder', async () => {
     await expect(Init.run([testInitFolderPath])).resolves.toBeUndefined();
 
-    const expectedFiles = [
-      '.npmrc',
-      joinPath(SUPERFACE_DIR, '.gitignore'),
-      SUPER_PATH,
-    ];
+    const expectedFiles = [joinPath(SUPERFACE_DIR, '.gitignore'), SUPER_PATH];
 
     const expectedDirectories = [SUPERFACE_DIR, BUILD_DIR, TYPES_DIR, GRID_DIR];
 
     expect(stdout.output).toContain(
       `$ echo '<README.md template>' > 'fixtures/playgrounds/test/README.md'
-$ echo '<.npmrc template>' > 'fixtures/playgrounds/test/.npmrc'
 $ mkdir 'fixtures/playgrounds/test/superface'
 $ echo '<initial super.json>' > 'fixtures/playgrounds/test/superface/super.json'
 $ echo '<.gitignore template>' > 'fixtures/playgrounds/test/superface/.gitignore'
@@ -71,11 +66,7 @@ $ mkdir 'fixtures/playgrounds/test/superface/build'
   it('initializes base folder with quiet mode', async () => {
     await expect(Init.run([testInitFolderPath, '-q'])).resolves.toBeUndefined();
 
-    const expectedFiles = [
-      '.npmrc',
-      joinPath(SUPERFACE_DIR, '.gitignore'),
-      SUPER_PATH,
-    ];
+    const expectedFiles = [joinPath(SUPERFACE_DIR, '.gitignore'), SUPER_PATH];
 
     const expectedDirectories = [SUPERFACE_DIR, BUILD_DIR, TYPES_DIR, GRID_DIR];
 
