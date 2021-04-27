@@ -243,6 +243,8 @@ To install a local artifact globally, symlink the binary (`ln -s bin/superface <
 
 **Note**: The project needs to be built (into the `dist` folder) to run cli commands.
 
+**Note**: You can change url of API requests by setting `SUPERFACE_API_URL` environment variable to desired base url.
+
 ## Publishing
 
 Package publishing is done through GitHub release functionality.
