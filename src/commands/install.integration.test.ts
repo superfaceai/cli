@@ -40,7 +40,7 @@ describe('Install CLI command', () => {
   beforeAll(async () => {
     originalSfUrl = process.env.SUPERFACE_API_URL
     //Point to dev api
-    process.env.SUPERFACE_API_URL = 'https://superface.ai/';
+    process.env.SUPERFACE_API_URL = 'https://superface.dev/';
 
     INITIAL_CWD = process.cwd();
     process.chdir(WORKING_DIR);
