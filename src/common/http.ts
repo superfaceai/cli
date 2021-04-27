@@ -30,8 +30,8 @@ export enum ContentType {
   PROFILE = 'application/vnd.superface.profile',
   AST = 'application/vnd.superface.profile+json',
 }
-
-export const STORE_URL = new URL('https://superface.ai/').href;
+const apiUrl = process.env.SUPERFACE_API_URL
+export const STORE_URL = apiUrl ? new URL(apiUrl).href : new URL('https://superface.ai/').href;
 
 export async function fetch(url: string, type: ContentType): Promise<Response> {
   const userAgent = `superface cli/${VERSION} (${process.platform}-${process.arch}) ${process.release.name}-${process.version} (with @superfaceai/one-sdk@${SDK_VERSION}, @superfaceai/parser@${PARSER_VERSION})`;
