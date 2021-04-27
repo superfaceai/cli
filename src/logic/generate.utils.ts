@@ -361,13 +361,17 @@ export function typeDefinitions(profiles: string[]): Statement[] {
   return [definitions];
 }
 
-export function typedClientStatement(): VariableStatement {
-  const statement = variableStatement(
+export function typedClientStatement(): Statement[] {
+  const client = variableStatement(
     'SuperfaceClient',
     callExpression('createTypedClient', [id('typeDefinitions')])
   );
+  const clientType = typeAlias(
+    'SuperfaceClient',
+    typeReference('InstanceType', [typeQuery('SuperfaceClient')])
+  );
 
-  return statement;
+  return [client, clientType];
 }
 
 export function parseSource(source: string): Statement[] {

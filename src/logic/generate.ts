@@ -165,7 +165,7 @@ export function generateTypesFile(
     namedImport(['createTypedClient'], '@superfaceai/one-sdk'),
     ...imports,
     ...typeDefinitions(profiles),
-    typedClientStatement(),
+    ...typedClientStatement(),
   ];
 
   if (typesFile !== undefined) {
@@ -261,7 +261,7 @@ export function updateTypesFile(
     mergedStatements.push(...typeDefinitions(mergedTypeDefinitions));
   }
 
-  mergedStatements.push(typedClientStatement());
+  mergedStatements.push(...typedClientStatement());
 
   return createSource(mergedStatements);
 }

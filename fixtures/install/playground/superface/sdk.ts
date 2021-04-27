@@ -5,3 +5,4 @@ export const typeDefinitions = {
     ...starwarsCharacterInformation
 };
 export const SuperfaceClient = createTypedClient(typeDefinitions);
+export type SuperfaceClient = InstanceType<typeof SuperfaceClient>;
