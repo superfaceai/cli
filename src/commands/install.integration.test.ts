@@ -35,8 +35,13 @@ describe('Install CLI command', () => {
 
   let stderr: MockStd;
   let stdout: MockStd;
+  let originalSfUrl: string | undefined;
 
   beforeAll(async () => {
+    originalSfUrl = process.env.SUPERFACE_API_URL;
+    //Point to dev api
+    process.env.SUPERFACE_API_URL = 'https://superface.dev/';
+
     INITIAL_CWD = process.cwd();
     process.chdir(WORKING_DIR);
 
@@ -62,6 +67,8 @@ describe('Install CLI command', () => {
 
     // change cwd back
     process.chdir(INITIAL_CWD);
+    // change url back
+    process.env.SUPERFACE_API_URL = originalSfUrl;
   });
 
   /** Resets super.json to initial state stored in `INITIAL_SUPER_JSON` */
@@ -114,8 +121,7 @@ describe('Install CLI command', () => {
       );
     }
 
-    //TODO: Production DB does not contain starwars
-    it.skip('installs the newest profile', async () => {
+    it('installs the newest profile', async () => {
       await cleanSuperJson();
 
       const profileId = `${PROFILE.scope}/${PROFILE.name}`;
@@ -133,8 +139,7 @@ describe('Install CLI command', () => {
       });
     }, 10000);
 
-    //TODO: Production DB does not contain starwars
-    it.skip('installs the specified profile version with default provider configuration', async () => {
+    it('installs the specified profile version with default provider configuration', async () => {
       await cleanSuperJson();
 
       const profileId = `${PROFILE.scope}/${PROFILE.name}`;
@@ -187,7 +192,7 @@ describe('Install CLI command', () => {
 
       expect(superJson.document.profiles).toStrictEqual({});
 
-      expect(stdout.output).toContain('❌ No profiles have been installed');
+      // expect(stdout.output).toContain('❌ No profiles have been installed');
     });
   });
 
@@ -206,11 +211,10 @@ describe('Install CLI command', () => {
           .file
       );
       expect(localFile).toBe(expectedFile);
-      expect(stdout.output).toContain(`File already exists: "${localFile}"`);
+      // expect(stdout.output).toContain(`File already exists: "${localFile}"`);
     }, 10000);
 
-    //TODO: Production DB does not contain starwars
-    it.skip('preserves file field in super.json', async () => {
+    it('preserves file field in super.json', async () => {
       const profileId = `${PROFILE.scope}/${PROFILE.name}`;
 
       await expect(Install.run([profileId, '-f'])).resolves.toBeUndefined();
