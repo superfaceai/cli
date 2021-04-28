@@ -48,7 +48,6 @@ export function isDocumentedStructure(
   return 'title' in structure;
 }
 
-export type UsecaseOutput = ProfileOutput['usecases'][number];
 export function createUsecaseTypes(
   usecase: ProfileOutput['usecases'][number],
   untypedType: 'any' | 'unknown'
