@@ -1,6 +1,9 @@
 # CLI
 
 ![GitHub Workflow Status](https://img.shields.io/github/workflow/status/superfaceai/cli/CI)
+![NPM](https://img.shields.io/npm/v/@superfaceai/cli)
+[![NPM](https://img.shields.io/npm/l/@superfaceai/cli)](LICENSE)
+![TypeScript](https://img.shields.io/badge/%3C%2F%3E-Typescript-blue)
 
 <img src="https://github.com/superfaceai/cli/blob/main/docs/LogoGreen.png" alt="superface logo" width="150" height="150">
 
