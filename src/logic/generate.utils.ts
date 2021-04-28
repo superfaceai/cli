@@ -13,7 +13,6 @@ import {
   FalseLiteral,
   Identifier,
   ImportDeclaration,
-  InterfaceDeclaration,
   isExportSpecifier,
   isIdentifier,
   isImportSpecifier,
@@ -46,11 +45,13 @@ import {
   VariableStatement,
 } from 'typescript';
 
-function addDoc<T extends Node>(
+import { isDocumentedStructure } from './generate';
+
+export function addDoc<T extends Node>(
   node: T,
-  doc: { title?: string; description?: string }
+  doc?: { title?: string; description?: string }
 ): T {
-  if (doc.title === undefined) {
+  if (doc === undefined || doc.title === undefined) {
     return node;
   }
 
@@ -134,11 +135,15 @@ export function keyword(
   }
 }
 
+export function arrayType(elementType: TypeNode): ArrayTypeNode {
+  return factory.createArrayTypeNode(elementType);
+}
+
 export function variableType(
   prefix: string,
   structure: StructureType,
   untypedType: 'any' | 'unknown'
-): KeywordTypeNode | TypeReferenceNode | ArrayTypeNode | TypeLiteralNode {
+): KeywordTypeNode | UnionTypeNode | ArrayTypeNode | TypeLiteralNode {
   switch (structure.kind) {
     case 'PrimitiveStructure':
       return keyword(structure.type);
@@ -147,22 +152,30 @@ export function variableType(
       return keyword(untypedType);
 
     case 'EnumStructure':
-      return factory.createTypeReferenceNode(prefix);
+      return literalUnion(structure.enums.map(enumValue => enumValue.value));
 
     case 'ListStructure':
-      return factory.createArrayTypeNode(
-        variableType(prefix, structure.value, untypedType)
-      );
+      return arrayType(variableType(prefix, structure.value, untypedType));
 
     case 'ObjectStructure': {
-      const properties = Object.entries(
-        structure.fields ?? {}
-      ).map(([name, innerStructure]) =>
-        propertySignature(
-          name,
-          innerStructure.required,
-          variableType('', innerStructure, untypedType)
-        )
+      const properties = Object.entries(structure.fields ?? {}).map(
+        ([name, innerStructure]) => {
+          const doc = isDocumentedStructure(innerStructure)
+            ? {
+                title: innerStructure.title,
+                description: innerStructure.description,
+              }
+            : undefined;
+
+          return addDoc(
+            propertySignature(
+              name,
+              innerStructure.required,
+              variableType('', innerStructure, untypedType)
+            ),
+            doc
+          );
+        }
       );
 
       return factory.createTypeLiteralNode(properties);
@@ -231,27 +244,6 @@ export function namedTuple(
   );
 }
 
-export function interfaceType(
-  name: string,
-  members: TypeElement[],
-  doc?: { title?: string; description?: string }
-): InterfaceDeclaration {
-  const interfaceType = factory.createInterfaceDeclaration(
-    undefined,
-    [exportKeyword],
-    id(name),
-    undefined,
-    undefined,
-    members
-  );
-
-  if (doc !== undefined) {
-    return addDoc(interfaceType, doc);
-  }
-
-  return interfaceType;
-}
-
 export function propertySignature(
   name: string,
   required: boolean | undefined,
@@ -274,10 +266,11 @@ export function propertySignature(
 
 export function variableStatement(
   name: string,
-  initializer: Expression
+  initializer: Expression,
+  skipExport = false
 ): VariableStatement {
   return factory.createVariableStatement(
-    [factory.createToken(SyntaxKind.ExportKeyword)],
+    skipExport ? [] : [factory.createToken(SyntaxKind.ExportKeyword)],
     factory.createVariableDeclarationList(
       [
         factory.createVariableDeclaration(

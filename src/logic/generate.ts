@@ -1,13 +1,11 @@
 import { ProfileDocumentNode } from '@superfaceai/ast';
 import {
   DocumentedStructureType,
-  EnumStructure,
   getProfileOutput,
   ProfileOutput,
   StructureType,
 } from '@superfaceai/parser';
 import {
-  InterfaceDeclaration,
   isExportDeclaration,
   isIdentifier,
   isImportDeclaration,
@@ -15,7 +13,6 @@ import {
   isSpreadAssignment,
   isVariableStatement,
   Statement,
-  TypeAliasDeclaration,
   VariableStatement,
 } from 'typescript';
 
@@ -30,14 +27,11 @@ import {
   getImportText,
   getVariableName,
   id,
-  interfaceType,
-  literalUnion,
   namedImport,
   objectLiteral,
   parseSource,
   pascalize,
   propertyAssignment,
-  propertySignature,
   reexport,
   typeAlias,
   typedClientStatement,
@@ -54,43 +48,7 @@ export function isDocumentedStructure(
   return 'title' in structure;
 }
 
-export function createEnumTypes(
-  prefix: string,
-  fields: Record<string, StructureType | undefined>
-): TypeAliasDeclaration[] {
-  return Object.entries(fields)
-    .filter(
-      (entry): entry is [string, EnumStructure] =>
-        entry[1]?.kind === 'EnumStructure'
-    )
-    .map(([field, value]) =>
-      typeAlias(
-        prefix + capitalize(field),
-        literalUnion(value.enums.map(enumValue => enumValue.value))
-      )
-    );
-}
-
-export function createInterfaceFromStructure(
-  prefix: string,
-  fields: Record<string, StructureType>,
-  untypedType: 'any' | 'unknown',
-  doc?: { title?: string; description?: string }
-): InterfaceDeclaration {
-  const members = Object.entries(fields).map(([property, value]) =>
-    propertySignature(
-      property,
-      value.required,
-      variableType(prefix + capitalize(property), value, untypedType),
-      isDocumentedStructure(value)
-        ? { title: value.title, description: value.description }
-        : undefined
-    )
-  );
-
-  return interfaceType(prefix, members, doc);
-}
-
+export type UsecaseOutput = ProfileOutput['usecases'][number];
 export function createUsecaseTypes(
   usecase: ProfileOutput['usecases'][number],
   untypedType: 'any' | 'unknown'
@@ -98,26 +56,28 @@ export function createUsecaseTypes(
   let inputs: Statement[] = [];
   let results: Statement[] = [];
 
-  if (usecase.input?.fields) {
+  if (usecase.input !== undefined) {
     inputs = [
-      ...createEnumTypes(usecase.useCaseName + 'Input', usecase.input.fields),
-      createInterfaceFromStructure(
-        usecase.useCaseName + 'Input',
-        usecase.input.fields,
-        untypedType,
-        { title: usecase.title, description: usecase.description }
+      typeAlias(
+        capitalize(usecase.useCaseName) + 'Input',
+        variableType(
+          capitalize(usecase.useCaseName),
+          usecase.input,
+          untypedType
+        )
       ),
     ];
   }
 
-  if (usecase.result?.kind === 'ObjectStructure' && usecase.result.fields) {
+  if (usecase.result !== undefined) {
     results = [
-      ...createEnumTypes(usecase.useCaseName + 'Result', usecase.result.fields),
-      createInterfaceFromStructure(
-        usecase.useCaseName + 'Result',
-        usecase.result.fields,
-        untypedType,
-        { title: usecase.title, description: usecase.description }
+      typeAlias(
+        capitalize(usecase.useCaseName) + 'Result',
+        variableType(
+          capitalize(usecase.useCaseName),
+          usecase.result,
+          untypedType
+        )
       ),
     ];
   }
@@ -140,7 +100,7 @@ export function createProfileType(
     return propertyAssignment(usecaseName, helperCall);
   });
 
-  const profile = variableStatement('profile', objectLiteral(usecases));
+  const profile = variableStatement('profile', objectLiteral(usecases), true);
   const profileType = typeAlias(
     pascalize(profileName) + 'Profile',
     typeReference('TypedProfile', [typeQuery('profile')])
