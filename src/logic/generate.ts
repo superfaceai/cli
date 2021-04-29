@@ -77,7 +77,6 @@ export function createUsecaseTypes(
     const doc = isDocumentedStructure(usecase.result)
       ? { title: usecase.result.title, description: usecase.result.description }
       : undefined;
-    console.log(usecase.result);
     results = [
       addDoc(
         typeAlias(
