@@ -8,6 +8,7 @@ export type RetrieveCharacterInformationResult = {
     yearOfBirth?: unknown;
 };
 const profile = {
+    /** Starwars **/
     "RetrieveCharacterInformation": typeHelper<RetrieveCharacterInformationInput, RetrieveCharacterInformationResult>()
 };
 export type StarwarsCharacterInformationProfile = TypedProfile<typeof profile>;

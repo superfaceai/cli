@@ -19,6 +19,7 @@ import {
 import { developerError } from '../common/error';
 import { filterUndefined } from '../common/util';
 import {
+  addDoc,
   callExpression,
   camelize,
   capitalize,
@@ -56,27 +57,38 @@ export function createUsecaseTypes(
   let results: Statement[] = [];
 
   if (usecase.input !== undefined) {
+    const { title, description } = usecase.input;
     inputs = [
-      typeAlias(
-        capitalize(usecase.useCaseName) + 'Input',
-        variableType(
-          capitalize(usecase.useCaseName),
-          usecase.input,
-          untypedType
-        )
+      addDoc(
+        typeAlias(
+          capitalize(usecase.useCaseName) + 'Input',
+          variableType(
+            capitalize(usecase.useCaseName),
+            usecase.input,
+            untypedType
+          )
+        ),
+        { title, description }
       ),
     ];
   }
 
   if (usecase.result !== undefined) {
+    const doc = isDocumentedStructure(usecase.result)
+      ? { title: usecase.result.title, description: usecase.result.description }
+      : undefined;
+    console.log(usecase.result);
     results = [
-      typeAlias(
-        capitalize(usecase.useCaseName) + 'Result',
-        variableType(
-          capitalize(usecase.useCaseName),
-          usecase.result,
-          untypedType
-        )
+      addDoc(
+        typeAlias(
+          capitalize(usecase.useCaseName) + 'Result',
+          variableType(
+            capitalize(usecase.useCaseName),
+            usecase.result,
+            untypedType
+          )
+        ),
+        doc
       ),
     ];
   }
@@ -86,20 +98,24 @@ export function createUsecaseTypes(
 
 export function createProfileType(
   profileName: string,
-  usecaseNames: string[]
+  usecases: { name: string; doc: { title?: string; description?: string } }[]
 ): Statement[] {
-  const usecases = usecaseNames.map(usecaseName => {
-    const pascalizedUsecaseName = pascalize(usecaseName);
+  const usecaseAssignments = usecases.map(usecase => {
+    const pascalizedUsecaseName = pascalize(usecase.name);
     const helperCall = callExpression(
       'typeHelper',
       [],
       [pascalizedUsecaseName + 'Input', pascalizedUsecaseName + 'Result']
     );
 
-    return propertyAssignment(usecaseName, helperCall);
+    return addDoc(propertyAssignment(usecase.name, helperCall), usecase.doc);
   });
 
-  const profile = variableStatement('profile', objectLiteral(usecases), true);
+  const profile = variableStatement(
+    'profile',
+    objectLiteral(usecaseAssignments),
+    true
+  );
   const profileType = typeAlias(
     pascalize(profileName) + 'Profile',
     typeReference('TypedProfile', [typeQuery('profile')])
@@ -239,7 +255,10 @@ export function generateTypingsForProfile(
     ...inputTypes,
     ...createProfileType(
       profileName,
-      output.usecases.map(usecase => usecase.useCaseName)
+      output.usecases.map(usecase => ({
+        name: usecase.useCaseName,
+        doc: { title: usecase.title, description: usecase.description },
+      }))
     ),
   ];
 
