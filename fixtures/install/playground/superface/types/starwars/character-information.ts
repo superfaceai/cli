@@ -1,15 +1,14 @@
 import { typeHelper, TypedProfile } from '@superfaceai/one-sdk';
-/** Starwars **/
-export interface RetrieveCharacterInformationInput {
+export type RetrieveCharacterInformationInput = {
     characterName?: unknown;
-}
-/** Starwars **/
-export interface RetrieveCharacterInformationResult {
+};
+export type RetrieveCharacterInformationResult = {
     height?: unknown;
     weight?: unknown;
     yearOfBirth?: unknown;
-}
-export const profile = {
+};
+const profile = {
+    /** Starwars **/
     "RetrieveCharacterInformation": typeHelper<RetrieveCharacterInformationInput, RetrieveCharacterInformationResult>()
 };
 export type StarwarsCharacterInformationProfile = TypedProfile<typeof profile>;

@@ -2,6 +2,7 @@
 
 ### Changed
 * Export SuperfaceClient type from generated SDK
+* Allow every type for Result in generated SDK
 
 ## [0.0.10] - 2021-04-26
 

@@ -30,6 +30,7 @@ export enum ContentType {
   PROFILE = 'application/vnd.superface.profile',
   AST = 'application/vnd.superface.profile+json',
 }
+
 export function getStoreUrl(): string {
   const envUrl = process.env.SUPERFACE_API_URL;
 
