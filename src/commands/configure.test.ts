@@ -1,11 +1,16 @@
+import { isValidDocumentName } from '@superfaceai/ast';
 import { SuperJson } from '@superfaceai/one-sdk';
 import { mocked } from 'ts-jest/utils';
 
-import { validateDocumentName } from '../common/document';
 import { installProvider } from '../logic/configure';
 import { initSuperface } from '../logic/init';
 import { detectSuperJson } from '../logic/install';
 import Configure from './configure';
+
+//Mock ast
+jest.mock('@superfaceai/ast', () => ({
+  isValidDocumentName: jest.fn(),
+}));
 
 //Mock init logic
 jest.mock('../logic/init', () => ({
@@ -22,9 +27,6 @@ jest.mock('../logic/configure', () => ({
   installProvider: jest.fn(),
 }));
 
-//Mock document
-jest.mock('../common/document');
-
 describe('Configure CLI command', () => {
   afterEach(() => {
     jest.resetAllMocks();
@@ -36,7 +38,7 @@ describe('Configure CLI command', () => {
     const mockProfile = 'sms';
 
     it('does not configure on invalid provider name', async () => {
-      mocked(validateDocumentName).mockReturnValue(false);
+      mocked(isValidDocumentName).mockReturnValue(false);
       await expect(
         Configure.run(['U7!O', '-p', 'test'])
       ).resolves.toBeUndefined();
@@ -46,7 +48,7 @@ describe('Configure CLI command', () => {
     });
 
     it('configures provider', async () => {
-      mocked(validateDocumentName).mockReturnValue(true);
+      mocked(isValidDocumentName).mockReturnValue(true);
       mocked(detectSuperJson).mockResolvedValue(mockPath);
 
       await expect(
@@ -70,7 +72,7 @@ describe('Configure CLI command', () => {
     });
 
     it('configures provider with superface initialization', async () => {
-      mocked(validateDocumentName).mockReturnValue(true);
+      mocked(isValidDocumentName).mockReturnValue(true);
       mocked(detectSuperJson).mockResolvedValue(undefined);
       mocked(initSuperface).mockResolvedValue(new SuperJson());
 

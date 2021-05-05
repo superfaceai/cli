@@ -1,11 +1,12 @@
 import { flags } from '@oclif/command';
+import { isValidIdentifier } from '@superfaceai/ast';
+import { isValidProviderName } from '@superfaceai/one-sdk';
 import { grey, yellow } from 'chalk';
 import inquirer from 'inquirer';
 import FileTreeSelectionPrompt from 'inquirer-file-tree-selection-prompt';
 import { basename } from 'path';
 
 import { Command } from '../common/command.abstract';
-import { validateDocumentName } from '../common/document';
 import { developerError, userError } from '../common/error';
 import { skipFileFlag, SkipFileType } from '../common/flags';
 import { exists } from '../common/io';
@@ -209,7 +210,7 @@ clean: the \`superface/node_modules\` folder and \`superface/build\` build artif
           }
 
           const baseName = basename(input);
-          if (!validateDocumentName(baseName)) {
+          if (!isValidIdentifier(baseName)) {
             return 'The playground name must be a valid slang identifier.';
           }
 
@@ -222,7 +223,7 @@ clean: the \`superface/node_modules\` folder and \`superface/build\` build artif
     const playgroundPath = path;
 
     const baseName = basename(playgroundPath);
-    if (!validateDocumentName(baseName)) {
+    if (!isValidIdentifier(baseName)) {
       throw userError(
         'The playground name must be a valid slang identifier',
         11
@@ -322,7 +323,7 @@ clean: the \`superface/node_modules\` folder and \`superface/build\` build artif
     return input
       .split(' ')
       .filter(i => i.trim() !== '')
-      .filter(validateDocumentName);
+      .filter(isValidProviderName);
   }
 
   private static async promptExistingPlayground(): Promise<string> {

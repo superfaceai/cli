@@ -1,13 +1,11 @@
 import { flags } from '@oclif/command';
+import { isValidDocumentName } from '@superfaceai/ast';
+import { isValidProviderName } from '@superfaceai/one-sdk';
 import { grey, yellow } from 'chalk';
 import { join as joinPath } from 'path';
 
 import { Command } from '../common/command.abstract';
-import {
-  META_FILE,
-  SUPERFACE_DIR,
-  validateDocumentName,
-} from '../common/document';
+import { META_FILE, SUPERFACE_DIR, trimExtension } from '../common/document';
 import { userError } from '../common/error';
 import { LogCallback } from '../common/log';
 import { installProvider } from '../logic/configure';
@@ -28,7 +26,7 @@ const parseProviders = (
   }
 
   return providers.filter(p => {
-    if (!validateDocumentName(p)) {
+    if (!isValidProviderName(p)) {
       options?.warnCb?.(`Invalid provider name: ${p}`);
 
       return false;
@@ -141,19 +139,33 @@ export default class Install extends Command {
     const installRequests: (LocalInstallRequest | StoreInstallRequest)[] = [];
     const profileArg = args.profileId as string | undefined;
     if (profileArg !== undefined) {
+      const [profileId, version] = profileArg.split('@');
+
+      //Prepare profile name
+      const profilePathParts = profileId.split('/');
+      let profileName: string;
+
       if (flags.local) {
         installRequests.push({
           kind: 'local',
           path: profileArg,
         });
-      } else {
-        const [profileId, version] = profileArg.split('@');
 
+        profileName = trimExtension(
+          profilePathParts[profilePathParts.length - 1]
+        );
+      } else {
         installRequests.push({
           kind: 'store',
           profileId,
           version,
         });
+        profileName = profilePathParts[profilePathParts.length - 1];
+      }
+
+      if (!isValidDocumentName(profileName)) {
+        this.warnCallback?.(`Invalid profile name: ${profileName}`);
+        this.exit();
       }
     } else {
       //Do not install providers without profile

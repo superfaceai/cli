@@ -107,10 +107,6 @@ export function isUnknownFile(file: string): boolean {
   return inferDocumentType(file) === DocumentType.UNKNOWN;
 }
 
-export function validateDocumentName(name: string): boolean {
-  return /^[_a-zA-Z][_a-zA-Z0-9]*$/.test(name);
-}
-
 export function inferCreateMode(value: string): CreateMode {
   return value === 'profile'
     ? CreateMode.PROFILE

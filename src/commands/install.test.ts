@@ -122,6 +122,26 @@ describe('Install CLI command', () => {
       expect(installProfiles).not.toHaveBeenCalled();
     }, 10000);
 
+    it('throws error on invalid profileId', async () => {
+      mocked(detectSuperJson).mockResolvedValue('.');
+      const profileName = 'characterInformation';
+
+      await expect(Install.run([profileName])).rejects.toEqual(
+        new CLIError('EEXIT: 0')
+      );
+      expect(installProfiles).not.toHaveBeenCalled();
+    }, 10000);
+
+    it('throws error on invalid profileId with scope', async () => {
+      mocked(detectSuperJson).mockResolvedValue('.');
+      const profileName = 'starwars/characterInformation';
+
+      await expect(Install.run([profileName])).rejects.toEqual(
+        new CLIError('EEXIT: 0')
+      );
+      expect(installProfiles).not.toHaveBeenCalled();
+    }, 10000);
+
     it('throws error on empty providers flag', async () => {
       mocked(detectSuperJson).mockResolvedValue('.');
       const profileName = 'starwars/character-information';
