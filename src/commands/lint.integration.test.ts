@@ -116,7 +116,7 @@ describe('lint CLI command', () => {
       path: fixture.invalidParsedMap,
       errors: [
         {
-          category: 1,
+          category: 'Parser',
           detail: 'Expected `provider` but found `map`',
           location: {
             line: 3,
