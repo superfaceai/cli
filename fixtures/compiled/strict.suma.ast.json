@@ -37,7 +37,7 @@
               "kind": "JessieExpression",
               "expression": "!cond",
               "source": "!cond",
-              "sourceMap": "AAAA,IAAI,CAAC,GAAG,CAAC,IAAI,CAAC",
+              "sourceMap": "AAAA,IAAI,aAAa,GAAG,CAAC,IAAI,CAAC",
               "location": {
                 "line": 17,
                 "column": 10
@@ -67,7 +67,7 @@
                 "kind": "JessieExpression",
                 "expression": "(function () { return true; })()",
                 "source": "(() => { return true; })()",
-                "sourceMap": "AAAA,IAAI,CAAC,GAAG,CAAC,cAAQ,OAAO,IAAI,CAAC,CAAC,CAAC,CAAC,EAAE,CAAC",
+                "sourceMap": "AAAA,IAAI,aAAa,GAAG,CAAC,cAAQ,OAAO,IAAI,CAAC,CAAC,CAAC,CAAC,EAAE,CAAC",
                 "location": {
                   "line": 18,
                   "column": 11
@@ -95,7 +95,7 @@
                 "kind": "JessieExpression",
                 "expression": "1 + 1",
                 "source": "1 + 1",
-                "sourceMap": "AAAA,IAAI,CAAC,GAAG,CAAC,GAAG,CAAC,CAAC",
+                "sourceMap": "AAAA,IAAI,aAAa,GAAG,CAAC,GAAG,CAAC,CAAC",
                 "location": {
                   "line": 19,
                   "column": 11
@@ -335,7 +335,7 @@
               "kind": "JessieExpression",
               "expression": "true || !![false, 0, undefined, null]",
               "source": "true || !![false, 0, undefined, null]",
-              "sourceMap": "AAAA,IAAI,CAAC,GAAG,IAAI,IAAI,CAAC,CAAC,CAAC,KAAK,EAAE,CAAC,EAAE,SAAS,EAAE,IAAI,CAAC,CAAC",
+              "sourceMap": "AAAA,IAAI,aAAa,GAAG,IAAI,IAAI,CAAC,CAAC,CAAC,KAAK,EAAE,CAAC,EAAE,SAAS,EAAE,IAAI,CAAC,CAAC",
               "location": {
                 "line": 42,
                 "column": 8
@@ -366,7 +366,7 @@
                 "kind": "JessieExpression",
                 "expression": "(function () {\n    var jessieValue = {\n        foo: 1,\n        bar: 2 + 3\n    };\n    return jessieValue;\n})()",
                 "source": "(() => {\n\t\t\tconst jessieValue = {\n\t\t\t\tfoo: 1,\n\t\t\t\tbar: 2 + 3\n\t\t\t};\n\t\t\t\n\t\t\treturn jessieValue;\n\t\t})()",
-                "sourceMap": "AAAA,IAAI,CAAC,GAAG,CAAC;IACN,IAAM,WAAW,GAAG;QACnB,GAAG,EAAE,CAAC;QACN,GAAG,EAAE,CAAC,GAAG,CAAC;KACV,CAAC;IAEF,OAAO,WAAW,CAAC;AACpB,CAAC,CAAC,EAAE,CAAC",
+                "sourceMap": "AAAA,IAAI,aAAa,GAAG,CAAC;IAClB,IAAM,WAAW,GAAG;QACnB,GAAG,EAAE,CAAC;QACN,GAAG,EAAE,CAAC,GAAG,CAAC;KACV,CAAC;IAEF,OAAO,WAAW,CAAC;AACpB,CAAC,CAAC,EAAE,CAAC",
                 "location": {
                   "line": 32,
                   "column": 11
@@ -395,7 +395,7 @@
                 "kind": "JessieExpression",
                 "expression": "12;\nbaz.baz = true",
                 "source": "12\n\t\tbaz.baz = true\n\t",
-                "sourceMap": "AAAA,IAAI,CAAC,GAAG,EAAE,CAAA;AACR,GAAG,CAAC,GAAG,GAAG,IAAI,CACd",
+                "sourceMap": "AAAA,IAAI,aAAa,GAAG,EAAE,CAAA;AACpB,GAAG,CAAC,GAAG,GAAG,IAAI,CACd",
                 "location": {
                   "line": 40,
                   "column": 17
@@ -473,7 +473,7 @@
               "kind": "JessieExpression",
               "expression": "true",
               "source": "true",
-              "sourceMap": "AAAA,IAAI,CAAC,GAAG,IAAI,CAAC",
+              "sourceMap": "AAAA,IAAI,aAAa,GAAG,IAAI,CAAC",
               "location": {
                 "line": 48,
                 "column": 36
@@ -529,7 +529,7 @@
                 "kind": "JessieExpression",
                 "expression": "1 + 1",
                 "source": "1 + 1",
-                "sourceMap": "AAAA,IAAI,CAAC,GAAG,CAAC,GAAG,CAAC,CAAC",
+                "sourceMap": "AAAA,IAAI,aAAa,GAAG,CAAC,GAAG,CAAC,CAAC",
                 "location": {
                   "line": 48,
                   "column": 25
@@ -568,7 +568,7 @@
                   "kind": "JessieExpression",
                   "expression": "cond",
                   "source": "cond",
-                  "sourceMap": "AAAA,IAAI,CAAC,GAAG,IAAI,CAAC",
+                  "sourceMap": "AAAA,IAAI,aAAa,GAAG,IAAI,CAAC",
                   "location": {
                     "line": 53,
                     "column": 18
@@ -645,7 +645,7 @@
                   "kind": "JessieExpression",
                   "expression": "cond",
                   "source": "cond",
-                  "sourceMap": "AAAA,IAAI,CAAC,GAAG,IAAI,CAAC",
+                  "sourceMap": "AAAA,IAAI,aAAa,GAAG,IAAI,CAAC",
                   "location": {
                     "line": 56,
                     "column": 25
@@ -722,7 +722,7 @@
                   "kind": "JessieExpression",
                   "expression": "cond",
                   "source": "cond",
-                  "sourceMap": "AAAA,IAAI,CAAC,GAAG,IAAI,CAAC",
+                  "sourceMap": "AAAA,IAAI,aAAa,GAAG,IAAI,CAAC",
                   "location": {
                     "line": 61,
                     "column": 17
@@ -799,7 +799,7 @@
                   "kind": "JessieExpression",
                   "expression": "cond",
                   "source": "cond",
-                  "sourceMap": "AAAA,IAAI,CAAC,GAAG,IAAI,CAAC",
+                  "sourceMap": "AAAA,IAAI,aAAa,GAAG,IAAI,CAAC",
                   "location": {
                     "line": 64,
                     "column": 24
@@ -1018,7 +1018,7 @@
                     "kind": "JessieExpression",
                     "expression": "1 + 1",
                     "source": "1 + 1",
-                    "sourceMap": "AAAA,IAAI,CAAC,GAAG,CAAC,GAAG,CAAC,CAAC",
+                    "sourceMap": "AAAA,IAAI,aAAa,GAAG,CAAC,GAAG,CAAC,CAAC",
                     "location": {
                       "line": 90,
                       "column": 11
@@ -1372,7 +1372,7 @@
               "kind": "JessieExpression",
               "expression": "[1, 2, 3]",
               "source": "[1, 2, 3]",
-              "sourceMap": "AAAA,IAAI,CAAC,GAAG,CAAC,CAAC,EAAE,CAAC,EAAE,CAAC,CAAC,CAAC",
+              "sourceMap": "AAAA,IAAI,aAAa,GAAG,CAAC,CAAC,EAAE,CAAC,EAAE,CAAC,CAAC,CAAC",
               "location": {
                 "line": 128,
                 "column": 11
@@ -1510,7 +1510,7 @@
               "kind": "JessieExpression",
               "expression": "!![]",
               "source": "!![]",
-              "sourceMap": "AAAA,IAAI,CAAC,GAAG,CAAC,CAAC,EAAE,CAAC",
+              "sourceMap": "AAAA,IAAI,aAAa,GAAG,CAAC,CAAC,EAAE,CAAC",
               "location": {
                 "line": 142,
                 "column": 13
@@ -1560,7 +1560,7 @@
               "kind": "JessieExpression",
               "expression": "{}",
               "source": "{}",
-              "sourceMap": "AAAA,IAAI,CAAC,GAAG,EAAE,CAAC",
+              "sourceMap": "AAAA,IAAI,aAAa,GAAG,EAAE,CAAC",
               "location": {
                 "line": 143,
                 "column": 11

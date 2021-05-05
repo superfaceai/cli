@@ -15,6 +15,7 @@ import {
   SyntaxError,
   ValidationResult,
 } from '@superfaceai/parser';
+import { SyntaxErrorCategory } from '@superfaceai/parser/dist/language/error';
 import { mocked } from 'ts-jest/utils';
 
 import { readFile } from '../common/io';
@@ -70,7 +71,7 @@ describe('Lint logic', () => {
       start: 0,
       end: 0,
     },
-    category: 1,
+    category: SyntaxErrorCategory.PARSER,
     detail: '',
     format: () => 'detail',
     message: 'message',
@@ -908,7 +909,7 @@ describe('Lint logic', () => {
     };
     it('formats json correctly', async () => {
       expect(formatJson(mockFileReport)).toEqual(
-        '{"path":"some/path","kind":"file","errors":[{"location":{"line":0,"column":0},"span":{"start":0,"end":0},"category":1,"detail":"","message":"message"}],"warnings":[]}'
+        '{"path":"some/path","kind":"file","errors":[{"location":{"line":0,"column":0},"span":{"start":0,"end":0},"category":"Parser","detail":"","message":"message"}],"warnings":[]}'
       );
     });
   });
