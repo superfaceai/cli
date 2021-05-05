@@ -619,10 +619,10 @@
   resolved "https://registry.yarnpkg.com/@superfaceai/ast/-/ast-0.0.23-beta.3.tgz#e6fc32001739745154d71f7963eceabebe4a171f"
   integrity sha512-nUzO9SZoM1uH74to2uL9Oi7rVU7f+NQezUnR7ZmopIkDYeftoQQKPF8YdYjM0lILiBe40klKWQeAiiI2KQ+FIw==
 
-"@superfaceai/one-sdk@0.0.22":
-  version "0.0.22"
-  resolved "https://registry.yarnpkg.com/@superfaceai/one-sdk/-/one-sdk-0.0.22.tgz#878853769c5afc3fb9054a7197d81a335d07fa38"
-  integrity sha512-Y3vrovka6OewXfmYI/I9arcPiMRo1HwixbLD/3uaCns2nxcRKjjAfIc2dtf8l0fN1/TkW0K/VdfpJhiy0rVy1w==
+"@superfaceai/one-sdk@0.0.25":
+  version "0.0.25"
+  resolved "https://registry.yarnpkg.com/@superfaceai/one-sdk/-/one-sdk-0.0.25.tgz#f0e76019b74c87f25f05b7c6239c5906965d372c"
+  integrity sha512-Zvlr6w/1fOalJz5oMBtGF8VNuzeBUFQpzLX8z50hVDk+eEOyBlprEGevomktww/snorJUxdmIzg1327YPaU+EA==
   dependencies:
     "@superfaceai/ast" "0.0.23"
     cross-fetch "^3.0.5"

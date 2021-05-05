@@ -3,7 +3,7 @@ import inquirer from 'inquirer';
 import { mocked } from 'ts-jest/utils';
 
 import Play from '../commands/play';
-import { validateDocumentName } from '../common/document';
+import { validateIndetifier } from '../common/document';
 import {
   cleanPlayground,
   detectPlayground,
@@ -51,7 +51,7 @@ describe('Play CLI command', () => {
   describe('when running play command', () => {
     it('asks for action', async () => {
       const mockPath = 'test';
-      mocked(validateDocumentName).mockReturnValue(true);
+      mocked(validateIndetifier).mockReturnValue(true);
       mocked(initializePlayground).mockResolvedValue(undefined);
       const promptSpy = jest
         .spyOn(inquirer, 'prompt')
@@ -77,7 +77,7 @@ describe('Play CLI command', () => {
     });
 
     it('throws developer error on invalid action', async () => {
-      mocked(validateDocumentName).mockReturnValue(true);
+      mocked(validateIndetifier).mockReturnValue(true);
       mocked(initializePlayground).mockResolvedValue(undefined);
       const promptSpy = jest
         .spyOn(inquirer, 'prompt')
@@ -93,7 +93,7 @@ describe('Play CLI command', () => {
 
     it('initializes valid playground - use inputs from cli', async () => {
       const mockPath = 'test';
-      mocked(validateDocumentName).mockReturnValue(true);
+      mocked(validateIndetifier).mockReturnValue(true);
       mocked(initializePlayground).mockResolvedValue(undefined);
       const promptSpy = jest.spyOn(inquirer, 'prompt');
 
@@ -118,7 +118,7 @@ describe('Play CLI command', () => {
 
     it('initializes valid playground - prompts for input', async () => {
       const mockPath = 'test';
-      mocked(validateDocumentName).mockReturnValue(true);
+      mocked(validateIndetifier).mockReturnValue(true);
       mocked(initializePlayground).mockResolvedValue(undefined);
       const promptSpy = jest
         .spyOn(inquirer, 'prompt')
@@ -211,7 +211,7 @@ describe('Play CLI command', () => {
 
     it('throw error on invalid document when initializing playground - prompts for input', async () => {
       const mockPath = 'test';
-      mocked(validateDocumentName).mockReturnValue(false);
+      mocked(validateIndetifier).mockReturnValue(false);
       mocked(initializePlayground).mockResolvedValue(undefined);
       const promptSpy = jest
         .spyOn(inquirer, 'prompt')

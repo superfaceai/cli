@@ -48,7 +48,7 @@
     "@oclif/config": "^1.17.0",
     "@superfaceai/ast": "^0.0.23",
     "@superfaceai/parser": "0.0.16",
-    "@superfaceai/one-sdk": "0.0.22",
+    "@superfaceai/one-sdk": "0.0.25",
     "chalk": "^4.1.0",
     "debug": "^4.3.1",
     "inquirer": "^7.3.3",

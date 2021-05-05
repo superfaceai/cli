@@ -107,8 +107,13 @@ export function isUnknownFile(file: string): boolean {
   return inferDocumentType(file) === DocumentType.UNKNOWN;
 }
 
-export function validateDocumentName(name: string): boolean {
+export function validateIndetifier(name: string): boolean {
   return /^[_a-zA-Z][_a-zA-Z0-9]*$/.test(name);
+}
+
+//https://github.com/superfaceai/spec/blob/main/spec/2021.04.26/common/definitions.md
+export function validateDocumentName(name: string): boolean {
+  return /^[a-z][a-z0-9_-]*$/.test(name);
 }
 
 export function inferCreateMode(value: string): CreateMode {
