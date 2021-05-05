@@ -74,7 +74,6 @@ describe('Document functions', () => {
       expect(validateDocumentName('test90')).toEqual(true);
       expect(validateDocumentName('te-st')).toEqual(true);
       expect(validateDocumentName('te_st')).toEqual(true);
-
     });
   });
 
