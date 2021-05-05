@@ -614,11 +614,6 @@
   resolved "https://registry.yarnpkg.com/@superfaceai/ast/-/ast-0.0.23.tgz#0e58a76b45c0a2dadc72499001d32d0c37cf4128"
   integrity sha512-9SKqJmC/g8caDZ9T4RcWm43D4f/UFCX57nX8a1J9dM0/GRtMq1fsPt+qcEmCTyys2Gt9JGzH8MDCBym2F92MBg==
 
-"@superfaceai/ast@0.0.23-beta.3":
-  version "0.0.23-beta.3"
-  resolved "https://registry.yarnpkg.com/@superfaceai/ast/-/ast-0.0.23-beta.3.tgz#e6fc32001739745154d71f7963eceabebe4a171f"
-  integrity sha512-nUzO9SZoM1uH74to2uL9Oi7rVU7f+NQezUnR7ZmopIkDYeftoQQKPF8YdYjM0lILiBe40klKWQeAiiI2KQ+FIw==
-
 "@superfaceai/one-sdk@0.0.22":
   version "0.0.22"
   resolved "https://registry.yarnpkg.com/@superfaceai/one-sdk/-/one-sdk-0.0.22.tgz#878853769c5afc3fb9054a7197d81a335d07fa38"
@@ -631,12 +626,12 @@
     vm2 "^3.9.2"
     zod "^2.0.0-beta.30"
 
-"@superfaceai/parser@0.0.16":
-  version "0.0.16"
-  resolved "https://registry.yarnpkg.com/@superfaceai/parser/-/parser-0.0.16.tgz#7eecf80c3f65470e9824c2dc5a88e64fe334bbc0"
-  integrity sha512-YDNLG4axXh910dAKq3aesQjLQSjx9kv+Y/G3T70TCaYPuDMKNoSMTMBwUBnDkbROSBlhcIh47R4sM0x4xJAadw==
+"@superfaceai/parser@0.0.17":
+  version "0.0.17"
+  resolved "https://registry.yarnpkg.com/@superfaceai/parser/-/parser-0.0.17.tgz#ea9aa8454e42410fa48d3bfbb33f4d6ae61a1053"
+  integrity sha512-JMNq4K1KFX31YbNy9qxcIobtQE84Ty77Wbjij3iJwqHO9Ltm/BIHr7m2P+JrvBER8ZNsvG3zggwurewv9j0sbg==
   dependencies:
-    "@superfaceai/ast" "0.0.23-beta.3"
+    "@superfaceai/ast" "0.0.23"
     "@types/debug" "^4.1.5"
     debug "^4.3.1"
     typescript "~4.1"
