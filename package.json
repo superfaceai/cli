@@ -46,7 +46,7 @@
   "dependencies": {
     "@oclif/command": "^1.8.0",
     "@oclif/config": "^1.17.0",
-    "@superfaceai/ast": "^0.0.23",
+    "@superfaceai/ast": "^0.0.24",
     "@superfaceai/parser": "0.0.16",
     "@superfaceai/one-sdk": "0.0.25",
     "chalk": "^4.1.0",

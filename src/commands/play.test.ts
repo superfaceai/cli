@@ -1,9 +1,9 @@
 import { CLIError } from '@oclif/errors';
+import { isValidIdentifier } from '@superfaceai/ast';
 import inquirer from 'inquirer';
 import { mocked } from 'ts-jest/utils';
 
 import Play from '../commands/play';
-import { validateIndetifier } from '../common/document';
 import {
   cleanPlayground,
   detectPlayground,
@@ -15,8 +15,10 @@ import {
 //Mock inquirer
 jest.mock('inquirer');
 
-//Mock document
-jest.mock('../common/document');
+//Mock ast
+jest.mock('@superfaceai/ast', () => ({
+  isValidIdentifier: jest.fn(),
+}));
 
 //Mock logic
 jest.mock('../logic/playground', () => ({
@@ -51,7 +53,7 @@ describe('Play CLI command', () => {
   describe('when running play command', () => {
     it('asks for action', async () => {
       const mockPath = 'test';
-      mocked(validateIndetifier).mockReturnValue(true);
+      mocked(isValidIdentifier).mockReturnValue(true);
       mocked(initializePlayground).mockResolvedValue(undefined);
       const promptSpy = jest
         .spyOn(inquirer, 'prompt')
@@ -77,7 +79,7 @@ describe('Play CLI command', () => {
     });
 
     it('throws developer error on invalid action', async () => {
-      mocked(validateIndetifier).mockReturnValue(true);
+      mocked(isValidIdentifier).mockReturnValue(true);
       mocked(initializePlayground).mockResolvedValue(undefined);
       const promptSpy = jest
         .spyOn(inquirer, 'prompt')
@@ -93,7 +95,7 @@ describe('Play CLI command', () => {
 
     it('initializes valid playground - use inputs from cli', async () => {
       const mockPath = 'test';
-      mocked(validateIndetifier).mockReturnValue(true);
+      mocked(isValidIdentifier).mockReturnValue(true);
       mocked(initializePlayground).mockResolvedValue(undefined);
       const promptSpy = jest.spyOn(inquirer, 'prompt');
 
@@ -118,7 +120,7 @@ describe('Play CLI command', () => {
 
     it('initializes valid playground - prompts for input', async () => {
       const mockPath = 'test';
-      mocked(validateIndetifier).mockReturnValue(true);
+      mocked(isValidIdentifier).mockReturnValue(true);
       mocked(initializePlayground).mockResolvedValue(undefined);
       const promptSpy = jest
         .spyOn(inquirer, 'prompt')
@@ -211,7 +213,7 @@ describe('Play CLI command', () => {
 
     it('throw error on invalid document when initializing playground - prompts for input', async () => {
       const mockPath = 'test';
-      mocked(validateIndetifier).mockReturnValue(false);
+      mocked(isValidIdentifier).mockReturnValue(false);
       mocked(initializePlayground).mockResolvedValue(undefined);
       const promptSpy = jest
         .spyOn(inquirer, 'prompt')

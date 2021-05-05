@@ -19,8 +19,6 @@ import {
   isProfileFile,
   isUnknownFile,
   trimExtension,
-  validateDocumentName,
-  validateIndetifier,
 } from './document';
 import { DocumentType } from './document.interfaces';
 import { readdir, readFile } from './io';
@@ -64,27 +62,6 @@ describe('Document functions', () => {
 
       expect(isUnknownFile('TesT.json ')).toEqual(true);
       expect(isUnknownFile('TesT.supr ')).toEqual(false);
-    });
-  });
-
-  describe('when validating document name', () => {
-    it('validates name correctly', async () => {
-      expect(validateDocumentName('')).toEqual(false);
-      expect(validateDocumentName('test')).toEqual(true);
-      expect(validateDocumentName('test90')).toEqual(true);
-      expect(validateDocumentName('te-st')).toEqual(true);
-      expect(validateDocumentName('te_st')).toEqual(true);
-    });
-  });
-
-  describe('when validating identifier', () => {
-    it('validates identifier correctly', async () => {
-      expect(validateIndetifier('')).toEqual(false);
-      expect(validateIndetifier('te-st')).toEqual(false);
-      expect(validateIndetifier('test')).toEqual(true);
-      expect(validateIndetifier('test90')).toEqual(true);
-      expect(validateIndetifier('te_st')).toEqual(true);
-      expect(validateIndetifier('Te_St')).toEqual(true);
     });
   });
 

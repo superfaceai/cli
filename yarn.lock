@@ -609,7 +609,7 @@
   dependencies:
     "@sinonjs/commons" "^1.7.0"
 
-"@superfaceai/ast@0.0.23", "@superfaceai/ast@^0.0.23":
+"@superfaceai/ast@0.0.23":
   version "0.0.23"
   resolved "https://registry.yarnpkg.com/@superfaceai/ast/-/ast-0.0.23.tgz#0e58a76b45c0a2dadc72499001d32d0c37cf4128"
   integrity sha512-9SKqJmC/g8caDZ9T4RcWm43D4f/UFCX57nX8a1J9dM0/GRtMq1fsPt+qcEmCTyys2Gt9JGzH8MDCBym2F92MBg==
@@ -618,6 +618,11 @@
   version "0.0.23-beta.3"
   resolved "https://registry.yarnpkg.com/@superfaceai/ast/-/ast-0.0.23-beta.3.tgz#e6fc32001739745154d71f7963eceabebe4a171f"
   integrity sha512-nUzO9SZoM1uH74to2uL9Oi7rVU7f+NQezUnR7ZmopIkDYeftoQQKPF8YdYjM0lILiBe40klKWQeAiiI2KQ+FIw==
+
+"@superfaceai/ast@^0.0.24":
+  version "0.0.24"
+  resolved "https://registry.yarnpkg.com/@superfaceai/ast/-/ast-0.0.24.tgz#5755b02787f48b28efb49fc06354e349a78f28ac"
+  integrity sha512-URTLVDq1CFHpaIrZXJOB/E9zNPfxwRKepJyW1rqV187Ky2RrtlVwpqsmlAkM1bhyU/h4cH8AZl/4RO2dlJsQIA==
 
 "@superfaceai/one-sdk@0.0.25":
   version "0.0.25"

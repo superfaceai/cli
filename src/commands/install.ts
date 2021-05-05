@@ -1,15 +1,11 @@
 import { flags } from '@oclif/command';
+import { isValidDocumentName } from '@superfaceai/ast';
 import { isValidProviderName } from '@superfaceai/one-sdk';
 import { grey, yellow } from 'chalk';
 import { join as joinPath } from 'path';
 
 import { Command } from '../common/command.abstract';
-import {
-  META_FILE,
-  SUPERFACE_DIR,
-  trimExtension,
-  validateDocumentName,
-} from '../common/document';
+import { META_FILE, SUPERFACE_DIR, trimExtension } from '../common/document';
 import { userError } from '../common/error';
 import { LogCallback } from '../common/log';
 import { installProvider } from '../logic/configure';
@@ -167,7 +163,7 @@ export default class Install extends Command {
         profileName = profilePathParts[profilePathParts.length - 1];
       }
 
-      if (!validateDocumentName(profileName)) {
+      if (!isValidDocumentName(profileName)) {
         this.warnCallback?.(`Invalid profile name: ${profileName}`);
         this.exit();
       }
