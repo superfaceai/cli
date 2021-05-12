@@ -195,17 +195,47 @@ describe('Install CLI command', () => {
         }
       );
       expect(installProvider).toHaveBeenCalledTimes(2);
-      expect(installProvider).toHaveBeenNthCalledWith(1, '.', 'tyntec', profileName, { logCb: expect.anything(), warnCb: expect.anything(), force: false, local: false })
-      expect(installProvider).toHaveBeenNthCalledWith(2, '.', 'twilio', profileName, { logCb: expect.anything(), warnCb: expect.anything(), force: false, local: false })
+      expect(installProvider).toHaveBeenNthCalledWith(
+        1,
+        '.',
+        'tyntec',
+        profileName,
+        {
+          logCb: expect.anything(),
+          warnCb: expect.anything(),
+          force: false,
+          local: false,
+        }
+      );
+      expect(installProvider).toHaveBeenNthCalledWith(
+        2,
+        '.',
+        'twilio',
+        profileName,
+        {
+          logCb: expect.anything(),
+          warnCb: expect.anything(),
+          force: false,
+          local: false,
+        }
+      );
     }, 10000);
 
-    it.only('calls install profiles correctly - providers separated by coma', async () => {
+    it('calls install profiles correctly - providers separated by coma', async () => {
       mocked(detectSuperJson).mockResolvedValue('.');
       mocked(installProvider).mockResolvedValue(undefined);
       const profileName = 'starwars/character-information';
 
       await expect(
-        Install.run([profileName, '-p', 'tyntec,', ' twilio, ', ', dhl-unified , ', ' github ', ' made&up'])
+        Install.run([
+          profileName,
+          '-p',
+          'tyntec,',
+          ' twilio, ',
+          ', dhl-unified , ',
+          ' github ',
+          ' made&up',
+        ])
       ).resolves.toBeUndefined();
       expect(installProfiles).toHaveBeenCalledTimes(1);
       expect(installProfiles).toHaveBeenCalledWith(
@@ -219,10 +249,54 @@ describe('Install CLI command', () => {
         }
       );
       expect(installProvider).toHaveBeenCalledTimes(4);
-      expect(installProvider).toHaveBeenNthCalledWith(1, '.', 'tyntec', profileName, { logCb: expect.anything(), warnCb: expect.anything(), force: false, local: false })
-      expect(installProvider).toHaveBeenNthCalledWith(2, '.', 'twilio', profileName, { logCb: expect.anything(), warnCb: expect.anything(), force: false, local: false })
-      expect(installProvider).toHaveBeenNthCalledWith(3, '.', 'dhl-unified', profileName, { logCb: expect.anything(), warnCb: expect.anything(), force: false, local: false })
-      expect(installProvider).toHaveBeenNthCalledWith(4, '.', 'github', profileName, { logCb: expect.anything(), warnCb: expect.anything(), force: false, local: false })
+      expect(installProvider).toHaveBeenNthCalledWith(
+        1,
+        '.',
+        'tyntec',
+        profileName,
+        {
+          logCb: expect.anything(),
+          warnCb: expect.anything(),
+          force: false,
+          local: false,
+        }
+      );
+      expect(installProvider).toHaveBeenNthCalledWith(
+        2,
+        '.',
+        'twilio',
+        profileName,
+        {
+          logCb: expect.anything(),
+          warnCb: expect.anything(),
+          force: false,
+          local: false,
+        }
+      );
+      expect(installProvider).toHaveBeenNthCalledWith(
+        3,
+        '.',
+        'dhl-unified',
+        profileName,
+        {
+          logCb: expect.anything(),
+          warnCb: expect.anything(),
+          force: false,
+          local: false,
+        }
+      );
+      expect(installProvider).toHaveBeenNthCalledWith(
+        4,
+        '.',
+        'github',
+        profileName,
+        {
+          logCb: expect.anything(),
+          warnCb: expect.anything(),
+          force: false,
+          local: false,
+        }
+      );
     }, 10000);
   });
 });

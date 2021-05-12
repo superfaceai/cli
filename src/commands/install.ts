@@ -35,7 +35,7 @@ const parseProviders = (
         trimed = trimed.substring(0, trimed.length - 1);
       }
 
-      return trimed.trim()
+      return trimed.trim();
     })
     .filter(p => {
       if (!isValidProviderName(p)) {
@@ -106,10 +106,10 @@ export default class Install extends Command {
     '$ superface install --local sms/service.supr',
   ];
 
-  private warnCallback?= (message: string) =>
+  private warnCallback? = (message: string) =>
     this.log('⚠️  ' + yellow(message));
 
-  private logCallback?= (message: string) => this.log(grey(message));
+  private logCallback? = (message: string) => this.log(grey(message));
 
   async run(): Promise<void> {
     const { args, flags } = this.parse(Install);
