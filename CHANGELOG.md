@@ -1,6 +1,21 @@
 ## [Unreleased]
 
 ### Changed
+* Provider name in environment variables
+
+## [0.0.13] - 2021-05-05
+
+### Changed
+* Validate identifiers
+
+## [0.0.12] - 2021-04-30
+
+### Changed
+* Allow every type for Result in generated SDK
+
+## [0.0.11] - 2021-04-28
+
+### Changed
 * Export SuperfaceClient type from generated SDK
 * Allow every type for Result in generated SDK
 
