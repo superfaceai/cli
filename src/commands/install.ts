@@ -1,6 +1,5 @@
 import { flags } from '@oclif/command';
-import { isValidDocumentName } from '@superfaceai/ast';
-import { isValidProviderName } from '@superfaceai/one-sdk';
+import { isValidDocumentName, isValidProviderName } from '@superfaceai/ast';
 import { grey, yellow } from 'chalk';
 import { join as joinPath } from 'path';
 
@@ -25,15 +24,28 @@ const parseProviders = (
     return [];
   }
 
-  return providers.filter(p => {
-    if (!isValidProviderName(p)) {
-      options?.warnCb?.(`Invalid provider name: ${p}`);
+  return providers
+    .map(provider => {
+      //Remove whitespaces and , chracters
+      let trimmed = provider.trim();
+      if (trimmed.startsWith(',')) {
+        trimmed = trimmed.substring(1);
+      }
+      if (trimmed.endsWith(',')) {
+        trimmed = trimmed.substring(0, trimmed.length - 1);
+      }
 
-      return false;
-    }
+      return trimmed.trim();
+    })
+    .filter(p => {
+      if (!isValidProviderName(p)) {
+        options?.warnCb?.(`Invalid provider name: ${p}`);
 
-    return true;
-  });
+        return false;
+      }
+
+      return true;
+    });
 };
 
 export default class Install extends Command {
@@ -94,10 +106,10 @@ export default class Install extends Command {
     '$ superface install --local sms/service.supr',
   ];
 
-  private warnCallback? = (message: string) =>
+  private warnCallback?= (message: string) =>
     this.log('⚠️  ' + yellow(message));
 
-  private logCallback? = (message: string) => this.log(grey(message));
+  private logCallback?= (message: string) => this.log(grey(message));
 
   async run(): Promise<void> {
     const { args, flags } = this.parse(Install);
@@ -127,7 +139,9 @@ export default class Install extends Command {
       superPath = SUPERFACE_DIR;
     }
 
-    const providers = parseProviders(flags.providers);
+    const providers = parseProviders(flags.providers, {
+      warnCb: this.warnCallback,
+    });
 
     this.logCallback?.(
       `Installing profiles according to 'super.json' on path '${joinPath(

@@ -177,12 +177,14 @@ describe('Install CLI command', () => {
     it('calls install profiles correctly - one invalid provider', async () => {
       mocked(detectSuperJson).mockResolvedValue('.');
       mocked(installProvider).mockResolvedValue(undefined);
-      const mockProviders = ['tyntec', 'twilio', 'made-up'];
+      const mockProviders = ['tyntec', 'twilio', 'made.up'];
       const profileName = 'starwars/character-information';
 
       await expect(
         Install.run([profileName, '-p', ...mockProviders])
       ).resolves.toBeUndefined();
+
+      expect(stdout.output).toContain('Invalid provider name: made.up');
       expect(installProfiles).toHaveBeenCalledTimes(1);
       expect(installProfiles).toHaveBeenCalledWith(
         '.',
@@ -192,6 +194,111 @@ describe('Install CLI command', () => {
           warnCb: expect.anything(),
           force: false,
           typings: true,
+        }
+      );
+      expect(installProvider).toHaveBeenCalledTimes(2);
+      expect(installProvider).toHaveBeenNthCalledWith(
+        1,
+        '.',
+        'tyntec',
+        profileName,
+        {
+          logCb: expect.anything(),
+          warnCb: expect.anything(),
+          force: false,
+          local: false,
+        }
+      );
+      expect(installProvider).toHaveBeenNthCalledWith(
+        2,
+        '.',
+        'twilio',
+        profileName,
+        {
+          logCb: expect.anything(),
+          warnCb: expect.anything(),
+          force: false,
+          local: false,
+        }
+      );
+    }, 10000);
+
+    it('calls install profiles correctly - providers separated by coma', async () => {
+      mocked(detectSuperJson).mockResolvedValue('.');
+      mocked(installProvider).mockResolvedValue(undefined);
+      const profileName = 'starwars/character-information';
+
+      await expect(
+        Install.run([
+          profileName,
+          '-p',
+          'tyntec,',
+          ' twilio, ',
+          ', dhl-unified , ',
+          ' github ',
+          ' made.up',
+        ])
+      ).resolves.toBeUndefined();
+
+      expect(stdout.output).toContain('Invalid provider name: made.up');
+      expect(installProfiles).toHaveBeenCalledTimes(1);
+      expect(installProfiles).toHaveBeenCalledWith(
+        '.',
+        [{ kind: 'store', profileId: profileName }],
+        {
+          logCb: expect.anything(),
+          warnCb: expect.anything(),
+          force: false,
+          typings: true,
+        }
+      );
+      expect(installProvider).toHaveBeenCalledTimes(4);
+      expect(installProvider).toHaveBeenNthCalledWith(
+        1,
+        '.',
+        'tyntec',
+        profileName,
+        {
+          logCb: expect.anything(),
+          warnCb: expect.anything(),
+          force: false,
+          local: false,
+        }
+      );
+      expect(installProvider).toHaveBeenNthCalledWith(
+        2,
+        '.',
+        'twilio',
+        profileName,
+        {
+          logCb: expect.anything(),
+          warnCb: expect.anything(),
+          force: false,
+          local: false,
+        }
+      );
+      expect(installProvider).toHaveBeenNthCalledWith(
+        3,
+        '.',
+        'dhl-unified',
+        profileName,
+        {
+          logCb: expect.anything(),
+          warnCb: expect.anything(),
+          force: false,
+          local: false,
+        }
+      );
+      expect(installProvider).toHaveBeenNthCalledWith(
+        4,
+        '.',
+        'github',
+        profileName,
+        {
+          logCb: expect.anything(),
+          warnCb: expect.anything(),
+          force: false,
+          local: false,
         }
       );
     }, 10000);

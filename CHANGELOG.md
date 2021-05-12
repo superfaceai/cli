@@ -2,6 +2,7 @@
 
 ### Changed
 * Provider name in environment variables
+* Provider name delimiters
 
 ## [0.0.13] - 2021-05-05
 
