@@ -1,6 +1,6 @@
 {
   "name": "@superfaceai/cli",
-  "version": "0.0.10",
+  "version": "0.0.13",
   "description": "Superface CLI utility",
   "main": "dist/index.js",
   "repository": "https://github.com/superfaceai/cli.git",
@@ -46,8 +46,8 @@
   "dependencies": {
     "@oclif/command": "^1.8.0",
     "@oclif/config": "^1.17.0",
-    "@superfaceai/ast": "^0.0.24",
-    "@superfaceai/one-sdk": "0.0.25",
+    "@superfaceai/ast": "^0.0.25",
+    "@superfaceai/one-sdk": "0.0.26",
     "@superfaceai/parser": "0.0.17",
     "chalk": "^4.1.0",
     "debug": "^4.3.1",

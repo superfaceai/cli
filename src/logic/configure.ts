@@ -42,26 +42,28 @@ export function handleProviderResponse(
           response.securitySchemes.length
         } security schemes`
       );
+      //Char - is not allowed in env variables so replace it with _
+      const envProviderName = response.name.replace('-', '_').toUpperCase();
       if (isApiKeySecurityScheme(scheme)) {
         security.push({
           id: scheme.id,
-          apikey: `$${response.name.toUpperCase()}_API_KEY`,
+          apikey: `$${envProviderName}_API_KEY`,
         });
       } else if (isBasicAuthSecurityScheme(scheme)) {
         security.push({
           id: scheme.id,
-          username: `$${response.name.toUpperCase()}_USERNAME`,
-          password: `$${response.name.toUpperCase()}_PASSWORD`,
+          username: `$${envProviderName}_USERNAME`,
+          password: `$${envProviderName}_PASSWORD`,
         });
       } else if (isBearerTokenSecurityScheme(scheme)) {
         security.push({
           id: scheme.id,
-          token: `$${response.name.toUpperCase()}_TOKEN`,
+          token: `$${envProviderName}_TOKEN`,
         });
       } else if (isDigestSecurityScheme(scheme)) {
         security.push({
           id: scheme.id,
-          digest: `$${response.name.toUpperCase()}_DIGEST`,
+          digest: `$${envProviderName}_DIGEST`,
         });
       } else {
         options?.warnCb?.(

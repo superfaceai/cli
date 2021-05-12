@@ -102,6 +102,73 @@ describe('Configure CLI logic', () => {
       );
     });
 
+    it('add provider with - in name to super json', async () => {
+      const addProviderSpy = jest.spyOn(SuperJson.prototype, 'addProvider');
+      const addProfileProviderSpy = jest.spyOn(
+        SuperJson.prototype,
+        'addProfileProvider'
+      );
+
+      const mockProviderJson: ProviderJson = {
+        name: 'provider-test',
+        services: [
+          {
+            id: 'swapidev',
+            baseUrl: 'https://swapi.dev/api',
+          },
+        ],
+        securitySchemes: [
+          {
+            id: 'api',
+            type: SecurityType.APIKEY,
+            in: ApiKeyPlacement.HEADER,
+            name: 'X-API-Key',
+          },
+          {
+            id: 'bearer',
+            type: SecurityType.HTTP,
+            scheme: HttpScheme.BEARER,
+          },
+          {
+            id: 'basic',
+            type: SecurityType.HTTP,
+            scheme: HttpScheme.BASIC,
+          },
+          {
+            id: 'digest',
+            type: SecurityType.HTTP,
+            scheme: HttpScheme.DIGEST,
+          },
+        ],
+        defaultService: 'swapidev',
+      };
+
+      expect(
+        handleProviderResponse(mockSuperJson, mockProfileId, mockProviderJson)
+      ).toEqual(4);
+
+      expect(addProviderSpy).toHaveBeenCalledTimes(1);
+      expect(addProviderSpy).toHaveBeenCalledWith('provider-test', {
+        security: [
+          { apikey: '$PROVIDER_TEST_API_KEY', id: 'api' },
+          { id: 'bearer', token: '$PROVIDER_TEST_TOKEN' },
+          {
+            id: 'basic',
+            password: '$PROVIDER_TEST_PASSWORD',
+            username: '$PROVIDER_TEST_USERNAME',
+          },
+          { digest: '$PROVIDER_TEST_DIGEST', id: 'digest' },
+        ],
+      });
+
+      expect(addProfileProviderSpy).toHaveBeenCalledTimes(1);
+      expect(addProfileProviderSpy).toHaveBeenCalledWith(
+        mockProfileId,
+        'provider-test',
+        {}
+      );
+    });
+
     it('does not throw error on unknown security scheme', async () => {
       const mockProviderJson: ProviderJson = {
         name: providerName,
