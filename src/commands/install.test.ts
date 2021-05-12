@@ -177,12 +177,14 @@ describe('Install CLI command', () => {
     it('calls install profiles correctly - one invalid provider', async () => {
       mocked(detectSuperJson).mockResolvedValue('.');
       mocked(installProvider).mockResolvedValue(undefined);
-      const mockProviders = ['tyntec', 'twilio', 'made&up'];
+      const mockProviders = ['tyntec', 'twilio', 'made.up'];
       const profileName = 'starwars/character-information';
 
       await expect(
         Install.run([profileName, '-p', ...mockProviders])
       ).resolves.toBeUndefined();
+
+      expect(stdout.output).toContain('Invalid provider name: made.up');
       expect(installProfiles).toHaveBeenCalledTimes(1);
       expect(installProfiles).toHaveBeenCalledWith(
         '.',
@@ -234,9 +236,11 @@ describe('Install CLI command', () => {
           ' twilio, ',
           ', dhl-unified , ',
           ' github ',
-          ' made&up',
+          ' made.up',
         ])
       ).resolves.toBeUndefined();
+
+      expect(stdout.output).toContain('Invalid provider name: made.up');
       expect(installProfiles).toHaveBeenCalledTimes(1);
       expect(installProfiles).toHaveBeenCalledWith(
         '.',

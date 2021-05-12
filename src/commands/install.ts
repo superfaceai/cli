@@ -139,7 +139,9 @@ export default class Install extends Command {
       superPath = SUPERFACE_DIR;
     }
 
-    const providers = parseProviders(flags.providers);
+    const providers = parseProviders(flags.providers, {
+      warnCb: this.warnCallback,
+    });
 
     this.logCallback?.(
       `Installing profiles according to 'super.json' on path '${joinPath(
