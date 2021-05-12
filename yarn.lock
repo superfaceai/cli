@@ -614,15 +614,15 @@
   resolved "https://registry.yarnpkg.com/@superfaceai/ast/-/ast-0.0.23.tgz#0e58a76b45c0a2dadc72499001d32d0c37cf4128"
   integrity sha512-9SKqJmC/g8caDZ9T4RcWm43D4f/UFCX57nX8a1J9dM0/GRtMq1fsPt+qcEmCTyys2Gt9JGzH8MDCBym2F92MBg==
 
-"@superfaceai/ast@^0.0.24":
-  version "0.0.24"
-  resolved "https://registry.yarnpkg.com/@superfaceai/ast/-/ast-0.0.24.tgz#5755b02787f48b28efb49fc06354e349a78f28ac"
-  integrity sha512-URTLVDq1CFHpaIrZXJOB/E9zNPfxwRKepJyW1rqV187Ky2RrtlVwpqsmlAkM1bhyU/h4cH8AZl/4RO2dlJsQIA==
-
-"@superfaceai/one-sdk@0.0.25":
+"@superfaceai/ast@^0.0.25":
   version "0.0.25"
-  resolved "https://registry.yarnpkg.com/@superfaceai/one-sdk/-/one-sdk-0.0.25.tgz#f0e76019b74c87f25f05b7c6239c5906965d372c"
-  integrity sha512-Zvlr6w/1fOalJz5oMBtGF8VNuzeBUFQpzLX8z50hVDk+eEOyBlprEGevomktww/snorJUxdmIzg1327YPaU+EA==
+  resolved "https://registry.yarnpkg.com/@superfaceai/ast/-/ast-0.0.25.tgz#f8bb0d6d7e74932600c8326cd6c445540e42a952"
+  integrity sha512-5zSC2X+gqPiEvjKHcGLEjUsKJ4RNyXM8AmKhNSNw3CoahmSwftCFIL4YRHzeI+nnvh82qd5RbxNFeRt0Tn4adA==
+
+"@superfaceai/one-sdk@0.0.26":
+  version "0.0.26"
+  resolved "https://registry.yarnpkg.com/@superfaceai/one-sdk/-/one-sdk-0.0.26.tgz#0a3ee21c2d002455b117522e319723ec26fe854d"
+  integrity sha512-XUl97MXRInFJXvsjOxYQB+W7102oagn4EM+6odyGRS4TN+KsD9NGT0hqASKtqqVZ/cGmn0Yx5UHgFe+TBv1iCg==
   dependencies:
     "@superfaceai/ast" "0.0.23"
     cross-fetch "^3.0.5"
