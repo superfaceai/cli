@@ -25,19 +25,12 @@ const parseProviders = (
   }
 
   return providers
-    .map(provider => {
-      //Remove whitespaces and , chracters
-      let trimmed = provider.trim();
-      if (trimmed.startsWith(',')) {
-        trimmed = trimmed.substring(1);
-      }
-      if (trimmed.endsWith(',')) {
-        trimmed = trimmed.substring(0, trimmed.length - 1);
-      }
-
-      return trimmed.trim();
-    })
+    .flatMap(provider => provider.split(','))
+    .map(p => p.trim())
     .filter(p => {
+      if (p === '') {
+        return false;
+      }
       if (!isValidProviderName(p)) {
         options?.warnCb?.(`Invalid provider name: ${p}`);
 
@@ -101,7 +94,7 @@ export default class Install extends Command {
   static examples = [
     '$ superface install',
     '$ superface install sms/service@1.0',
-    '$ superface install sms/service@1.0 --providers twilio',
+    '$ superface install sms/service@1.0 --providers twilio tyntec',
     '$ superface install sms/service@1.0 -p twilio',
     '$ superface install --local sms/service.supr',
   ];
