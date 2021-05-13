@@ -173,7 +173,7 @@ OPTIONS
 EXAMPLES
   $ superface install
   $ superface install sms/service@1.0
-  $ superface install sms/service@1.0 --providers twilio
+  $ superface install sms/service@1.0 --providers twilio tyntec
   $ superface install sms/service@1.0 -p twilio
   $ superface install --local sms/service.supr
 ```
