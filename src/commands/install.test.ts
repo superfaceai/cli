@@ -223,7 +223,7 @@ describe('Install CLI command', () => {
       );
     }, 10000);
 
-    it('calls install profiles correctly - providers separated by coma', async () => {
+    it('calls install profiles correctly - providers separated by coma and space', async () => {
       mocked(detectSuperJson).mockResolvedValue('.');
       mocked(installProvider).mockResolvedValue(undefined);
       const profileName = 'starwars/character-information';
@@ -232,11 +232,7 @@ describe('Install CLI command', () => {
         Install.run([
           profileName,
           '-p',
-          'tyntec,',
-          ' twilio, ',
-          ', dhl-unified , ',
-          ' github ',
-          ' made.up',
+          ',tyntec, twilio, , dhl-unified ,,github,made.up,',
         ])
       ).resolves.toBeUndefined();
 

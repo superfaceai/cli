@@ -23,21 +23,17 @@ const parseProviders = (
   if (!providers) {
     return [];
   }
+  const splitted: string[] = [];
+  providers.forEach(provider => {
+    splitted.push(...provider.split(','));
+  });
 
-  return providers
-    .map(provider => {
-      //Remove whitespaces and , chracters
-      let trimmed = provider.trim();
-      if (trimmed.startsWith(',')) {
-        trimmed = trimmed.substring(1);
-      }
-      if (trimmed.endsWith(',')) {
-        trimmed = trimmed.substring(0, trimmed.length - 1);
-      }
-
-      return trimmed.trim();
-    })
+  return splitted
+    .map(p => p.trim())
     .filter(p => {
+      if (p === '') {
+        return false;
+      }
       if (!isValidProviderName(p)) {
         options?.warnCb?.(`Invalid provider name: ${p}`);
 
@@ -106,10 +102,10 @@ export default class Install extends Command {
     '$ superface install --local sms/service.supr',
   ];
 
-  private warnCallback?= (message: string) =>
+  private warnCallback? = (message: string) =>
     this.log('⚠️  ' + yellow(message));
 
-  private logCallback?= (message: string) => this.log(grey(message));
+  private logCallback? = (message: string) => this.log(grey(message));
 
   async run(): Promise<void> {
     const { args, flags } = this.parse(Install);
