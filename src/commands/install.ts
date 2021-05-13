@@ -23,12 +23,9 @@ const parseProviders = (
   if (!providers) {
     return [];
   }
-  const splitted: string[] = [];
-  providers.forEach(provider => {
-    splitted.push(...provider.split(','));
-  });
 
-  return splitted
+  return providers
+    .flatMap(provider => provider.split(','))
     .map(p => p.trim())
     .filter(p => {
       if (p === '') {
@@ -102,10 +99,10 @@ export default class Install extends Command {
     '$ superface install --local sms/service.supr',
   ];
 
-  private warnCallback?= (message: string) =>
+  private warnCallback? = (message: string) =>
     this.log('⚠️  ' + yellow(message));
 
-  private logCallback?= (message: string) => this.log(grey(message));
+  private logCallback? = (message: string) => this.log(grey(message));
 
   async run(): Promise<void> {
     const { args, flags } = this.parse(Install);
