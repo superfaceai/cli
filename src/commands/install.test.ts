@@ -240,7 +240,6 @@ describe('Install CLI command', () => {
           logCb: expect.anything(),
           warnCb: expect.anything(),
           force: false,
-          typings: true,
         }
       );
       expect(installProvider).toHaveBeenCalledTimes(4);

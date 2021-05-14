@@ -3,6 +3,7 @@
 ### Changed
 * Provider name in environment variables
 * Provider name delimiters
+* Codegen generates .js and .d.ts now
 
 ## [0.0.13] - 2021-05-05
 
