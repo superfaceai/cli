@@ -1,4 +1,5 @@
 import { flags } from '@oclif/command';
+import { isValidIdentifier } from '@superfaceai/ast';
 import { parseDocumentId } from '@superfaceai/parser';
 import { grey, yellow } from 'chalk';
 import inquirer from 'inquirer';
@@ -9,7 +10,6 @@ import {
   DEFAULT_PROFILE_VERSION_STR,
   inferCreateMode,
   SUPERFACE_DIR,
-  validateDocumentName,
 } from '../common/document';
 import { CreateMode } from '../common/document.interfaces';
 import { developerError, userError } from '../common/error';
@@ -159,7 +159,7 @@ export default class Create extends Command {
     // if there is no specified usecase - create usecase with same name as profile name
     const usecases = flags.usecase ?? [composeUsecaseName(name)];
     for (const usecase of usecases) {
-      if (!validateDocumentName(usecase)) {
+      if (!isValidIdentifier(usecase)) {
         throw userError(`Invalid usecase name: ${usecase}`, 1);
       }
     }

@@ -1,13 +1,10 @@
 import { flags } from '@oclif/command';
+import { isValidProviderName } from '@superfaceai/one-sdk';
 import { grey, yellow } from 'chalk';
 import { join as joinPath } from 'path';
 
 import { Command } from '../common/command.abstract';
-import {
-  META_FILE,
-  SUPERFACE_DIR,
-  validateDocumentName,
-} from '../common/document';
+import { META_FILE, SUPERFACE_DIR } from '../common/document';
 import { installProvider } from '../logic/configure';
 import { initSuperface } from '../logic/init';
 import { detectSuperJson } from '../logic/install';
@@ -63,7 +60,7 @@ export default class Configure extends Command {
       this.logCallback = undefined;
     }
 
-    if (!validateDocumentName(args.providerName) && !flags.local) {
+    if (!isValidProviderName(args.providerName) && !flags.local) {
       this.warnCallback?.('Invalid provider name');
 
       return;

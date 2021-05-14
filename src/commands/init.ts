@@ -1,14 +1,12 @@
 import { flags } from '@oclif/command';
+import { isValidProviderName } from '@superfaceai/one-sdk';
 import { parseProfileId } from '@superfaceai/parser';
 import { grey, yellow } from 'chalk';
 import inquirer from 'inquirer';
 import { join as joinPath } from 'path';
 
 import { Command } from '../common/command.abstract';
-import {
-  constructProviderSettings,
-  validateDocumentName,
-} from '../common/document';
+import { constructProviderSettings } from '../common/document';
 import { LogCallback } from '../common/log';
 import { OutputStream } from '../common/output-stream';
 import { generateSpecifiedProfiles, initSuperface } from '../logic/init';
@@ -38,7 +36,7 @@ const parseProviders = (
     .split(' ')
     .filter(i => i.trim() !== '')
     .filter(p => {
-      if (!validateDocumentName(p)) {
+      if (!isValidProviderName(p)) {
         options?.warnCb?.('⬅ Invalid provider name');
 
         return false;
