@@ -9,6 +9,7 @@ import {
   META_FILE,
   SUPER_PATH,
   SUPERFACE_DIR,
+  UNCOMPILED_SDK_FILE,
 } from '../common/document';
 import {
   fetchProfile,
@@ -16,12 +17,16 @@ import {
   fetchProfileInfo,
   ProfileInfo,
 } from '../common/http';
-import { exists, isAccessible, readFileQuiet } from '../common/io';
+import { exists, isAccessible } from '../common/io';
 import { formatShellLog, LogCallback } from '../common/log';
 import { OutputStream } from '../common/output-stream';
 import { pathParentLevel, replaceExt } from '../common/path';
 import { arrayFilterUndefined } from '../common/util';
-import { generateTypesFile, generateTypingsForProfile } from './generate';
+import {
+  generateTypesFile,
+  generateTypingsForProfile,
+  transpileFiles,
+} from './generate';
 
 const INSTALL_LOCAL_PATH_PARENT_LIMIT = (() => {
   let value = 1;
@@ -78,7 +83,6 @@ type InstallOptions = {
   logCb?: LogCallback;
   warnCb?: LogCallback;
   force?: boolean;
-  typings?: boolean;
 };
 
 export type LocalRequest = {
@@ -181,10 +185,6 @@ export async function resolveInstallationRequests(
     })
   ).then(arrayFilterUndefined);
 
-  if (options?.typings) {
-    await generateTypes(phase3, superJson);
-  }
-
   // phase 4 - write to super.json
   for (const entry of phase3) {
     if (entry.kind === 'local') {
@@ -204,28 +204,26 @@ export async function resolveInstallationRequests(
     }
   }
 
+  await generateTypes(phase3, superJson);
+
   return phase3.length;
 }
 
+/**
+ * Generates types from Profile requests and writes them in superface directory
+ */
 async function generateTypes(
   requests: (LocalRequestRead | StoreRequestFetched)[],
   superJson: SuperJson
 ) {
+  const sources: Record<string, string> = {};
   for (const request of requests) {
-    const typing = generateTypingsForProfile(
-      request.profileId,
-      request.profileAst
-    );
-    const typingPath = joinPath('types', `${request.profileId}.ts`);
-    const actualTypingPath = superJson.resolvePath(typingPath);
-    await OutputStream.writeOnce(actualTypingPath, typing, { dirs: true });
+    const typing = generateTypingsForProfile(request.profileAst);
+    sources[joinPath('types', request.profileId + '.ts')] = typing;
   }
-  const sdkPath = superJson.resolvePath('sdk.ts');
-  const typesFile = generateTypesFile(
-    requests.map(request => request.profileId),
-    await readFileQuiet(sdkPath)
-  );
-  await OutputStream.writeOnce(sdkPath, typesFile, { dirs: true });
+  const sdkFile = generateTypesFile(Object.keys(superJson.normalized.profiles));
+  sources[UNCOMPILED_SDK_FILE] = sdkFile;
+  await transpileFiles(sources, superJson);
 }
 
 /**

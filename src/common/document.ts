@@ -42,6 +42,7 @@ export const EXTENSIONS = {
 
 export const SUPERFACE_DIR = 'superface';
 export const META_FILE = 'super.json';
+export const UNCOMPILED_SDK_FILE = 'sdk.ts';
 export const SUPER_PATH = joinPath(SUPERFACE_DIR, META_FILE);
 export const GRID_DIR = joinPath(SUPERFACE_DIR, 'grid');
 export const TYPES_DIR = joinPath(SUPERFACE_DIR, 'types');

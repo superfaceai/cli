@@ -1,11 +1,13 @@
-import { StructureType } from '@superfaceai/parser';
+import {
+  DocumentedStructureType,
+  ProfileOutput,
+  StructureType,
+} from '@superfaceai/parser';
 import {
   addSyntheticLeadingComment,
   ArrayTypeNode,
-  AsExpression,
   CallExpression,
   createPrinter,
-  createSourceFile,
   EmitHint,
   ExportDeclaration,
   Expression,
@@ -13,14 +15,8 @@ import {
   FalseLiteral,
   Identifier,
   ImportDeclaration,
-  isExportSpecifier,
-  isIdentifier,
-  isImportSpecifier,
-  isNamedExports,
-  isNamedImports,
   KeywordTypeNode,
   LiteralTypeNode,
-  NewExpression,
   Node,
   NodeFlags,
   NumericLiteral,
@@ -28,15 +24,12 @@ import {
   ObjectLiteralExpression,
   PropertyAssignment,
   PropertySignature,
-  ScriptTarget,
   SpreadAssignment,
   Statement,
   StringLiteral,
   SyntaxKind,
   TrueLiteral,
-  TupleTypeNode,
   TypeAliasDeclaration,
-  TypeElement,
   TypeLiteralNode,
   TypeNode,
   TypeQueryNode,
@@ -45,8 +38,13 @@ import {
   VariableStatement,
 } from 'typescript';
 
-import { isDocumentedStructure } from './generate';
+/*
+ * Various utils
+ */
 
+/**
+ * Adds JSDoc comments to a single TS node
+ */
 export function addDoc<T extends Node>(
   node: T,
   doc?: { title?: string; description?: string }
@@ -73,51 +71,69 @@ export function addDoc<T extends Node>(
   );
 }
 
+/**
+ * Just capitalizes a string
+ */
 export function capitalize(input: string): string {
   return input.charAt(0).toUpperCase() + input.substring(1);
 }
 
+/**
+ * Transforms a kebap-case string to camelCase
+ */
 export function camelize(input: string): string {
   return input.replace(/[-/](\w)/g, (_, repl) => {
     return capitalize(repl);
   });
 }
 
+/**
+ * Transforms a kebap-case string to PascalCase
+ */
 export function pascalize(input: string): string {
   return capitalize(camelize(input));
 }
 
-export function id(name: string): Identifier {
-  return factory.createIdentifier(name);
+/**
+ * Checks if a structure has doc strings
+ */
+export function isDocumentedStructure(
+  structure: StructureType
+): structure is DocumentedStructureType {
+  return 'title' in structure;
 }
 
-export function namedImport(names: string[], from: string): ImportDeclaration {
-  return factory.createImportDeclaration(
-    undefined,
-    undefined,
-    factory.createImportClause(
-      false,
-      undefined,
-      factory.createNamedImports(
-        names.map(name => factory.createImportSpecifier(undefined, id(name)))
-      )
-    ),
-    factory.createStringLiteral(from, true)
+/**
+ * Creates actual source text from a list of statements
+ */
+export function createSource(statements: Statement[]): string {
+  const document = factory.createSourceFile(
+    statements,
+    factory.createToken(SyntaxKind.EndOfFileToken),
+    0
   );
+
+  const printer = createPrinter();
+
+  return printer.printNode(EmitHint.SourceFile, document, document);
 }
 
-export function defaultImport(name: string, from: string): ImportDeclaration {
-  return factory.createImportDeclaration(
-    undefined,
-    undefined,
-    factory.createImportClause(false, id(name), undefined),
-    literal(from)
-  );
-}
+/*
+ * TypeScript keywords
+ */
 
-export const exportKeyword = factory.createToken(SyntaxKind.ExportKeyword);
-export const questionToken = factory.createToken(SyntaxKind.QuestionToken);
+const exportKeyword = factory.createToken(SyntaxKind.ExportKeyword);
+const questionToken = factory.createToken(SyntaxKind.QuestionToken);
+const nullKeyword = factory.createLiteralTypeNode(
+  factory.createToken(SyntaxKind.NullKeyword)
+);
 
+/**
+ * Creates a node of one the specified keyword
+ *
+ * Output example:
+ * > string
+ */
 export function keyword(
   keywordType: 'string' | 'number' | 'boolean' | 'any' | 'unknown'
 ): KeywordTypeNode {
@@ -135,18 +151,295 @@ export function keyword(
   }
 }
 
-export function arrayType(elementType: TypeNode): ArrayTypeNode {
+/*
+ * TypeScript node factory functions
+ */
+
+/**
+ * Turns type into an array of that type
+ *
+ * Output example:
+ * > *type*[]
+ */
+function arrayType(elementType: TypeNode): ArrayTypeNode {
   return factory.createArrayTypeNode(elementType);
 }
 
+/**
+ * Creates a call expression
+ *
+ * Output:
+ * > *functionName*&lt;*...typeArguments*&gt;(*...functionArguments*)
+ */
+export function callExpression(
+  functionName: string,
+  functionArguments: Expression[],
+  typeArguments?: string[]
+): CallExpression {
+  return factory.createCallExpression(
+    id(functionName),
+    typeArguments?.map(argument => typeReference(argument)) ?? [],
+    functionArguments
+  );
+}
+
+/**
+ * Creates an identifier node
+ *
+ * Output example:
+ * > myVariable
+ */
+export function id(name: string): Identifier {
+  return factory.createIdentifier(name);
+}
+
+function literal(
+  from: string | number | boolean
+): StringLiteral | NumericLiteral | TrueLiteral | FalseLiteral {
+  switch (typeof from) {
+    case 'string':
+      return factory.createStringLiteral(from, true);
+
+    case 'number':
+      return factory.createNumericLiteral(from);
+
+    case 'boolean':
+      return from ? factory.createTrue() : factory.createFalse();
+  }
+}
+
+/**
+ * Creates a literal type node
+ *
+ * Output examples:
+ * > 42
+ * > 'Hello world!'
+ * > true
+ */
+export function literalType(value: string | number | boolean): LiteralTypeNode {
+  return factory.createLiteralTypeNode(literal(value));
+}
+
+/**
+ * Creates a union of literal types
+ *
+ * Output:
+ * > *values[0]* | *values[1]*
+ */
+export function literalUnion(
+  values: (string | number | boolean)[]
+): UnionTypeNode {
+  return union(values.map(literalType));
+}
+
+/**
+ * Creates a named import node
+ *
+ * Output:
+ * > import { *names[0]*, *names[1]* } from '*from*';
+ */
+export function namedImport(names: string[], from: string): ImportDeclaration {
+  return factory.createImportDeclaration(
+    undefined,
+    undefined,
+    factory.createImportClause(
+      false,
+      undefined,
+      factory.createNamedImports(
+        names.map(name => factory.createImportSpecifier(undefined, id(name)))
+      )
+    ),
+    factory.createStringLiteral(from, true)
+  );
+}
+
+/**
+ * Creates an object literal
+ *
+ * Output:
+ * > { *...properties* }
+ */
+export function objectLiteral(
+  properties: ObjectLiteralElementLike[]
+): ObjectLiteralExpression {
+  return factory.createObjectLiteralExpression(properties, true);
+}
+
+/**
+ * Creates a property assignment for an object literal
+ *
+ * Output:
+ * > { *name*: *initializer* }
+ */
+export function propertyAssignment(
+  name: string,
+  initializer: Expression
+): PropertyAssignment {
+  return factory.createPropertyAssignment(stringLiteral(name), initializer);
+}
+
+/**
+ * Creates an object type property signature
+ *
+ * Output:
+ * > { *name*?: *type* }
+ */
+export function propertySignature(
+  name: string,
+  required: boolean | undefined,
+  type: TypeNode,
+  doc?: { title?: string; description?: string }
+): PropertySignature {
+  const signature = factory.createPropertySignature(
+    undefined,
+    id(name),
+    required ? undefined : questionToken,
+    type
+  );
+
+  if (doc !== undefined) {
+    return addDoc(signature, doc);
+  }
+
+  return signature;
+}
+
+/**
+ * Creates an export from a module
+ *
+ * Output:
+ * > export { *names[0]*, *names[1]* } from '*from*'
+ */
+export function reexport(names: string[], from: string): ExportDeclaration {
+  return factory.createExportDeclaration(
+    undefined,
+    undefined,
+    false,
+    factory.createNamedExports(
+      names.map(name => factory.createExportSpecifier(undefined, name))
+    ),
+    stringLiteral(from)
+  );
+}
+
+/**
+ * Creates a spread assignment
+ *
+ * Output:
+ * > ...*name*
+ */
+export function spreadAssignment(name: string): SpreadAssignment {
+  return factory.createSpreadAssignment(id(name));
+}
+
+/**
+ * Creates a string literal
+ *
+ * Output:
+ * > '*text*'
+ */
+export function stringLiteral(text: string): StringLiteral {
+  return factory.createStringLiteral(text);
+}
+
+/**
+ * Creates a type alias
+ *
+ * Output:
+ * > export type *name* = *type*
+ */
+export function typeAlias(name: string, type: TypeNode): TypeAliasDeclaration {
+  return factory.createTypeAliasDeclaration(
+    undefined,
+    [exportKeyword],
+    name,
+    undefined,
+    type
+  );
+}
+
+/**
+ * Creates a type query
+ *
+ * Output:
+ * > typeof *name*
+ */
+export function typeQuery(name: string): TypeQueryNode {
+  return factory.createTypeQueryNode(id(name));
+}
+
+/**
+ * Creates a type reference node
+ *
+ * Output:
+ * > *name* &lt;*...typeArguments*&gt;
+ */
+export function typeReference(
+  name: string,
+  typeArguments?: TypeNode[]
+): TypeReferenceNode {
+  return factory.createTypeReferenceNode(name, typeArguments);
+}
+
+/**
+ * Creates a union type
+ *
+ * Output:
+ * > *values[0]* | *values[1]*
+ */
+export function union(types: TypeNode[]): UnionTypeNode {
+  return factory.createUnionTypeNode(types);
+}
+
+/**
+ * Creates a variable statement
+ *
+ * Output:
+ * > export *name* = *initializer*
+ */
+export function variableStatement(
+  name: string,
+  initializer: Expression,
+  skipExport = false
+): VariableStatement {
+  return factory.createVariableStatement(
+    skipExport ? [] : [factory.createToken(SyntaxKind.ExportKeyword)],
+    factory.createVariableDeclarationList(
+      [
+        factory.createVariableDeclaration(
+          name,
+          undefined,
+          undefined,
+          initializer
+        ),
+      ],
+      NodeFlags.Const
+    )
+  );
+}
+
+/**
+ * Creates a variable type of given type from a structure
+ *
+ * Output examples:
+ * > boolean
+ * > { something: number }
+ * > unknown
+ * > 'literal' | 'union'
+ * > string[]
+ * > number | null
+ */
 export function variableType(
   prefix: string,
   structure: StructureType,
-  untypedType: 'any' | 'unknown'
+  untypedType: 'any' | 'unknown',
+  nonNullable = false
 ): KeywordTypeNode | UnionTypeNode | ArrayTypeNode | TypeLiteralNode {
   switch (structure.kind) {
     case 'PrimitiveStructure':
-      return keyword(structure.type);
+      return nonNullable
+        ? keyword(structure.type)
+        : union([keyword(structure.type), nullKeyword]);
 
     case 'ScalarStructure':
       return keyword(untypedType);
@@ -181,179 +474,25 @@ export function variableType(
       return factory.createTypeLiteralNode(properties);
     }
 
+    case 'NonNullStructure':
+      return variableType(prefix, structure.value, untypedType, true);
+
     default:
       throw new Error(`Variable type not implemented for: ${structure.kind}`);
   }
 }
 
-export function literal(
-  from: string | number | boolean
-): StringLiteral | NumericLiteral | TrueLiteral | FalseLiteral {
-  switch (typeof from) {
-    case 'string':
-      return factory.createStringLiteral(from, true);
+/*
+ * More complex Superface-specific constructs
+ */
 
-    case 'number':
-      return factory.createNumericLiteral(from);
-
-    case 'boolean':
-      return from ? factory.createTrue() : factory.createFalse();
-  }
-}
-
-export function literalType(value: string | number | boolean): LiteralTypeNode {
-  return factory.createLiteralTypeNode(literal(value));
-}
-
-export function union(types: TypeNode[]): UnionTypeNode {
-  return factory.createUnionTypeNode(types);
-}
-
-export function literalUnion(
-  values: (string | number | boolean)[]
-): UnionTypeNode {
-  return union(values.map(literalType));
-}
-
-export function typeAlias(name: string, type: TypeNode): TypeAliasDeclaration {
-  return factory.createTypeAliasDeclaration(
-    undefined,
-    [exportKeyword],
-    name,
-    undefined,
-    type
-  );
-}
-
-export function typeLiteral(types: TypeElement[]): TypeLiteralNode {
-  return factory.createTypeLiteralNode(types);
-}
-
-export function namedTuple(
-  items: [name: string, typeName: string][]
-): TupleTypeNode {
-  return factory.createTupleTypeNode(
-    items.map(([name, typeName]) =>
-      factory.createNamedTupleMember(
-        undefined,
-        id(name),
-        undefined,
-        factory.createTypeReferenceNode(typeName)
-      )
-    )
-  );
-}
-
-export function propertySignature(
-  name: string,
-  required: boolean | undefined,
-  type: TypeNode,
-  doc?: { title?: string; description?: string }
-): PropertySignature {
-  const signature = factory.createPropertySignature(
-    undefined,
-    id(name),
-    required ? undefined : questionToken,
-    type
-  );
-
-  if (doc !== undefined) {
-    return addDoc(signature, doc);
-  }
-
-  return signature;
-}
-
-export function variableStatement(
-  name: string,
-  initializer: Expression,
-  skipExport = false
-): VariableStatement {
-  return factory.createVariableStatement(
-    skipExport ? [] : [factory.createToken(SyntaxKind.ExportKeyword)],
-    factory.createVariableDeclarationList(
-      [
-        factory.createVariableDeclaration(
-          name,
-          undefined,
-          undefined,
-          initializer
-        ),
-      ],
-      NodeFlags.Const
-    )
-  );
-}
-
-export function newTypedExpression(
-  typeName: string,
-  parameters: string[],
-  args: Expression[]
-): NewExpression {
-  return factory.createNewExpression(
-    id(typeName),
-    parameters.map(parameter => factory.createTypeReferenceNode(parameter)),
-    args
-  );
-}
-
-export function asExpression(name: string, asType: string): AsExpression {
-  return factory.createAsExpression(
-    id(name),
-    factory.createTypeReferenceNode(asType)
-  );
-}
-
-export function typeReference(
-  name: string,
-  typeArguments?: TypeNode[]
-): TypeReferenceNode {
-  return factory.createTypeReferenceNode(name, typeArguments);
-}
-
-export function callExpression(
-  functionName: string,
-  functionArguments: Expression[],
-  typeArguments?: string[]
-): CallExpression {
-  return factory.createCallExpression(
-    id(functionName),
-    typeArguments?.map(argument => typeReference(argument)) ?? [],
-    functionArguments
-  );
-}
-
-export function objectLiteral(
-  properties: ObjectLiteralElementLike[]
-): ObjectLiteralExpression {
-  return factory.createObjectLiteralExpression(properties, true);
-}
-
-export function spreadAssignment(name: string): SpreadAssignment {
-  return factory.createSpreadAssignment(id(name));
-}
-
-export function stringLiteral(text: string): StringLiteral {
-  return factory.createStringLiteral(text);
-}
-
-export function propertyAssignment(
-  name: string,
-  initializer: Expression
-): PropertyAssignment {
-  return factory.createPropertyAssignment(stringLiteral(name), initializer);
-}
-
-export function typeDefinitions(profiles: string[]): Statement[] {
-  const camelizedProfiles = profiles.map(camelize);
-  const definitions = variableStatement(
-    'typeDefinitions',
-    objectLiteral(camelizedProfiles.map(spreadAssignment))
-  );
-
-  return [definitions];
-}
-
+/**
+ * Creates a typed client statement
+ *
+ * Output:
+ * > export SuperfaceClient = createTypedClient(typeDefinitions)
+ * > export type SuperfaceClient = InstanceType&lt;typeof SuperfaceClient&gt;
+ */
 export function typedClientStatement(): Statement[] {
   const client = variableStatement(
     'SuperfaceClient',
@@ -367,67 +506,107 @@ export function typedClientStatement(): Statement[] {
   return [client, clientType];
 }
 
-export function parseSource(source: string): Statement[] {
-  const sourceFile = createSourceFile('', source, ScriptTarget.Latest);
-
-  return sourceFile.statements.map(statement => statement);
-}
-
-export function createSource(statements: Statement[]): string {
-  const document = factory.createSourceFile(
-    statements,
-    factory.createToken(SyntaxKind.EndOfFileToken),
-    0
+/**
+ * Creates combined type definitions object
+ *
+ * Output example:
+ * > const typeDefinitions = {
+ * >   ...myProfile
+ * > }
+ */
+export function typeDefinitions(profiles: string[]): Statement[] {
+  const camelizedProfiles = profiles.map(camelize);
+  const definitions = variableStatement(
+    'typeDefinitions',
+    objectLiteral(camelizedProfiles.map(spreadAssignment)),
+    true
   );
 
-  const printer = createPrinter();
-
-  return printer.printNode(EmitHint.SourceFile, document, document);
+  return [definitions];
 }
 
-export function getImportText(node: ImportDeclaration): string | undefined {
-  if (
-    node.importClause?.namedBindings !== undefined &&
-    isNamedImports(node.importClause.namedBindings)
-  ) {
-    return node.importClause.namedBindings.elements.find(isImportSpecifier)
-      ?.name.text;
-  }
+/**
+ * Creates the TypedProfile object and its dependencies
+ *
+ * Output example:
+ * > const profile = {
+ * >   "MyProfile": typeHelper<MyProfileInput, MyProfileResult>()
+ * > };
+ * > export type MyProfileProfile = TypedProfile&lt;typeof profile&gt;
+ * > export const myProfile = {
+ * >   "my-profile": profile
+ * > };
+ */
+export function createProfileType(
+  profileName: string,
+  usecases: { name: string; doc: { title?: string; description?: string } }[]
+): Statement[] {
+  const usecaseAssignments = usecases.map(usecase => {
+    const pascalizedUsecaseName = pascalize(usecase.name);
+    const helperCall = callExpression(
+      'typeHelper',
+      [],
+      [pascalizedUsecaseName + 'Input', pascalizedUsecaseName + 'Result']
+    );
 
-  return undefined;
-}
+    return addDoc(propertyAssignment(usecase.name, helperCall), usecase.doc);
+  });
 
-export function getExportText(node: ExportDeclaration): string | undefined {
-  if (node.exportClause !== undefined && isNamedExports(node.exportClause)) {
-    return node.exportClause.elements.find(isExportSpecifier)?.name.text;
-  }
-
-  return undefined;
-}
-
-export function getVariableName(node: VariableStatement): string | undefined {
-  if (
-    node.declarationList.declarations.length > 0 &&
-    isIdentifier(node.declarationList.declarations[0].name)
-  ) {
-    return node.declarationList.declarations[0].name.escapedText.toString();
-  }
-
-  return undefined;
-}
-
-export function typeQuery(name: string): TypeQueryNode {
-  return factory.createTypeQueryNode(id(name));
-}
-
-export function reexport(names: string[], from: string): ExportDeclaration {
-  return factory.createExportDeclaration(
-    undefined,
-    undefined,
-    false,
-    factory.createNamedExports(
-      names.map(name => factory.createExportSpecifier(undefined, name))
-    ),
-    stringLiteral(from)
+  const profile = variableStatement(
+    'profile',
+    objectLiteral(usecaseAssignments),
+    true
   );
+  const profileType = typeAlias(
+    pascalize(profileName) + 'Profile',
+    typeReference('TypedProfile', [typeQuery('profile')])
+  );
+  const profileWrapper = variableStatement(
+    camelize(profileName),
+    objectLiteral([propertyAssignment(profileName, id('profile'))])
+  );
+
+  return [profile, profileType, profileWrapper];
+}
+
+/**
+ * Creates types from usecase Input and Result
+ *
+ * Output example:
+ * > export type MyUsecaseInput = {
+ * >   name: string
+ * > }
+ * > export type MyUsecaseResult = {
+ * >   age: number
+ * > }
+ */
+export function createUsecaseTypes(
+  usecase: ProfileOutput['usecases'][number],
+  untypedType: 'any' | 'unknown'
+): Statement[] {
+  const createTypes = (
+    structure: StructureType,
+    suffix: 'Input' | 'Result'
+  ) => {
+    const doc = isDocumentedStructure(structure)
+      ? { title: structure.title, description: structure.description }
+      : undefined;
+
+    return [
+      addDoc(
+        typeAlias(
+          capitalize(usecase.useCaseName) + suffix,
+          variableType(capitalize(usecase.useCaseName), structure, untypedType)
+        ),
+        doc
+      ),
+    ];
+  };
+
+  const inputs =
+    usecase.input !== undefined ? createTypes(usecase.input, 'Input') : [];
+  const results =
+    usecase.result !== undefined ? createTypes(usecase.result, 'Result') : [];
+
+  return [...inputs, ...results];
 }
