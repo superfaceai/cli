@@ -526,12 +526,27 @@ describe('Install CLI logic', () => {
         expect(fetchProfileInfo).toHaveBeenCalledTimes(2);
         expect(fetchProfile).toHaveBeenCalledTimes(2);
         expect(fetchProfileAST).toHaveBeenCalledTimes(2);
-        expect(fetchProfile).toHaveBeenCalledWith('starwars/first@1.0.0');
-        expect(fetchProfile).toHaveBeenCalledWith('starwars/second@2.0.0');
-        expect(fetchProfileInfo).toHaveBeenCalledWith('starwars/first@1.0.0');
-        expect(fetchProfileInfo).toHaveBeenCalledWith('starwars/second@2.0.0');
-        expect(fetchProfileAST).toHaveBeenCalledWith('starwars/first@1.0.0');
-        expect(fetchProfileAST).toHaveBeenCalledWith('starwars/second@2.0.0');
+        expect(fetchProfile).toHaveBeenNthCalledWith(1, 'starwars/first@1.0.0');
+        expect(fetchProfile).toHaveBeenNthCalledWith(
+          2,
+          'starwars/second@2.0.0'
+        );
+        expect(fetchProfileInfo).toHaveBeenNthCalledWith(
+          1,
+          'starwars/first@1.0.0'
+        );
+        expect(fetchProfileInfo).toHaveBeenNthCalledWith(
+          2,
+          'starwars/second@2.0.0'
+        );
+        expect(fetchProfileAST).toHaveBeenNthCalledWith(
+          1,
+          'starwars/first@1.0.0'
+        );
+        expect(fetchProfileAST).toHaveBeenNthCalledWith(
+          2,
+          'starwars/second@2.0.0'
+        );
 
         expect(mockWrite).toHaveBeenCalled();
         //actual path is changing

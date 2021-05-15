@@ -204,6 +204,7 @@ export async function resolveInstallationRequests(
     }
   }
 
+  // phase 5 - generate types
   await generateTypes(phase3, superJson);
 
   return phase3.length;
