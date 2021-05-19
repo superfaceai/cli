@@ -1,4 +1,4 @@
-import { ok,SuperJson } from '@superfaceai/one-sdk';
+import { ok, SuperJson } from '@superfaceai/one-sdk';
 import { mocked } from 'ts-jest/utils';
 
 import { composeUsecaseName, EXTENSIONS } from '../common';
