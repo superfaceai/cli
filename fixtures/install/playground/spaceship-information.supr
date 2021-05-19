@@ -1,0 +1,15 @@
+name = "starwars/spaceship-information"
+version = "1.0.0"
+
+"Starwars Spaceship Information"
+usecase RetrieveSpaceshipInformation safe {
+  input {
+    spaceshipName
+  }
+
+  result {
+    name string!
+    model string!
+    pilots [string]
+  }
+}
