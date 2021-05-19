@@ -1,246 +1,327 @@
-import { SuperJson } from '@superfaceai/one-sdk';
-import * as fs from 'fs';
-import { join as joinPath } from 'path';
+import { ok,SuperJson } from '@superfaceai/one-sdk';
+import { mocked } from 'ts-jest/utils';
 
-import { EXTENSIONS, GRID_DIR, SUPER_PATH } from '../common/document';
-import { rimraf } from '../common/io';
+import { composeUsecaseName, EXTENSIONS } from '../common';
+import { mkdirQuiet, WritingOptions } from '../common/io';
 import { OutputStream } from '../common/output-stream';
+import { detectSuperJson } from '../logic/install';
+import * as mapTemplate from '../templates/map';
+import * as profileTemplate from '../templates/profile';
+import * as providerTemplate from '../templates/provider';
 import { MockStd, mockStd } from '../test/mock-std';
 import Create from './create';
-import Lint from './lint';
+
+//Mock install logic
+jest.mock('../logic/install', () => ({
+  detectSuperJson: jest.fn(),
+}));
+
+//Mock IO
+jest.mock('../common/io');
 
 describe('Create CLI command', () => {
-  let documentName: string, provider: string, variant: string;
-
-  const WORKING_DIR = joinPath('fixtures', 'create', 'playground');
+  const originalLoad = SuperJson.load;
 
   const PROFILE = {
-    scope: 'starwars',
-    name: 'character-information',
+    scope: 'sms',
+    name: 'service',
     version: '1.0.1',
   };
 
-  const FIXTURE = {
-    superJson: SUPER_PATH,
-    scope: joinPath(GRID_DIR, PROFILE.scope),
-    profile: joinPath(
-      GRID_DIR,
-      PROFILE.scope,
-      PROFILE.name + '@' + PROFILE.version + EXTENSIONS.profile.source
-    ),
-  };
+  const documentName = `${PROFILE.scope}/${PROFILE.name}`;
+  const provider = 'twilio';
 
-  let INITIAL_CWD: string;
-  let INITIAL_SUPER_JSON: SuperJson;
-
-  beforeAll(async () => {
-    INITIAL_CWD = process.cwd();
-    process.chdir(WORKING_DIR);
-
-    INITIAL_SUPER_JSON = (await SuperJson.load(FIXTURE.superJson)).unwrap();
-
-    await rimraf(FIXTURE.scope);
-  });
+  let writeOnceSpy: jest.SpyInstance<
+    Promise<void>,
+    [string, string, (WritingOptions | undefined)?]
+  >;
+  let writeIfAbsentSpy: jest.SpyInstance<
+    Promise<boolean>,
+    [string, string | (() => string), (WritingOptions | undefined)?]
+  >;
+  let loadSpy: jest.Mock<any, any>;
 
   afterAll(async () => {
-    await resetSuperJson();
-    await rimraf(FIXTURE.scope);
-
-    // change cwd back
-    process.chdir(INITIAL_CWD);
+    SuperJson.load = originalLoad;
   });
-
-  /** Resets super.json to initial state stored in `INITIAL_SUPER_JSON` */
-  async function resetSuperJson() {
-    await OutputStream.writeOnce(
-      FIXTURE.superJson,
-      JSON.stringify(INITIAL_SUPER_JSON.document, undefined, 2)
-    );
-  }
   let stdout: MockStd;
 
   beforeEach(async () => {
-    await resetSuperJson();
-    await rimraf(FIXTURE.scope);
-
     stdout = mockStd();
     jest
       .spyOn(process['stdout'], 'write')
       .mockImplementation(stdout.implementation);
+
+    //Command context
+    //Mock path do super.json
+    const mockPath = 'some/path/';
+    mocked(mkdirQuiet).mockResolvedValue(true);
+
+    mocked(detectSuperJson).mockResolvedValue(mockPath);
+
+    //Logic context
+    //Mock super.json
+    const mockSuperJson = new SuperJson({
+      profiles: {},
+      providers: {},
+    });
+
+    //We need to mock static side of SuperJson
+    loadSpy = jest.fn().mockReturnValue(ok(mockSuperJson));
+    SuperJson.load = loadSpy;
+
+    writeOnceSpy = jest
+      .spyOn(OutputStream, 'writeOnce')
+      .mockResolvedValue(undefined);
+
+    writeIfAbsentSpy = jest
+      .spyOn(OutputStream, 'writeIfAbsent')
+      .mockResolvedValue(true);
   });
 
   afterEach(() => {
     jest.resetAllMocks();
-
-    // handle profile
-    if (fs.existsSync(`${documentName}.supr`)) {
-      fs.unlinkSync(`${documentName}.supr`);
-    }
-
-    // handle map
-    if (variant) {
-      if (fs.existsSync(`${documentName}.${provider}.${variant}.suma`)) {
-        fs.unlinkSync(`${documentName}.${provider}.${variant}.suma`);
-      }
-    } else {
-      if (fs.existsSync(`${documentName}.${provider}.suma`)) {
-        fs.unlinkSync(`${documentName}.${provider}.suma`);
-      }
-    }
-
-    const documentInfo = documentName.split('/');
-    const scope = documentInfo[1] ? documentInfo[0] : undefined;
-
-    // handle scope directory
-    if (scope) {
-      if (fs.existsSync(scope)) {
-        fs.rmdirSync(scope);
-      }
-    }
-
-    // handle provider file
-    if (fs.existsSync(`${provider}.provider.json`)) {
-      fs.unlinkSync(`${provider}.provider.json`);
-    }
   });
 
   it('creates profile with one usecase (with usecase name from cli)', async () => {
-    documentName = 'sendsms';
     await Create.run(['profile', documentName]);
     expect(stdout.output).toContain(
       `-> Created ${documentName}.supr (name = "${documentName}", version = "1.0.0")\n`
     );
 
-    await Lint.run([`${documentName}.supr`]);
-    expect(stdout.output).toContain('Detected 0 problems\n');
+    expect(detectSuperJson).toHaveBeenCalledTimes(1);
 
-    const superJson = (await SuperJson.load()).unwrap();
+    expect(loadSpy).toHaveBeenCalledTimes(1);
+    expect(loadSpy).toHaveBeenCalledWith('some/path/super.json');
 
-    expect(superJson.document).toEqual({
-      profiles: {
-        [documentName]: {
-          file: `../${documentName}.supr`,
+    expect(writeIfAbsentSpy).toHaveBeenCalledTimes(1);
+    expect(writeIfAbsentSpy).toHaveBeenCalledWith(
+      `${documentName}${EXTENSIONS.profile.source}`,
+      [
+        //Default version
+        profileTemplate.header(documentName, '1.0.0'),
+        profileTemplate.usecase('empty', composeUsecaseName(PROFILE.name)),
+      ].join(''),
+      { dirs: true, force: undefined }
+    );
+
+    expect(writeOnceSpy).toHaveBeenCalledTimes(1);
+    expect(writeOnceSpy).toHaveBeenCalledWith(
+      '',
+      JSON.stringify(
+        {
+          profiles: {
+            [documentName]: {
+              file: `${PROFILE.scope}/${PROFILE.name}${EXTENSIONS.profile.source}`,
+            },
+          },
+          providers: {},
         },
-      },
-      providers: {},
-    });
+        undefined,
+        2
+      )
+    );
   });
 
   it('creates profile with one usecase', async () => {
-    documentName = 'sms/service';
     await Create.run(['profile', documentName, '-u', 'SendSMS']);
     expect(stdout.output).toContain(
       `-> Created ${documentName}.supr (name = "${documentName}", version = "1.0.0")\n`
     );
+    expect(detectSuperJson).toHaveBeenCalledTimes(1);
 
-    await Lint.run([`${documentName}.supr`]);
-    expect(stdout.output).toContain('Detected 0 problems\n');
+    expect(loadSpy).toHaveBeenCalledTimes(1);
+    expect(loadSpy).toHaveBeenCalledWith('some/path/super.json');
 
-    const superJson = (await SuperJson.load()).unwrap();
+    expect(writeIfAbsentSpy).toHaveBeenCalledTimes(1);
+    expect(writeIfAbsentSpy).toHaveBeenCalledWith(
+      `${documentName}${EXTENSIONS.profile.source}`,
+      [
+        //Default version
+        profileTemplate.header(documentName, '1.0.0'),
+        profileTemplate.usecase('empty', 'SendSMS'),
+      ].join(''),
+      { dirs: true, force: undefined }
+    );
 
-    expect(superJson.document).toEqual({
-      profiles: {
-        [documentName]: {
-          file: `../${documentName}.supr`,
+    expect(writeOnceSpy).toHaveBeenCalledTimes(1);
+    expect(writeOnceSpy).toHaveBeenCalledWith(
+      '',
+      JSON.stringify(
+        {
+          profiles: {
+            [documentName]: {
+              file: `${PROFILE.scope}/${PROFILE.name}${EXTENSIONS.profile.source}`,
+            },
+          },
+          providers: {},
         },
-      },
-      providers: {},
-    });
+        undefined,
+        2
+      )
+    );
   });
 
   it('creates profile with multiple usecases', async () => {
-    documentName = 'sms/service';
     await Create.run(['profile', documentName, '-u', 'ReceiveSMS', 'SendSMS']);
     expect(stdout.output).toContain(
       `-> Created ${documentName}.supr (name = "${documentName}", version = "1.0.0")\n`
     );
 
-    await Lint.run([`${documentName}.supr`]);
-    expect(stdout.output).toContain('Detected 0 problems\n');
+    expect(detectSuperJson).toHaveBeenCalledTimes(1);
 
-    const superJson = (await SuperJson.load()).unwrap();
+    expect(loadSpy).toHaveBeenCalledTimes(1);
+    expect(loadSpy).toHaveBeenCalledWith('some/path/super.json');
 
-    expect(superJson.document).toEqual({
-      profiles: {
-        [documentName]: {
-          file: `../${documentName}.supr`,
+    expect(writeIfAbsentSpy).toHaveBeenCalledTimes(1);
+    expect(writeIfAbsentSpy).toHaveBeenCalledWith(
+      `${documentName}${EXTENSIONS.profile.source}`,
+      [
+        //Default version
+        profileTemplate.header(documentName, '1.0.0'),
+        profileTemplate.usecase('empty', 'ReceiveSMS'),
+        profileTemplate.usecase('empty', 'SendSMS'),
+      ].join(''),
+      { dirs: true, force: undefined }
+    );
+
+    expect(writeOnceSpy).toHaveBeenCalledTimes(1);
+    expect(writeOnceSpy).toHaveBeenCalledWith(
+      '',
+      JSON.stringify(
+        {
+          profiles: {
+            [documentName]: {
+              file: `${PROFILE.scope}/${PROFILE.name}${EXTENSIONS.profile.source}`,
+            },
+          },
+          providers: {},
         },
-      },
-      providers: {},
-    });
+        undefined,
+        2
+      )
+    );
   });
 
   it('creates map with one usecase (with usecase name from cli)', async () => {
-    documentName = 'sms/service';
-    provider = 'twilio';
     await Create.run(['map', documentName, '-p', provider]);
     expect(stdout.output).toContain(
       `-> Created ${documentName}.${provider}.suma (profile = "${documentName}@1.0", provider = "${provider}")\n-> Created ${provider}.provider.json\n`
     );
 
-    await Lint.run([`${documentName}.${provider}.suma`]);
-    expect(stdout.output).toContain('Detected 0 problems\n');
+    expect(detectSuperJson).toHaveBeenCalledTimes(1);
 
-    const superJson = (await SuperJson.load()).unwrap();
+    expect(loadSpy).toHaveBeenCalledTimes(1);
+    expect(loadSpy).toHaveBeenCalledWith('some/path/super.json');
 
-    expect(superJson.document).toEqual({
-      profiles: {
-        [documentName]: {
-          defaults: {},
-          providers: {
-            [provider]: {
-              file: `../${documentName}.${provider}.suma`,
+    expect(writeIfAbsentSpy).toHaveBeenCalledTimes(2);
+    expect(writeIfAbsentSpy).toHaveBeenNthCalledWith(
+      1,
+      `${documentName}.${provider}${EXTENSIONS.map.source}`,
+      [
+        //Default version
+        mapTemplate.header(documentName, provider, '1.0', ''),
+        mapTemplate.map('empty', composeUsecaseName(PROFILE.name)),
+      ].join(''),
+      { dirs: true, force: undefined }
+    );
+
+    expect(writeIfAbsentSpy).toHaveBeenNthCalledWith(
+      2,
+      `${provider}.provider.json`,
+      providerTemplate.provider('empty', provider),
+      { force: undefined }
+    );
+
+    expect(writeOnceSpy).toHaveBeenCalledTimes(1);
+    expect(writeOnceSpy).toHaveBeenCalledWith(
+      '',
+      JSON.stringify(
+        {
+          profiles: {
+            [documentName]: {
+              version: '0.0.0',
+              defaults: {},
+              providers: {
+                [provider]: {
+                  file: `${documentName}.${provider}.suma`,
+                },
+              },
             },
           },
-          version: '0.0.0',
+          providers: {
+            [provider]: {
+              file: `${provider}.provider.json`,
+              security: [],
+            },
+          },
         },
-      },
-      providers: {
-        [provider]: {
-          file: `../${provider}.provider.json`,
-          security: [],
-        },
-      },
-    });
+        undefined,
+        2
+      )
+    );
   });
 
   it('creates map with one usecase', async () => {
-    documentName = 'sms/service';
-    provider = 'twilio';
     await Create.run(['map', documentName, '-u', 'SendSMS', '-p', provider]);
     expect(stdout.output).toContain(
       `-> Created ${documentName}.${provider}.suma (profile = "${documentName}@1.0", provider = "${provider}")\n-> Created ${provider}.provider.json\n`
     );
 
-    await Lint.run([`${documentName}.${provider}.suma`]);
-    expect(stdout.output).toContain('Detected 0 problems\n');
+    expect(detectSuperJson).toHaveBeenCalledTimes(1);
 
-    const superJson = (await SuperJson.load()).unwrap();
+    expect(loadSpy).toHaveBeenCalledTimes(1);
+    expect(loadSpy).toHaveBeenCalledWith('some/path/super.json');
 
-    expect(superJson.document).toEqual({
-      profiles: {
-        [documentName]: {
-          defaults: {},
-          providers: {
-            [provider]: {
-              file: `../${documentName}.${provider}.suma`,
+    expect(writeIfAbsentSpy).toHaveBeenCalledTimes(2);
+    expect(writeIfAbsentSpy).toHaveBeenNthCalledWith(
+      1,
+      `${documentName}.${provider}${EXTENSIONS.map.source}`,
+      [
+        //Default version
+        mapTemplate.header(documentName, provider, '1.0', ''),
+        mapTemplate.map('empty', 'SendSMS'),
+      ].join(''),
+      { dirs: true, force: undefined }
+    );
+
+    expect(writeIfAbsentSpy).toHaveBeenNthCalledWith(
+      2,
+      `${provider}.provider.json`,
+      providerTemplate.provider('empty', provider),
+      { force: undefined }
+    );
+
+    expect(writeOnceSpy).toHaveBeenCalledTimes(1);
+    expect(writeOnceSpy).toHaveBeenCalledWith(
+      '',
+      JSON.stringify(
+        {
+          profiles: {
+            [documentName]: {
+              version: '0.0.0',
+              defaults: {},
+              providers: {
+                [provider]: {
+                  file: `${documentName}.${provider}.suma`,
+                },
+              },
             },
           },
-          version: '0.0.0',
+          providers: {
+            [provider]: {
+              file: `${provider}.provider.json`,
+              security: [],
+            },
+          },
         },
-      },
-      providers: {
-        [provider]: {
-          file: `../${provider}.provider.json`,
-          security: [],
-        },
-      },
-    });
+        undefined,
+        2
+      )
+    );
   });
 
   it('creates map with mutiple usecases', async () => {
-    documentName = 'sms/service';
-    provider = 'twilio';
     await Create.run([
       'map',
       documentName,
@@ -254,112 +335,197 @@ describe('Create CLI command', () => {
       `-> Created ${documentName}.${provider}.suma (profile = "${documentName}@1.0", provider = "${provider}")\n-> Created ${provider}.provider.json\n`
     );
 
-    await Lint.run([`${documentName}.${provider}.suma`]);
-    expect(stdout.output).toContain('Detected 0 problems\n');
+    expect(detectSuperJson).toHaveBeenCalledTimes(1);
 
-    const superJson = (await SuperJson.load()).unwrap();
+    expect(loadSpy).toHaveBeenCalledTimes(1);
+    expect(loadSpy).toHaveBeenCalledWith('some/path/super.json');
 
-    expect(superJson.document).toEqual({
-      profiles: {
-        [documentName]: {
-          defaults: {},
-          providers: {
-            [provider]: {
-              file: `../${documentName}.${provider}.suma`,
+    expect(writeIfAbsentSpy).toHaveBeenCalledTimes(2);
+    expect(writeIfAbsentSpy).toHaveBeenNthCalledWith(
+      1,
+      `${documentName}.${provider}${EXTENSIONS.map.source}`,
+      [
+        //Default version
+        mapTemplate.header(documentName, provider, '1.0', ''),
+        mapTemplate.map('empty', 'ReceiveSMS'),
+        mapTemplate.map('empty', 'SendSMS'),
+      ].join(''),
+      { dirs: true, force: undefined }
+    );
+
+    expect(writeIfAbsentSpy).toHaveBeenNthCalledWith(
+      2,
+      `${provider}.provider.json`,
+      providerTemplate.provider('empty', provider),
+      { force: undefined }
+    );
+
+    expect(writeOnceSpy).toHaveBeenCalledTimes(1);
+    expect(writeOnceSpy).toHaveBeenCalledWith(
+      '',
+      JSON.stringify(
+        {
+          profiles: {
+            [documentName]: {
+              version: '0.0.0',
+              defaults: {},
+              providers: {
+                [provider]: {
+                  file: `${documentName}.${provider}.suma`,
+                },
+              },
             },
           },
-          version: '0.0.0',
+          providers: {
+            [provider]: {
+              file: `${provider}.provider.json`,
+              security: [],
+            },
+          },
         },
-      },
-      providers: {
-        [provider]: {
-          file: `../${provider}.provider.json`,
-          security: [],
-        },
-      },
-    });
+        undefined,
+        2
+      )
+    );
   });
 
   it('creates profile & map with one usecase (with usecase name from cli)', async () => {
-    documentName = 'sms/service';
-    provider = 'twilio';
     await Create.run([documentName, '-p', provider]);
     expect(stdout.output).toContain(
       `-> Created ${documentName}.supr (name = "${documentName}", version = "1.0.0")\n-> Created ${documentName}.${provider}.suma (profile = "${documentName}@1.0", provider = "${provider}")\n-> Created ${provider}.provider.json\n`
     );
 
-    await Lint.run([`${documentName}.supr`]);
-    expect(stdout.output).toContain('Detected 0 problems\n');
+    expect(detectSuperJson).toHaveBeenCalledTimes(1);
 
-    await Lint.run([`${documentName}.${provider}.suma`]);
-    expect(stdout.output).toContain('Detected 0 problems\n');
+    expect(loadSpy).toHaveBeenCalledTimes(1);
+    expect(loadSpy).toHaveBeenCalledWith('some/path/super.json');
 
-    const superJson = (await SuperJson.load()).unwrap();
+    expect(writeIfAbsentSpy).toHaveBeenCalledTimes(3);
+    expect(writeIfAbsentSpy).toHaveBeenNthCalledWith(
+      1,
+      `${documentName}${EXTENSIONS.profile.source}`,
+      [
+        //Default version
+        profileTemplate.header(documentName, '1.0.0'),
+        profileTemplate.usecase('empty', composeUsecaseName(PROFILE.name)),
+      ].join(''),
+      { dirs: true, force: undefined }
+    );
+    expect(writeIfAbsentSpy).toHaveBeenNthCalledWith(
+      2,
+      `${documentName}.${provider}${EXTENSIONS.map.source}`,
+      [
+        //Default version
+        mapTemplate.header(documentName, provider, '1.0', ''),
+        mapTemplate.map('empty', composeUsecaseName(PROFILE.name)),
+      ].join(''),
+      { dirs: true, force: undefined }
+    );
 
-    expect(superJson.document).toEqual({
-      profiles: {
-        [documentName]: {
-          file: `../${documentName}.supr`,
+    expect(writeIfAbsentSpy).toHaveBeenNthCalledWith(
+      3,
+      `${provider}.provider.json`,
+      providerTemplate.provider('empty', provider),
+      { force: undefined }
+    );
+
+    expect(writeOnceSpy).toHaveBeenCalledTimes(1);
+    expect(writeOnceSpy).toHaveBeenCalledWith(
+      '',
+      JSON.stringify(
+        {
+          profiles: {
+            [documentName]: {
+              file: `${documentName}${EXTENSIONS.profile.source}`,
+              providers: {
+                [provider]: {
+                  file: `${documentName}.${provider}.suma`,
+                },
+              },
+            },
+          },
           providers: {
             [provider]: {
-              file: `../${documentName}.${provider}.suma`,
+              file: `${provider}.provider.json`,
+              security: [],
             },
           },
         },
-      },
-      providers: {
-        [provider]: {
-          file: `../${provider}.provider.json`,
-          security: [],
-        },
-      },
-    });
+        undefined,
+        2
+      )
+    );
   });
 
   it('creates profile & map with one usecase', async () => {
-    documentName = 'sms/service';
-    provider = 'twilio';
     await Create.run([documentName, '-u', 'SendSMS', '-p', 'twilio']);
     expect(stdout.output).toContain(
       `-> Created ${documentName}.supr (name = "${documentName}", version = "1.0.0")\n-> Created ${documentName}.${provider}.suma (profile = "${documentName}@1.0", provider = "${provider}")\n-> Created ${provider}.provider.json\n`
     );
 
-    await Lint.run([`${documentName}.supr`]);
-    expect(stdout.output).toContain('Detected 0 problems\n');
+    expect(writeIfAbsentSpy).toHaveBeenCalledTimes(3);
+    expect(writeIfAbsentSpy).toHaveBeenNthCalledWith(
+      1,
+      `${documentName}${EXTENSIONS.profile.source}`,
+      [
+        //Default version
+        profileTemplate.header(documentName, '1.0.0'),
+        profileTemplate.usecase('empty', 'SendSMS'),
+      ].join(''),
+      { dirs: true, force: undefined }
+    );
+    expect(writeIfAbsentSpy).toHaveBeenNthCalledWith(
+      2,
+      `${documentName}.${provider}${EXTENSIONS.map.source}`,
+      [
+        //Default version
+        mapTemplate.header(documentName, provider, '1.0', ''),
+        mapTemplate.map('empty', 'SendSMS'),
+      ].join(''),
+      { dirs: true, force: undefined }
+    );
 
-    await Lint.run([`${documentName}.${provider}.suma`]);
-    expect(stdout.output).toContain('Detected 0 problems\n');
+    expect(writeIfAbsentSpy).toHaveBeenNthCalledWith(
+      3,
+      `${provider}.provider.json`,
+      providerTemplate.provider('empty', provider),
+      { force: undefined }
+    );
 
-    const superJson = (await SuperJson.load()).unwrap();
-
-    expect(superJson.document).toEqual({
-      profiles: {
-        [documentName]: {
-          file: `../${documentName}.supr`,
+    expect(writeOnceSpy).toHaveBeenCalledTimes(1);
+    expect(writeOnceSpy).toHaveBeenCalledWith(
+      '',
+      JSON.stringify(
+        {
+          profiles: {
+            [documentName]: {
+              file: `${PROFILE.scope}/${PROFILE.name}${EXTENSIONS.profile.source}`,
+              providers: {
+                [provider]: {
+                  file: `${documentName}.${provider}.suma`,
+                },
+              },
+            },
+          },
           providers: {
             [provider]: {
-              file: `../${documentName}.${provider}.suma`,
+              file: `${provider}.provider.json`,
+              security: [],
             },
           },
         },
-      },
-      providers: {
-        [provider]: {
-          file: `../${provider}.provider.json`,
-          security: [],
-        },
-      },
-    });
+        undefined,
+        2
+      )
+    );
   });
 
   it('creates profile & map with multiple usecases', async () => {
-    documentName = 'sms/service';
-    provider = 'twilio';
     await Create.run([
       documentName,
       '-u',
-      'SendSMS',
       'ReceiveSMS',
+      'SendSMS',
       '-p',
       provider,
     ]);
@@ -367,31 +533,67 @@ describe('Create CLI command', () => {
       `-> Created ${documentName}.supr (name = "${documentName}", version = "1.0.0")\n-> Created ${documentName}.${provider}.suma (profile = "${documentName}@1.0", provider = "${provider}")\n-> Created ${provider}.provider.json\n`
     );
 
-    await Lint.run([`${documentName}.supr`]);
-    expect(stdout.output).toContain('Detected 0 problems\n');
+    expect(detectSuperJson).toHaveBeenCalledTimes(1);
 
-    await Lint.run([`${documentName}.${provider}.suma`]);
-    expect(stdout.output).toContain('Detected 0 problems\n');
+    expect(loadSpy).toHaveBeenCalledTimes(1);
+    expect(loadSpy).toHaveBeenCalledWith('some/path/super.json');
 
-    const superJson = (await SuperJson.load()).unwrap();
+    expect(writeIfAbsentSpy).toHaveBeenCalledTimes(3);
+    expect(writeIfAbsentSpy).toHaveBeenNthCalledWith(
+      1,
+      `${documentName}${EXTENSIONS.profile.source}`,
+      [
+        //Default version
+        profileTemplate.header(documentName, '1.0.0'),
+        profileTemplate.usecase('empty', 'ReceiveSMS'),
+        profileTemplate.usecase('empty', 'SendSMS'),
+      ].join(''),
+      { dirs: true, force: undefined }
+    );
+    expect(writeIfAbsentSpy).toHaveBeenNthCalledWith(
+      2,
+      `${documentName}.${provider}${EXTENSIONS.map.source}`,
+      [
+        //Default version
+        mapTemplate.header(documentName, provider, '1.0', ''),
+        mapTemplate.map('empty', 'ReceiveSMS'),
+        mapTemplate.map('empty', 'SendSMS'),
+      ].join(''),
+      { dirs: true, force: undefined }
+    );
 
-    expect(superJson.document).toEqual({
-      profiles: {
-        [documentName]: {
-          file: `../${documentName}.supr`,
+    expect(writeIfAbsentSpy).toHaveBeenNthCalledWith(
+      3,
+      `${provider}.provider.json`,
+      providerTemplate.provider('empty', provider),
+      { force: undefined }
+    );
+
+    expect(writeOnceSpy).toHaveBeenCalledTimes(1);
+    expect(writeOnceSpy).toHaveBeenCalledWith(
+      '',
+      JSON.stringify(
+        {
+          profiles: {
+            [documentName]: {
+              file: `${documentName}${EXTENSIONS.profile.source}`,
+              providers: {
+                [provider]: {
+                  file: `${documentName}.${provider}.suma`,
+                },
+              },
+            },
+          },
           providers: {
             [provider]: {
-              file: `../${documentName}.${provider}.suma`,
+              file: `${provider}.provider.json`,
+              security: [],
             },
           },
         },
-      },
-      providers: {
-        [provider]: {
-          file: `../${provider}.provider.json`,
-          security: [],
-        },
-      },
-    });
+        undefined,
+        2
+      )
+    );
   });
 });
