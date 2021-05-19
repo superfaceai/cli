@@ -1,17 +1,19 @@
 import {
   ApiKeyPlacement,
   HttpScheme,
+  ok,
   SecurityType,
   SuperJson,
-  ok,
 } from '@superfaceai/one-sdk';
 import { mocked } from 'ts-jest/utils';
 
+import { userError } from '../common/error';
 import { fetchProviderInfo } from '../common/http';
+import { readFile } from '../common/io';
+import { OutputStream } from '../common/output-stream';
+import { detectSuperJson } from '../logic/install';
 import { MockStd, mockStd } from '../test/mock-std';
 import Configure from './configure';
-import { detectSuperJson } from '../logic/install';
-import { OutputStream } from '../common/output-stream';
 
 //Mock only fetchProviderInfo response
 jest.mock('../common/http', () => ({
@@ -26,15 +28,16 @@ jest.mock('../logic/install', () => ({
 
 jest.mock('../common/io');
 
-
 describe('Configure CLI command', () => {
-
+  const originalLoad = SuperJson.load;
   const PROFILE = {
     scope: 'starwars',
     name: 'character-information',
     version: '1.0.1',
   };
   const PROVIDER_NAME = 'test';
+
+  const profileId = `${PROFILE.scope}/${PROFILE.name}`;
 
   let stdout: MockStd;
 
@@ -49,12 +52,14 @@ describe('Configure CLI command', () => {
     jest.resetAllMocks();
   });
 
+  afterAll(() => {
+    SuperJson.load = originalLoad;
+  });
+
   describe('when configuring new provider', () => {
     it('configures provider with security schemes correctly', async () => {
-      const profileId = `${PROFILE.scope}/${PROFILE.name}`;
-
       //Mock path do super.json
-      const mockPath = 'some/path/'
+      const mockPath = 'some/path/';
       mocked(detectSuperJson).mockResolvedValue(mockPath);
 
       //Mock super.json
@@ -62,19 +67,20 @@ describe('Configure CLI command', () => {
         profiles: {
           [profileId]: {
             version: PROFILE.version,
-            providers: {}
-          }
+            providers: {},
+          },
         },
         providers: {},
       });
 
       //We need to mock static side of SuperJson
-      const loadSpy = jest.fn().mockReturnValue(ok(mockSuperJson))
+      const loadSpy = jest.fn().mockReturnValue(ok(mockSuperJson));
       SuperJson.load = loadSpy;
 
       const writeOnceSpy = jest
         .spyOn(OutputStream, 'writeOnce')
         .mockResolvedValue(undefined);
+
       //mock provider structure
       mocked(fetchProviderInfo).mockResolvedValue({
         name: PROVIDER_NAME,
@@ -110,7 +116,6 @@ describe('Configure CLI command', () => {
         defaultService: 'swapidev',
       });
 
-
       await expect(
         Configure.run([PROVIDER_NAME, `-p ${profileId}`])
       ).resolves.toBeUndefined();
@@ -123,402 +128,790 @@ describe('Configure CLI command', () => {
       expect(fetchProviderInfo).toHaveBeenCalledTimes(1);
 
       expect(writeOnceSpy).toHaveBeenCalledTimes(1);
-      expect(writeOnceSpy).toHaveBeenCalledWith('', JSON.stringify({
-        profiles: {
-          [profileId]: {
-            version: PROFILE.version,
-            providers: { [PROVIDER_NAME]: {} }
-          }
-        },
-        providers: {
-          [PROVIDER_NAME]: {
-            security: [
-              {
-                id: 'api',
-                apikey: `$${PROVIDER_NAME.toUpperCase()}_API_KEY`,
+      expect(writeOnceSpy).toHaveBeenCalledWith(
+        '',
+        JSON.stringify(
+          {
+            profiles: {
+              [profileId]: {
+                version: PROFILE.version,
+                providers: { [PROVIDER_NAME]: {} },
               },
-              {
-                id: 'bearer',
-                token: `$${PROVIDER_NAME.toUpperCase()}_TOKEN`,
+            },
+            providers: {
+              [PROVIDER_NAME]: {
+                security: [
+                  {
+                    id: 'api',
+                    apikey: `$${PROVIDER_NAME.toUpperCase()}_API_KEY`,
+                  },
+                  {
+                    id: 'bearer',
+                    token: `$${PROVIDER_NAME.toUpperCase()}_TOKEN`,
+                  },
+                  {
+                    id: 'basic',
+                    username: `$${PROVIDER_NAME.toUpperCase()}_USERNAME`,
+                    password: `$${PROVIDER_NAME.toUpperCase()}_PASSWORD`,
+                  },
+                  {
+                    id: 'digest',
+                    digest: `$${PROVIDER_NAME.toUpperCase()}_DIGEST`,
+                  },
+                ],
               },
-              {
-                id: 'basic',
-                username: `$${PROVIDER_NAME.toUpperCase()}_USERNAME`,
-                password: `$${PROVIDER_NAME.toUpperCase()}_PASSWORD`,
-              },
-              {
-                id: 'digest',
-                digest: `$${PROVIDER_NAME.toUpperCase()}_DIGEST`,
-              },
-            ]
-          }
+            },
+          },
+          undefined,
+          2
+        ),
+        {
+          force: false,
+          local: false,
+          logCb: expect.anything(),
+          warnCb: expect.anything(),
         }
-      }, undefined, 2), { force: false, local: false, logCb: expect.anything(), warnCb: expect.anything() })
+      );
 
       expect(stdout.output).toContain(
         '🆗 All security schemes have been configured successfully.'
       );
     }, 10000);
 
-    // it('configures provider with empty security schemes correctly', async () => {
-    //   //mock provider structure
-    //   mocked(fetchProviderInfo).mockResolvedValue({
-    //     name: PROVIDER_NAME,
-    //     services: [
-    //       {
-    //         id: 'swapidev',
-    //         baseUrl: 'https://swapi.dev/api',
-    //       },
-    //     ],
-    //     //empty
-    //     securitySchemes: [],
-    //     defaultService: 'swapidev',
-    //   });
+    it('configures provider with empty security schemes correctly', async () => {
+      //Mock path do super.json
+      const mockPath = 'some/path/';
+      mocked(detectSuperJson).mockResolvedValue(mockPath);
 
-    //   const profileId = `${PROFILE.scope}/${PROFILE.name}`;
+      //Mock super.json
+      const mockSuperJson = new SuperJson({
+        profiles: {
+          [profileId]: {
+            version: PROFILE.version,
+            providers: {},
+          },
+        },
+        providers: {},
+      });
 
-    //   await expect(
-    //     Configure.run([PROVIDER_NAME, `-p ${profileId}`])
-    //   ).resolves.toBeUndefined();
+      //We need to mock static side of SuperJson
+      const loadSpy = jest.fn().mockReturnValue(ok(mockSuperJson));
+      SuperJson.load = loadSpy;
 
-    //   expect(stdout.output).toContain(
-    //     'No security schemes found to configure.'
-    //   );
+      const writeOnceSpy = jest
+        .spyOn(OutputStream, 'writeOnce')
+        .mockResolvedValue(undefined);
 
-    //   const superJson = (await SuperJson.load(FIXTURE.superJson)).unwrap();
-    //   expect(superJson.document.providers![PROVIDER_NAME]).toEqual({
-    //     security: [],
-    //   });
+      //mock provider structure
+      mocked(fetchProviderInfo).mockResolvedValue({
+        name: PROVIDER_NAME,
+        services: [
+          {
+            id: 'swapidev',
+            baseUrl: 'https://swapi.dev/api',
+          },
+        ],
+        //empty
+        securitySchemes: [],
+        defaultService: 'swapidev',
+      });
 
-    //   expect(superJson.document.profiles![profileId]).toEqual({
-    //     version: PROFILE.version,
-    //     providers: { [PROVIDER_NAME]: {} },
-    //   });
-    // }, 10000);
+      await expect(
+        Configure.run([PROVIDER_NAME, `-p ${profileId}`])
+      ).resolves.toBeUndefined();
 
-    // it('configures provider without security schemes correctly', async () => {
-    //   //mock provider structure
-    //   mocked(fetchProviderInfo).mockResolvedValue({
-    //     name: PROVIDER_NAME,
-    //     services: [
-    //       {
-    //         id: 'swapidev',
-    //         baseUrl: 'https://swapi.dev/api',
-    //       },
-    //     ],
-    //     defaultService: 'swapidev',
-    //   });
-    //   const profileId = `${PROFILE.scope}/${PROFILE.name}`;
+      expect(stdout.output).toContain(
+        'No security schemes found to configure.'
+      );
+      expect(detectSuperJson).toHaveBeenCalledTimes(1);
 
-    //   await expect(
-    //     Configure.run([PROVIDER_NAME, `-p ${profileId}`])
-    //   ).resolves.toBeUndefined();
+      expect(loadSpy).toHaveBeenCalledTimes(1);
+      expect(loadSpy).toHaveBeenCalledWith('some/path/super.json');
 
-    //   expect(stdout.output).toContain(
-    //     'No security schemes found to configure.'
-    //   );
+      expect(fetchProviderInfo).toHaveBeenCalledTimes(1);
 
-    //   const superJson = (await SuperJson.load(FIXTURE.superJson)).unwrap();
-    //   expect(superJson.document.providers![PROVIDER_NAME]).toEqual({
-    //     security: [],
-    //   });
+      expect(writeOnceSpy).toHaveBeenCalledTimes(1);
+      expect(writeOnceSpy).toHaveBeenCalledWith(
+        '',
+        JSON.stringify(
+          {
+            profiles: {
+              [profileId]: {
+                version: PROFILE.version,
+                providers: { [PROVIDER_NAME]: {} },
+              },
+            },
+            providers: {
+              [PROVIDER_NAME]: {
+                security: [],
+              },
+            },
+          },
+          undefined,
+          2
+        ),
+        {
+          force: false,
+          local: false,
+          logCb: expect.anything(),
+          warnCb: expect.anything(),
+        }
+      );
+    }, 10000);
 
-    //   expect(superJson.document.profiles![profileId]).toEqual({
-    //     version: PROFILE.version,
-    //     providers: { [PROVIDER_NAME]: {} },
-    //   });
-    // }, 10000);
+    it('configures provider without security schemes correctly', async () => {
+      //Mock path do super.json
+      const mockPath = 'some/path/';
+      mocked(detectSuperJson).mockResolvedValue(mockPath);
 
-    // it('configures provider with unknown security scheme correctly', async () => {
-    //   //mock provider structure
-    //   mocked(fetchProviderInfo).mockResolvedValue({
-    //     name: PROVIDER_NAME,
-    //     services: [
-    //       {
-    //         id: 'swapidev',
-    //         baseUrl: 'https://swapi.dev/api',
-    //       },
-    //     ],
-    //     securitySchemes: [
-    //       {
-    //         id: 'swapidev',
-    //         //unknown
-    //         type: 'unknown' as SecurityType.APIKEY,
-    //         in: ApiKeyPlacement.HEADER,
-    //         name: 'X-API-Key',
-    //       },
-    //     ],
-    //     defaultService: 'swapidev',
-    //   });
-    //   const profileId = `${PROFILE.scope}/${PROFILE.name}`;
+      //Mock super.json
+      const mockSuperJson = new SuperJson({
+        profiles: {
+          [profileId]: {
+            version: PROFILE.version,
+            providers: {},
+          },
+        },
+        providers: {},
+      });
 
-    //   await expect(
-    //     Configure.run([PROVIDER_NAME, `-p ${profileId}`])
-    //   ).resolves.toBeUndefined();
+      //We need to mock static side of SuperJson
+      const loadSpy = jest.fn().mockReturnValue(ok(mockSuperJson));
+      SuperJson.load = loadSpy;
 
-    //   expect(stdout.output).toContain(
-    //     '❌ No security schemes have been configured.'
-    //   );
+      const writeOnceSpy = jest
+        .spyOn(OutputStream, 'writeOnce')
+        .mockResolvedValue(undefined);
 
-    //   const superJson = (await SuperJson.load(FIXTURE.superJson)).unwrap();
-    //   expect(superJson.document.providers![PROVIDER_NAME]).toEqual({
-    //     security: [],
-    //   });
+      //mock provider structure
+      mocked(fetchProviderInfo).mockResolvedValue({
+        name: PROVIDER_NAME,
+        services: [
+          {
+            id: 'swapidev',
+            baseUrl: 'https://swapi.dev/api',
+          },
+        ],
+        defaultService: 'swapidev',
+      });
 
-    //   expect(superJson.document.profiles![profileId]).toEqual({
-    //     version: PROFILE.version,
-    //     providers: { [PROVIDER_NAME]: {} },
-    //   });
-    // }, 10000);
+      await expect(
+        Configure.run([PROVIDER_NAME, `-p ${profileId}`])
+      ).resolves.toBeUndefined();
 
-    // it('does not log to stdout with --quiet', async () => {
-    //   //mock provider structure
-    //   mocked(fetchProviderInfo).mockResolvedValue({
-    //     name: PROVIDER_NAME,
-    //     services: [
-    //       {
-    //         id: 'swapidev',
-    //         baseUrl: 'https://swapi.dev/api',
-    //       },
-    //     ],
-    //     securitySchemes: [
-    //       {
-    //         id: 'swapidev',
-    //         type: SecurityType.APIKEY,
-    //         in: ApiKeyPlacement.HEADER,
-    //         name: 'X-API-Key',
-    //       },
-    //     ],
-    //     defaultService: 'swapidev',
-    //   });
-    //   const profileId = `${PROFILE.scope}/${PROFILE.name}`;
+      expect(stdout.output).toContain(
+        'No security schemes found to configure.'
+      );
+      expect(detectSuperJson).toHaveBeenCalledTimes(1);
 
-    //   await expect(
-    //     Configure.run([PROVIDER_NAME, `-p ${profileId}`, '-q'])
-    //   ).resolves.toBeUndefined();
-    //   const superJson = (await SuperJson.load(FIXTURE.superJson)).unwrap();
-    //   expect(
-    //     superJson.normalized.providers[PROVIDER_NAME].security
-    //   ).toContainEqual({
-    //     apikey: '$TEST_API_KEY',
-    //     id: 'swapidev',
-    //   });
+      expect(loadSpy).toHaveBeenCalledTimes(1);
+      expect(loadSpy).toHaveBeenCalledWith('some/path/super.json');
 
-    //   expect(superJson.document.profiles![profileId]).toEqual({
-    //     version: PROFILE.version,
-    //     providers: { [PROVIDER_NAME]: {} },
-    //   });
-    // });
+      expect(fetchProviderInfo).toHaveBeenCalledTimes(1);
+
+      expect(writeOnceSpy).toHaveBeenCalledTimes(1);
+      expect(writeOnceSpy).toHaveBeenCalledWith(
+        '',
+        JSON.stringify(
+          {
+            profiles: {
+              [profileId]: {
+                version: PROFILE.version,
+                providers: { [PROVIDER_NAME]: {} },
+              },
+            },
+            providers: {
+              [PROVIDER_NAME]: {
+                security: [],
+              },
+            },
+          },
+          undefined,
+          2
+        ),
+        {
+          force: false,
+          local: false,
+          logCb: expect.anything(),
+          warnCb: expect.anything(),
+        }
+      );
+    }, 10000);
+
+    it('configures provider with unknown security scheme correctly', async () => {
+      //Mock path do super.json
+      const mockPath = 'some/path/';
+      mocked(detectSuperJson).mockResolvedValue(mockPath);
+
+      //Mock super.json
+      const mockSuperJson = new SuperJson({
+        profiles: {
+          [profileId]: {
+            version: PROFILE.version,
+            providers: {},
+          },
+        },
+        providers: {},
+      });
+
+      //We need to mock static side of SuperJson
+      const loadSpy = jest.fn().mockReturnValue(ok(mockSuperJson));
+      SuperJson.load = loadSpy;
+
+      const writeOnceSpy = jest
+        .spyOn(OutputStream, 'writeOnce')
+        .mockResolvedValue(undefined);
+      //mock provider structure
+      mocked(fetchProviderInfo).mockResolvedValue({
+        name: PROVIDER_NAME,
+        services: [
+          {
+            id: 'swapidev',
+            baseUrl: 'https://swapi.dev/api',
+          },
+        ],
+        securitySchemes: [
+          {
+            id: 'swapidev',
+            //unknown
+            type: 'unknown' as SecurityType.APIKEY,
+            in: ApiKeyPlacement.HEADER,
+            name: 'X-API-Key',
+          },
+        ],
+        defaultService: 'swapidev',
+      });
+
+      await expect(
+        Configure.run([PROVIDER_NAME, `-p ${profileId}`])
+      ).resolves.toBeUndefined();
+
+      expect(stdout.output).toContain(
+        '❌ No security schemes have been configured.'
+      );
+      expect(detectSuperJson).toHaveBeenCalledTimes(1);
+
+      expect(loadSpy).toHaveBeenCalledTimes(1);
+      expect(loadSpy).toHaveBeenCalledWith('some/path/super.json');
+
+      expect(fetchProviderInfo).toHaveBeenCalledTimes(1);
+
+      expect(writeOnceSpy).toHaveBeenCalledTimes(1);
+      expect(writeOnceSpy).toHaveBeenCalledWith(
+        '',
+        JSON.stringify(
+          {
+            profiles: {
+              [profileId]: {
+                version: PROFILE.version,
+                providers: { [PROVIDER_NAME]: {} },
+              },
+            },
+            providers: {
+              [PROVIDER_NAME]: {
+                security: [],
+              },
+            },
+          },
+          undefined,
+          2
+        ),
+        {
+          force: false,
+          local: false,
+          logCb: expect.anything(),
+          warnCb: expect.anything(),
+        }
+      );
+    }, 10000);
+
+    it('does not log to stdout with --quiet', async () => {
+      //Mock path do super.json
+      const mockPath = 'some/path/';
+      mocked(detectSuperJson).mockResolvedValue(mockPath);
+
+      //Mock super.json
+      const mockSuperJson = new SuperJson({
+        profiles: {
+          [profileId]: {
+            version: PROFILE.version,
+            providers: {},
+          },
+        },
+        providers: {},
+      });
+
+      //We need to mock static side of SuperJson
+      const loadSpy = jest.fn().mockReturnValue(ok(mockSuperJson));
+      SuperJson.load = loadSpy;
+
+      const writeOnceSpy = jest
+        .spyOn(OutputStream, 'writeOnce')
+        .mockResolvedValue(undefined);
+
+      //mock provider structure
+      mocked(fetchProviderInfo).mockResolvedValue({
+        name: PROVIDER_NAME,
+        services: [
+          {
+            id: 'swapidev',
+            baseUrl: 'https://swapi.dev/api',
+          },
+        ],
+        securitySchemes: [
+          {
+            id: 'swapidev',
+            type: SecurityType.APIKEY,
+            in: ApiKeyPlacement.HEADER,
+            name: 'X-API-Key',
+          },
+        ],
+        defaultService: 'swapidev',
+      });
+
+      await expect(
+        Configure.run([PROVIDER_NAME, `-p ${profileId}`, '-q'])
+      ).resolves.toBeUndefined();
+
+      expect(stdout.output).toEqual('');
+      expect(detectSuperJson).toHaveBeenCalledTimes(1);
+
+      expect(loadSpy).toHaveBeenCalledTimes(1);
+      expect(loadSpy).toHaveBeenCalledWith('some/path/super.json');
+
+      expect(fetchProviderInfo).toHaveBeenCalledTimes(1);
+
+      expect(writeOnceSpy).toHaveBeenCalledTimes(1);
+      expect(writeOnceSpy).toHaveBeenCalledWith(
+        '',
+        JSON.stringify(
+          {
+            profiles: {
+              [profileId]: {
+                version: PROFILE.version,
+                providers: { [PROVIDER_NAME]: {} },
+              },
+            },
+            providers: {
+              [PROVIDER_NAME]: {
+                security: [
+                  {
+                    id: 'swapidev',
+                    apikey: `$${PROVIDER_NAME.toUpperCase()}_API_KEY`,
+                  },
+                ],
+              },
+            },
+          },
+          undefined,
+          2
+        ),
+        { force: false, local: false, logCb: undefined, warnCb: undefined }
+      );
+    });
   });
 
-  // describe('when providers are present in super.json', () => {
-  //   it('errors without a force flag', async () => {
-  //     const profileId = `${PROFILE.scope}/${PROFILE.name}`;
+  describe('when providers are present in super.json', () => {
+    it('errors without a force flag', async () => {
+      //Mock path do super.json
+      const mockPath = 'some/path/';
+      mocked(detectSuperJson).mockResolvedValue(mockPath);
 
-  //     //set existing super.json
-  //     const localSuperJson = {
-  //       profiles: {
-  //         [profileId]: {
-  //           version: PROFILE.version,
-  //           providers: {
-  //             [PROVIDER_NAME]: {},
-  //           },
-  //         },
-  //       },
-  //       providers: {
-  //         [PROVIDER_NAME]: {
-  //           security: [
-  //             {
-  //               id: 'apiKey',
-  //               apikey: '$TEST_API_KEY',
-  //             },
-  //           ],
-  //         },
-  //       },
-  //     };
-  //     await OutputStream.writeOnce(
-  //       FIXTURE.superJson,
-  //       JSON.stringify(localSuperJson, undefined, 2)
-  //     );
-  //     //mock provider structure with same provider name but different auth scheme
-  //     mocked(fetchProviderInfo).mockResolvedValue({
-  //       name: PROVIDER_NAME,
-  //       services: [
-  //         {
-  //           id: 'swapidev',
-  //           baseUrl: 'https://swapi.dev/api',
-  //         },
-  //       ],
-  //       securitySchemes: [
-  //         {
-  //           id: 'swapidev',
-  //           type: SecurityType.HTTP,
-  //           scheme: HttpScheme.BEARER,
-  //         },
-  //       ],
-  //       defaultService: 'swapidev',
-  //     });
+      //Mock super.json
+      const mockSuperJson = new SuperJson({
+        profiles: {
+          [profileId]: {
+            version: PROFILE.version,
+            providers: {
+              [PROVIDER_NAME]: {},
+            },
+          },
+        },
+        providers: {
+          [PROVIDER_NAME]: {
+            security: [
+              {
+                id: 'apiKey',
+                apikey: '$TEST_API_KEY',
+              },
+            ],
+          },
+        },
+      });
 
-  //     await expect(
-  //       Configure.run([PROVIDER_NAME, `-p ${profileId}`])
-  //     ).resolves.toBeUndefined();
+      //We need to mock static side of SuperJson
+      const loadSpy = jest.fn().mockReturnValue(ok(mockSuperJson));
+      SuperJson.load = loadSpy;
 
-  //     expect(stdout.output).toContain(
-  //       `Provider already exists: "${PROVIDER_NAME}"`
-  //     );
+      const writeOnceSpy = jest
+        .spyOn(OutputStream, 'writeOnce')
+        .mockResolvedValue(undefined);
 
-  //     const superJson = (await SuperJson.load(FIXTURE.superJson)).unwrap();
+      //mock provider structure with same provider name but different auth scheme
+      mocked(fetchProviderInfo).mockResolvedValue({
+        name: PROVIDER_NAME,
+        services: [
+          {
+            id: 'swapidev',
+            baseUrl: 'https://swapi.dev/api',
+          },
+        ],
+        securitySchemes: [
+          {
+            id: 'swapidev',
+            type: SecurityType.HTTP,
+            scheme: HttpScheme.BEARER,
+          },
+        ],
+        defaultService: 'swapidev',
+      });
 
-  //     expect(superJson.document).toEqual(localSuperJson);
-  //   }, 10000);
+      await expect(
+        Configure.run([PROVIDER_NAME, `-p ${profileId}`])
+      ).resolves.toBeUndefined();
 
-  //   it('overrides existing super.json with a force flag', async () => {
-  //     const profileId = `${PROFILE.scope}/${PROFILE.name}`;
+      expect(stdout.output).toContain(
+        `Provider already exists: "${PROVIDER_NAME}"`
+      );
 
-  //     //set existing super.json
-  //     const localSuperJson = {
-  //       profiles: {
-  //         [profileId]: {
-  //           version: PROFILE.version,
-  //           providers: {
-  //             [PROVIDER_NAME]: {},
-  //           },
-  //         },
-  //       },
-  //       providers: {
-  //         [PROVIDER_NAME]: {
-  //           security: [
-  //             {
-  //               id: 'apiKey',
-  //               apikey: '$TEST_API_KEY',
-  //             },
-  //           ],
-  //         },
-  //       },
-  //     };
-  //     await OutputStream.writeOnce(
-  //       FIXTURE.superJson,
-  //       JSON.stringify(localSuperJson, undefined, 2)
-  //     );
-  //     //mock provider structure with same provider name but different auth scheme
-  //     mocked(fetchProviderInfo).mockResolvedValue({
-  //       name: PROVIDER_NAME,
-  //       services: [
-  //         {
-  //           id: 'swapidev',
-  //           baseUrl: 'https://swapi.dev/api',
-  //         },
-  //       ],
-  //       securitySchemes: [
-  //         {
-  //           id: 'swapidev',
-  //           type: SecurityType.HTTP,
-  //           scheme: HttpScheme.BEARER,
-  //         },
-  //       ],
-  //       defaultService: 'swapidev',
-  //     });
+      expect(detectSuperJson).toHaveBeenCalledTimes(1);
 
-  //     //force flag
-  //     await expect(
-  //       Configure.run([PROVIDER_NAME, `-p ${profileId}`, '-f'])
-  //     ).resolves.toBeUndefined();
+      expect(loadSpy).toHaveBeenCalledTimes(1);
+      expect(loadSpy).toHaveBeenCalledWith('some/path/super.json');
 
-  //     expect(stdout.output).not.toContain(
-  //       `Provider already exists: "${PROVIDER_NAME}"`
-  //     );
+      expect(fetchProviderInfo).toHaveBeenCalledTimes(1);
 
-  //     const superJson = (await SuperJson.load(FIXTURE.superJson)).unwrap();
+      expect(writeOnceSpy).not.toHaveBeenCalled();
+    }, 10000);
 
-  //     expect(superJson.normalized.providers[PROVIDER_NAME].security).toEqual([
-  //       {
-  //         id: 'apiKey',
-  //         apikey: '$TEST_API_KEY',
-  //       },
-  //       {
-  //         id: 'swapidev',
-  //         token: '$TEST_TOKEN',
-  //       },
-  //     ]);
+    it('overrides existing super.json with a force flag', async () => {
+      //Mock path do super.json
+      const mockPath = 'some/path/';
+      mocked(detectSuperJson).mockResolvedValue(mockPath);
 
-  //     expect(superJson.document.profiles![profileId]).toEqual({
-  //       version: PROFILE.version,
-  //       providers: { [PROVIDER_NAME]: {} },
-  //     });
-  //   }, 10000);
-  // });
+      //Mock super.json
+      const mockSuperJson = new SuperJson({
+        profiles: {
+          [profileId]: {
+            version: PROFILE.version,
+            providers: {
+              [PROVIDER_NAME]: {},
+            },
+          },
+        },
+        providers: {
+          [PROVIDER_NAME]: {
+            security: [
+              {
+                id: 'apiKey',
+                apikey: '$TEST_API_KEY',
+              },
+            ],
+          },
+        },
+      });
 
-  // describe('when there is a path flag', () => {
-  //   it('loads provider data from file', async () => {
-  //     const profileId = `${PROFILE.scope}/${PROFILE.name}`;
+      //We need to mock static side of SuperJson
+      const loadSpy = jest.fn().mockReturnValue(ok(mockSuperJson));
+      SuperJson.load = loadSpy;
 
-  //     //local flag
-  //     await expect(
-  //       Configure.run([
-  //         './superface/swapidev.provider.json',
-  //         `-p ${profileId}`,
-  //         '-l',
-  //       ])
-  //     ).resolves.toBeUndefined();
+      const writeOnceSpy = jest
+        .spyOn(OutputStream, 'writeOnce')
+        .mockResolvedValue(undefined);
 
-  //     const superJson = (await SuperJson.load(FIXTURE.superJson)).unwrap();
+      //mock provider structure with same provider name but different auth scheme
+      mocked(fetchProviderInfo).mockResolvedValue({
+        name: PROVIDER_NAME,
+        services: [
+          {
+            id: 'swapidev',
+            baseUrl: 'https://swapi.dev/api',
+          },
+        ],
+        securitySchemes: [
+          {
+            id: 'swapidev',
+            type: SecurityType.HTTP,
+            scheme: HttpScheme.BEARER,
+          },
+        ],
+        defaultService: 'swapidev',
+      });
 
-  //     expect(superJson.normalized.providers[PROVIDER_NAME].security).toEqual([
-  //       {
-  //         id: 'api',
-  //         apikey: '$TEST_API_KEY',
-  //       },
-  //       {
-  //         id: 'digest',
-  //         digest: '$TEST_DIGEST',
-  //       },
-  //     ]);
+      //force flag
+      await expect(
+        Configure.run([PROVIDER_NAME, `-p ${profileId}`, '-f'])
+      ).resolves.toBeUndefined();
 
-  //     expect(superJson.document.profiles![profileId]).toEqual({
-  //       version: PROFILE.version,
-  //       providers: { [PROVIDER_NAME]: {} },
-  //     });
-  //   }, 10000);
+      expect(stdout.output).not.toContain(
+        `Provider already exists: "${PROVIDER_NAME}"`
+      );
+      expect(detectSuperJson).toHaveBeenCalledTimes(1);
 
-  //   it('does not load provider data from corupted file', async () => {
-  //     const profileId = `${PROFILE.scope}/${PROFILE.name}`;
+      expect(loadSpy).toHaveBeenCalledTimes(1);
+      expect(loadSpy).toHaveBeenCalledWith('some/path/super.json');
 
-  //     //local flag
-  //     await expect(
-  //       Configure.run([
-  //         './superface/swapidev.provider.corupted.json',
-  //         `-p ${profileId}`,
-  //         '-l',
-  //       ])
-  //     ).rejects.toEqual(
-  //       userError('Unexpected string in JSON at position 168', 1)
-  //     );
+      expect(fetchProviderInfo).toHaveBeenCalledTimes(1);
 
-  //     const superJson = (await SuperJson.load(FIXTURE.superJson)).unwrap();
+      expect(writeOnceSpy).toHaveBeenCalledTimes(1);
+      expect(writeOnceSpy).toHaveBeenCalledWith(
+        '',
+        JSON.stringify(
+          {
+            profiles: {
+              [profileId]: {
+                version: PROFILE.version,
+                providers: { [PROVIDER_NAME]: {} },
+              },
+            },
+            providers: {
+              [PROVIDER_NAME]: {
+                security: [
+                  {
+                    id: 'apiKey',
+                    apikey: `$${PROVIDER_NAME.toUpperCase()}_API_KEY`,
+                  },
+                  {
+                    id: 'swapidev',
+                    token: `$${PROVIDER_NAME.toUpperCase()}_TOKEN`,
+                  },
+                ],
+              },
+            },
+          },
+          undefined,
+          2
+        ),
+        {
+          force: true,
+          local: false,
+          logCb: expect.anything(),
+          warnCb: expect.anything(),
+        }
+      );
+    }, 10000);
+  });
 
-  //     expect(superJson.document).toEqual(INITIAL_SUPER_JSON.document);
-  //   }, 10000);
+  describe('when there is a path flag', () => {
+    it('loads provider data from file', async () => {
+      //Mock path do super.json
+      const mockPath = 'some/path/';
+      mocked(detectSuperJson).mockResolvedValue(mockPath);
 
-  //   it('does not load provider data from nonexistent file', async () => {
-  //     const profileId = `${PROFILE.scope}/${PROFILE.name}`;
+      //Mock super.json
+      const mockSuperJson = new SuperJson({
+        profiles: {
+          [profileId]: {
+            version: PROFILE.version,
+            providers: {},
+          },
+        },
+        providers: {},
+      });
 
-  //     //local flag
-  //     await expect(
-  //       Configure.run([
-  //         './very/nice/path/superface/swapidev.provider.json',
-  //         `-p ${profileId}`,
-  //         '-l',
-  //       ])
-  //     ).rejects.toEqual(
-  //       userError(
-  //         `Error: ENOENT: no such file or directory, open './very/nice/path/superface/swapidev.provider.json'`,
-  //         1
-  //       )
-  //     );
+      //We need to mock static side of SuperJson
+      const loadSpy = jest.fn().mockReturnValue(ok(mockSuperJson));
+      SuperJson.load = loadSpy;
 
-  //     const superJson = (await SuperJson.load(FIXTURE.superJson)).unwrap();
+      const writeOnceSpy = jest
+        .spyOn(OutputStream, 'writeOnce')
+        .mockResolvedValue(undefined);
 
-  //     expect(superJson.document).toEqual(INITIAL_SUPER_JSON.document);
-  //   }, 10000);
-  // });
+      const mockProviderJson = {
+        name: PROVIDER_NAME,
+        services: [
+          {
+            id: 'swapidev',
+            baseUrl: 'https://swapi.dev/api',
+          },
+        ],
+        securitySchemes: [
+          {
+            id: 'api',
+            type: SecurityType.APIKEY,
+            in: ApiKeyPlacement.HEADER,
+            name: 'X-API-Key',
+          },
+          {
+            id: 'bearer',
+            type: SecurityType.HTTP,
+            scheme: HttpScheme.BEARER,
+          },
+          {
+            id: 'basic',
+            type: SecurityType.HTTP,
+            scheme: HttpScheme.BASIC,
+          },
+          {
+            id: 'digest',
+            type: SecurityType.HTTP,
+            scheme: HttpScheme.DIGEST,
+          },
+        ],
+        defaultService: 'swapidev',
+      };
+      mocked(readFile).mockResolvedValue(JSON.stringify(mockProviderJson));
+      //local flag
+      await expect(
+        Configure.run([
+          './superface/swapidev.provider.json',
+          `-p ${profileId}`,
+          '-l',
+        ])
+      ).resolves.toBeUndefined();
+
+      expect(detectSuperJson).toHaveBeenCalledTimes(1);
+
+      expect(loadSpy).toHaveBeenCalledTimes(1);
+      expect(loadSpy).toHaveBeenCalledWith('some/path/super.json');
+
+      expect(readFile).toHaveBeenCalledTimes(1);
+
+      expect(writeOnceSpy).toHaveBeenCalledTimes(1);
+      expect(writeOnceSpy).toHaveBeenCalledWith(
+        '',
+        JSON.stringify(
+          {
+            profiles: {
+              [profileId]: {
+                version: PROFILE.version,
+                providers: { [PROVIDER_NAME]: {} },
+              },
+            },
+            providers: {
+              [PROVIDER_NAME]: {
+                security: [
+                  {
+                    id: 'api',
+                    apikey: `$${PROVIDER_NAME.toUpperCase()}_API_KEY`,
+                  },
+                  {
+                    id: 'bearer',
+                    token: `$${PROVIDER_NAME.toUpperCase()}_TOKEN`,
+                  },
+                  {
+                    id: 'basic',
+                    username: `$${PROVIDER_NAME.toUpperCase()}_USERNAME`,
+                    password: `$${PROVIDER_NAME.toUpperCase()}_PASSWORD`,
+                  },
+                  {
+                    id: 'digest',
+                    digest: `$${PROVIDER_NAME.toUpperCase()}_DIGEST`,
+                  },
+                ],
+              },
+            },
+          },
+          undefined,
+          2
+        ),
+        {
+          force: false,
+          local: true,
+          logCb: expect.anything(),
+          warnCb: expect.anything(),
+        }
+      );
+    }, 10000);
+
+    it('does not load provider data from corupted file', async () => {
+      //Mock path do super.json
+      const mockPath = 'some/path/';
+      mocked(detectSuperJson).mockResolvedValue(mockPath);
+
+      //Mock super.json
+      const mockSuperJson = new SuperJson({
+        profiles: {
+          [profileId]: {
+            version: PROFILE.version,
+            providers: {},
+          },
+        },
+        providers: {},
+      });
+
+      //We need to mock static side of SuperJson
+      const loadSpy = jest.fn().mockReturnValue(ok(mockSuperJson));
+      SuperJson.load = loadSpy;
+
+      const writeOnceSpy = jest
+        .spyOn(OutputStream, 'writeOnce')
+        .mockResolvedValue(undefined);
+
+      mocked(readFile).mockResolvedValue('//ERR');
+
+      //local flag
+      await expect(
+        Configure.run([
+          './superface/swapidev.provider.corupted.json',
+          `-p ${profileId}`,
+          '-l',
+        ])
+      ).rejects.toEqual(
+        userError('Unexpected token / in JSON at position 0', 1)
+      );
+
+      expect(detectSuperJson).toHaveBeenCalledTimes(1);
+
+      expect(loadSpy).toHaveBeenCalledTimes(1);
+      expect(loadSpy).toHaveBeenCalledWith('some/path/super.json');
+
+      expect(readFile).toHaveBeenCalledTimes(1);
+
+      expect(writeOnceSpy).not.toHaveBeenCalled();
+    }, 10000);
+
+    it('does not load provider data from nonexistent file', async () => {
+      //Mock path do super.json
+      const mockPath = 'some/path/';
+      mocked(detectSuperJson).mockResolvedValue(mockPath);
+
+      //Mock super.json
+      const mockSuperJson = new SuperJson({
+        profiles: {
+          [profileId]: {
+            version: PROFILE.version,
+            providers: {},
+          },
+        },
+        providers: {},
+      });
+
+      //We need to mock static side of SuperJson
+      const loadSpy = jest.fn().mockReturnValue(ok(mockSuperJson));
+      SuperJson.load = loadSpy;
+
+      const writeOnceSpy = jest
+        .spyOn(OutputStream, 'writeOnce')
+        .mockResolvedValue(undefined);
+
+      mocked(readFile).mockRejectedValue(
+        new Error(
+          `ENOENT: no such file or directory, open './very/nice/path/superface/swapidev.provider.json'`
+        )
+      );
+
+      //local flag
+      await expect(
+        Configure.run([
+          './very/nice/path/superface/swapidev.provider.json',
+          `-p ${profileId}`,
+          '-l',
+        ])
+      ).rejects.toEqual(
+        userError(
+          `ENOENT: no such file or directory, open './very/nice/path/superface/swapidev.provider.json'`,
+          1
+        )
+      );
+      expect(detectSuperJson).toHaveBeenCalledTimes(1);
+
+      expect(loadSpy).toHaveBeenCalledTimes(1);
+      expect(loadSpy).toHaveBeenCalledWith('some/path/super.json');
+
+      expect(readFile).toHaveBeenCalledTimes(1);
+
+      expect(writeOnceSpy).not.toHaveBeenCalled();
+    }, 10000);
+  });
 });
