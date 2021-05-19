@@ -137,6 +137,8 @@ type StoreRequestFetched = StoreRequestChecked & {
  *     - write downloaded files
  * 4. write:
  *   - write entries into super.json
+ * 5. generate type:
+ *   - generate types and write then to superface/sdk.js/.d.ts and superface/types/
  */
 export async function resolveInstallationRequests(
   superJson: SuperJson,
