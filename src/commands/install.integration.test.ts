@@ -3,10 +3,13 @@ import { join as joinPath } from 'path';
 
 import { EXTENSIONS, GRID_DIR, SUPER_PATH } from '../common/document';
 import { fetchProfile } from '../common/http';
-import { readFile, rimraf } from '../common/io';
+import { exists, readFile, rimraf, rmdir } from '../common/io';
 import { OutputStream } from '../common/output-stream';
+import { transpileFiles } from '../logic/generate';
 import { MockStd, mockStd } from '../test/mock-std';
 import Install from './install';
+
+jest.mock('../logic/generate');
 
 describe('Install CLI command', () => {
   const WORKING_DIR = joinPath('fixtures', 'install', 'playground');
@@ -121,9 +124,11 @@ describe('Install CLI command', () => {
       );
     }
 
-    it('installs the newest profile', async () => {
+    beforeEach(async () => {
       await cleanSuperJson();
+    });
 
+    it('installs the newest profile', async () => {
       const profileId = `${PROFILE.scope}/${PROFILE.name}`;
 
       await expect(Install.run([profileId])).resolves.toBeUndefined();
@@ -133,15 +138,12 @@ describe('Install CLI command', () => {
       const registry = await fetchProfile(profileId);
       expect(local).toEqual(registry);
 
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       expect(superJson.document.profiles![profileId]).toEqual({
         version: PROFILE.version,
       });
     }, 10000);
 
     it('installs the specified profile version with default provider configuration', async () => {
-      await cleanSuperJson();
-
       const profileId = `${PROFILE.scope}/${PROFILE.name}`;
       const profileIdRequest = `${profileId}@${PROFILE.version}`;
 
@@ -154,7 +156,6 @@ describe('Install CLI command', () => {
       const registry = await fetchProfile(profileIdRequest);
       expect(local).toEqual(registry);
 
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       expect(superJson.document.profiles![profileId]).toEqual({
         version: PROFILE.version,
         providers: {
@@ -165,8 +166,6 @@ describe('Install CLI command', () => {
     }, 10000);
 
     it('installs local profile', async () => {
-      await cleanSuperJson();
-
       const profileId = 'starwars/character-information';
       const profileIdRequest = 'character-information.supr';
 
@@ -178,11 +177,11 @@ describe('Install CLI command', () => {
       expect(superJson.document.profiles![profileId]).toEqual({
         file: `../${profileIdRequest}`,
       });
-    });
+
+      expect(transpileFiles).toHaveBeenCalled();
+    }, 10000);
 
     it('error when installing non-existent local profile', async () => {
-      await cleanSuperJson();
-
       const profileIdRequest = 'none.supr';
 
       await expect(
@@ -194,6 +193,107 @@ describe('Install CLI command', () => {
 
       // expect(stdout.output).toContain('❌ No profiles have been installed');
     });
+
+    it.skip('generates typings correctly', async () => {
+      const profileId = `${PROFILE.scope}/${PROFILE.name}`;
+
+      const superJson = (await SuperJson.load()).unwrap();
+
+      const paths = [
+        superJson.resolvePath(
+          joinPath('types', PROFILE.scope, PROFILE.name + '.js')
+        ),
+        superJson.resolvePath(
+          joinPath('types', PROFILE.scope, PROFILE.name + '.d.ts')
+        ),
+        superJson.resolvePath(joinPath('sdk.js')),
+        superJson.resolvePath(joinPath('sdk.d.ts')),
+      ];
+      expect(await exists(paths[0])).toBe(false);
+      expect(await exists(paths[1])).toBe(false);
+      expect(await exists(paths[2])).toBe(false);
+      expect(await exists(paths[3])).toBe(false);
+
+      await expect(Install.run([profileId])).resolves.toBeUndefined();
+
+      expect(await exists(paths[0])).toBe(true);
+      expect(await exists(paths[1])).toBe(true);
+      expect(await exists(paths[2])).toBe(true);
+      expect(await exists(paths[3])).toBe(true);
+
+      for (const path of paths) {
+        await rimraf(path);
+      }
+
+      try {
+        const path = superJson.resolvePath('types');
+        await rmdir(path);
+        // eslint-disable-next-line no-empty
+      } catch {}
+    }, 10000);
+
+    it.skip('adds new typings to previously generated', async () => {
+      const profileId = `${PROFILE.scope}/${PROFILE.name}`;
+      const anotherProfileId = 'starwars/spaceship-information';
+      const profileIdRequest = 'spaceship-information.supr';
+
+      const superJson = (await SuperJson.load()).unwrap();
+
+      const paths = [
+        superJson.resolvePath(
+          joinPath('types', PROFILE.scope, PROFILE.name + '.js')
+        ),
+        superJson.resolvePath(
+          joinPath('types', PROFILE.scope, PROFILE.name + '.d.ts')
+        ),
+        superJson.resolvePath(joinPath('sdk.js')),
+        superJson.resolvePath(joinPath('sdk.d.ts')),
+        superJson.resolvePath(joinPath('types', anotherProfileId + '.js')),
+        superJson.resolvePath(joinPath('types', anotherProfileId + '.d.ts')),
+      ];
+      expect(await exists(paths[0])).toBe(false);
+      expect(await exists(paths[1])).toBe(false);
+      expect(await exists(paths[2])).toBe(false);
+      expect(await exists(paths[3])).toBe(false);
+      expect(await exists(paths[4])).toBe(false);
+      expect(await exists(paths[5])).toBe(false);
+
+      await expect(Install.run([profileId])).resolves.toBeUndefined();
+
+      expect(await exists(paths[0])).toBe(true);
+      expect(await exists(paths[1])).toBe(true);
+      expect(await exists(paths[2])).toBe(true);
+      expect(await exists(paths[3])).toBe(true);
+      expect(await exists(paths[4])).toBe(false);
+      expect(await exists(paths[5])).toBe(false);
+
+      await expect(
+        Install.run(['--local', profileIdRequest])
+      ).resolves.toBeUndefined();
+
+      expect(await exists(paths[0])).toBe(true);
+      expect(await exists(paths[1])).toBe(true);
+      expect(await exists(paths[2])).toBe(true);
+      expect(await exists(paths[3])).toBe(true);
+      expect(await exists(paths[4])).toBe(true);
+      expect(await exists(paths[5])).toBe(true);
+
+      const sdk = (await readFile(paths[2])).toString();
+
+      expect(sdk).toMatch(/starwarsCharacterInformation/);
+      expect(sdk).toMatch(/starwarsSpaceshipInformation/);
+
+      for (const path of paths) {
+        await rimraf(path);
+      }
+
+      try {
+        let path = superJson.resolvePath(joinPath('types', PROFILE.scope));
+        await rmdir(path);
+        path = superJson.resolvePath('types');
+        // eslint-disable-next-line no-empty
+      } catch {}
+    }, 50000);
   });
 
   describe('when local files are present', () => {

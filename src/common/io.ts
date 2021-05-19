@@ -8,13 +8,14 @@ import { promisify } from 'util';
 import { assertIsIOError } from './error';
 import { SkipFileType } from './flags';
 
-export const readFile = promisify(fs.readFile);
 export const access = promisify(fs.access);
-export const stat = promisify(fs.stat);
-export const readdir = promisify(fs.readdir);
 export const mkdir = promisify(fs.mkdir);
+export const readFile = promisify(fs.readFile);
+export const readdir = promisify(fs.readdir);
 export const realpath = promisify(fs.realpath);
 export const rimraf = promisify(rimrafCallback);
+export const rmdir = promisify(fs.rmdir);
+export const stat = promisify(fs.stat);
 
 export interface WritingOptions {
   append?: boolean;

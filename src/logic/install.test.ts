@@ -12,6 +12,7 @@ import {
 } from '../common/http';
 import { exists, mkdirQuiet, rimraf } from '../common/io';
 import { OutputStream } from '../common/output-stream';
+import { transpileFiles } from '../logic/generate';
 import {
   detectSuperJson,
   getExistingProfileIds,
@@ -37,6 +38,8 @@ jest.mock('../common/io', () => ({
   ...jest.requireActual<Record<string, unknown>>('../common/io'),
   exists: jest.fn(),
 }));
+
+jest.mock('../logic/generate');
 
 describe('Install CLI logic', () => {
   afterEach(() => {
@@ -262,7 +265,9 @@ describe('Install CLI logic', () => {
           },
         },
       });
-    });
+
+      expect(transpileFiles).toHaveBeenCalled();
+    }, 10000);
 
     it('checks and fetched store requests', async () => {
       jest.spyOn(OutputStream, 'writeOnce').mockResolvedValue();
@@ -371,7 +376,7 @@ describe('Install CLI logic', () => {
         expect.stringContaining('File already exists:')
       );
       expect(warnCbMock).toHaveBeenCalledTimes(3);
-    });
+    }, 10000);
   });
 
   describe('when geting profile id', () => {
@@ -475,21 +480,15 @@ describe('Install CLI logic', () => {
         expect(fetchProfileInfo).toHaveBeenCalledWith(profileName);
         expect(fetchProfileAST).toHaveBeenCalledWith(profileName);
 
-        expect(mockWrite).toHaveBeenCalledTimes(3);
         //actual path is changing
-        expect(mockWrite).toHaveBeenNthCalledWith(
-          1,
-          expect.anything(),
-          mockProfile,
-          { dirs: true }
-        );
-        expect(mockWrite).toHaveBeenNthCalledWith(
-          2,
+        expect(mockWrite).toHaveBeenCalledWith(expect.anything(), mockProfile, {
+          dirs: true,
+        });
+        expect(mockWrite).toHaveBeenCalledWith(
           expect.anything(),
           JSON.stringify(mockProfileAst, undefined, 2)
         );
-        expect(mockWrite).toHaveBeenNthCalledWith(
-          3,
+        expect(mockWrite).toHaveBeenCalledWith(
           '',
           JSON.stringify(
             {
@@ -503,7 +502,7 @@ describe('Install CLI logic', () => {
             2
           )
         );
-      });
+      }, 10000);
 
       it('installs profiles from super.json', async () => {
         mocked(fetchProfileAST).mockResolvedValue(mockProfileAst);
@@ -549,7 +548,7 @@ describe('Install CLI logic', () => {
           'starwars/second@2.0.0'
         );
 
-        expect(mockWrite).toHaveBeenCalledTimes(5);
+        expect(mockWrite).toHaveBeenCalled();
         //actual path is changing
         expect(mockWrite).toHaveBeenCalledWith(
           expect.stringContaining('first@1.0.0.supr'),
