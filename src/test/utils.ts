@@ -64,11 +64,11 @@ export async function execCLI(
   const CLI = joinPath('.', 'bin', 'superface');
   const bin = relative(directory, CLI);
 
-  const exec = promisify(execFile);
+  const execCLI = promisify(execFile);
 
-  const result = await exec(bin, args, {
+  const result = await execCLI(bin, args, {
     cwd: directory,
-    env: { ...env, SUPERFACE_API_URL: apiUrl },
+    env: { ...env, SUPERFACE_API_URL: apiUrl, PATH: process.env.PATH },
   });
 
   return result;
