@@ -6,7 +6,7 @@ import { join as joinPath, relative } from 'path';
 
 import { EXTENSIONS } from '../common/document';
 import { ContentType } from '../common/http';
-import { mkdirQuiet, readFile } from '../common/io';
+import { mkdir, readFile } from '../common/io';
 
 /**
  * Mocks HTTP responses for a profile
@@ -82,7 +82,7 @@ export function execCLI(
 export async function setUpTempDir(path: string): Promise<string> {
   const randomDigits = Math.floor(Math.random() * 100000).toString();
   const directory = joinPath(path, `test-${randomDigits}`);
-  await mkdirQuiet(directory);
+  await mkdir(directory, { recursive: true });
 
   return directory;
 }

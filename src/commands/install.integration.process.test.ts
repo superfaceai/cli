@@ -1,7 +1,7 @@
 import { getLocal } from 'mockttp';
 import { join as joinPath } from 'path';
 
-import { exists, mkdirQuiet, rimraf } from '../common/io';
+import { exists, mkdir, rimraf } from '../common/io';
 import { execCLI, mockResponsesForProfile, setUpTempDir } from '../test/utils';
 
 const mockServer = getLocal();
@@ -10,7 +10,7 @@ describe('Install CLI command', () => {
   const TEMP_PATH = joinPath('test', 'tmp');
 
   beforeAll(async () => {
-    await mkdirQuiet(TEMP_PATH);
+    await mkdir(TEMP_PATH, { recursive: true });
     await mockServer.start();
     await mockResponsesForProfile(mockServer, 'starwars/character-information');
   });

@@ -62,7 +62,7 @@ export async function readFileQuiet(path: string): Promise<string | undefined> {
  */
 export async function mkdirQuiet(path: string): Promise<boolean> {
   try {
-    await mkdir(path, { recursive: true });
+    await mkdir(path);
   } catch (err: unknown) {
     assertIsIOError(err);
 
