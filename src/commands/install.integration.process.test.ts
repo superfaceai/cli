@@ -28,28 +28,33 @@ describe('Install CLI command', () => {
     });
 
     it('installs the newest profile', async () => {
-      const result = await execCLI(
-        tempDir,
-        ['install', 'starwars/character-information'],
-        mockServer.url
-      );
-      expect(result).toMatch(
-        'All profiles (1) have been installed successfully.'
-      );
-      expect(await exists(joinPath(tempDir, 'superface', 'super.json'))).toBe(
-        true
-      );
-      expect(
-        await exists(
-          joinPath(
-            tempDir,
-            'superface',
-            'grid',
-            'starwars',
-            'character-information@1.0.1.supr'
+      try {
+        const result = await execCLI(
+          tempDir,
+          ['install', 'starwars/character-information'],
+          mockServer.url
+        );
+        expect(result).toMatch(
+          'All profiles (1) have been installed successfully.'
+        );
+        expect(await exists(joinPath(tempDir, 'superface', 'super.json'))).toBe(
+          true
+        );
+        expect(
+          await exists(
+            joinPath(
+              tempDir,
+              'superface',
+              'grid',
+              'starwars',
+              'character-information@1.0.1.supr'
+            )
           )
-        )
-      ).toBe(true);
-    });
+        ).toBe(true);
+      } catch (e) {
+        console.log(e);
+        throw e;
+      }
+    }, 20000);
   });
 });
