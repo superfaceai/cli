@@ -63,16 +63,20 @@ export function execCLI(
 ): Promise<string> {
   const CLI = joinPath('.', 'bin', 'superface');
   const bin = relative(directory, CLI);
-  const process = spawn('/usr/bin/node', [bin, ...args], {
+  const subprocess = spawn(bin, args, {
     cwd: directory,
     env: { ...env, SUPERFACE_API_URL: apiUrl },
+    stdio: [],
   });
-  process.stdin.setDefaultEncoding('utf-8');
+  subprocess.stdin.setDefaultEncoding('utf-8');
 
   return new Promise((resolve, reject) => {
-    process.stderr.once('data', reject);
-    process.on('error', reject);
-    process.stdout.pipe(concat(result => resolve(result.toString())));
+    subprocess.stderr.once('data', reject);
+    subprocess.on('error', reject);
+    subprocess.stdout.on('data', (data: Buffer) =>
+      console.log(data.toString())
+    );
+    subprocess.stdout.pipe(concat(result => resolve(result.toString())));
   });
 }
 
