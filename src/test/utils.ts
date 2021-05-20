@@ -63,7 +63,7 @@ export function execCLI(
 ): Promise<string> {
   const CLI = joinPath('.', 'bin', 'superface');
   const bin = relative(directory, CLI);
-  const process = spawn(bin, args, {
+  const process = spawn('node', [bin, ...args], {
     cwd: directory,
     env: { ...env, SUPERFACE_API_URL: apiUrl },
   });
