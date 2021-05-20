@@ -34,7 +34,7 @@ describe('Install CLI command', () => {
           ['install', 'starwars/character-information'],
           mockServer.url
         );
-        expect(result).toMatch(
+        expect(result.stdout).toMatch(
           'All profiles (1) have been installed successfully.'
         );
         expect(await exists(joinPath(tempDir, 'superface', 'super.json'))).toBe(

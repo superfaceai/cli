@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import { spawn } from 'child_process';
-import concat from 'concat-stream';
+import { execFile } from 'child_process';
 import { Mockttp } from 'mockttp';
 import { join as joinPath, relative } from 'path';
+import { promisify } from 'util';
 
 import { EXTENSIONS } from '../common/document';
 import { ContentType } from '../common/http';
@@ -55,30 +55,36 @@ export async function mockResponsesForProfile(
  * @param {NodeJS.ProcessEnv} [env] - any additional environment variables
  * @returns  {Promise<string>} - result is concatenated stdout
  */
-export function execCLI(
+export async function execCLI(
   directory: string,
   args: string[],
   apiUrl: string,
   env?: NodeJS.ProcessEnv
-): Promise<string> {
+): Promise<{ stderr: string; stdout: string }> {
   const CLI = joinPath('.', 'bin', 'superface');
   const bin = relative(directory, CLI);
-  const subprocess = spawn(bin, args, {
+
+  const exec = promisify(execFile);
+
+  const result = await exec(bin, args, {
     cwd: directory,
     env: { ...env, SUPERFACE_API_URL: apiUrl },
-    // stdio: [undefined, undefined, strim],
-    detached: true,
   });
-  subprocess.stdin.setDefaultEncoding('utf-8');
 
-  return new Promise((resolve, reject) => {
-    subprocess.stderr.once('data', reject);
-    subprocess.on('error', reject);
-    subprocess.stdout.on('data', (data: Buffer) =>
-      console.log(data.toString())
-    );
-    subprocess.stdout.pipe(concat(result => resolve(result.toString())));
-  });
+  return result;
+  // console.log(result);
+
+  // const subprocess = spawn(bin, args, {
+  //   cwd: directory,
+  //   env: { ...env, SUPERFACE_API_URL: apiUrl },
+  // });
+  // subprocess.stdin.setDefaultEncoding('utf-8');
+
+  // return new Promise((resolve, reject) => {
+  //   subprocess.stderr.once('data', reject);
+  //   subprocess.on('error', reject);
+  //   subprocess.stdout.pipe(concat(result => resolve(result.toString())));
+  // });
 }
 
 /**
