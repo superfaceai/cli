@@ -66,7 +66,8 @@ export function execCLI(
   const subprocess = spawn(bin, args, {
     cwd: directory,
     env: { ...env, SUPERFACE_API_URL: apiUrl },
-    stdio: [],
+    // stdio: [undefined, undefined, strim],
+    detached: true,
   });
   subprocess.stdin.setDefaultEncoding('utf-8');
 
