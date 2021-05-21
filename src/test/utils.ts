@@ -68,7 +68,7 @@ export async function execCLI(
 
   const result = await execCLI(bin, args, {
     cwd: directory,
-    env: { ...env, SUPERFACE_API_URL: apiUrl, ...process.env },
+    env: { ...process.env, ...env, SUPERFACE_API_URL: apiUrl },
   });
 
   return result;

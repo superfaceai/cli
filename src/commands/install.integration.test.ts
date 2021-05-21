@@ -128,7 +128,7 @@ describe('Install CLI command', () => {
       await cleanSuperJson();
     });
 
-    it('installs the newest profile', async () => {
+    it.skip('installs the newest profile', async () => {
       const profileId = `${PROFILE.scope}/${PROFILE.name}`;
 
       await expect(Install.run([profileId])).resolves.toBeUndefined();
