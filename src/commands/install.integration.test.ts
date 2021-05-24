@@ -16,7 +16,7 @@ describe('Install CLI command', () => {
   const PROFILE = {
     scope: 'starwars',
     name: 'character-information',
-    version: '1.0.1',
+    version: '1.0.2',
   };
 
   const FIXTURE = {
@@ -229,7 +229,7 @@ describe('Install CLI command', () => {
         const path = superJson.resolvePath('types');
         await rmdir(path);
         // eslint-disable-next-line no-empty
-      } catch {}
+      } catch { }
     }, 10000);
 
     it.skip('adds new typings to previously generated', async () => {
@@ -292,7 +292,7 @@ describe('Install CLI command', () => {
         await rmdir(path);
         path = superJson.resolvePath('types');
         // eslint-disable-next-line no-empty
-      } catch {}
+      } catch { }
     }, 50000);
   });
 
