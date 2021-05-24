@@ -8,8 +8,7 @@
   "private": false,
   "bin": {
     "superface": "bin/superface",
-    "sf": "bin/superface",
-    "quickstart": "bin/superface quickstart"
+    "sf": "bin/superface"
   },
   "files": [
     "bin/",
