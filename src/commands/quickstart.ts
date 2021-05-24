@@ -6,7 +6,7 @@ import {
   isDigestSecurityValues,
   SecurityValues,
 } from '@superfaceai/one-sdk';
-import { grey, yellow } from 'chalk';
+import { green, grey, yellow } from 'chalk';
 import inquirer from 'inquirer';
 
 import { Command } from '../common/command.abstract';
@@ -46,6 +46,9 @@ export default class Quickstart extends Command {
     this.log('⚠️  ' + yellow(message));
 
   private logCallback? = (message: string) => this.log(grey(message));
+  private successCallback? = (message: string) => this.log(green(message));
+
+  private envContent = '';
 
   async run(): Promise<void> {
     const { flags } = this.parse(Quickstart);
@@ -62,7 +65,7 @@ export default class Quickstart extends Command {
     }
 
     //Init SF
-    this.logCallback?.('Initializing superface directory');
+    this.successCallback?.('Initializing superface directory');
     await initSuperface(
       './',
       { profiles: {}, providers: {} },
@@ -94,7 +97,7 @@ export default class Quickstart extends Command {
       message: 'Select a provider to execute',
       type: 'checkbox',
       choices: possibleProviders.map(p => {
-        return { name: p };
+        return { name: p, checked: p === 'mock' };
       }),
       validate: (input: string[]): boolean => {
         return input.length > 0;
@@ -119,7 +122,7 @@ export default class Quickstart extends Command {
     );
 
     //Configure providers
-    this.logCallback?.(`\n\nInstalling providers`);
+    this.successCallback?.(`\n\nInstalling providers`);
     for (const providerName of providerResponse.providers) {
       //Install provider
       await installProvider(
@@ -141,7 +144,7 @@ export default class Quickstart extends Command {
       warnCb: this.warnCallback,
     });
 
-    this.logCallback?.(`\n\nConfiguring providers security`);
+    this.successCallback?.(`\n\nConfiguring providers security`);
 
     let selectedSchema: SecurityValues;
     for (const provider of Object.keys(installedProviders)) {
@@ -166,23 +169,23 @@ export default class Quickstart extends Command {
           warnCb: this.warnCallback,
         });
       } else {
-        this.logCallback?.(
+        this.successCallback?.(
           `\n\nProvider "${provider}" can be used without authentication`
         );
       }
     }
 
     //Install SDK
-    this.logCallback?.(`\n\nInstalling package "@superfaceai/one-sdk"`);
+    this.successCallback?.(`\n\nInstalling package "@superfaceai/one-sdk"`);
     await installSdk({ logCb: this.logCallback, warnCb: this.warnCallback });
 
-    this.logCallback?.(`🆗 Superface have been configured successfully!`);
+    this.successCallback?.(`🆗 Superface have been configured successfully!`);
 
     //Lead to docs page
 
     //TODO: usecase specific page
     const url = 'https://docs.superface.ai/getting-started';
-    this.logCallback?.(
+    this.successCallback?.(
       `Now you can follow our documentation to use installed capability: "${url}"`
     );
   }
@@ -196,20 +199,21 @@ export default class Quickstart extends Command {
       logCb?: LogCallback;
       warnCb?: LogCallback;
     }
-  ): Promise<string | undefined> {
+  ): Promise<void> {
     const response: { value: string } = await inquirer.prompt({
       name: 'value',
       message: `Enter ${name} of ${authType} security for "${provider}" This value will be stored locally in .env file.`,
       type: 'input',
     });
-    if (process.env[envVariableName]) {
+    const variableName = envVariableName.startsWith('$')
+      ? envVariableName.substring(1)
+      : envVariableName;
+    if (this.envContent.includes(variableName)) {
       options?.warnCb?.(
-        `Value of "${envVariableName}" for "${provider}" is already set`
+        `Value of "${variableName}" for "${provider}" is already set`
       );
-
-      return;
     } else {
-      return envVariable(envVariableName, response.value);
+      this.envContent += envVariable(variableName, response.value);
     }
   }
 
@@ -223,13 +227,12 @@ export default class Quickstart extends Command {
   ): Promise<void> {
     //Get .env file
     //TODO: path resolution and err handling
-    let envContent = '';
     if (await exists('.env')) {
-      envContent = (await readFile('.env')).toString();
+      this.envContent = (await readFile('.env')).toString();
     }
 
     if (isApiKeySecurityValues(schema)) {
-      envContent += await this.setPromptedValue(
+      await this.setPromptedValue(
         provider,
         'api key',
         'apikey',
@@ -237,14 +240,14 @@ export default class Quickstart extends Command {
         options
       );
     } else if (isBasicAuthSecurityValues(schema)) {
-      envContent += await this.setPromptedValue(
+      await this.setPromptedValue(
         provider,
         'basic',
         'username',
         schema.username,
         options
       );
-      envContent += await this.setPromptedValue(
+      await this.setPromptedValue(
         provider,
         'basic',
         'password',
@@ -252,7 +255,7 @@ export default class Quickstart extends Command {
         options
       );
     } else if (isBearerTokenSecurityValues(schema)) {
-      envContent += await this.setPromptedValue(
+      await this.setPromptedValue(
         provider,
         'bearer',
         'token',
@@ -260,7 +263,7 @@ export default class Quickstart extends Command {
         options
       );
     } else if (isDigestSecurityValues(schema)) {
-      envContent += await this.setPromptedValue(
+      await this.setPromptedValue(
         provider,
         'bearer',
         'digest',
@@ -271,7 +274,7 @@ export default class Quickstart extends Command {
       options?.warnCb?.(`Unable to resolve security type for "${provider}"`);
     }
 
-    await OutputStream.writeIfAbsent('.env', envContent);
+    await OutputStream.writeOnce('.env', this.envContent);
   }
 
   private async selectSecuritySchema(

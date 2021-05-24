@@ -7,6 +7,7 @@ import { exec } from 'child_process';
 import { join as joinPath } from 'path';
 import { promisify } from 'util';
 
+import { exists } from '../common/io';
 import { LogCallback } from '../common/log';
 
 const execShell = promisify(exec);
@@ -15,9 +16,11 @@ export async function installSdk(options?: {
   logCb?: LogCallback;
   warnCb?: LogCallback;
 }): Promise<void> {
-  //TODO: check for yarn/package lock and use yarn/npm - npm/yarn init if we dont find package.json? Wher should we look?
-
-  const result = await execShell('npm install @superfaceai/one-sdk');
+  const result = await execShell(
+    `${
+      (await exists('yarn.lock')) ? 'yarn add' : 'npm install'
+    } @superfaceai/one-sdk`
+  );
   if (result.stderr !== '') {
     options?.warnCb?.(
       `Shell command "npm install @superfaceai/one-sdk" responded with: "${result.stderr}"`
