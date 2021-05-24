@@ -79,7 +79,7 @@ export default class Quickstart extends Command {
       profile: { scope: string; profile: string; version: string };
     } = await inquirer.prompt({
       name: 'profile',
-      message: 'Select a profile to install',
+      message: 'Select a capability to install',
       type: 'list',
       choices: possibleProfiles.map(p => {
         return { name: `${p.scope}/${p.profile}`, value: p };
@@ -146,6 +146,10 @@ export default class Quickstart extends Command {
 
     this.successCallback?.(`\n\nConfiguring providers security`);
 
+    //Get .env file
+    if (await exists('.env')) {
+      this.envContent = (await readFile('.env')).toString();
+    }
     let selectedSchema: SecurityValues;
     for (const provider of Object.keys(installedProviders)) {
       this.logCallback?.(`\n\nConfiguring "${provider}" security`);
@@ -174,6 +178,8 @@ export default class Quickstart extends Command {
         );
       }
     }
+    //Write .env file
+    await OutputStream.writeOnce('.env', this.envContent);
 
     //Install SDK
     this.successCallback?.(`\n\nInstalling package "@superfaceai/one-sdk"`);
@@ -200,21 +206,29 @@ export default class Quickstart extends Command {
       warnCb?: LogCallback;
     }
   ): Promise<void> {
+    if (!envVariableName.startsWith('$')) {
+      options?.warnCb?.(
+        `Value of ${envVariableName} in "${provider}" "${authType}" security schema does not start with $ character.`
+      );
+
+      return;
+    }
+    const variableName = envVariableName.substring(1);
+    if (this.envContent.includes(`${variableName}=`)) {
+      options?.warnCb?.(
+        `Value of "${variableName}" for "${provider}" is already set`
+      );
+
+      return;
+    }
+
     const response: { value: string } = await inquirer.prompt({
       name: 'value',
       message: `Enter ${name} of ${authType} security for "${provider}" This value will be stored locally in .env file.`,
       type: 'input',
     });
-    const variableName = envVariableName.startsWith('$')
-      ? envVariableName.substring(1)
-      : envVariableName;
-    if (this.envContent.includes(variableName)) {
-      options?.warnCb?.(
-        `Value of "${variableName}" for "${provider}" is already set`
-      );
-    } else {
-      this.envContent += envVariable(variableName, response.value);
-    }
+
+    this.envContent += envVariable(variableName, response.value);
   }
 
   private async setSecurityEnvValues(
@@ -225,12 +239,6 @@ export default class Quickstart extends Command {
       warnCb?: LogCallback;
     }
   ): Promise<void> {
-    //Get .env file
-    //TODO: path resolution and err handling
-    if (await exists('.env')) {
-      this.envContent = (await readFile('.env')).toString();
-    }
-
     if (isApiKeySecurityValues(schema)) {
       await this.setPromptedValue(
         provider,
@@ -273,8 +281,6 @@ export default class Quickstart extends Command {
     } else {
       options?.warnCb?.(`Unable to resolve security type for "${provider}"`);
     }
-
-    await OutputStream.writeOnce('.env', this.envContent);
   }
 
   private async selectSecuritySchema(
