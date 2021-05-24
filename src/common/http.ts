@@ -45,6 +45,17 @@ export async function fetch(url: string, type: ContentType): Promise<Response> {
     throw userError(err, 1);
   }
 }
+export async function fetchProfiles(): Promise<
+  { scope: string; profile: string; version: string }[]
+> {
+  //Mock response
+  return [{ scope: 'communication', profile: 'send-email', version: '1.0.1' }];
+}
+
+export async function fetchProviders(_profileId: string): Promise<string[]> {
+  //Mock response
+  return ['sendgrid', 'mailgun', 'mailchimp', 'mock'];
+}
 
 export async function fetchProfileInfo(
   profileId: string
