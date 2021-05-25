@@ -139,10 +139,7 @@ export default class Quickstart extends Command {
     }
 
     //Ask for provider security
-    const installedProviders = await getProviders(superPath, {
-      logCb: this.logCallback,
-      warnCb: this.warnCallback,
-    });
+    const installedProviders = await getProviders(superPath);
 
     this.successCallback?.(`\n\nConfiguring providers security`);
 
