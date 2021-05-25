@@ -22,18 +22,7 @@ import { getProviders, installSdk } from '../logic/quickstart';
 import { envVariable } from '../templates/env';
 
 export default class Quickstart extends Command {
-  static description =
-    'Automatically initializes superface directory in current working directory if needed, communicates with Superface Store API, stores profiles and compiled files to a local system. Install without any arguments tries to install profiles and providers listed in super.json';
-
-  static args = [
-    {
-      name: 'profileId',
-      required: false,
-      description:
-        'Profile identifier consisting of scope (optional), profile name and its version.',
-      default: undefined,
-    },
-  ];
+  static description = 'interactively sets up Superface with selected profile';
 
   static flags = {
     ...Command.flags,
@@ -94,7 +83,7 @@ export default class Quickstart extends Command {
 
     const providerResponse: { providers: string[] } = await inquirer.prompt({
       name: 'providers',
-      message: 'Select a provider to execute',
+      message: 'Select a provider/s you want to use',
       type: 'checkbox',
       choices: possibleProviders.map(p => {
         return { name: p, checked: p === 'mock' };
