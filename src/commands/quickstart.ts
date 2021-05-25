@@ -22,7 +22,7 @@ import { getProviders, installSdk } from '../logic/quickstart';
 import { envVariable } from '../templates/env';
 
 export default class Quickstart extends Command {
-  static description = 'interactively sets up Superface with selected profile';
+  static description = 'Interactively sets up Superface with selected profile';
 
   static flags = {
     ...Command.flags,

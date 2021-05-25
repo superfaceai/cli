@@ -52,6 +52,7 @@ npm install --global @superfaceai/cli
 * [`superface create DOCUMENTINFO`](#superface-create-documentinfo)
 * [`superface install [PROFILEID]`](#superface-install-profileid)
 * [`superface lint FILE`](#superface-lint-file)
+* [`superface quickstart`](#superface-quickstart)
 
 ## `superface compile FILE`
 
@@ -168,7 +169,6 @@ OPTIONS
 
   -s, --scan=scan            When number provided, scan for super.json outside cwd within range represented by this
                              number.
-  -t, --types                When set to true, generates TypeScript typings for profiles
 
 EXAMPLES
   $ superface install
@@ -210,6 +210,25 @@ DESCRIPTION
 ```
 
 _See code: [src/commands/lint.ts](https://github.com/superfaceai/cli/tree/main/src/commands/lint.ts)_
+
+## `superface quickstart`
+
+Interactively sets up Superface with selected profile
+
+```
+USAGE
+  $ superface quickstart
+
+OPTIONS
+  -h, --help   show CLI help
+  -q, --quiet  When set to true, disables the shell echo output of init actions.
+
+EXAMPLES
+  $ superface quickstart
+  $ superface quickstart -q
+```
+
+_See code: [src/commands/quickstart.ts](https://github.com/superfaceai/cli/tree/main/src/commands/quickstart.ts)_
 <!-- commandsstop -->
 
 ## Security
