@@ -229,7 +229,7 @@ describe('Install CLI command', () => {
         profiles: {
           [profileId]: {
             file:
-              '../../../../../fixtures/profiles/starwars/character-information.supr',
+              '../../../../fixtures/profiles/starwars/character-information.supr',
           },
         },
         providers: {},
@@ -248,7 +248,7 @@ describe('Install CLI command', () => {
 
       expect(result.stdout).toMatch('File already exists:');
 
-      // expect(result.stdout).toMatch('❌ No profiles have been installed');
+      expect(result.stdout).toMatch('❌ No profiles have been installed');
     }, 20000);
   });
 });
