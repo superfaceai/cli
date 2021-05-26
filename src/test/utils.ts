@@ -46,6 +46,28 @@ export async function mockResponsesForProfile(
 }
 
 /**
+ * Mocks HTTP responses for a provider
+ *
+ * expects following files in specified path (default fixtures/providers)
+ *   provider.json           - provider info
+ */
+export async function mockResponsesForProvider(
+  server: Mockttp,
+  provider: string,
+  path = joinPath('fixtures', 'providers')
+): Promise<void> {
+  const basePath = joinPath(path, provider);
+  const providerInfo = JSON.parse(
+    (await readFile(basePath + '.json')).toString()
+  );
+
+  await server
+    .get('/providers/' + provider)
+    .withHeaders({ Accept: ContentType.JSON })
+    .thenJson(200, providerInfo);
+}
+
+/**
  * Executes the Superface CLI binary
  *
  * @export
