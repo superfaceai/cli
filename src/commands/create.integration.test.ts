@@ -1,397 +1,464 @@
 import { SuperJson } from '@superfaceai/one-sdk';
-import * as fs from 'fs';
+import { getLocal } from 'mockttp';
 import { join as joinPath } from 'path';
 
-import { EXTENSIONS, GRID_DIR, SUPER_PATH } from '../common/document';
-import { rimraf } from '../common/io';
-import { OutputStream } from '../common/output-stream';
-import { MockStd, mockStd } from '../test/mock-std';
-import Create from './create';
-import Lint from './lint';
+import { mkdir, rimraf } from '../common/io';
+import {
+  execCLI,
+  mockResponsesForProfile,
+  mockResponsesForProvider,
+  setUpTempDir,
+} from '../test/utils';
+
+const mockServer = getLocal();
 
 describe('Create CLI command', () => {
-  let documentName: string, provider: string, variant: string;
-
-  const WORKING_DIR = joinPath('fixtures', 'create', 'playground');
-
-  const PROFILE = {
-    scope: 'starwars',
-    name: 'character-information',
-    version: '1.0.1',
-  };
-
-  const FIXTURE = {
-    superJson: SUPER_PATH,
-    scope: joinPath(GRID_DIR, PROFILE.scope),
-    profile: joinPath(
-      GRID_DIR,
-      PROFILE.scope,
-      PROFILE.name + '@' + PROFILE.version + EXTENSIONS.profile.source
-    ),
-  };
-
-  let INITIAL_CWD: string;
-  let INITIAL_SUPER_JSON: SuperJson;
+  //File specific path
+  const TEMP_PATH = joinPath('test', 'tmp');
+  let documentName, provider;
+  let tempDir: string;
 
   beforeAll(async () => {
-    INITIAL_CWD = process.cwd();
-    process.chdir(WORKING_DIR);
+    await mkdir(TEMP_PATH, { recursive: true });
+    await mockServer.start();
+    await mockResponsesForProfile(mockServer, 'starwars/character-information');
+    await mockResponsesForProvider(mockServer, 'swapi');
+  });
+  beforeEach(async () => {
+    tempDir = await setUpTempDir(TEMP_PATH);
+  });
 
-    INITIAL_SUPER_JSON = (await SuperJson.load(FIXTURE.superJson)).unwrap();
-
-    await rimraf(FIXTURE.scope);
+  afterEach(async () => {
+    await rimraf(tempDir);
   });
 
   afterAll(async () => {
-    await resetSuperJson();
-    await rimraf(FIXTURE.scope);
-
-    // change cwd back
-    process.chdir(INITIAL_CWD);
+    await mockServer.stop();
   });
 
-  /** Resets super.json to initial state stored in `INITIAL_SUPER_JSON` */
-  async function resetSuperJson() {
-    await OutputStream.writeOnce(
-      FIXTURE.superJson,
-      JSON.stringify(INITIAL_SUPER_JSON.document, undefined, 2)
-    );
-  }
-  let stdout: MockStd;
+  describe('when configuring new provider', () => {
+    it('creates profile with one usecase (with usecase name from cli)', async () => {
+      documentName = 'sendsms';
 
-  beforeEach(async () => {
-    await resetSuperJson();
-    await rimraf(FIXTURE.scope);
+      let result = await execCLI(
+        tempDir,
+        ['create', 'profile', documentName],
+        mockServer.url,
+        //Mock inquier input
+        '\x0D'
+      );
 
-    stdout = mockStd();
-    jest
-      .spyOn(process['stdout'], 'write')
-      .mockImplementation(stdout.implementation);
-  });
+      expect(result.stdout).toMatch(
+        `-> Created ${documentName}.supr (name = "${documentName}", version = "1.0.0")`
+      );
 
-  afterEach(() => {
-    jest.resetAllMocks();
+      result = await execCLI(
+        tempDir,
+        ['lint', `${documentName}.supr`],
+        mockServer.url
+      );
+      expect(result.stdout).toMatch('Detected 0 problems\n');
 
-    // handle profile
-    if (fs.existsSync(`${documentName}.supr`)) {
-      fs.unlinkSync(`${documentName}.supr`);
-    }
+      const superJson = (
+        await SuperJson.load(joinPath(tempDir, 'superface', 'super.json'))
+      ).unwrap();
 
-    // handle map
-    if (variant) {
-      if (fs.existsSync(`${documentName}.${provider}.${variant}.suma`)) {
-        fs.unlinkSync(`${documentName}.${provider}.${variant}.suma`);
-      }
-    } else {
-      if (fs.existsSync(`${documentName}.${provider}.suma`)) {
-        fs.unlinkSync(`${documentName}.${provider}.suma`);
-      }
-    }
-
-    const documentInfo = documentName.split('/');
-    const scope = documentInfo[1] ? documentInfo[0] : undefined;
-
-    // handle scope directory
-    if (scope) {
-      if (fs.existsSync(scope)) {
-        fs.rmdirSync(scope);
-      }
-    }
-
-    // handle provider file
-    if (fs.existsSync(`${provider}.provider.json`)) {
-      fs.unlinkSync(`${provider}.provider.json`);
-    }
-  });
-
-  it('creates profile with one usecase (with usecase name from cli)', async () => {
-    documentName = 'sendsms';
-    await Create.run(['profile', documentName]);
-    expect(stdout.output).toContain(
-      `-> Created ${documentName}.supr (name = "${documentName}", version = "1.0.0")\n`
-    );
-
-    await Lint.run([`${documentName}.supr`]);
-    expect(stdout.output).toContain('Detected 0 problems\n');
-
-    const superJson = (await SuperJson.load()).unwrap();
-
-    expect(superJson.document).toEqual({
-      profiles: {
-        [documentName]: {
-          file: `../${documentName}.supr`,
-        },
-      },
-      providers: {},
-    });
-  });
-
-  it('creates profile with one usecase', async () => {
-    documentName = 'sms/service';
-    await Create.run(['profile', documentName, '-u', 'SendSMS']);
-    expect(stdout.output).toContain(
-      `-> Created ${documentName}.supr (name = "${documentName}", version = "1.0.0")\n`
-    );
-
-    await Lint.run([`${documentName}.supr`]);
-    expect(stdout.output).toContain('Detected 0 problems\n');
-
-    const superJson = (await SuperJson.load()).unwrap();
-
-    expect(superJson.document).toEqual({
-      profiles: {
-        [documentName]: {
-          file: `../${documentName}.supr`,
-        },
-      },
-      providers: {},
-    });
-  });
-
-  it('creates profile with multiple usecases', async () => {
-    documentName = 'sms/service';
-    await Create.run(['profile', documentName, '-u', 'ReceiveSMS', 'SendSMS']);
-    expect(stdout.output).toContain(
-      `-> Created ${documentName}.supr (name = "${documentName}", version = "1.0.0")\n`
-    );
-
-    await Lint.run([`${documentName}.supr`]);
-    expect(stdout.output).toContain('Detected 0 problems\n');
-
-    const superJson = (await SuperJson.load()).unwrap();
-
-    expect(superJson.document).toEqual({
-      profiles: {
-        [documentName]: {
-          file: `../${documentName}.supr`,
-        },
-      },
-      providers: {},
-    });
-  });
-
-  it('creates map with one usecase (with usecase name from cli)', async () => {
-    documentName = 'sms/service';
-    provider = 'twilio';
-    await Create.run(['map', documentName, '-p', provider]);
-    expect(stdout.output).toContain(
-      `-> Created ${documentName}.${provider}.suma (profile = "${documentName}@1.0", provider = "${provider}")\n-> Created ${provider}.provider.json\n`
-    );
-
-    await Lint.run([`${documentName}.${provider}.suma`]);
-    expect(stdout.output).toContain('Detected 0 problems\n');
-
-    const superJson = (await SuperJson.load()).unwrap();
-
-    expect(superJson.document).toEqual({
-      profiles: {
-        [documentName]: {
-          defaults: {},
-          providers: {
-            [provider]: {
-              file: `../${documentName}.${provider}.suma`,
-            },
-          },
-          version: '0.0.0',
-        },
-      },
-      providers: {
-        [provider]: {
-          file: `../${provider}.provider.json`,
-          security: [],
-        },
-      },
-    });
-  });
-
-  it('creates map with one usecase', async () => {
-    documentName = 'sms/service';
-    provider = 'twilio';
-    await Create.run(['map', documentName, '-u', 'SendSMS', '-p', provider]);
-    expect(stdout.output).toContain(
-      `-> Created ${documentName}.${provider}.suma (profile = "${documentName}@1.0", provider = "${provider}")\n-> Created ${provider}.provider.json\n`
-    );
-
-    await Lint.run([`${documentName}.${provider}.suma`]);
-    expect(stdout.output).toContain('Detected 0 problems\n');
-
-    const superJson = (await SuperJson.load()).unwrap();
-
-    expect(superJson.document).toEqual({
-      profiles: {
-        [documentName]: {
-          defaults: {},
-          providers: {
-            [provider]: {
-              file: `../${documentName}.${provider}.suma`,
-            },
-          },
-          version: '0.0.0',
-        },
-      },
-      providers: {
-        [provider]: {
-          file: `../${provider}.provider.json`,
-          security: [],
-        },
-      },
-    });
-  });
-
-  it('creates map with mutiple usecases', async () => {
-    documentName = 'sms/service';
-    provider = 'twilio';
-    await Create.run([
-      'map',
-      documentName,
-      '-p',
-      'twilio',
-      '-u',
-      'ReceiveSMS',
-      'SendSMS',
-    ]);
-    expect(stdout.output).toContain(
-      `-> Created ${documentName}.${provider}.suma (profile = "${documentName}@1.0", provider = "${provider}")\n-> Created ${provider}.provider.json\n`
-    );
-
-    await Lint.run([`${documentName}.${provider}.suma`]);
-    expect(stdout.output).toContain('Detected 0 problems\n');
-
-    const superJson = (await SuperJson.load()).unwrap();
-
-    expect(superJson.document).toEqual({
-      profiles: {
-        [documentName]: {
-          defaults: {},
-          providers: {
-            [provider]: {
-              file: `../${documentName}.${provider}.suma`,
-            },
-          },
-          version: '0.0.0',
-        },
-      },
-      providers: {
-        [provider]: {
-          file: `../${provider}.provider.json`,
-          security: [],
-        },
-      },
-    });
-  });
-
-  it('creates profile & map with one usecase (with usecase name from cli)', async () => {
-    documentName = 'sms/service';
-    provider = 'twilio';
-    await Create.run([documentName, '-p', provider]);
-    expect(stdout.output).toContain(
-      `-> Created ${documentName}.supr (name = "${documentName}", version = "1.0.0")\n-> Created ${documentName}.${provider}.suma (profile = "${documentName}@1.0", provider = "${provider}")\n-> Created ${provider}.provider.json\n`
-    );
-
-    await Lint.run([`${documentName}.supr`]);
-    expect(stdout.output).toContain('Detected 0 problems\n');
-
-    await Lint.run([`${documentName}.${provider}.suma`]);
-    expect(stdout.output).toContain('Detected 0 problems\n');
-
-    const superJson = (await SuperJson.load()).unwrap();
-
-    expect(superJson.document).toEqual({
-      profiles: {
-        [documentName]: {
-          file: `../${documentName}.supr`,
-          providers: {
-            [provider]: {
-              file: `../${documentName}.${provider}.suma`,
-            },
+      expect(superJson.document).toEqual({
+        profiles: {
+          [documentName]: {
+            file: `../${documentName}.supr`,
           },
         },
-      },
-      providers: {
-        [provider]: {
-          file: `../${provider}.provider.json`,
-          security: [],
-        },
-      },
-    });
-  });
+        providers: {},
+      });
+    }, 20000);
 
-  it('creates profile & map with one usecase', async () => {
-    documentName = 'sms/service';
-    provider = 'twilio';
-    await Create.run([documentName, '-u', 'SendSMS', '-p', 'twilio']);
-    expect(stdout.output).toContain(
-      `-> Created ${documentName}.supr (name = "${documentName}", version = "1.0.0")\n-> Created ${documentName}.${provider}.suma (profile = "${documentName}@1.0", provider = "${provider}")\n-> Created ${provider}.provider.json\n`
-    );
+    it('creates profile with one usecase', async () => {
+      documentName = 'sms/service';
 
-    await Lint.run([`${documentName}.supr`]);
-    expect(stdout.output).toContain('Detected 0 problems\n');
+      let result = await execCLI(
+        tempDir,
+        ['create', 'profile', documentName, '-u', 'SendSMS'],
+        mockServer.url,
+        //Mock inquier input
+        '\x0D'
+      );
+      expect(result.stdout).toContain(
+        `-> Created ${documentName}.supr (name = "${documentName}", version = "1.0.0")`
+      );
+      result = await execCLI(
+        tempDir,
+        ['lint', `${documentName}.supr`],
+        mockServer.url
+      );
+      expect(result.stdout).toMatch('Detected 0 problems\n');
 
-    await Lint.run([`${documentName}.${provider}.suma`]);
-    expect(stdout.output).toContain('Detected 0 problems\n');
+      const superJson = (
+        await SuperJson.load(joinPath(tempDir, 'superface', 'super.json'))
+      ).unwrap();
 
-    const superJson = (await SuperJson.load()).unwrap();
-
-    expect(superJson.document).toEqual({
-      profiles: {
-        [documentName]: {
-          file: `../${documentName}.supr`,
-          providers: {
-            [provider]: {
-              file: `../${documentName}.${provider}.suma`,
-            },
+      expect(superJson.document).toEqual({
+        profiles: {
+          [documentName]: {
+            file: `../${documentName}.supr`,
           },
         },
-      },
-      providers: {
-        [provider]: {
-          file: `../${provider}.provider.json`,
-          security: [],
+        providers: {},
+      });
+    }, 20000);
+
+    it('creates profile with multiple usecases', async () => {
+      documentName = 'sms/service';
+
+      let result = await execCLI(
+        tempDir,
+        ['create', 'profile', documentName, '-u', 'ReceiveSMS', 'SendSMS'],
+        mockServer.url,
+        //Mock inquier input
+        '\x0D'
+      );
+      expect(result.stdout).toContain(
+        `-> Created ${documentName}.supr (name = "${documentName}", version = "1.0.0")`
+      );
+
+      result = await execCLI(
+        tempDir,
+        ['lint', `${documentName}.supr`],
+        mockServer.url
+      );
+      expect(result.stdout).toMatch('Detected 0 problems\n');
+
+      const superJson = (
+        await SuperJson.load(joinPath(tempDir, 'superface', 'super.json'))
+      ).unwrap();
+
+      expect(superJson.document).toEqual({
+        profiles: {
+          [documentName]: {
+            file: `../${documentName}.supr`,
+          },
         },
-      },
-    });
-  });
+        providers: {},
+      });
+    }, 20000);
 
-  it('creates profile & map with multiple usecases', async () => {
-    documentName = 'sms/service';
-    provider = 'twilio';
-    await Create.run([
-      documentName,
-      '-u',
-      'SendSMS',
-      'ReceiveSMS',
-      '-p',
-      provider,
-    ]);
-    expect(stdout.output).toContain(
-      `-> Created ${documentName}.supr (name = "${documentName}", version = "1.0.0")\n-> Created ${documentName}.${provider}.suma (profile = "${documentName}@1.0", provider = "${provider}")\n-> Created ${provider}.provider.json\n`
-    );
+    it('creates map with one usecase (with usecase name from cli)', async () => {
+      documentName = 'sms/service';
+      provider = 'twilio';
 
-    await Lint.run([`${documentName}.supr`]);
-    expect(stdout.output).toContain('Detected 0 problems\n');
+      let result = await execCLI(
+        tempDir,
+        ['create', 'map', documentName, '-p', provider],
+        mockServer.url,
+        //Mock inquier input
+        '\x0D'
+      );
+      expect(result.stdout).toContain(
+        `-> Created ${documentName}.${provider}.suma (profile = "${documentName}@1.0", provider = "${provider}")`
+      );
+      expect(result.stdout).toContain(`-> Created ${provider}.provider.json`);
+      result = await execCLI(
+        tempDir,
+        ['lint', `${documentName}.${provider}.suma`],
+        mockServer.url
+      );
+      expect(result.stdout).toMatch('Detected 0 problems\n');
 
-    await Lint.run([`${documentName}.${provider}.suma`]);
-    expect(stdout.output).toContain('Detected 0 problems\n');
+      const superJson = (
+        await SuperJson.load(joinPath(tempDir, 'superface', 'super.json'))
+      ).unwrap();
+      expect(superJson.document).toEqual({
+        profiles: {
+          [documentName]: {
+            defaults: {},
+            providers: {
+              [provider]: {
+                file: `../${documentName}.${provider}.suma`,
+              },
+            },
+            version: '0.0.0',
+          },
+        },
+        providers: {
+          [provider]: {
+            file: `../${provider}.provider.json`,
+            security: [],
+          },
+        },
+      });
+    }, 20000);
 
-    const superJson = (await SuperJson.load()).unwrap();
+    it('creates map with one usecase', async () => {
+      documentName = 'sms/service';
+      provider = 'twilio';
 
-    expect(superJson.document).toEqual({
-      profiles: {
-        [documentName]: {
-          file: `../${documentName}.supr`,
-          providers: {
-            [provider]: {
-              file: `../${documentName}.${provider}.suma`,
+      let result = await execCLI(
+        tempDir,
+        ['create', 'map', documentName, '-u', 'SendSMS', '-p', provider],
+        mockServer.url,
+        //Mock inquier input
+        '\x0D'
+      );
+      expect(result.stdout).toContain(
+        `-> Created ${documentName}.${provider}.suma (profile = "${documentName}@1.0", provider = "${provider}")`
+      );
+      expect(result.stdout).toContain(`-> Created ${provider}.provider.json`);
+      result = await execCLI(
+        tempDir,
+        ['lint', `${documentName}.${provider}.suma`],
+        mockServer.url
+      );
+      expect(result.stdout).toMatch('Detected 0 problems\n');
+
+      const superJson = (
+        await SuperJson.load(joinPath(tempDir, 'superface', 'super.json'))
+      ).unwrap();
+
+      expect(superJson.document).toEqual({
+        profiles: {
+          [documentName]: {
+            defaults: {},
+            providers: {
+              [provider]: {
+                file: `../${documentName}.${provider}.suma`,
+              },
+            },
+            version: '0.0.0',
+          },
+        },
+        providers: {
+          [provider]: {
+            file: `../${provider}.provider.json`,
+            security: [],
+          },
+        },
+      });
+    }, 20000);
+
+    it('creates map with mutiple usecases', async () => {
+      documentName = 'sms/service';
+      provider = 'twilio';
+
+      let result = await execCLI(
+        tempDir,
+        [
+          'create',
+          'map',
+          documentName,
+          '-p',
+          provider,
+          '-u',
+          'ReceiveSMS',
+          'SendSMS',
+        ],
+        mockServer.url,
+        //Mock inquier input
+        '\x0D'
+      );
+      expect(result.stdout).toContain(
+        `-> Created ${documentName}.${provider}.suma (profile = "${documentName}@1.0", provider = "${provider}")`
+      );
+      expect(result.stdout).toContain(`-> Created ${provider}.provider.json`);
+      result = await execCLI(
+        tempDir,
+        ['lint', `${documentName}.${provider}.suma`],
+        mockServer.url
+      );
+      expect(result.stdout).toMatch('Detected 0 problems\n');
+
+      const superJson = (
+        await SuperJson.load(joinPath(tempDir, 'superface', 'super.json'))
+      ).unwrap();
+
+      expect(superJson.document).toEqual({
+        profiles: {
+          [documentName]: {
+            defaults: {},
+            providers: {
+              [provider]: {
+                file: `../${documentName}.${provider}.suma`,
+              },
+            },
+            version: '0.0.0',
+          },
+        },
+        providers: {
+          [provider]: {
+            file: `../${provider}.provider.json`,
+            security: [],
+          },
+        },
+      });
+    }, 20000);
+
+    it('creates profile & map with one usecase (with usecase name from cli)', async () => {
+      documentName = 'sms/service';
+      provider = 'twilio';
+
+      let result = await execCLI(
+        tempDir,
+        ['create', documentName, '-p', provider],
+        mockServer.url,
+        //Mock inquier input
+        '\x0D'
+      );
+      expect(result.stdout).toContain(
+        `-> Created ${documentName}.supr (name = "${documentName}", version = "1.0.0")`
+      );
+      expect(result.stdout).toContain(
+        `-> Created ${documentName}.${provider}.suma (profile = "${documentName}@1.0", provider = "${provider}")`
+      );
+      expect(result.stdout).toContain(`-> Created ${provider}.provider.json`);
+
+      result = await execCLI(
+        tempDir,
+        ['lint', `${documentName}.supr`],
+        mockServer.url
+      );
+      expect(result.stdout).toMatch('Detected 0 problems\n');
+
+      result = await execCLI(
+        tempDir,
+        ['lint', `${documentName}.${provider}.suma`],
+        mockServer.url
+      );
+      expect(result.stdout).toMatch('Detected 0 problems\n');
+
+      const superJson = (
+        await SuperJson.load(joinPath(tempDir, 'superface', 'super.json'))
+      ).unwrap();
+
+      expect(superJson.document).toEqual({
+        profiles: {
+          [documentName]: {
+            file: `../${documentName}.supr`,
+            providers: {
+              [provider]: {
+                file: `../${documentName}.${provider}.suma`,
+              },
             },
           },
         },
-      },
-      providers: {
-        [provider]: {
-          file: `../${provider}.provider.json`,
-          security: [],
+        providers: {
+          [provider]: {
+            file: `../${provider}.provider.json`,
+            security: [],
+          },
         },
-      },
-    });
+      });
+    }, 20000);
+
+    it('creates profile & map with one usecase', async () => {
+      documentName = 'sms/service';
+      provider = 'twilio';
+
+      let result = await execCLI(
+        tempDir,
+        ['create', documentName, '-u', 'SendSMS', '-p', 'twilio'],
+        mockServer.url,
+        //Mock inquier input
+        '\x0D'
+      );
+      expect(result.stdout).toContain(
+        `-> Created ${documentName}.supr (name = "${documentName}", version = "1.0.0")`
+      );
+      expect(result.stdout).toContain(
+        `-> Created ${documentName}.${provider}.suma (profile = "${documentName}@1.0", provider = "${provider}")`
+      );
+      expect(result.stdout).toContain(`-> Created ${provider}.provider.json`);
+      result = await execCLI(
+        tempDir,
+        ['lint', `${documentName}.supr`],
+        mockServer.url
+      );
+      expect(result.stdout).toMatch('Detected 0 problems\n');
+
+      result = await execCLI(
+        tempDir,
+        ['lint', `${documentName}.${provider}.suma`],
+        mockServer.url
+      );
+      expect(result.stdout).toMatch('Detected 0 problems\n');
+
+      const superJson = (
+        await SuperJson.load(joinPath(tempDir, 'superface', 'super.json'))
+      ).unwrap();
+
+      expect(superJson.document).toEqual({
+        profiles: {
+          [documentName]: {
+            file: `../${documentName}.supr`,
+            providers: {
+              [provider]: {
+                file: `../${documentName}.${provider}.suma`,
+              },
+            },
+          },
+        },
+        providers: {
+          [provider]: {
+            file: `../${provider}.provider.json`,
+            security: [],
+          },
+        },
+      });
+    }, 20000);
+
+    it('creates profile & map with multiple usecases', async () => {
+      documentName = 'sms/service';
+      provider = 'twilio';
+
+      let result = await execCLI(
+        tempDir,
+        ['create', documentName, '-u', 'SendSMS', 'ReceiveSMS', '-p', provider],
+        mockServer.url,
+        //Mock inquier input
+        '\x0D'
+      );
+      expect(result.stdout).toMatch(
+        `-> Created ${documentName}.supr (name = "${documentName}", version = "1.0.0")`
+      );
+      expect(result.stdout).toMatch(
+        `-> Created ${documentName}.${provider}.suma (profile = "${documentName}@1.0", provider = "${provider}")`
+      );
+      expect(result.stdout).toMatch(`-> Created ${provider}.provider.json`);
+
+      result = await execCLI(
+        tempDir,
+        ['lint', `${documentName}.supr`],
+        mockServer.url
+      );
+      expect(result.stdout).toMatch('Detected 0 problems\n');
+
+      result = await execCLI(
+        tempDir,
+        ['lint', `${documentName}.${provider}.suma`],
+        mockServer.url
+      );
+      expect(result.stdout).toMatch('Detected 0 problems\n');
+
+      const superJson = (
+        await SuperJson.load(joinPath(tempDir, 'superface', 'super.json'))
+      ).unwrap();
+
+      expect(superJson.document).toEqual({
+        profiles: {
+          [documentName]: {
+            file: `../${documentName}.supr`,
+            providers: {
+              [provider]: {
+                file: `../${documentName}.${provider}.suma`,
+              },
+            },
+          },
+        },
+        providers: {
+          [provider]: {
+            file: `../${provider}.provider.json`,
+            security: [],
+          },
+        },
+      });
+    }, 20000);
   });
 });
