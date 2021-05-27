@@ -16,7 +16,7 @@ describe('Install CLI command', () => {
   const PROFILE = {
     scope: 'starwars',
     name: 'character-information',
-    version: '1.0.1',
+    version: '1.0.2',
   };
 
   const FIXTURE = {

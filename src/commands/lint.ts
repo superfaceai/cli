@@ -1,4 +1,5 @@
 import { flags } from '@oclif/command';
+import { yellow } from 'chalk';
 
 import { Command } from '../common/command.abstract';
 import { developerError, userError } from '../common/error';
@@ -17,6 +18,9 @@ import {
 type OutputFormatFlag = 'long' | 'short' | 'json';
 
 export default class Lint extends Command {
+  // hide the command from help
+  static hidden = true;
+
   static description =
     'Lints a map or profile file. Outputs the linter issues to STDOUT by default.\nLinter ends with non zero exit code if errors are found.';
 
@@ -81,6 +85,13 @@ export default class Lint extends Command {
 
   async run(): Promise<void> {
     const { argv, flags } = this.parse(Lint);
+
+    //Warn user
+    this.warn(
+      yellow(
+        'You are using a hidden command. This command is not intended for public consumption yet. It might be broken, hard to use or simply redundant. Tread with care.'
+      )
+    );
 
     const outputStream = new OutputStream(flags.output, {
       append: flags.append,

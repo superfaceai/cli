@@ -19,6 +19,9 @@ import { initSuperface } from '../logic/init';
 import { detectSuperJson } from '../logic/install';
 
 export default class Create extends Command {
+  // hide the command from help
+  static hidden = true;
+
   static strict = false;
 
   static description = 'Creates empty map and profile on a local filesystem.';
@@ -80,6 +83,13 @@ export default class Create extends Command {
 
   async run(): Promise<void> {
     const { argv, flags } = this.parse(Create);
+
+    //Warn user
+    this.warn(
+      yellow(
+        'You are using a hidden command. This command is not intended for public consumption yet. It might be broken, hard to use or simply redundant. Tread with care.'
+      )
+    );
 
     if (flags.quiet) {
       this.logCallback = undefined;
