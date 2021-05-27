@@ -5,6 +5,7 @@ import { join as joinPath } from 'path';
 import { ContentType } from '../common/http';
 import { exists, mkdir, mkdirQuiet, rimraf } from '../common/io';
 import { OutputStream } from '../common/output-stream';
+// import { OutputStream } from '../common/output-stream';
 import {
   execCLI,
   mockResponsesForProfile,
@@ -42,22 +43,16 @@ describe('Configure CLI command', () => {
 
   describe('when configuring new provider', () => {
     it('configures provider with security schemes correctly', async () => {
-      //set existing super.json
-      const localSuperJson = {
-        profiles: {
-          [profileId]: {
-            version: profileVersion,
-          },
-        },
-        providers: {},
-      };
-      await mkdirQuiet(joinPath(tempDir, 'superface'));
-      await OutputStream.writeOnce(
-        joinPath(tempDir, 'superface', 'super.json'),
-        JSON.stringify(localSuperJson, undefined, 2)
+      let result = await execCLI(
+        tempDir,
+        ['install', 'starwars/character-information'],
+        mockServer.url
+      );
+      expect(result.stdout).toMatch(
+        'All profiles (1) have been installed successfully.'
       );
 
-      const result = await execCLI(
+      result = await execCLI(
         tempDir,
         ['configure', provider, '-p', profileId],
         mockServer.url
@@ -100,20 +95,15 @@ describe('Configure CLI command', () => {
     }, 20000);
     it('configures provider with empty security schemes correctly', async () => {
       const emptyProvider = 'empty';
-      //set existing super.json
-      const localSuperJson = {
-        profiles: {
-          [profileId]: {
-            version: profileVersion,
-          },
-        },
-        providers: {},
-      };
-      await mkdirQuiet(joinPath(tempDir, 'superface'));
-      await OutputStream.writeOnce(
-        joinPath(tempDir, 'superface', 'super.json'),
-        JSON.stringify(localSuperJson, undefined, 2)
+      let result = await execCLI(
+        tempDir,
+        ['install', 'starwars/character-information'],
+        mockServer.url
       );
+      expect(result.stdout).toMatch(
+        'All profiles (1) have been installed successfully.'
+      );
+
       //mock provider structure
       const mockProviderInfo = {
         name: emptyProvider,
@@ -132,7 +122,7 @@ describe('Configure CLI command', () => {
         .withHeaders({ Accept: ContentType.JSON })
         .thenJson(200, mockProviderInfo);
 
-      const result = await execCLI(
+      result = await execCLI(
         tempDir,
         ['configure', emptyProvider, '-p', profileId],
         mockServer.url
@@ -156,19 +146,13 @@ describe('Configure CLI command', () => {
     }, 20000);
     it('configures provider without security schemes correctly', async () => {
       const providerWithoutSecurity = 'provider-without-security';
-      //set existing super.json
-      const localSuperJson = {
-        profiles: {
-          [profileId]: {
-            version: profileVersion,
-          },
-        },
-        providers: {},
-      };
-      await mkdirQuiet(joinPath(tempDir, 'superface'));
-      await OutputStream.writeOnce(
-        joinPath(tempDir, 'superface', 'super.json'),
-        JSON.stringify(localSuperJson, undefined, 2)
+      let result = await execCLI(
+        tempDir,
+        ['install', 'starwars/character-information'],
+        mockServer.url
+      );
+      expect(result.stdout).toMatch(
+        'All profiles (1) have been installed successfully.'
       );
       //mock provider structure
       const mockProviderInfo = {
@@ -186,7 +170,7 @@ describe('Configure CLI command', () => {
         .withHeaders({ Accept: ContentType.JSON })
         .thenJson(200, mockProviderInfo);
 
-      const result = await execCLI(
+      result = await execCLI(
         tempDir,
         ['configure', providerWithoutSecurity, '-p', profileId],
         mockServer.url
@@ -210,22 +194,16 @@ describe('Configure CLI command', () => {
     }, 20000);
 
     it('does not log to stdout with --quiet', async () => {
-      //set existing super.json
-      const localSuperJson = {
-        profiles: {
-          [profileId]: {
-            version: profileVersion,
-          },
-        },
-        providers: {},
-      };
-      await mkdirQuiet(joinPath(tempDir, 'superface'));
-      await OutputStream.writeOnce(
-        joinPath(tempDir, 'superface', 'super.json'),
-        JSON.stringify(localSuperJson, undefined, 2)
+      let result = await execCLI(
+        tempDir,
+        ['install', 'starwars/character-information'],
+        mockServer.url
+      );
+      expect(result.stdout).toMatch(
+        'All profiles (1) have been installed successfully.'
       );
 
-      const result = await execCLI(
+      result = await execCLI(
         tempDir,
         ['configure', provider, '-p', profileId, '-q'],
         mockServer.url
@@ -395,22 +373,16 @@ describe('Configure CLI command', () => {
   });
   describe('when there is a path flag', () => {
     it('loads provider data from file', async () => {
-      //set existing super.json
-      const localSuperJson = {
-        profiles: {
-          [profileId]: {
-            version: profileVersion,
-          },
-        },
-        providers: {},
-      };
-      await mkdirQuiet(joinPath(tempDir, 'superface'));
-      await OutputStream.writeOnce(
-        joinPath(tempDir, 'superface', 'super.json'),
-        JSON.stringify(localSuperJson, undefined, 2)
+      let result = await execCLI(
+        tempDir,
+        ['install', 'starwars/character-information'],
+        mockServer.url
+      );
+      expect(result.stdout).toMatch(
+        'All profiles (1) have been installed successfully.'
       );
 
-      const result = await execCLI(
+      result = await execCLI(
         tempDir,
         [
           'configure',
