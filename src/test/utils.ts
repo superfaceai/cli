@@ -1,4 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable no-async-promise-executor */
+/* eslint-disable @typescript-eslint/no-misused-promises */
 import { execFile } from 'child_process';
 import { Mockttp } from 'mockttp';
 import { join as joinPath, relative } from 'path';
@@ -107,6 +109,59 @@ export async function execCLI(
   //   subprocess.on('error', reject);
   //   subprocess.stdout.pipe(concat(result => resolve(result.toString())));
   // });
+}
+
+export async function execCliWithInputs(
+  directory: string,
+  args: string[],
+  apiUrl: string,
+  input?: string,
+  env?: NodeJS.ProcessEnv
+): Promise<{ stderr: string; stdout: string }> {
+
+  return new Promise(async (resolve, reject) => {
+    const CLI = joinPath('.', 'bin', 'superface');
+    const bin = relative(directory, CLI);
+
+    const child = execFile(
+      bin,
+      args,
+      {
+        cwd: directory,
+        env: { ...process.env, ...env, SUPERFACE_API_URL: apiUrl },
+      },
+      (err, stdout, stderr) => {
+        if (err) {
+          reject({
+            ...err,
+            stdout,
+            stderr,
+          });
+        } else {
+          resolve({ stderr, stdout });
+        }
+      }
+    );
+
+    const sendKey = async (input: string): Promise<void> => {
+      await new Promise<void>(resolve => {
+        setTimeout(() => {
+          child.stdin!.write(input);
+          resolve();
+        }, 100);
+      });
+
+      child.stdin!.end();
+    };
+
+    if (input) {
+      await sendKey(input);
+    }
+
+    //Debug
+    child.stdout?.on('data', chunk => process.stdout.write(chunk));
+    child.stderr?.on('data', chunk => process.stderr.write(chunk));
+  });
 }
 
 /**
