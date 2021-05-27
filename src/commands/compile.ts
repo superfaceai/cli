@@ -1,6 +1,5 @@
 import { flags } from '@oclif/command';
 import { Source } from '@superfaceai/parser';
-import { parseEnvFeatures } from '@superfaceai/parser/dist/language/syntax/features';
 import { yellow } from 'chalk';
 import { basename, join as joinPath } from 'path';
 
@@ -56,9 +55,6 @@ export default class Compile extends Command {
     );
 
     const DEFAULT_EXTENSION = '.ast.json';
-
-    // TODO: This should be called in parser automatically
-    parseEnvFeatures();
 
     const { argv, flags } = this.parse(Compile);
 
