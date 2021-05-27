@@ -5,7 +5,6 @@ import { join as joinPath } from 'path';
 import { mkdir, rimraf } from '../common/io';
 import {
   execCLI,
-  execCliWithInputs,
   mockResponsesForProfile,
   mockResponsesForProvider,
   setUpTempDir,
@@ -41,7 +40,7 @@ describe('Create CLI command', () => {
     it('creates profile with one usecase (with usecase name from cli)', async () => {
       documentName = 'sendsms';
 
-      let result = await execCliWithInputs(
+      let result = await execCLI(
         tempDir,
         ['create', 'profile', documentName],
         mockServer.url,
@@ -77,7 +76,7 @@ describe('Create CLI command', () => {
     it('creates profile with one usecase', async () => {
       documentName = 'sms/service';
 
-      let result = await execCliWithInputs(
+      let result = await execCLI(
         tempDir,
         ['create', 'profile', documentName, '-u', 'SendSMS'],
         mockServer.url,
@@ -111,7 +110,7 @@ describe('Create CLI command', () => {
     it('creates profile with multiple usecases', async () => {
       documentName = 'sms/service';
 
-      let result = await execCliWithInputs(
+      let result = await execCLI(
         tempDir,
         ['create', 'profile', documentName, '-u', 'ReceiveSMS', 'SendSMS'],
         mockServer.url,
@@ -147,7 +146,7 @@ describe('Create CLI command', () => {
       documentName = 'sms/service';
       provider = 'twilio';
 
-      let result = await execCliWithInputs(
+      let result = await execCLI(
         tempDir,
         ['create', 'map', documentName, '-p', provider],
         mockServer.url,
@@ -193,7 +192,7 @@ describe('Create CLI command', () => {
       documentName = 'sms/service';
       provider = 'twilio';
 
-      let result = await execCliWithInputs(
+      let result = await execCLI(
         tempDir,
         ['create', 'map', documentName, '-u', 'SendSMS', '-p', provider],
         mockServer.url,
@@ -240,7 +239,7 @@ describe('Create CLI command', () => {
       documentName = 'sms/service';
       provider = 'twilio';
 
-      let result = await execCliWithInputs(
+      let result = await execCLI(
         tempDir,
         [
           'create',
@@ -296,7 +295,7 @@ describe('Create CLI command', () => {
       documentName = 'sms/service';
       provider = 'twilio';
 
-      let result = await execCliWithInputs(
+      let result = await execCLI(
         tempDir,
         ['create', documentName, '-p', provider],
         mockServer.url,
@@ -353,7 +352,7 @@ describe('Create CLI command', () => {
       documentName = 'sms/service';
       provider = 'twilio';
 
-      let result = await execCliWithInputs(
+      let result = await execCLI(
         tempDir,
         ['create', documentName, '-u', 'SendSMS', '-p', 'twilio'],
         mockServer.url,
@@ -409,7 +408,7 @@ describe('Create CLI command', () => {
       documentName = 'sms/service';
       provider = 'twilio';
 
-      let result = await execCliWithInputs(
+      let result = await execCLI(
         tempDir,
         ['create', documentName, '-u', 'SendSMS', 'ReceiveSMS', '-p', provider],
         mockServer.url,

@@ -4,7 +4,6 @@
 import { execFile } from 'child_process';
 import { Mockttp } from 'mockttp';
 import { join as joinPath, relative } from 'path';
-import { promisify } from 'util';
 
 import { EXTENSIONS } from '../common/document';
 import { ContentType } from '../common/http';
@@ -69,6 +68,34 @@ export async function mockResponsesForProvider(
     .thenJson(200, providerInfo);
 }
 
+// /**
+//  * Executes the Superface CLI binary
+//  *
+//  * @export
+//  * @param {string} directory - the directory in which the process runs
+//  * @param {string[]} args - arguments of the process
+//  * @param {string} apiUrl - the API URL (to be overriden with mock)
+//  * @param {NodeJS.ProcessEnv} [env] - any additional environment variables
+//  * @returns  {Promise<string>} - result is concatenated stdout
+//  */
+// export async function execCLI(
+//   directory: string,
+//   args: string[],
+//   apiUrl: string,
+//   env?: NodeJS.ProcessEnv
+// ): Promise<{ stderr: string; stdout: string }> {
+//   const CLI = joinPath('.', 'bin', 'superface');
+//   const bin = relative(directory, CLI);
+
+//   const execCLI = promisify(execFile);
+
+//   const result = await execCLI(bin, args, {
+//     cwd: directory,
+//     env: { ...process.env, ...env, SUPERFACE_API_URL: apiUrl },
+//   });
+
+//   return result;
+// }
 /**
  * Executes the Superface CLI binary
  *
@@ -76,42 +103,11 @@ export async function mockResponsesForProvider(
  * @param {string} directory - the directory in which the process runs
  * @param {string[]} args - arguments of the process
  * @param {string} apiUrl - the API URL (to be overriden with mock)
+ * @param {string} input - the inquier prompt input
  * @param {NodeJS.ProcessEnv} [env] - any additional environment variables
  * @returns  {Promise<string>} - result is concatenated stdout
  */
 export async function execCLI(
-  directory: string,
-  args: string[],
-  apiUrl: string,
-  env?: NodeJS.ProcessEnv
-): Promise<{ stderr: string; stdout: string }> {
-  const CLI = joinPath('.', 'bin', 'superface');
-  const bin = relative(directory, CLI);
-
-  const execCLI = promisify(execFile);
-
-  const result = await execCLI(bin, args, {
-    cwd: directory,
-    env: { ...process.env, ...env, SUPERFACE_API_URL: apiUrl },
-  });
-
-  return result;
-  // console.log(result);
-
-  // const subprocess = spawn(bin, args, {
-  //   cwd: directory,
-  //   env: { ...env, SUPERFACE_API_URL: apiUrl },
-  // });
-  // subprocess.stdin.setDefaultEncoding('utf-8');
-
-  // return new Promise((resolve, reject) => {
-  //   subprocess.stderr.once('data', reject);
-  //   subprocess.on('error', reject);
-  //   subprocess.stdout.pipe(concat(result => resolve(result.toString())));
-  // });
-}
-
-export async function execCliWithInputs(
   directory: string,
   args: string[],
   apiUrl: string,

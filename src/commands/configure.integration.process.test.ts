@@ -477,7 +477,7 @@ describe('Configure CLI command', () => {
           ['configure', 'some/path', '-p', profileId, '-l'],
           mockServer.url
         )
-      ).rejects.toThrow(
+      ).rejects.toEqual(
         expect.objectContaining({
           stderr: expect.stringContaining(
             "Error: ENOENT: no such file or directory, open 'some/path'"
