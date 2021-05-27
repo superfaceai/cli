@@ -118,7 +118,6 @@ export async function execCliWithInputs(
   input?: string,
   env?: NodeJS.ProcessEnv
 ): Promise<{ stderr: string; stdout: string }> {
-
   return new Promise(async (resolve, reject) => {
     const CLI = joinPath('.', 'bin', 'superface');
     const bin = relative(directory, CLI);
@@ -159,8 +158,8 @@ export async function execCliWithInputs(
     }
 
     //Debug
-    child.stdout?.on('data', chunk => process.stdout.write(chunk));
-    child.stderr?.on('data', chunk => process.stderr.write(chunk));
+    // child.stdout?.on('data', chunk => process.stdout.write(chunk));
+    // child.stderr?.on('data', chunk => process.stderr.write(chunk));
   });
 }
 
