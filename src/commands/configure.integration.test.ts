@@ -5,7 +5,6 @@ import { join as joinPath } from 'path';
 import { ContentType } from '../common/http';
 import { exists, mkdir, mkdirQuiet, rimraf } from '../common/io';
 import { OutputStream } from '../common/output-stream';
-// import { OutputStream } from '../common/output-stream';
 import {
   execCLI,
   mockResponsesForProfile,
