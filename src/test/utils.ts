@@ -75,18 +75,18 @@ export async function mockResponsesForProvider(
  * @param {string} directory - the directory in which the process runs
  * @param {string[]} args - arguments of the process
  * @param {string} apiUrl - the API URL (to be overriden with mock)
- * @param {string [] | undefined} inputs - the inquier prompt inputs
- * @param {boolean} debug - pass child process stdout to console
- * @param {NodeJS.ProcessEnv} [env] - any additional environment variables
+ * @param {object}  options - additional options
  * @returns  {Promise<string>} - result is concatenated stdout
  */
 export async function execCLI(
   directory: string,
   args: string[],
   apiUrl: string,
-  inputs?: string[],
-  env?: NodeJS.ProcessEnv,
-  debug?: boolean
+  options?: {
+    inputs?: string[];
+    env?: NodeJS.ProcessEnv;
+    debug?: boolean;
+  }
 ): Promise<{ stdout: string }> {
   const timeout = 100,
     maxTimeout = 20000;
@@ -95,7 +95,7 @@ export async function execCLI(
 
   const childProcess = execFile(bin, args, {
     cwd: directory,
-    env: { ...process.env, ...env, SUPERFACE_API_URL: apiUrl },
+    env: { ...process.env, ...options?.env, SUPERFACE_API_URL: apiUrl },
   });
 
   childProcess.stdin?.setDefaultEncoding('utf-8');
@@ -103,12 +103,12 @@ export async function execCLI(
   let currentInputTimeout: NodeJS.Timeout, killIOTimeout: NodeJS.Timeout;
 
   // Creates a loop to feed user inputs to the child process in order to get results from the tool
-  const loop = (inputs: string[]) => {
+  const loop = (userInputs: string[]) => {
     if (killIOTimeout) {
       clearTimeout(killIOTimeout);
     }
 
-    if (!inputs.length) {
+    if (!userInputs.length) {
       childProcess.stdin?.end();
 
       // Set a timeout to wait for CLI response. If CLI takes longer than
@@ -122,18 +122,18 @@ export async function execCLI(
     }
 
     currentInputTimeout = setTimeout(() => {
-      childProcess.stdin?.write(inputs[0]);
+      childProcess.stdin?.write(userInputs[0]);
       // Log debug I/O statements on tests
-      if (debug) {
-        console.log('input:', inputs[0]);
+      if (options?.debug) {
+        console.log('input:', userInputs[0]);
       }
-      loop(inputs.slice(1));
+      loop(userInputs.slice(1));
     }, timeout);
   };
 
   return new Promise((resolve, reject) => {
     //Debug
-    if (debug) {
+    if (options?.debug) {
       childProcess.stdout?.on('data', chunk => process.stdout.write(chunk));
       childProcess.stderr?.on('data', chunk => process.stderr.write(chunk));
     }
@@ -143,7 +143,6 @@ export async function execCLI(
 
       if (currentInputTimeout) {
         clearTimeout(currentInputTimeout);
-        inputs = [];
       }
       reject(err.toString());
     });
@@ -151,7 +150,7 @@ export async function execCLI(
     childProcess.on('error', (err: Error) => reject(err));
 
     // Kick off the process
-    loop(inputs ?? []);
+    loop(options?.inputs ?? []);
 
     childProcess.stdout?.pipe(
       concat(result => {

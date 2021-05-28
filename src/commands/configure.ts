@@ -1,4 +1,4 @@
-import { flags } from '@oclif/command';
+import { flags as oclifFlags } from '@oclif/command';
 import { isValidProviderName } from '@superfaceai/one-sdk';
 import { grey, yellow } from 'chalk';
 import { join as joinPath } from 'path';
@@ -23,18 +23,18 @@ export default class Configure extends Command {
 
   static flags = {
     ...Command.flags,
-    profile: flags.string({
+    profile: oclifFlags.string({
       char: 'p',
       description: 'Specifies profile to associate with provider',
       required: true,
     }),
-    force: flags.boolean({
+    force: oclifFlags.boolean({
       char: 'f',
       description:
         'When set to true and when provider exists in super.json, overwrites them.',
       default: false,
     }),
-    local: flags.boolean({
+    local: oclifFlags.boolean({
       char: 'l',
       description:
         'When set to true, provider name argument is used as a filepath to provider.json file',

@@ -289,19 +289,19 @@ describe('Configure CLI command', () => {
       expect(superJson.document).toEqual(localSuperJson);
     }, 20000);
     it('overrides existing super.json with a force flag', async () => {
-      const provider = 'simple-provider';
+      const simpleProvider = 'simple-provider';
       //set existing super.json
       const localSuperJson = {
         profiles: {
           [profileId]: {
             version: profileVersion,
             providers: {
-              [provider]: {},
+              [simpleProvider]: {},
             },
           },
         },
         providers: {
-          [provider]: {
+          [simpleProvider]: {
             security: [
               {
                 id: 'apiKey',
@@ -317,7 +317,7 @@ describe('Configure CLI command', () => {
         JSON.stringify(localSuperJson, undefined, 2)
       );
       const mockProviderInfo = {
-        name: provider,
+        name: simpleProvider,
         services: [
           {
             id: 'swapidev',
@@ -335,25 +335,25 @@ describe('Configure CLI command', () => {
       };
 
       await mockServer
-        .get('/providers/' + provider)
+        .get('/providers/' + simpleProvider)
         .withHeaders({ Accept: ContentType.JSON })
         .thenJson(200, mockProviderInfo);
 
       const result = await execCLI(
         tempDir,
-        ['configure', provider, '-p', profileId, '-f'],
+        ['configure', simpleProvider, '-p', profileId, '-f'],
         mockServer.url
       );
 
       expect(result.stdout).not.toContain(
-        `Provider already exists: "${provider}"`
+        `Provider already exists: "${simpleProvider}"`
       );
 
       const superJson = (
         await SuperJson.load(joinPath(tempDir, 'superface', 'super.json'))
       ).unwrap();
 
-      expect(superJson.normalized.providers[provider].security).toEqual([
+      expect(superJson.normalized.providers[simpleProvider].security).toEqual([
         {
           id: 'apiKey',
           apikey: '$SIMPLE_PROVIDER_API_KEY',
@@ -366,7 +366,7 @@ describe('Configure CLI command', () => {
 
       expect(superJson.document.profiles![profileId]).toEqual({
         version: profileVersion,
-        providers: { [provider]: {} },
+        providers: { [simpleProvider]: {} },
       });
     }, 20000);
   });

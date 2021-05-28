@@ -1,4 +1,4 @@
-import { flags } from '@oclif/command';
+import { flags as oclifFlags } from '@oclif/command';
 import { isValidIdentifier } from '@superfaceai/ast';
 import { parseDocumentId } from '@superfaceai/parser';
 import { grey, yellow } from 'chalk';
@@ -34,31 +34,31 @@ export default class Create extends Command {
 
   static flags = {
     ...Command.flags,
-    usecase: flags.string({
+    usecase: oclifFlags.string({
       char: 'u',
       multiple: true,
       description: 'Usecases that profile or map contains',
     }),
-    provider: flags.string({
+    provider: oclifFlags.string({
       char: 'p',
       description: 'Name of a Provider',
     }),
-    variant: flags.string({
+    variant: oclifFlags.string({
       char: 't',
       description: 'Variant of a map',
       dependsOn: ['provider'],
     }),
-    version: flags.string({
+    version: oclifFlags.string({
       char: 'v',
       default: DEFAULT_PROFILE_VERSION_STR,
       description: 'Version of a profile',
     }),
-    template: flags.string({
+    template: oclifFlags.string({
       options: ['empty', 'pubs'],
       default: 'empty',
       description: 'Template to initialize the usecases and maps with',
     }),
-    scan: flags.integer({
+    scan: oclifFlags.integer({
       char: 's',
       description:
         'When number provided, scan for super.json outside cwd within range represented by this number.',

@@ -109,7 +109,7 @@ describe('Configure CLI logic', () => {
         'addProfileProvider'
       );
 
-      const mockProviderJson: ProviderJson = {
+      const customProviderJson: ProviderJson = {
         name: 'provider-test',
         services: [
           {
@@ -144,7 +144,7 @@ describe('Configure CLI logic', () => {
       };
 
       expect(
-        handleProviderResponse(mockSuperJson, mockProfileId, mockProviderJson)
+        handleProviderResponse(mockSuperJson, mockProfileId, customProviderJson)
       ).toEqual(4);
 
       expect(addProviderSpy).toHaveBeenCalledTimes(1);
@@ -170,7 +170,7 @@ describe('Configure CLI logic', () => {
     });
 
     it('does not throw error on unknown security scheme', async () => {
-      const mockProviderJson: ProviderJson = {
+      const mockProviderJsonWithSingleSchema: ProviderJson = {
         name: providerName,
         services: [
           {
@@ -195,7 +195,11 @@ describe('Configure CLI logic', () => {
       );
 
       expect(
-        handleProviderResponse(mockSuperJson, mockProfileId, mockProviderJson)
+        handleProviderResponse(
+          mockSuperJson,
+          mockProfileId,
+          mockProviderJsonWithSingleSchema
+        )
       ).toEqual(0);
 
       expect(addProviderSpy).toHaveBeenCalledTimes(1);

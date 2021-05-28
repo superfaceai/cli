@@ -1,4 +1,4 @@
-import { flags } from '@oclif/command';
+import { flags as oclifFlags } from '@oclif/command';
 import { Source } from '@superfaceai/parser';
 import { parseEnvFeatures } from '@superfaceai/parser/dist/language/syntax/features';
 import { basename, join as joinPath } from 'path';
@@ -20,19 +20,19 @@ export default class Compile extends Command {
   static flags = {
     ...Command.flags,
     documentType: documentTypeFlag,
-    output: flags.string({
+    output: oclifFlags.string({
       char: 'o',
       description:
         'Specifies directory or filename where the compiled file should be written. `-` is stdout, `-2` is stderr. By default, the output is written alongside the input file with `.ast.json` suffix added.',
       default: undefined,
     }),
-    append: flags.boolean({
+    append: oclifFlags.boolean({
       default: false,
       description:
         'Open output file in append mode instead of truncating it if it exists. Has no effect with stdout and stderr streams.',
     }),
 
-    compact: flags.boolean({
+    compact: oclifFlags.boolean({
       char: 'c',
       default: false,
       description: 'Use compact JSON representation of the compiled file.',
@@ -111,9 +111,9 @@ export default class Compile extends Command {
 
   static async compileFile(
     path: string,
-    documentTypeFlag: DocumentTypeFlag
+    typeFlag: DocumentTypeFlag
   ): Promise<unknown> {
-    const documentType = inferDocumentTypeWithFlag(documentTypeFlag, path);
+    const documentType = inferDocumentTypeWithFlag(typeFlag, path);
     if (
       documentType !== DocumentType.MAP &&
       documentType !== DocumentType.PROFILE

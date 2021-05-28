@@ -346,19 +346,28 @@ describe('Create logic', () => {
     const mockScope = 'test-scope';
     const mockSuperPath = 'test-super-path';
     const mockUsecases = ['usecase'];
-    const mockDocumentStructure = {
-      scope: mockScope,
-      middle: [mockName, mockProvider],
+    let mockDocumentStructure: {
+      scope: string;
+      middle: string[];
       version: {
-        major: 1,
-        minor: 0,
-        patch: 0,
-      },
+        major: number;
+        minor: number;
+        patch: number;
+      };
     };
     let mockSuperJson: SuperJson;
 
     beforeEach(() => {
       mockSuperJson = new SuperJson({});
+      mockDocumentStructure = {
+        scope: mockScope,
+        middle: [mockName, mockProvider],
+        version: {
+          major: 1,
+          minor: 0,
+          patch: 0,
+        },
+      };
     });
 
     it('creates profile correctly', async () => {
@@ -584,7 +593,7 @@ describe('Create logic', () => {
     });
 
     it('throws error when provider is missing - creating map', async () => {
-      const mockDocumentStructure = {
+      mockDocumentStructure = {
         scope: mockScope,
         middle: [mockName],
         version: {
@@ -629,7 +638,7 @@ describe('Create logic', () => {
     });
 
     it('throws error when provider is missing - creating map and profile', async () => {
-      const mockDocumentStructure = {
+      mockDocumentStructure = {
         scope: mockScope,
         middle: [mockName],
         version: {
