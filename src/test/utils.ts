@@ -1,6 +1,4 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable no-async-promise-executor */
-/* eslint-disable @typescript-eslint/no-misused-promises */
 import { execFile } from 'child_process';
 import concat from 'concat-stream';
 import { Mockttp } from 'mockttp';
@@ -150,7 +148,7 @@ export async function execCLI(
       reject(err.toString());
     });
 
-    childProcess.on('error', reject);
+    childProcess.on('error', (err: Error) => reject(err));
 
     // Kick off the process
     loop(inputs ?? []);
@@ -166,69 +164,6 @@ export async function execCLI(
     );
   });
 }
-
-// /**
-//  * Executes the Superface CLI binary
-//  *
-//  * @export
-//  * @param {string} directory - the directory in which the process runs
-//  * @param {string[]} args - arguments of the process
-//  * @param {string} apiUrl - the API URL (to be overriden with mock)
-//  * @param {string} input - the inquier prompt input
-//  * @param {NodeJS.ProcessEnv} [env] - any additional environment variables
-//  * @returns  {Promise<string>} - result is concatenated stdout
-//  */
-// export async function execCLI(
-//   directory: string,
-//   args: string[],
-//   apiUrl: string,
-//   input?: string,
-//   env?: NodeJS.ProcessEnv
-// ): Promise<{ stderr: string; stdout: string }> {
-//   return new Promise(async (resolve, reject) => {
-//     const CLI = joinPath('.', 'bin', 'superface');
-//     const bin = relative(directory, CLI);
-
-//     const child = execFile(
-//       bin,
-//       args,
-//       {
-//         cwd: directory,
-//         env: { ...process.env, ...env, SUPERFACE_API_URL: apiUrl },
-//       },
-//       (err, stdout, stderr) => {
-//         if (err) {
-//           reject({
-//             ...err,
-//             stdout,
-//             stderr,
-//           });
-//         } else {
-//           resolve({ stderr, stdout });
-//         }
-//       }
-//     );
-
-//     const sendKey = async (input: string): Promise<void> => {
-//       await new Promise<void>(resolve => {
-//         setTimeout(() => {
-//           child.stdin?.write(input);
-//           resolve();
-//         }, 100);
-//       });
-
-//       child.stdin?.end();
-//     };
-
-//     if (input) {
-//       await sendKey(input);
-//     }
-
-//     //Debug
-//     // child.stdout?.on('data', chunk => process.stdout.write(chunk));
-//     // child.stderr?.on('data', chunk => process.stderr.write(chunk));
-//   });
-// }
 
 /**
  * Creates a random directory in `path` and returns the path

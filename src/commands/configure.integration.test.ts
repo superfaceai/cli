@@ -449,15 +449,9 @@ describe('Configure CLI command', () => {
           mockServer.url
         )
       ).rejects.toEqual(
-        expect.objectContaining({
-          stderr: expect.stringContaining(
-            "Error: ENOENT: no such file or directory, open 'some/path'"
-          ),
-          stdout: expect.stringContaining(
-            "Installing provider to 'super.json' on path 'superface/super.json'"
-          ),
-          code: 1,
-        })
+        expect.stringContaining(
+          "Error: ENOENT: no such file or directory, open 'some/path'"
+        )
       );
 
       const finalSuperJson = (
