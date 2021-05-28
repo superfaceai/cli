@@ -2,7 +2,9 @@
 /* eslint-disable no-async-promise-executor */
 /* eslint-disable @typescript-eslint/no-misused-promises */
 import { execFile } from 'child_process';
+import concat from 'concat-stream';
 import { Mockttp } from 'mockttp';
+import { constants } from 'os';
 import { join as joinPath, relative } from 'path';
 
 import { EXTENSIONS } from '../common/document';
@@ -68,34 +70,6 @@ export async function mockResponsesForProvider(
     .thenJson(200, providerInfo);
 }
 
-// /**
-//  * Executes the Superface CLI binary
-//  *
-//  * @export
-//  * @param {string} directory - the directory in which the process runs
-//  * @param {string[]} args - arguments of the process
-//  * @param {string} apiUrl - the API URL (to be overriden with mock)
-//  * @param {NodeJS.ProcessEnv} [env] - any additional environment variables
-//  * @returns  {Promise<string>} - result is concatenated stdout
-//  */
-// export async function execCLI(
-//   directory: string,
-//   args: string[],
-//   apiUrl: string,
-//   env?: NodeJS.ProcessEnv
-// ): Promise<{ stderr: string; stdout: string }> {
-//   const CLI = joinPath('.', 'bin', 'superface');
-//   const bin = relative(directory, CLI);
-
-//   const execCLI = promisify(execFile);
-
-//   const result = await execCLI(bin, args, {
-//     cwd: directory,
-//     env: { ...process.env, ...env, SUPERFACE_API_URL: apiUrl },
-//   });
-
-//   return result;
-// }
 /**
  * Executes the Superface CLI binary
  *
@@ -103,7 +77,8 @@ export async function mockResponsesForProvider(
  * @param {string} directory - the directory in which the process runs
  * @param {string[]} args - arguments of the process
  * @param {string} apiUrl - the API URL (to be overriden with mock)
- * @param {string} input - the inquier prompt input
+ * @param {string [] | undefined} inputs - the inquier prompt inputs
+ * @param {boolean} debug - pass child process stdout to console
  * @param {NodeJS.ProcessEnv} [env] - any additional environment variables
  * @returns  {Promise<string>} - result is concatenated stdout
  */
@@ -111,53 +86,149 @@ export async function execCLI(
   directory: string,
   args: string[],
   apiUrl: string,
-  input?: string,
-  env?: NodeJS.ProcessEnv
-): Promise<{ stderr: string; stdout: string }> {
-  return new Promise(async (resolve, reject) => {
-    const CLI = joinPath('.', 'bin', 'superface');
-    const bin = relative(directory, CLI);
+  inputs?: string[],
+  env?: NodeJS.ProcessEnv,
+  debug?: boolean
+): Promise<{ stdout: string }> {
+  const timeout = 100,
+    maxTimeout = 20000;
+  const CLI = joinPath('.', 'bin', 'superface');
+  const bin = relative(directory, CLI);
 
-    const child = execFile(
-      bin,
-      args,
-      {
-        cwd: directory,
-        env: { ...process.env, ...env, SUPERFACE_API_URL: apiUrl },
-      },
-      (err, stdout, stderr) => {
-        if (err) {
-          reject({
-            ...err,
-            stdout,
-            stderr,
-          });
-        } else {
-          resolve({ stderr, stdout });
-        }
-      }
-    );
+  const childProcess = execFile(bin, args, {
+    cwd: directory,
+    env: { ...process.env, ...env, SUPERFACE_API_URL: apiUrl },
+  });
 
-    const sendKey = async (input: string): Promise<void> => {
-      await new Promise<void>(resolve => {
-        setTimeout(() => {
-          child.stdin!.write(input);
-          resolve();
-        }, 100);
-      });
+  childProcess.stdin?.setDefaultEncoding('utf-8');
 
-      child.stdin!.end();
-    };
+  let currentInputTimeout: NodeJS.Timeout, killIOTimeout: NodeJS.Timeout;
 
-    if (input) {
-      await sendKey(input);
+  // Creates a loop to feed user inputs to the child process in order to get results from the tool
+  const loop = (inputs: string[]) => {
+    if (killIOTimeout) {
+      clearTimeout(killIOTimeout);
     }
 
+    if (!inputs.length) {
+      childProcess.stdin?.end();
+
+      // Set a timeout to wait for CLI response. If CLI takes longer than
+      // maxTimeout to respond, kill the childProcess and notify user
+      killIOTimeout = setTimeout(() => {
+        console.error('Error: Reached I/O timeout');
+        childProcess.kill(constants.signals.SIGTERM);
+      }, maxTimeout);
+
+      return;
+    }
+
+    currentInputTimeout = setTimeout(() => {
+      childProcess.stdin?.write(inputs[0]);
+      // Log debug I/O statements on tests
+      if (debug) {
+        console.log('input:', inputs[0]);
+      }
+      loop(inputs.slice(1));
+    }, timeout);
+  };
+
+  return new Promise((resolve, reject) => {
     //Debug
-    // child.stdout?.on('data', chunk => process.stdout.write(chunk));
-    // child.stderr?.on('data', chunk => process.stderr.write(chunk));
+    if (debug) {
+      childProcess.stdout?.on('data', chunk => process.stdout.write(chunk));
+      childProcess.stderr?.on('data', chunk => process.stderr.write(chunk));
+    }
+
+    childProcess.stderr?.once('data', (err: string | Buffer) => {
+      childProcess.stdin?.end();
+
+      if (currentInputTimeout) {
+        clearTimeout(currentInputTimeout);
+        inputs = [];
+      }
+      reject(err.toString());
+    });
+
+    childProcess.on('error', reject);
+
+    // Kick off the process
+    loop(inputs ?? []);
+
+    childProcess.stdout?.pipe(
+      concat(result => {
+        if (killIOTimeout) {
+          clearTimeout(killIOTimeout);
+        }
+
+        resolve({ stdout: result.toString() });
+      })
+    );
   });
 }
+
+// /**
+//  * Executes the Superface CLI binary
+//  *
+//  * @export
+//  * @param {string} directory - the directory in which the process runs
+//  * @param {string[]} args - arguments of the process
+//  * @param {string} apiUrl - the API URL (to be overriden with mock)
+//  * @param {string} input - the inquier prompt input
+//  * @param {NodeJS.ProcessEnv} [env] - any additional environment variables
+//  * @returns  {Promise<string>} - result is concatenated stdout
+//  */
+// export async function execCLI(
+//   directory: string,
+//   args: string[],
+//   apiUrl: string,
+//   input?: string,
+//   env?: NodeJS.ProcessEnv
+// ): Promise<{ stderr: string; stdout: string }> {
+//   return new Promise(async (resolve, reject) => {
+//     const CLI = joinPath('.', 'bin', 'superface');
+//     const bin = relative(directory, CLI);
+
+//     const child = execFile(
+//       bin,
+//       args,
+//       {
+//         cwd: directory,
+//         env: { ...process.env, ...env, SUPERFACE_API_URL: apiUrl },
+//       },
+//       (err, stdout, stderr) => {
+//         if (err) {
+//           reject({
+//             ...err,
+//             stdout,
+//             stderr,
+//           });
+//         } else {
+//           resolve({ stderr, stdout });
+//         }
+//       }
+//     );
+
+//     const sendKey = async (input: string): Promise<void> => {
+//       await new Promise<void>(resolve => {
+//         setTimeout(() => {
+//           child.stdin?.write(input);
+//           resolve();
+//         }, 100);
+//       });
+
+//       child.stdin?.end();
+//     };
+
+//     if (input) {
+//       await sendKey(input);
+//     }
+
+//     //Debug
+//     // child.stdout?.on('data', chunk => process.stdout.write(chunk));
+//     // child.stderr?.on('data', chunk => process.stderr.write(chunk));
+//   });
+// }
 
 /**
  * Creates a random directory in `path` and returns the path
