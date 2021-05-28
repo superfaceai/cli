@@ -1,6 +1,6 @@
 import { flags as oclifFlags } from '@oclif/command';
 import { Source } from '@superfaceai/parser';
-import { parseEnvFeatures } from '@superfaceai/parser/dist/language/syntax/features';
+import { yellow } from 'chalk';
 import { basename, join as joinPath } from 'path';
 
 import { Command } from '../common/command.abstract';
@@ -15,6 +15,9 @@ import { isDirectoryQuiet, readFile } from '../common/io';
 import { OutputStream } from '../common/output-stream';
 
 export default class Compile extends Command {
+  // hide the command from help
+  static hidden = true;
+
   static description = 'Compiles the given profile or map.';
 
   static flags = {
@@ -45,8 +48,6 @@ export default class Compile extends Command {
 
   async run(): Promise<void> {
     const DEFAULT_EXTENSION = '.ast.json';
-    // TODO: This should be called in parser automatically
-    parseEnvFeatures();
 
     const { argv, flags } = this.parse(Compile);
 
@@ -54,6 +55,16 @@ export default class Compile extends Command {
     // outputStream is set when the output points to a file and thus
     // is shared across all input files
     const outputPath = flags.output?.trim();
+
+    if (outputPath !== '-' && outputPath !== '-2') {
+      //Warn user
+      this.warn(
+        yellow(
+          'You are using a hidden command. This command is not intended for public consumption yet. It might be broken, hard to use or simply redundant. Tread with care.'
+        )
+      );
+    }
+
     let outputStream: OutputStream | undefined = undefined;
     if (outputPath !== undefined) {
       const isDirectory = await isDirectoryQuiet(outputPath);

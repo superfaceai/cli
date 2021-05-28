@@ -110,7 +110,7 @@ clean: the \`superface/node_modules\` folder and \`superface/build\` build artif
     const { args, flags } = this.parse(Play);
 
     //Warn user
-    this.warn(
+    this.log(
       yellow(
         'You are using a hidden command. This command is not intended for public consumption yet. It might be broken, hard to use or simply redundant. Tread with care.'
       )
