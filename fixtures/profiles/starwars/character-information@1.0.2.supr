@@ -1,5 +1,5 @@
 name = "starwars/character-information"
-version = "1.0.1"
+version = "1.0.2"
 
 """
 Retrieve information about Star Wars characters from the Star Wars API.
