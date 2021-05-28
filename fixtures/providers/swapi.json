@@ -1,9 +1,9 @@
 {
-  "name": "test",
+  "name": "swapi",
   "services": [
     {
       "baseUrl": "https://swapi.dev/api",
-      "id": "test"
+      "id": "swapi"
     }
   ],
   "securitySchemes": [
@@ -12,6 +12,16 @@
       "type": "apiKey",
       "in": "header",
       "name": "X-API-Key"
+    },
+    {
+      "id": "bearer",
+      "type": "http",
+      "scheme": "bearer"
+    },
+    {
+      "id": "basic",
+      "type": "http",
+      "scheme": "basic"
     },
     {
       "id": "digest",

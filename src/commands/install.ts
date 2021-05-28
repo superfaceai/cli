@@ -1,4 +1,4 @@
-import { flags } from '@oclif/command';
+import { flags as oclifFlags } from '@oclif/command';
 import { isValidDocumentName, isValidProviderName } from '@superfaceai/ast';
 import { grey, yellow } from 'chalk';
 import { join as joinPath } from 'path';
@@ -57,31 +57,31 @@ export default class Install extends Command {
 
   static flags = {
     ...Command.flags,
-    providers: flags.string({
+    providers: oclifFlags.string({
       char: 'p',
       description: 'Provider name.',
       required: false,
       multiple: true,
     }),
-    force: flags.boolean({
+    force: oclifFlags.boolean({
       char: 'f',
       description:
         'When set to true and when profile exists in local filesystem, overwrites them.',
       default: false,
     }),
-    local: flags.boolean({
+    local: oclifFlags.boolean({
       char: 'l',
       description:
         'When set to true, profile id argument is used as a filepath to profile.supr file',
       default: false,
     }),
-    scan: flags.integer({
+    scan: oclifFlags.integer({
       char: 's',
       description:
         'When number provided, scan for super.json outside cwd within range represented by this number.',
       required: false,
     }),
-    help: flags.help({ char: 'h' }),
+    help: oclifFlags.help({ char: 'h' }),
   };
 
   static examples = [

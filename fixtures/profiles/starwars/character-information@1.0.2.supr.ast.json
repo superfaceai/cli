@@ -1,0 +1,312 @@
+{
+  "kind": "ProfileDocument",
+  "header": {
+    "kind": "ProfileHeader",
+    "scope": "starwars",
+    "name": "character-information",
+    "version": {
+      "major": 1,
+      "minor": 0,
+      "patch": 2
+    },
+    "location": {
+      "line": 1,
+      "column": 1
+    },
+    "span": {
+      "start": 0,
+      "end": 57
+    }
+  },
+  "definitions": [
+    {
+      "kind": "UseCaseDefinition",
+      "useCaseName": "RetrieveCharacterInformation",
+      "safety": "safe",
+      "input": {
+        "kind": "UseCaseSlotDefinition",
+        "type": {
+          "kind": "ObjectDefinition",
+          "fields": [
+            {
+              "kind": "FieldDefinition",
+              "fieldName": "characterName",
+              "required": false,
+              "location": {
+                "line": 9,
+                "column": 5
+              },
+              "span": {
+                "start": 197,
+                "end": 210
+              }
+            }
+          ],
+          "location": {
+            "line": 8,
+            "column": 9
+          },
+          "span": {
+            "start": 191,
+            "end": 214
+          }
+        },
+        "location": {
+          "line": 8,
+          "column": 3
+        },
+        "span": {
+          "start": 185,
+          "end": 214
+        }
+      },
+      "result": {
+        "kind": "UseCaseSlotDefinition",
+        "type": {
+          "kind": "ObjectDefinition",
+          "fields": [
+            {
+              "kind": "FieldDefinition",
+              "fieldName": "height",
+              "required": false,
+              "location": {
+                "line": 13,
+                "column": 5
+              },
+              "span": {
+                "start": 231,
+                "end": 237
+              }
+            },
+            {
+              "kind": "FieldDefinition",
+              "fieldName": "weight",
+              "required": false,
+              "location": {
+                "line": 14,
+                "column": 5
+              },
+              "span": {
+                "start": 242,
+                "end": 248
+              }
+            },
+            {
+              "kind": "FieldDefinition",
+              "fieldName": "yearOfBirth",
+              "required": false,
+              "location": {
+                "line": 15,
+                "column": 5
+              },
+              "span": {
+                "start": 253,
+                "end": 264
+              }
+            }
+          ],
+          "location": {
+            "line": 12,
+            "column": 10
+          },
+          "span": {
+            "start": 225,
+            "end": 268
+          }
+        },
+        "location": {
+          "line": 12,
+          "column": 3
+        },
+        "span": {
+          "start": 218,
+          "end": 268
+        }
+      },
+      "error": {
+        "kind": "UseCaseSlotDefinition",
+        "type": {
+          "kind": "ObjectDefinition",
+          "fields": [
+            {
+              "kind": "FieldDefinition",
+              "fieldName": "message",
+              "required": false,
+              "location": {
+                "line": 19,
+                "column": 5
+              },
+              "span": {
+                "start": 284,
+                "end": 291
+              }
+            }
+          ],
+          "location": {
+            "line": 18,
+            "column": 9
+          },
+          "span": {
+            "start": 278,
+            "end": 295
+          }
+        },
+        "location": {
+          "line": 18,
+          "column": 3
+        },
+        "span": {
+          "start": 272,
+          "end": 295
+        }
+      },
+      "location": {
+        "line": 4,
+        "column": 1
+      },
+      "span": {
+        "start": 59,
+        "end": 297
+      },
+      "title": "Retrieve information about Star Wars characters from the Star Wars API."
+    },
+    {
+      "kind": "NamedFieldDefinition",
+      "fieldName": "characterName",
+      "type": {
+        "kind": "PrimitiveTypeName",
+        "name": "string",
+        "span": {
+          "start": 403,
+          "end": 409
+        },
+        "location": {
+          "line": 27,
+          "column": 21
+        }
+      },
+      "location": {
+        "line": 23,
+        "column": 1
+      },
+      "span": {
+        "start": 299,
+        "end": 409
+      },
+      "title": "Character name",
+      "description": "The character name to use when looking up character information"
+    },
+    {
+      "kind": "NamedFieldDefinition",
+      "fieldName": "height",
+      "type": {
+        "kind": "PrimitiveTypeName",
+        "name": "string",
+        "span": {
+          "start": 463,
+          "end": 469
+        },
+        "location": {
+          "line": 33,
+          "column": 14
+        }
+      },
+      "location": {
+        "line": 29,
+        "column": 1
+      },
+      "span": {
+        "start": 411,
+        "end": 469
+      },
+      "title": "Height",
+      "description": "The height of the character"
+    },
+    {
+      "kind": "NamedFieldDefinition",
+      "fieldName": "weight",
+      "type": {
+        "kind": "PrimitiveTypeName",
+        "name": "string",
+        "span": {
+          "start": 523,
+          "end": 529
+        },
+        "location": {
+          "line": 39,
+          "column": 14
+        }
+      },
+      "location": {
+        "line": 35,
+        "column": 1
+      },
+      "span": {
+        "start": 471,
+        "end": 529
+      },
+      "title": "Weight",
+      "description": "The weight of the character"
+    },
+    {
+      "kind": "NamedFieldDefinition",
+      "fieldName": "yearOfBirth",
+      "type": {
+        "kind": "PrimitiveTypeName",
+        "name": "string",
+        "span": {
+          "start": 602,
+          "end": 608
+        },
+        "location": {
+          "line": 45,
+          "column": 19
+        }
+      },
+      "location": {
+        "line": 41,
+        "column": 1
+      },
+      "span": {
+        "start": 531,
+        "end": 608
+      },
+      "title": "Year of birth",
+      "description": "The year of birth of the character"
+    },
+    {
+      "kind": "NamedFieldDefinition",
+      "fieldName": "message",
+      "type": {
+        "kind": "PrimitiveTypeName",
+        "name": "string",
+        "span": {
+          "start": 706,
+          "end": 712
+        },
+        "location": {
+          "line": 51,
+          "column": 15
+        }
+      },
+      "location": {
+        "line": 47,
+        "column": 1
+      },
+      "span": {
+        "start": 610,
+        "end": 712
+      },
+      "title": "Message",
+      "description": "The message for when an error occurs looking up character information"
+    }
+  ],
+  "location": {
+    "line": 1,
+    "column": 1
+  },
+  "span": {
+    "start": 0,
+    "end": 712
+  }
+}

@@ -1,179 +1,111 @@
-import {
-  ApiKeyPlacement,
-  HttpScheme,
-  SecurityType,
-  SuperJson,
-} from '@superfaceai/one-sdk';
+import { HttpScheme, SecurityType, SuperJson } from '@superfaceai/one-sdk';
+import { getLocal } from 'mockttp';
 import { join as joinPath } from 'path';
-import { mocked } from 'ts-jest/utils';
 
-import { EXTENSIONS, GRID_DIR, SUPER_PATH } from '../common/document';
-import { userError } from '../common/error';
-import { fetchProviderInfo } from '../common/http';
-import { rimraf } from '../common/io';
+import { ContentType } from '../common/http';
+import { exists, mkdir, mkdirQuiet, rimraf } from '../common/io';
 import { OutputStream } from '../common/output-stream';
-import { MockStd, mockStd } from '../test/mock-std';
-import Configure from './configure';
+import {
+  execCLI,
+  mockResponsesForProfile,
+  mockResponsesForProvider,
+  setUpTempDir,
+} from '../test/utils';
 
-//Mock only fetchProviderInfo response
-jest.mock('../common/http', () => ({
-  ...jest.requireActual<Record<string, unknown>>('../common/http'),
-  fetchProviderInfo: jest.fn(),
-}));
+const mockServer = getLocal();
 
 describe('Configure CLI command', () => {
-  const WORKING_DIR = joinPath('fixtures', 'configure', 'playground');
-
-  const PROFILE = {
-    scope: 'starwars',
-    name: 'character-information',
-    version: '1.0.1',
-  };
-  const PROVIDER_NAME = 'test';
-
-  const FIXTURE = {
-    superJson: SUPER_PATH,
-    scope: joinPath(GRID_DIR, PROFILE.scope),
-    profile: joinPath(
-      GRID_DIR,
-      PROFILE.scope,
-      PROFILE.name + '@' + PROFILE.version + EXTENSIONS.profile.source
-    ),
-    ast: joinPath(
-      GRID_DIR,
-      PROFILE.scope,
-      PROFILE.name +
-        '@' +
-        PROFILE.version +
-        EXTENSIONS.profile.source +
-        '.ast.json'
-    ),
-  };
-
-  let INITIAL_CWD: string;
-  let INITIAL_SUPER_JSON: SuperJson;
+  //File specific path
+  const TEMP_PATH = joinPath('test', 'tmp');
+  const profileId = 'starwars/character-information';
+  const profileVersion = '1.0.1';
+  const provider = 'swapi';
+  let tempDir: string;
 
   beforeAll(async () => {
-    INITIAL_CWD = process.cwd();
-    process.chdir(WORKING_DIR);
+    await mkdir(TEMP_PATH, { recursive: true });
+    await mockServer.start();
+    await mockResponsesForProfile(mockServer, 'starwars/character-information');
+    await mockResponsesForProvider(mockServer, 'swapi');
+  });
+  beforeEach(async () => {
+    tempDir = await setUpTempDir(TEMP_PATH);
+  });
 
-    INITIAL_SUPER_JSON = (await SuperJson.load(FIXTURE.superJson)).unwrap();
-    await rimraf(FIXTURE.scope);
+  afterEach(async () => {
+    await rimraf(tempDir);
   });
 
   afterAll(async () => {
-    await resetSuperJson();
-    await rimraf(FIXTURE.scope);
-
-    // change cwd back
-    process.chdir(INITIAL_CWD);
-  });
-
-  afterEach(() => {
-    jest.resetAllMocks();
-  });
-
-  /** Resets super.json to initial state stored in `INITIAL_SUPER_JSON` */
-  async function resetSuperJson() {
-    await OutputStream.writeOnce(
-      FIXTURE.superJson,
-      INITIAL_SUPER_JSON.stringified
-    );
-  }
-  let stdout: MockStd;
-
-  beforeEach(async () => {
-    await resetSuperJson();
-    await rimraf(FIXTURE.scope);
-
-    stdout = mockStd();
-    jest
-      .spyOn(process['stdout'], 'write')
-      .mockImplementation(stdout.implementation);
-  });
-
-  afterEach(() => {
-    jest.resetAllMocks();
+    await mockServer.stop();
   });
 
   describe('when configuring new provider', () => {
     it('configures provider with security schemes correctly', async () => {
-      //mock provider structure
-      mocked(fetchProviderInfo).mockResolvedValue({
-        name: PROVIDER_NAME,
-        services: [
-          {
-            id: 'swapidev',
-            baseUrl: 'https://swapi.dev/api',
-          },
-        ],
-        securitySchemes: [
-          {
-            id: 'api',
-            type: SecurityType.APIKEY,
-            in: ApiKeyPlacement.HEADER,
-            name: 'X-API-Key',
-          },
-          {
-            id: 'bearer',
-            type: SecurityType.HTTP,
-            scheme: HttpScheme.BEARER,
-          },
-          {
-            id: 'basic',
-            type: SecurityType.HTTP,
-            scheme: HttpScheme.BASIC,
-          },
-          {
-            id: 'digest',
-            type: SecurityType.HTTP,
-            scheme: HttpScheme.DIGEST,
-          },
-        ],
-        defaultService: 'swapidev',
-      });
-
-      const profileId = `${PROFILE.scope}/${PROFILE.name}`;
-
-      await expect(
-        Configure.run([PROVIDER_NAME, `-p ${profileId}`])
-      ).resolves.toBeUndefined();
-
-      expect(stdout.output).toContain(
-        '🆗 All security schemes have been configured successfully.'
+      let result = await execCLI(
+        tempDir,
+        ['install', 'starwars/character-information'],
+        mockServer.url
+      );
+      expect(result.stdout).toMatch(
+        'All profiles (1) have been installed successfully.'
       );
 
-      const superJson = (await SuperJson.load(FIXTURE.superJson)).unwrap();
+      result = await execCLI(
+        tempDir,
+        ['configure', provider, '-p', profileId],
+        mockServer.url
+      );
+      expect(result.stdout).toMatch(
+        '🆗 All security schemes have been configured successfully.'
+      );
+      await expect(
+        exists(joinPath(tempDir, 'superface', 'super.json'))
+      ).resolves.toEqual(true);
+
+      const superJson = (
+        await SuperJson.load(joinPath(tempDir, 'superface', 'super.json'))
+      ).unwrap();
+
       //Check super.json
-      expect(superJson.normalized.providers[PROVIDER_NAME].security).toEqual([
+      expect(superJson.normalized.providers[provider].security).toEqual([
         {
           id: 'api',
-          apikey: `$${PROVIDER_NAME.toUpperCase()}_API_KEY`,
+          apikey: `$${provider.toUpperCase()}_API_KEY`,
         },
         {
           id: 'bearer',
-          token: `$${PROVIDER_NAME.toUpperCase()}_TOKEN`,
+          token: `$${provider.toUpperCase()}_TOKEN`,
         },
         {
           id: 'basic',
-          username: `$${PROVIDER_NAME.toUpperCase()}_USERNAME`,
-          password: `$${PROVIDER_NAME.toUpperCase()}_PASSWORD`,
+          username: `$${provider.toUpperCase()}_USERNAME`,
+          password: `$${provider.toUpperCase()}_PASSWORD`,
         },
         {
           id: 'digest',
-          digest: `$${PROVIDER_NAME.toUpperCase()}_DIGEST`,
+          digest: `$${provider.toUpperCase()}_DIGEST`,
         },
       ]);
       expect(superJson.document.profiles![profileId]).toEqual({
-        version: PROFILE.version,
-        providers: { [PROVIDER_NAME]: {} },
+        version: profileVersion,
+        providers: { [provider]: {} },
       });
-    }, 10000);
-
+    }, 20000);
     it('configures provider with empty security schemes correctly', async () => {
+      const emptyProvider = 'empty';
+      let result = await execCLI(
+        tempDir,
+        ['install', 'starwars/character-information'],
+        mockServer.url
+      );
+      expect(result.stdout).toMatch(
+        'All profiles (1) have been installed successfully.'
+      );
+
       //mock provider structure
-      mocked(fetchProviderInfo).mockResolvedValue({
-        name: PROVIDER_NAME,
+      const mockProviderInfo = {
+        name: emptyProvider,
         services: [
           {
             id: 'swapidev',
@@ -183,33 +115,47 @@ describe('Configure CLI command', () => {
         //empty
         securitySchemes: [],
         defaultService: 'swapidev',
-      });
+      };
+      await mockServer
+        .get('/providers/' + emptyProvider)
+        .withHeaders({ Accept: ContentType.JSON })
+        .thenJson(200, mockProviderInfo);
 
-      const profileId = `${PROFILE.scope}/${PROFILE.name}`;
+      result = await execCLI(
+        tempDir,
+        ['configure', emptyProvider, '-p', profileId],
+        mockServer.url
+      );
 
-      await expect(
-        Configure.run([PROVIDER_NAME, `-p ${profileId}`])
-      ).resolves.toBeUndefined();
-
-      expect(stdout.output).toContain(
+      expect(result.stdout).toContain(
         'No security schemes found to configure.'
       );
 
-      const superJson = (await SuperJson.load(FIXTURE.superJson)).unwrap();
-      expect(superJson.document.providers![PROVIDER_NAME]).toEqual({
+      const superJson = (
+        await SuperJson.load(joinPath(tempDir, 'superface', 'super.json'))
+      ).unwrap();
+      expect(superJson.document.providers![emptyProvider]).toEqual({
         security: [],
       });
 
       expect(superJson.document.profiles![profileId]).toEqual({
-        version: PROFILE.version,
-        providers: { [PROVIDER_NAME]: {} },
+        version: profileVersion,
+        providers: { [emptyProvider]: {} },
       });
-    }, 10000);
-
+    }, 20000);
     it('configures provider without security schemes correctly', async () => {
+      const providerWithoutSecurity = 'provider-without-security';
+      let result = await execCLI(
+        tempDir,
+        ['install', 'starwars/character-information'],
+        mockServer.url
+      );
+      expect(result.stdout).toMatch(
+        'All profiles (1) have been installed successfully.'
+      );
       //mock provider structure
-      mocked(fetchProviderInfo).mockResolvedValue({
-        name: PROVIDER_NAME,
+      const mockProviderInfo = {
+        name: providerWithoutSecurity,
         services: [
           {
             id: 'swapidev',
@@ -217,126 +163,102 @@ describe('Configure CLI command', () => {
           },
         ],
         defaultService: 'swapidev',
-      });
-      const profileId = `${PROFILE.scope}/${PROFILE.name}`;
+      };
+      await mockServer
+        .get('/providers/' + providerWithoutSecurity)
+        .withHeaders({ Accept: ContentType.JSON })
+        .thenJson(200, mockProviderInfo);
 
-      await expect(
-        Configure.run([PROVIDER_NAME, `-p ${profileId}`])
-      ).resolves.toBeUndefined();
+      result = await execCLI(
+        tempDir,
+        ['configure', providerWithoutSecurity, '-p', profileId],
+        mockServer.url
+      );
 
-      expect(stdout.output).toContain(
+      expect(result.stdout).toContain(
         'No security schemes found to configure.'
       );
 
-      const superJson = (await SuperJson.load(FIXTURE.superJson)).unwrap();
-      expect(superJson.document.providers![PROVIDER_NAME]).toEqual({
+      const superJson = (
+        await SuperJson.load(joinPath(tempDir, 'superface', 'super.json'))
+      ).unwrap();
+      expect(superJson.document.providers![providerWithoutSecurity]).toEqual({
         security: [],
       });
 
       expect(superJson.document.profiles![profileId]).toEqual({
-        version: PROFILE.version,
-        providers: { [PROVIDER_NAME]: {} },
+        version: profileVersion,
+        providers: { [providerWithoutSecurity]: {} },
       });
-    }, 10000);
-
-    it('configures provider with unknown security scheme correctly', async () => {
-      //mock provider structure
-      mocked(fetchProviderInfo).mockResolvedValue({
-        name: PROVIDER_NAME,
-        services: [
-          {
-            id: 'swapidev',
-            baseUrl: 'https://swapi.dev/api',
-          },
-        ],
-        securitySchemes: [
-          {
-            id: 'swapidev',
-            //unknown
-            type: 'unknown' as SecurityType.APIKEY,
-            in: ApiKeyPlacement.HEADER,
-            name: 'X-API-Key',
-          },
-        ],
-        defaultService: 'swapidev',
-      });
-      const profileId = `${PROFILE.scope}/${PROFILE.name}`;
-
-      await expect(
-        Configure.run([PROVIDER_NAME, `-p ${profileId}`])
-      ).resolves.toBeUndefined();
-
-      expect(stdout.output).toContain(
-        '❌ No security schemes have been configured.'
-      );
-
-      const superJson = (await SuperJson.load(FIXTURE.superJson)).unwrap();
-      expect(superJson.document.providers![PROVIDER_NAME]).toEqual({
-        security: [],
-      });
-
-      expect(superJson.document.profiles![profileId]).toEqual({
-        version: PROFILE.version,
-        providers: { [PROVIDER_NAME]: {} },
-      });
-    }, 10000);
+    }, 20000);
 
     it('does not log to stdout with --quiet', async () => {
-      //mock provider structure
-      mocked(fetchProviderInfo).mockResolvedValue({
-        name: PROVIDER_NAME,
-        services: [
-          {
-            id: 'swapidev',
-            baseUrl: 'https://swapi.dev/api',
-          },
-        ],
-        securitySchemes: [
-          {
-            id: 'swapidev',
-            type: SecurityType.APIKEY,
-            in: ApiKeyPlacement.HEADER,
-            name: 'X-API-Key',
-          },
-        ],
-        defaultService: 'swapidev',
-      });
-      const profileId = `${PROFILE.scope}/${PROFILE.name}`;
+      let result = await execCLI(
+        tempDir,
+        ['install', 'starwars/character-information'],
+        mockServer.url
+      );
+      expect(result.stdout).toMatch(
+        'All profiles (1) have been installed successfully.'
+      );
+
+      result = await execCLI(
+        tempDir,
+        ['configure', provider, '-p', profileId, '-q'],
+        mockServer.url
+      );
+
+      expect(result.stdout).toMatch('');
 
       await expect(
-        Configure.run([PROVIDER_NAME, `-p ${profileId}`, '-q'])
-      ).resolves.toBeUndefined();
-      const superJson = (await SuperJson.load(FIXTURE.superJson)).unwrap();
-      expect(
-        superJson.normalized.providers[PROVIDER_NAME].security
-      ).toContainEqual({
-        apikey: '$TEST_API_KEY',
-        id: 'swapidev',
-      });
+        exists(joinPath(tempDir, 'superface', 'super.json'))
+      ).resolves.toBe(true);
 
+      const superJson = (
+        await SuperJson.load(joinPath(tempDir, 'superface', 'super.json'))
+      ).unwrap();
+
+      //Check super.json
+      expect(superJson.normalized.providers[provider].security).toEqual([
+        {
+          id: 'api',
+          apikey: `$${provider.toUpperCase()}_API_KEY`,
+        },
+        {
+          id: 'bearer',
+          token: `$${provider.toUpperCase()}_TOKEN`,
+        },
+        {
+          id: 'basic',
+          username: `$${provider.toUpperCase()}_USERNAME`,
+          password: `$${provider.toUpperCase()}_PASSWORD`,
+        },
+        {
+          id: 'digest',
+          digest: `$${provider.toUpperCase()}_DIGEST`,
+        },
+      ]);
       expect(superJson.document.profiles![profileId]).toEqual({
-        version: PROFILE.version,
-        providers: { [PROVIDER_NAME]: {} },
+        version: profileVersion,
+        providers: { [provider]: {} },
       });
-    });
+    }, 20000);
   });
 
   describe('when providers are present in super.json', () => {
     it('errors without a force flag', async () => {
-      const profileId = `${PROFILE.scope}/${PROFILE.name}`;
-
       //set existing super.json
       const localSuperJson = {
         profiles: {
           [profileId]: {
-            version: PROFILE.version,
+            version: profileVersion,
             providers: {
-              [PROVIDER_NAME]: {},
+              [provider]: {},
             },
           },
         },
         providers: {
-          [PROVIDER_NAME]: {
+          [provider]: {
             security: [
               {
                 id: 'apiKey',
@@ -346,73 +268,56 @@ describe('Configure CLI command', () => {
           },
         },
       };
+      await mkdirQuiet(joinPath(tempDir, 'superface'));
       await OutputStream.writeOnce(
-        FIXTURE.superJson,
+        joinPath(tempDir, 'superface', 'super.json'),
         JSON.stringify(localSuperJson, undefined, 2)
       );
-      //mock provider structure with same provider name but different auth scheme
-      mocked(fetchProviderInfo).mockResolvedValue({
-        name: PROVIDER_NAME,
-        services: [
-          {
-            id: 'swapidev',
-            baseUrl: 'https://swapi.dev/api',
-          },
-        ],
-        securitySchemes: [
-          {
-            id: 'swapidev',
-            type: SecurityType.HTTP,
-            scheme: HttpScheme.BEARER,
-          },
-        ],
-        defaultService: 'swapidev',
-      });
 
-      await expect(
-        Configure.run([PROVIDER_NAME, `-p ${profileId}`])
-      ).resolves.toBeUndefined();
-
-      expect(stdout.output).toContain(
-        `Provider already exists: "${PROVIDER_NAME}"`
+      const result = await execCLI(
+        tempDir,
+        ['configure', provider, '-p', profileId],
+        mockServer.url
       );
 
-      const superJson = (await SuperJson.load(FIXTURE.superJson)).unwrap();
+      expect(result.stdout).toContain(`Provider already exists: "${provider}"`);
+
+      const superJson = (
+        await SuperJson.load(joinPath(tempDir, 'superface', 'super.json'))
+      ).unwrap();
 
       expect(superJson.document).toEqual(localSuperJson);
-    }, 10000);
-
+    }, 20000);
     it('overrides existing super.json with a force flag', async () => {
-      const profileId = `${PROFILE.scope}/${PROFILE.name}`;
-
+      const simpleProvider = 'simple-provider';
       //set existing super.json
       const localSuperJson = {
         profiles: {
           [profileId]: {
-            version: PROFILE.version,
+            version: profileVersion,
             providers: {
-              [PROVIDER_NAME]: {},
+              [simpleProvider]: {},
             },
           },
         },
         providers: {
-          [PROVIDER_NAME]: {
+          [simpleProvider]: {
             security: [
               {
                 id: 'apiKey',
-                apikey: '$TEST_API_KEY',
+                apikey: '$SIMPLE_PROVIDER_API_KEY',
               },
             ],
           },
         },
       };
+      await mkdirQuiet(joinPath(tempDir, 'superface'));
       await OutputStream.writeOnce(
-        FIXTURE.superJson,
+        joinPath(tempDir, 'superface', 'super.json'),
         JSON.stringify(localSuperJson, undefined, 2)
       );
-      //mock provider structure with same provider name but different auth scheme
-      mocked(fetchProviderInfo).mockResolvedValue({
-        name: PROVIDER_NAME,
+      const mockProviderInfo = {
+        name: simpleProvider,
         services: [
           {
             id: 'swapidev',
@@ -427,108 +332,133 @@ describe('Configure CLI command', () => {
           },
         ],
         defaultService: 'swapidev',
-      });
+      };
 
-      //force flag
-      await expect(
-        Configure.run([PROVIDER_NAME, `-p ${profileId}`, '-f'])
-      ).resolves.toBeUndefined();
+      await mockServer
+        .get('/providers/' + simpleProvider)
+        .withHeaders({ Accept: ContentType.JSON })
+        .thenJson(200, mockProviderInfo);
 
-      expect(stdout.output).not.toContain(
-        `Provider already exists: "${PROVIDER_NAME}"`
+      const result = await execCLI(
+        tempDir,
+        ['configure', simpleProvider, '-p', profileId, '-f'],
+        mockServer.url
       );
 
-      const superJson = (await SuperJson.load(FIXTURE.superJson)).unwrap();
+      expect(result.stdout).not.toContain(
+        `Provider already exists: "${simpleProvider}"`
+      );
 
-      expect(superJson.normalized.providers[PROVIDER_NAME].security).toEqual([
+      const superJson = (
+        await SuperJson.load(joinPath(tempDir, 'superface', 'super.json'))
+      ).unwrap();
+
+      expect(superJson.normalized.providers[simpleProvider].security).toEqual([
         {
           id: 'apiKey',
-          apikey: '$TEST_API_KEY',
+          apikey: '$SIMPLE_PROVIDER_API_KEY',
         },
         {
           id: 'swapidev',
-          token: '$TEST_TOKEN',
+          token: '$SIMPLE_PROVIDER_TOKEN',
         },
       ]);
 
       expect(superJson.document.profiles![profileId]).toEqual({
-        version: PROFILE.version,
-        providers: { [PROVIDER_NAME]: {} },
+        version: profileVersion,
+        providers: { [simpleProvider]: {} },
       });
-    }, 10000);
+    }, 20000);
   });
-
   describe('when there is a path flag', () => {
     it('loads provider data from file', async () => {
-      const profileId = `${PROFILE.scope}/${PROFILE.name}`;
+      let result = await execCLI(
+        tempDir,
+        ['install', 'starwars/character-information'],
+        mockServer.url
+      );
+      expect(result.stdout).toMatch(
+        'All profiles (1) have been installed successfully.'
+      );
 
-      //local flag
-      await expect(
-        Configure.run([
-          './superface/swapidev.provider.json',
-          `-p ${profileId}`,
+      result = await execCLI(
+        tempDir,
+        [
+          'configure',
+          `../../../fixtures/providers/${provider}.json`,
+          '-p',
+          profileId,
           '-l',
-        ])
-      ).resolves.toBeUndefined();
+        ],
+        mockServer.url
+      );
 
-      const superJson = (await SuperJson.load(FIXTURE.superJson)).unwrap();
+      expect(result.stdout).toContain(
+        `🆗 All security schemes have been configured successfully.`
+      );
+      const superJson = (
+        await SuperJson.load(joinPath(tempDir, 'superface', 'super.json'))
+      ).unwrap();
 
-      expect(superJson.normalized.providers[PROVIDER_NAME].security).toEqual([
+      expect(superJson.normalized.providers[provider].security).toEqual([
         {
           id: 'api',
-          apikey: '$TEST_API_KEY',
+          apikey: '$SWAPI_API_KEY',
+        },
+        {
+          id: 'bearer',
+          token: '$SWAPI_TOKEN',
+        },
+        {
+          id: 'basic',
+          password: '$SWAPI_PASSWORD',
+          username: '$SWAPI_USERNAME',
         },
         {
           id: 'digest',
-          digest: '$TEST_DIGEST',
+          digest: '$SWAPI_DIGEST',
         },
       ]);
 
       expect(superJson.document.profiles![profileId]).toEqual({
-        version: PROFILE.version,
-        providers: { [PROVIDER_NAME]: {} },
+        version: profileVersion,
+        providers: { [provider]: {} },
       });
-    }, 10000);
-
-    it('does not load provider data from corupted file', async () => {
-      const profileId = `${PROFILE.scope}/${PROFILE.name}`;
-
-      //local flag
-      await expect(
-        Configure.run([
-          './superface/swapidev.provider.corupted.json',
-          `-p ${profileId}`,
-          '-l',
-        ])
-      ).rejects.toEqual(
-        userError('Unexpected string in JSON at position 168', 1)
-      );
-
-      const superJson = (await SuperJson.load(FIXTURE.superJson)).unwrap();
-
-      expect(superJson.document).toEqual(INITIAL_SUPER_JSON.document);
-    }, 10000);
+    }, 20000);
 
     it('does not load provider data from nonexistent file', async () => {
-      const profileId = `${PROFILE.scope}/${PROFILE.name}`;
+      //set existing super.json
+      const localSuperJson = {
+        profiles: {
+          [profileId]: {
+            version: profileVersion,
+          },
+        },
+        providers: {},
+      };
+      await mkdirQuiet(joinPath(tempDir, 'superface'));
+      await OutputStream.writeOnce(
+        joinPath(tempDir, 'superface', 'super.json'),
+        JSON.stringify(localSuperJson, undefined, 2)
+      );
 
-      //local flag
       await expect(
-        Configure.run([
-          './very/nice/path/superface/swapidev.provider.json',
-          `-p ${profileId}`,
-          '-l',
-        ])
+        execCLI(
+          tempDir,
+          ['configure', 'some/path', '-p', profileId, '-l'],
+          mockServer.url
+        )
       ).rejects.toEqual(
-        userError(
-          `Error: ENOENT: no such file or directory, open './very/nice/path/superface/swapidev.provider.json'`,
-          1
+        expect.stringContaining(
+          "Error: ENOENT: no such file or directory, open 'some/path'"
         )
       );
 
-      const superJson = (await SuperJson.load(FIXTURE.superJson)).unwrap();
+      const finalSuperJson = (
+        await SuperJson.load(joinPath(tempDir, 'superface', 'super.json'))
+      ).unwrap();
 
-      expect(superJson.document).toEqual(INITIAL_SUPER_JSON.document);
+      expect(finalSuperJson.document).toEqual(localSuperJson);
     }, 10000);
   });
 });

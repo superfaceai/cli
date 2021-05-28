@@ -291,11 +291,11 @@ async function checkStoreRequestGridPathHelper(
   version: string,
   options?: InstallOptions
 ): Promise<{ sourcePath: string; astPath: string } | undefined> {
-  const relativePath = joinPath(
+  const path = joinPath(
     'grid',
     `${profileId}@${version}${EXTENSIONS.profile.source}`
   );
-  const sourcePath = superJson.resolvePath(relativePath);
+  const sourcePath = superJson.resolvePath(path);
   const astPath = replaceExt(sourcePath, EXTENSIONS.profile.build);
 
   if (options?.force !== true && (await exists(sourcePath))) {

@@ -1,4 +1,4 @@
-import { flags } from '@oclif/command';
+import { flags as oclifFlags } from '@oclif/command';
 import { isValidProviderName } from '@superfaceai/one-sdk';
 import { parseProfileId } from '@superfaceai/parser';
 import { grey, yellow } from 'chalk';
@@ -108,17 +108,17 @@ export default class Init extends Command {
 
   static flags = {
     ...Command.flags,
-    profiles: flags.string({
+    profiles: oclifFlags.string({
       multiple: true,
       description: 'Profile identifiers.',
       required: false,
     }),
-    providers: flags.string({
+    providers: oclifFlags.string({
       multiple: true,
       description: 'Provider names.',
       required: false,
     }),
-    prompt: flags.boolean({
+    prompt: oclifFlags.boolean({
       char: 'p',
       description: 'When set to true, prompt will be executed.',
       default: false,
@@ -138,7 +138,7 @@ export default class Init extends Command {
       quiet: '',
     };
     //Warn user
-    this.warn(
+    this.log(
       yellow(
         'You are using a hidden command. This command is not intended for public consumption yet. It might be broken, hard to use or simply redundant. Tread with care.'
       )
