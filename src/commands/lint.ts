@@ -1,4 +1,4 @@
-import { flags } from '@oclif/command';
+import { flags as oclifFlags } from '@oclif/command';
 import { yellow } from 'chalk';
 
 import { Command } from '../common/command.abstract';
@@ -32,20 +32,20 @@ export default class Lint extends Command {
     ...Command.flags,
     documentType: documentTypeFlag,
 
-    output: flags.string({
+    output: oclifFlags.string({
       char: 'o',
       description:
         'Filename where the output will be written. `-` is stdout, `-2` is stderr.',
       default: '-',
     }),
 
-    append: flags.boolean({
+    append: oclifFlags.boolean({
       default: false,
       description:
         'Open output file in append mode instead of truncating it if it exists. Has no effect with stdout and stderr streams.',
     }),
 
-    outputFormat: flags.build({
+    outputFormat: oclifFlags.build({
       char: 'f',
       description: 'Output format to use to display errors and warnings.',
       options: ['long', 'short', 'json'],
@@ -59,7 +59,7 @@ export default class Lint extends Command {
       },
     })({ default: 'long' }),
 
-    color: flags.boolean({
+    color: oclifFlags.boolean({
       // TODO: Hidden because it doesn't do anything right now
       hidden: true,
       allowNo: true,
@@ -67,31 +67,33 @@ export default class Lint extends Command {
         'Output colorized report. Only works for `human` output format. Set by default for stdout and stderr output.',
     }),
 
-    validate: flags.boolean({
+    validate: oclifFlags.boolean({
       // TODO: extend or modify this
       char: 'v',
       default: false,
       description: 'Validate maps to specific profile.',
     }),
 
-    quiet: flags.boolean({
+    quiet: oclifFlags.boolean({
       char: 'q',
       default: false,
       description: 'When set to true, disables output of warnings.',
     }),
 
-    help: flags.help({ char: 'h' }),
+    help: oclifFlags.help({ char: 'h' }),
   };
 
   async run(): Promise<void> {
     const { argv, flags } = this.parse(Lint);
 
-    //Warn user
-    this.warn(
-      yellow(
-        'You are using a hidden command. This command is not intended for public consumption yet. It might be broken, hard to use or simply redundant. Tread with care.'
-      )
-    );
+    if (flags.output !== '-' && flags.output !== '-2') {
+      //Warn user
+      this.log(
+        yellow(
+          'You are using a hidden command. This command is not intended for public consumption yet. It might be broken, hard to use or simply redundant. Tread with care.'
+        )
+      );
+    }
 
     const outputStream = new OutputStream(flags.output, {
       append: flags.append,
@@ -153,7 +155,7 @@ export default class Lint extends Command {
   static async processFiles(
     writer: ListWriter,
     files: string[],
-    documentTypeFlag: DocumentTypeFlag,
+    typeFlag: DocumentTypeFlag,
     validateFlag: boolean,
     fn: (report: ReportFormat) => string
   ): Promise<[errors: number, warnings: number]> {
@@ -162,7 +164,7 @@ export default class Lint extends Command {
     if (validateFlag) {
       counts = await lintMapsToProfile(files, writer, fn);
     } else {
-      counts = await lintFiles(files, writer, documentTypeFlag, fn);
+      counts = await lintFiles(files, writer, typeFlag, fn);
     }
 
     return counts.reduce((acc, curr) => [acc[0] + curr[0], acc[1] + curr[1]]);

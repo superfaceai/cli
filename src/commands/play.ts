@@ -1,4 +1,4 @@
-import { flags } from '@oclif/command';
+import { flags as oclifFlags } from '@oclif/command';
 import { isValidIdentifier } from '@superfaceai/ast';
 import { isValidProviderName } from '@superfaceai/one-sdk';
 import { grey, yellow } from 'chalk';
@@ -63,12 +63,12 @@ clean: the \`superface/node_modules\` folder and \`superface/build\` build artif
 
   static flags = {
     ...Command.flags,
-    providers: flags.string({
+    providers: oclifFlags.string({
       char: 'p',
       multiple: true,
       description: 'Providers to initialize or execute.',
     }),
-    template: flags.string({
+    template: oclifFlags.string({
       options: ['empty', 'pubs'],
       default: 'pubs',
       description: 'Template to initialize the profiles and maps with.',
@@ -92,13 +92,13 @@ clean: the \`superface/node_modules\` folder and \`superface/build\` build artif
         'Control skipping behavior of the tsc compile execution step.\n`exists` checks for the presence of `<name>.<provider>.js files.',
     }),
 
-    quiet: flags.boolean({
+    quiet: oclifFlags.boolean({
       char: 'q',
       description:
         'When set to true, disables the shell echo output of play actions.\nAlso overrides the default value of `--debug-level` to an empty string.',
       default: false,
     }),
-    'debug-level': flags.string({
+    'debug-level': oclifFlags.string({
       description:
         '[default: *] Controls the value of the env variable `DEBUG` passed when executing the playground glue.\nPass an empty string to disable. Defaults to an empty string when `--quiet` is also passed.',
     }),
@@ -110,7 +110,7 @@ clean: the \`superface/node_modules\` folder and \`superface/build\` build artif
     const { args, flags } = this.parse(Play);
 
     //Warn user
-    this.warn(
+    this.log(
       yellow(
         'You are using a hidden command. This command is not intended for public consumption yet. It might be broken, hard to use or simply redundant. Tread with care.'
       )
@@ -187,7 +187,7 @@ clean: the \`superface/node_modules\` folder and \`superface/build\` build artif
 
   private async runInitialize(
     path: string | undefined,
-    providers: string[] | undefined,
+    inputProviders: string[] | undefined,
     template: TemplateType
   ): Promise<void> {
     if (path === undefined) {
@@ -229,19 +229,21 @@ clean: the \`superface/node_modules\` folder and \`superface/build\` build artif
         11
       );
     }
-
-    if (providers === undefined || providers.length === 0) {
+    let providers: string[];
+    if (inputProviders === undefined || inputProviders.length === 0) {
       const response: { providers: string } = await inquirer.prompt({
         name: 'providers',
         message: 'Input space separated list of providers to create',
         type: 'input',
         validate: (input: string): boolean => {
-          const providers = Play.parseProviderNames(input);
+          const p = Play.parseProviderNames(input);
 
-          return providers.length > 0;
+          return p.length > 0;
         },
       });
       providers = Play.parseProviderNames(response.providers);
+    } else {
+      providers = inputProviders;
     }
 
     this.debug('Playground path:', playgroundPath);
@@ -263,7 +265,7 @@ clean: the \`superface/node_modules\` folder and \`superface/build\` build artif
 
   private async runExecute(
     playgroundPath: string | undefined,
-    providers: string[] | undefined,
+    inputProviders: string[] | undefined,
     skip: Record<'npm' | 'ast' | 'tsc', SkipFileType>,
     debugLevel: string
   ): Promise<void> {
@@ -272,7 +274,8 @@ clean: the \`superface/node_modules\` folder and \`superface/build\` build artif
     }
     const playground = (await detectPlayground(playgroundPath))[0]; // TODO: Do something about multiple instances
 
-    if (providers === undefined || providers.length === 0) {
+    let providers: string[];
+    if (inputProviders === undefined || inputProviders.length === 0) {
       const response: { providers: string[] } = await inquirer.prompt({
         name: 'providers',
         message: 'Select a provider to execute',
@@ -286,7 +289,7 @@ clean: the \`superface/node_modules\` folder and \`superface/build\` build artif
       });
       providers = response.providers;
     } else {
-      for (const provider of providers) {
+      for (const provider of inputProviders) {
         if (!playground.providers.find(p => p.name === provider)) {
           throw userError(
             `Provider "${provider}" not found for playground "${playground.path}"`,
@@ -294,6 +297,7 @@ clean: the \`superface/node_modules\` folder and \`superface/build\` build artif
           );
         }
       }
+      providers = inputProviders;
     }
 
     this.debug('Playground:', playground);

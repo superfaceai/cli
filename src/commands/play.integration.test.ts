@@ -124,7 +124,9 @@ describe('Play CLI command', () => {
       '--quiet',
     ]);
 
-    expect(stdout.output).toBe('');
+    expect(stdout.output).toBe(
+      'You are using a hidden command. This command is not intended for public consumption yet. It might be broken, hard to use or simply redundant. Tread with care.\n'
+    );
   });
 
   // TODO: Currently skipping this in CI because of access permission issues

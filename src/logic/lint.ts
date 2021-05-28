@@ -236,7 +236,7 @@ export async function lintMapsToProfile(
 
   // loop over profiles and try to validate maps that did not match any profile
   for (const profile of profileOutputs) {
-    for (const map of mapDocuments.filter(map => !map.matched)) {
+    for (const map of mapDocuments.filter(m => !m.matched)) {
       if (isValidMapId(profile.header, map.header, map.path)) {
         await writer.writeElement(
           `⚠️ map ${map.path} assumed to belong to profile ${profile.path} based on file name`
