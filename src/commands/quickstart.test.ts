@@ -7,7 +7,7 @@ import { exists, readFile } from '../common/io';
 import { OutputStream } from '../common/output-stream';
 import { initSuperface } from '../logic/init';
 import { detectSuperJson } from '../logic/install';
-import { getProviders } from '../logic/quickstart';
+import { getProviders } from '../logic/quickstart.utils';
 import { MockStd, mockStd } from '../test/mock-std';
 import Quickstart from './quickstart';
 
@@ -21,7 +21,7 @@ jest.mock('../logic/configure');
 jest.mock('../logic/init');
 
 //Mock quickstart logic
-jest.mock('../logic/quickstart');
+jest.mock('../logic/quickstart.utils');
 
 //Mock http
 jest.mock('../common/http');

@@ -18,7 +18,7 @@ import { OutputStream } from '../common/output-stream';
 import { installProvider } from '../logic/configure';
 import { initSuperface } from '../logic/init';
 import { detectSuperJson, installProfiles } from '../logic/install';
-import { getProviders, installSdk } from '../logic/quickstart';
+import { getProviders, installSdk } from '../logic/quickstart.utils';
 import { envVariable } from '../templates/env';
 
 export default class Quickstart extends Command {

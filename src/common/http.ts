@@ -37,9 +37,21 @@ export function getStoreUrl(): string {
   return envUrl ? new URL(envUrl).href : new URL('https://superface.ai/').href;
 }
 
-export async function fetch(url: string, type: ContentType): Promise<Response> {
+export async function fetch(
+  url: string,
+  type: ContentType,
+  query?: Record<string, string | number>
+): Promise<Response> {
   const userAgent = `superface cli/${VERSION} (${process.platform}-${process.arch}) ${process.release.name}-${process.version} (with @superfaceai/one-sdk@${SDK_VERSION}, @superfaceai/parser@${PARSER_VERSION})`;
   try {
+    if (query) {
+      return superagent
+        .get(url)
+        .query(query)
+        .set('Accept', type)
+        .set('User-Agent', userAgent);
+    }
+
     return superagent.get(url).set('Accept', type).set('User-Agent', userAgent);
   } catch (err) {
     throw userError(err, 1);
@@ -52,9 +64,12 @@ export async function fetchProfiles(): Promise<
   return [{ scope: 'communication', profile: 'send-email', version: '1.0.1' }];
 }
 
-export async function fetchProviders(_profileId: string): Promise<string[]> {
-  //Mock response
-  return ['sendgrid', 'mailgun', 'mailchimp', 'mock'];
+export async function fetchProviders(profile: string): Promise<string[]> {
+  const query = new URL('providers', getStoreUrl()).href;
+
+  const response = await fetch(query, ContentType.JSON, { profile });
+
+  return (response.body as ProviderJson[]).map(p => p.name);
 }
 
 export async function fetchProfileInfo(

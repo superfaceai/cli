@@ -1,6 +1,6 @@
 import { flags as oclifFlags } from '@oclif/command';
 import { isValidDocumentName, isValidProviderName } from '@superfaceai/ast';
-import { grey, yellow } from 'chalk';
+import { green, grey, yellow } from 'chalk';
 import { join as joinPath } from 'path';
 
 import { Command } from '../common/command.abstract';
@@ -15,6 +15,7 @@ import {
   LocalRequest as LocalInstallRequest,
   StoreRequest as StoreInstallRequest,
 } from '../logic/install';
+import { interactiveInstall } from '../logic/quickstart';
 
 const parseProviders = (
   providers?: string[],
@@ -75,6 +76,11 @@ export default class Install extends Command {
         'When set to true, profile id argument is used as a filepath to profile.supr file',
       default: false,
     }),
+    interactive: oclifFlags.boolean({
+      char: 'i',
+      description: 'When set to true, command is used in interactive mode',
+      default: false,
+    }),
     scan: oclifFlags.integer({
       char: 's',
       description:
@@ -86,6 +92,7 @@ export default class Install extends Command {
 
   static examples = [
     '$ superface install',
+    '$ superface install -i',
     '$ superface install sms/service@1.0',
     '$ superface install sms/service@1.0 --providers twilio tyntec',
     '$ superface install sms/service@1.0 -p twilio',
@@ -96,9 +103,20 @@ export default class Install extends Command {
     this.log('⚠️  ' + yellow(message));
 
   private logCallback? = (message: string) => this.log(grey(message));
+  private successCallback? = (message: string) => this.log(green(message));
 
   async run(): Promise<void> {
     const { args, flags } = this.parse(Install);
+
+    if (flags.interactive) {
+      await interactiveInstall({
+        logCb: this.logCallback,
+        warnCb: this.warnCallback,
+        successCb: this.successCallback,
+      });
+
+      return;
+    }
 
     if (flags.quiet) {
       this.logCallback = undefined;
