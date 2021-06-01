@@ -1,0 +1,10 @@
+{
+  "name": "mock",
+  "services": [
+    {
+      "id": "default",
+      "baseUrl": "noop.localhost"
+    }
+  ],
+  "defaultService": "default"
+}

@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
+import { ProviderJson } from '@superfaceai/one-sdk';
 import { execFile } from 'child_process';
 import concat from 'concat-stream';
 import { Mockttp } from 'mockttp';
@@ -69,6 +70,32 @@ export async function mockResponsesForProvider(
 }
 
 /**
+ * Mocks HTTP responses for a profile providers
+ *
+ * expects following files in specified path (default fixtures/providers)
+ *   provider.json           - provider info
+ */
+export async function mockResponsesForProfileProviders(
+  server: Mockttp,
+  providers: string[],
+  profile: string,
+  path = joinPath('fixtures', 'providers')
+): Promise<void> {
+  const providersInfo: ProviderJson[] = [];
+  for (const p of providers) {
+    const basePath = joinPath(path, p);
+    providersInfo.push(
+      JSON.parse((await readFile(basePath + '.json')).toString())
+    );
+  }
+  await server
+    .get('/providers')
+    .withQuery({ profile: profile })
+    .withHeaders({ Accept: ContentType.JSON })
+    .thenJson(200, { data: providersInfo });
+}
+
+/**
  * Executes the Superface CLI binary
  *
  * @export
@@ -88,8 +115,8 @@ export async function execCLI(
     debug?: boolean;
   }
 ): Promise<{ stdout: string }> {
-  const timeout = 100,
-    maxTimeout = 20000;
+  const timeout = 4000,
+    maxTimeout = 40000;
   const CLI = joinPath('.', 'bin', 'superface');
   const bin = relative(directory, CLI);
 
