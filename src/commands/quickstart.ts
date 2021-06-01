@@ -77,9 +77,11 @@ export default class Quickstart extends Command {
     const profile = profileResponse.profile;
 
     //Ask for providers
-    const possibleProviders = await fetchProviders(
-      `${profile.scope}/${profile.profile}@${profile.version}`
-    );
+    const possibleProviders = (
+      await fetchProviders(
+        `${profile.scope}/${profile.profile}@${profile.version}`
+      )
+    ).map(p => p.name);
 
     const providerResponse: { providers: string[] } = await inquirer.prompt({
       name: 'providers',

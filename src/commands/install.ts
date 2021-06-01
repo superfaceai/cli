@@ -80,6 +80,7 @@ export default class Install extends Command {
       char: 'i',
       description: 'When set to true, command is used in interactive mode',
       default: false,
+      exclusive: ['providers', 'force', 'local', 'scan', 'quiet'],
     }),
     scan: oclifFlags.integer({
       char: 's',
@@ -109,6 +110,13 @@ export default class Install extends Command {
     const { args, flags } = this.parse(Install);
 
     if (flags.interactive) {
+      if (args.profileId) {
+        this.warnCallback?.(
+          `Profile ID argument can't be used with interactive flag`
+        );
+        this.exit(0);
+      }
+
       await interactiveInstall({
         logCb: this.logCallback,
         warnCb: this.warnCallback,
