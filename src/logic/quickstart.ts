@@ -117,12 +117,14 @@ export async function interactiveInstall(options?: {
 
   //Configure providers
   options?.successCb?.(`\n\nInstalling providers`);
-  const skippedProviders: string[] = []
+  const skippedProviders: string[] = [];
   for (const providerName of providerResponse.providers) {
     //Override existing provider
     if (providerExists(superJson, providerName)) {
-      if (!(await confirmPrompt(`Provider "${providerName}" already exists.`))) {
-        skippedProviders.push(providerName)
+      if (
+        !(await confirmPrompt(`Provider "${providerName}" already exists.`))
+      ) {
+        skippedProviders.push(providerName);
         continue;
       }
     }

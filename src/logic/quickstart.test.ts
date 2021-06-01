@@ -1,13 +1,18 @@
-import { mocked } from "ts-jest/utils";
-import { detectSuperJson } from "./install";
-import { initSuperface } from "./init";
-import { SuperJson, ok } from "@superfaceai/one-sdk";
-import { fetchProfiles, fetchProviders } from "../common/http";
-import { getProviders, profileExists, providerExists } from "./quickstart.utils";
-import { exists, readFile } from "../common/io";
-import { OutputStream } from "../common/output-stream";
-import inquirer from "inquirer";
-import { interactiveInstall } from "./quickstart";
+import { ok, SuperJson } from '@superfaceai/one-sdk';
+import inquirer from 'inquirer';
+import { mocked } from 'ts-jest/utils';
+
+import { fetchProfiles, fetchProviders } from '../common/http';
+import { exists, readFile } from '../common/io';
+import { OutputStream } from '../common/output-stream';
+import { initSuperface } from './init';
+import { detectSuperJson } from './install';
+import { interactiveInstall } from './quickstart';
+import {
+  getProviders,
+  profileExists,
+  providerExists,
+} from './quickstart.utils';
 
 //Mock install logic
 jest.mock('./install');
@@ -31,13 +36,12 @@ jest.mock('../common/io');
 jest.mock('inquirer');
 
 describe('Quickstart logic', () => {
-  let logCb = jest.fn();
-  let warnCb = jest.fn();
-  let successCb = jest.fn();
+  const logCb = jest.fn();
+  const warnCb = jest.fn();
+  const successCb = jest.fn();
   // eslint-disable-next-line @typescript-eslint/unbound-method
   const originalLoad = SuperJson.load;
   let mockLoad = jest.fn();
-
 
   afterEach(() => {
     jest.resetAllMocks();
@@ -46,11 +50,10 @@ describe('Quickstart logic', () => {
   beforeEach(() => {
     mockLoad = jest.fn();
     SuperJson.load = mockLoad;
-  })
+  });
   afterAll(() => {
-    SuperJson.load = originalLoad
-  })
-
+    SuperJson.load = originalLoad;
+  });
 
   describe('when installing sdk', () => {
     const mockInstaledProviders = {
@@ -95,7 +98,7 @@ describe('Quickstart logic', () => {
     it('sets up sf correctly - non existing super.json and .env', async () => {
       mocked(detectSuperJson).mockResolvedValue(undefined);
       mocked(initSuperface).mockResolvedValue(new SuperJson({}));
-      mockLoad.mockResolvedValue(ok(new SuperJson({})))
+      mockLoad.mockResolvedValue(ok(new SuperJson({})));
       mocked(fetchProfiles).mockResolvedValue([profile]);
       mocked(fetchProviders).mockResolvedValue([
         'sendgrid',
@@ -129,8 +132,10 @@ describe('Quickstart logic', () => {
         .mockResolvedValueOnce({ value: 'testDigest' });
 
       await interactiveInstall({
-        logCb, warnCb, successCb
-      })
+        logCb,
+        warnCb,
+        successCb,
+      });
 
       expect(detectSuperJson).toHaveBeenCalled();
       expect(initSuperface).toHaveBeenCalled();
@@ -143,9 +148,13 @@ describe('Quickstart logic', () => {
         'SENDGRID_TOKEN=sendgridBearer\nMAILGUN_USERNAME=mailgunUsername\nMAILGUN_PASSWORD=mailgunPassword\nTEST_DIGEST=testDigest\n'
       );
 
-      expect(successCb).toHaveBeenCalledWith('Initializing superface directory');
+      expect(successCb).toHaveBeenCalledWith(
+        'Initializing superface directory'
+      );
       expect(successCb).toHaveBeenCalledWith('\n\nInstalling providers');
-      expect(successCb).toHaveBeenCalledWith('\n\nConfiguring providers security');
+      expect(successCb).toHaveBeenCalledWith(
+        '\n\nConfiguring providers security'
+      );
       expect(logCb).toHaveBeenCalledWith('\n\nConfiguring "sendgrid" security');
       expect(logCb).toHaveBeenCalledWith('\n\nConfiguring "mailgun" security');
       expect(logCb).toHaveBeenCalledWith('\n\nConfiguring "mock" security');
@@ -167,7 +176,7 @@ describe('Quickstart logic', () => {
     it('sets up sf correctly - non existing super.json and existing .env', async () => {
       mocked(detectSuperJson).mockResolvedValue(undefined);
       mocked(initSuperface).mockResolvedValue(new SuperJson({}));
-      mockLoad.mockResolvedValue(ok(new SuperJson({})))
+      mockLoad.mockResolvedValue(ok(new SuperJson({})));
       mocked(fetchProfiles).mockResolvedValue([profile]);
       mocked(fetchProviders).mockResolvedValue([
         'sendgrid',
@@ -203,7 +212,7 @@ describe('Quickstart logic', () => {
         //Set test digest
         .mockResolvedValueOnce({ value: 'testApiKey' });
 
-      await interactiveInstall({ logCb, warnCb, successCb })
+      await interactiveInstall({ logCb, warnCb, successCb });
 
       expect(detectSuperJson).toHaveBeenCalled();
       expect(initSuperface).toHaveBeenCalled();
@@ -216,9 +225,13 @@ describe('Quickstart logic', () => {
         'SOME=env\nSENDGRID_TOKEN=sendgridBearer\nMAILGUN_USERNAME=mailgunUsername\nMAILGUN_PASSWORD=mailgunPassword\nTEST_API_KEY=testApiKey\n'
       );
 
-      expect(successCb).toHaveBeenCalledWith('Initializing superface directory');
+      expect(successCb).toHaveBeenCalledWith(
+        'Initializing superface directory'
+      );
       expect(successCb).toHaveBeenCalledWith('\n\nInstalling providers');
-      expect(successCb).toHaveBeenCalledWith('\n\nConfiguring providers security');
+      expect(successCb).toHaveBeenCalledWith(
+        '\n\nConfiguring providers security'
+      );
       expect(logCb).toHaveBeenCalledWith('\n\nConfiguring "sendgrid" security');
       expect(logCb).toHaveBeenCalledWith('\n\nConfiguring "mailgun" security');
       expect(logCb).toHaveBeenCalledWith('\n\nConfiguring "mock" security');
@@ -276,7 +289,7 @@ describe('Quickstart logic', () => {
 
       mocked(detectSuperJson).mockResolvedValue(undefined);
       mocked(initSuperface).mockResolvedValue(new SuperJson({}));
-      mockLoad.mockResolvedValue(ok(new SuperJson({})))
+      mockLoad.mockResolvedValue(ok(new SuperJson({})));
       mocked(fetchProfiles).mockResolvedValue([profile]);
       mocked(fetchProviders).mockResolvedValue([
         'sendgrid',
@@ -310,7 +323,7 @@ describe('Quickstart logic', () => {
         //Set test digest
         .mockResolvedValueOnce({ value: 'testApiKey' });
 
-      await interactiveInstall({ logCb, warnCb, successCb })
+      await interactiveInstall({ logCb, warnCb, successCb });
 
       expect(detectSuperJson).toHaveBeenCalled();
       expect(initSuperface).toHaveBeenCalled();
@@ -323,9 +336,13 @@ describe('Quickstart logic', () => {
         'TEST_API_KEY=env\nMAILGUN_USERNAME=mailgunUsername\nMAILGUN_PASSWORD=mailgunPassword\n'
       );
 
-      expect(successCb).toHaveBeenCalledWith('Initializing superface directory');
+      expect(successCb).toHaveBeenCalledWith(
+        'Initializing superface directory'
+      );
       expect(successCb).toHaveBeenCalledWith('\n\nInstalling providers');
-      expect(successCb).toHaveBeenCalledWith('\n\nConfiguring providers security');
+      expect(successCb).toHaveBeenCalledWith(
+        '\n\nConfiguring providers security'
+      );
       expect(logCb).toHaveBeenCalledWith('\n\nConfiguring "sendgrid" security');
       expect(warnCb).toHaveBeenCalledWith(
         'Value of SENDGRID_TOKEN in "sendgrid" "bearer" security schema does not start with $ character.'
@@ -348,57 +365,52 @@ describe('Quickstart logic', () => {
     });
 
     it('sets up sf correctly - existing super.json and existing .env', async () => {
-      const mockEnv = `test=test\nMAILGUN_USERNAME=u\nMAILGUN_PASSWORD=p\nSENDGRID_TOKEN=t\ntest2=test2\n`
+      const mockEnv = `test=test\nMAILGUN_USERNAME=u\nMAILGUN_PASSWORD=p\nSENDGRID_TOKEN=t\ntest2=test2\n`;
       const mockSuperJson = new SuperJson({
         profiles: {
           [`${profile.scope}/${profile.profile}`]: {
-            version: "1.0.1",
+            version: '1.0.1',
             providers: {
               mailgun: {},
               mock: {},
-              sendgrid: {}
-            }
-          }
+              sendgrid: {},
+            },
+          },
         },
         providers: {
           mailgun: {
             security: [
               {
-                id: "basic",
-                username: "$MAILGUN_USERNAME",
-                password: "$MAILGUN_PASSWORD"
-              }
-            ]
+                id: 'basic',
+                username: '$MAILGUN_USERNAME',
+                password: '$MAILGUN_PASSWORD',
+              },
+            ],
           },
           mock: {
-            security: []
+            security: [],
           },
           sendgrid: {
             security: [
               {
-                id: "bearer_token",
-                token: "$SENDGRID_TOKEN"
-              }
-            ]
-          }
-        }
-
-      })
+                id: 'bearer_token',
+                token: '$SENDGRID_TOKEN',
+              },
+            ],
+          },
+        },
+      });
       mocked(detectSuperJson).mockResolvedValue('some/path');
       mocked(initSuperface).mockResolvedValue(new SuperJson({}));
-      mockLoad.mockResolvedValue(ok(mockSuperJson))
-      mocked(profileExists).mockResolvedValueOnce(true)
-      mocked(providerExists).mockReturnValue(true)
+      mockLoad.mockResolvedValue(ok(mockSuperJson));
+      mocked(profileExists).mockResolvedValueOnce(true);
+      mocked(providerExists).mockReturnValue(true);
       mocked(fetchProfiles).mockResolvedValue([profile]);
-      mocked(fetchProviders).mockResolvedValue([
-        'sendgrid',
-        'mailgun',
-        'mock',
-      ]);
+      mocked(fetchProviders).mockResolvedValue(['sendgrid', 'mailgun', 'mock']);
       mocked(getProviders).mockResolvedValue(mockInstaledProviders);
       //Env
       mocked(exists).mockResolvedValue(true);
-      mocked(readFile).mockResolvedValueOnce(mockEnv)
+      mocked(readFile).mockResolvedValueOnce(mockEnv);
       const writeOnceSpy = jest
         .spyOn(OutputStream, 'writeOnce')
         .mockResolvedValue(undefined);
@@ -433,8 +445,10 @@ describe('Quickstart logic', () => {
         //Set test digest
         .mockResolvedValueOnce({ value: 'testDigest' });
       await interactiveInstall({
-        logCb, warnCb, successCb
-      })
+        logCb,
+        warnCb,
+        successCb,
+      });
 
       expect(detectSuperJson).toHaveBeenCalled();
       expect(initSuperface).toHaveBeenCalled();
@@ -447,11 +461,17 @@ describe('Quickstart logic', () => {
         'test=test\nSENDGRID_TOKEN=t\ntest2=test2\nMAILGUN_USERNAME=mailgunUsername\nMAILGUN_PASSWORD=mailgunPassword\nTEST_DIGEST=testDigest\n'
       );
 
-      expect(successCb).toHaveBeenCalledWith('Initializing superface directory');
+      expect(successCb).toHaveBeenCalledWith(
+        'Initializing superface directory'
+      );
       expect(successCb).toHaveBeenCalledWith('\n\nInstalling providers');
-      expect(successCb).toHaveBeenCalledWith('\n\nConfiguring providers security');
+      expect(successCb).toHaveBeenCalledWith(
+        '\n\nConfiguring providers security'
+      );
       //User dont want to override sendgrid
-      expect(logCb).not.toHaveBeenCalledWith('\n\nConfiguring "sendgrid" security');
+      expect(logCb).not.toHaveBeenCalledWith(
+        '\n\nConfiguring "sendgrid" security'
+      );
       expect(logCb).toHaveBeenCalledWith('\n\nConfiguring "mailgun" security');
       expect(logCb).toHaveBeenCalledWith('\n\nConfiguring "mock" security');
       expect(logCb).toHaveBeenCalledWith('\n\nConfiguring "test" security');
@@ -475,13 +495,17 @@ describe('Quickstart logic', () => {
       jest
         .spyOn(inquirer, 'prompt')
         //Do NOT override super.json
-        .mockResolvedValueOnce({ continue: false })
+        .mockResolvedValueOnce({ continue: false });
 
       await interactiveInstall({
-        logCb, warnCb, successCb
-      })
-      expect(initSuperface).not.toHaveBeenCalled()
-      expect(successCb).not.toHaveBeenCalledWith('Initializing superface directory');
-    })
+        logCb,
+        warnCb,
+        successCb,
+      });
+      expect(initSuperface).not.toHaveBeenCalled();
+      expect(successCb).not.toHaveBeenCalledWith(
+        'Initializing superface directory'
+      );
+    });
   });
 });
