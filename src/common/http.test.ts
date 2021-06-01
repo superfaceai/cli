@@ -1,4 +1,10 @@
 import { CLIError } from '@oclif/errors';
+import {
+  ApiKeyPlacement,
+  HttpScheme,
+  ProviderJson,
+  SecurityType,
+} from '@superfaceai/one-sdk';
 import superagent from 'superagent';
 
 import {
@@ -7,12 +13,17 @@ import {
   fetchProfile,
   fetchProfileAST,
   fetchProfileInfo,
+  fetchProfiles,
+  fetchProviderInfo,
+  fetchProviders,
   getStoreUrl,
 } from '../common/http';
+import { userError } from './error';
 
 //Mock superagent
 const mockInnerSet = jest.fn();
 const mockSet = jest.fn().mockReturnValue({ set: mockInnerSet });
+const mockQuery = jest.fn().mockReturnValue({ set: mockSet });
 
 jest.mock('superagent');
 
@@ -48,7 +59,62 @@ describe('HTTP functions', () => {
       expect(jest.spyOn(superagent, 'get')).toHaveBeenCalledWith(mockUrl);
     }, 10000);
 
+    it('calls superagent with query params correctly', async () => {
+      mockInnerSet.mockResolvedValue({ body: 'test' });
+      mockSet.mockImplementation(() => ({ set: mockInnerSet }));
+      mockQuery.mockImplementation(() => ({ set: mockSet }));
+      (jest.spyOn(superagent, 'get') as jest.Mock).mockReturnValue({
+        query: mockQuery,
+      });
+
+      const mockUrl = new URL(profileId, getStoreUrl()).href;
+
+      await expect(
+        fetch(mockUrl, ContentType.JSON, { test: 'value' })
+      ).resolves.toEqual({
+        body: 'test',
+      });
+      expect(mockQuery).toHaveBeenCalledTimes(1);
+      expect(mockQuery).toHaveBeenCalledWith({ test: 'value' });
+      expect(mockSet).toHaveBeenCalledTimes(1);
+      expect(mockSet).toHaveBeenCalledWith('Accept', ContentType.JSON);
+      expect(mockInnerSet).toHaveBeenCalledTimes(1);
+      expect(mockInnerSet).toHaveBeenCalledWith(
+        'User-Agent',
+        expect.any(String)
+      );
+      expect(jest.spyOn(superagent, 'get')).toHaveBeenCalledTimes(1);
+      expect(jest.spyOn(superagent, 'get')).toHaveBeenCalledWith(mockUrl);
+    }, 10000);
+
     it('catches error during superagent call', async () => {
+      mockInnerSet.mockRejectedValue(new Error('Not found'));
+      mockSet.mockImplementation(() => ({ set: mockInnerSet }));
+      mockQuery.mockImplementation(() => ({ set: mockSet }));
+      (jest.spyOn(superagent, 'get') as jest.Mock).mockReturnValue({
+        query: mockQuery,
+      });
+
+      const mockUrl = new URL(profileId, getStoreUrl()).href;
+
+      await expect(
+        fetch(mockUrl, ContentType.JSON, { test: 'value' })
+      ).rejects.toThrow(userError('Not found', 1));
+
+      expect(mockQuery).toHaveBeenCalledTimes(1);
+      expect(mockQuery).toHaveBeenCalledWith({ test: 'value' });
+      expect(mockSet).toHaveBeenCalledTimes(1);
+      expect(mockSet).toHaveBeenCalledWith('Accept', ContentType.JSON);
+      expect(mockInnerSet).toHaveBeenCalledTimes(1);
+      expect(mockInnerSet).toHaveBeenCalledWith(
+        'User-Agent',
+        expect.any(String)
+      );
+      expect(jest.spyOn(superagent, 'get')).toHaveBeenCalledTimes(1);
+      expect(jest.spyOn(superagent, 'get')).toHaveBeenCalledWith(mockUrl);
+    }, 10000);
+
+    it('catches error during superagent call with query params', async () => {
       mockInnerSet.mockRejectedValue(new Error('Not found'));
       mockSet.mockImplementation(() => ({ set: mockInnerSet }));
       (jest.spyOn(superagent, 'get') as jest.Mock).mockReturnValue({
@@ -61,6 +127,71 @@ describe('HTTP functions', () => {
         new CLIError('Not found')
       );
 
+      expect(mockSet).toHaveBeenCalledTimes(1);
+      expect(mockSet).toHaveBeenCalledWith('Accept', ContentType.JSON);
+      expect(mockInnerSet).toHaveBeenCalledTimes(1);
+      expect(mockInnerSet).toHaveBeenCalledWith(
+        'User-Agent',
+        expect.any(String)
+      );
+      expect(jest.spyOn(superagent, 'get')).toHaveBeenCalledTimes(1);
+      expect(jest.spyOn(superagent, 'get')).toHaveBeenCalledWith(mockUrl);
+    }, 10000);
+  });
+
+  describe('when fetching profiles', () => {
+    it('calls superagent correctly', async () => {
+      //mock profiles info
+      await expect(fetchProfiles()).resolves.toEqual([
+        { scope: 'communication', profile: 'send-email', version: '1.0.1' },
+      ]);
+    }, 10000);
+  });
+
+  describe('when fetching providers', () => {
+    const mockProviderJson: ProviderJson = {
+      name: 'test',
+      services: [{ id: 'test-service', baseUrl: 'service/base/url' }],
+      securitySchemes: [
+        {
+          type: SecurityType.HTTP,
+          id: 'basic',
+          scheme: HttpScheme.BASIC,
+        },
+        {
+          id: 'api',
+          type: SecurityType.APIKEY,
+          in: ApiKeyPlacement.HEADER,
+          name: 'Authorization',
+        },
+        {
+          id: 'bearer',
+          type: SecurityType.HTTP,
+          scheme: HttpScheme.BEARER,
+          bearerFormat: 'some',
+        },
+        {
+          id: 'digest',
+          type: SecurityType.HTTP,
+          scheme: HttpScheme.DIGEST,
+        },
+      ],
+      defaultService: 'test-service',
+    };
+    it('calls superagent correctly', async () => {
+      mockInnerSet.mockResolvedValue({ body: { data: [mockProviderJson] } });
+      mockSet.mockImplementation(() => ({ set: mockInnerSet }));
+      mockQuery.mockImplementation(() => ({ set: mockSet }));
+      (jest.spyOn(superagent, 'get') as jest.Mock).mockReturnValue({
+        query: mockQuery,
+      });
+      const mockUrl = new URL('providers', getStoreUrl()).href;
+
+      await expect(fetchProviders(profileId)).resolves.toEqual([
+        mockProviderJson,
+      ]);
+      expect(mockQuery).toHaveBeenCalledTimes(1);
+      expect(mockQuery).toHaveBeenCalledWith({ profile: profileId });
       expect(mockSet).toHaveBeenCalledTimes(1);
       expect(mockSet).toHaveBeenCalledWith('Accept', ContentType.JSON);
       expect(mockInnerSet).toHaveBeenCalledTimes(1);
@@ -177,6 +308,59 @@ describe('HTTP functions', () => {
 
       expect(mockSet).toHaveBeenCalledTimes(1);
       expect(mockSet).toHaveBeenCalledWith('Accept', ContentType.AST);
+      expect(mockInnerSet).toHaveBeenCalledTimes(1);
+      expect(mockInnerSet).toHaveBeenCalledWith(
+        'User-Agent',
+        expect.any(String)
+      );
+      expect(jest.spyOn(superagent, 'get')).toHaveBeenCalledTimes(1);
+      expect(jest.spyOn(superagent, 'get')).toHaveBeenCalledWith(mockUrl);
+    }, 10000);
+  });
+
+  describe('when fetching provider info', () => {
+    const mockProviderJson: ProviderJson = {
+      name: 'test',
+      services: [{ id: 'test-service', baseUrl: 'service/base/url' }],
+      securitySchemes: [
+        {
+          type: SecurityType.HTTP,
+          id: 'basic',
+          scheme: HttpScheme.BASIC,
+        },
+        {
+          id: 'api',
+          type: SecurityType.APIKEY,
+          in: ApiKeyPlacement.HEADER,
+          name: 'Authorization',
+        },
+        {
+          id: 'bearer',
+          type: SecurityType.HTTP,
+          scheme: HttpScheme.BEARER,
+          bearerFormat: 'some',
+        },
+        {
+          id: 'digest',
+          type: SecurityType.HTTP,
+          scheme: HttpScheme.DIGEST,
+        },
+      ],
+      defaultService: 'test-service',
+    };
+    it('calls superagent correctly', async () => {
+      mockInnerSet.mockResolvedValue({ body: mockProviderJson });
+      mockSet.mockImplementation(() => ({ set: mockInnerSet }));
+      (jest.spyOn(superagent, 'get') as jest.Mock).mockReturnValue({
+        set: mockSet,
+      });
+      const mockUrl = new URL('mailchimp', `${getStoreUrl()}providers/`).href;
+
+      await expect(fetchProviderInfo('mailchimp')).resolves.toEqual(
+        mockProviderJson
+      );
+      expect(mockSet).toHaveBeenCalledTimes(1);
+      expect(mockSet).toHaveBeenCalledWith('Accept', ContentType.JSON);
       expect(mockInnerSet).toHaveBeenCalledTimes(1);
       expect(mockInnerSet).toHaveBeenCalledWith(
         'User-Agent',

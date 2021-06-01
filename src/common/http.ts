@@ -60,16 +60,16 @@ export async function fetch(
 export async function fetchProfiles(): Promise<
   { scope: string; profile: string; version: string }[]
 > {
-  //Mock response
+  //Mock response for now
   return [{ scope: 'communication', profile: 'send-email', version: '1.0.1' }];
 }
 
-export async function fetchProviders(profile: string): Promise<string[]> {
+export async function fetchProviders(profile: string): Promise<ProviderJson[]> {
   const query = new URL('providers', getStoreUrl()).href;
 
   const response = await fetch(query, ContentType.JSON, { profile });
 
-  return (response.body as { data: ProviderJson[] }).data.map(p => p.name);
+  return (response.body as { data: ProviderJson[] }).data;
 }
 
 export async function fetchProfileInfo(

@@ -101,11 +101,11 @@ describe('Quickstart logic', () => {
       mockLoad.mockResolvedValue(ok(new SuperJson({})));
       mocked(fetchProfiles).mockResolvedValue([profile]);
       mocked(fetchProviders).mockResolvedValue([
-        'sendgrid',
-        'mailgun',
-        'mailchimp',
-        'mock',
-        'test',
+        { name: 'sendgrid', services: [], defaultService: '' },
+        { name: 'mailgun', services: [], defaultService: '' },
+        { name: 'mailchimp', services: [], defaultService: '' },
+        { name: 'mock', services: [], defaultService: '' },
+        { name: 'test', services: [], defaultService: '' },
       ]);
       mocked(getProviders).mockResolvedValue(mockInstaledProviders);
       mocked(exists).mockResolvedValue(false);
@@ -179,11 +179,11 @@ describe('Quickstart logic', () => {
       mockLoad.mockResolvedValue(ok(new SuperJson({})));
       mocked(fetchProfiles).mockResolvedValue([profile]);
       mocked(fetchProviders).mockResolvedValue([
-        'sendgrid',
-        'mailgun',
-        'mailchimp',
-        'mock',
-        'test',
+        { name: 'sendgrid', services: [], defaultService: '' },
+        { name: 'mailgun', services: [], defaultService: '' },
+        { name: 'mailchimp', services: [], defaultService: '' },
+        { name: 'mock', services: [], defaultService: '' },
+        { name: 'test', services: [], defaultService: '' },
       ]);
       mocked(getProviders).mockResolvedValue(mockInstaledProviders);
       mocked(exists).mockResolvedValue(true);
@@ -292,11 +292,11 @@ describe('Quickstart logic', () => {
       mockLoad.mockResolvedValue(ok(new SuperJson({})));
       mocked(fetchProfiles).mockResolvedValue([profile]);
       mocked(fetchProviders).mockResolvedValue([
-        'sendgrid',
-        'mailgun',
-        'mailchimp',
-        'mock',
-        'test',
+        { name: 'sendgrid', services: [], defaultService: '' },
+        { name: 'mailgun', services: [], defaultService: '' },
+        { name: 'mailchimp', services: [], defaultService: '' },
+        { name: 'mock', services: [], defaultService: '' },
+        { name: 'test', services: [], defaultService: '' },
       ]);
       mocked(getProviders).mockResolvedValue(mockInstaledProviders);
       mocked(exists).mockResolvedValue(true);
@@ -406,7 +406,13 @@ describe('Quickstart logic', () => {
       mocked(profileExists).mockResolvedValueOnce(true);
       mocked(providerExists).mockReturnValue(true);
       mocked(fetchProfiles).mockResolvedValue([profile]);
-      mocked(fetchProviders).mockResolvedValue(['sendgrid', 'mailgun', 'mock']);
+      mocked(fetchProviders).mockResolvedValue([
+        { name: 'sendgrid', services: [], defaultService: '' },
+        { name: 'mailgun', services: [], defaultService: '' },
+        { name: 'mailchimp', services: [], defaultService: '' },
+        { name: 'mock', services: [], defaultService: '' },
+        { name: 'test', services: [], defaultService: '' },
+      ]);
       mocked(getProviders).mockResolvedValue(mockInstaledProviders);
       //Env
       mocked(exists).mockResolvedValue(true);
