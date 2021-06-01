@@ -69,7 +69,7 @@ export async function fetchProviders(profile: string): Promise<string[]> {
 
   const response = await fetch(query, ContentType.JSON, { profile });
 
-  return (response.body as ProviderJson[]).map(p => p.name);
+  return (response.body as { data: ProviderJson[] }).data.map(p => p.name);
 }
 
 export async function fetchProfileInfo(
