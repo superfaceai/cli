@@ -105,7 +105,7 @@ export async function interactiveInstall(options?: {
 
   const providerResponse: { providers: string[] } = await inquirer.prompt({
     name: 'providers',
-    message: 'Select a provider/s you want to use',
+    message: 'Select the provider/s you want to use',
     type: 'checkbox',
     choices: possibleProviders.map(p => {
       return { name: p, checked: p === 'mock' };
@@ -117,11 +117,14 @@ export async function interactiveInstall(options?: {
 
   //Configure providers
   options?.successCb?.(`\n\nInstalling providers`);
+  const skippedProviders: string[] = []
   for (const providerName of providerResponse.providers) {
     //Override existing provider
     if (providerExists(superJson, providerName)) {
-      if (!(await confirmPrompt(`Provider "${providerName}" already exists.`)))
+      if (!(await confirmPrompt(`Provider "${providerName}" already exists.`))) {
+        skippedProviders.push(providerName)
         continue;
+      }
     }
     //Install provider
     await installProvider(
@@ -148,15 +151,21 @@ export async function interactiveInstall(options?: {
   }
   let selectedSchema: SecurityValues;
   for (const provider of Object.keys(installedProviders)) {
+    //Do not change provider that user dont want to overide from instaledProviders array
+    if (skippedProviders.includes(provider)) {
+      continue;
+    }
     options?.logCb?.(`\n\nConfiguring "${provider}" security`);
     //Select security schema
     if (
       installedProviders[provider].security &&
       installedProviders[provider].security.length > 0
     ) {
+      //If thre is only one schema use it
       if (installedProviders[provider].security.length === 1) {
         selectedSchema = installedProviders[provider].security[0];
       } else {
+        //Let user select schema
         selectedSchema = await selectSecuritySchema(
           provider,
           installedProviders[provider].security
@@ -224,12 +233,10 @@ async function getPromptedValue(
       )
     ) {
       //Delete set row
-      console.log('bef', envContent);
       envContent = envContent
         .split('\n')
         .filter(row => !row.includes(`${variableName}=`))
         .join('\n');
-      console.log('aff', envContent);
     } else {
       options?.warnCb?.(
         `Value of "${variableName}" for "${provider}" is already set`
@@ -244,8 +251,6 @@ async function getPromptedValue(
     message: `Enter ${name} of ${authType} security for "${provider}" This value will be stored locally in .env file.`,
     type: 'input',
   });
-
-  console.log('ret', envContent + envVariable(variableName, response.value));
 
   return (envContent += envVariable(variableName, response.value));
 }
