@@ -110,13 +110,12 @@ export async function execCLI(
   args: string[],
   apiUrl: string,
   options?: {
-    inputs?: string[];
+    inputs?: { value: string; timeout: number }[];
     env?: NodeJS.ProcessEnv;
     debug?: boolean;
   }
 ): Promise<{ stdout: string }> {
-  const timeout = 4000,
-    maxTimeout = 40000;
+  const maxTimeout = 20000;
   const CLI = joinPath('.', 'bin', 'superface');
   const bin = relative(directory, CLI);
 
@@ -130,7 +129,7 @@ export async function execCLI(
   let currentInputTimeout: NodeJS.Timeout, killIOTimeout: NodeJS.Timeout;
 
   // Creates a loop to feed user inputs to the child process in order to get results from the tool
-  const loop = (userInputs: string[]) => {
+  const loop = (userInputs: { value: string; timeout: number }[]) => {
     if (killIOTimeout) {
       clearTimeout(killIOTimeout);
     }
@@ -149,13 +148,18 @@ export async function execCLI(
     }
 
     currentInputTimeout = setTimeout(() => {
-      childProcess.stdin?.write(userInputs[0]);
+      childProcess.stdin?.write(userInputs[0].value);
       // Log debug I/O statements on tests
       if (options?.debug) {
-        console.log('input:', userInputs[0]);
+        console.log(
+          'input: ',
+          userInputs[0].value,
+          'timeout: ',
+          userInputs[0].timeout
+        );
       }
       loop(userInputs.slice(1));
-    }, timeout);
+    }, userInputs[0].timeout);
   };
 
   return new Promise((resolve, reject) => {

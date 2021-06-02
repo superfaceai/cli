@@ -19,12 +19,7 @@ import { envVariable } from '../templates/env';
 import { installProvider } from './configure';
 import { initSuperface } from './init';
 import { detectSuperJson, installProfiles } from './install';
-import {
-  getProviders,
-  installSdk,
-  profileExists,
-  providerExists,
-} from './quickstart.utils';
+import { installSdk, profileExists, providerExists } from './quickstart.utils';
 
 export async function interactiveInstall(options?: {
   logCb?: LogCallback;
@@ -36,7 +31,11 @@ export async function interactiveInstall(options?: {
   let superPath = await detectSuperJson(process.cwd());
   if (superPath) {
     //Overide existing super.json
-    if (!(await confirmPrompt('Super.json already exists.'))) {
+    if (
+      !(await confirmPrompt('Super.json already exists.', {
+        logCb: options?.logCb,
+      }))
+    ) {
       options?.warnCb?.(`Super.json already exists at path "${superPath}"`);
 
       return;
@@ -53,7 +52,7 @@ export async function interactiveInstall(options?: {
   superPath = SUPERFACE_DIR;
 
   //Load super.json (for checks)
-  const superJson = (
+  let superJson = (
     await SuperJson.load(joinPath(superPath, META_FILE))
   ).unwrap();
 
@@ -75,7 +74,8 @@ export async function interactiveInstall(options?: {
   if (await profileExists(superJson, profile)) {
     if (
       !(await confirmPrompt(
-        `Profile "${profile.scope}/${profile.profile}" already exists.`
+        `Profile "${profile.scope}/${profile.profile}" already exists.`,
+        { logCb: options?.logCb }
       ))
     )
       return;
@@ -119,21 +119,27 @@ export async function interactiveInstall(options?: {
 
   //Configure providers
   options?.successCb?.(`\n\nInstalling providers`);
-  const skippedProviders: string[] = [];
+  const providersToInstall: string[] = [];
   for (const providerName of providerResponse.providers) {
     //Override existing provider
     if (providerExists(superJson, providerName)) {
       if (
-        !(await confirmPrompt(`Provider "${providerName}" already exists.`))
+        !(await confirmPrompt(`Provider "${providerName}" already exists.`, {
+          logCb: options?.logCb,
+        }))
       ) {
-        skippedProviders.push(providerName);
         continue;
       }
     }
+    providersToInstall.push(providerName);
+  }
+
+  //Install providers
+  for (const provider of providersToInstall) {
     //Install provider
     await installProvider(
       superPath,
-      providerName,
+      provider,
       `${profile.scope}/${profile.profile}`,
       {
         logCb: options?.logCb,
@@ -145,7 +151,10 @@ export async function interactiveInstall(options?: {
   }
 
   //Ask for provider security
-  const installedProviders = await getProviders(superPath);
+  //Reload super.json
+  superJson = (await SuperJson.load(joinPath(superPath, META_FILE))).unwrap();
+  //Get installed
+  const installedProviders = superJson.normalized.providers;
 
   options?.successCb?.(`\n\nConfiguring providers security`);
 
@@ -156,7 +165,7 @@ export async function interactiveInstall(options?: {
   let selectedSchema: SecurityValues;
   for (const provider of Object.keys(installedProviders)) {
     //Do not change provider that user dont want to overide from instaledProviders array
-    if (skippedProviders.includes(provider)) {
+    if (!providersToInstall.includes(provider)) {
       continue;
     }
     options?.logCb?.(`\n\nConfiguring "${provider}" security`);
@@ -233,7 +242,8 @@ async function getPromptedValue(
     //Do we want to override?
     if (
       await confirmPrompt(
-        `Value of "${variableName}" for "${provider}" is already set.`
+        `Value of "${variableName}" for "${provider}" is already set.`,
+        { logCb: options?.logCb }
       )
     ) {
       //Delete set row
@@ -336,7 +346,10 @@ async function selectSecuritySchema(
   return schemaResponse.schema;
 }
 
-async function confirmPrompt(message?: string): Promise<boolean> {
+async function confirmPrompt(
+  message?: string,
+  options?: { logCb?: LogCallback }
+): Promise<boolean> {
   const prompt: { continue: boolean } = await inquirer.prompt({
     name: 'continue',
     message: message
@@ -345,6 +358,8 @@ async function confirmPrompt(message?: string): Promise<boolean> {
     type: 'confirm',
     default: false,
   });
+
+  options?.logCb?.(`Confirm: ${prompt.continue ? 'Yes' : 'No'}`);
 
   return prompt.continue;
 }
