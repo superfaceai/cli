@@ -263,7 +263,7 @@ async function getPromptedValue(
   const response: { value: string } = await inquirer.prompt({
     name: 'value',
     message: `Enter ${name} of ${authType} security for "${provider}" This value will be stored locally in .env file.`,
-    type: 'input',
+    type: 'password',
   });
 
   return (envContent += envVariable(variableName, response.value));
