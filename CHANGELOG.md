@@ -5,6 +5,9 @@
 * Provider name delimiters
 * Codegen generates .js and .d.ts now
 
+### Added
+* Interactive install command
+
 ## [0.0.13] - 2021-05-05
 
 ### Changed
