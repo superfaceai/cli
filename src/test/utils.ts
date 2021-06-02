@@ -10,6 +10,11 @@ import { EXTENSIONS } from '../common/document';
 import { ContentType } from '../common/http';
 import { mkdir, readFile } from '../common/io';
 
+export const ENTER = '\x0D';
+export const SPACE = '\x20';
+export const UP = '\x1B\x5B\x41';
+export const DOWN = '\x1B\x5B\x42';
+
 /**
  * Mocks HTTP responses for a profile
  *

@@ -13,11 +13,15 @@ import {
 } from '../common/io';
 import { OutputStream } from '../common/output-stream';
 import {
+  DOWN,
+  ENTER,
   execCLI,
   mockResponsesForProfile,
   mockResponsesForProfileProviders,
   mockResponsesForProvider,
   setUpTempDir,
+  SPACE,
+  UP,
 } from '../test/utils';
 
 const mockServer = getLocal();
@@ -97,20 +101,20 @@ describe('Interactive install CLI command', () => {
       const result = await execCLI(tempDir, ['install', '-i'], mockServer.url, {
         inputs: [
           //Confirm profile
-          { value: '\x0D', timeout: 1000 },
+          { value: ENTER, timeout: 1000 },
           //Select all providers
           { value: 'a', timeout: 8000 },
           //Confirm slection
-          { value: '\x0D', timeout: 100 },
+          { value: ENTER, timeout: 100 },
           //Sendgrid token
           { value: 'sendgridToken', timeout: 10000 },
-          { value: '\x0D', timeout: 100 },
+          { value: ENTER, timeout: 100 },
           //Mailgun username
           { value: 'username', timeout: 4000 },
-          { value: '\x0D', timeout: 100 },
+          { value: ENTER, timeout: 100 },
           //Mailgun password
           { value: 'password', timeout: 4000 },
-          { value: '\x0D', timeout: 100 },
+          { value: ENTER, timeout: 100 },
         ],
       });
 
@@ -322,28 +326,28 @@ describe('Interactive install CLI command', () => {
         inputs: [
           //Confirm super.json override
           { value: 'y', timeout: 2000 },
-          { value: '\x0D', timeout: 100 },
+          { value: ENTER, timeout: 100 },
           //Confirm profile
-          { value: '\x0D', timeout: 4000 },
+          { value: ENTER, timeout: 4000 },
           //Confirm profile override
           { value: 'y', timeout: 4000 },
-          { value: '\x0D', timeout: 100 },
+          { value: ENTER, timeout: 100 },
           //Select sendgrid provider
-          { value: '\x1B\x5B\x42', timeout: 10000 },
-          { value: '\x1B\x5B\x42', timeout: 500 },
-          { value: '\x20', timeout: 500 },
-          { value: '\x1B\x5B\x41', timeout: 500 },
-          { value: '\x20', timeout: 500 },
-          { value: '\x0D', timeout: 500 },
+          { value: DOWN, timeout: 10000 },
+          { value: DOWN, timeout: 500 },
+          { value: SPACE, timeout: 500 },
+          { value: UP, timeout: 500 },
+          { value: SPACE, timeout: 500 },
+          { value: ENTER, timeout: 500 },
           //Confirm first provider override
           { value: 'y', timeout: 6000 },
-          { value: '\x0D', timeout: 500 },
+          { value: ENTER, timeout: 500 },
           //Confirm env override
           { value: 'y', timeout: 4000 },
-          { value: '\x0D', timeout: 500 },
+          { value: ENTER, timeout: 500 },
           //Sendgrid token
           { value: 'newSendgridToken', timeout: 4000 },
-          { value: '\x0D', timeout: 500 },
+          { value: ENTER, timeout: 500 },
         ],
       });
 
