@@ -4,6 +4,7 @@ import { join as joinPath } from 'path';
 
 import { mkdir, rimraf } from '../common/io';
 import {
+  ENTER,
   execCLI,
   mockResponsesForProfile,
   mockResponsesForProvider,
@@ -45,7 +46,7 @@ describe('Create CLI command', () => {
         ['create', 'profile', documentName],
         mockServer.url,
         //Mock inquier input
-        { inputs: ['\x0D'] }
+        { inputs: [{ value: ENTER, timeout: 1000 }] }
       );
 
       expect(result.stdout).toMatch(
@@ -81,7 +82,7 @@ describe('Create CLI command', () => {
         ['create', 'profile', documentName, '-u', 'SendSMS'],
         mockServer.url,
         //Mock inquier input
-        { inputs: ['\x0D'] }
+        { inputs: [{ value: ENTER, timeout: 1000 }] }
       );
       expect(result.stdout).toContain(
         `-> Created ${documentName}.supr (name = "${documentName}", version = "1.0.0")`
@@ -115,7 +116,7 @@ describe('Create CLI command', () => {
         ['create', 'profile', documentName, '-u', 'ReceiveSMS', 'SendSMS'],
         mockServer.url,
         //Mock inquier input
-        { inputs: ['\x0D'] }
+        { inputs: [{ value: ENTER, timeout: 1000 }] }
       );
       expect(result.stdout).toContain(
         `-> Created ${documentName}.supr (name = "${documentName}", version = "1.0.0")`
@@ -151,7 +152,7 @@ describe('Create CLI command', () => {
         ['create', 'map', documentName, '-p', provider],
         mockServer.url,
         //Mock inquier input
-        { inputs: ['\x0D'] }
+        { inputs: [{ value: ENTER, timeout: 1000 }] }
       );
       expect(result.stdout).toContain(
         `-> Created ${documentName}.${provider}.suma (profile = "${documentName}@1.0", provider = "${provider}")`
@@ -197,7 +198,7 @@ describe('Create CLI command', () => {
         ['create', 'map', documentName, '-u', 'SendSMS', '-p', provider],
         mockServer.url,
         //Mock inquier input
-        { inputs: ['\x0D'] }
+        { inputs: [{ value: ENTER, timeout: 1000 }] }
       );
       expect(result.stdout).toContain(
         `-> Created ${documentName}.${provider}.suma (profile = "${documentName}@1.0", provider = "${provider}")`
@@ -253,7 +254,7 @@ describe('Create CLI command', () => {
         ],
         mockServer.url,
         //Mock inquier input
-        { inputs: ['\x0D'] }
+        { inputs: [{ value: ENTER, timeout: 1000 }] }
       );
       expect(result.stdout).toContain(
         `-> Created ${documentName}.${provider}.suma (profile = "${documentName}@1.0", provider = "${provider}")`
@@ -300,7 +301,7 @@ describe('Create CLI command', () => {
         ['create', documentName, '-p', provider],
         mockServer.url,
         //Mock inquier input
-        { inputs: ['\x0D'] }
+        { inputs: [{ value: ENTER, timeout: 1000 }] }
       );
       expect(result.stdout).toContain(
         `-> Created ${documentName}.supr (name = "${documentName}", version = "1.0.0")`
@@ -357,7 +358,7 @@ describe('Create CLI command', () => {
         ['create', documentName, '-u', 'SendSMS', '-p', 'twilio'],
         mockServer.url,
         //Mock inquier input
-        { inputs: ['\x0D'] }
+        { inputs: [{ value: ENTER, timeout: 1000 }] }
       );
       expect(result.stdout).toContain(
         `-> Created ${documentName}.supr (name = "${documentName}", version = "1.0.0")`
@@ -413,7 +414,7 @@ describe('Create CLI command', () => {
         ['create', documentName, '-u', 'SendSMS', 'ReceiveSMS', '-p', provider],
         mockServer.url,
         //Mock inquier input
-        { inputs: ['\x0D'] }
+        { inputs: [{ value: ENTER, timeout: 1000 }] }
       );
       expect(result.stdout).toMatch(
         `-> Created ${documentName}.supr (name = "${documentName}", version = "1.0.0")`

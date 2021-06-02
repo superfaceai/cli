@@ -16,6 +16,7 @@ export const realpath = promisify(fs.realpath);
 export const rimraf = promisify(rimrafCallback);
 export const rmdir = promisify(fs.rmdir);
 export const stat = promisify(fs.stat);
+export const execShell = promisify(childProcess.exec);
 
 export interface WritingOptions {
   append?: boolean;

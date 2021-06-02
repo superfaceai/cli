@@ -1,0 +1,30 @@
+"""
+Send Email
+Send one transactional email
+"""
+
+name = "communication/send-email"
+version = "1.0.1"
+
+"""
+Send transactional email to one recipient
+Email can contain text and/or html representation
+"""
+usecase SendEmail unsafe {
+  input {
+    from!
+    to!
+    subject!
+    text
+    html
+  }
+
+  result {
+    messageId
+  }
+
+  error {
+    title
+    detail
+  }
+}

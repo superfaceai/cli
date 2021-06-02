@@ -37,13 +37,39 @@ export function getStoreUrl(): string {
   return envUrl ? new URL(envUrl).href : new URL('https://superface.ai/').href;
 }
 
-export async function fetch(url: string, type: ContentType): Promise<Response> {
+export async function fetch(
+  url: string,
+  type: ContentType,
+  query?: Record<string, string | number>
+): Promise<Response> {
   const userAgent = `superface cli/${VERSION} (${process.platform}-${process.arch}) ${process.release.name}-${process.version} (with @superfaceai/one-sdk@${SDK_VERSION}, @superfaceai/parser@${PARSER_VERSION})`;
   try {
+    if (query) {
+      return superagent
+        .get(url)
+        .query(query)
+        .set('Accept', type)
+        .set('User-Agent', userAgent);
+    }
+
     return superagent.get(url).set('Accept', type).set('User-Agent', userAgent);
   } catch (err) {
     throw userError(err, 1);
   }
+}
+export async function fetchProfiles(): Promise<
+  { scope: string; profile: string; version: string }[]
+> {
+  //Mock response for now
+  return [{ scope: 'communication', profile: 'send-email', version: '1.0.1' }];
+}
+
+export async function fetchProviders(profile: string): Promise<ProviderJson[]> {
+  const query = new URL('providers', getStoreUrl()).href;
+
+  const response = await fetch(query, ContentType.JSON, { profile });
+
+  return (response.body as { data: ProviderJson[] }).data;
 }
 
 export async function fetchProfileInfo(

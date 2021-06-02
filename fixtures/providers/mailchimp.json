@@ -1,0 +1,10 @@
+{
+  "name": "mailchimp",
+  "services": [
+    {
+      "id": "mandrill",
+      "baseUrl": "https://mandrillapp.com/api/1.0"
+    }
+  ],
+  "defaultService": "mandrill"
+}

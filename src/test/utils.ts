@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
+import { ProviderJson } from '@superfaceai/one-sdk';
 import { execFile } from 'child_process';
 import concat from 'concat-stream';
 import { Mockttp } from 'mockttp';
@@ -8,6 +9,11 @@ import { join as joinPath, relative } from 'path';
 import { EXTENSIONS } from '../common/document';
 import { ContentType } from '../common/http';
 import { mkdir, readFile } from '../common/io';
+
+export const ENTER = '\x0D';
+export const SPACE = '\x20';
+export const UP = '\x1B\x5B\x41';
+export const DOWN = '\x1B\x5B\x42';
 
 /**
  * Mocks HTTP responses for a profile
@@ -69,6 +75,32 @@ export async function mockResponsesForProvider(
 }
 
 /**
+ * Mocks HTTP responses for a profile providers
+ *
+ * expects following files in specified path (default fixtures/providers)
+ *   provider.json           - provider info
+ */
+export async function mockResponsesForProfileProviders(
+  server: Mockttp,
+  providers: string[],
+  profile: string,
+  path = joinPath('fixtures', 'providers')
+): Promise<void> {
+  const providersInfo: ProviderJson[] = [];
+  for (const p of providers) {
+    const basePath = joinPath(path, p);
+    providersInfo.push(
+      JSON.parse((await readFile(basePath + '.json')).toString())
+    );
+  }
+  await server
+    .get('/providers')
+    .withQuery({ profile: profile })
+    .withHeaders({ Accept: ContentType.JSON })
+    .thenJson(200, { data: providersInfo });
+}
+
+/**
  * Executes the Superface CLI binary
  *
  * @export
@@ -83,13 +115,12 @@ export async function execCLI(
   args: string[],
   apiUrl: string,
   options?: {
-    inputs?: string[];
+    inputs?: { value: string; timeout: number }[];
     env?: NodeJS.ProcessEnv;
     debug?: boolean;
   }
 ): Promise<{ stdout: string }> {
-  const timeout = 100,
-    maxTimeout = 20000;
+  const maxTimeout = 20000;
   const CLI = joinPath('.', 'bin', 'superface');
   const bin = relative(directory, CLI);
 
@@ -103,7 +134,7 @@ export async function execCLI(
   let currentInputTimeout: NodeJS.Timeout, killIOTimeout: NodeJS.Timeout;
 
   // Creates a loop to feed user inputs to the child process in order to get results from the tool
-  const loop = (userInputs: string[]) => {
+  const loop = (userInputs: { value: string; timeout: number }[]) => {
     if (killIOTimeout) {
       clearTimeout(killIOTimeout);
     }
@@ -122,13 +153,18 @@ export async function execCLI(
     }
 
     currentInputTimeout = setTimeout(() => {
-      childProcess.stdin?.write(userInputs[0]);
+      childProcess.stdin?.write(userInputs[0].value);
       // Log debug I/O statements on tests
       if (options?.debug) {
-        console.log('input:', userInputs[0]);
+        console.log(
+          'input: ',
+          userInputs[0].value,
+          'timeout: ',
+          userInputs[0].timeout
+        );
       }
       loop(userInputs.slice(1));
-    }, timeout);
+    }, userInputs[0].timeout);
   };
 
   return new Promise((resolve, reject) => {

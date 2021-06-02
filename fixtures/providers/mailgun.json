@@ -1,0 +1,17 @@
+{
+  "name": "mailgun",
+  "services": [
+    {
+      "id": "v3",
+      "baseUrl": "https://api.mailgun.net/v3"
+    }
+  ],
+  "defaultService": "v3",
+  "securitySchemes": [
+    {
+      "id": "basic",
+      "type": "http",
+      "scheme": "basic"
+    }
+  ]
+}
