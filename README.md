@@ -91,6 +91,7 @@ ARGUMENTS
 OPTIONS
   -f, --force                When set to true and when profile exists in local filesystem, overwrites them.
   -h, --help                 show CLI help
+  -i, --interactive          When set to true, command is used in interactive mode
   -l, --local                When set to true, profile id argument is used as a filepath to profile.supr file
   -p, --providers=providers  Provider name.
   -q, --quiet                When set to true, disables the shell echo output of init actions.
@@ -100,6 +101,7 @@ OPTIONS
 
 EXAMPLES
   $ superface install
+  $ superface install -i
   $ superface install sms/service@1.0
   $ superface install sms/service@1.0 --providers twilio tyntec
   $ superface install sms/service@1.0 -p twilio
