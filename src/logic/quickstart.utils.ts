@@ -1,9 +1,4 @@
-import { CLIError } from '@oclif/errors';
-import {
-  META_FILE,
-  NormalizedProviderSettings,
-  SuperJson,
-} from '@superfaceai/one-sdk';
+import { SuperJson } from '@superfaceai/one-sdk';
 import { join as joinPath } from 'path';
 
 import { EXTENSIONS } from '..';
@@ -27,20 +22,6 @@ export async function installSdk(options?: {
   if (result.stdout !== '') {
     options?.logCb?.(result.stdout);
   }
-}
-
-export async function getProviders(
-  superPath: string
-): Promise<Record<string, NormalizedProviderSettings>> {
-  const loadedResult = await SuperJson.load(joinPath(superPath, META_FILE));
-  const superJson = loadedResult.match(
-    v => v,
-    err => {
-      throw new CLIError(err);
-    }
-  );
-
-  return superJson.normalized.providers;
 }
 
 export async function profileExists(
