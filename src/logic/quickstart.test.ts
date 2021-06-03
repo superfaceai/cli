@@ -373,9 +373,6 @@ describe('Quickstart logic', () => {
         '\n\nProvider "mock" can be used without authentication'
       );
       expect(logCb).toHaveBeenCalledWith('\n\nConfiguring "test" security');
-      expect(warnCb).toHaveBeenCalledWith(
-        'Value of "TEST_API_KEY" for "test" is already set'
-      );
       expect(successCb).toHaveBeenCalledWith(
         '\n\nInstalling package "@superfaceai/one-sdk"'
       );
