@@ -91,8 +91,8 @@ ARGUMENTS
 OPTIONS
   -f, --force                When set to true and when profile exists in local filesystem, overwrites them.
   -h, --help                 show CLI help
-  -i, --interactive          When set to true, command is used in interactive mode
-  -l, --local                When set to true, profile id argument is used as a filepath to profile.supr file
+  -i, --interactive          When set to true, command is used in interactive mode.
+  -l, --local                When set to true, profile id argument is used as a filepath to profile.supr file.
   -p, --providers=providers  Provider name.
   -q, --quiet                When set to true, disables the shell echo output of init actions.
 

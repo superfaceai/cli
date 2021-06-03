@@ -73,12 +73,12 @@ export default class Install extends Command {
     local: oclifFlags.boolean({
       char: 'l',
       description:
-        'When set to true, profile id argument is used as a filepath to profile.supr file',
+        'When set to true, profile id argument is used as a filepath to profile.supr file.',
       default: false,
     }),
     interactive: oclifFlags.boolean({
       char: 'i',
-      description: 'When set to true, command is used in interactive mode',
+      description: 'When set to true, command is used in interactive mode.',
       default: false,
       exclusive: ['providers', 'force', 'local', 'scan', 'quiet'],
     }),

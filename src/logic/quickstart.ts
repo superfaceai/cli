@@ -32,7 +32,7 @@ export async function interactiveInstall(options?: {
   if (superPath) {
     //Overide existing super.json
     if (
-      !(await confirmPrompt('Super.json already exists.', {
+      !(await confirmPrompt('Configuration file super.json already exists.', {
         logCb: options?.logCb,
       }))
     ) {
@@ -262,7 +262,7 @@ async function getPromptedValue(
 
   const response: { value: string } = await inquirer.prompt({
     name: 'value',
-    message: `Enter ${name} of ${authType} security for "${provider}" This value will be stored locally in .env file.`,
+    message: `Enter ${name} of ${authType} security for "${provider}". This value will be stored locally in .env file:`,
     type: 'password',
   });
 
