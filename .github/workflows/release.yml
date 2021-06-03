@@ -23,13 +23,13 @@ jobs:
       - name: Install dependencies
         run: yarn install --frozen-lockfile
 
-      # Test the project
-      - name: Tests
-        run: yarn test
-
       # Build the project
       - name: Build
         run: yarn build
+
+      # Test the project
+      - name: Tests
+        run: yarn test
 
       # Git configuration
       - name: Git configuration
