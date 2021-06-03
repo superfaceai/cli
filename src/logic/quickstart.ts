@@ -252,9 +252,6 @@ async function getPromptedValue(
         .filter(row => !row.includes(`${variableName}=`))
         .join('\n');
     } else {
-      options?.warnCb?.(
-        `Value of "${variableName}" for "${provider}" is already set`
-      );
 
       return envContent;
     }
