@@ -1,42 +1,42 @@
-## [Unreleased]
+# Changelog
 
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [Unreleased]
+### Added
+* Interactive install command
+
+## [0.0.14] - 2021-05-12
 ### Changed
 * Provider name in environment variables
 * Provider name delimiters
 * Codegen generates .js and .d.ts now
 
-### Added
-* Interactive install command
-
 ## [0.0.13] - 2021-05-05
-
 ### Changed
 * Validate identifiers
 
 ## [0.0.12] - 2021-04-30
-
 ### Changed
 * Allow every type for Result in generated SDK
 
 ## [0.0.11] - 2021-04-28
-
 ### Changed
 * Export SuperfaceClient type from generated SDK
 * Allow every type for Result in generated SDK
 
 ## [0.0.10] - 2021-04-26
-
 ### Added
 * Generate command
-
-### Added
 * Support for installing local files with `install` command
 
 ### Changed
 * Refactored install logic
 
 ## [0.0.5] - 2021-03-15
-
 ### Changed
 * Updated sdk version to v0.0.11
 * Update playground and fixtures to support sdk v0.0.11
@@ -45,7 +45,6 @@
 * `install` no longer stores local file path in `super.json` and instead stores the version
 
 ## [0.0.4] - 2021-02-25
-
 ### Added
 * New flags for create command: `--template`, `--version` (`-v`),  `--variant` (`-t`)
 * Generation of scope directory
@@ -76,7 +75,6 @@
 * Unnecessary fixture playground
 
 ## [0.0.2]
-
 ### Added
 * Create command
 * Play command
@@ -86,7 +84,6 @@
 * package.json private field to false
 
 ## [0.0.1] - 2020-11-25
-
 ### Added
 * Document type inferrance
 * Lint command
