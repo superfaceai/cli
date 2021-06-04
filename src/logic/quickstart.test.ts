@@ -140,7 +140,12 @@ describe('Quickstart logic', () => {
           schema: mockSuperJson.normalized.providers['test'].security[0],
         })
         //Set test digest
-        .mockResolvedValueOnce({ value: 'testDigest' });
+        .mockResolvedValueOnce({ value: 'testDigest' })
+        //Set SDK token
+        .mockResolvedValueOnce({
+          token:
+            'sfs_bb064dd57c302911602dd097bc29bedaea6a021c25a66992d475ed959aa526c7_37bce8b5',
+        });
 
       await interactiveInstall({
         logCb,
@@ -155,7 +160,7 @@ describe('Quickstart logic', () => {
       expect(exists).toHaveBeenCalled();
       expect(writeOnceSpy).toHaveBeenCalledWith(
         '.env',
-        'SENDGRID_TOKEN=sendgridBearer\nMAILGUN_USERNAME=mailgunUsername\nMAILGUN_PASSWORD=mailgunPassword\nTEST_DIGEST=testDigest\n'
+        'SENDGRID_TOKEN=sendgridBearer\nMAILGUN_USERNAME=mailgunUsername\nMAILGUN_PASSWORD=mailgunPassword\nTEST_DIGEST=testDigest\nSUPERFACE_SDK_TOKEN=sfs_bb064dd57c302911602dd097bc29bedaea6a021c25a66992d475ed959aa526c7_37bce8b5\n'
       );
 
       expect(successCb).toHaveBeenCalledWith(
@@ -219,7 +224,12 @@ describe('Quickstart logic', () => {
           schema: mockSuperJson.normalized.providers['test'].security[1],
         })
         //Set test digest
-        .mockResolvedValueOnce({ value: 'testApiKey' });
+        .mockResolvedValueOnce({ value: 'testApiKey' })
+        //Set SDK token
+        .mockResolvedValueOnce({
+          token:
+            'sfs_bb064dd57c302911602dd097bc29bedaea6a021c25a66992d475ed959aa526c7_37bce8b5',
+        });
 
       await interactiveInstall({ logCb, warnCb, successCb });
 
@@ -230,7 +240,7 @@ describe('Quickstart logic', () => {
       expect(exists).toHaveBeenCalled();
       expect(writeOnceSpy).toHaveBeenCalledWith(
         '.env',
-        'SOME=env\nSENDGRID_TOKEN=sendgridBearer\nMAILGUN_USERNAME=mailgunUsername\nMAILGUN_PASSWORD=mailgunPassword\nTEST_API_KEY=testApiKey\n'
+        'SOME=env\nSENDGRID_TOKEN=sendgridBearer\nMAILGUN_USERNAME=mailgunUsername\nMAILGUN_PASSWORD=mailgunPassword\nTEST_API_KEY=testApiKey\nSUPERFACE_SDK_TOKEN=sfs_bb064dd57c302911602dd097bc29bedaea6a021c25a66992d475ed959aa526c7_37bce8b5\n'
       );
 
       expect(successCb).toHaveBeenCalledWith(
@@ -342,7 +352,12 @@ describe('Quickstart logic', () => {
             mockMisconfiguredSuperJson.normalized.providers['test'].security[1],
         })
         //Set test digest
-        .mockResolvedValueOnce({ value: 'testApiKey' });
+        .mockResolvedValueOnce({ value: 'testApiKey' })
+        //Set SDK token
+        .mockResolvedValueOnce({
+          token:
+            'sfs_bb064dd57c302911602dd097bc29bedaea6a021c25a66992d475ed959aa526c7_37bce8b5',
+        });
 
       await interactiveInstall({ logCb, warnCb, successCb });
 
@@ -353,7 +368,7 @@ describe('Quickstart logic', () => {
       expect(exists).toHaveBeenCalled();
       expect(writeOnceSpy).toHaveBeenCalledWith(
         '.env',
-        'TEST_API_KEY=env\nMAILGUN_USERNAME=mailgunUsername\nMAILGUN_PASSWORD=mailgunPassword\n'
+        'TEST_API_KEY=env\nMAILGUN_USERNAME=mailgunUsername\nMAILGUN_PASSWORD=mailgunPassword\nSUPERFACE_SDK_TOKEN=sfs_bb064dd57c302911602dd097bc29bedaea6a021c25a66992d475ed959aa526c7_37bce8b5\n'
       );
 
       expect(successCb).toHaveBeenCalledWith(
@@ -482,7 +497,12 @@ describe('Quickstart logic', () => {
           schema: mockSuperJson.normalized.providers['test'].security[0],
         })
         //Set test digest
-        .mockResolvedValueOnce({ value: 'testDigest' });
+        .mockResolvedValueOnce({ value: 'testDigest' })
+        //Set SDK token
+        .mockResolvedValueOnce({
+          token:
+            'sfs_bb064dd57c302911602dd097bc29bedaea6a021c25a66992d475ed959aa526c7_37bce8b5',
+        });
       await interactiveInstall({
         logCb,
         warnCb,
@@ -496,7 +516,7 @@ describe('Quickstart logic', () => {
       expect(exists).toHaveBeenCalled();
       expect(writeOnceSpy).toHaveBeenCalledWith(
         '.env',
-        'test=test\nSENDGRID_TOKEN=t\ntest2=test2\nMAILGUN_USERNAME=mailgunUsername\nMAILGUN_PASSWORD=mailgunPassword\nTEST_DIGEST=testDigest\n'
+        'test=test\nSENDGRID_TOKEN=t\ntest2=test2\nMAILGUN_USERNAME=mailgunUsername\nMAILGUN_PASSWORD=mailgunPassword\nTEST_DIGEST=testDigest\nSUPERFACE_SDK_TOKEN=sfs_bb064dd57c302911602dd097bc29bedaea6a021c25a66992d475ed959aa526c7_37bce8b5\n'
       );
 
       expect(successCb).toHaveBeenCalledWith(

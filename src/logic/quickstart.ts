@@ -201,17 +201,40 @@ export async function interactiveInstall(options?: {
       );
     }
   }
-  //Write .env file
-  await OutputStream.writeOnce('.env', envContent);
-
   //Install SDK
   options?.successCb?.(`\n\nInstalling package "@superfaceai/one-sdk"`);
   await installSdk({ logCb: options?.logCb, warnCb: options?.warnCb });
 
+  //Prompt user for optional SDK token
+  options?.successCb?.(`\n\nConfiguring package "@superfaceai/one-sdk"`);
+
+  const tokenEnvName = 'SUPERFACE_SDK_TOKEN';
+
+  if (!envContent.includes(tokenEnvName)) {
+    const tokenResponse: { token: string } = await inquirer.prompt({
+      name: 'token',
+      message:
+        '(Optional) You can enter your SDK token generated at https://superface.ai:',
+      type: 'password',
+    });
+
+    const tokenRegexp = /^(sfs)_(.+)_([0-9A-F]{8}$)/i;
+    if (!tokenRegexp.test(tokenResponse.token)) {
+      options?.warnCb?.(`Entered value has unexpected format.`);
+    } else {
+      envContent += envVariable(tokenEnvName, tokenResponse.token);
+      options?.successCb?.(
+        `Your SDK token was saved to ${tokenEnvName} variable in .env file. You can use it for authentization during SDK usage by loading it to your enviroment.`
+      );
+    }
+  }
+
+  //Write .env file
+  await OutputStream.writeOnce('.env', envContent);
+
   options?.successCb?.(`🆗 Superface have been configured successfully!`);
 
   //Lead to docs page
-
   //TODO: usecase specific page
   const url = 'https://docs.superface.ai/getting-started';
   options?.successCb?.(
@@ -252,7 +275,6 @@ async function getPromptedValue(
         .filter(row => !row.includes(`${variableName}=`))
         .join('\n');
     } else {
-
       return envContent;
     }
   }

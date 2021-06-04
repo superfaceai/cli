@@ -115,6 +115,13 @@ describe('Interactive install CLI command', () => {
           //Mailgun password
           { value: 'password', timeout: 4000 },
           { value: ENTER, timeout: 100 },
+          //SDK token
+          {
+            value:
+              'sfs_bb064dd57c302911602dd097bc29bedaea6a021c25a66992d475ed959aa526c7_37bce8b5',
+            timeout: 4000,
+          },
+          { value: ENTER, timeout: 100 },
         ],
       });
 
@@ -215,7 +222,7 @@ describe('Interactive install CLI command', () => {
       //Check .env
       const env = (await readFile(joinPath(tempDir, '.env'))).toString();
       expect(env).toMatch(
-        'SENDGRID_TOKEN=sendgridToken\nMAILGUN_USERNAME=username\nMAILGUN_PASSWORD=password\n'
+        'SENDGRID_TOKEN=sendgridToken\nMAILGUN_USERNAME=username\nMAILGUN_PASSWORD=password\nSUPERFACE_SDK_TOKEN=sfs_bb064dd57c302911602dd097bc29bedaea6a021c25a66992d475ed959aa526c7_37bce8b5\n'
       );
       //Check package.json
       const packageFile = (
@@ -348,6 +355,13 @@ describe('Interactive install CLI command', () => {
           //Sendgrid token
           { value: 'newSendgridToken', timeout: 4000 },
           { value: ENTER, timeout: 500 },
+          //SDK token
+          {
+            value:
+              'sfs_bb064dd57c302911602dd097bc29bedaea6a021c25a66992d475ed959aa526c7_37bce8b5',
+            timeout: 4000,
+          },
+          { value: ENTER, timeout: 100 },
         ],
       });
 
@@ -459,7 +473,7 @@ describe('Interactive install CLI command', () => {
       //Check .env
       const env = (await readFile(joinPath(tempDir, '.env'))).toString();
       expect(env).toMatch(
-        'TEST=test\nMAILGUN_USERNAME=username\nMAILGUN_PASSWORD=password\nANOTHER_TEST=anotherTest\nSENDGRID_TOKEN=newSendgridToken\n'
+        'TEST=test\nMAILGUN_USERNAME=username\nMAILGUN_PASSWORD=password\nANOTHER_TEST=anotherTest\nSENDGRID_TOKEN=newSendgridToken\nSUPERFACE_SDK_TOKEN=sfs_bb064dd57c302911602dd097bc29bedaea6a021c25a66992d475ed959aa526c7_37bce8b5\n'
       );
       //Check package.json
       const packageFile = (
