@@ -83,7 +83,6 @@ describe('Play CLI command', () => {
       `${createdPlayground.name}.foo.suma`,
       `${createdPlayground.name}.bar.suma`,
       joinPath('superface', 'super.json'),
-      joinPath('superface', '.gitignore'),
       joinPath('superface', 'package.json'),
       joinPath('superface', 'play', `${createdPlayground.name}.play.ts`),
     ].map(f => joinPath(createdPlayground.path, f));
@@ -95,13 +94,10 @@ describe('Play CLI command', () => {
       `$ echo '<initial super.json>' > '${expectedFiles[3]}'`
     );
     expect(stdout.output).toContain(
-      `$ echo '<.gitignore template>' > '${expectedFiles[4]}'`
+      `$ echo '<package.json template>' > '${expectedFiles[4]}'`
     );
     expect(stdout.output).toContain(
-      `$ echo '<package.json template>' > '${expectedFiles[5]}'`
-    );
-    expect(stdout.output).toContain(
-      `$ echo '<play.ts template>' > '${expectedFiles[6]}'`
+      `$ echo '<play.ts template>' > '${expectedFiles[5]}'`
     );
     expect(stdout.output).toContain(
       `-> Created ${expectedFiles[0]} (name = "create_test", version = "1.0.0")`
@@ -178,7 +174,6 @@ describe('Play CLI command', () => {
       `${createdPlayground.name}.bar.suma`,
       joinPath('superface', 'super.json'),
       joinPath('superface', 'package.json'),
-      joinPath('superface', '.gitignore'),
       joinPath('superface', 'play', `${createdPlayground.name}.play.ts`),
     ].map(f => joinPath(createdPlayground.path, f));
 

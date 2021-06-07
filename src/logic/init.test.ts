@@ -50,13 +50,11 @@ describe('Init logic', () => {
       expect(mkdir).toHaveBeenCalledTimes(1);
       expect(mkdir).toHaveBeenCalledWith(mockAppPath, { recursive: true });
 
-      expect(mkdirQuiet).toHaveBeenCalledTimes(4);
       expect(mkdirQuiet).toHaveBeenNthCalledWith(1, 'test/superface');
       expect(mkdirQuiet).toHaveBeenNthCalledWith(2, 'test/superface/grid');
       expect(mkdirQuiet).toHaveBeenNthCalledWith(3, 'test/superface/types');
-      expect(mkdirQuiet).toHaveBeenNthCalledWith(4, 'test/superface/build');
 
-      expect(writeIfAbsentSpy).toHaveBeenCalledTimes(3);
+      expect(writeIfAbsentSpy).toHaveBeenCalledTimes(2);
       expect(writeIfAbsentSpy).toHaveBeenNthCalledWith(
         1,
         'test/README.md',
@@ -67,12 +65,6 @@ describe('Init logic', () => {
         2,
         'test/superface/super.json',
         expect.anything(),
-        { force: undefined }
-      );
-      expect(writeIfAbsentSpy).toHaveBeenNthCalledWith(
-        3,
-        'test/superface/.gitignore',
-        initTemplate.gitignore,
         { force: undefined }
       );
 
