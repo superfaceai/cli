@@ -210,7 +210,7 @@ export async function interactiveInstall(options?: {
 
   const tokenEnvName = 'SUPERFACE_SDK_TOKEN';
 
-  if (!envContent.includes(tokenEnvName)) {
+  if (!envContent.includes(`${tokenEnvName}=`)) {
     const tokenResponse: { token: string } = await inquirer.prompt({
       name: 'token',
       message:
@@ -218,14 +218,16 @@ export async function interactiveInstall(options?: {
       type: 'password',
     });
 
-    const tokenRegexp = /^(sfs)_(.+)_([0-9A-F]{8}$)/i;
-    if (!tokenRegexp.test(tokenResponse.token)) {
-      options?.warnCb?.(`Entered value has unexpected format.`);
-    } else {
-      envContent += envVariable(tokenEnvName, tokenResponse.token);
-      options?.successCb?.(
-        `Your SDK token was saved to ${tokenEnvName} variable in .env file. You can use it for authentization during SDK usage by loading it to your enviroment.`
-      );
+    if (tokenResponse.token) {
+      const tokenRegexp = /^(sfs)_(.+)_([0-9A-F]{8}$)/i;
+      if (!tokenRegexp.test(tokenResponse.token)) {
+        options?.warnCb?.(`Entered value has unexpected format.`);
+      } else {
+        envContent += envVariable(tokenEnvName, tokenResponse.token);
+        options?.successCb?.(
+          `Your SDK token was saved to ${tokenEnvName} variable in .env file. You can use it for authentization during SDK usage by loading it to your enviroment.`
+        );
+      }
     }
   }
 
