@@ -217,7 +217,7 @@ export async function interactiveInstall(options?: {
         '(Optional) You can enter your SDK token generated at https://superface.ai:',
       type: 'password',
       validate: input => {
-        const tokenRegexp = /^(sfs)_([^_]+)_([0-9A-F]{8})/i;
+        const tokenRegexp = /^(sfs)_([^_]+)_([0-9A-F]{8})$/i;
         if (!input) {
           return true;
         }

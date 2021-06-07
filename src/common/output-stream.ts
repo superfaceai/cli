@@ -5,7 +5,7 @@ import { Writable } from 'stream';
 
 import { exists, streamEnd, streamWrite, WritingOptions } from './io';
 
-const outputStreamDebug = createDebug('superface:OutputStream');
+const outputStreamDebug = createDebug('superface:output-stream');
 export class OutputStream {
   private readonly name: string;
   readonly stream: Writable;
@@ -45,7 +45,7 @@ export class OutputStream {
       default:
         outputStreamDebug(
           `Opening/creating "${path}" in ${
-            options?.append ? 'append' : 'write'
+          options?.append ? 'append' : 'write'
           } mode`
         );
         if (options?.dirs === true) {
