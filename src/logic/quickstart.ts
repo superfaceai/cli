@@ -211,23 +211,31 @@ export async function interactiveInstall(options?: {
   const tokenEnvName = 'SUPERFACE_SDK_TOKEN';
 
   if (!envContent.includes(`${tokenEnvName}=`)) {
-    const tokenResponse: { token: string } = await inquirer.prompt({
+    const tokenResponse: { token: string | undefined } = await inquirer.prompt({
       name: 'token',
       message:
         '(Optional) You can enter your SDK token generated at https://superface.ai:',
       type: 'password',
+      validate: input => {
+        const tokenRegexp = /^(sfs)_(.+)_([0-9A-F]{8}$)/i;
+        if (!input) {
+          return true;
+        }
+        if (!tokenRegexp.test(input)) {
+          return 'Entered value has unexpected format. Please try again';
+        }
+
+        return true;
+      },
     });
 
     if (tokenResponse.token) {
-      const tokenRegexp = /^(sfs)_(.+)_([0-9A-F]{8}$)/i;
-      if (!tokenRegexp.test(tokenResponse.token)) {
-        options?.warnCb?.(`Entered value has unexpected format.`);
-      } else {
-        envContent += envVariable(tokenEnvName, tokenResponse.token);
-        options?.successCb?.(
-          `Your SDK token was saved to ${tokenEnvName} variable in .env file. You can use it for authentization during SDK usage by loading it to your enviroment.`
-        );
-      }
+      envContent += envVariable(tokenEnvName, tokenResponse.token);
+      options?.successCb?.(
+        `Your SDK token was saved to ${tokenEnvName} variable in .env file. You can use it for authentization during SDK usage by loading it to your enviroment.`
+      );
+    } else {
+      options?.successCb?.('Continuing without SDK token');
     }
   }
 
