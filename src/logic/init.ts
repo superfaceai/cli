@@ -3,7 +3,6 @@ import { parseProfileId } from '@superfaceai/parser';
 import { basename, join as joinPath } from 'path';
 
 import {
-  BUILD_DIR,
   composeUsecaseName,
   GRID_DIR,
   META_FILE,
@@ -91,21 +90,6 @@ export async function initSuperface(
     }
   }
 
-  {
-    const gitignorePath = joinPath(superPath, '.gitignore');
-    const created = await OutputStream.writeIfAbsent(
-      gitignorePath,
-      initTemplate.gitignore,
-      { force: options?.force }
-    );
-
-    if (created) {
-      options?.logCb?.(
-        formatShellLog("echo '<.gitignore template>' >", [gitignorePath])
-      );
-    }
-  }
-
   // create subdirs
   {
     const gridPath = joinPath(appPath, GRID_DIR);
@@ -119,13 +103,6 @@ export async function initSuperface(
     const created = await mkdirQuiet(typesPath);
     if (created) {
       options?.logCb?.(formatShellLog('mkdir', [typesPath]));
-    }
-  }
-  {
-    const buildPath = joinPath(appPath, BUILD_DIR);
-    const created = await mkdirQuiet(buildPath);
-    if (created) {
-      options?.logCb?.(formatShellLog('mkdir', [buildPath]));
     }
   }
 

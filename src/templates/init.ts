@@ -1,10 +1,3 @@
-export function gitignore(): string {
-  return `build
-node_modules
-package-lock.json
-`;
-}
-
 export function readme(name: string): string {
   return `# ${name}
 

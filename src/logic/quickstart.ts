@@ -252,7 +252,6 @@ async function getPromptedValue(
         .filter(row => !row.includes(`${variableName}=`))
         .join('\n');
     } else {
-
       return envContent;
     }
   }

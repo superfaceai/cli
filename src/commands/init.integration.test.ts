@@ -1,7 +1,6 @@
 import { join as joinPath } from 'path';
 
 import {
-  BUILD_DIR,
   EXTENSIONS,
   GRID_DIR,
   SUPER_PATH,
@@ -33,18 +32,16 @@ describe('Init CLI command', () => {
   it('initializes base folder', async () => {
     await expect(Init.run([testInitFolderPath])).resolves.toBeUndefined();
 
-    const expectedFiles = [joinPath(SUPERFACE_DIR, '.gitignore'), SUPER_PATH];
+    const expectedFiles = [SUPER_PATH];
 
-    const expectedDirectories = [SUPERFACE_DIR, BUILD_DIR, TYPES_DIR, GRID_DIR];
+    const expectedDirectories = [SUPERFACE_DIR, TYPES_DIR, GRID_DIR];
 
     expect(stdout.output).toContain(
       `$ echo '<README.md template>' > 'fixtures/playgrounds/test/README.md'
 $ mkdir 'fixtures/playgrounds/test/superface'
 $ echo '<initial super.json>' > 'fixtures/playgrounds/test/superface/super.json'
-$ echo '<.gitignore template>' > 'fixtures/playgrounds/test/superface/.gitignore'
 $ mkdir 'fixtures/playgrounds/test/superface/grid'
 $ mkdir 'fixtures/playgrounds/test/superface/types'
-$ mkdir 'fixtures/playgrounds/test/superface/build'
 `
     );
 
@@ -66,9 +63,9 @@ $ mkdir 'fixtures/playgrounds/test/superface/build'
   it('initializes base folder with quiet mode', async () => {
     await expect(Init.run([testInitFolderPath, '-q'])).resolves.toBeUndefined();
 
-    const expectedFiles = [joinPath(SUPERFACE_DIR, '.gitignore'), SUPER_PATH];
+    const expectedFiles = [SUPER_PATH];
 
-    const expectedDirectories = [SUPERFACE_DIR, BUILD_DIR, TYPES_DIR, GRID_DIR];
+    const expectedDirectories = [SUPERFACE_DIR, TYPES_DIR, GRID_DIR];
 
     expect(stdout.output).not.toContain(
       "$ mkdir 'fixtures/playgrounds/test/superface"
