@@ -58,7 +58,7 @@ export function generateTypingsForProfile(
       : profileAST.header.name;
   const output = getProfileOutput(profileAST);
   const inputTypes = output.usecases.flatMap(usecase =>
-    createUsecaseTypes(usecase, 'unknown')
+    createUsecaseTypes(profileName, usecase, 'unknown')
   );
 
   const statements = [

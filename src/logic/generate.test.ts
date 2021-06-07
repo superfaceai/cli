@@ -39,9 +39,13 @@ describe('Code Generation', () => {
       const result = generateTypingsForProfile(ast);
 
       expect(result).toMatch(/import.*@superfaceai\/one-sdk/);
-      expect(result).toMatch('export type RetrieveCharacterInformationInput');
+      expect(result).toMatch(
+        'export type StarwarsCharacterInformationRetrieveCharacterInformationInput'
+      );
       expect(result).toMatch(/characterName: string;?$/m);
-      expect(result).toMatch('export type RetrieveCharacterInformationResult');
+      expect(result).toMatch(
+        'export type StarwarsCharacterInformationRetrieveCharacterInformationResult'
+      );
       expect(result).toMatch(/name: string;?$/m);
       expect(result).toMatch(/height\?: string | null;?$/m);
       expect(result).toMatch(/weight: string | null;?$/m);

@@ -581,6 +581,7 @@ export function createProfileType(
  * > }
  */
 export function createUsecaseTypes(
+  profileName: string,
   usecase: ProfileOutput['usecases'][number],
   untypedType: 'any' | 'unknown'
 ): Statement[] {
@@ -595,7 +596,7 @@ export function createUsecaseTypes(
     return [
       addDoc(
         typeAlias(
-          capitalize(usecase.useCaseName) + suffix,
+          pascalize(profileName) + camelize(usecase.useCaseName) + suffix,
           variableType(capitalize(usecase.useCaseName), structure, untypedType)
         ),
         doc
