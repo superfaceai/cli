@@ -542,7 +542,8 @@ export function createProfileType(
   usecases: { name: string; doc: { title?: string; description?: string } }[]
 ): Statement[] {
   const usecaseAssignments = usecases.map(usecase => {
-    const pascalizedUsecaseName = pascalize(usecase.name);
+    const pascalizedUsecaseName =
+      pascalize(profileName) + pascalize(usecase.name);
     const helperCall = callExpression(
       'typeHelper',
       [],
