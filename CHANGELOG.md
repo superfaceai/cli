@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [0.0.17] - 2021-06-08
 ### Changed
 - Generated Input and Result types are specific to both profile and usecase
 
@@ -96,7 +98,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Transpile command
 - CI github flow
 
-[Unreleased]: https://github.com/superfaceai/cli/compare/v0.0.16...HEAD
+[Unreleased]: https://github.com/superfaceai/cli/compare/v0.0.17...HEAD
+[0.0.17]: https://github.com/superfaceai/cli/compare/v0.0.16...v0.0.17
 [0.0.16]: https://github.com/superfaceai/cli/compare/v0.0.15...v0.0.16
 [0.0.15]: https://github.com/superfaceai/cli/compare/v0.0.14...v0.0.15
 [0.0.14]: https://github.com/superfaceai/cli/compare/v0.0.13...v0.0.14
