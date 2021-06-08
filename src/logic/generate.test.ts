@@ -46,6 +46,9 @@ describe('Code Generation', () => {
       expect(result).toMatch(
         'export type StarwarsCharacterInformationRetrieveCharacterInformationResult'
       );
+      expect(result).toMatch(
+        'typeHelper<StarwarsCharacterInformationRetrieveCharacterInformationInput, StarwarsCharacterInformationRetrieveCharacterInformationResult>'
+      );
       expect(result).toMatch(/name: string;?$/m);
       expect(result).toMatch(/height\?: string | null;?$/m);
       expect(result).toMatch(/weight: string | null;?$/m);
