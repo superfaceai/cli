@@ -45,7 +45,7 @@ export class OutputStream {
       default:
         outputStreamDebug(
           `Opening/creating "${path}" in ${
-          options?.append ? 'append' : 'write'
+            options?.append ? 'append' : 'write'
           } mode`
         );
         if (options?.dirs === true) {

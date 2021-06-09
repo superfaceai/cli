@@ -15,11 +15,12 @@ import { fetchProfiles, fetchProviders } from '../common/http';
 import { exists, readFile } from '../common/io';
 import { LogCallback } from '../common/log';
 import { OutputStream } from '../common/output-stream';
+import { PackageManager } from '../common/package-manager';
 import { envVariable } from '../templates/env';
 import { installProvider } from './configure';
 import { initSuperface } from './init';
 import { detectSuperJson, installProfiles } from './install';
-import { installSdk, profileExists, providerExists } from './quickstart.utils';
+import { profileExists, providerExists } from './quickstart.utils';
 
 export async function interactiveInstall(options?: {
   logCb?: LogCallback;
@@ -203,7 +204,10 @@ export async function interactiveInstall(options?: {
   }
   //Install SDK
   options?.successCb?.(`\n\nInstalling package "@superfaceai/one-sdk"`);
-  await installSdk({ logCb: options?.logCb, warnCb: options?.warnCb });
+  await PackageManager.installPackage('@superfaceai/one-sdk', {
+    logCb: options?.logCb,
+    warnCb: options?.warnCb,
+  });
 
   //Prompt user for optional SDK token
   options?.successCb?.(`\n\nConfiguring package "@superfaceai/one-sdk"`);
