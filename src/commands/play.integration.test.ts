@@ -125,8 +125,7 @@ describe('Play CLI command', () => {
     );
   });
 
-  // TODO: Currently skipping this in CI because of access permission issues
-  it.skip('compiles playground and executes it', async () => {
+  it('compiles playground and executes it', async () => {
     await Play.run(['execute', fixedPlayground.path, '--providers', 'noop']);
 
     expect(stdout.output).toMatch(
@@ -146,8 +145,7 @@ describe('Play CLI command', () => {
     ).resolves.toBeDefined();
   }, 30000);
 
-  // TODO: Currently skipping this in CI because of access permission issues
-  it.skip('creates, compiles and executes a playground on a real api', async () => {
+  it('creates, compiles and executes a playground on a real api', async () => {
     await expect(
       Play.run(['initialize', createdPlayground.path, '--providers', 'foo'])
     ).resolves.toBeUndefined();
