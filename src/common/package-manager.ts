@@ -4,9 +4,14 @@ import { execShell, exists } from './io';
 import { LogCallback } from './log';
 
 export class PackageManager {
-  public static async getUsedPm(options?: {
+  private static usedPackageManager: 'npm' | 'yarn' | undefined = undefined;
+
+  private static async getUsedPm(options?: {
     warnCb?: LogCallback;
   }): Promise<'npm' | 'yarn' | undefined> {
+    if (PackageManager.usedPackageManager) {
+      return PackageManager.usedPackageManager;
+    }
     const npmPrefix = await execShell(`npm prefix`);
 
     if (npmPrefix.stderr !== '') {
@@ -19,10 +24,14 @@ export class PackageManager {
     const path = relative(process.cwd(), npmPrefix.stdout.trim());
 
     if (await exists(join(path, 'yarn.lock'))) {
+      PackageManager.usedPackageManager = 'yarn';
+
       return 'yarn';
     }
 
     if (await exists(join(path, 'package-lock.json'))) {
+      PackageManager.usedPackageManager = 'npm';
+
       return 'npm';
     }
     options?.warnCb?.('Unable to locate package.json');
@@ -36,7 +45,7 @@ export class PackageManager {
       logCb?: LogCallback;
       warnCb?: LogCallback;
     }
-  ): Promise<void> {
+  ): Promise<boolean> {
     const pm = await PackageManager.getUsedPm({ warnCb: options?.warnCb });
 
     const command =
@@ -47,9 +56,13 @@ export class PackageManager {
       options?.warnCb?.(
         `Shell command "${command}" responded with: "${result.stderr}"`
       );
+
+      return false;
     }
     if (result.stdout !== '') {
       options?.logCb?.(result.stdout);
     }
+
+    return true;
   }
 }
