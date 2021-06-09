@@ -10,6 +10,9 @@ import { detectSuperJson } from './install';
 import { interactiveInstall } from './quickstart';
 import { profileExists, providerExists } from './quickstart.utils';
 
+//Mock package manager
+jest.mock('../common/package-manager');
+
 //Mock install logic
 jest.mock('./install');
 

@@ -1,92 +1,13 @@
 import { SuperJson } from '@superfaceai/one-sdk';
 import { mocked } from 'ts-jest/utils';
 
-import { execShell, exists } from '../common/io';
-import { installSdk, profileExists, providerExists } from './quickstart.utils';
+import { exists } from '../common/io';
+import { profileExists, providerExists } from './quickstart.utils';
 
 jest.mock('../common/io');
 describe('Quickstart logic', () => {
   afterEach(() => {
     jest.resetAllMocks();
-  });
-
-  describe('when installing sdk', () => {
-    const mockStdout = jest.fn();
-    const mockStderr = jest.fn();
-
-    it('installs sdk with yarn and empty stdout, stderror', async () => {
-      mocked(exists).mockResolvedValue(true);
-      mocked(execShell).mockResolvedValue({ stderr: '', stdout: '' });
-
-      await expect(
-        installSdk({ logCb: mockStdout, warnCb: mockStderr })
-      ).resolves.toBeUndefined();
-
-      expect(exists).toHaveBeenCalledWith('yarn.lock');
-      expect(execShell).toHaveBeenCalledWith('yarn add @superfaceai/one-sdk');
-
-      expect(mockStdout).not.toHaveBeenCalled();
-      expect(mockStderr).not.toHaveBeenCalled();
-    });
-
-    it('installs sdk with yarn', async () => {
-      mocked(exists).mockResolvedValue(true);
-      mocked(execShell).mockResolvedValue({
-        stderr: 'test err',
-        stdout: 'test out',
-      });
-
-      await expect(
-        installSdk({ logCb: mockStdout, warnCb: mockStderr })
-      ).resolves.toBeUndefined();
-
-      expect(exists).toHaveBeenCalledWith('yarn.lock');
-      expect(execShell).toHaveBeenCalledWith('yarn add @superfaceai/one-sdk');
-
-      expect(mockStdout).toHaveBeenCalledWith('test out');
-      expect(mockStderr).toHaveBeenCalledWith(
-        'Shell command "npm install @superfaceai/one-sdk" responded with: "test err"'
-      );
-    });
-
-    it('installs sdk with npm and empty stdout, stderror', async () => {
-      mocked(exists).mockResolvedValue(false);
-      mocked(execShell).mockResolvedValue({ stderr: '', stdout: '' });
-
-      await expect(
-        installSdk({ logCb: mockStdout, warnCb: mockStderr })
-      ).resolves.toBeUndefined();
-
-      expect(exists).toHaveBeenCalledWith('yarn.lock');
-      expect(execShell).toHaveBeenCalledWith(
-        'npm install @superfaceai/one-sdk'
-      );
-
-      expect(mockStdout).not.toHaveBeenCalled();
-      expect(mockStderr).not.toHaveBeenCalled();
-    });
-
-    it('installs sdk with npm', async () => {
-      mocked(exists).mockResolvedValue(false);
-      mocked(execShell).mockResolvedValue({
-        stderr: 'test err',
-        stdout: 'test out',
-      });
-
-      await expect(
-        installSdk({ logCb: mockStdout, warnCb: mockStderr })
-      ).resolves.toBeUndefined();
-
-      expect(exists).toHaveBeenCalledWith('yarn.lock');
-      expect(execShell).toHaveBeenCalledWith(
-        'npm install @superfaceai/one-sdk'
-      );
-
-      expect(mockStdout).toHaveBeenCalledWith('test out');
-      expect(mockStderr).toHaveBeenCalledWith(
-        'Shell command "npm install @superfaceai/one-sdk" responded with: "test err"'
-      );
-    });
   });
 
   describe('when checking that profile already exists', () => {

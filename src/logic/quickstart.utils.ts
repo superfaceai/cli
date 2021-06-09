@@ -2,27 +2,7 @@ import { SuperJson } from '@superfaceai/one-sdk';
 import { join as joinPath } from 'path';
 
 import { EXTENSIONS } from '..';
-import { execShell, exists } from '../common/io';
-import { LogCallback } from '../common/log';
-
-export async function installSdk(options?: {
-  logCb?: LogCallback;
-  warnCb?: LogCallback;
-}): Promise<void> {
-  const result = await execShell(
-    `${
-      (await exists('yarn.lock')) ? 'yarn add' : 'npm install'
-    } @superfaceai/one-sdk`
-  );
-  if (result.stderr !== '') {
-    options?.warnCb?.(
-      `Shell command "npm install @superfaceai/one-sdk" responded with: "${result.stderr}"`
-    );
-  }
-  if (result.stdout !== '') {
-    options?.logCb?.(result.stdout);
-  }
-}
+import { exists } from '../common/io';
 
 export async function profileExists(
   superJson: SuperJson,
