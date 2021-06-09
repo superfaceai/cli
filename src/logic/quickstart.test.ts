@@ -5,7 +5,6 @@ import { mocked } from 'ts-jest/utils';
 import { fetchProfiles, fetchProviders } from '../common/http';
 import { exists, readFile } from '../common/io';
 import { OutputStream } from '../common/output-stream';
-import { PackageManager } from '../common/package-manager';
 import { initSuperface } from './init';
 import { detectSuperJson } from './install';
 import { interactiveInstall } from './quickstart';
@@ -452,7 +451,6 @@ describe('Quickstart logic', () => {
       mocked(detectSuperJson).mockResolvedValue('some/path');
       mocked(initSuperface).mockResolvedValue(new SuperJson({}));
       mockLoad.mockResolvedValue(ok(mockSuperJson));
-      mocked(PackageManager.installPackage).mockResolvedValue();
       mocked(profileExists).mockResolvedValueOnce(true);
       mocked(providerExists).mockReturnValue(true);
       mocked(fetchProfiles).mockResolvedValue([profile]);
