@@ -33,9 +33,12 @@ export async function interactiveInstall(options?: {
   if (superPath) {
     //Overide existing super.json
     if (
-      !(await confirmPrompt('Configuration file super.json already exists.', {
-        logCb: options?.logCb,
-      }))
+      !(await confirmPrompt(
+        'Configuration file super.json already exists.\nDo you want to override it?',
+        {
+          logCb: options?.logCb,
+        }
+      ))
     ) {
       options?.warnCb?.(`Super.json already exists at path "${superPath}"`);
 
@@ -75,7 +78,7 @@ export async function interactiveInstall(options?: {
   if (await profileExists(superJson, profile)) {
     if (
       !(await confirmPrompt(
-        `Profile "${profile.scope}/${profile.profile}" already exists.`,
+        `Profile "${profile.scope}/${profile.profile}" already exists.\nDo you want to override it?`,
         { logCb: options?.logCb }
       ))
     )
@@ -125,9 +128,12 @@ export async function interactiveInstall(options?: {
     //Override existing provider
     if (providerExists(superJson, providerName)) {
       if (
-        !(await confirmPrompt(`Provider "${providerName}" already exists.`, {
-          logCb: options?.logCb,
-        }))
+        !(await confirmPrompt(
+          `Provider "${providerName}" already exists.\nDo you want to override it?`,
+          {
+            logCb: options?.logCb,
+          }
+        ))
       ) {
         continue;
       }
@@ -209,6 +215,20 @@ export async function interactiveInstall(options?: {
     warnCb: options?.warnCb,
   });
 
+  //Prompt user for dotenv installation
+  if (
+    await confirmPrompt(
+      `Superface CLI would like to install dotenv package (https://github.com/motdotla/dotenv#readme).\nThis package is used to load superface secrets from .env file \nYou can use different one or install it manually later`,
+      { logCb: options?.logCb }
+    )
+  ) {
+    options?.successCb?.(`\n\nInstalling package "dotenv"`);
+    await PackageManager.installPackage('dotenv', {
+      logCb: options?.logCb,
+      warnCb: options?.warnCb,
+    });
+  }
+
   //Prompt user for optional SDK token
   options?.successCb?.(`\n\nConfiguring package "@superfaceai/one-sdk"`);
 
@@ -236,7 +256,7 @@ export async function interactiveInstall(options?: {
     if (tokenResponse.token) {
       envContent += envVariable(tokenEnvName, tokenResponse.token);
       options?.successCb?.(
-        `Your SDK token was saved to ${tokenEnvName} variable in .env file. You can use it for authentization during SDK usage by loading it to your enviroment.`
+        `Your SDK token was saved to ${tokenEnvName} variable in .env file. You can use it for authentization during SDK usage by loading it to your enviroment.\nDo you want to continue with installation?`
       );
     } else {
       options?.successCb?.('Continuing without SDK token');
@@ -279,7 +299,7 @@ async function getPromptedValue(
     //Do we want to override?
     if (
       await confirmPrompt(
-        `Value of "${variableName}" for "${provider}" is already set.`,
+        `Value of "${variableName}" for "${provider}" is already set.\nDo you want to override it?`,
         { logCb: options?.logCb }
       )
     ) {
@@ -386,7 +406,7 @@ async function confirmPrompt(
   const prompt: { continue: boolean } = await inquirer.prompt({
     name: 'continue',
     message: message
-      ? `${message} Do you want to override it?`
+      ? `${message}`
       : 'Do you want to continue with installation?',
     type: 'confirm',
     default: false,
