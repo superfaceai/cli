@@ -144,6 +144,8 @@ describe('Quickstart logic', () => {
         })
         //Set test digest
         .mockResolvedValueOnce({ value: 'testDigest' })
+        //Install dotenv
+        .mockResolvedValueOnce({ continue: true })
         //Set SDK token
         .mockResolvedValueOnce({
           token:
@@ -228,6 +230,8 @@ describe('Quickstart logic', () => {
         })
         //Set test digest
         .mockResolvedValueOnce({ value: 'testApiKey' })
+        //Install dotenv
+        .mockResolvedValueOnce({ continue: true })
         //Set SDK token
         .mockResolvedValueOnce({
           token:
@@ -356,6 +360,8 @@ describe('Quickstart logic', () => {
         })
         //Set test digest
         .mockResolvedValueOnce({ value: 'testApiKey' })
+        //Install dotenv
+        .mockResolvedValueOnce({ continue: true })
         //Set SDK token
         .mockResolvedValueOnce({
           token:
@@ -501,6 +507,8 @@ describe('Quickstart logic', () => {
         })
         //Set test digest
         .mockResolvedValueOnce({ value: 'testDigest' })
+        //Install dotenv
+        .mockResolvedValueOnce({ continue: true })
         //Set SDK token
         .mockResolvedValueOnce({
           token:

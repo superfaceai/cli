@@ -115,6 +115,8 @@ describe('Interactive install CLI command', () => {
           //Mailgun password
           { value: 'password', timeout: 4000 },
           { value: ENTER, timeout: 100 },
+          //Confirm dotenv installation
+          { value: ENTER, timeout: 4000 },
           //Incorrect SDK token
           {
             value:
@@ -365,6 +367,9 @@ describe('Interactive install CLI command', () => {
           //Sendgrid token
           { value: 'newSendgridToken', timeout: 4000 },
           { value: ENTER, timeout: 500 },
+          //Confirm dotenv installation
+          { value: 'y', timeout: 4000 },
+          { value: ENTER, timeout: 500 },
           //SDK token
           {
             value:
@@ -377,15 +382,13 @@ describe('Interactive install CLI command', () => {
 
       //Check output
       expect(result.stdout).toMatch(
-        'Profile "communication/send-email" already exists. Do you want to override it?'
+        'Profile "communication/send-email" already exists.'
       );
       expect(result.stdout).toMatch(
         'All profiles (1) have been installed successfully.'
       );
       expect(result.stdout).toMatch('Installing providers');
-      expect(result.stdout).toMatch(
-        'Provider "sendgrid" already exists. Do you want to override it?'
-      );
+      expect(result.stdout).toMatch('Provider "sendgrid" already exists.');
       expect(result.stdout).toMatch('Configuring "sendgrid" security');
       expect(result.stdout).toMatch(
         'Value of "SENDGRID_TOKEN" for "sendgrid" is already set.'
@@ -394,6 +397,7 @@ describe('Interactive install CLI command', () => {
       expect(result.stdout).toMatch(
         'Installing package "@superfaceai/one-sdk"'
       );
+      expect(result.stdout).toMatch('Installing package "dotenv"');
       expect(result.stdout).toMatch(
         '🆗 Superface have been configured successfully!'
       );

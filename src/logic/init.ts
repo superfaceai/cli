@@ -25,7 +25,6 @@ import { createProfile } from './create';
  * appPath/
  *   superface/
  *     super.json
- *     .gitignore
  *     grid/
  *     build/
  *     types/
