@@ -218,7 +218,7 @@ export async function interactiveInstall(options?: {
   //Prompt user for dotenv installation
   if (
     await confirmPrompt(
-      `Superface CLI would like to install dotenv package (https://github.com/motdotla/dotenv#readme).\nThis package is used to load superface secrets from .env file \nYou can use different one or install it manually later`,
+      `Superface CLI would like to install dotenv package (https://github.com/motdotla/dotenv#readme).\nThis package is used to load superface secrets from .env file \nYou can use different one or install it manually later\nWould you like to install it now?`,
       { logCb: options?.logCb }
     )
   ) {
