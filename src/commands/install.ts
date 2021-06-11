@@ -1,6 +1,6 @@
 import { flags as oclifFlags } from '@oclif/command';
 import { isValidDocumentName, isValidProviderName } from '@superfaceai/ast';
-import { green, grey, yellow } from 'chalk';
+import { bold, green, grey, yellow } from 'chalk';
 import { join as joinPath } from 'path';
 
 import { Command } from '../common/command.abstract';
@@ -93,7 +93,8 @@ export default class Install extends Command {
 
   static examples = [
     '$ superface install',
-    '$ superface install -i',
+    '$ superface install sms/service -i',
+    '$ superface install sms/service -i@1.0',
     '$ superface install sms/service@1.0',
     '$ superface install sms/service@1.0 --providers twilio tyntec',
     '$ superface install sms/service@1.0 -p twilio',
@@ -104,20 +105,21 @@ export default class Install extends Command {
     this.log('⚠️  ' + yellow(message));
 
   private logCallback? = (message: string) => this.log(grey(message));
-  private successCallback? = (message: string) => this.log(green(message));
+  private successCallback? = (message: string) =>
+    this.log(bold(green(message)));
 
   async run(): Promise<void> {
     const { args, flags } = this.parse(Install);
 
     if (flags.interactive) {
-      if (args.profileId) {
+      if (!args.profileId) {
         this.warnCallback?.(
-          `Profile ID argument can't be used with interactive flag`
+          `Profile ID argument has be used with interactive flag`
         );
         this.exit(0);
       }
 
-      await interactiveInstall({
+      await interactiveInstall(args.profileId, {
         logCb: this.logCallback,
         warnCb: this.warnCallback,
         successCb: this.successCallback,

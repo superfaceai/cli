@@ -1,3 +1,4 @@
+import { isValidDocumentName, isValidVersionString } from '@superfaceai/ast';
 import {
   isApiKeySecurityValues,
   isBasicAuthSecurityValues,
@@ -11,7 +12,7 @@ import {
 import inquirer from 'inquirer';
 import { join as joinPath } from 'path';
 
-import { fetchProfiles, fetchProviders } from '../common/http';
+import { fetchProviders } from '../common/http';
 import { exists, readFile } from '../common/io';
 import { LogCallback } from '../common/log';
 import { OutputStream } from '../common/output-stream';
@@ -22,11 +23,32 @@ import { initSuperface } from './init';
 import { detectSuperJson, installProfiles } from './install';
 import { profileExists, providerExists } from './quickstart.utils';
 
-export async function interactiveInstall(options?: {
-  logCb?: LogCallback;
-  warnCb?: LogCallback;
-  successCb?: LogCallback;
-}): Promise<void> {
+export async function interactiveInstall(
+  profileArg: string,
+  options?: {
+    logCb?: LogCallback;
+    warnCb?: LogCallback;
+    successCb?: LogCallback;
+  }
+): Promise<void> {
+  console.log('input', profileArg);
+  const [profileId, version] = profileArg.split('@');
+  const profilePathParts = profileId.split('/');
+  const profile = profilePathParts[profilePathParts.length - 1];
+  const scope = profilePathParts[0];
+
+  console.log('ver', version);
+
+  if (!isValidDocumentName(profile)) {
+    options?.warnCb?.(`Invalid profile name: ${profile}`);
+
+    return;
+  }
+  if (version && !isValidVersionString(version)) {
+    options?.warnCb?.(`Invalid profile version: ${version}`);
+
+    return;
+  }
   let envContent = '';
   //Super.json path
   let superPath = await detectSuperJson(process.cwd());
@@ -34,10 +56,7 @@ export async function interactiveInstall(options?: {
     //Overide existing super.json
     if (
       !(await confirmPrompt(
-        'Configuration file super.json already exists.\nDo you want to override it?',
-        {
-          logCb: options?.logCb,
-        }
+        'Configuration file super.json already exists.\nDo you want to override it?'
       ))
     ) {
       options?.warnCb?.(`Super.json already exists at path "${superPath}"`);
@@ -60,26 +79,13 @@ export async function interactiveInstall(options?: {
     await SuperJson.load(joinPath(superPath, META_FILE))
   ).unwrap();
 
-  //Ask for profile
-  const possibleProfiles = await fetchProfiles();
-  const profileResponse: {
-    profile: { scope: string; profile: string; version: string };
-  } = await inquirer.prompt({
-    name: 'profile',
-    message: 'Select a capability to install',
-    type: 'list',
-    choices: possibleProfiles.map(p => {
-      return { name: `${p.scope}/${p.profile}`, value: p };
-    }),
-  });
-  const profile = profileResponse.profile;
+  options?.successCb?.(`\nInitializing ${profileArg}`);
 
   //Override existing profile
-  if (await profileExists(superJson, profile)) {
+  if (await profileExists(superJson, { profile, scope, version })) {
     if (
       !(await confirmPrompt(
-        `Profile "${profile.scope}/${profile.profile}" already exists.\nDo you want to override it?`,
-        { logCb: options?.logCb }
+        `Profile "${scope}/${profile}" already exists.\nDo you want to override it?`
       ))
     )
       return;
@@ -91,8 +97,8 @@ export async function interactiveInstall(options?: {
     [
       {
         kind: 'store',
-        profileId: `${profile.scope}/${profile.profile}`,
-        version: profile.version,
+        profileId,
+        version: version,
       },
     ],
     {
@@ -103,58 +109,82 @@ export async function interactiveInstall(options?: {
   );
 
   //Ask for providers
-  const possibleProviders = (
-    await fetchProviders(
-      `${profile.scope}/${profile.profile}@${profile.version}`
-    )
-  ).map(p => p.name);
+  const possibleProviders = (await fetchProviders(profileArg)).map(p => p.name);
 
-  const providerResponse: { providers: string[] } = await inquirer.prompt({
-    name: 'providers',
-    message: 'Select the provider/s you want to use',
-    type: 'checkbox',
-    choices: possibleProviders.map(p => {
-      return { name: p, checked: p === 'mock' };
-    }),
-    validate: (input: string[]): boolean => {
-      return input.length > 0;
-    },
-  });
+  const priorityToString: Map<number, string> = new Map([
+    [1, 'primary'],
+    [2, 'secondary'],
+    [3, 'third'],
+    [4, 'fourth'],
+    [5, 'fifth'],
+  ]);
+  const providersWithPriority: { name: string; priority: number }[] = [];
+  let priority = 1;
+  let exit = false;
+  while (!exit) {
+    const choices: {
+      name: string;
+      value: { name?: string; priority?: number; exit: boolean };
+    }[] = possibleProviders
+      //Remove already configured and mock provider
+      .filter(
+        p => !providersWithPriority.find(pwp => pwp.name === p) && p !== 'mock'
+      )
+      .map(p => {
+        return { name: p, value: { name: p, priority, exit: false } };
+      });
+    //Add exit choice
+    choices.push({
+      name: 'Exit',
+      value: { name: undefined, priority: undefined, exit: true },
+    });
+
+    const providerResponse: {
+      provider: { name: string; priority: number; exit: boolean };
+    } = await inquirer.prompt({
+      name: 'provider',
+      message: `Select ${priorityToString.get(priority) || priority} provider`,
+      type: 'list',
+      choices,
+    });
+    if (providerResponse.provider.exit || choices.length === 2) {
+      exit = true;
+    } else {
+      providersWithPriority.push({
+        name: providerResponse.provider.name,
+        priority: providerResponse.provider.priority,
+      });
+      priority++;
+    }
+  }
 
   //Configure providers
-  options?.successCb?.(`\n\nInstalling providers`);
+  options?.successCb?.(`\nInstalling providers`);
   const providersToInstall: string[] = [];
-  for (const providerName of providerResponse.providers) {
+  for (const provider of providersWithPriority) {
     //Override existing provider
-    if (providerExists(superJson, providerName)) {
+    if (providerExists(superJson, provider.name)) {
       if (
         !(await confirmPrompt(
-          `Provider "${providerName}" already exists.\nDo you want to override it?`,
-          {
-            logCb: options?.logCb,
-          }
+          `Provider "${provider.name}" already exists.\nDo you want to override it?`
         ))
       ) {
         continue;
       }
     }
-    providersToInstall.push(providerName);
+    providersToInstall.push(provider.name);
   }
 
   //Install providers
   for (const provider of providersToInstall) {
     //Install provider
-    await installProvider(
-      superPath,
-      provider,
-      `${profile.scope}/${profile.profile}`,
-      {
-        logCb: options?.logCb,
-        warnCb: options?.warnCb,
-        force: true,
-        local: false,
-      }
-    );
+    //TODO: pass priority here
+    await installProvider(superPath, provider, profileId, {
+      logCb: options?.logCb,
+      warnCb: options?.warnCb,
+      force: true,
+      local: false,
+    });
   }
 
   //Ask for provider security
@@ -163,7 +193,7 @@ export async function interactiveInstall(options?: {
   //Get installed
   const installedProviders = superJson.normalized.providers;
 
-  options?.successCb?.(`\n\nConfiguring providers security`);
+  options?.successCb?.(`\nConfiguring providers security`);
 
   //Get .env file
   if (await exists('.env')) {
@@ -175,7 +205,7 @@ export async function interactiveInstall(options?: {
     if (!providersToInstall.includes(provider)) {
       continue;
     }
-    options?.logCb?.(`\n\nConfiguring "${provider}" security`);
+    options?.logCb?.(`\nConfiguring "${provider}" security`);
     //Select security schema
     if (
       installedProviders[provider].security &&
@@ -204,12 +234,12 @@ export async function interactiveInstall(options?: {
       );
     } else {
       options?.successCb?.(
-        `\n\nProvider "${provider}" can be used without authentication`
+        `\nProvider "${provider}" can be used without authentication`
       );
     }
   }
   //Install SDK
-  options?.successCb?.(`\n\nInstalling package "@superfaceai/one-sdk"`);
+  options?.successCb?.(`\nInstalling package "@superfaceai/one-sdk"`);
   await PackageManager.installPackage('@superfaceai/one-sdk', {
     logCb: options?.logCb,
     warnCb: options?.warnCb,
@@ -219,10 +249,10 @@ export async function interactiveInstall(options?: {
   if (
     await confirmPrompt(
       `Superface CLI would like to install dotenv package (https://github.com/motdotla/dotenv#readme).\nThis package is used to load superface secrets from .env file \nYou can use different one or install it manually later\nWould you like to install it now?`,
-      { logCb: options?.logCb }
+      { default: true }
     )
   ) {
-    options?.successCb?.(`\n\nInstalling package "dotenv"`);
+    options?.successCb?.(`\nInstalling package "dotenv"`);
     await PackageManager.installPackage('dotenv', {
       logCb: options?.logCb,
       warnCb: options?.warnCb,
@@ -230,7 +260,7 @@ export async function interactiveInstall(options?: {
   }
 
   //Prompt user for optional SDK token
-  options?.successCb?.(`\n\nConfiguring package "@superfaceai/one-sdk"`);
+  options?.successCb?.(`\nConfiguring package "@superfaceai/one-sdk"`);
 
   const tokenEnvName = 'SUPERFACE_SDK_TOKEN';
 
@@ -266,13 +296,13 @@ export async function interactiveInstall(options?: {
   //Write .env file
   await OutputStream.writeOnce('.env', envContent);
 
-  options?.successCb?.(`🆗 Superface have been configured successfully!`);
+  options?.successCb?.(`\n🆗 Superface have been configured successfully!`);
 
   //Lead to docs page
   //TODO: usecase specific page
   const url = 'https://docs.superface.ai/getting-started';
   options?.successCb?.(
-    `Now you can follow our documentation to use installed capability: "${url}"`
+    `\nNow you can follow our documentation to use installed capability: "${url}"`
   );
 }
 
@@ -299,8 +329,7 @@ async function getPromptedValue(
     //Do we want to override?
     if (
       await confirmPrompt(
-        `Value of "${variableName}" for "${provider}" is already set.\nDo you want to override it?`,
-        { logCb: options?.logCb }
+        `Value of "${variableName}" for "${provider}" is already set.\nDo you want to override it?`
       )
     ) {
       //Delete set row
@@ -401,7 +430,7 @@ async function selectSecuritySchema(
 
 async function confirmPrompt(
   message?: string,
-  options?: { logCb?: LogCallback }
+  options?: { default?: boolean }
 ): Promise<boolean> {
   const prompt: { continue: boolean } = await inquirer.prompt({
     name: 'continue',
@@ -409,10 +438,8 @@ async function confirmPrompt(
       ? `${message}`
       : 'Do you want to continue with installation?',
     type: 'confirm',
-    default: false,
+    default: options?.default || false,
   });
-
-  options?.logCb?.(`Confirm: ${prompt.continue ? 'Yes' : 'No'}`);
 
   return prompt.continue;
 }
