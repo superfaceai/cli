@@ -120,7 +120,7 @@ export async function execCLI(
     debug?: boolean;
   }
 ): Promise<{ stdout: string }> {
-  const maxTimeout = 20000;
+  const maxTimeout = 30000;
   const CLI = joinPath('.', 'bin', 'superface');
   const bin = relative(directory, CLI);
 

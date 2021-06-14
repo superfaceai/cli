@@ -111,50 +111,54 @@ describe('Quickstart logic', () => {
     it('sets up sf correctly - non existing super.json and .env', async () => {
       mocked(detectSuperJson).mockResolvedValue(undefined);
       mocked(initSuperface).mockResolvedValue(new SuperJson({}));
-      //We re-load superjson after initial install (profile and providers) 
-      mockLoad.mockResolvedValue(ok(new SuperJson({
-        profiles: {
-          [`${profile.scope}/${profile.profile}`]: {
-            version: profile.version,
-            providers: {
-              sendgrid: {},
-              mailgun: {},
-              test: {}
+      //We re-load superjson after initial install (profile and providers)
+      mockLoad.mockResolvedValue(
+        ok(
+          new SuperJson({
+            profiles: {
+              [`${profile.scope}/${profile.profile}`]: {
+                version: profile.version,
+                providers: {
+                  sendgrid: {},
+                  mailgun: {},
+                  test: {},
+                },
+              },
             },
-          },
-        },
-        providers: {
-          sendgrid: {
-            security: [
-              {
-                id: 'bearer_token',
-                token: '$SENDGRID_TOKEN',
+            providers: {
+              sendgrid: {
+                security: [
+                  {
+                    id: 'bearer_token',
+                    token: '$SENDGRID_TOKEN',
+                  },
+                ],
               },
-            ],
-          },
-          test: {
-            security: [
-              {
-                id: 'digest',
-                digest: '$TEST_DIGEST',
+              test: {
+                security: [
+                  {
+                    id: 'digest',
+                    digest: '$TEST_DIGEST',
+                  },
+                  {
+                    id: 'apikey',
+                    apikey: '$TEST_API_KEY',
+                  },
+                ],
               },
-              {
-                id: 'apikey',
-                apikey: '$TEST_API_KEY',
+              mailgun: {
+                security: [
+                  {
+                    id: 'basic',
+                    username: '$MAILGUN_USERNAME',
+                    password: '$MAILGUN_PASSWORD',
+                  },
+                ],
               },
-            ],
-          },
-          mailgun: {
-            security: [
-              {
-                id: 'basic',
-                username: '$MAILGUN_USERNAME',
-                password: '$MAILGUN_PASSWORD',
-              },
-            ],
-          },
-        },
-      })))
+            },
+          })
+        )
+      );
 
       mocked(fetchProfiles).mockResolvedValue([profile]);
       mocked(fetchProviders).mockResolvedValue([
@@ -215,55 +219,57 @@ describe('Quickstart logic', () => {
       expect(fetchProviders).toHaveBeenCalled();
       expect(exists).toHaveBeenCalled();
 
-
-      expect(writeOnceSpy).toHaveBeenCalledWith('', JSON.stringify({
-        profiles: {
-          ['communication/send-email']: {
-            version: "1.0.1",
-            providers: {
-              sendgrid: {},
-              mailgun: {},
-              test: {}
-            },
-            priority: [
-              'sendgrid',
-              'mailgun',
-              'test'
-            ]
-          }
-        },
-        providers: {
-          sendgrid: {
-            security: [
-              {
-                id: "bearer_token",
-                token: "$SENDGRID_TOKEN"
-              }
-            ]
-          },
-          test: {
-            security: [
-              {
-                id: "digest",
-                digest: "$TEST_DIGEST"
+      expect(writeOnceSpy).toHaveBeenCalledWith(
+        '',
+        JSON.stringify(
+          {
+            profiles: {
+              ['communication/send-email']: {
+                version: '1.0.1',
+                providers: {
+                  sendgrid: {},
+                  mailgun: {},
+                  test: {},
+                },
+                priority: ['sendgrid', 'mailgun', 'test'],
               },
-              {
-                id: "apikey",
-                apikey: "$TEST_API_KEY"
-              }
-            ]
+            },
+            providers: {
+              sendgrid: {
+                security: [
+                  {
+                    id: 'bearer_token',
+                    token: '$SENDGRID_TOKEN',
+                  },
+                ],
+              },
+              test: {
+                security: [
+                  {
+                    id: 'digest',
+                    digest: '$TEST_DIGEST',
+                  },
+                  {
+                    id: 'apikey',
+                    apikey: '$TEST_API_KEY',
+                  },
+                ],
+              },
+              mailgun: {
+                security: [
+                  {
+                    id: 'basic',
+                    username: '$MAILGUN_USERNAME',
+                    password: '$MAILGUN_PASSWORD',
+                  },
+                ],
+              },
+            },
           },
-          mailgun: {
-            security: [
-              {
-                id: "basic",
-                username: "$MAILGUN_USERNAME",
-                password: "$MAILGUN_PASSWORD"
-              }
-            ]
-          },
-        }
-      }, undefined, 2))
+          undefined,
+          2
+        )
+      );
 
       expect(writeOnceSpy).toHaveBeenCalledWith(
         '.env',
@@ -294,49 +300,53 @@ describe('Quickstart logic', () => {
     it('sets up sf correctly - non existing super.json and existing .env', async () => {
       mocked(detectSuperJson).mockResolvedValue(undefined);
       mocked(initSuperface).mockResolvedValue(new SuperJson({}));
-      mockLoad.mockResolvedValue(ok(new SuperJson({
-        profiles: {
-          [`${profile.scope}/${profile.profile}`]: {
-            version: profile.version,
-            providers: {
-              sendgrid: {},
-              mailgun: {},
-              test: {}
+      mockLoad.mockResolvedValue(
+        ok(
+          new SuperJson({
+            profiles: {
+              [`${profile.scope}/${profile.profile}`]: {
+                version: profile.version,
+                providers: {
+                  sendgrid: {},
+                  mailgun: {},
+                  test: {},
+                },
+              },
             },
-          },
-        },
-        providers: {
-          sendgrid: {
-            security: [
-              {
-                id: 'bearer_token',
-                token: '$SENDGRID_TOKEN',
+            providers: {
+              sendgrid: {
+                security: [
+                  {
+                    id: 'bearer_token',
+                    token: '$SENDGRID_TOKEN',
+                  },
+                ],
               },
-            ],
-          },
-          test: {
-            security: [
-              {
-                id: 'digest',
-                digest: '$TEST_DIGEST',
+              test: {
+                security: [
+                  {
+                    id: 'digest',
+                    digest: '$TEST_DIGEST',
+                  },
+                  {
+                    id: 'apikey',
+                    apikey: '$TEST_API_KEY',
+                  },
+                ],
               },
-              {
-                id: 'apikey',
-                apikey: '$TEST_API_KEY',
+              mailgun: {
+                security: [
+                  {
+                    id: 'basic',
+                    username: '$MAILGUN_USERNAME',
+                    password: '$MAILGUN_PASSWORD',
+                  },
+                ],
               },
-            ],
-          },
-          mailgun: {
-            security: [
-              {
-                id: 'basic',
-                username: '$MAILGUN_USERNAME',
-                password: '$MAILGUN_PASSWORD',
-              },
-            ],
-          },
-        },
-      })))
+            },
+          })
+        )
+      );
       mocked(fetchProfiles).mockResolvedValue([profile]);
       mocked(fetchProviders).mockResolvedValue([
         { name: 'sendgrid', services: [], defaultService: '' },
@@ -386,61 +396,67 @@ describe('Quickstart logic', () => {
             'sfs_bb064dd57c302911602dd097bc29bedaea6a021c25a66992d475ed959aa526c7_37bce8b5',
         });
 
-      await interactiveInstall(`${profile.scope}/${profile.profile}@${profile.version}`, { logCb, warnCb, successCb });
+      await interactiveInstall(
+        `${profile.scope}/${profile.profile}@${profile.version}`,
+        { logCb, warnCb, successCb }
+      );
 
       expect(detectSuperJson).toHaveBeenCalled();
       expect(initSuperface).toHaveBeenCalled();
       expect(fetchProfiles).not.toHaveBeenCalled();
       expect(fetchProviders).toHaveBeenCalled();
       expect(exists).toHaveBeenCalled();
-      expect(writeOnceSpy).toHaveBeenCalledWith('', JSON.stringify({
-        profiles: {
-          ['communication/send-email']: {
-            version: "1.0.1",
-            providers: {
-              sendgrid: {},
-              mailgun: {},
-              test: {}
-            },
-            priority: [
-              'sendgrid',
-              'mailgun',
-              'test'
-            ]
-          }
-        },
-        providers: {
-          sendgrid: {
-            security: [
-              {
-                id: "bearer_token",
-                token: "$SENDGRID_TOKEN"
-              }
-            ]
-          },
-          test: {
-            security: [
-              {
-                id: "digest",
-                digest: "$TEST_DIGEST"
+      expect(writeOnceSpy).toHaveBeenCalledWith(
+        '',
+        JSON.stringify(
+          {
+            profiles: {
+              ['communication/send-email']: {
+                version: '1.0.1',
+                providers: {
+                  sendgrid: {},
+                  mailgun: {},
+                  test: {},
+                },
+                priority: ['sendgrid', 'mailgun', 'test'],
               },
-              {
-                id: "apikey",
-                apikey: "$TEST_API_KEY"
-              }
-            ]
+            },
+            providers: {
+              sendgrid: {
+                security: [
+                  {
+                    id: 'bearer_token',
+                    token: '$SENDGRID_TOKEN',
+                  },
+                ],
+              },
+              test: {
+                security: [
+                  {
+                    id: 'digest',
+                    digest: '$TEST_DIGEST',
+                  },
+                  {
+                    id: 'apikey',
+                    apikey: '$TEST_API_KEY',
+                  },
+                ],
+              },
+              mailgun: {
+                security: [
+                  {
+                    id: 'basic',
+                    username: '$MAILGUN_USERNAME',
+                    password: '$MAILGUN_PASSWORD',
+                  },
+                ],
+              },
+            },
           },
-          mailgun: {
-            security: [
-              {
-                id: "basic",
-                username: "$MAILGUN_USERNAME",
-                password: "$MAILGUN_PASSWORD"
-              }
-            ]
-          },
-        }
-      }, undefined, 2))
+          undefined,
+          2
+        )
+      );
       expect(writeOnceSpy).toHaveBeenCalledWith(
         '.env',
         'SOME=env\nSENDGRID_TOKEN=sendgridBearer\nTEST_API_KEY=testApiKey\nMAILGUN_USERNAME=mailgunUsername\nMAILGUN_PASSWORD=mailgunPassword\nSUPERFACE_SDK_TOKEN=sfs_bb064dd57c302911602dd097bc29bedaea6a021c25a66992d475ed959aa526c7_37bce8b5\n'
@@ -557,14 +573,21 @@ describe('Quickstart logic', () => {
             'sfs_bb064dd57c302911602dd097bc29bedaea6a021c25a66992d475ed959aa526c7_37bce8b5',
         });
 
-      await interactiveInstall(`${profile.scope}/${profile.profile}`, { logCb, warnCb, successCb });
+      await interactiveInstall(`${profile.scope}/${profile.profile}`, {
+        logCb,
+        warnCb,
+        successCb,
+      });
 
       expect(detectSuperJson).toHaveBeenCalled();
       expect(initSuperface).toHaveBeenCalled();
       expect(fetchProfiles).not.toHaveBeenCalled();
       expect(fetchProviders).toHaveBeenCalled();
       expect(exists).toHaveBeenCalled();
-      expect(writeOnceSpy).toHaveBeenCalledWith('', mockMisconfiguredSuperJson.stringified)
+      expect(writeOnceSpy).toHaveBeenCalledWith(
+        '',
+        mockMisconfiguredSuperJson.stringified
+      );
       expect(writeOnceSpy).toHaveBeenCalledWith(
         '.env',
         'TEST_API_KEY=env\nMAILGUN_USERNAME=mailgunUsername\nMAILGUN_PASSWORD=mailgunPassword\nSUPERFACE_SDK_TOKEN=sfs_bb064dd57c302911602dd097bc29bedaea6a021c25a66992d475ed959aa526c7_37bce8b5\n'
@@ -600,6 +623,7 @@ describe('Quickstart logic', () => {
             providers: {
               mailgun: {},
               mock: {},
+              test: {},
               sendgrid: {},
             },
           },
@@ -716,7 +740,7 @@ describe('Quickstart logic', () => {
       expect(fetchProviders).toHaveBeenCalled();
       expect(exists).toHaveBeenCalled();
 
-      expect(writeOnceSpy).toHaveBeenCalledWith('', mockSuperJson.stringified)
+      expect(writeOnceSpy).toHaveBeenCalledWith('', mockSuperJson.stringified);
       expect(writeOnceSpy).toHaveBeenCalledWith(
         '.env',
         'test=test\nSENDGRID_TOKEN=t\ntest2=test2\nMAILGUN_USERNAME=mailgunUsername\nMAILGUN_PASSWORD=mailgunPassword\nTEST_DIGEST=testDigest\nSUPERFACE_SDK_TOKEN=sfs_bb064dd57c302911602dd097bc29bedaea6a021c25a66992d475ed959aa526c7_37bce8b5\n'

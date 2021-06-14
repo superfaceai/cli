@@ -300,14 +300,14 @@ describe('Install CLI command', () => {
     }, 10000);
 
     it('calls interactive install correctly', async () => {
-      await expect(Install.run(['scope/profile', '-i'])).resolves.toBeUndefined();
+      await expect(
+        Install.run(['scope/profile', '-i'])
+      ).resolves.toBeUndefined();
       expect(interactiveInstall).toHaveBeenCalledTimes(1);
     }, 10000);
 
     it('does not call interactive install when profile id argument is not set', async () => {
-      await expect(Install.run(['-i'])).rejects.toThrow(
-        'EEXIT: 0'
-      );
+      await expect(Install.run(['-i'])).rejects.toThrow('EEXIT: 0');
       expect(interactiveInstall).not.toHaveBeenCalled();
     }, 10000);
 

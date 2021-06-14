@@ -191,7 +191,7 @@ export async function interactiveInstall(
   const installedProviders = superJson.normalized.providers;
 
   //Set priority
-  superJson.addPrioriy(profileId, providersToInstall)
+  superJson.addPriority(profileId, providersToInstall);
   // write new information to super.json
   await OutputStream.writeOnce(superJson.path, superJson.stringified);
 
