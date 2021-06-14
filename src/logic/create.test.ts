@@ -397,6 +397,7 @@ describe('Create logic', () => {
       expect(mockSuperJson.normalized).toEqual({
         profiles: {
           'test-scope/test-name': {
+            priority: [],
             defaults: {},
             file: `${mockScope}/${mockName}.supr`,
             providers: {},
@@ -488,6 +489,7 @@ describe('Create logic', () => {
           'test-scope/test-name': {
             version: '0.0.0',
             defaults: {},
+            priority: [],
             providers: {
               [mockProvider]: {
                 defaults: {},
@@ -550,6 +552,7 @@ describe('Create logic', () => {
           'test-scope/test-name': {
             file: `${mockScope}/${mockName}.supr`,
             defaults: {},
+            priority: [],
             providers: {
               [mockProvider]: {
                 defaults: {},

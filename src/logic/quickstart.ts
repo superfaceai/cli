@@ -31,13 +31,10 @@ export async function interactiveInstall(
     successCb?: LogCallback;
   }
 ): Promise<void> {
-  console.log('input', profileArg);
   const [profileId, version] = profileArg.split('@');
   const profilePathParts = profileId.split('/');
   const profile = profilePathParts[profilePathParts.length - 1];
   const scope = profilePathParts[0];
-
-  console.log('ver', version);
 
   if (!isValidDocumentName(profile)) {
     options?.warnCb?.(`Invalid profile name: ${profile}`);
@@ -192,6 +189,11 @@ export async function interactiveInstall(
   superJson = (await SuperJson.load(joinPath(superPath, META_FILE))).unwrap();
   //Get installed
   const installedProviders = superJson.normalized.providers;
+
+  //Set priority
+  superJson.addPrioriy(profileId, providersToInstall)
+  // write new information to super.json
+  await OutputStream.writeOnce(superJson.path, superJson.stringified);
 
   options?.successCb?.(`\nConfiguring providers security`);
 

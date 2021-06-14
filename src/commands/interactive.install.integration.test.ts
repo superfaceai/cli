@@ -98,7 +98,7 @@ describe('Interactive install CLI command', () => {
       await expect(exists(paths[2])).resolves.toBe(false);
       await expect(exists(paths[3])).resolves.toBe(false);
 
-      const result = await execCLI(tempDir, ['install', '-i'], mockServer.url, {
+      const result = await execCLI(tempDir, ['install', `${profile.scope}/${profile.name}@${profile.version}`, '-i'], mockServer.url, {
         inputs: [
           //Confirm profile
           { value: ENTER, timeout: 1000 },
@@ -341,7 +341,7 @@ describe('Interactive install CLI command', () => {
       await expect(exists(paths[2])).resolves.toBe(false);
       await expect(exists(paths[3])).resolves.toBe(false);
 
-      const result = await execCLI(tempDir, ['install', '-i'], mockServer.url, {
+      const result = await execCLI(tempDir, ['install', `${profile.scope}/${profile.name}`, '-i'], mockServer.url, {
         inputs: [
           //Confirm super.json override
           { value: 'y', timeout: 2000 },
