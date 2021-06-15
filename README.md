@@ -49,7 +49,7 @@ Or you can use NPX directly with Superface CLI commands:
 ```shell
 npx @superfaceai/cli [command]
 # eg. you can quickly start with Superface CLI and our curated capabilities 
-npx @superfaceai/cli install -i
+npx @superfaceai/cli install [profileId eg. communication/send-email] -i
 ```
 
 ## Usage
@@ -109,7 +109,8 @@ OPTIONS
 
 EXAMPLES
   $ superface install
-  $ superface install -i
+  $ superface install sms/service -i
+  $ superface install sms/service -i@1.0
   $ superface install sms/service@1.0
   $ superface install sms/service@1.0 --providers twilio tyntec
   $ superface install sms/service@1.0 -p twilio

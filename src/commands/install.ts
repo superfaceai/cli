@@ -94,7 +94,7 @@ export default class Install extends Command {
   static examples = [
     '$ superface install',
     '$ superface install sms/service -i',
-    '$ superface install sms/service -i@1.0',
+    '$ superface install sms/service@1.0 -i',
     '$ superface install sms/service@1.0',
     '$ superface install sms/service@1.0 --providers twilio tyntec',
     '$ superface install sms/service@1.0 -p twilio',
