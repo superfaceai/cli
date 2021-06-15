@@ -9,6 +9,7 @@ import {
   SUPERFACE_DIR,
   SuperJson,
 } from '@superfaceai/one-sdk';
+import { bold } from 'chalk';
 import inquirer from 'inquirer';
 import { join as joinPath } from 'path';
 
@@ -132,7 +133,7 @@ export async function interactiveInstall(
       });
     //Add exit choice
     choices.push({
-      name: '<<done>>',
+      name: bold('<<done>>'),
       value: { name: undefined, priority: undefined, exit: true },
     });
 
