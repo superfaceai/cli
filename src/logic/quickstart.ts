@@ -132,7 +132,7 @@ export async function interactiveInstall(
       });
     //Add exit choice
     choices.push({
-      name: 'Done',
+      name: '<<done>>',
       value: { name: undefined, priority: undefined, exit: true },
     });
 
@@ -142,7 +142,7 @@ export async function interactiveInstall(
       name: 'provider',
       message:
         priority === 1
-          ? `Select providers you would like to use. You can end selection by choosing "Done".\nSelect ${
+          ? `Select providers you would like to use. You can end selection by choosing "<<done>>".\nSelect ${
               priorityToString.get(priority) || priority
             } provider:`
           : `Select ${priorityToString.get(priority) || priority} provider:`,
@@ -274,7 +274,7 @@ export async function interactiveInstall(
     const tokenResponse: { token: string | undefined } = await inquirer.prompt({
       name: 'token',
       message:
-        '(Optional) You can enter your SDK token generated at https://superface.ai:',
+        '(Optional) Enter your SDK token generated at https://superface.ai:',
       type: 'password',
       validate: input => {
         const tokenRegexp = /^(sfs)_([^_]+)_([0-9A-F]{8})$/i;
