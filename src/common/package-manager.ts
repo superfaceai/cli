@@ -23,17 +23,27 @@ export class PackageManager {
     }
     const path = relative(process.cwd(), npmPrefix.stdout.trim());
 
+    //Try to find yarn.lock
     if (await exists(join(path, 'yarn.lock'))) {
       PackageManager.usedPackageManager = 'yarn';
 
       return 'yarn';
     }
 
+    //Try to find package-lock.json
     if (await exists(join(path, 'package-lock.json'))) {
       PackageManager.usedPackageManager = 'npm';
 
       return 'npm';
     }
+
+    //Try to find package.json
+    if (await exists(join(path, 'package.json'))) {
+      PackageManager.usedPackageManager = 'npm';
+
+      return 'npm';
+    }
+
     options?.warnCb?.('Unable to locate package.json');
 
     return;
@@ -54,13 +64,13 @@ export class PackageManager {
     const result = await execShell(command);
     if (result.stderr !== '') {
       options?.warnCb?.(
-        `Shell command "${command}" responded with: "${result.stderr}"`
+        `Shell command "${command}" responded with: "${result.stderr.trimEnd()}"`
       );
 
       return false;
     }
     if (result.stdout !== '') {
-      options?.logCb?.(result.stdout);
+      options?.logCb?.(result.stdout.trimEnd());
     }
 
     return true;

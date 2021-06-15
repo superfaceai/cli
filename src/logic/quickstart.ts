@@ -53,7 +53,7 @@ export async function interactiveInstall(
     //Overide existing super.json
     if (
       !(await confirmPrompt(
-        'Configuration file super.json already exists.\nDo you want to override it?'
+        'Configuration file super.json already exists.\nDo you want to override it?:'
       ))
     ) {
       options?.warnCb?.(`Super.json already exists at path "${superPath}"`);
@@ -82,7 +82,7 @@ export async function interactiveInstall(
   if (await profileExists(superJson, { profile, scope, version })) {
     if (
       !(await confirmPrompt(
-        `Profile "${scope}/${profile}" already exists.\nDo you want to override it?`
+        `Profile "${scope}/${profile}" already exists.\nDo you want to override it?:`
       ))
     )
       return;
@@ -132,7 +132,7 @@ export async function interactiveInstall(
       });
     //Add exit choice
     choices.push({
-      name: 'Exit',
+      name: 'Done',
       value: { name: undefined, priority: undefined, exit: true },
     });
 
@@ -140,7 +140,12 @@ export async function interactiveInstall(
       provider: { name: string; priority: number; exit: boolean };
     } = await inquirer.prompt({
       name: 'provider',
-      message: `Select ${priorityToString.get(priority) || priority} provider`,
+      message:
+        priority === 1
+          ? `Select providers you would like to use. You can end selection by choosing "Done".\nSelect ${
+              priorityToString.get(priority) || priority
+            } provider:`
+          : `Select ${priorityToString.get(priority) || priority} provider:`,
       type: 'list',
       choices,
     });
@@ -163,7 +168,7 @@ export async function interactiveInstall(
     if (providerExists(superJson, provider.name)) {
       if (
         !(await confirmPrompt(
-          `Provider "${provider.name}" already exists.\nDo you want to override it?`
+          `Provider "${provider.name}" already exists.\nDo you want to override it?:`
         ))
       ) {
         continue;
@@ -175,7 +180,6 @@ export async function interactiveInstall(
   //Install providers
   for (const provider of providersToInstall) {
     //Install provider
-    //TODO: pass priority here
     await installProvider(superPath, provider, profileId, {
       logCb: options?.logCb,
       warnCb: options?.warnCb,
@@ -250,7 +254,7 @@ export async function interactiveInstall(
   //Prompt user for dotenv installation
   if (
     await confirmPrompt(
-      `Superface CLI would like to install dotenv package (https://github.com/motdotla/dotenv#readme).\nThis package is used to load superface secrets from .env file \nYou can use different one or install it manually later\nWould you like to install it now?`,
+      `Superface CLI would like to install dotenv package (https://github.com/motdotla/dotenv#readme).\nThis package is used to load superface secrets from .env file. You can use different one or install it manually later.\nWould you like to install it now?:`,
       { default: true }
     )
   ) {
@@ -288,7 +292,7 @@ export async function interactiveInstall(
     if (tokenResponse.token) {
       envContent += envVariable(tokenEnvName, tokenResponse.token);
       options?.successCb?.(
-        `Your SDK token was saved to ${tokenEnvName} variable in .env file. You can use it for authentization during SDK usage by loading it to your enviroment.\nDo you want to continue with installation?`
+        `Your SDK token was saved to ${tokenEnvName} variable in .env file. You can use it for authentization during SDK usage by loading it to your enviroment.`
       );
     } else {
       options?.successCb?.('Continuing without SDK token');
@@ -331,7 +335,7 @@ async function getPromptedValue(
     //Do we want to override?
     if (
       await confirmPrompt(
-        `Value of "${variableName}" for "${provider}" is already set.\nDo you want to override it?`
+        `Value of "${variableName}" for "${provider}" is already set.\nDo you want to override it?:`
       )
     ) {
       //Delete set row
@@ -420,7 +424,7 @@ async function selectSecuritySchema(
 ): Promise<SecurityValues> {
   const schemaResponse: { schema: SecurityValues } = await inquirer.prompt({
     name: 'schema',
-    message: `Select a security schema for "${provider}"`,
+    message: `Select a security schema for "${provider}":`,
     type: 'list',
     choices: schemas.map(s => {
       return { name: s.id, value: s };
@@ -438,7 +442,7 @@ async function confirmPrompt(
     name: 'continue',
     message: message
       ? `${message}`
-      : 'Do you want to continue with installation?',
+      : 'Do you want to continue with installation?:',
     type: 'confirm',
     default: options?.default || false,
   });
