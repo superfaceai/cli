@@ -114,7 +114,7 @@ export default class Install extends Command {
     if (flags.interactive) {
       if (!args.profileId) {
         this.warnCallback?.(
-          `Profile ID argument has be used with interactive flag`
+          `Profile ID argument must to be used with interactive flag`
         );
         this.exit(0);
       }
