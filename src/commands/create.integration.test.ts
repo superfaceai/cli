@@ -172,6 +172,7 @@ describe('Create CLI command', () => {
         profiles: {
           [documentName]: {
             defaults: {},
+            priority: [],
             providers: {
               [provider]: {
                 file: `../${documentName}.${provider}.suma`,
@@ -219,6 +220,7 @@ describe('Create CLI command', () => {
         profiles: {
           [documentName]: {
             defaults: {},
+            priority: [],
             providers: {
               [provider]: {
                 file: `../${documentName}.${provider}.suma`,
@@ -275,6 +277,7 @@ describe('Create CLI command', () => {
         profiles: {
           [documentName]: {
             defaults: {},
+            priority: [],
             providers: {
               [provider]: {
                 file: `../${documentName}.${provider}.suma`,

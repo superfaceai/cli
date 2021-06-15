@@ -20,7 +20,6 @@ import {
   mockResponsesForProfileProviders,
   mockResponsesForProvider,
   setUpTempDir,
-  SPACE,
   UP,
 } from '../test/utils';
 
@@ -39,12 +38,12 @@ describe('Interactive install CLI command', () => {
   beforeAll(async () => {
     await mkdir(TEMP_PATH, { recursive: true });
     await mockServer.start();
-    //Profile
+    //Profile with version
     await mockResponsesForProfile(
       mockServer,
       `${profile.scope}/${profile.name}@${profile.version}`
     );
-    //Providers list
+    //Providers list with version
     await mockResponsesForProfileProviders(
       mockServer,
       ['mailchimp', 'sendgrid', 'mock', 'mailgun'],
@@ -98,56 +97,64 @@ describe('Interactive install CLI command', () => {
       await expect(exists(paths[2])).resolves.toBe(false);
       await expect(exists(paths[3])).resolves.toBe(false);
 
-      const result = await execCLI(tempDir, ['install', '-i'], mockServer.url, {
-        inputs: [
-          //Confirm profile
-          { value: ENTER, timeout: 1000 },
-          //Select all providers
-          { value: 'a', timeout: 8000 },
-          //Confirm slection
-          { value: ENTER, timeout: 100 },
-          //Sendgrid token
-          { value: 'sendgridToken', timeout: 10000 },
-          { value: ENTER, timeout: 100 },
-          //Mailgun username
-          { value: 'username', timeout: 4000 },
-          { value: ENTER, timeout: 100 },
-          //Mailgun password
-          { value: 'password', timeout: 4000 },
-          { value: ENTER, timeout: 100 },
-          //Confirm dotenv installation
-          { value: ENTER, timeout: 4000 },
-          //Incorrect SDK token
-          {
-            value:
-              'XXX_bb064dd57c302911602dd097bc29bedaea6a021c25a66992d475ed959aa526c7_37bce8b5',
-            timeout: 4000,
-          },
-          { value: ENTER, timeout: 100 },
-          //Correct SDK token
-          {
-            value:
-              'sfs_bb064dd57c302911602dd097bc29bedaea6a021c25a66992d475ed959aa526c7_37bce8b5',
-            timeout: 4000,
-          },
-          { value: ENTER, timeout: 100 },
+      const result = await execCLI(
+        tempDir,
+        [
+          'install',
+          `${profile.scope}/${profile.name}@${profile.version}`,
+          '-i',
         ],
-      });
+        mockServer.url,
+        {
+          inputs: [
+            //Select providers priority
+            //Sendgrid
+            { value: DOWN, timeout: 6000 },
+            //Confirm slection
+            { value: ENTER, timeout: 100 },
+            //Mailgun
+            { value: DOWN, timeout: 6000 },
+            //Confirm slection
+            { value: ENTER, timeout: 100 },
+            //Exit
+            { value: UP, timeout: 6000 },
+            //Confirm slection
+            { value: ENTER, timeout: 100 },
+            //Sendgrid token
+            { value: 'sendgridToken', timeout: 10000 },
+            { value: ENTER, timeout: 100 },
+            //Mailgun username
+            { value: 'username', timeout: 4000 },
+            { value: ENTER, timeout: 100 },
+            //Mailgun password
+            { value: 'password', timeout: 4000 },
+            { value: ENTER, timeout: 100 },
+            //Confirm dotenv installation
+            { value: ENTER, timeout: 4000 },
+            //Incorrect SDK token
+            {
+              value:
+                'XXX_bb064dd57c302911602dd097bc29bedaea6a021c25a66992d475ed959aa526c7_37bce8b5',
+              timeout: 4000,
+            },
+            { value: ENTER, timeout: 100 },
+            //Correct SDK token
+            {
+              value:
+                'sfs_bb064dd57c302911602dd097bc29bedaea6a021c25a66992d475ed959aa526c7_37bce8b5',
+              timeout: 4000,
+            },
+            { value: ENTER, timeout: 500 },
+          ],
+        }
+      );
 
       //Check output
       expect(result.stdout).toMatch(
         'All profiles (1) have been installed successfully.'
       );
       expect(result.stdout).toMatch('Installing providers');
-      expect(result.stdout).toMatch('Configuring "mailchimp" security');
-      expect(result.stdout).toMatch(
-        'Provider "mailchimp" can be used without authenticatio'
-      );
       expect(result.stdout).toMatch('Configuring "sendgrid" security');
-      expect(result.stdout).toMatch('Configuring "mock" security');
-      expect(result.stdout).toMatch(
-        'Provider "mock" can be used without authentication'
-      );
       expect(result.stdout).toMatch(
         'Installing package "@superfaceai/one-sdk"'
       );
@@ -194,18 +201,14 @@ describe('Interactive install CLI command', () => {
         profiles: {
           [`${profile.scope}/${profile.name}`]: {
             version: profile.version,
+            priority: ['sendgrid', 'mailgun'],
             providers: {
-              mailchimp: {},
               sendgrid: {},
-              mock: {},
               mailgun: {},
             },
           },
         },
         providers: {
-          mailchimp: {
-            security: [],
-          },
           sendgrid: {
             security: [
               {
@@ -213,9 +216,6 @@ describe('Interactive install CLI command', () => {
                 token: '$SENDGRID_TOKEN',
               },
             ],
-          },
-          mock: {
-            security: [],
           },
           mailgun: {
             security: [
@@ -341,44 +341,51 @@ describe('Interactive install CLI command', () => {
       await expect(exists(paths[2])).resolves.toBe(false);
       await expect(exists(paths[3])).resolves.toBe(false);
 
-      const result = await execCLI(tempDir, ['install', '-i'], mockServer.url, {
-        inputs: [
-          //Confirm super.json override
-          { value: 'y', timeout: 2000 },
-          { value: ENTER, timeout: 100 },
-          //Confirm profile
-          { value: ENTER, timeout: 4000 },
-          //Confirm profile override
-          { value: 'y', timeout: 4000 },
-          { value: ENTER, timeout: 100 },
-          //Select sendgrid provider
-          { value: DOWN, timeout: 10000 },
-          { value: DOWN, timeout: 500 },
-          { value: SPACE, timeout: 500 },
-          { value: UP, timeout: 500 },
-          { value: SPACE, timeout: 500 },
-          { value: ENTER, timeout: 500 },
-          //Confirm first provider override
-          { value: 'y', timeout: 6000 },
-          { value: ENTER, timeout: 500 },
-          //Confirm env override
-          { value: 'y', timeout: 4000 },
-          { value: ENTER, timeout: 500 },
-          //Sendgrid token
-          { value: 'newSendgridToken', timeout: 4000 },
-          { value: ENTER, timeout: 500 },
-          //Confirm dotenv installation
-          { value: 'y', timeout: 4000 },
-          { value: ENTER, timeout: 500 },
-          //SDK token
-          {
-            value:
-              'sfs_bb064dd57c302911602dd097bc29bedaea6a021c25a66992d475ed959aa526c7_37bce8b5',
-            timeout: 4000,
-          },
-          { value: ENTER, timeout: 100 },
+      const result = await execCLI(
+        tempDir,
+        [
+          'install',
+          `${profile.scope}/${profile.name}@${profile.version}`,
+          '-i',
         ],
-      });
+        mockServer.url,
+        {
+          inputs: [
+            //Confirm super.json override
+            { value: 'y', timeout: 2000 },
+            { value: ENTER, timeout: 100 },
+            //Confirm profile override
+            { value: 'y', timeout: 4000 },
+            { value: ENTER, timeout: 100 },
+            //Select sendgrid provider
+            { value: DOWN, timeout: 10000 },
+            { value: ENTER, timeout: 500 },
+            //exit
+            { value: UP, timeout: 6000 },
+            //Confirm slection
+            { value: ENTER, timeout: 100 },
+            //Confirm first provider override
+            { value: 'y', timeout: 6000 },
+            { value: ENTER, timeout: 500 },
+            //Confirm env override
+            { value: 'y', timeout: 4000 },
+            { value: ENTER, timeout: 500 },
+            //Sendgrid token
+            { value: 'newSendgridToken', timeout: 4000 },
+            { value: ENTER, timeout: 500 },
+            //Confirm dotenv installation
+            { value: 'y', timeout: 4000 },
+            { value: ENTER, timeout: 500 },
+            //SDK token
+            {
+              value:
+                'sfs_bb064dd57c302911602dd097bc29bedaea6a021c25a66992d475ed959aa526c7_37bce8b5',
+              timeout: 4000,
+            },
+            { value: ENTER, timeout: 100 },
+          ],
+        }
+      );
 
       //Check output
       expect(result.stdout).toMatch(
@@ -441,6 +448,7 @@ describe('Interactive install CLI command', () => {
         profiles: {
           [`${profile.scope}/${profile.name}`]: {
             version: profile.version,
+            priority: ['sendgrid'],
             providers: {
               mailchimp: {},
               sendgrid: {},

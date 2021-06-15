@@ -122,6 +122,42 @@ describe('Quickstart logic', () => {
       );
     });
 
+    it('installs package with yarn - err on npm prefix', async () => {
+      //Scope imports for every test run to ensure PackageManager isolation
+      const { PackageManager } = await import('./package-manager');
+      const { execShell, exists } = await import('./io');
+      const { join } = await import('path');
+      jest.mock('../common/io');
+      jest.mock('path');
+      mocked(execShell)
+        .mockResolvedValueOnce({
+          stderr: 'npm prefix err',
+          stdout: 'some/path\n',
+        })
+        .mockResolvedValueOnce({
+          stderr: 'test err',
+          stdout: 'test out',
+        });
+      mocked(join).mockReturnValue('some/path/yarn.lock');
+      mocked(exists).mockResolvedValueOnce(true);
+
+      await expect(
+        PackageManager.installPackage('@superfaceai/one-sdk', {
+          logCb: mockStdout,
+          warnCb: mockStderr,
+        })
+      ).resolves.toEqual(false);
+
+      expect(exists).not.toHaveBeenCalled();
+      expect(execShell).not.toHaveBeenCalledWith(
+        'yarn add @superfaceai/one-sdk'
+      );
+
+      expect(mockStderr).toHaveBeenCalledWith(
+        'Shell command "npm prefix" responded with: "npm prefix err"'
+      );
+    });
+
     it('installs package with npm and empty stdout, stderror', async () => {
       //Scope imports for every test run to ensure PackageManager isolation
       const { PackageManager } = await import('./package-manager');
@@ -182,6 +218,87 @@ describe('Quickstart logic', () => {
       );
 
       expect(mockStdout).not.toHaveBeenCalledWith();
+      expect(mockStderr).toHaveBeenCalledWith(
+        'Shell command "npm install @superfaceai/one-sdk" responded with: "test err"'
+      );
+    });
+
+    it('installs package with npm - yarn.lock and package-lock.json not found', async () => {
+      //Scope imports for every test run to ensure PackageManager isolation
+      const { PackageManager } = await import('./package-manager');
+      const { execShell, exists } = await import('./io');
+      const { join } = await import('path');
+      jest.mock('../common/io');
+      jest.mock('path');
+      mocked(execShell)
+        .mockResolvedValueOnce({ stderr: '', stdout: 'some/path\n' })
+        .mockResolvedValueOnce({
+          stderr: 'test err',
+          stdout: 'test out',
+        });
+      mocked(join)
+        .mockReturnValueOnce('some/path/yarn.lock')
+        .mockReturnValueOnce('some/path/package-lock.json')
+        .mockReturnValueOnce('some/path/package.json');
+      mocked(exists)
+        .mockResolvedValueOnce(false)
+        .mockResolvedValueOnce(false)
+        .mockResolvedValueOnce(true);
+
+      await expect(
+        PackageManager.installPackage('@superfaceai/one-sdk', {
+          logCb: mockStdout,
+          warnCb: mockStderr,
+        })
+      ).resolves.toEqual(false);
+
+      expect(exists).toHaveBeenCalledWith('some/path/package-lock.json');
+      expect(execShell).toHaveBeenCalledWith('npm prefix');
+      expect(execShell).toHaveBeenCalledWith(
+        'npm install @superfaceai/one-sdk'
+      );
+
+      expect(mockStdout).not.toHaveBeenCalledWith();
+      expect(mockStderr).toHaveBeenCalledWith(
+        'Shell command "npm install @superfaceai/one-sdk" responded with: "test err"'
+      );
+    });
+
+    it('installs package with npm - yarn.lock, package-lock.json and package.json not found', async () => {
+      //Scope imports for every test run to ensure PackageManager isolation
+      const { PackageManager } = await import('./package-manager');
+      const { execShell, exists } = await import('./io');
+      const { join } = await import('path');
+      jest.mock('../common/io');
+      jest.mock('path');
+      mocked(execShell)
+        .mockResolvedValueOnce({ stderr: '', stdout: 'some/path\n' })
+        .mockResolvedValueOnce({
+          stderr: 'test err',
+          stdout: 'test out',
+        });
+      mocked(join)
+        .mockReturnValueOnce('some/path/yarn.lock')
+        .mockReturnValueOnce('some/path/package-lock.json')
+        .mockReturnValueOnce('some/path/package.json');
+      mocked(exists)
+        .mockResolvedValueOnce(false)
+        .mockResolvedValueOnce(false)
+        .mockResolvedValueOnce(false);
+
+      await expect(
+        PackageManager.installPackage('@superfaceai/one-sdk', {
+          logCb: mockStdout,
+          warnCb: mockStderr,
+        })
+      ).resolves.toEqual(false);
+
+      expect(exists).toHaveBeenCalledWith('some/path/package-lock.json');
+      expect(execShell).toHaveBeenCalledWith('npm prefix');
+      expect(execShell).toHaveBeenCalledWith(
+        'npm install @superfaceai/one-sdk'
+      );
+
       expect(mockStderr).toHaveBeenCalledWith(
         'Shell command "npm install @superfaceai/one-sdk" responded with: "test err"'
       );
