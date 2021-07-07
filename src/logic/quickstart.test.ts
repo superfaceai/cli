@@ -220,58 +220,6 @@ describe('Quickstart logic', () => {
       expect(exists).toHaveBeenCalled();
 
       expect(writeOnceSpy).toHaveBeenCalledWith(
-        '',
-        JSON.stringify(
-          {
-            profiles: {
-              ['communication/send-email']: {
-                version: '1.0.1',
-                providers: {
-                  sendgrid: {},
-                  mailgun: {},
-                  test: {},
-                },
-                priority: ['sendgrid', 'mailgun', 'test'],
-              },
-            },
-            providers: {
-              sendgrid: {
-                security: [
-                  {
-                    id: 'bearer_token',
-                    token: '$SENDGRID_TOKEN',
-                  },
-                ],
-              },
-              test: {
-                security: [
-                  {
-                    id: 'digest',
-                    digest: '$TEST_DIGEST',
-                  },
-                  {
-                    id: 'apikey',
-                    apikey: '$TEST_API_KEY',
-                  },
-                ],
-              },
-              mailgun: {
-                security: [
-                  {
-                    id: 'basic',
-                    username: '$MAILGUN_USERNAME',
-                    password: '$MAILGUN_PASSWORD',
-                  },
-                ],
-              },
-            },
-          },
-          undefined,
-          2
-        )
-      );
-
-      expect(writeOnceSpy).toHaveBeenCalledWith(
         '.env',
         'SENDGRID_TOKEN=sendgridBearer\nTEST_DIGEST=testDigest\nMAILGUN_USERNAME=mailgunUsername\nMAILGUN_PASSWORD=mailgunPassword\nSUPERFACE_SDK_TOKEN=sfs_bb064dd57c302911602dd097bc29bedaea6a021c25a66992d475ed959aa526c7_37bce8b5\n'
       );
@@ -406,57 +354,6 @@ describe('Quickstart logic', () => {
       expect(fetchProfiles).not.toHaveBeenCalled();
       expect(fetchProviders).toHaveBeenCalled();
       expect(exists).toHaveBeenCalled();
-      expect(writeOnceSpy).toHaveBeenCalledWith(
-        '',
-        JSON.stringify(
-          {
-            profiles: {
-              ['communication/send-email']: {
-                version: '1.0.1',
-                providers: {
-                  sendgrid: {},
-                  mailgun: {},
-                  test: {},
-                },
-                priority: ['sendgrid', 'mailgun', 'test'],
-              },
-            },
-            providers: {
-              sendgrid: {
-                security: [
-                  {
-                    id: 'bearer_token',
-                    token: '$SENDGRID_TOKEN',
-                  },
-                ],
-              },
-              test: {
-                security: [
-                  {
-                    id: 'digest',
-                    digest: '$TEST_DIGEST',
-                  },
-                  {
-                    id: 'apikey',
-                    apikey: '$TEST_API_KEY',
-                  },
-                ],
-              },
-              mailgun: {
-                security: [
-                  {
-                    id: 'basic',
-                    username: '$MAILGUN_USERNAME',
-                    password: '$MAILGUN_PASSWORD',
-                  },
-                ],
-              },
-            },
-          },
-          undefined,
-          2
-        )
-      );
       expect(writeOnceSpy).toHaveBeenCalledWith(
         '.env',
         'SOME=env\nSENDGRID_TOKEN=sendgridBearer\nTEST_API_KEY=testApiKey\nMAILGUN_USERNAME=mailgunUsername\nMAILGUN_PASSWORD=mailgunPassword\nSUPERFACE_SDK_TOKEN=sfs_bb064dd57c302911602dd097bc29bedaea6a021c25a66992d475ed959aa526c7_37bce8b5\n'

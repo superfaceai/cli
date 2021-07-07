@@ -362,7 +362,7 @@ describe('Interactive install CLI command', () => {
             { value: ENTER, timeout: 500 },
             //exit
             { value: UP, timeout: 6000 },
-            //Confirm slection
+            //Confirm selection
             { value: ENTER, timeout: 100 },
             //Confirm first provider override
             { value: 'y', timeout: 6000 },

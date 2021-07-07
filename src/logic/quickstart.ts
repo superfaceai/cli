@@ -150,15 +150,19 @@ export async function interactiveInstall(
       type: 'list',
       choices,
     });
-    if (providerResponse.provider.exit || choices.length === 2) {
+    if (providerResponse.provider.exit) {
       exit = true;
-    } else {
-      providersWithPriority.push({
-        name: providerResponse.provider.name,
-        priority: providerResponse.provider.priority,
-      });
-      priority++;
+      continue;
     }
+    providersWithPriority.push({
+      name: providerResponse.provider.name,
+      priority: providerResponse.provider.priority,
+    });
+
+    if (choices.length === 2) {
+      exit = true;
+    }
+    priority++;
   }
 
   //Configure providers
@@ -189,16 +193,25 @@ export async function interactiveInstall(
     });
   }
 
-  //Ask for provider security
   //Reload super.json
   superJson = (await SuperJson.load(joinPath(superPath, META_FILE))).unwrap();
   //Get installed
   const installedProviders = superJson.normalized.providers;
 
-  //Set priority
-  superJson.addPriority(profileId, providersToInstall);
-  // write new information to super.json
-  await OutputStream.writeOnce(superJson.path, superJson.stringified);
+  //Set priority if not alreaady set (with same values/order)
+  const existingPriority =
+    superJson.normalized.profiles[profileId].priority ?? [];
+  if (
+    !providersToInstall.every(
+      (value: string, index: number) => value === existingPriority[index]
+    )
+  ) {
+    superJson.addPriority(profileId, providersToInstall);
+    // write new information to super.json
+    await OutputStream.writeOnce(superJson.path, superJson.stringified);
+  }
+
+  //Ask for provider security
 
   options?.successCb?.(`\nConfiguring providers security`);
 
