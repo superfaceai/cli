@@ -195,7 +195,7 @@ export async function interactiveInstall(
 
   //Reload super.json
   superJson = (await SuperJson.load(joinPath(superPath, META_FILE))).unwrap();
-  // //Get installed
+  //Get installed
   const installedProviders = superJson.normalized.providers;
 
   //Set priority if not alreaady set (with same values/order)
