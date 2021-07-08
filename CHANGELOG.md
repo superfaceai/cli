@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.0.19] - 2021-07-08
+
 ## [0.0.18] - 2021-06-15
 ### Added
 - Multiple capabilities in interactive install command
@@ -104,7 +106,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Transpile command
 - CI github flow
 
-[Unreleased]: https://github.com/superfaceai/cli/compare/v0.0.18...HEAD
+[Unreleased]: https://github.com/superfaceai/cli/compare/v0.0.19...HEAD
+[0.0.19]: https://github.com/superfaceai/cli/compare/v0.0.18...v0.0.19
 [0.0.18]: https://github.com/superfaceai/cli/compare/v0.0.17...v0.0.18
 [0.0.17]: https://github.com/superfaceai/cli/compare/v0.0.16...v0.0.17
 [0.0.16]: https://github.com/superfaceai/cli/compare/v0.0.15...v0.0.16
