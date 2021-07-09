@@ -5,12 +5,13 @@ import { LogCallback } from './log';
 
 export class PackageManager {
   private static usedPackageManager: 'npm' | 'yarn' | undefined = undefined;
+  private static path: string | undefined = undefined;
 
-  private static async getUsedPm(options?: {
+  private static async getPath(options?: {
     warnCb?: LogCallback;
-  }): Promise<'npm' | 'yarn' | undefined> {
-    if (PackageManager.usedPackageManager) {
-      return PackageManager.usedPackageManager;
+  }): Promise<string | undefined> {
+    if (PackageManager.path) {
+      return PackageManager.path;
     }
     const npmPrefix = await execShell(`npm prefix`);
 
@@ -21,7 +22,32 @@ export class PackageManager {
 
       return;
     }
-    const path = relative(process.cwd(), npmPrefix.stdout.trim());
+    PackageManager.path = relative(process.cwd(), npmPrefix.stdout.trim());
+
+    return PackageManager.path;
+  }
+
+  public static async packageJsonExists(options?: {
+    warnCb?: LogCallback;
+  }): Promise<boolean> {
+    const path = await PackageManager.getPath(options);
+    if (path && (await exists(join(path, 'package.json')))) {
+      return true;
+    }
+
+    return false;
+  }
+
+  public static async getUsedPm(options?: {
+    warnCb?: LogCallback;
+  }): Promise<'npm' | 'yarn' | undefined> {
+    if (PackageManager.usedPackageManager) {
+      return PackageManager.usedPackageManager;
+    }
+    const path = await PackageManager.getPath(options);
+    if (!path) {
+      return;
+    }
 
     //Try to find yarn.lock
     if (await exists(join(path, 'yarn.lock'))) {
@@ -37,16 +63,39 @@ export class PackageManager {
       return 'npm';
     }
 
-    //Try to find package.json
-    if (await exists(join(path, 'package.json'))) {
-      PackageManager.usedPackageManager = 'npm';
+    return;
+  }
 
-      return 'npm';
+  public static async init(
+    initPm: 'yarn' | 'npm',
+    options?: {
+      logCb?: LogCallback;
+      warnCb?: LogCallback;
+    }
+  ): Promise<boolean> {
+    const pm = await PackageManager.getUsedPm({ warnCb: options?.warnCb });
+    if (pm && pm === initPm) {
+      options?.warnCb?.(`${pm} already initialized.`);
+
+      return false;
+    }
+    const command = initPm === 'yarn' ? `yarn init -y` : `npm init -y`;
+
+    const result = await execShell(command);
+    if (result.stderr !== '') {
+      options?.warnCb?.(
+        `Shell command "${command}" responded with: "${result.stderr.trimEnd()}"`
+      );
     }
 
-    options?.warnCb?.('Unable to locate package.json');
+    if (result.stdout !== '') {
+      options?.logCb?.(result.stdout.trimEnd());
+    }
 
-    return;
+    //Set used PM after init
+    PackageManager.usedPackageManager = initPm;
+
+    return true;
   }
 
   public static async installPackage(
@@ -58,6 +107,14 @@ export class PackageManager {
   ): Promise<boolean> {
     const pm = await PackageManager.getUsedPm({ warnCb: options?.warnCb });
 
+    if (!pm) {
+      options?.warnCb?.(
+        `Unable to install package ${packageName} without initialized package.json`
+      );
+
+      return false;
+    }
+
     const command =
       pm === 'yarn' ? `yarn add ${packageName}` : `npm install ${packageName}`;
 
@@ -66,9 +123,8 @@ export class PackageManager {
       options?.warnCb?.(
         `Shell command "${command}" responded with: "${result.stderr.trimEnd()}"`
       );
-
-      return false;
     }
+
     if (result.stdout !== '') {
       options?.logCb?.(result.stdout.trimEnd());
     }

@@ -73,7 +73,7 @@ describe('Interactive install CLI command', () => {
   });
 
   describe('when installing non existing profile', () => {
-    it('installs the profile', async () => {
+    it.skip('installs the profile', async () => {
       const paths = [
         joinPath(
           tempDir,
@@ -246,7 +246,7 @@ describe('Interactive install CLI command', () => {
       ).not.toBeUndefined();
     }, 60000);
 
-    it('installs the profile, overrides existing super.json and updates .env', async () => {
+    it.skip('installs the profile, overrides existing super.json and updates .env', async () => {
       //Existing env
       await OutputStream.writeOnce(
         joinPath(tempDir, '.env'),
