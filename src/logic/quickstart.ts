@@ -274,7 +274,7 @@ export async function interactiveInstall(
       choices: [
         { name: 'Yarn', value: 'yarn' },
         { name: 'NPM', value: 'npm' },
-        { name: 'Exitnstallation', value: 'exit' },
+        { name: 'Exit installation', value: 'exit' },
       ],
     });
 

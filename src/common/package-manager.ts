@@ -22,7 +22,11 @@ export class PackageManager {
 
       return;
     }
-    PackageManager.path = relative(process.cwd(), npmPrefix.stdout.trim());
+    if (process.cwd() === npmPrefix.stdout.trim()) {
+      PackageManager.path = './';
+    } else {
+      PackageManager.path = relative(process.cwd(), npmPrefix.stdout.trim());
+    }
 
     return PackageManager.path;
   }
