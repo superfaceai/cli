@@ -199,6 +199,8 @@ describe('Quickstart logic', () => {
         .mockResolvedValueOnce({ value: 'mailgunUsername' })
         //Set mailgun password
         .mockResolvedValueOnce({ value: 'mailgunPassword' })
+        //Init PM
+        .mockResolvedValueOnce({ pm: 'yarn' })
         //Install dotenv
         .mockResolvedValueOnce({ continue: true })
         //Set SDK token
@@ -335,7 +337,8 @@ describe('Quickstart logic', () => {
         .mockResolvedValueOnce({ value: 'mailgunUsername' })
         //Set mailgun password
         .mockResolvedValueOnce({ value: 'mailgunPassword' })
-
+        //Init PM
+        .mockResolvedValueOnce({ pm: 'npm' })
         //Install dotenv
         .mockResolvedValueOnce({ continue: true })
         //Set SDK token
@@ -462,6 +465,8 @@ describe('Quickstart logic', () => {
         .mockResolvedValueOnce({ value: 'mailgunUsername' })
         //Set mailgun password
         .mockResolvedValueOnce({ value: 'mailgunPassword' })
+        //Init PM
+        .mockResolvedValueOnce({ pm: 'yarn' })
         //Install dotenv
         .mockResolvedValueOnce({ continue: true })
         //Set SDK token
@@ -618,6 +623,8 @@ describe('Quickstart logic', () => {
         })
         //Set test digest
         .mockResolvedValueOnce({ value: 'testDigest' })
+        //Init PM
+        .mockResolvedValueOnce({ pm: 'npm' })
         //Install dotenv
         .mockResolvedValueOnce({ continue: true })
         //Set SDK token

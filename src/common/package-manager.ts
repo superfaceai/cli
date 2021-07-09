@@ -105,15 +105,16 @@ export class PackageManager {
       warnCb?: LogCallback;
     }
   ): Promise<boolean> {
-    const pm = await PackageManager.getUsedPm({ warnCb: options?.warnCb });
-
-    if (!pm) {
+    if (
+      !(await PackageManager.packageJsonExists({ warnCb: options?.warnCb }))
+    ) {
       options?.warnCb?.(
         `Unable to install package ${packageName} without initialized package.json`
       );
 
       return false;
     }
+    const pm = await PackageManager.getUsedPm({ warnCb: options?.warnCb });
 
     const command =
       pm === 'yarn' ? `yarn add ${packageName}` : `npm install ${packageName}`;
