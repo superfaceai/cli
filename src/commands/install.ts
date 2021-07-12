@@ -101,11 +101,11 @@ export default class Install extends Command {
     '$ superface install --local sms/service.supr',
   ];
 
-  private warnCallback? = (message: string) =>
+  private warnCallback?= (message: string) =>
     this.log('⚠️  ' + yellow(message));
 
-  private logCallback? = (message: string) => this.log(grey(message));
-  private successCallback? = (message: string) =>
+  private logCallback?= (message: string) => this.log(grey(message));
+  private successCallback?= (message: string) =>
     this.log(bold(green(message)));
 
   async run(): Promise<void> {
@@ -213,7 +213,7 @@ export default class Install extends Command {
 
     this.logCallback?.(`\n\nConfiguring providers`);
     for (const providerName of providers) {
-      await installProvider(superPath, providerName, args.profileId, {
+      await installProvider(superPath, providerName, args.profileId, undefined, {
         logCb: this.logCallback,
         warnCb: this.warnCallback,
         force: flags.force,

@@ -4,6 +4,7 @@ import {
   isBearerTokenSecurityScheme,
   isDigestSecurityScheme,
   parseProviderJson,
+  ProfileProviderDefaults,
   ProviderJson,
   SecurityValues,
   SuperJson,
@@ -29,6 +30,7 @@ export function handleProviderResponse(
   superJson: SuperJson,
   profileId: string,
   response: ProviderJson,
+  defaults?: ProfileProviderDefaults,
   options?: { logCb?: LogCallback; warnCb?: LogCallback }
 ): number {
   options?.logCb?.(`Installing provider: "${response.name}"`);
@@ -38,8 +40,7 @@ export function handleProviderResponse(
   if (response.securitySchemes) {
     for (const scheme of response.securitySchemes) {
       options?.logCb?.(
-        `Configuring ${security.length + 1}/${
-          response.securitySchemes.length
+        `Configuring ${security.length + 1}/${response.securitySchemes.length
         } security schemes`
       );
       //Char - is not allowed in env variables so replace it with _
@@ -76,10 +77,13 @@ export function handleProviderResponse(
   superJson.addProvider(response.name, { security });
 
   //constructProfileProviderSettings returns Record<string, ProfileProviderEntry>
+
+  console.log('constructProfileProviderSettings', constructProfileProviderSettings([response.name])[response.name])
+  console.log('passed defaults', defaults, ' sleceted defaults', defaults?.[response.name])
   superJson.addProfileProvider(
     profileId,
     response.name,
-    constructProfileProviderSettings([response.name])[response.name]
+    defaults || constructProfileProviderSettings([response.name])[response.name]
   );
 
   return security.length;
@@ -116,6 +120,7 @@ export async function installProvider(
   superPath: string,
   provider: string,
   profileId: string,
+  defaults?: ProfileProviderDefaults,
   options?: {
     logCb?: LogCallback;
     warnCb?: LogCallback;
@@ -175,6 +180,7 @@ export async function installProvider(
     superJson,
     profileId,
     providerInfo,
+    defaults,
     options
   );
 

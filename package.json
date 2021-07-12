@@ -50,7 +50,7 @@
     "@oclif/command": "^1.8.0",
     "@oclif/config": "^1.17.0",
     "@superfaceai/ast": "^0.0.25",
-    "@superfaceai/one-sdk": "0.0.28",
+    "@superfaceai/one-sdk": "^0.0.29-beta.5",
     "@superfaceai/parser": "0.0.17",
     "chalk": "^4.1.0",
     "debug": "^4.3.1",

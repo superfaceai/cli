@@ -10,6 +10,7 @@ import {
   SUPER_PATH,
   SUPERFACE_DIR,
   UNCOMPILED_SDK_FILE,
+  composeUsecaseName,
 } from '../common/document';
 import {
   fetchProfile,
@@ -99,6 +100,9 @@ export type StoreRequest = {
   kind: 'store';
   profileId: string;
   version?: string;
+  defaults?: {
+    providerFailover: boolean;
+  };
 };
 type StoreRequestChecked = StoreRequest & {
   sourcePath: string;
@@ -145,6 +149,7 @@ export async function resolveInstallationRequests(
   requests: (LocalRequest | StoreRequest)[],
   options?: InstallOptions
 ): Promise<number> {
+  console.log('resolve', requests);
   // phase 1 - read local requests
   const phase1 = await Promise.all(
     requests.map(async request => {
@@ -175,6 +180,7 @@ export async function resolveInstallationRequests(
       }
     )
   ).then(arrayFilterUndefined);
+  console.log('phase 2', phase2);
 
   // phase 3 - fetch from store
   const phase3 = await Promise.all(
@@ -186,21 +192,34 @@ export async function resolveInstallationRequests(
       return request;
     })
   ).then(arrayFilterUndefined);
+  console.log('phase 3', phase3);
 
   // phase 4 - write to super.json
+  console.log('About to write');
   for (const entry of phase3) {
     if (entry.kind === 'local') {
+      console.log('1 ADD PROFILE');
+
       superJson.addProfile(entry.profileId, {
         file: superJson.relativePath(entry.path),
       });
     } else {
+      console.log('profile id', entry.profileId);
+      const [, usecasePart] = entry.profileId.split('/');
+      const usecase = composeUsecaseName(usecasePart)
+      console.log('usecase', usecase);
       if (entry.pathOutsideGrid) {
+        console.log('2 ADD PROFILE');
         superJson.addProfile(entry.profileId, {
           file: superJson.relativePath(entry.sourcePath),
+          defaults: entry.defaults ? { [usecase]: entry.defaults } : undefined,
         });
       } else {
+        console.log('2 ADD PROFILE');
+
         superJson.addProfile(entry.profileId, {
           version: entry.info.profile_version,
+          defaults: entry.defaults ? { [usecase]: entry.defaults } : undefined,
         });
       }
     }
@@ -346,6 +365,7 @@ async function checkStoreRequest(
       kind: 'store',
       profileId: request.profileId,
       version: request.version,
+      defaults: request.defaults,
       sourcePath,
       astPath,
       pathOutsideGrid: true,
@@ -357,6 +377,7 @@ async function checkStoreRequest(
     return {
       kind: 'store',
       profileId: request.profileId,
+      defaults: request.defaults,
       version: undefined,
       pathOutsideGrid: false,
     };
@@ -377,6 +398,7 @@ async function checkStoreRequest(
     kind: 'store',
     profileId: request.profileId,
     version: request.version,
+    defaults: request.defaults,
     pathOutsideGrid: false,
     sourcePath: paths.sourcePath,
     astPath: paths.astPath,
@@ -493,6 +515,7 @@ async function fetchStoreRequestCheckedOrDeferred(
     kind: 'store',
     profileId: request.profileId,
     version: request.version,
+    defaults: request.defaults,
     sourcePath,
     astPath,
     pathOutsideGrid: request.pathOutsideGrid,
@@ -552,6 +575,7 @@ export async function installProfiles(
   requests: (LocalRequest | StoreRequest)[],
   options?: InstallOptions
 ): Promise<void> {
+  console.log('ip', requests[0]);
   const loadedResult = await SuperJson.load(joinPath(superPath, META_FILE));
   const superJson = loadedResult.match(
     v => v,

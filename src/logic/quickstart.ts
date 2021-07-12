@@ -1,10 +1,13 @@
 import { isValidDocumentName, isValidVersionString } from '@superfaceai/ast';
 import {
+  BackoffKind,
   isApiKeySecurityValues,
   isBasicAuthSecurityValues,
   isBearerTokenSecurityValues,
   isDigestSecurityValues,
   META_FILE,
+  OnFail,
+  RetryPolicy,
   SecurityValues,
   SUPERFACE_DIR,
   SuperJson,
@@ -36,6 +39,8 @@ export async function interactiveInstall(
   const profilePathParts = profileId.split('/');
   const profile = profilePathParts[profilePathParts.length - 1];
   const scope = profilePathParts[0];
+
+  console.log('profile', profile)
 
   if (!isValidDocumentName(profile)) {
     options?.warnCb?.(`Invalid profile name: ${profile}`);
@@ -89,23 +94,6 @@ export async function interactiveInstall(
       return;
   }
 
-  //Install profile
-  await installProfiles(
-    superPath,
-    [
-      {
-        kind: 'store',
-        profileId,
-        version: version,
-      },
-    ],
-    {
-      logCb: options?.logCb,
-      warnCb: options?.warnCb,
-      force: true,
-    }
-  );
-
   //Ask for providers
   const possibleProviders = (await fetchProviders(profileArg)).map(p => p.name);
 
@@ -143,9 +131,8 @@ export async function interactiveInstall(
       name: 'provider',
       message:
         priority === 1
-          ? `Select providers you would like to use. You can end selection by choosing "<<done>>".\nSelect ${
-              priorityToString.get(priority) || priority
-            } provider:`
+          ? `Select providers you would like to use. You can end selection by choosing "<<done>>".\nSelect ${priorityToString.get(priority) || priority
+          } provider:`
           : `Select ${priorityToString.get(priority) || priority} provider:`,
       type: 'list',
       choices,
@@ -181,16 +168,65 @@ export async function interactiveInstall(
     }
     providersToInstall.push(provider.name);
   }
+  //TODO: work with usecases here
+  //Configure provider failover
+  let providerFailover: boolean | undefined = undefined;
+  let policies: Record<string, RetryPolicy> | undefined = undefined;
+  if (providersToInstall.length > 1) {
+    if (
+      await confirmPrompt(
+        `You have selected more than one provider.\nDo you want to enable provider failover:`,
+        { default: true }
+      )
+    ) {
+      providerFailover = true;
+      policies = await selectRetryPolicies(providersToInstall);
+
+    } else {
+      providerFailover = false;
+    }
+  }
+  console.log('policies to be used', policies);
+
+  console.log(
+    'Ask for failover res:',
+    providerFailover,
+    ' prio ',
+    providersToInstall
+  );
+
+  //Install profile
+  await installProfiles(
+    superPath,
+    [
+      {
+        kind: 'store',
+        profileId,
+        version: version,
+        //TODO: are there some cases when we dont want to set priority?
+        defaults:
+          providerFailover !== undefined ? { providerFailover } : undefined,
+      },
+    ],
+    {
+      logCb: options?.logCb,
+      warnCb: options?.warnCb,
+      force: true,
+    }
+  );
 
   //Install providers
   for (const provider of providersToInstall) {
     //Install provider
-    await installProvider(superPath, provider, profileId, {
-      logCb: options?.logCb,
-      warnCb: options?.warnCb,
-      force: true,
-      local: false,
-    });
+    await installProvider(superPath, provider, profileId,
+      {
+      },
+      {
+        logCb: options?.logCb,
+        warnCb: options?.warnCb,
+        force: true,
+        local: false,
+      });
   }
 
   //Reload super.json
@@ -198,18 +234,14 @@ export async function interactiveInstall(
   //Get installed
   const installedProviders = superJson.normalized.providers;
 
-  //Set priority if not alreaady set (with same values/order)
-  const existingPriority =
-    superJson.normalized.profiles[profileId].priority ?? [];
-  if (
-    !providersToInstall.every(
-      (value: string, index: number) => value === existingPriority[index]
-    )
-  ) {
-    superJson.addPriority(profileId, providersToInstall);
-    // write new information to super.json
-    await OutputStream.writeOnce(superJson.path, superJson.stringified);
-  }
+  console.log(
+    'instaled',
+    installedProviders,
+    ' norm prof',
+    superJson.normalized.profiles,
+    ' string ',
+    superJson.stringified
+  );
 
   //Ask for provider security
 
@@ -258,6 +290,7 @@ export async function interactiveInstall(
       );
     }
   }
+
   //Install SDK
   options?.successCb?.(`\nInstalling package "@superfaceai/one-sdk"`);
   await PackageManager.installPackage('@superfaceai/one-sdk', {
@@ -324,6 +357,109 @@ export async function interactiveInstall(
   options?.successCb?.(
     `\nNow you can follow our documentation to use installed capability: "${url}"`
   );
+}
+
+async function selectRetryPolicies(
+  providers: string[]
+): Promise<
+  Record<string, RetryPolicy>
+> {
+  const policies: Record<
+    string, RetryPolicy> = {};
+  for (const provider of providers) {
+    //Select retry policy
+    const policyResponse: { policy: OnFail } = await inquirer.prompt({
+      name: 'policy',
+      message: `Select a failure policy for "${provider}":`,
+      type: 'list',
+      choices: [
+        { name: 'None', value: OnFail.NONE },
+        { name: 'Circuit Breaker', value: OnFail.CIRCUIT_BREAKER },
+      ],
+    });
+
+    console.log('selected', policyResponse);
+
+    if (policyResponse.policy === OnFail.NONE) {
+      policies[provider] = { kind: OnFail.NONE };
+      continue;
+    } else if (policyResponse.policy === OnFail.CIRCUIT_BREAKER) {
+      //You want to customize?
+      if (
+        await confirmPrompt(
+          `Do you want to customize circuit breaker parameters?:`,
+          { default: false }
+        )
+      ) {
+        policies[provider] = {
+          kind: OnFail.CIRCUIT_BREAKER,
+          ...(await selectCircuitBreakerValues(provider)),
+        };
+      } else {
+        policies[provider] = {
+          kind: OnFail.CIRCUIT_BREAKER
+        };
+      }
+    }
+  }
+
+  return policies;
+}
+
+async function selectCircuitBreakerValues(
+  provider: string
+): Promise<{
+  failureThreshold: number;
+  resetTimeout: number;
+  requestTimeout: number;
+  backoff: {
+    kind: BackoffKind.EXPONENTIAL,
+    start: number,
+    factor: number
+  }
+}> {
+  const failureThreshold: { failureThreshold: number } = await inquirer.prompt({
+    name: 'failureThreshold',
+    message: `Enter value of failure threshold for "${provider}":`,
+    type: 'number',
+  });
+  const resetTimeout: { resetTimeout: number } = await inquirer.prompt({
+    name: 'resetTimeout',
+    message: `Enter reset timeout for "${provider}":`,
+    type: 'number',
+  });
+  const requestTimeout: { requestTimeout: number } = await inquirer.prompt({
+    name: 'requestTimeout',
+    message: `Enter request timeout for "${provider}":`,
+    type: 'number',
+  });
+
+  return {
+    failureThreshold: failureThreshold.failureThreshold,
+    resetTimeout: resetTimeout.resetTimeout,
+    requestTimeout: requestTimeout.requestTimeout,
+    backoff: {
+      ...(await selectExponentialBackoffValues(provider)),
+    }
+  };
+}
+
+async function selectExponentialBackoffValues(
+  provider: string
+): Promise<{ kind: BackoffKind.EXPONENTIAL, start: number; factor: number }> {
+  const start: number = await inquirer.prompt({
+    name: 'start',
+    message: `Enter initial value of exponential backoff for "${provider}":`,
+    type: 'number',
+  });
+  const factor: number = await inquirer.prompt({
+    name: 'factor',
+    message: `Enter value of exponent in exponential backoff for "${provider}":`,
+    type: 'number',
+  });
+
+  console.log('start', start)
+  return { kind: BackoffKind.EXPONENTIAL, factor, start };
 }
 
 async function getPromptedValue(
