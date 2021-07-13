@@ -12,9 +12,11 @@ import {
   SUPERFACE_DIR,
   SuperJson,
 } from '@superfaceai/one-sdk';
+import { getProfileUsecases } from '@superfaceai/parser';
 import { bold } from 'chalk';
 import inquirer from 'inquirer';
 import { join as joinPath } from 'path';
+import { developerError } from '../common/error';
 
 import { fetchProviders } from '../common/http';
 import { exists, readFile } from '../common/io';
@@ -25,7 +27,7 @@ import { envVariable } from '../templates/env';
 import { installProvider } from './configure';
 import { initSuperface } from './init';
 import { detectSuperJson, installProfiles } from './install';
-import { profileExists, providerExists } from './quickstart.utils';
+import { loadProfileAst, profileExists, providerExists } from './quickstart.utils';
 
 export async function interactiveInstall(
   profileArg: string,
@@ -39,8 +41,6 @@ export async function interactiveInstall(
   const profilePathParts = profileId.split('/');
   const profile = profilePathParts[profilePathParts.length - 1];
   const scope = profilePathParts[0];
-
-  console.log('profile', profile)
 
   if (!isValidDocumentName(profile)) {
     options?.warnCb?.(`Invalid profile name: ${profile}`);
@@ -93,6 +93,22 @@ export async function interactiveInstall(
     )
       return;
   }
+  //Install profile
+  await installProfiles(
+    superPath,
+    [
+      {
+        kind: 'store',
+        profileId,
+        version: version,
+      },
+    ],
+    {
+      logCb: options?.logCb,
+      warnCb: options?.warnCb,
+      force: true,
+    }
+  );
 
   //Ask for providers
   const possibleProviders = (await fetchProviders(profileArg)).map(p => p.name);
@@ -168,10 +184,19 @@ export async function interactiveInstall(
     }
     providersToInstall.push(provider.name);
   }
-  //TODO: work with usecases here
+
+
+  //Get installed usecases
+  const profileAst = await loadProfileAst(superJson, { profile, scope, version })
+  if (!profileAst) {
+    throw developerError('Profile AST not found affter installation', 1)
+  }
+  const profileUsecases = getProfileUsecases(profileAst)
+
   //Configure provider failover
   let providerFailover: boolean | undefined = undefined;
   let policies: Record<string, RetryPolicy> | undefined = undefined;
+  let selectedUseCase: string | undefined = undefined
   if (providersToInstall.length > 1) {
     if (
       await confirmPrompt(
@@ -179,48 +204,34 @@ export async function interactiveInstall(
         { default: true }
       )
     ) {
+      //select usecase to enable provider failover
+      const useCaseResponse: { useCase: string } = await inquirer.prompt({
+        name: 'useCase',
+        message: `Select a use case to configure:`,
+        type: 'list',
+        choices: profileUsecases.map(usecase => usecase.name)
+      });
+      selectedUseCase = useCaseResponse.useCase
       providerFailover = true;
-      policies = await selectRetryPolicies(providersToInstall);
+      policies = await selectRetryPolicies(providersToInstall, selectedUseCase);
 
     } else {
       providerFailover = false;
     }
   }
-  console.log('policies to be used', policies);
 
-  console.log(
-    'Ask for failover res:',
-    providerFailover,
-    ' prio ',
-    providersToInstall
-  );
-
-  //Install profile
-  await installProfiles(
-    superPath,
-    [
-      {
-        kind: 'store',
-        profileId,
-        version: version,
-        //TODO: are there some cases when we dont want to set priority?
-        defaults:
-          providerFailover !== undefined ? { providerFailover } : undefined,
-      },
-    ],
-    {
-      logCb: options?.logCb,
-      warnCb: options?.warnCb,
-      force: true,
-    }
-  );
 
   //Install providers
   for (const provider of providersToInstall) {
+    const profileProviderDefaults = selectedUseCase && policies ? {
+      defaults: {
+        [selectedUseCase]: { retryPolicy: policies[provider] }
+      }
+    } : undefined
+
     //Install provider
     await installProvider(superPath, provider, profileId,
-      {
-      },
+      profileProviderDefaults,
       {
         logCb: options?.logCb,
         warnCb: options?.warnCb,
@@ -234,17 +245,10 @@ export async function interactiveInstall(
   //Get installed
   const installedProviders = superJson.normalized.providers;
 
-  console.log(
-    'instaled',
-    installedProviders,
-    ' norm prof',
-    superJson.normalized.profiles,
-    ' string ',
-    superJson.stringified
-  );
+  //TODO: set providerFailOver
+  console.log('provider fail over', providerFailover)
 
   //Ask for provider security
-
   options?.successCb?.(`\nConfiguring providers security`);
 
   //Get .env file
@@ -360,7 +364,8 @@ export async function interactiveInstall(
 }
 
 async function selectRetryPolicies(
-  providers: string[]
+  providers: string[],
+  selectedUseCase: string
 ): Promise<
   Record<string, RetryPolicy>
 > {
@@ -370,15 +375,13 @@ async function selectRetryPolicies(
     //Select retry policy
     const policyResponse: { policy: OnFail } = await inquirer.prompt({
       name: 'policy',
-      message: `Select a failure policy for "${provider}":`,
+      message: `Select a failure policy for provider "${provider}" and use case: "${selectedUseCase}":`,
       type: 'list',
       choices: [
         { name: 'None', value: OnFail.NONE },
         { name: 'Circuit Breaker', value: OnFail.CIRCUIT_BREAKER },
       ],
     });
-
-    console.log('selected', policyResponse);
 
     if (policyResponse.policy === OnFail.NONE) {
       policies[provider] = { kind: OnFail.NONE };
@@ -393,7 +396,7 @@ async function selectRetryPolicies(
       ) {
         policies[provider] = {
           kind: OnFail.CIRCUIT_BREAKER,
-          ...(await selectCircuitBreakerValues(provider)),
+          ...(await selectCircuitBreakerValues(provider, selectedUseCase)),
         };
       } else {
         policies[provider] = {
@@ -407,7 +410,8 @@ async function selectRetryPolicies(
 }
 
 async function selectCircuitBreakerValues(
-  provider: string
+  provider: string,
+  useCase: string
 ): Promise<{
   failureThreshold: number;
   resetTimeout: number;
@@ -420,17 +424,17 @@ async function selectCircuitBreakerValues(
 }> {
   const failureThreshold: { failureThreshold: number } = await inquirer.prompt({
     name: 'failureThreshold',
-    message: `Enter value of failure threshold for "${provider}":`,
+    message: `Enter value of failure threshold for provider "${provider}" and use case: ${useCase}:`,
     type: 'number',
   });
   const resetTimeout: { resetTimeout: number } = await inquirer.prompt({
     name: 'resetTimeout',
-    message: `Enter reset timeout for "${provider}":`,
+    message: `Enter reset timeout for provider "${provider}" and use case: ${useCase} (in miliseconds):`,
     type: 'number',
   });
   const requestTimeout: { requestTimeout: number } = await inquirer.prompt({
     name: 'requestTimeout',
-    message: `Enter request timeout for "${provider}":`,
+    message: `Enter request timeout  for provider "${provider}" and use case: ${useCase} (in miliseconds):`,
     type: 'number',
   });
 
@@ -439,27 +443,27 @@ async function selectCircuitBreakerValues(
     resetTimeout: resetTimeout.resetTimeout,
     requestTimeout: requestTimeout.requestTimeout,
     backoff: {
-      ...(await selectExponentialBackoffValues(provider)),
+      ...(await selectExponentialBackoffValues(provider, useCase)),
     }
   };
 }
 
 async function selectExponentialBackoffValues(
-  provider: string
+  provider: string,
+  useCase: string
 ): Promise<{ kind: BackoffKind.EXPONENTIAL, start: number; factor: number }> {
-  const start: number = await inquirer.prompt({
+  const start: { start: number } = await inquirer.prompt({
     name: 'start',
-    message: `Enter initial value of exponential backoff for "${provider}":`,
+    message: `Enter initial value of exponential backoff for provider "${provider}" and use case: ${useCase} (in miliseconds):`,
     type: 'number',
   });
-  const factor: number = await inquirer.prompt({
+  const factor: { factor: number } = await inquirer.prompt({
     name: 'factor',
-    message: `Enter value of exponent in exponential backoff for "${provider}":`,
+    message: `Enter value of exponent in exponential backoff  for provider "${provider}" and use case: ${useCase} (in miliseconds):`,
     type: 'number',
   });
 
-  console.log('start', start)
-  return { kind: BackoffKind.EXPONENTIAL, factor, start };
+  return { kind: BackoffKind.EXPONENTIAL, factor: factor.factor, start: start.start };
 }
 
 async function getPromptedValue(

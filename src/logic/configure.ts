@@ -77,9 +77,6 @@ export function handleProviderResponse(
   superJson.addProvider(response.name, { security });
 
   //constructProfileProviderSettings returns Record<string, ProfileProviderEntry>
-
-  console.log('constructProfileProviderSettings', constructProfileProviderSettings([response.name])[response.name])
-  console.log('passed defaults', defaults, ' sleceted defaults', defaults?.[response.name])
   superJson.addProfileProvider(
     profileId,
     response.name,
