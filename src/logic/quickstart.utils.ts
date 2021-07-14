@@ -7,14 +7,15 @@ import { exists, readdir } from '../common/io';
 
 export async function loadProfileAst(
   superJson: SuperJson,
-  profile: { profile: string; scope: string; version?: string }): Promise<ProfileDocumentNode | undefined> {
+  profile: { profile: string; scope: string; version?: string }
+): Promise<ProfileDocumentNode | undefined> {
   let astPath: string | undefined = undefined;
   if (profile.version) {
     const path = joinPath(
       'grid',
       `${profile.scope}/${profile.profile}@${profile.version}${EXTENSIONS.profile.build}`
     );
-    const resolvedPath = superJson.resolvePath(path)
+    const resolvedPath = superJson.resolvePath(path);
     if (await exists(resolvedPath)) {
       astPath = resolvedPath;
     }
@@ -30,9 +31,10 @@ export async function loadProfileAst(
       //Find files with similar name to profile
       const path = files.find(f => f.includes(profile.profile));
       if (path) {
-        const resolvedPath = superJson.resolvePath(joinPath('grid', profile.scope, path))
-        if (await exists(resolvedPath))
-          astPath = resolvedPath;
+        const resolvedPath = superJson.resolvePath(
+          joinPath('grid', profile.scope, path)
+        );
+        if (await exists(resolvedPath)) astPath = resolvedPath;
       }
     }
   }
@@ -41,13 +43,13 @@ export async function loadProfileAst(
   const profileSettings =
     superJson.normalized.profiles[`${profile.scope}/${profile.profile}`];
   if (profileSettings !== undefined && 'file' in profileSettings) {
-    const resolvedPath = superJson.resolvePath(profileSettings.file)
+    const resolvedPath = superJson.resolvePath(profileSettings.file);
     if (await exists(resolvedPath)) {
-      astPath = resolvedPath
+      astPath = resolvedPath;
     }
   }
   if (!astPath) {
-    return
+    return;
   }
 
   return getProfileDocument(astPath);

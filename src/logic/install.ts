@@ -190,7 +190,6 @@ export async function resolveInstallationRequests(
   // phase 4 - write to super.json
   for (const entry of phase3) {
     if (entry.kind === 'local') {
-
       superJson.addProfile(entry.profileId, {
         file: superJson.relativePath(entry.path),
       });

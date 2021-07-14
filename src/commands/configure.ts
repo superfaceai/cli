@@ -49,8 +49,8 @@ export default class Configure extends Command {
     '$ superface configure providers/twilio.provider.json -p send-sms -l',
   ];
 
-  private warnCallback?= (message: string) => this.log(yellow(message));
-  private logCallback?= (message: string) => this.log(grey(message));
+  private warnCallback? = (message: string) => this.log(yellow(message));
+  private logCallback? = (message: string) => this.log(grey(message));
 
   async run(): Promise<void> {
     const { args, flags } = this.parse(Configure);
@@ -86,11 +86,17 @@ export default class Configure extends Command {
         META_FILE
       )}'`
     );
-    await installProvider(superPath, args.providerName, flags.profile.trim(), undefined, {
-      logCb: this.logCallback,
-      warnCb: this.warnCallback,
-      force: flags.force,
-      local: flags.local,
-    });
+    await installProvider(
+      superPath,
+      args.providerName,
+      flags.profile.trim(),
+      undefined,
+      {
+        logCb: this.logCallback,
+        warnCb: this.warnCallback,
+        force: flags.force,
+        local: flags.local,
+      }
+    );
   }
 }
