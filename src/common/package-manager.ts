@@ -1,4 +1,4 @@
-import { join, relative } from 'path';
+import { join, normalize, relative } from 'path';
 
 import { execShell, exists } from './io';
 import { LogCallback } from './log';
@@ -23,7 +23,7 @@ export class PackageManager {
       return;
     }
     PackageManager.path =
-      relative(process.cwd(), npmPrefix.stdout.trim()) || './';
+      relative(process.cwd(), npmPrefix.stdout.trim()) || normalize('./');
 
     return PackageManager.path;
   }

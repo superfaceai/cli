@@ -210,6 +210,64 @@ describe('Package manager', () => {
       expect(mockStdout).not.toHaveBeenCalled();
     });
   });
+  describe('when getting used package manager', () => {
+    const mockStderr = jest.fn();
+
+    it('returns undefined - err on npm prefix', async () => {
+      //Scope imports for every test run to ensure PackageManager isolation
+      const { PackageManager } = await import('./package-manager');
+      const { execShell } = await import('./io');
+      jest.mock('../common/io');
+      jest.mock('path', () => ({
+        ...jest.requireActual<Record<string, unknown>>('path'),
+        join: jest.fn(),
+      }));
+      mocked(execShell).mockResolvedValue({
+        stderr: 'npm prefix err',
+        stdout: 'some/path\n',
+      });
+
+      await expect(
+        PackageManager.getUsedPm({
+          warnCb: mockStderr,
+        })
+      ).resolves.toBeUndefined();
+
+      expect(execShell).toHaveBeenCalledWith('npm prefix');
+
+      expect(mockStderr).toHaveBeenCalledWith(
+        'Shell command "npm prefix" responded with: "npm prefix err"'
+      );
+    });
+
+    it('returns yarn - normalized ./ path', async () => {
+      //Scope imports for every test run to ensure PackageManager isolation
+      const { PackageManager } = await import('./package-manager');
+      const { execShell, exists } = await import('./io');
+      const { join } = await import('path');
+      jest.mock('../common/io');
+      jest.mock('path', () => ({
+        ...jest.requireActual<Record<string, unknown>>('path'),
+        join: jest.fn(),
+      }));
+      mocked(execShell).mockResolvedValue({
+        stderr: '',
+        stdout: process.cwd(),
+      });
+      mocked(join).mockReturnValue('some/path/yarn.lock');
+      mocked(exists).mockResolvedValueOnce(true);
+
+      await expect(
+        PackageManager.getUsedPm({
+          warnCb: mockStderr,
+        })
+      ).resolves.toEqual('yarn');
+
+      expect(execShell).toHaveBeenCalledWith('npm prefix');
+
+      expect(mockStderr).not.toHaveBeenCalled();
+    });
+  });
   describe('when installing package', () => {
     const mockStdout = jest.fn();
     const mockStderr = jest.fn();
