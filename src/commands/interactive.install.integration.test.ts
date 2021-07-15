@@ -109,7 +109,7 @@ describe('Interactive install CLI command', () => {
           inputs: [
             //Select providers priority
             //Sendgrid
-            { value: DOWN, timeout: 6000 },
+            { value: DOWN, timeout: 8000 },
             //Confirm slection
             { value: ENTER, timeout: 500 },
             //Mailgun

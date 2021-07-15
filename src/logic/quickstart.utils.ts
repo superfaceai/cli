@@ -8,13 +8,14 @@ import { exists, readdir, readFile } from '../common/io';
 
 export async function loadProfileAst(
   superJson: SuperJson,
-  profile: { profile: string; scope: string; version?: string }
+  profile: { profile: string; scope?: string; version?: string }
 ): Promise<ProfileDocumentNode | undefined> {
   let astPath: string | undefined = undefined;
+  const basePath = profile.scope ? joinPath('grid', profile.scope) : 'grid';
   if (profile.version) {
     const path = joinPath(
-      'grid',
-      `${profile.scope}/${profile.profile}@${profile.version}${EXTENSIONS.profile.build}`
+      basePath,
+      `${profile.profile}@${profile.version}${EXTENSIONS.profile.build}`
     );
     const resolvedPath = superJson.resolvePath(path);
     if (await exists(resolvedPath)) {
@@ -22,8 +23,7 @@ export async function loadProfileAst(
     }
   } else {
     //Look for any version
-    const scopePath = superJson.resolvePath(joinPath('grid', profile.scope));
-
+    const scopePath = superJson.resolvePath(basePath);
     if (await exists(scopePath)) {
       //Get files in profile directory
       const files = (await readdir(scopePath, { withFileTypes: true }))
@@ -34,17 +34,17 @@ export async function loadProfileAst(
         f => f.includes(profile.profile) && f.endsWith(EXTENSIONS.profile.build)
       );
       if (path) {
-        const resolvedPath = superJson.resolvePath(
-          joinPath('grid', profile.scope, path)
-        );
+        const resolvedPath = superJson.resolvePath(joinPath(basePath, path));
         if (await exists(resolvedPath)) astPath = resolvedPath;
       }
     }
   }
 
   //Check file property
-  const profileSettings =
-    superJson.normalized.profiles[`${profile.scope}/${profile.profile}`];
+  const profileName = profile.scope
+    ? `${profile.scope}/${profile.profile}`
+    : profile.profile;
+  const profileSettings = superJson.normalized.profiles[profileName];
   if (profileSettings !== undefined && 'file' in profileSettings) {
     const resolvedPath = superJson.resolvePath(profileSettings.file);
     if (await exists(resolvedPath)) {
@@ -60,7 +60,7 @@ export async function loadProfileAst(
 
   if (!isProfileDocumentNode(document)) {
     throw userError(
-      `Profile ${profile.scope}/${profile.profile}${
+      `Profile ${profileName}${
         profile.version ? `@${profile.version}` : ''
       } loaded from ${astPath} is not valid ProfileDocumentNode`,
       1
