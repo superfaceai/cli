@@ -62,6 +62,7 @@ describe('Configure CLI command', () => {
         mockPath,
         mockProvider,
         mockProfile,
+        undefined,
         {
           force: false,
           local: false,
@@ -94,6 +95,7 @@ describe('Configure CLI command', () => {
         'superface',
         mockProvider,
         mockProfile,
+        undefined,
         {
           force: false,
           local: false,

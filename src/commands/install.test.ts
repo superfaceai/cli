@@ -203,6 +203,7 @@ describe('Install CLI command', () => {
         '.',
         'tyntec',
         profileName,
+        undefined,
         {
           logCb: expect.anything(),
           warnCb: expect.anything(),
@@ -215,6 +216,7 @@ describe('Install CLI command', () => {
         '.',
         'twilio',
         profileName,
+        undefined,
         {
           logCb: expect.anything(),
           warnCb: expect.anything(),
@@ -254,6 +256,7 @@ describe('Install CLI command', () => {
         '.',
         'tyntec',
         profileName,
+        undefined,
         {
           logCb: expect.anything(),
           warnCb: expect.anything(),
@@ -266,6 +269,7 @@ describe('Install CLI command', () => {
         '.',
         'twilio',
         profileName,
+        undefined,
         {
           logCb: expect.anything(),
           warnCb: expect.anything(),
@@ -278,6 +282,7 @@ describe('Install CLI command', () => {
         '.',
         'dhl-unified',
         profileName,
+        undefined,
         {
           logCb: expect.anything(),
           warnCb: expect.anything(),
@@ -290,6 +295,7 @@ describe('Install CLI command', () => {
         '.',
         'github',
         profileName,
+        undefined,
         {
           logCb: expect.anything(),
           warnCb: expect.anything(),

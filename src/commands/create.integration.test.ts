@@ -172,7 +172,7 @@ describe('Create CLI command', () => {
         profiles: {
           [documentName]: {
             defaults: {},
-            priority: [],
+            priority: [provider],
             providers: {
               [provider]: {
                 file: `../${documentName}.${provider}.suma`,
@@ -220,7 +220,7 @@ describe('Create CLI command', () => {
         profiles: {
           [documentName]: {
             defaults: {},
-            priority: [],
+            priority: [provider],
             providers: {
               [provider]: {
                 file: `../${documentName}.${provider}.suma`,
@@ -277,7 +277,7 @@ describe('Create CLI command', () => {
         profiles: {
           [documentName]: {
             defaults: {},
-            priority: [],
+            priority: [provider],
             providers: {
               [provider]: {
                 file: `../${documentName}.${provider}.suma`,
@@ -336,6 +336,7 @@ describe('Create CLI command', () => {
         profiles: {
           [documentName]: {
             file: `../${documentName}.supr`,
+            priority: [provider],
             providers: {
               [provider]: {
                 file: `../${documentName}.${provider}.suma`,
@@ -392,6 +393,7 @@ describe('Create CLI command', () => {
         profiles: {
           [documentName]: {
             file: `../${documentName}.supr`,
+            priority: [provider],
             providers: {
               [provider]: {
                 file: `../${documentName}.${provider}.suma`,
@@ -449,6 +451,7 @@ describe('Create CLI command', () => {
         profiles: {
           [documentName]: {
             file: `../${documentName}.supr`,
+            priority: [provider],
             providers: {
               [provider]: {
                 file: `../${documentName}.${provider}.suma`,
