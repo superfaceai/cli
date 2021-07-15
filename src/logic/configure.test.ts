@@ -3,6 +3,7 @@ import {
   ApiKeyPlacement,
   HttpScheme,
   ok,
+  OnFail,
   ProviderJson,
   SecurityType,
   SuperJson,
@@ -278,7 +279,9 @@ describe('Configure CLI logic', () => {
         .mockResolvedValue(undefined);
 
       await expect(
-        installProvider('some/path', providerName, mockProfileId)
+        installProvider('some/path', providerName, mockProfileId, {
+          testUseCase: { retryPolicy: OnFail.CIRCUIT_BREAKER },
+        })
       ).resolves.toBeUndefined();
 
       expect(loadSpy).toHaveBeenCalledTimes(1);
@@ -290,7 +293,7 @@ describe('Configure CLI logic', () => {
       expect(addProfileProviderSpy).toHaveBeenCalledWith(
         mockProfileId,
         providerName,
-        {}
+        { testUseCase: { retryPolicy: OnFail.CIRCUIT_BREAKER } }
       );
 
       expect(addProviderSpy).toHaveBeenCalledTimes(1);
@@ -341,7 +344,7 @@ describe('Configure CLI logic', () => {
       mocked(readFile).mockResolvedValue(JSON.stringify(mockProviderJson));
 
       await expect(
-        installProvider('some/path', providerName, mockProfileId, {
+        installProvider('some/path', providerName, mockProfileId, undefined, {
           local: true,
         })
       ).resolves.toBeUndefined();
@@ -395,7 +398,7 @@ describe('Configure CLI logic', () => {
       mocked(readFile).mockRejectedValue(new Error('test'));
 
       await expect(
-        installProvider('some/path', providerName, mockProfileId, {
+        installProvider('some/path', providerName, mockProfileId, undefined, {
           local: true,
         })
       ).rejects.toEqual(new CLIError('test'));

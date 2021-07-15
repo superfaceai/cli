@@ -157,15 +157,35 @@ export async function execCLI(
       // Log debug I/O statements on tests
       if (options?.debug) {
         console.log(
-          'input: ',
-          userInputs[0].value,
-          'timeout: ',
-          userInputs[0].timeout
+          `\n\ninput: ${formatInput(userInputs[0].value)} \ntimeout: ${
+            userInputs[0].timeout
+          }\n user inputs: ${userInputs
+            .map(input => formatInput(input.value))
+            .join(', ')}\n\n`
         );
       }
       loop(userInputs.slice(1));
     }, userInputs[0].timeout);
   };
+
+  function formatInput(input: string): string {
+    let inputString;
+    if (input === ENTER) {
+      inputString = 'ENTER';
+    } else if (input === UP) {
+      inputString = 'UP';
+    } else if (input === DOWN) {
+      inputString = 'DOWN';
+    } else if (input === SPACE) {
+      inputString = 'SPACE';
+    } else if (input === '') {
+      inputString = 'EMPTY';
+    } else {
+      inputString = input;
+    }
+
+    return inputString;
+  }
 
   return new Promise((resolve, reject) => {
     //Debug

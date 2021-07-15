@@ -1,9 +1,10 @@
-import { ProfileDocumentNode } from '@superfaceai/ast';
+import { isProfileDocumentNode, ProfileDocumentNode } from '@superfaceai/ast';
 import { SuperJson } from '@superfaceai/one-sdk';
 import { join as joinPath } from 'path';
 
-import { EXTENSIONS, getProfileDocument } from '..';
-import { exists, readdir } from '../common/io';
+import { EXTENSIONS } from '..';
+import { userError } from '../common/error';
+import { exists, readdir, readFile } from '../common/io';
 
 export async function loadProfileAst(
   superJson: SuperJson,
@@ -26,10 +27,12 @@ export async function loadProfileAst(
     if (await exists(scopePath)) {
       //Get files in profile directory
       const files = (await readdir(scopePath, { withFileTypes: true }))
-        .filter(dirent => !dirent.isDirectory())
+        .filter(dirent => dirent.isFile() || dirent.isSymbolicLink())
         .map(dirent => dirent.name);
-      //Find files with similar name to profile
-      const path = files.find(f => f.includes(profile.profile));
+      //Find files with similar name to profile and with .ast.json extension
+      const path = files.find(
+        f => f.includes(profile.profile) && f.endsWith(EXTENSIONS.profile.build)
+      );
       if (path) {
         const resolvedPath = superJson.resolvePath(
           joinPath('grid', profile.scope, path)
@@ -51,8 +54,20 @@ export async function loadProfileAst(
   if (!astPath) {
     return;
   }
+  const document = (await JSON.parse(
+    await readFile(astPath, { encoding: 'utf-8' })
+  )) as ProfileDocumentNode;
 
-  return getProfileDocument(astPath);
+  if (!isProfileDocumentNode(document)) {
+    throw userError(
+      `Profile ${profile.scope}/${profile.profile}${
+        profile.version ? `@${profile.version}` : ''
+      } loaded from ${astPath} is not valid ProfileDocumentNode`,
+      1
+    );
+  }
+
+  return document;
 }
 
 export async function profileExists(
@@ -76,7 +91,7 @@ export async function profileExists(
     if (await exists(scopePath)) {
       //Get files in profile directory
       const files = (await readdir(scopePath, { withFileTypes: true }))
-        .filter(dirent => !dirent.isDirectory())
+        .filter(dirent => dirent.isFile() || dirent.isSymbolicLink())
         .map(dirent => dirent.name);
       //Find files with similar name to profile
       const path = files.find(f => f.includes(profile.profile));
