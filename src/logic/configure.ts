@@ -167,7 +167,7 @@ export async function installProvider(
     superJson.normalized.providers[providerInfo.name]
   ) {
     options?.warnCb?.(
-      `⚠️  Provider already exists: "${providerInfo.name}" (Use flag \`--force/-f\` for overwriting profiles)`
+      `⚠️  Provider already exists: "${providerInfo.name}"(Use flag \`--force/-f\` for overwriting profiles)`
     );
 
     return;

@@ -17,8 +17,8 @@ import { bold } from 'chalk';
 import inquirer from 'inquirer';
 import { join as joinPath } from 'path';
 
-import { developerError } from '../common/error';
-import { fetchProviders } from '../common/http';
+import { developerError, userError } from '../common/error';
+import { fetchProviders, getStoreUrl } from '../common/http';
 import { exists, readFile } from '../common/io';
 import { LogCallback } from '../common/log';
 import { OutputStream } from '../common/output-stream';
@@ -104,6 +104,8 @@ export async function interactiveInstall(
         force: true,
       }
     );
+    //Reload super.json
+    superJson = (await SuperJson.load(joinPath(superPath, META_FILE))).unwrap();
   }
   //Ask for providers
   const possibleProviders = (await fetchProviders(profileArg)).map(p => p.name);
@@ -188,12 +190,12 @@ export async function interactiveInstall(
     version,
   });
   if (!profileAst) {
-    throw developerError('Profile AST not found affter installation', 1);
+    throw developerError('Profile AST not found after installation', 1);
   }
   const profileUsecases = getProfileUsecases(profileAst);
   //Check usecase
   if (profileUsecases.length === 0) {
-    throw developerError(
+    throw userError(
       'Profile AST does not contain any use cases - misconfigured profile file',
       1
     );
@@ -373,10 +375,10 @@ export async function interactiveInstall(
   options?.successCb?.(`\n🆗 Superface have been configured successfully!`);
 
   //Lead to docs page
-  //TODO: usecase specific page
-  const url = 'https://docs.superface.ai/getting-started';
   options?.successCb?.(
-    `\nNow you can follow our documentation to use installed capability: "${url}"`
+    `\nNow you can follow our documentation to use installed capability: "${
+      new URL(profileId, getStoreUrl()).href
+    }"`
   );
 }
 
@@ -440,7 +442,7 @@ async function selectCircuitBreakerValues(
   });
   const requestTimeout: { requestTimeout: number } = await inquirer.prompt({
     name: 'requestTimeout',
-    message: `Enter request timeout  for provider "${provider}" and use case: ${useCase} (in miliseconds):`,
+    message: `Enter request timeout for provider "${provider}" and use case: ${useCase} (in miliseconds):`,
     type: 'number',
   });
 
@@ -464,7 +466,7 @@ async function selectExponentialBackoffValues(
   });
   const factor: { factor: number } = await inquirer.prompt({
     name: 'factor',
-    message: `Enter value of exponent in exponential backoff  for provider "${provider}" and use case: ${useCase} (in miliseconds):`,
+    message: `Enter value of exponent in exponential backoff for provider "${provider}" and use case: ${useCase} (in miliseconds):`,
     type: 'number',
   });
 
