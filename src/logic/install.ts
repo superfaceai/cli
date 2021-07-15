@@ -5,8 +5,8 @@ import { join as joinPath, normalize, relative as relativePath } from 'path';
 import {
   composeVersion,
   EXTENSIONS,
-  getProfileDocument,
   META_FILE,
+  parseProfileDocument,
   SUPER_PATH,
   SUPERFACE_DIR,
   UNCOMPILED_SDK_FILE,
@@ -238,7 +238,7 @@ async function readLocalRequest(
   options?: InstallOptions
 ): Promise<LocalRequestRead | undefined> {
   try {
-    const profileAst = await getProfileDocument(request.path);
+    const profileAst = await parseProfileDocument(request.path);
 
     return {
       ...request,
@@ -520,7 +520,7 @@ export async function getExistingProfileIds(
 
         if ('file' in profileSettings) {
           try {
-            const { header } = await getProfileDocument(
+            const { header } = await parseProfileDocument(
               superJson.resolvePath(profileSettings.file)
             );
 

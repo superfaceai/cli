@@ -11,13 +11,13 @@ import {
   constructProfileSettings,
   constructProviderSettings,
   findLocalCapabilities,
-  getProfileDocument,
   inferCreateMode,
   inferDocumentType,
   inferDocumentTypeWithFlag,
   isMapFile,
   isProfileFile,
   isUnknownFile,
+  parseProfileDocument,
   trimExtension,
 } from './document';
 import { DocumentType } from './document.interfaces';
@@ -133,7 +133,7 @@ describe('Document functions', () => {
       mocked(readFile).mockResolvedValue('test-file-content');
       mocked(parseProfile).mockReturnValue(mockProfileDocumentNode);
 
-      await expect(getProfileDocument('test-path')).resolves.toEqual(
+      await expect(parseProfileDocument('test-path')).resolves.toEqual(
         mockProfileDocumentNode
       );
       expect(readFile).toHaveBeenCalledTimes(1);
