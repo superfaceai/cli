@@ -173,7 +173,9 @@ describe('Package manager', () => {
       expect(mockStderr).toHaveBeenCalledWith(
         'Shell command "yarn init -y" responded with: "some warning"'
       );
-      expect(mockStdout).not.toHaveBeenCalled();
+      expect(mockStdout).toHaveBeenCalledWith(
+        `Initializing yarn on path: "${process.cwd()}"`
+      );
     });
 
     it('returns false when pm is already initialized', async () => {
@@ -297,9 +299,13 @@ describe('Package manager', () => {
 
       expect(exists).toHaveBeenCalledWith('some/path/yarn.lock');
       expect(execShell).toHaveBeenCalledWith('npm prefix');
-      expect(execShell).toHaveBeenCalledWith('yarn add @superfaceai/one-sdk');
+      expect(execShell).toHaveBeenCalledWith('yarn add @superfaceai/one-sdk', {
+        cwd: 'some/path',
+      });
 
-      expect(mockStdout).not.toHaveBeenCalled();
+      expect(mockStdout).toHaveBeenCalledWith(
+        `Installing package @superfaceai/one-sdk on path: "some/path" with: "yarn add @superfaceai/one-sdk"`
+      );
       expect(mockStderr).not.toHaveBeenCalled();
     });
 
@@ -333,10 +339,13 @@ describe('Package manager', () => {
       expect(execShell).toHaveBeenNthCalledWith(1, 'npm prefix');
       expect(execShell).toHaveBeenNthCalledWith(
         2,
-        'yarn add @superfaceai/one-sdk'
+        'yarn add @superfaceai/one-sdk',
+        { cwd: 'some/path' }
       );
 
-      expect(mockStdout).not.toHaveBeenCalled();
+      expect(mockStdout).toHaveBeenCalledWith(
+        `Installing package @superfaceai/one-sdk on path: "some/path" with: "yarn add @superfaceai/one-sdk"`
+      );
       expect(mockStderr).not.toHaveBeenCalled();
 
       //Second install to check caching
@@ -351,7 +360,8 @@ describe('Package manager', () => {
       expect(execShell).toHaveBeenCalledTimes(3);
       expect(execShell).toHaveBeenNthCalledWith(
         3,
-        'yarn add @superfaceai/one-sdk'
+        'yarn add @superfaceai/one-sdk',
+        { cwd: 'some/path' }
       );
     });
 
@@ -382,7 +392,9 @@ describe('Package manager', () => {
       ).resolves.toEqual(true);
 
       expect(exists).toHaveBeenCalledWith('some/path/yarn.lock');
-      expect(execShell).toHaveBeenCalledWith('yarn add @superfaceai/one-sdk');
+      expect(execShell).toHaveBeenCalledWith('yarn add @superfaceai/one-sdk', {
+        cwd: 'some/path',
+      });
 
       expect(mockStdout).not.toHaveBeenCalledWith();
       expect(mockStderr).toHaveBeenCalledWith(
@@ -458,10 +470,13 @@ describe('Package manager', () => {
       expect(exists).toHaveBeenCalledWith('some/path/package-lock.json');
       expect(execShell).toHaveBeenCalledWith('npm prefix');
       expect(execShell).toHaveBeenCalledWith(
-        'npm install @superfaceai/one-sdk'
+        'npm install @superfaceai/one-sdk',
+        { cwd: 'some/path' }
       );
 
-      expect(mockStdout).not.toHaveBeenCalled();
+      expect(mockStdout).toHaveBeenCalledWith(
+        `Installing package @superfaceai/one-sdk on path: "some/path" with: "npm install @superfaceai/one-sdk"`
+      );
       expect(mockStderr).not.toHaveBeenCalled();
     });
 
@@ -497,7 +512,8 @@ describe('Package manager', () => {
       expect(exists).toHaveBeenCalledWith('some/path/package-lock.json');
       expect(execShell).toHaveBeenCalledWith('npm prefix');
       expect(execShell).toHaveBeenCalledWith(
-        'npm install @superfaceai/one-sdk'
+        'npm install @superfaceai/one-sdk',
+        { cwd: 'some/path' }
       );
 
       expect(mockStdout).toHaveBeenCalledWith('test out');
@@ -541,7 +557,8 @@ describe('Package manager', () => {
       expect(exists).toHaveBeenCalledWith('some/path/package-lock.json');
       expect(execShell).toHaveBeenCalledWith('npm prefix');
       expect(execShell).toHaveBeenCalledWith(
-        'npm install @superfaceai/one-sdk'
+        'npm install @superfaceai/one-sdk',
+        { cwd: 'some/path' }
       );
 
       expect(mockStdout).toHaveBeenCalledWith('test out');
