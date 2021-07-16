@@ -23,6 +23,7 @@ import { exists, readFile } from '../common/io';
 import { LogCallback } from '../common/log';
 import { OutputStream } from '../common/output-stream';
 import { PackageManager } from '../common/package-manager';
+import { NORMALIZED_CWD_PATH } from '../common/path';
 import { envVariable } from '../templates/env';
 import { installProvider } from './configure';
 import { initSuperface } from './init';
@@ -63,7 +64,7 @@ export async function interactiveInstall(
     //Init SF
     options?.successCb?.('Initializing superface directory');
     await initSuperface(
-      './',
+      NORMALIZED_CWD_PATH,
       { profiles: {}, providers: {} },
       { logCb: options?.logCb }
     );

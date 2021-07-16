@@ -1,5 +1,6 @@
 import { format as formatPath, normalize, parse as parsePath } from 'path';
 
+export const NORMALIZED_CWD_PATH = normalize('./');
 /**
  * In practice, this is the number of starting `../` parts of the normalized relative path.
  */

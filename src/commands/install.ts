@@ -7,6 +7,7 @@ import { Command } from '../common/command.abstract';
 import { META_FILE, SUPERFACE_DIR, trimExtension } from '../common/document';
 import { userError } from '../common/error';
 import { LogCallback } from '../common/log';
+import { NORMALIZED_CWD_PATH } from '../common/path';
 import { installProvider } from '../logic/configure';
 import { initSuperface } from '../logic/init';
 import {
@@ -146,7 +147,7 @@ export default class Install extends Command {
         "Initializing superface directory with empty 'super.json'"
       );
       await initSuperface(
-        './',
+        NORMALIZED_CWD_PATH,
         { profiles: {}, providers: {} },
         { logCb: this.logCallback }
       );
