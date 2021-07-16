@@ -86,11 +86,17 @@ export default class Configure extends Command {
         META_FILE
       )}'`
     );
-    await installProvider(superPath, args.providerName, flags.profile.trim(), {
-      logCb: this.logCallback,
-      warnCb: this.warnCallback,
-      force: flags.force,
-      local: flags.local,
+    await installProvider({
+      superPath,
+      provider: args.providerName as string,
+      profileId: flags.profile.trim(),
+      defaults: undefined,
+      options: {
+        logCb: this.logCallback,
+        warnCb: this.warnCallback,
+        force: flags.force,
+        local: flags.local,
+      },
     });
   }
 }

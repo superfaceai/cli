@@ -4,7 +4,7 @@ import { ok, SuperJson } from '@superfaceai/one-sdk';
 import { join } from 'path';
 import { mocked } from 'ts-jest/utils';
 
-import { getProfileDocument } from '../common/document';
+import { parseProfileDocument } from '../common/document';
 import {
   fetchProfile,
   fetchProfileAST,
@@ -31,7 +31,7 @@ jest.mock('../common/http', () => ({
 //Mock document
 jest.mock('../common/document', () => ({
   ...jest.requireActual<Record<string, unknown>>('../common/document'),
-  getProfileDocument: jest.fn(),
+  parseProfileDocument: jest.fn(),
 }));
 
 jest.mock('../common/io', () => ({
@@ -226,7 +226,7 @@ describe('Install CLI logic', () => {
         },
       });
 
-      mocked(getProfileDocument)
+      mocked(parseProfileDocument)
         .mockResolvedValueOnce({
           kind: 'ProfileDocument',
           header: {
@@ -390,7 +390,7 @@ describe('Install CLI logic', () => {
     });
 
     it('returns correct id and version from file', async () => {
-      mocked(getProfileDocument).mockResolvedValue({
+      mocked(parseProfileDocument).mockResolvedValue({
         header: {
           kind: 'ProfileHeader',
           name: 'test',
@@ -470,7 +470,10 @@ describe('Install CLI logic', () => {
         const profileName = 'starwars/character-information';
 
         await expect(
-          installProfiles('.', [{ kind: 'store', profileId: profileName }])
+          installProfiles({
+            superPath: '.',
+            requests: [{ kind: 'store', profileId: profileName }],
+          })
         ).resolves.toBeUndefined();
 
         expect(fetchProfileInfo).toHaveBeenCalledTimes(1);
@@ -521,7 +524,9 @@ describe('Install CLI logic', () => {
         mockLoad.mockResolvedValue(ok(stubSuperJson));
         SuperJson.load = mockLoad;
 
-        await expect(installProfiles('.', [])).resolves.toBeUndefined();
+        await expect(
+          installProfiles({ superPath: '.', requests: [] })
+        ).resolves.toBeUndefined();
 
         expect(fetchProfileInfo).toHaveBeenCalledTimes(2);
         expect(fetchProfile).toHaveBeenCalledTimes(2);

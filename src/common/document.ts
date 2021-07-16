@@ -132,8 +132,10 @@ export const composeUsecaseName = (documentId: string): string =>
     .filter(w => w.trim() !== '')
     .map(w => w[0].toUpperCase() + w.slice(1))
     .join('');
-
-export async function getProfileDocument(
+/**
+ * Parses profile on specified path with .supr extension
+ */
+export async function parseProfileDocument(
   profilePath: string
 ): Promise<ProfileDocumentNode> {
   const parseFunction = DOCUMENT_PARSE_FUNCTION[DocumentType.PROFILE];
@@ -198,7 +200,7 @@ export async function findLocalCapabilities(
       ) {
         const {
           header: { version },
-        } = await getProfileDocument(joinPath(path, dirent.name));
+        } = await parseProfileDocument(joinPath(path, dirent.name));
 
         profiles.push(
           withVersion

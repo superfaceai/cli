@@ -1,28 +1,38 @@
 import { isValidDocumentName, isValidVersionString } from '@superfaceai/ast';
 import {
+  BackoffKind,
   isApiKeySecurityValues,
   isBasicAuthSecurityValues,
   isBearerTokenSecurityValues,
   isDigestSecurityValues,
   META_FILE,
+  OnFail,
+  RetryPolicy,
   SecurityValues,
   SUPERFACE_DIR,
   SuperJson,
 } from '@superfaceai/one-sdk';
+import { getProfileUsecases } from '@superfaceai/parser';
 import { bold } from 'chalk';
 import inquirer from 'inquirer';
 import { join as joinPath } from 'path';
 
-import { fetchProviders } from '../common/http';
+import { developerError, userError } from '../common/error';
+import { fetchProviders, getStoreUrl } from '../common/http';
 import { exists, readFile } from '../common/io';
 import { LogCallback } from '../common/log';
 import { OutputStream } from '../common/output-stream';
 import { PackageManager } from '../common/package-manager';
+import { NORMALIZED_CWD_PATH } from '../common/path';
 import { envVariable } from '../templates/env';
 import { installProvider } from './configure';
 import { initSuperface } from './init';
 import { detectSuperJson, installProfiles } from './install';
-import { profileExists, providerExists } from './quickstart.utils';
+import {
+  loadProfileAst,
+  profileExists,
+  providerExists,
+} from './quickstart.utils';
 
 export async function interactiveInstall(
   profileArg: string,
@@ -50,27 +60,16 @@ export async function interactiveInstall(
   let envContent = '';
   //Super.json path
   let superPath = await detectSuperJson(process.cwd());
-  if (superPath) {
-    //Overide existing super.json
-    if (
-      !(await confirmPrompt(
-        'Configuration file super.json already exists.\nDo you want to override it?:'
-      ))
-    ) {
-      options?.warnCb?.(`Super.json already exists at path "${superPath}"`);
-
-      return;
-    }
+  if (!superPath) {
+    //Init SF
+    options?.successCb?.('Initializing superface directory');
+    await initSuperface(
+      NORMALIZED_CWD_PATH,
+      { profiles: {}, providers: {} },
+      { logCb: options?.logCb }
+    );
+    superPath = SUPERFACE_DIR;
   }
-
-  //Init SF
-  options?.successCb?.('Initializing superface directory');
-  await initSuperface(
-    './',
-    { profiles: {}, providers: {} },
-    { logCb: options?.logCb }
-  );
-  superPath = SUPERFACE_DIR;
 
   //Load super.json (for checks)
   let superJson = (
@@ -79,6 +78,7 @@ export async function interactiveInstall(
 
   options?.successCb?.(`\nInitializing ${profileArg}`);
 
+  let installProfile = true;
   //Override existing profile
   if (await profileExists(superJson, { profile, scope, version })) {
     if (
@@ -86,26 +86,28 @@ export async function interactiveInstall(
         `Profile "${scope}/${profile}" already exists.\nDo you want to override it?:`
       ))
     )
-      return;
+      installProfile = false;
   }
-
   //Install profile
-  await installProfiles(
-    superPath,
-    [
-      {
-        kind: 'store',
-        profileId,
-        version: version,
+  if (installProfile) {
+    await installProfiles({
+      superPath,
+      requests: [
+        {
+          kind: 'store',
+          profileId,
+          version: version,
+        },
+      ],
+      options: {
+        logCb: options?.logCb,
+        warnCb: options?.warnCb,
+        force: true,
       },
-    ],
-    {
-      logCb: options?.logCb,
-      warnCb: options?.warnCb,
-      force: true,
-    }
-  );
-
+    });
+    //Reload super.json
+    superJson = (await SuperJson.load(joinPath(superPath, META_FILE))).unwrap();
+  }
   //Ask for providers
   const possibleProviders = (await fetchProviders(profileArg)).map(p => p.name);
 
@@ -126,10 +128,16 @@ export async function interactiveInstall(
     }[] = possibleProviders
       //Remove already configured and mock provider
       .filter(
-        p => !providersWithPriority.find(pwp => pwp.name === p) && p !== 'mock'
+        provider =>
+          !providersWithPriority.find(
+            providerWithPriority => providerWithPriority.name === provider
+          ) && provider !== 'mock'
       )
-      .map(p => {
-        return { name: p, value: { name: p, priority, exit: false } };
+      .map(provider => {
+        return {
+          name: provider,
+          value: { name: provider, priority, exit: false },
+        };
       });
     //Add exit choice
     choices.push({
@@ -182,37 +190,91 @@ export async function interactiveInstall(
     providersToInstall.push(provider.name);
   }
 
-  //Install providers
+  //Get installed usecases
+  const profileAst = await loadProfileAst(superJson, {
+    profile,
+    scope,
+    version,
+  });
+  if (!profileAst) {
+    throw developerError('Profile AST not found after installation', 1);
+  }
+  const profileUsecases = getProfileUsecases(profileAst);
+  //Check usecase
+  if (profileUsecases.length === 0) {
+    throw userError(
+      'Profile AST does not contain any use cases - misconfigured profile file',
+      1
+    );
+  }
+
+  //Select usecase to configure
+  let selectedUseCase: string | undefined = undefined;
+  if (profileUsecases.length > 1) {
+    const useCaseResponse: { useCase: string } = await inquirer.prompt({
+      name: 'useCase',
+      message: `Installed profile "${profileId}" has more than one use case.\nSelect one you want to configure:`,
+      type: 'list',
+      choices: profileUsecases.map(usecase => usecase.name),
+    });
+    selectedUseCase = useCaseResponse.useCase;
+  } else {
+    selectedUseCase = profileUsecases[0].name;
+  }
+
+  //Configure provider failover
+  //de duplicate providers to install and providers in super json
+  const allProviders = providersToInstall.concat(
+    Object.keys(superJson.normalized.providers).filter(
+      (provider: string) => providersToInstall.indexOf(provider) < 0
+    )
+  );
+  //TODO: check also already installed providers - distinct with providers to install
+  if (allProviders.length > 1) {
+    if (
+      await confirmPrompt(
+        `You have selected more than one provider.\nDo you want to enable provider failover:`,
+        { default: true }
+      )
+    ) {
+      //Add provider failover
+      superJson.addProfileDefaults(profileId, {
+        [selectedUseCase]: { providerFailover: true },
+      });
+      await OutputStream.writeOnce(superJson.path, superJson.stringified, {
+        force: true,
+      });
+    }
+  }
+
+  //Configure retry policies && install providers
   for (const provider of providersToInstall) {
     //Install provider
-    await installProvider(superPath, provider, profileId, {
-      logCb: options?.logCb,
-      warnCb: options?.warnCb,
-      force: true,
-      local: false,
+    await installProvider({
+      superPath,
+      provider,
+      profileId,
+      defaults: {
+        defaults: {
+          [selectedUseCase]: {
+            retryPolicy: await selectRetryPolicy(provider, selectedUseCase),
+          },
+        },
+      },
+      options: {
+        logCb: options?.logCb,
+        warnCb: options?.warnCb,
+        force: true,
+        local: false,
+      },
     });
   }
 
   //Reload super.json
   superJson = (await SuperJson.load(joinPath(superPath, META_FILE))).unwrap();
-  //Get installed
+  //Get installed providers
   const installedProviders = superJson.normalized.providers;
-
-  //Set priority if not alreaady set (with same values/order)
-  const existingPriority =
-    superJson.normalized.profiles[profileId].priority ?? [];
-  if (
-    !providersToInstall.every(
-      (value: string, index: number) => value === existingPriority[index]
-    )
-  ) {
-    superJson.addPriority(profileId, providersToInstall);
-    // write new information to super.json
-    await OutputStream.writeOnce(superJson.path, superJson.stringified);
-  }
-
   //Ask for provider security
-
   options?.successCb?.(`\nConfiguring providers security`);
 
   //Get .env file
@@ -272,7 +334,7 @@ export async function interactiveInstall(
         'Do you want to initialize package manager ("yes" flag will be used)?',
       type: 'list',
       choices: [
-        { name: 'Yarn', value: 'yarn' },
+        { name: 'Yarn (yarn must be installed)', value: 'yarn' },
         { name: 'NPM', value: 'npm' },
         { name: 'Exit installation', value: 'exit' },
       ],
@@ -349,11 +411,106 @@ export async function interactiveInstall(
   options?.successCb?.(`\n🆗 Superface have been configured successfully!`);
 
   //Lead to docs page
-  //TODO: usecase specific page
-  const url = 'https://docs.superface.ai/getting-started';
   options?.successCb?.(
-    `\nNow you can follow our documentation to use installed capability: "${url}"`
+    `\nNow you can follow our documentation to use installed capability: "${
+      new URL(profileId, getStoreUrl()).href
+    }"`
   );
+}
+
+async function selectRetryPolicy(
+  provider: string,
+  selectedUseCase: string
+): Promise<RetryPolicy> {
+  //Select retry policy
+  const policyResponse: { policy: OnFail } = await inquirer.prompt({
+    name: 'policy',
+    message: `Select a failure policy for provider "${provider}" and use case: "${selectedUseCase}":`,
+    type: 'list',
+    choices: [
+      { name: 'None', value: OnFail.NONE },
+      { name: 'Circuit Breaker', value: OnFail.CIRCUIT_BREAKER },
+    ],
+  });
+
+  if (policyResponse.policy === OnFail.NONE) {
+    return { kind: OnFail.NONE };
+  } else if (policyResponse.policy === OnFail.CIRCUIT_BREAKER) {
+    //You want to customize?
+    if (
+      await confirmPrompt(
+        `Do you want to customize circuit breaker parameters?:`,
+        { default: false }
+      )
+    ) {
+      return {
+        kind: OnFail.CIRCUIT_BREAKER,
+        ...(await selectCircuitBreakerValues(provider, selectedUseCase)),
+      };
+    } else {
+      return {
+        kind: OnFail.CIRCUIT_BREAKER,
+      };
+    }
+  }
+
+  throw developerError('Unreachable', 1);
+}
+
+async function selectCircuitBreakerValues(
+  provider: string,
+  useCase: string
+): Promise<{
+  maxContiguousRetries: number;
+  requestTimeout: number;
+  backoff: {
+    kind: BackoffKind.EXPONENTIAL;
+    start: number;
+    factor: number;
+  };
+}> {
+  const maxContiguousRetries: {
+    maxContiguousRetries: number;
+  } = await inquirer.prompt({
+    name: 'maxContiguousRetries',
+    message: `Enter value of maximum contiguous retries for provider "${provider}" and use case: ${useCase}:`,
+    type: 'number',
+  });
+  const requestTimeout: { requestTimeout: number } = await inquirer.prompt({
+    name: 'requestTimeout',
+    message: `Enter request timeout for provider "${provider}" and use case: ${useCase} (in miliseconds):`,
+    type: 'number',
+  });
+
+  return {
+    maxContiguousRetries: maxContiguousRetries.maxContiguousRetries,
+    requestTimeout: requestTimeout.requestTimeout,
+    backoff: {
+      ...(await selectExponentialBackoffValues(provider, useCase)),
+    },
+  };
+}
+
+async function selectExponentialBackoffValues(
+  provider: string,
+  useCase: string
+): Promise<{ kind: BackoffKind.EXPONENTIAL; start: number; factor: number }> {
+  const start: { start: number } = await inquirer.prompt({
+    name: 'start',
+    message: `Enter initial value of exponential backoff for provider "${provider}" and use case: ${useCase} (in miliseconds):`,
+    type: 'number',
+  });
+  const factor: { factor: number } = await inquirer.prompt({
+    name: 'factor',
+    message: `Enter value of exponent in exponential backoff for provider "${provider}" and use case: ${useCase} (in miliseconds):`,
+    type: 'number',
+  });
+
+  return {
+    kind: BackoffKind.EXPONENTIAL,
+    factor: factor.factor,
+    start: start.start,
+  };
 }
 
 async function getPromptedValue(

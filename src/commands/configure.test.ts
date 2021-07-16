@@ -33,9 +33,9 @@ describe('Configure CLI command', () => {
   });
 
   describe('when running configure command', () => {
-    const mockProvider = 'twilio';
-    const mockPath = 'some/path';
-    const mockProfile = 'sms';
+    const provider = 'twilio';
+    const superPath = 'some/path';
+    const profileId = 'sms';
 
     it('does not configure on invalid provider name', async () => {
       mocked(isValidDocumentName).mockReturnValue(false);
@@ -49,26 +49,27 @@ describe('Configure CLI command', () => {
 
     it('configures provider', async () => {
       mocked(isValidDocumentName).mockReturnValue(true);
-      mocked(detectSuperJson).mockResolvedValue(mockPath);
+      mocked(detectSuperJson).mockResolvedValue(superPath);
 
       await expect(
-        Configure.run([mockProvider, '-p', mockProfile])
+        Configure.run([provider, '-p', profileId])
       ).resolves.toBeUndefined();
 
       expect(detectSuperJson).toHaveBeenCalledTimes(1);
 
       expect(installProvider).toHaveBeenCalledTimes(1);
-      expect(installProvider).toHaveBeenCalledWith(
-        mockPath,
-        mockProvider,
-        mockProfile,
-        {
+      expect(installProvider).toHaveBeenCalledWith({
+        superPath,
+        provider,
+        profileId,
+        defaults: undefined,
+        options: {
           force: false,
           local: false,
-          logCb: expect.any(Function),
-          warnCb: expect.any(Function),
-        }
-      );
+          logCb: expect.anything(),
+          warnCb: expect.anything(),
+        },
+      });
     });
 
     it('configures provider with superface initialization', async () => {
@@ -77,7 +78,7 @@ describe('Configure CLI command', () => {
       mocked(initSuperface).mockResolvedValue(new SuperJson());
 
       await expect(
-        Configure.run([mockProvider, '-p', mockProfile, '-q'])
+        Configure.run([provider, '-p', profileId, '-q'])
       ).resolves.toBeUndefined();
 
       expect(detectSuperJson).toHaveBeenCalledTimes(1);
@@ -90,17 +91,18 @@ describe('Configure CLI command', () => {
       );
 
       expect(installProvider).toHaveBeenCalledTimes(1);
-      expect(installProvider).toHaveBeenCalledWith(
-        'superface',
-        mockProvider,
-        mockProfile,
-        {
+      expect(installProvider).toHaveBeenCalledWith({
+        superPath: 'superface',
+        provider,
+        profileId,
+        defaults: undefined,
+        options: {
           force: false,
           local: false,
           logCb: undefined,
           warnCb: undefined,
-        }
-      );
+        },
+      });
     });
   });
 });

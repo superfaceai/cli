@@ -7,6 +7,7 @@ import { Command } from '../common/command.abstract';
 import { META_FILE, SUPERFACE_DIR, trimExtension } from '../common/document';
 import { userError } from '../common/error';
 import { LogCallback } from '../common/log';
+import { NORMALIZED_CWD_PATH } from '../common/path';
 import { installProvider } from '../logic/configure';
 import { initSuperface } from '../logic/init';
 import {
@@ -78,7 +79,7 @@ export default class Install extends Command {
     }),
     interactive: oclifFlags.boolean({
       char: 'i',
-      description: 'When set to true, command is used in interactive mode.',
+      description: `When set to true, command is used in interactive mode. It leads users through profile installation, provider selection, provider security and retry policy setup. Result of this command is ready to use superface configuration.`,
       default: false,
       exclusive: ['providers', 'force', 'local', 'scan', 'quiet'],
     }),
@@ -146,7 +147,7 @@ export default class Install extends Command {
         "Initializing superface directory with empty 'super.json'"
       );
       await initSuperface(
-        './',
+        NORMALIZED_CWD_PATH,
         { profiles: {}, providers: {} },
         { logCb: this.logCallback }
       );
@@ -164,7 +165,7 @@ export default class Install extends Command {
       )}'`
     );
 
-    const installRequests: (LocalInstallRequest | StoreInstallRequest)[] = [];
+    const requests: (LocalInstallRequest | StoreInstallRequest)[] = [];
     const profileArg = args.profileId as string | undefined;
     if (profileArg !== undefined) {
       const [profileId, version] = profileArg.split('@');
@@ -174,7 +175,7 @@ export default class Install extends Command {
       let profileName: string;
 
       if (flags.local) {
-        installRequests.push({
+        requests.push({
           kind: 'local',
           path: profileArg,
         });
@@ -183,7 +184,7 @@ export default class Install extends Command {
           profilePathParts[profilePathParts.length - 1]
         );
       } else {
-        installRequests.push({
+        requests.push({
           kind: 'store',
           profileId,
           version,
@@ -205,19 +206,29 @@ export default class Install extends Command {
       }
     }
 
-    await installProfiles(superPath, installRequests, {
-      logCb: this.logCallback,
-      warnCb: this.warnCallback,
-      force: flags.force,
-    });
-
-    this.logCallback?.(`\n\nConfiguring providers`);
-    for (const providerName of providers) {
-      await installProvider(superPath, providerName, args.profileId, {
+    await installProfiles({
+      superPath,
+      requests,
+      options: {
         logCb: this.logCallback,
         warnCb: this.warnCallback,
         force: flags.force,
-        local: false,
+      },
+    });
+
+    this.logCallback?.(`\n\nConfiguring providers`);
+    for (const provider of providers) {
+      await installProvider({
+        superPath,
+        provider,
+        profileId: args.profileId as string,
+        defaults: undefined,
+        options: {
+          logCb: this.logCallback,
+          warnCb: this.warnCallback,
+          force: flags.force,
+          local: false,
+        },
       });
     }
   }

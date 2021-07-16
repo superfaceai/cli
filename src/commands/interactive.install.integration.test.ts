@@ -1,4 +1,4 @@
-import { SuperJson } from '@superfaceai/one-sdk';
+import { OnFail, SuperJson } from '@superfaceai/one-sdk';
 import { getLocal } from 'mockttp';
 import { join as joinPath } from 'path';
 
@@ -109,40 +109,46 @@ describe('Interactive install CLI command', () => {
           inputs: [
             //Select providers priority
             //Sendgrid
-            { value: DOWN, timeout: 6000 },
+            { value: DOWN, timeout: 8000 },
             //Confirm slection
-            { value: ENTER, timeout: 200 },
+            { value: ENTER, timeout: 500 },
             //Mailgun
             { value: DOWN, timeout: 6000 },
             //Confirm slection
-            { value: ENTER, timeout: 200 },
+            { value: ENTER, timeout: 500 },
             //Exit
             { value: UP, timeout: 6000 },
             //Confirm slection
-            { value: ENTER, timeout: 200 },
+            { value: ENTER, timeout: 1000 },
+            //Select usecase
+            { value: ENTER, timeout: 1000 },
+            //Confirm provider failover
+            { value: ENTER, timeout: 1000 },
+            //None
+            { value: ENTER, timeout: 1000 },
             //Sendgrid token
-            { value: 'sendgridToken', timeout: 10000 },
-            { value: ENTER, timeout: 100 },
+            { value: 'sendgridToken', timeout: 8000 },
+            { value: ENTER, timeout: 500 },
             //Mailgun username
-            { value: 'username', timeout: 6000 },
-            { value: ENTER, timeout: 100 },
+            { value: 'username', timeout: 4000 },
+            { value: ENTER, timeout: 500 },
             //Mailgun password
-            { value: 'password', timeout: 6000 },
-            { value: ENTER, timeout: 100 },
+            { value: 'password', timeout: 4000 },
+            { value: ENTER, timeout: 500 },
             //Confirm dotenv installation
-            { value: ENTER, timeout: 6000 },
+            { value: ENTER, timeout: 4000 },
             //Incorrect SDK token
             {
               value:
                 'XXX_bb064dd57c302911602dd097bc29bedaea6a021c25a66992d475ed959aa526c7_37bce8b5',
-              timeout: 6000,
+              timeout: 4000,
             },
-            { value: ENTER, timeout: 100 },
+            { value: ENTER, timeout: 500 },
             //Correct SDK token
             {
               value:
                 'sfs_bb064dd57c302911602dd097bc29bedaea6a021c25a66992d475ed959aa526c7_37bce8b5',
-              timeout: 6000,
+              timeout: 4000,
             },
             { value: ENTER, timeout: 500 },
           ],
@@ -161,9 +167,10 @@ describe('Interactive install CLI command', () => {
       expect(result.stdout).toMatch(
         '🆗 Superface have been configured successfully!'
       );
-      expect(result.stdout).toMatch(
-        'Now you can follow our documentation to use installed capability: "https://docs.superface.ai/getting-started"'
+      expect(result.stdout).toContain(
+        'Now you can follow our documentation to use installed capability:'
       );
+      expect(result.stdout).toMatch(`${profile.scope}/${profile.name}`);
       //Check file existance
       await expect(
         exists(joinPath(tempDir, 'superface', 'super.json'))
@@ -202,9 +209,30 @@ describe('Interactive install CLI command', () => {
           [`${profile.scope}/${profile.name}`]: {
             version: profile.version,
             priority: ['sendgrid', 'mailgun'],
+            defaults: {
+              SendEmail: {
+                providerFailover: true,
+              },
+            },
             providers: {
-              sendgrid: {},
-              mailgun: {},
+              sendgrid: {
+                defaults: {
+                  SendEmail: {
+                    retryPolicy: {
+                      kind: OnFail.NONE,
+                    },
+                  },
+                },
+              },
+              mailgun: {
+                defaults: {
+                  SendEmail: {
+                    retryPolicy: {
+                      kind: OnFail.NONE,
+                    },
+                  },
+                },
+              },
             },
           },
         },
@@ -351,22 +379,24 @@ describe('Interactive install CLI command', () => {
         mockServer.url,
         {
           inputs: [
-            //Confirm super.json override
-            { value: 'y', timeout: 2000 },
-            { value: ENTER, timeout: 100 },
             //Confirm profile override
             { value: 'y', timeout: 4000 },
-            { value: ENTER, timeout: 100 },
+            { value: ENTER, timeout: 500 },
             //Select sendgrid provider
             { value: DOWN, timeout: 10000 },
             { value: ENTER, timeout: 500 },
             //exit
             { value: UP, timeout: 6000 },
             //Confirm selection
-            { value: ENTER, timeout: 100 },
+            { value: ENTER, timeout: 500 },
             //Confirm first provider override
             { value: 'y', timeout: 6000 },
             { value: ENTER, timeout: 500 },
+            //Select usecase
+            { value: ENTER, timeout: 1100 },
+            // //Confirm provider failover
+            { value: ENTER, timeout: 1200 },
+
             //Confirm env override
             { value: 'y', timeout: 4000 },
             { value: ENTER, timeout: 500 },
@@ -408,9 +438,10 @@ describe('Interactive install CLI command', () => {
       expect(result.stdout).toMatch(
         '🆗 Superface have been configured successfully!'
       );
-      expect(result.stdout).toMatch(
-        'Now you can follow our documentation to use installed capability: "https://docs.superface.ai/getting-started"'
+      expect(result.stdout).toContain(
+        'Now you can follow our documentation to use installed capability:'
       );
+      expect(result.stdout).toMatch(`${profile.scope}/${profile.name}`);
       //Check file existance
       await expect(
         exists(joinPath(tempDir, 'superface', 'super.json'))
@@ -449,9 +480,22 @@ describe('Interactive install CLI command', () => {
           [`${profile.scope}/${profile.name}`]: {
             version: profile.version,
             priority: ['sendgrid'],
+            defaults: {
+              SendEmail: {
+                providerFailover: true,
+              },
+            },
             providers: {
               mailchimp: {},
-              sendgrid: {},
+              sendgrid: {
+                defaults: {
+                  SendEmail: {
+                    retryPolicy: {
+                      kind: OnFail.NONE,
+                    },
+                  },
+                },
+              },
               mock: {},
               mailgun: {},
             },

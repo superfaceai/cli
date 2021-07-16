@@ -5,8 +5,8 @@ import { join as joinPath, normalize, relative as relativePath } from 'path';
 import {
   composeVersion,
   EXTENSIONS,
-  getProfileDocument,
   META_FILE,
+  parseProfileDocument,
   SUPER_PATH,
   SUPERFACE_DIR,
   UNCOMPILED_SDK_FILE,
@@ -238,7 +238,7 @@ async function readLocalRequest(
   options?: InstallOptions
 ): Promise<LocalRequestRead | undefined> {
   try {
-    const profileAst = await getProfileDocument(request.path);
+    const profileAst = await parseProfileDocument(request.path);
 
     return {
       ...request,
@@ -520,7 +520,7 @@ export async function getExistingProfileIds(
 
         if ('file' in profileSettings) {
           try {
-            const { header } = await getProfileDocument(
+            const { header } = await parseProfileDocument(
               superJson.resolvePath(profileSettings.file)
             );
 
@@ -547,57 +547,62 @@ export async function getExistingProfileIds(
  * If `request` is undefined store requests are generated for each profile in super.json and
  * then resolved as normal (i.e. redownloads all profiles from the store).
  */
-export async function installProfiles(
-  superPath: string,
-  requests: (LocalRequest | StoreRequest)[],
-  options?: InstallOptions
-): Promise<void> {
-  const loadedResult = await SuperJson.load(joinPath(superPath, META_FILE));
+export async function installProfiles(parameters: {
+  superPath: string;
+  requests: (LocalRequest | StoreRequest)[];
+  options?: InstallOptions;
+}): Promise<void> {
+  const loadedResult = await SuperJson.load(
+    joinPath(parameters.superPath, META_FILE)
+  );
   const superJson = loadedResult.match(
     v => v,
     err => {
-      options?.warnCb?.(err);
+      parameters.options?.warnCb?.(err);
 
       return new SuperJson({});
     }
   );
 
   // gather requests if empty
-  if (requests.length === 0) {
-    const existingProfileIds = await getExistingProfileIds(superJson, options);
-    requests = existingProfileIds.map<StoreRequest>(
+  if (parameters.requests.length === 0) {
+    const existingProfileIds = await getExistingProfileIds(
+      superJson,
+      parameters.options
+    );
+    parameters.requests = existingProfileIds.map<StoreRequest>(
       ({ profileId, version }) => ({ kind: 'store', profileId, version })
     );
   }
 
   const installed = await resolveInstallationRequests(
     superJson,
-    requests,
-    options
+    parameters.requests,
+    parameters.options
   );
 
   if (installed > 0) {
     // save super.json
     await OutputStream.writeOnce(superJson.path, superJson.stringified);
-    options?.logCb?.(
+    parameters.options?.logCb?.(
       formatShellLog("echo '<updated super.json>' >", [superJson.path])
     );
   }
 
-  const toInstall = requests.length;
+  const toInstall = parameters.requests.length;
   if (toInstall > 0) {
     if (installed === 0) {
-      options?.logCb?.(`❌ No profiles have been installed`);
+      parameters.options?.logCb?.(`❌ No profiles have been installed`);
     } else if (installed < toInstall) {
-      options?.logCb?.(
+      parameters.options?.logCb?.(
         `⚠️ Installed ${installed} out of ${toInstall} profiles`
       );
     } else {
-      options?.logCb?.(
+      parameters.options?.logCb?.(
         `🆗 All profiles (${installed}) have been installed successfully.`
       );
     }
   } else {
-    options?.logCb?.(`No profiles found to install`);
+    parameters.options?.logCb?.(`No profiles found to install`);
   }
 }

@@ -1,14 +1,19 @@
-import { ok, SuperJson } from '@superfaceai/one-sdk';
+import { ProfileDocumentNode } from '@superfaceai/ast';
+import { ok, OnFail, SuperJson } from '@superfaceai/one-sdk';
 import inquirer from 'inquirer';
 import { mocked } from 'ts-jest/utils';
 
-import { fetchProfiles, fetchProviders } from '../common/http';
+import { fetchProfiles, fetchProviders, getStoreUrl } from '../common/http';
 import { exists, readFile } from '../common/io';
 import { OutputStream } from '../common/output-stream';
 import { initSuperface } from './init';
 import { detectSuperJson } from './install';
 import { interactiveInstall } from './quickstart';
-import { profileExists, providerExists } from './quickstart.utils';
+import {
+  loadProfileAst,
+  profileExists,
+  providerExists,
+} from './quickstart.utils';
 
 //Mock package manager
 jest.mock('../common/package-manager');
@@ -54,6 +59,43 @@ describe('Quickstart logic', () => {
     SuperJson.load = originalLoad;
   });
 
+  const mockProfileAst: ProfileDocumentNode = {
+    kind: 'ProfileDocument',
+    header: {
+      kind: 'ProfileHeader',
+      scope: 'communication',
+      name: 'send-email',
+      version: { major: 1, minor: 1, patch: 0 },
+      location: { line: 1, column: 1 },
+      span: { start: 0, end: 100 },
+      title: 'Send Email',
+      description: 'Send one transactional email',
+    },
+    definitions: [
+      {
+        kind: 'UseCaseDefinition',
+        useCaseName: 'SendEmail',
+        safety: 'unsafe',
+        asyncResult: undefined,
+        title: 'Send transactional email to one recipient',
+        description: 'Email can contain text and/or html representation',
+      },
+      {
+        kind: 'UseCaseDefinition',
+        useCaseName: 'SendTemplatedEmail',
+        safety: 'unsafe',
+        asyncResult: undefined,
+        title: 'Send templated transactional email to one recipient',
+        description: 'Requires template defined on provider side.',
+      },
+      {
+        kind: 'NamedModelDefinition',
+        modelName: 'Error',
+      },
+    ],
+    location: { line: 1, column: 1 },
+    span: { start: 0, end: 775 },
+  };
   describe('when installing sdk', () => {
     const profile = {
       scope: 'communication',
@@ -111,6 +153,8 @@ describe('Quickstart logic', () => {
     it('sets up sf correctly - non existing super.json and .env', async () => {
       mocked(detectSuperJson).mockResolvedValue(undefined);
       mocked(initSuperface).mockResolvedValue(new SuperJson({}));
+      mocked(loadProfileAst).mockResolvedValue(mockProfileAst);
+      mocked(getStoreUrl).mockReturnValue('https://superface.ai/');
       //We re-load superjson after initial install (profile and providers)
       mockLoad.mockResolvedValue(
         ok(
@@ -187,6 +231,26 @@ describe('Quickstart logic', () => {
         .mockResolvedValueOnce({
           provider: { name: undefined, priority: undefined, exit: true },
         })
+        //Select usecase
+        .mockResolvedValueOnce({
+          useCase: 'SendEmail',
+        })
+        //Confirm provider failover
+        .mockResolvedValueOnce({ continue: true })
+        //Select retry policy for sendgrid
+        .mockResolvedValueOnce({ policy: OnFail.NONE })
+        //Select retry policy for mailgun
+        .mockResolvedValueOnce({ policy: OnFail.CIRCUIT_BREAKER })
+        //Use circuit breaker defauts
+        .mockResolvedValueOnce({ continue: false })
+        //Select retry policy for test
+        .mockResolvedValueOnce({ policy: OnFail.CIRCUIT_BREAKER })
+        //Set circuit breaker defauts
+        .mockResolvedValueOnce({ continue: true })
+        .mockResolvedValueOnce({ maxContiguousRetries: 5 })
+        .mockResolvedValueOnce({ requestTimeout: 30_000 })
+        .mockResolvedValueOnce({ start: 1000 })
+        .mockResolvedValueOnce({ factor: 2 })
         //Set sendgrid bearer
         .mockResolvedValueOnce({ value: 'sendgridBearer' })
         //Select security schema
@@ -243,13 +307,15 @@ describe('Quickstart logic', () => {
         '\n🆗 Superface have been configured successfully!'
       );
       expect(successCb).toHaveBeenCalledWith(
-        '\nNow you can follow our documentation to use installed capability: "https://docs.superface.ai/getting-started"'
+        `\nNow you can follow our documentation to use installed capability: "https://superface.ai/${profile.scope}/${profile.profile}"`
       );
     });
 
     it('sets up sf correctly - non existing super.json and existing .env', async () => {
       mocked(detectSuperJson).mockResolvedValue(undefined);
       mocked(initSuperface).mockResolvedValue(new SuperJson({}));
+      mocked(loadProfileAst).mockResolvedValue(mockProfileAst);
+      mocked(getStoreUrl).mockReturnValue('https://superface.ai/');
       mockLoad.mockResolvedValue(
         ok(
           new SuperJson({
@@ -325,6 +391,26 @@ describe('Quickstart logic', () => {
         .mockResolvedValueOnce({
           provider: { name: undefined, priority: undefined, exit: true },
         })
+        //Select usecase
+        .mockResolvedValueOnce({
+          useCase: 'SendEmail',
+        })
+        //Confirm provider failover
+        .mockResolvedValueOnce({ continue: true })
+        //Select retry policy for sendgrid
+        .mockResolvedValueOnce({ policy: OnFail.NONE })
+        //Select retry policy for mailgun
+        .mockResolvedValueOnce({ policy: OnFail.CIRCUIT_BREAKER })
+        //Use circuit breaker defauts
+        .mockResolvedValueOnce({ continue: false })
+        //Select retry policy for test
+        .mockResolvedValueOnce({ policy: OnFail.CIRCUIT_BREAKER })
+        //Set circuit breaker defauts
+        .mockResolvedValueOnce({ continue: true })
+        .mockResolvedValueOnce({ maxContiguousRetries: 5 })
+        .mockResolvedValueOnce({ requestTimeout: 30_000 })
+        .mockResolvedValueOnce({ start: 1000 })
+        .mockResolvedValueOnce({ factor: 2 })
         //Set sendgrid bearer
         .mockResolvedValueOnce({ value: 'sendgridBearer' })
         //Select security schema
@@ -379,7 +465,7 @@ describe('Quickstart logic', () => {
         '\n🆗 Superface have been configured successfully!'
       );
       expect(successCb).toHaveBeenCalledWith(
-        '\nNow you can follow our documentation to use installed capability: "https://docs.superface.ai/getting-started"'
+        `\nNow you can follow our documentation to use installed capability: "https://superface.ai/${profile.scope}/${profile.profile}"`
       );
     });
 
@@ -435,6 +521,8 @@ describe('Quickstart logic', () => {
 
       mocked(detectSuperJson).mockResolvedValue(undefined);
       mocked(initSuperface).mockResolvedValue(new SuperJson({}));
+      mocked(loadProfileAst).mockResolvedValue(mockProfileAst);
+      mocked(getStoreUrl).mockReturnValue('https://superface.ai/');
       mockLoad.mockResolvedValue(ok(mockMisconfiguredSuperJson));
       mocked(fetchProfiles).mockResolvedValue([profile]);
       mocked(fetchProviders).mockResolvedValue([
@@ -461,6 +549,18 @@ describe('Quickstart logic', () => {
         .mockResolvedValueOnce({
           provider: { name: undefined, priority: undefined, exit: true },
         })
+        //Select usecase
+        .mockResolvedValueOnce({
+          useCase: 'SendEmail',
+        })
+        //Confirm provider failover
+        .mockResolvedValueOnce({ continue: true })
+        //Select retry policy for sendgrid
+        .mockResolvedValueOnce({ policy: OnFail.NONE })
+        //Select retry policy for mailgun
+        .mockResolvedValueOnce({ policy: OnFail.CIRCUIT_BREAKER })
+        //Use circuit breaker defauts
+        .mockResolvedValueOnce({ continue: false })
         //Set mailgun username
         .mockResolvedValueOnce({ value: 'mailgunUsername' })
         //Set mailgun password
@@ -488,7 +588,8 @@ describe('Quickstart logic', () => {
       expect(exists).toHaveBeenCalled();
       expect(writeOnceSpy).toHaveBeenCalledWith(
         '',
-        mockMisconfiguredSuperJson.stringified
+        mockMisconfiguredSuperJson.stringified,
+        { force: true }
       );
       expect(writeOnceSpy).toHaveBeenCalledWith(
         '.env',
@@ -571,6 +672,8 @@ describe('Quickstart logic', () => {
       mocked(profileExists).mockResolvedValueOnce(true);
       mocked(providerExists).mockReturnValue(true);
       mocked(fetchProfiles).mockResolvedValue([profile]);
+      mocked(loadProfileAst).mockResolvedValue(mockProfileAst);
+      mocked(getStoreUrl).mockReturnValue('https://superface.ai/');
       mocked(fetchProviders).mockResolvedValue([
         { name: 'sendgrid', services: [], defaultService: '' },
         { name: 'mailgun', services: [], defaultService: '' },
@@ -586,8 +689,6 @@ describe('Quickstart logic', () => {
         .mockResolvedValue(undefined);
       jest
         .spyOn(inquirer, 'prompt')
-        //Override super.json
-        .mockResolvedValueOnce({ continue: true })
         //Override profile
         .mockResolvedValueOnce({ continue: true })
         //Select providers priority
@@ -609,6 +710,19 @@ describe('Quickstart logic', () => {
         .mockResolvedValueOnce({ continue: true })
         //Override third provider
         .mockResolvedValueOnce({ continue: true })
+        //Select usecase
+        .mockResolvedValueOnce({
+          useCase: 'SendEmail',
+        })
+        //Confirm provider failover
+        .mockResolvedValueOnce({ continue: true })
+        //Select retry policy for mailgun
+        .mockResolvedValueOnce({ policy: OnFail.NONE })
+        //Select retry policy for sendgrid
+        .mockResolvedValueOnce({ policy: OnFail.CIRCUIT_BREAKER })
+        //Use circuit breaker defauts
+        .mockResolvedValueOnce({ continue: false })
+
         //Override first env
         .mockResolvedValueOnce({ continue: true })
         //Set mailgun username
@@ -639,20 +753,19 @@ describe('Quickstart logic', () => {
       });
 
       expect(detectSuperJson).toHaveBeenCalled();
-      expect(initSuperface).toHaveBeenCalled();
+      expect(initSuperface).not.toHaveBeenCalled();
       expect(fetchProfiles).not.toHaveBeenCalled();
       expect(fetchProviders).toHaveBeenCalled();
       expect(exists).toHaveBeenCalled();
 
-      expect(writeOnceSpy).toHaveBeenCalledWith('', mockSuperJson.stringified);
+      expect(writeOnceSpy).toHaveBeenCalledWith('', mockSuperJson.stringified, {
+        force: true,
+      });
       expect(writeOnceSpy).toHaveBeenCalledWith(
         '.env',
         'test=test\nSENDGRID_TOKEN=t\ntest2=test2\nMAILGUN_USERNAME=mailgunUsername\nMAILGUN_PASSWORD=mailgunPassword\nTEST_DIGEST=testDigest\nSUPERFACE_SDK_TOKEN=sfs_bb064dd57c302911602dd097bc29bedaea6a021c25a66992d475ed959aa526c7_37bce8b5\n'
       );
 
-      expect(successCb).toHaveBeenCalledWith(
-        'Initializing superface directory'
-      );
       expect(successCb).toHaveBeenCalledWith('\nInstalling providers');
       expect(successCb).toHaveBeenCalledWith(
         '\nConfiguring providers security'
@@ -670,26 +783,7 @@ describe('Quickstart logic', () => {
         '\n🆗 Superface have been configured successfully!'
       );
       expect(successCb).toHaveBeenCalledWith(
-        '\nNow you can follow our documentation to use installed capability: "https://docs.superface.ai/getting-started"'
-      );
-    });
-
-    it('sets up sf correctly - do not override existing super.json', async () => {
-      mocked(detectSuperJson).mockResolvedValue('some/path');
-      mocked(initSuperface).mockResolvedValue(new SuperJson({}));
-      jest
-        .spyOn(inquirer, 'prompt')
-        //Do NOT override super.json
-        .mockResolvedValueOnce({ continue: false });
-
-      await interactiveInstall(`${profile.scope}/${profile.profile}`, {
-        logCb,
-        warnCb,
-        successCb,
-      });
-      expect(initSuperface).not.toHaveBeenCalled();
-      expect(successCb).not.toHaveBeenCalledWith(
-        'Initializing superface directory'
+        `\nNow you can follow our documentation to use installed capability: "https://superface.ai/${profile.scope}/${profile.profile}"`
       );
     });
   });

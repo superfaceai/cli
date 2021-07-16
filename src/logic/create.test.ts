@@ -489,7 +489,7 @@ describe('Create logic', () => {
           'test-scope/test-name': {
             version: '0.0.0',
             defaults: {},
-            priority: [],
+            priority: [mockProvider],
             providers: {
               [mockProvider]: {
                 defaults: {},
@@ -552,7 +552,7 @@ describe('Create logic', () => {
           'test-scope/test-name': {
             file: `${mockScope}/${mockName}.supr`,
             defaults: {},
-            priority: [],
+            priority: [mockProvider],
             providers: {
               [mockProvider]: {
                 defaults: {},

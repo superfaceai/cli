@@ -82,6 +82,7 @@ export class PackageManager {
     }
     const command = initPm === 'yarn' ? `yarn init -y` : `npm init -y`;
 
+    options?.logCb?.(`Initializing ${initPm} on path: "${process.cwd()}"`);
     const result = await execShell(command);
     if (result.stderr !== '') {
       options?.warnCb?.(
@@ -120,7 +121,12 @@ export class PackageManager {
     const command =
       pm === 'yarn' ? `yarn add ${packageName}` : `npm install ${packageName}`;
 
-    const result = await execShell(command);
+    const path = (await PackageManager.getPath(options)) || process.cwd();
+    //Install package to package.json on discovered path or on cwd
+    options?.logCb?.(
+      `Installing package ${packageName} on path: "${path}" with: "${command}"`
+    );
+    const result = await execShell(command, { cwd: path });
     if (result.stderr !== '') {
       options?.warnCb?.(
         `Shell command "${command}" responded with: "${result.stderr.trimEnd()}"`

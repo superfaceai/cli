@@ -89,9 +89,10 @@ describe('Configure CLI command', () => {
       ]);
       expect(superJson.document.profiles![profileId]).toEqual({
         version: profileVersion,
+        priority: [provider],
         providers: { [provider]: {} },
       });
-    }, 20000);
+    }, 30000);
     it('configures provider with empty security schemes correctly', async () => {
       const emptyProvider = 'empty';
       let result = await execCLI(
@@ -140,6 +141,7 @@ describe('Configure CLI command', () => {
 
       expect(superJson.document.profiles![profileId]).toEqual({
         version: profileVersion,
+        priority: [emptyProvider],
         providers: { [emptyProvider]: {} },
       });
     }, 20000);
@@ -188,6 +190,7 @@ describe('Configure CLI command', () => {
 
       expect(superJson.document.profiles![profileId]).toEqual({
         version: profileVersion,
+        priority: [providerWithoutSecurity],
         providers: { [providerWithoutSecurity]: {} },
       });
     }, 20000);
@@ -240,6 +243,7 @@ describe('Configure CLI command', () => {
       ]);
       expect(superJson.document.profiles![profileId]).toEqual({
         version: profileVersion,
+        priority: [provider],
         providers: { [provider]: {} },
       });
     }, 20000);
@@ -422,6 +426,7 @@ describe('Configure CLI command', () => {
 
       expect(superJson.document.profiles![profileId]).toEqual({
         version: profileVersion,
+        priority: [provider],
         providers: { [provider]: {} },
       });
     }, 20000);

@@ -87,7 +87,7 @@ describe('Install CLI command', () => {
       await expect(exists(paths[1])).resolves.toBe(true);
       await expect(exists(paths[2])).resolves.toBe(true);
       await expect(exists(paths[3])).resolves.toBe(true);
-    }, 20000);
+    }, 30000);
 
     it('installs the specified profile version with default provider configuration', async () => {
       const result = await execCLI(

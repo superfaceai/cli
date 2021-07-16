@@ -14,6 +14,7 @@ import {
 import { CreateMode } from '../common/document.interfaces';
 import { developerError, userError } from '../common/error';
 import { mkdirQuiet } from '../common/io';
+import { NORMALIZED_CWD_PATH } from '../common/path';
 import { create } from '../logic/create';
 import { initSuperface } from '../logic/init';
 import { detectSuperJson } from '../logic/install';
@@ -207,7 +208,7 @@ export default class Create extends Command {
         "Initializing superface directory with empty 'super.json'"
       );
       await initSuperface(
-        './',
+        NORMALIZED_CWD_PATH,
         { profiles: {}, providers: {} },
         { logCb: this.logCallback }
       );
