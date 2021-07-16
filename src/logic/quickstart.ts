@@ -127,10 +127,16 @@ export async function interactiveInstall(
     }[] = possibleProviders
       //Remove already configured and mock provider
       .filter(
-        p => !providersWithPriority.find(pwp => pwp.name === p) && p !== 'mock'
+        provider =>
+          !providersWithPriority.find(
+            providerWithPriority => providerWithPriority.name === provider
+          ) && provider !== 'mock'
       )
-      .map(p => {
-        return { name: p, value: { name: p, priority, exit: false } };
+      .map(provider => {
+        return {
+          name: provider,
+          value: { name: provider, priority, exit: false },
+        };
       });
     //Add exit choice
     choices.push({

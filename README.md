@@ -97,15 +97,60 @@ ARGUMENTS
   PROFILEID  Profile identifier consisting of scope (optional), profile name and its version.
 
 OPTIONS
-  -f, --force                When set to true and when profile exists in local filesystem, overwrites them.
-  -h, --help                 show CLI help
-  -i, --interactive          When set to true, command is used in interactive mode.
-  -l, --local                When set to true, profile id argument is used as a filepath to profile.supr file.
-  -p, --providers=providers  Provider name.
-  -q, --quiet                When set to true, disables the shell echo output of init actions.
+  -f, --force
+      When set to true and when profile exists in local filesystem, overwrites them.
 
-  -s, --scan=scan            When number provided, scan for super.json outside cwd within range represented by this
-                             number.
+  -h, --help
+      show CLI help
+
+  -i, --interactive
+      When set to true, command is used in interactive mode. It leads user through profile installation, provider 
+      selection, provider security and retry policy setup. Result of this command is ready to use superface configuration.
+      Steps of command are:
+      
+      1) Superface is initialized (if not already initialized)
+      
+      2) Selected profile installation - if profile already exists user can choose if he wants to override existing 
+      installation
+      
+      3) Select providers and install them. User can choose to override or skip already existing providers
+      
+      4) If profile contains more than one use case user can select use case to configure
+      
+      5) If there is more than one provider configured user can choose to enable provider failover (in case of problems 
+      with primary provider superface automatically switches to secondary provider)
+      
+      6) For every selected provider user can choose retry policy he want provider to use. Currently there are two 
+      supported retry policies:
+      
+      	None: superface won't retry any requests
+      
+      	CircuitBreaker: superface will try retry requests, each request has timeout and exponential backoff is used between 
+      failed requests. Parameters of circuit breaker can be specifed or left default.
+      
+      7) Installed providers are configured. User can set enviroment variables needed for provider authorization. These 
+      are saved locally in .env file.
+      
+      8) Package @superfaceai/one-sdk is installed. This package is needed to use superface.
+      
+      9) Optionally, package dotenv is installed to load .env file
+      
+      10) Optionally, user can enter his SDK token to connect superface installation with his dashboard and to enable 
+      e-mail notifications
+      
+      11) Superface is configured 🆗. User can follow printed link to get actual code
+
+  -l, --local
+      When set to true, profile id argument is used as a filepath to profile.supr file.
+
+  -p, --providers=providers
+      Provider name.
+
+  -q, --quiet
+      When set to true, disables the shell echo output of init actions.
+
+  -s, --scan=scan
+      When number provided, scan for super.json outside cwd within range represented by this number.
 
 EXAMPLES
   $ superface install
