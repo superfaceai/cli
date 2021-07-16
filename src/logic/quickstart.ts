@@ -319,7 +319,36 @@ export async function interactiveInstall(
       );
     }
   }
+  //Check/init package-manager
+  if (!(await PackageManager.packageJsonExists({ warnCb: options?.warnCb }))) {
+    options?.warnCb?.(
+      `Package.json not found in current directory "${process.cwd()}".`
+    );
+    //Prompt user for package manager initialization
+    const response: {
+      pm: 'yarn' | 'npm' | 'exit';
+    } = await inquirer.prompt({
+      name: 'pm',
+      message:
+        'Do you want to initialize package manager ("yes" flag will be used)?',
+      type: 'list',
+      choices: [
+        { name: 'Yarn', value: 'yarn' },
+        { name: 'NPM', value: 'npm' },
+        { name: 'Exit installation', value: 'exit' },
+      ],
+    });
 
+    if (response.pm === 'exit') {
+      return;
+    }
+    options?.successCb?.(`\nInitializing package manager "${response.pm}"`);
+
+    await PackageManager.init(response.pm, {
+      logCb: options?.logCb,
+      warnCb: options?.warnCb,
+    });
+  }
   //Install SDK
   options?.successCb?.(`\nInstalling package "@superfaceai/one-sdk"`);
   await PackageManager.installPackage('@superfaceai/one-sdk', {
