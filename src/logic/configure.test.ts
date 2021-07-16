@@ -279,8 +279,13 @@ describe('Configure CLI logic', () => {
         .mockResolvedValue(undefined);
 
       await expect(
-        installProvider('some/path', providerName, mockProfileId, {
-          testUseCase: { retryPolicy: OnFail.CIRCUIT_BREAKER },
+        installProvider({
+          superPath: 'some/path',
+          provider: providerName,
+          profileId: mockProfileId,
+          defaults: {
+            testUseCase: { retryPolicy: OnFail.CIRCUIT_BREAKER },
+          },
         })
       ).resolves.toBeUndefined();
 
@@ -344,8 +349,14 @@ describe('Configure CLI logic', () => {
       mocked(readFile).mockResolvedValue(JSON.stringify(mockProviderJson));
 
       await expect(
-        installProvider('some/path', providerName, mockProfileId, undefined, {
-          local: true,
+        installProvider({
+          superPath: 'some/path',
+          provider: providerName,
+          profileId: mockProfileId,
+          defaults: undefined,
+          options: {
+            local: true,
+          },
         })
       ).resolves.toBeUndefined();
 
@@ -398,8 +409,14 @@ describe('Configure CLI logic', () => {
       mocked(readFile).mockRejectedValue(new Error('test'));
 
       await expect(
-        installProvider('some/path', providerName, mockProfileId, undefined, {
-          local: true,
+        installProvider({
+          superPath: 'some/path',
+          provider: providerName,
+          profileId: mockProfileId,
+          defaults: undefined,
+          options: {
+            local: true,
+          },
         })
       ).rejects.toEqual(new CLIError('test'));
 
@@ -422,7 +439,11 @@ describe('Configure CLI logic', () => {
         .mockResolvedValue(ok(mockSuperJson));
 
       await expect(
-        installProvider('some/path', providerName, mockProfileId)
+        installProvider({
+          superPath: 'some/path',
+          provider: providerName,
+          profileId: mockProfileId,
+        })
       ).rejects.toEqual(
         new CLIError(
           `❌ profile ${mockProfileId} not found in some/path. Forgot to install?`
@@ -468,7 +489,11 @@ describe('Configure CLI logic', () => {
         .mockResolvedValue(undefined);
 
       await expect(
-        installProvider('some/path', providerName, mockProfileId)
+        installProvider({
+          superPath: 'some/path',
+          provider: providerName,
+          profileId: mockProfileId,
+        })
       ).resolves.toBeUndefined();
 
       expect(loadSpy).toHaveBeenCalledTimes(1);

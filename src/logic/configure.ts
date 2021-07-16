@@ -114,34 +114,36 @@ export async function getProviderFromStore(
  * @param superPath - path to directory where super.json located
  * @param provider - provider name or filepath specified as argument
  */
-export async function installProvider(
-  superPath: string,
-  provider: string,
-  profileId: string,
-  defaults?: ProfileProviderDefaults,
+export async function installProvider(parameters: {
+  superPath: string;
+  provider: string;
+  profileId: string;
+  defaults?: ProfileProviderDefaults;
   options?: {
     logCb?: LogCallback;
     warnCb?: LogCallback;
     force?: boolean;
     local: boolean;
-  }
-): Promise<void> {
-  const loadedResult = await SuperJson.load(joinPath(superPath, META_FILE));
+  };
+}): Promise<void> {
+  const loadedResult = await SuperJson.load(
+    joinPath(parameters.superPath, META_FILE)
+  );
   const superJson = loadedResult.match(
     v => v,
     err => {
-      options?.warnCb?.(err);
+      parameters.options?.warnCb?.(err);
 
       return new SuperJson({});
     }
   );
   //Check if there is a version inside profile id
-  profileId = profileId.split('@')[0];
+  parameters.profileId = parameters.profileId.split('@')[0];
 
   //Check profile existance
-  if (!superJson.normalized.profiles[profileId]) {
+  if (!superJson.normalized.profiles[parameters.profileId]) {
     throw userError(
-      `❌ profile ${profileId} not found in ${superPath}. Forgot to install?`,
+      `❌ profile ${parameters.profileId} not found in ${parameters.superPath}. Forgot to install?`,
       1
     );
   }
@@ -149,24 +151,24 @@ export async function installProvider(
   //Load provider info
   let providerInfo: ProviderJson;
   //Load from file
-  if (options?.local) {
+  if (parameters.options?.local) {
     try {
-      const file = await readFile(provider, { encoding: 'utf-8' });
+      const file = await readFile(parameters.provider, { encoding: 'utf-8' });
       providerInfo = parseProviderJson(JSON.parse(file));
     } catch (error) {
       throw userError(error, 1);
     }
   } else {
     //Load from server
-    providerInfo = await getProviderFromStore(provider);
+    providerInfo = await getProviderFromStore(parameters.provider);
   }
 
   // Check existence and warn
   if (
-    options?.force !== true &&
+    parameters.options?.force !== true &&
     superJson.normalized.providers[providerInfo.name]
   ) {
-    options?.warnCb?.(
+    parameters.options?.warnCb?.(
       `⚠️  Provider already exists: "${providerInfo.name}"(Use flag \`--force/-f\` for overwriting profiles)`
     );
 
@@ -176,31 +178,37 @@ export async function installProvider(
   //Write provider to super.json
   const numOfConfigured = handleProviderResponse(
     superJson,
-    profileId,
+    parameters.profileId,
     providerInfo,
-    defaults,
-    options
+    parameters.defaults,
+    parameters.options
   );
 
   // write new information to super.json
-  await OutputStream.writeOnce(superJson.path, superJson.stringified, options);
-  options?.logCb?.(
+  await OutputStream.writeOnce(
+    superJson.path,
+    superJson.stringified,
+    parameters.options
+  );
+  parameters.options?.logCb?.(
     formatShellLog("echo '<updated super.json>' >", [superJson.path])
   );
   if (providerInfo.securitySchemes && providerInfo.securitySchemes.length > 0) {
     // inform user about instlaled security schemes
     if (numOfConfigured === 0) {
-      options?.logCb?.(`❌ No security schemes have been configured.`);
+      parameters.options?.logCb?.(
+        `❌ No security schemes have been configured.`
+      );
     } else if (numOfConfigured < providerInfo.securitySchemes.length) {
-      options?.logCb?.(
+      parameters.options?.logCb?.(
         `⚠️ Some security schemes have been configured. Configured ${numOfConfigured} out of ${providerInfo.securitySchemes.length}.`
       );
     } else {
-      options?.logCb?.(
+      parameters.options?.logCb?.(
         `🆗 All security schemes have been configured successfully.`
       );
     }
   } else {
-    options?.logCb?.(`No security schemes found to configure.`);
+    parameters.options?.logCb?.(`No security schemes found to configure.`);
   }
 }

@@ -470,7 +470,10 @@ describe('Install CLI logic', () => {
         const profileName = 'starwars/character-information';
 
         await expect(
-          installProfiles('.', [{ kind: 'store', profileId: profileName }])
+          installProfiles({
+            superPath: '.',
+            requests: [{ kind: 'store', profileId: profileName }],
+          })
         ).resolves.toBeUndefined();
 
         expect(fetchProfileInfo).toHaveBeenCalledTimes(1);
@@ -521,7 +524,9 @@ describe('Install CLI logic', () => {
         mockLoad.mockResolvedValue(ok(stubSuperJson));
         SuperJson.load = mockLoad;
 
-        await expect(installProfiles('.', [])).resolves.toBeUndefined();
+        await expect(
+          installProfiles({ superPath: '.', requests: [] })
+        ).resolves.toBeUndefined();
 
         expect(fetchProfileInfo).toHaveBeenCalledTimes(2);
         expect(fetchProfile).toHaveBeenCalledTimes(2);

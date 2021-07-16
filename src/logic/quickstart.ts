@@ -89,21 +89,21 @@ export async function interactiveInstall(
   }
   //Install profile
   if (installProfile) {
-    await installProfiles(
+    await installProfiles({
       superPath,
-      [
+      requests: [
         {
           kind: 'store',
           profileId,
           version: version,
         },
       ],
-      {
+      options: {
         logCb: options?.logCb,
         warnCb: options?.warnCb,
         force: true,
-      }
-    );
+      },
+    });
     //Reload super.json
     superJson = (await SuperJson.load(joinPath(superPath, META_FILE))).unwrap();
   }
@@ -249,24 +249,24 @@ export async function interactiveInstall(
   //Configure retry policies && install providers
   for (const provider of providersToInstall) {
     //Install provider
-    await installProvider(
+    await installProvider({
       superPath,
       provider,
       profileId,
-      {
+      defaults: {
         defaults: {
           [selectedUseCase]: {
             retryPolicy: await selectRetryPolicy(provider, selectedUseCase),
           },
         },
       },
-      {
+      options: {
         logCb: options?.logCb,
         warnCb: options?.warnCb,
         force: true,
         local: false,
-      }
-    );
+      },
+    });
   }
 
   //Reload super.json
@@ -333,7 +333,7 @@ export async function interactiveInstall(
         'Do you want to initialize package manager ("yes" flag will be used)?',
       type: 'list',
       choices: [
-        { name: 'Yarn', value: 'yarn' },
+        { name: 'Yarn (yarn must be installed)', value: 'yarn' },
         { name: 'NPM', value: 'npm' },
         { name: 'Exit installation', value: 'exit' },
       ],

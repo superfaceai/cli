@@ -58,15 +58,15 @@ describe('Install CLI command', () => {
 
       await expect(Install.run([profileName])).resolves.toBeUndefined();
       expect(installProfiles).toHaveBeenCalledTimes(1);
-      expect(installProfiles).toHaveBeenCalledWith(
-        'superface',
-        [{ kind: 'store', profileId: profileName }],
-        {
+      expect(installProfiles).toHaveBeenCalledWith({
+        superPath: 'superface',
+        requests: [{ kind: 'store', profileId: profileName }],
+        options: {
           logCb: expect.anything(),
           warnCb: expect.anything(),
           force: false,
-        }
-      );
+        },
+      });
     }, 10000);
 
     it('calls install profiles correctly', async () => {
@@ -75,15 +75,15 @@ describe('Install CLI command', () => {
 
       await expect(Install.run([profileName])).resolves.toBeUndefined();
       expect(installProfiles).toHaveBeenCalledTimes(1);
-      expect(installProfiles).toHaveBeenCalledWith(
-        '.',
-        [{ kind: 'store', profileId: profileName }],
-        {
+      expect(installProfiles).toHaveBeenCalledWith({
+        superPath: '.',
+        requests: [{ kind: 'store', profileId: profileName }],
+        options: {
           logCb: expect.anything(),
           warnCb: expect.anything(),
           force: false,
-        }
-      );
+        },
+      });
     }, 10000);
 
     it('calls install profiles correctly with quiet flag', async () => {
@@ -92,15 +92,15 @@ describe('Install CLI command', () => {
 
       await expect(Install.run([profileName, '-q'])).resolves.toBeUndefined();
       expect(installProfiles).toHaveBeenCalledTimes(1);
-      expect(installProfiles).toHaveBeenCalledWith(
-        '.',
-        [{ kind: 'store', profileId: profileName }],
-        {
+      expect(installProfiles).toHaveBeenCalledWith({
+        superPath: '.',
+        requests: [{ kind: 'store', profileId: profileName }],
+        options: {
           logCb: undefined,
           warnCb: undefined,
           force: false,
-        }
-      );
+        },
+      });
     }, 10000);
 
     it('calls install profiles correctly without profileId', async () => {
@@ -108,10 +108,14 @@ describe('Install CLI command', () => {
 
       await expect(Install.run([])).resolves.toBeUndefined();
       expect(installProfiles).toHaveBeenCalledTimes(1);
-      expect(installProfiles).toHaveBeenCalledWith('.', [], {
-        logCb: expect.any(Function),
-        warnCb: expect.any(Function),
-        force: false,
+      expect(installProfiles).toHaveBeenCalledWith({
+        superPath: '.',
+        requests: [],
+        options: {
+          logCb: expect.any(Function),
+          warnCb: expect.any(Function),
+          force: false,
+        },
       });
     }, 10000);
 
@@ -188,42 +192,40 @@ describe('Install CLI command', () => {
 
       expect(stdout.output).toContain('Invalid provider name: made.up');
       expect(installProfiles).toHaveBeenCalledTimes(1);
-      expect(installProfiles).toHaveBeenCalledWith(
-        '.',
-        [{ kind: 'store', profileId: profileName }],
-        {
+      expect(installProfiles).toHaveBeenCalledWith({
+        superPath: '.',
+        requests: [{ kind: 'store', profileId: profileName }],
+        options: {
           logCb: expect.anything(),
           warnCb: expect.anything(),
           force: false,
-        }
-      );
+        },
+      });
       expect(installProvider).toHaveBeenCalledTimes(2);
-      expect(installProvider).toHaveBeenNthCalledWith(
-        1,
-        '.',
-        'tyntec',
-        profileName,
-        undefined,
-        {
+      expect(installProvider).toHaveBeenNthCalledWith(1, {
+        superPath: '.',
+        provider: 'tyntec',
+        profileId: profileName,
+        defaults: undefined,
+        options: {
           logCb: expect.anything(),
           warnCb: expect.anything(),
           force: false,
           local: false,
-        }
-      );
-      expect(installProvider).toHaveBeenNthCalledWith(
-        2,
-        '.',
-        'twilio',
-        profileName,
-        undefined,
-        {
+        },
+      });
+      expect(installProvider).toHaveBeenNthCalledWith(2, {
+        superPath: '.',
+        provider: 'twilio',
+        profileId: profileName,
+        defaults: undefined,
+        options: {
           logCb: expect.anything(),
           warnCb: expect.anything(),
           force: false,
           local: false,
-        }
-      );
+        },
+      });
     }, 10000);
 
     it('calls install profiles correctly - providers separated by coma and space', async () => {
@@ -241,68 +243,64 @@ describe('Install CLI command', () => {
 
       expect(stdout.output).toContain('Invalid provider name: made.up');
       expect(installProfiles).toHaveBeenCalledTimes(1);
-      expect(installProfiles).toHaveBeenCalledWith(
-        '.',
-        [{ kind: 'store', profileId: profileName }],
-        {
+      expect(installProfiles).toHaveBeenCalledWith({
+        superPath: '.',
+        requests: [{ kind: 'store', profileId: profileName }],
+        options: {
           logCb: expect.anything(),
           warnCb: expect.anything(),
           force: false,
-        }
-      );
+        },
+      });
       expect(installProvider).toHaveBeenCalledTimes(4);
-      expect(installProvider).toHaveBeenNthCalledWith(
-        1,
-        '.',
-        'tyntec',
-        profileName,
-        undefined,
-        {
+      expect(installProvider).toHaveBeenNthCalledWith(1, {
+        superPath: '.',
+        provider: 'tyntec',
+        profileId: profileName,
+        defaults: undefined,
+        options: {
           logCb: expect.anything(),
           warnCb: expect.anything(),
           force: false,
           local: false,
-        }
-      );
-      expect(installProvider).toHaveBeenNthCalledWith(
-        2,
-        '.',
-        'twilio',
-        profileName,
-        undefined,
-        {
+        },
+      });
+      expect(installProvider).toHaveBeenNthCalledWith(2, {
+        superPath: '.',
+        provider: 'twilio',
+        profileId: profileName,
+        defaults: undefined,
+        options: {
           logCb: expect.anything(),
           warnCb: expect.anything(),
           force: false,
           local: false,
-        }
-      );
-      expect(installProvider).toHaveBeenNthCalledWith(
-        3,
-        '.',
-        'dhl-unified',
-        profileName,
-        undefined,
-        {
+        },
+      });
+      expect(installProvider).toHaveBeenNthCalledWith(3, {
+        superPath: '.',
+        provider: 'dhl-unified',
+        profileId: profileName,
+        defaults: undefined,
+        options: {
           logCb: expect.anything(),
           warnCb: expect.anything(),
           force: false,
           local: false,
-        }
-      );
-      expect(installProvider).toHaveBeenNthCalledWith(
-        4,
-        '.',
-        'github',
-        profileName,
-        undefined,
-        {
+        },
+      });
+      expect(installProvider).toHaveBeenNthCalledWith(4, {
+        superPath: '.',
+        provider: 'github',
+        profileId: profileName,
+        defaults: undefined,
+        options: {
           logCb: expect.anything(),
           warnCb: expect.anything(),
           force: false,
           local: false,
-        }
-      );
+        },
+      });
     }, 10000);
 
     it('calls interactive install correctly', async () => {

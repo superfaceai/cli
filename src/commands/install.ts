@@ -78,20 +78,7 @@ export default class Install extends Command {
     }),
     interactive: oclifFlags.boolean({
       char: 'i',
-      description: `When set to true, command is used in interactive mode. It leads users through profile installation, provider selection, provider security and retry policy setup. Result of this command is ready to use superface configuration.\nSteps of command are:
-      \n1) Superface is initialized (if not already initialized)
-      \n2) Selected profile installation - if profile already exists users can choose if they want to override existing installation
-      \n3) Select providers and install them. Users can choose to override or skip already existing providers
-      \n4) If profile contains more than one use case users can select use case to configure
-      \n5) If there is more than one provider configured users can choose to enable provider failover (in case of problems with primary provider superface automatically switches to secondary provider)
-      \n6) For every selected provider users can choose retry policy he want provider to use. Currently there are two supported retry policies:
-      \n\t None: superface won't retry any requests
-      \n\t CircuitBreaker: superface will try retry requests, each request has timeout and exponential backoff is used between failed requests. Parameters of circuit breaker can be specifed or left default.
-      \n7) Installed providers are configured. Users can set enviroment variables needed for provider authorization. These are saved locally in .env file.
-      \n8) Package @superfaceai/one-sdk is installed. This package is needed to use superface.
-      \n9) Optionally, package dotenv is installed to load .env file
-      \n10) Optionally, users can enter SDK token to connect superface installation with his dashboard and to enable e-mail notifications
-      \n11) Superface is configured 🆗. Users can follow printed link to get actual code`,
+      description: `When set to true, command is used in interactive mode. It leads users through profile installation, provider selection, provider security and retry policy setup. Result of this command is ready to use superface configuration.`,
       default: false,
       exclusive: ['providers', 'force', 'local', 'scan', 'quiet'],
     }),
@@ -177,7 +164,7 @@ export default class Install extends Command {
       )}'`
     );
 
-    const installRequests: (LocalInstallRequest | StoreInstallRequest)[] = [];
+    const requests: (LocalInstallRequest | StoreInstallRequest)[] = [];
     const profileArg = args.profileId as string | undefined;
     if (profileArg !== undefined) {
       const [profileId, version] = profileArg.split('@');
@@ -187,7 +174,7 @@ export default class Install extends Command {
       let profileName: string;
 
       if (flags.local) {
-        installRequests.push({
+        requests.push({
           kind: 'local',
           path: profileArg,
         });
@@ -196,7 +183,7 @@ export default class Install extends Command {
           profilePathParts[profilePathParts.length - 1]
         );
       } else {
-        installRequests.push({
+        requests.push({
           kind: 'store',
           profileId,
           version,
@@ -218,26 +205,30 @@ export default class Install extends Command {
       }
     }
 
-    await installProfiles(superPath, installRequests, {
-      logCb: this.logCallback,
-      warnCb: this.warnCallback,
-      force: flags.force,
+    await installProfiles({
+      superPath,
+      requests,
+      options: {
+        logCb: this.logCallback,
+        warnCb: this.warnCallback,
+        force: flags.force,
+      },
     });
 
     this.logCallback?.(`\n\nConfiguring providers`);
-    for (const providerName of providers) {
-      await installProvider(
+    for (const provider of providers) {
+      await installProvider({
         superPath,
-        providerName,
-        args.profileId,
-        undefined,
-        {
+        provider,
+        profileId: args.profileId as string,
+        defaults: undefined,
+        options: {
           logCb: this.logCallback,
           warnCb: this.warnCallback,
           force: flags.force,
           local: false,
-        }
-      );
+        },
+      });
     }
   }
 }
