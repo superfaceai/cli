@@ -17,7 +17,7 @@ module.exports = {
     'plugin:@typescript-eslint/recommended-requiring-type-checking',
     'plugin:import/errors',
     'plugin:import/warnings',
-    'prettier/@typescript-eslint',
+    'prettier',
     'plugin:jest/recommended',
   ],
   rules: {
