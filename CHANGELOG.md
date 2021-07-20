@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [0.0.20] - 2021-07-20
 ### Added
 - Multiple usecases in interactive install command
 - Repeated use of interactive install command
@@ -117,7 +119,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Transpile command
 - CI github flow
 
-[Unreleased]: https://github.com/superfaceai/cli/compare/v0.0.19...HEAD
+[Unreleased]: https://github.com/superfaceai/cli/compare/v0.0.20...HEAD
+[0.0.20]: https://github.com/superfaceai/cli/compare/v0.0.19...v0.0.20
 [0.0.19]: https://github.com/superfaceai/cli/compare/v0.0.18...v0.0.19
 [0.0.18]: https://github.com/superfaceai/cli/compare/v0.0.17...v0.0.18
 [0.0.17]: https://github.com/superfaceai/cli/compare/v0.0.16...v0.0.17
