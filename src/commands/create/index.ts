@@ -6,9 +6,7 @@ import inquirer from 'inquirer';
 
 import {
   composeUsecaseName,
-  CreateMode,
   DEFAULT_PROFILE_VERSION_STR,
-  inferCreateMode,
   SUPERFACE_DIR,
 } from '../../common';
 import { Command } from '../../common/command.abstract';
@@ -28,8 +26,7 @@ export default class Create extends Command {
     {
       name: 'documentInfo',
       required: true,
-      description:
-        'Two arguments containing informations about the document.\n1. Document Type (optional) - type of document that will be created (profile or map), if not specified, utility will create both\n2. Document Name - name of a file that will be created',
+      description: 'Document Name - name of a file that will be created',
     },
   ];
 
@@ -68,10 +65,10 @@ export default class Create extends Command {
   };
 
   static examples = [
-    '$ superface create profile sms/service',
-    '$ superface create profile sms/service -u SendSMS ReceiveSMS',
-    '$ superface create map sms/service -p twilio',
-    '$ superface create map sms/service -p twilio -u SendSMS ReceiveSMS',
+    '$ superface create sms/service',
+    '$ superface create sms/service -u SendSMS ReceiveSMS',
+    '$ superface create sms/service -p twilio',
+    '$ superface create sms/service -p twilio -u SendSMS ReceiveSMS',
     '$ superface create sms/service -p twilio -u SendSMS ReceiveSMS',
     '$ superface create sms/service -p twilio -t bugfix -v 1.1-rev133 -u SendSMS ReceiveSMS',
   ];
@@ -91,16 +88,9 @@ export default class Create extends Command {
       throw userError('Invalid command!', 1);
     }
 
-    let createMode = CreateMode.BOTH;
-    const documentName = argv[1] ?? argv[0];
+    const documentName = argv[0];
 
-    if (argv.length > 1) {
-      createMode = inferCreateMode(argv[0]);
-
-      if (createMode === CreateMode.UNKNOWN) {
-        throw userError('Could not infer create mode', 3);
-      }
-    } else if (
+    if (
       documentName === 'profile' ||
       documentName === 'map' ||
       documentName === 'both'
@@ -108,8 +98,16 @@ export default class Create extends Command {
       throw userError('Name of your document is reserved!', 1);
     }
 
+    const createProfile = await this.createPrompt(
+      'You you want to create profile?'
+    );
+    const createMap = await this.createPrompt('You you want to create map?');
+    const createProvider = await this.createPrompt(
+      'You you want to create provider?'
+    );
+
     // output a warning when generating profile only and provider is specified
-    if (createMode === CreateMode.PROFILE && flags.provider) {
+    if (createProfile && !createMap && !createProvider && flags.provider) {
       this.warn(
         'Provider should not be specified when generating profile only'
       );
@@ -126,7 +124,9 @@ export default class Create extends Command {
 
     // output a warning when generating map only and version is not in default format
     if (
-      createMode === CreateMode.MAP &&
+      !createProfile &&
+      createMap &&
+      !createProvider &&
       flags.version !== DEFAULT_PROFILE_VERSION_STR
     ) {
       this.warn(
@@ -207,7 +207,7 @@ export default class Create extends Command {
 
     await create(
       superPath,
-      createMode,
+      { createProvider, createMap, createProfile },
       usecases,
       {
         scope,
@@ -220,5 +220,16 @@ export default class Create extends Command {
         warnCb: this.warnCallback,
       }
     );
+  }
+
+  async createPrompt(message: string): Promise<boolean> {
+    const prompt: { create: boolean } = await inquirer.prompt({
+      name: 'create',
+      message,
+      type: 'confirm',
+      default: true,
+    });
+
+    return prompt.create;
   }
 }

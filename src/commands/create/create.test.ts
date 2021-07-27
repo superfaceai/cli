@@ -35,16 +35,23 @@ describe('Create CLI command', () => {
   describe('when running create command', () => {
     it('creates profile with one usecase (with usecase name from cli)', async () => {
       mocked(initSuperface).mockResolvedValue(new SuperJson({}));
-      jest.spyOn(inquirer, 'prompt').mockResolvedValueOnce({ init: true });
+      jest
+        .spyOn(inquirer, 'prompt')
+        //Create profile
+        .mockResolvedValueOnce({ create: true })
+        //Create map
+        .mockResolvedValueOnce({ create: false })
+        //Create provider
+        .mockResolvedValueOnce({ create: false })
+        //Init
+        .mockResolvedValueOnce({ init: true });
 
       documentName = 'sendsms';
-      await expect(
-        Create.run(['profile', documentName, '-q'])
-      ).resolves.toBeUndefined();
+      await expect(Create.run([documentName, '-q'])).resolves.toBeUndefined();
       expect(create).toHaveBeenCalledTimes(1);
       expect(create).toHaveBeenCalledWith(
         'superface',
-        'profile',
+        { createProfile: true, createMap: false, createProvider: false },
         ['Sendsms'],
         {
           middle: ['sendsms'],
@@ -58,17 +65,26 @@ describe('Create CLI command', () => {
 
     it('creates profile with one usecase', async () => {
       mocked(initSuperface).mockResolvedValue(new SuperJson({}));
-      jest.spyOn(inquirer, 'prompt').mockResolvedValueOnce({ init: true });
+      jest
+        .spyOn(inquirer, 'prompt')
+        //Create profile
+        .mockResolvedValueOnce({ create: true })
+        //Create map
+        .mockResolvedValueOnce({ create: false })
+        //Create provider
+        .mockResolvedValueOnce({ create: false })
+        //Init
+        .mockResolvedValueOnce({ init: true });
 
       documentName = 'sms/service';
       await expect(
-        Create.run(['profile', documentName, '-u', 'SendSMS'])
+        Create.run([documentName, '-u', 'SendSMS'])
       ).resolves.toBeUndefined();
 
       expect(create).toHaveBeenCalledTimes(1);
       expect(create).toHaveBeenCalledWith(
         'superface',
-        'profile',
+        { createProfile: true, createMap: false, createProvider: false },
         ['SendSMS'],
         {
           middle: ['service'],
@@ -82,17 +98,26 @@ describe('Create CLI command', () => {
 
     it('creates profile with multiple usecases', async () => {
       mocked(initSuperface).mockResolvedValue(new SuperJson({}));
-      jest.spyOn(inquirer, 'prompt').mockResolvedValueOnce({ init: true });
+      jest
+        .spyOn(inquirer, 'prompt')
+        //Create profile
+        .mockResolvedValueOnce({ create: true })
+        //Create map
+        .mockResolvedValueOnce({ create: false })
+        //Create provider
+        .mockResolvedValueOnce({ create: false })
+        //Init
+        .mockResolvedValueOnce({ init: true });
 
       documentName = 'sms/service';
       await expect(
-        Create.run(['profile', documentName, '-u', 'ReceiveSMS', 'SendSMS'])
+        Create.run([documentName, '-u', 'ReceiveSMS', 'SendSMS'])
       ).resolves.toBeUndefined();
 
       expect(create).toHaveBeenCalledTimes(1);
       expect(create).toHaveBeenCalledWith(
         'superface',
-        'profile',
+        { createProfile: true, createMap: false, createProvider: false },
         ['ReceiveSMS', 'SendSMS'],
         {
           middle: ['service'],
@@ -106,18 +131,27 @@ describe('Create CLI command', () => {
 
     it('creates map with one provider (with provider name from cli)', async () => {
       mocked(initSuperface).mockResolvedValue(new SuperJson({}));
-      jest.spyOn(inquirer, 'prompt').mockResolvedValueOnce({ init: true });
+      jest
+        .spyOn(inquirer, 'prompt')
+        //Create profile
+        .mockResolvedValueOnce({ create: false })
+        //Create map
+        .mockResolvedValueOnce({ create: true })
+        //Create provider
+        .mockResolvedValueOnce({ create: false })
+        //Init
+        .mockResolvedValueOnce({ init: true });
 
       documentName = 'sms/service';
       provider = 'twilio';
       await expect(
-        Create.run(['map', documentName, '-p', provider])
+        Create.run([documentName, '-p', provider])
       ).resolves.toBeUndefined();
 
       expect(create).toHaveBeenCalledTimes(1);
       expect(create).toHaveBeenCalledWith(
         'superface',
-        'map',
+        { createProfile: false, createMap: true, createProvider: false },
         ['Service'],
         {
           middle: ['service', 'twilio'],
@@ -131,18 +165,27 @@ describe('Create CLI command', () => {
 
     it('creates map with one usecase and provider', async () => {
       mocked(initSuperface).mockResolvedValue(new SuperJson({}));
-      jest.spyOn(inquirer, 'prompt').mockResolvedValueOnce({ init: true });
+      jest
+        .spyOn(inquirer, 'prompt')
+        //Create profile
+        .mockResolvedValueOnce({ create: false })
+        //Create map
+        .mockResolvedValueOnce({ create: true })
+        //Create provider
+        .mockResolvedValueOnce({ create: true })
+        //Init
+        .mockResolvedValueOnce({ init: true });
 
       documentName = 'sms/service';
       provider = 'twilio';
       await expect(
-        Create.run(['map', documentName, '-u', 'SendSMS', '-p', provider])
+        Create.run([documentName, '-u', 'SendSMS', '-p', provider])
       ).resolves.toBeUndefined();
 
       expect(create).toHaveBeenCalledTimes(1);
       expect(create).toHaveBeenCalledWith(
         'superface',
-        'map',
+        { createProfile: false, createMap: true, createProvider: true },
         ['SendSMS'],
         {
           middle: ['service', 'twilio'],
@@ -156,13 +199,21 @@ describe('Create CLI command', () => {
 
     it('creates map with mutiple usecases and one provider', async () => {
       mocked(initSuperface).mockResolvedValue(new SuperJson({}));
-      jest.spyOn(inquirer, 'prompt').mockResolvedValueOnce({ init: true });
+      jest
+        .spyOn(inquirer, 'prompt')
+        //Create profile
+        .mockResolvedValueOnce({ create: false })
+        //Create map
+        .mockResolvedValueOnce({ create: true })
+        //Create provider
+        .mockResolvedValueOnce({ create: true })
+        //Init
+        .mockResolvedValueOnce({ init: true });
 
       documentName = 'sms/service';
       provider = 'twilio';
       await expect(
         Create.run([
-          'map',
           documentName,
           '-p',
           'twilio',
@@ -174,7 +225,7 @@ describe('Create CLI command', () => {
       expect(create).toHaveBeenCalledTimes(1);
       expect(create).toHaveBeenCalledWith(
         'superface',
-        'map',
+        { createProfile: false, createMap: true, createProvider: true },
         ['ReceiveSMS', 'SendSMS'],
         {
           middle: ['service', 'twilio'],
@@ -188,7 +239,16 @@ describe('Create CLI command', () => {
 
     it('creates profile & map with one provider (with provider name from cli)', async () => {
       mocked(initSuperface).mockResolvedValue(new SuperJson({}));
-      jest.spyOn(inquirer, 'prompt').mockResolvedValueOnce({ init: true });
+      jest
+        .spyOn(inquirer, 'prompt')
+        //Create profile
+        .mockResolvedValueOnce({ create: true })
+        //Create map
+        .mockResolvedValueOnce({ create: true })
+        //Create provider
+        .mockResolvedValueOnce({ create: true })
+        //Init
+        .mockResolvedValueOnce({ init: true });
 
       documentName = 'sms/service';
       provider = 'twilio';
@@ -199,7 +259,7 @@ describe('Create CLI command', () => {
       expect(create).toHaveBeenCalledTimes(1);
       expect(create).toHaveBeenCalledWith(
         'superface',
-        'both',
+        { createProfile: true, createMap: true, createProvider: true },
         ['Service'],
         {
           middle: ['service', 'twilio'],
@@ -213,7 +273,16 @@ describe('Create CLI command', () => {
 
     it('creates profile & map with one usecase', async () => {
       mocked(initSuperface).mockResolvedValue(new SuperJson({}));
-      jest.spyOn(inquirer, 'prompt').mockResolvedValueOnce({ init: true });
+      jest
+        .spyOn(inquirer, 'prompt')
+        //Create profile
+        .mockResolvedValueOnce({ create: true })
+        //Create map
+        .mockResolvedValueOnce({ create: true })
+        //Create provider
+        .mockResolvedValueOnce({ create: false })
+        //Init
+        .mockResolvedValueOnce({ init: true });
 
       documentName = 'sms/service';
       provider = 'twilio';
@@ -224,7 +293,7 @@ describe('Create CLI command', () => {
       expect(create).toHaveBeenCalledTimes(1);
       expect(create).toHaveBeenCalledWith(
         'superface',
-        'both',
+        { createProfile: true, createMap: true, createProvider: false },
         ['SendSMS'],
         {
           middle: ['service', 'twilio'],
@@ -238,7 +307,16 @@ describe('Create CLI command', () => {
 
     it('creates profile & map with multiple usecases', async () => {
       mocked(initSuperface).mockResolvedValue(new SuperJson({}));
-      jest.spyOn(inquirer, 'prompt').mockResolvedValueOnce({ init: true });
+      jest
+        .spyOn(inquirer, 'prompt')
+        //Create profile
+        .mockResolvedValueOnce({ create: true })
+        //Create map
+        .mockResolvedValueOnce({ create: true })
+        //Create provider
+        .mockResolvedValueOnce({ create: false })
+        //Init
+        .mockResolvedValueOnce({ init: true });
 
       documentName = 'sms/service';
       provider = 'twilio';
@@ -255,7 +333,7 @@ describe('Create CLI command', () => {
       expect(create).toHaveBeenCalledTimes(1);
       expect(create).toHaveBeenCalledWith(
         'superface',
-        'both',
+        { createProfile: true, createMap: true, createProvider: false },
         ['SendSMS', 'ReceiveSMS'],
         {
           middle: ['service', 'twilio'],
@@ -270,12 +348,6 @@ describe('Create CLI command', () => {
     it('throws error on invalid command', async () => {
       await expect(Create.run(['profile', 'map', 'test'])).rejects.toEqual(
         new CLIError('Invalid command!')
-      );
-    });
-
-    it('throws error on invalid create mode', async () => {
-      await expect(Create.run(['test', 'test'])).rejects.toEqual(
-        new CLIError('Could not infer create mode')
       );
     });
 
@@ -295,17 +367,39 @@ describe('Create CLI command', () => {
 
     it('throws error on invalid document', async () => {
       documentName = 'vT_7!';
-      await expect(
-        Create.run(['profile', documentName, '-u', 'SendSMS'])
-      ).rejects.toEqual(
+
+      jest
+        .spyOn(inquirer, 'prompt')
+        //Create profile
+        .mockResolvedValueOnce({ create: true })
+        //Create map
+        .mockResolvedValueOnce({ create: true })
+        //Create provider
+        .mockResolvedValueOnce({ create: false })
+        //Init
+        .mockResolvedValueOnce({ init: true });
+
+      await expect(Create.run([documentName, '-u', 'SendSMS'])).rejects.toEqual(
         new CLIError('"vT_7!" is not a valid lowercase identifier')
       );
     });
 
     it('throws error on invalid version', async () => {
       documentName = 'test';
+
+      jest
+        .spyOn(inquirer, 'prompt')
+        //Create profile
+        .mockResolvedValueOnce({ create: true })
+        //Create map
+        .mockResolvedValueOnce({ create: true })
+        //Create provider
+        .mockResolvedValueOnce({ create: false })
+        //Init
+        .mockResolvedValueOnce({ init: true });
+
       await expect(
-        Create.run(['profile', documentName, '-v', '', '-u', 'SendSMS'])
+        Create.run([documentName, '-v', '', '-u', 'SendSMS'])
       ).rejects.toEqual(
         new CLIError(
           'could not parse version: major component is not a valid number'
@@ -315,9 +409,21 @@ describe('Create CLI command', () => {
 
     it('throws error on invalid usecase', async () => {
       documentName = 'test';
-      await expect(
-        Create.run(['profile', documentName, '-u', '7_L§'])
-      ).rejects.toEqual(new CLIError('Invalid usecase name: 7_L§'));
+
+      jest
+        .spyOn(inquirer, 'prompt')
+        //Create profile
+        .mockResolvedValueOnce({ create: true })
+        //Create map
+        .mockResolvedValueOnce({ create: true })
+        //Create provider
+        .mockResolvedValueOnce({ create: false })
+        //Init
+        .mockResolvedValueOnce({ init: true });
+
+      await expect(Create.run([documentName, '-u', '7_L§'])).rejects.toEqual(
+        new CLIError('Invalid usecase name: 7_L§')
+      );
     });
   });
 });

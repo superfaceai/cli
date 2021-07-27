@@ -3,7 +3,6 @@ import { DocumentVersion } from '@superfaceai/parser';
 import { dirname, join as joinPath, relative as relativePath } from 'path';
 
 import { composeVersion, EXTENSIONS, META_FILE } from '../common/document';
-import { CreateMode } from '../common/document.interfaces';
 import { userError } from '../common/error';
 import { formatShellLog, LogCallback } from '../common/log';
 import { OutputStream } from '../common/output-stream';
@@ -145,7 +144,11 @@ export async function createProviderJson(
  */
 export async function create(
   superPath: string,
-  createMode: CreateMode.PROFILE | CreateMode.MAP | CreateMode.BOTH,
+  create: {
+    createProfile: boolean;
+    createMap: boolean;
+    createProvider: boolean;
+  },
   usecases: string[],
   documentStructure: {
     scope?: string;
@@ -174,63 +177,42 @@ export async function create(
     version,
   } = documentStructure;
 
-  switch (createMode) {
-    case CreateMode.PROFILE:
-      await createProfile(
-        '',
-        superJson,
-        { scope, name, version },
-        usecases,
-        template,
-        { logCb: options?.logCb }
+  if (create.createMap) {
+    if (!provider) {
+      throw userError(
+        'Provider name must be provided when generating a map.',
+        2
       );
-      break;
-    case CreateMode.MAP:
-      if (!provider) {
-        throw userError(
-          'Provider name must be provided when generating a map.',
-          2
-        );
-      }
-      await createMap(
-        '',
-        superJson,
-        { scope, name, provider, version },
-        usecases,
-        template,
-        { logCb: options?.logCb }
+    }
+    await createMap(
+      '',
+      superJson,
+      { scope, name, provider, version },
+      usecases,
+      template,
+      { logCb: options?.logCb }
+    );
+  }
+  if (create.createProvider) {
+    if (!provider) {
+      throw userError(
+        'Provider name must be provided when generating a provider.',
+        2
       );
-      await createProviderJson('', superJson, provider, template, {
-        logCb: options?.logCb,
-      });
-      break;
-    case CreateMode.BOTH:
-      if (!provider) {
-        throw userError(
-          'Provider name must be provided when generating a map.',
-          2
-        );
-      }
-      await createProfile(
-        '',
-        superJson,
-        { scope, name, version },
-        usecases,
-        template,
-        { logCb: options?.logCb }
-      );
-      await createMap(
-        '',
-        superJson,
-        { scope, name, provider, version },
-        usecases,
-        template,
-        { logCb: options?.logCb }
-      );
-      await createProviderJson('', superJson, provider, template, {
-        logCb: options?.logCb,
-      });
-      break;
+    }
+    await createProviderJson('', superJson, provider, template, {
+      logCb: options?.logCb,
+    });
+  }
+  if (create.createProfile) {
+    await createProfile(
+      '',
+      superJson,
+      { scope, name, version },
+      usecases,
+      template,
+      { logCb: options?.logCb }
+    );
   }
 
   // write new information to super.json

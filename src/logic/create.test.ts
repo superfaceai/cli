@@ -1,7 +1,6 @@
 import { CLIError } from '@oclif/errors';
 import { err, ok, SuperJson } from '@superfaceai/one-sdk';
 
-import { CreateMode } from '../common/document.interfaces';
 import { OutputStream } from '../common/output-stream';
 import { empty as emptyMap, pubs as pubsMap } from '../templates/map';
 import {
@@ -384,7 +383,7 @@ describe('Create logic', () => {
       await expect(
         create(
           mockSuperPath,
-          CreateMode.PROFILE,
+          { createProfile: true, createMap: false, createProvider: false },
           mockUsecases,
           mockDocumentStructure,
           'empty'
@@ -432,7 +431,7 @@ describe('Create logic', () => {
       await expect(
         create(
           mockSuperPath,
-          CreateMode.PROFILE,
+          { createProfile: true, createMap: false, createProvider: false },
           mockUsecases,
           mockDocumentStructure,
           'empty'
@@ -459,7 +458,7 @@ describe('Create logic', () => {
       );
     });
 
-    it('creates map correctly', async () => {
+    it('creates map and provider correctly', async () => {
       const loadSpy = jest
         .spyOn(SuperJson, 'load')
         .mockResolvedValue(ok(mockSuperJson));
@@ -473,7 +472,7 @@ describe('Create logic', () => {
       await expect(
         create(
           mockSuperPath,
-          CreateMode.MAP,
+          { createProfile: false, createMap: true, createProvider: true },
           mockUsecases,
           mockDocumentStructure,
           'empty'
@@ -522,6 +521,61 @@ describe('Create logic', () => {
       );
     });
 
+    it('creates map correctly', async () => {
+      const loadSpy = jest
+        .spyOn(SuperJson, 'load')
+        .mockResolvedValue(ok(mockSuperJson));
+      const writeIfAbsentSpy = jest
+        .spyOn(OutputStream, 'writeIfAbsent')
+        .mockResolvedValue(true);
+      const writeOnceSpy = jest
+        .spyOn(OutputStream, 'writeOnce')
+        .mockResolvedValue(undefined);
+
+      await expect(
+        create(
+          mockSuperPath,
+          { createProfile: false, createMap: true, createProvider: false },
+          mockUsecases,
+          mockDocumentStructure,
+          'empty'
+        )
+      ).resolves.toBeUndefined();
+
+      expect(loadSpy).toHaveBeenCalledTimes(1);
+
+      expect(writeOnceSpy).toHaveBeenCalledTimes(1);
+
+      expect(mockSuperJson.normalized).toEqual({
+        profiles: {
+          'test-scope/test-name': {
+            version: '0.0.0',
+            defaults: {},
+            priority: [mockProvider],
+            providers: {
+              [mockProvider]: {
+                defaults: {},
+                file: `${mockScope}/${mockName}.provider.suma`,
+              },
+            },
+          },
+        },
+        providers: {},
+      });
+
+      expect(writeIfAbsentSpy).toHaveBeenCalledTimes(1);
+      expect(
+        writeIfAbsentSpy
+      ).toHaveBeenCalledWith(
+        'test-scope/test-name.provider.suma',
+        [
+          `profile = "${mockScope}/${mockName}@1.0"\nprovider = "${mockProvider}"\n`,
+          emptyMap(mockUsecases[0]),
+        ].join(''),
+        { dirs: true, force: undefined }
+      );
+    });
+
     it('creates map and profile correctly', async () => {
       const loadSpy = jest
         .spyOn(SuperJson, 'load')
@@ -536,7 +590,7 @@ describe('Create logic', () => {
       await expect(
         create(
           mockSuperPath,
-          CreateMode.BOTH,
+          { createProfile: true, createMap: true, createProvider: false },
           mockUsecases,
           mockDocumentStructure,
           'empty'
@@ -561,24 +615,12 @@ describe('Create logic', () => {
             },
           },
         },
-        providers: {
-          provider: { file: 'provider.provider.json', security: [] },
-        },
+        providers: {},
       });
 
-      expect(writeIfAbsentSpy).toHaveBeenCalledTimes(3);
+      expect(writeIfAbsentSpy).toHaveBeenCalledTimes(2);
       expect(writeIfAbsentSpy).toHaveBeenNthCalledWith(
         1,
-        'test-scope/test-name.supr',
-        [
-          `name = "${mockScope}/${mockName}"\nversion = "1.0.0"\n`,
-          emptyProfile(mockUsecases[0]),
-        ].join(''),
-        { dirs: true, force: undefined }
-      );
-
-      expect(writeIfAbsentSpy).toHaveBeenNthCalledWith(
-        2,
         'test-scope/test-name.provider.suma',
         [
           `profile = "${mockScope}/${mockName}@1.0"\nprovider = "${mockProvider}"\n`,
@@ -586,12 +628,14 @@ describe('Create logic', () => {
         ].join(''),
         { dirs: true, force: undefined }
       );
-
       expect(writeIfAbsentSpy).toHaveBeenNthCalledWith(
-        3,
-        'provider.provider.json',
-        emptyProvider(mockProvider),
-        { force: undefined }
+        2,
+        'test-scope/test-name.supr',
+        [
+          `name = "${mockScope}/${mockName}"\nversion = "1.0.0"\n`,
+          emptyProfile(mockUsecases[0]),
+        ].join(''),
+        { dirs: true, force: undefined }
       );
     });
 
@@ -619,13 +663,60 @@ describe('Create logic', () => {
       await expect(
         create(
           mockSuperPath,
-          CreateMode.MAP,
+          { createProfile: false, createMap: true, createProvider: false },
           mockUsecases,
           mockDocumentStructure,
           'empty'
         )
       ).rejects.toEqual(
         new CLIError('Provider name must be provided when generating a map.')
+      );
+
+      expect(loadSpy).toHaveBeenCalledTimes(1);
+
+      expect(writeOnceSpy).toHaveBeenCalledTimes(0);
+
+      expect(mockSuperJson.normalized).toEqual({
+        profiles: {},
+        providers: {},
+      });
+
+      expect(writeIfAbsentSpy).toHaveBeenCalledTimes(0);
+    });
+
+    it('throws error when provider is missing - creating provider', async () => {
+      mockDocumentStructure = {
+        scope: mockScope,
+        middle: [mockName],
+        version: {
+          major: 1,
+          minor: 0,
+          patch: 0,
+        },
+      };
+
+      const loadSpy = jest
+        .spyOn(SuperJson, 'load')
+        .mockResolvedValue(ok(mockSuperJson));
+      const writeIfAbsentSpy = jest
+        .spyOn(OutputStream, 'writeIfAbsent')
+        .mockResolvedValue(true);
+      const writeOnceSpy = jest
+        .spyOn(OutputStream, 'writeOnce')
+        .mockResolvedValue(undefined);
+
+      await expect(
+        create(
+          mockSuperPath,
+          { createProfile: false, createMap: false, createProvider: true },
+          mockUsecases,
+          mockDocumentStructure,
+          'empty'
+        )
+      ).rejects.toEqual(
+        new CLIError(
+          'Provider name must be provided when generating a provider.'
+        )
       );
 
       expect(loadSpy).toHaveBeenCalledTimes(1);
@@ -664,7 +755,7 @@ describe('Create logic', () => {
       await expect(
         create(
           mockSuperPath,
-          CreateMode.BOTH,
+          { createProfile: true, createMap: true, createProvider: false },
           mockUsecases,
           mockDocumentStructure,
           'empty'

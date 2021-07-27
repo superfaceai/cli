@@ -37,16 +37,28 @@ describe('Create CLI command', () => {
     await mockServer.stop();
   });
 
-  describe('when configuring new provider', () => {
+  describe('when creating new document', () => {
     it('creates profile with one usecase (with usecase name from cli)', async () => {
       documentName = 'sendsms';
 
       let result = await execCLI(
         tempDir,
-        ['create', 'profile', documentName],
+        ['create', documentName],
         mockServer.url,
-        //Mock inquier input
-        { inputs: [{ value: ENTER, timeout: 1000 }] }
+        {
+          inputs: [
+            //Create profile
+            { value: ENTER, timeout: 2000 },
+            //Create map
+            { value: 'n', timeout: 2000 },
+            { value: ENTER, timeout: 200 },
+            //Create provider
+            { value: 'n', timeout: 2000 },
+            { value: ENTER, timeout: 200 },
+            //Init superface
+            { value: ENTER, timeout: 2000 },
+          ],
+        }
       );
 
       expect(result.stdout).toMatch(
@@ -72,17 +84,29 @@ describe('Create CLI command', () => {
         },
         providers: {},
       });
-    }, 20000);
+    }, 30000);
 
     it('creates profile with one usecase', async () => {
       documentName = 'sms/service';
 
       let result = await execCLI(
         tempDir,
-        ['create', 'profile', documentName, '-u', 'SendSMS'],
+        ['create', documentName, '-u', 'SendSMS'],
         mockServer.url,
-        //Mock inquier input
-        { inputs: [{ value: ENTER, timeout: 1000 }] }
+        {
+          inputs: [
+            //Create profile
+            { value: ENTER, timeout: 2000 },
+            //Create map
+            { value: 'n', timeout: 1200 },
+            { value: ENTER, timeout: 200 },
+            //Create provider
+            { value: 'n', timeout: 2000 },
+            { value: ENTER, timeout: 200 },
+            //Init superface
+            { value: ENTER, timeout: 2000 },
+          ],
+        }
       );
       expect(result.stdout).toContain(
         `-> Created ${documentName}.supr (name = "${documentName}", version = "1.0.0")`
@@ -106,17 +130,29 @@ describe('Create CLI command', () => {
         },
         providers: {},
       });
-    }, 20000);
+    }, 30000);
 
     it('creates profile with multiple usecases', async () => {
       documentName = 'sms/service';
 
       let result = await execCLI(
         tempDir,
-        ['create', 'profile', documentName, '-u', 'ReceiveSMS', 'SendSMS'],
+        ['create', documentName, '-u', 'ReceiveSMS', 'SendSMS'],
         mockServer.url,
-        //Mock inquier input
-        { inputs: [{ value: ENTER, timeout: 1000 }] }
+        {
+          inputs: [
+            //Create profile
+            { value: ENTER, timeout: 2000 },
+            //Create map
+            { value: 'n', timeout: 2000 },
+            { value: ENTER, timeout: 200 },
+            //Create provider
+            { value: 'n', timeout: 2000 },
+            { value: ENTER, timeout: 200 },
+            //Init superface
+            { value: ENTER, timeout: 2000 },
+          ],
+        }
       );
       expect(result.stdout).toContain(
         `-> Created ${documentName}.supr (name = "${documentName}", version = "1.0.0")`
@@ -149,15 +185,29 @@ describe('Create CLI command', () => {
 
       let result = await execCLI(
         tempDir,
-        ['create', 'map', documentName, '-p', provider],
+        ['create', documentName, '-p', provider],
         mockServer.url,
-        //Mock inquier input
-        { inputs: [{ value: ENTER, timeout: 1000 }] }
+        {
+          inputs: [
+            //Create profile
+            { value: 'n', timeout: 1000 },
+            { value: ENTER, timeout: 200 },
+            //Create map
+            { value: ENTER, timeout: 1000 },
+            //Create provider
+            { value: 'n', timeout: 1000 },
+            { value: ENTER, timeout: 200 },
+            //Init superface
+            { value: ENTER, timeout: 1000 },
+          ],
+        }
       );
       expect(result.stdout).toContain(
         `-> Created ${documentName}.${provider}.suma (profile = "${documentName}@1.0", provider = "${provider}")`
       );
-      expect(result.stdout).toContain(`-> Created ${provider}.provider.json`);
+      expect(result.stdout).not.toContain(
+        `-> Created ${provider}.provider.json`
+      );
       result = await execCLI(
         tempDir,
         ['lint', `${documentName}.${provider}.suma`],
@@ -181,25 +231,31 @@ describe('Create CLI command', () => {
             version: '0.0.0',
           },
         },
-        providers: {
-          [provider]: {
-            file: `../${provider}.provider.json`,
-            security: [],
-          },
-        },
+        providers: {},
       });
     }, 20000);
 
-    it('creates map with one usecase', async () => {
+    it('creates map with one usecase and with provider', async () => {
       documentName = 'sms/service';
       provider = 'twilio';
 
       let result = await execCLI(
         tempDir,
-        ['create', 'map', documentName, '-u', 'SendSMS', '-p', provider],
+        ['create', documentName, '-u', 'SendSMS', '-p', provider],
         mockServer.url,
-        //Mock inquier input
-        { inputs: [{ value: ENTER, timeout: 1000 }] }
+        {
+          inputs: [
+            //Create profile
+            { value: 'n', timeout: 1000 },
+            { value: ENTER, timeout: 200 },
+            //Create map
+            { value: ENTER, timeout: 1000 },
+            //Create provider
+            { value: ENTER, timeout: 1000 },
+            //Init superface
+            { value: ENTER, timeout: 1000 },
+          ],
+        }
       );
       expect(result.stdout).toContain(
         `-> Created ${documentName}.${provider}.suma (profile = "${documentName}@1.0", provider = "${provider}")`
@@ -244,24 +300,29 @@ describe('Create CLI command', () => {
 
       let result = await execCLI(
         tempDir,
-        [
-          'create',
-          'map',
-          documentName,
-          '-p',
-          provider,
-          '-u',
-          'ReceiveSMS',
-          'SendSMS',
-        ],
+        ['create', documentName, '-p', provider, '-u', 'ReceiveSMS', 'SendSMS'],
         mockServer.url,
-        //Mock inquier input
-        { inputs: [{ value: ENTER, timeout: 1000 }] }
+        {
+          inputs: [
+            //Create profile
+            { value: 'n', timeout: 1000 },
+            { value: ENTER, timeout: 200 },
+            //Create map
+            { value: ENTER, timeout: 1000 },
+            //Create provider
+            { value: 'n', timeout: 1000 },
+            { value: ENTER, timeout: 200 },
+            //Init superface
+            { value: ENTER, timeout: 1000 },
+          ],
+        }
       );
       expect(result.stdout).toContain(
         `-> Created ${documentName}.${provider}.suma (profile = "${documentName}@1.0", provider = "${provider}")`
       );
-      expect(result.stdout).toContain(`-> Created ${provider}.provider.json`);
+      expect(result.stdout).not.toContain(
+        `-> Created ${provider}.provider.json`
+      );
       result = await execCLI(
         tempDir,
         ['lint', `${documentName}.${provider}.suma`],
@@ -286,12 +347,7 @@ describe('Create CLI command', () => {
             version: '0.0.0',
           },
         },
-        providers: {
-          [provider]: {
-            file: `../${provider}.provider.json`,
-            security: [],
-          },
-        },
+        providers: {},
       });
     }, 20000);
 
@@ -303,8 +359,19 @@ describe('Create CLI command', () => {
         tempDir,
         ['create', documentName, '-p', provider],
         mockServer.url,
-        //Mock inquier input
-        { inputs: [{ value: ENTER, timeout: 1000 }] }
+        {
+          inputs: [
+            //Create profile
+            { value: ENTER, timeout: 1000 },
+            //Create map
+            { value: ENTER, timeout: 1000 },
+            //Create provider
+            { value: 'n', timeout: 1000 },
+            { value: ENTER, timeout: 200 },
+            //Init superface
+            { value: ENTER, timeout: 1000 },
+          ],
+        }
       );
       expect(result.stdout).toContain(
         `-> Created ${documentName}.supr (name = "${documentName}", version = "1.0.0")`
@@ -312,7 +379,9 @@ describe('Create CLI command', () => {
       expect(result.stdout).toContain(
         `-> Created ${documentName}.${provider}.suma (profile = "${documentName}@1.0", provider = "${provider}")`
       );
-      expect(result.stdout).toContain(`-> Created ${provider}.provider.json`);
+      expect(result.stdout).not.toContain(
+        `-> Created ${provider}.provider.json`
+      );
 
       result = await execCLI(
         tempDir,
@@ -336,6 +405,7 @@ describe('Create CLI command', () => {
         profiles: {
           [documentName]: {
             file: `../${documentName}.supr`,
+            defaults: {},
             priority: [provider],
             providers: {
               [provider]: {
@@ -344,12 +414,7 @@ describe('Create CLI command', () => {
             },
           },
         },
-        providers: {
-          [provider]: {
-            file: `../${provider}.provider.json`,
-            security: [],
-          },
-        },
+        providers: {},
       });
     }, 20000);
 
@@ -361,8 +426,19 @@ describe('Create CLI command', () => {
         tempDir,
         ['create', documentName, '-u', 'SendSMS', '-p', 'twilio'],
         mockServer.url,
-        //Mock inquier input
-        { inputs: [{ value: ENTER, timeout: 1000 }] }
+        {
+          inputs: [
+            //Create profile
+            { value: ENTER, timeout: 1000 },
+            //Create map
+            { value: ENTER, timeout: 1000 },
+            //Create provider
+            { value: 'n', timeout: 1000 },
+            { value: ENTER, timeout: 200 },
+            //Init superface
+            { value: ENTER, timeout: 1000 },
+          ],
+        }
       );
       expect(result.stdout).toContain(
         `-> Created ${documentName}.supr (name = "${documentName}", version = "1.0.0")`
@@ -370,7 +446,9 @@ describe('Create CLI command', () => {
       expect(result.stdout).toContain(
         `-> Created ${documentName}.${provider}.suma (profile = "${documentName}@1.0", provider = "${provider}")`
       );
-      expect(result.stdout).toContain(`-> Created ${provider}.provider.json`);
+      expect(result.stdout).not.toContain(
+        `-> Created ${provider}.provider.json`
+      );
       result = await execCLI(
         tempDir,
         ['lint', `${documentName}.supr`],
@@ -393,6 +471,7 @@ describe('Create CLI command', () => {
         profiles: {
           [documentName]: {
             file: `../${documentName}.supr`,
+            defaults: {},
             priority: [provider],
             providers: {
               [provider]: {
@@ -401,12 +480,7 @@ describe('Create CLI command', () => {
             },
           },
         },
-        providers: {
-          [provider]: {
-            file: `../${provider}.provider.json`,
-            security: [],
-          },
-        },
+        providers: {},
       });
     }, 20000);
 
@@ -418,8 +492,19 @@ describe('Create CLI command', () => {
         tempDir,
         ['create', documentName, '-u', 'SendSMS', 'ReceiveSMS', '-p', provider],
         mockServer.url,
-        //Mock inquier input
-        { inputs: [{ value: ENTER, timeout: 1000 }] }
+        {
+          inputs: [
+            //Create profile
+            { value: ENTER, timeout: 1000 },
+            //Create map
+            { value: ENTER, timeout: 1000 },
+            //Create provider
+            { value: 'n', timeout: 1000 },
+            { value: ENTER, timeout: 200 },
+            //Init superface
+            { value: ENTER, timeout: 1000 },
+          ],
+        }
       );
       expect(result.stdout).toMatch(
         `-> Created ${documentName}.supr (name = "${documentName}", version = "1.0.0")`
@@ -427,7 +512,7 @@ describe('Create CLI command', () => {
       expect(result.stdout).toMatch(
         `-> Created ${documentName}.${provider}.suma (profile = "${documentName}@1.0", provider = "${provider}")`
       );
-      expect(result.stdout).toMatch(`-> Created ${provider}.provider.json`);
+      expect(result.stdout).not.toMatch(`-> Created ${provider}.provider.json`);
 
       result = await execCLI(
         tempDir,
@@ -451,6 +536,7 @@ describe('Create CLI command', () => {
         profiles: {
           [documentName]: {
             file: `../${documentName}.supr`,
+            defaults: {},
             priority: [provider],
             providers: {
               [provider]: {
@@ -459,12 +545,7 @@ describe('Create CLI command', () => {
             },
           },
         },
-        providers: {
-          [provider]: {
-            file: `../${provider}.provider.json`,
-            security: [],
-          },
-        },
+        providers: {},
       });
     }, 20000);
   });
