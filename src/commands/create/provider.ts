@@ -17,9 +17,9 @@ export default class CreateProvider extends Command {
 
   static args = [
     {
-      name: 'provider',
+      name: 'providerName',
       required: true,
-      description: 'Name of a Provider',
+      description: 'Name of a provider',
     },
   ];
 

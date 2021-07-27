@@ -13,11 +13,12 @@ import { create } from '../../logic/create';
 export default class Create extends Command {
   static strict = false;
 
-  static description = 'Creates empty map and profile on a local filesystem.';
+  static description =
+    'Creates empty map, profile or/and provider on a local filesystem.';
 
   static args = [
     {
-      name: 'documentInfo',
+      name: 'documentName',
       required: true,
       description: 'Document Name - name of a file that will be created',
     },

@@ -20,14 +20,14 @@ import { createMap } from '../../logic/create';
 export default class CreateMap extends Command {
   static strict = false;
 
-  static description = 'Creates empty map on a local filesystem.';
+  static description =
+    'Creates empty map for specified profile on a local filesystem.';
 
   static args = [
     {
-      name: 'documentInfo',
+      name: 'profileId',
       required: true,
-      description:
-        'Two arguments containing informations about the document.\n1. Document Type (optional) - type of document that will be created (profile or map), if not specified, utility will create both\n2. Document Name - name of a file that will be created',
+      description: 'Profile Id - scope(optional) and name of a profile',
     },
   ];
 

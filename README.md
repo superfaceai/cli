@@ -56,6 +56,10 @@ npx @superfaceai/cli install [profileId eg. communication/send-email] -i
 
   <!-- commands -->
 * [`superface configure PROVIDERNAME`](#superface-configure-providername)
+* [`superface create DOCUMENTNAME`](#superface-create-documentname)
+* [`superface create:map PROFILEID`](#superface-createmap-profileid)
+* [`superface create:profile PROFILEID`](#superface-createprofile-profileid)
+* [`superface create:provider PROVIDERNAME`](#superface-createprovider-providername)
 * [`superface install [PROFILEID]`](#superface-install-profileid)
 
 ## `superface configure PROVIDERNAME`
@@ -84,6 +88,131 @@ EXAMPLES
 ```
 
 _See code: [src/commands/configure.ts](https://github.com/superfaceai/cli/tree/main/src/commands/configure.ts)_
+
+## `superface create DOCUMENTNAME`
+
+Creates empty map, profile or/and provider on a local filesystem.
+
+```
+USAGE
+  $ superface create DOCUMENTNAME
+
+ARGUMENTS
+  DOCUMENTNAME  Document Name - name of a file that will be created
+
+OPTIONS
+  -h, --help               show CLI help
+  -p, --provider=provider  Name of a Provider
+  -q, --quiet              When set to true, disables the shell echo output of init actions.
+
+  -s, --scan=scan          When number provided, scan for super.json outside cwd within range represented by this
+                           number.
+
+  -t, --variant=variant    Variant of a map
+
+  -u, --usecase=usecase    Usecases that profile or map contains
+
+  -v, --version=version    [default: 1.0.0] Version of a profile
+
+  --template=empty|pubs    [default: empty] Template to initialize the usecases and maps with
+
+EXAMPLES
+  $ superface create sms/service
+  $ superface create sms/service -u SendSMS ReceiveSMS
+  $ superface create sms/service -p twilio
+  $ superface create sms/service -p twilio -u SendSMS ReceiveSMS
+  $ superface create sms/service -p twilio -u SendSMS ReceiveSMS
+  $ superface create sms/service -p twilio -t bugfix -v 1.1-rev133 -u SendSMS ReceiveSMS
+```
+
+_See code: [src/commands/create/index.ts](https://github.com/superfaceai/cli/tree/main/src/commands/create/index.ts)_
+
+## `superface create:map PROFILEID`
+
+Creates empty map for specified profile on a local filesystem.
+
+```
+USAGE
+  $ superface create:map PROFILEID
+
+ARGUMENTS
+  PROFILEID  Profile Id - scope(optional) and name of a profile
+
+OPTIONS
+  -h, --help               show CLI help
+  -p, --provider=provider  (required) Name of a Provider
+  -q, --quiet              When set to true, disables the shell echo output of init actions.
+
+  -s, --scan=scan          When number provided, scan for super.json outside cwd within range represented by this
+                           number.
+
+  -t, --variant=variant    Variant of a map
+
+  -u, --usecase=usecase    Usecases that map contains
+
+  --template=empty|pubs    [default: empty] Template to initialize the usecases and maps with
+
+EXAMPLES
+  $ superface create:map sms/service -p twillio
+  $ superface create:map sms/service -p twillio -u SendSMS ReceiveSMS
+```
+
+_See code: [src/commands/create/map.ts](https://github.com/superfaceai/cli/tree/main/src/commands/create/map.ts)_
+
+## `superface create:profile PROFILEID`
+
+Creates empty profile on a local filesystem.
+
+```
+USAGE
+  $ superface create:profile PROFILEID
+
+ARGUMENTS
+  PROFILEID  Profile Id of a profile file that will be created
+
+OPTIONS
+  -h, --help             show CLI help
+  -q, --quiet            When set to true, disables the shell echo output of init actions.
+  -s, --scan=scan        When number provided, scan for super.json outside cwd within range represented by this number.
+  -u, --usecase=usecase  Usecases that map contains
+  -v, --version=version  [default: 1.0.0] Version of a profile
+  --template=empty|pubs  [default: empty] Template to initialize the usecases and maps with
+
+EXAMPLES
+  $ superface create:profile sms/service
+  $ superface create:profile sms/service -u SendSMS ReceiveSMS
+  $ superface create:profile sms/service --template pubs
+  $ superface create:profile sms/service -s 4
+```
+
+_See code: [src/commands/create/profile.ts](https://github.com/superfaceai/cli/tree/main/src/commands/create/profile.ts)_
+
+## `superface create:provider PROVIDERNAME`
+
+Creates empty provider on a local filesystem.
+
+```
+USAGE
+  $ superface create:provider PROVIDERNAME
+
+ARGUMENTS
+  PROVIDERNAME  Name of a provider
+
+OPTIONS
+  -h, --help             show CLI help
+  -q, --quiet            When set to true, disables the shell echo output of init actions.
+  -s, --scan=scan        When number provided, scan for super.json outside cwd within range represented by this number.
+  -t, --variant=variant  Variant of a map
+  --template=empty|pubs  [default: empty] Template to initialize the usecases and maps with
+
+EXAMPLES
+  $ superface create:provider twilio
+  $ superface create:provider twilio -t bugfix
+  $ superface create:provider twilio -s 3
+  $ superface create:provider twilio --template pubs
+```
+
+_See code: [src/commands/create/provider.ts](https://github.com/superfaceai/cli/tree/main/src/commands/create/provider.ts)_
 
 ## `superface install [PROFILEID]`
 

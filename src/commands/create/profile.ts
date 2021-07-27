@@ -24,10 +24,9 @@ export default class CreateProfile extends Command {
 
   static args = [
     {
-      name: 'documentInfo',
+      name: 'profileId',
       required: true,
-      description:
-        'Two arguments containing informations about the document.\n1. Document Type (optional) - type of document that will be created (profile or map), if not specified, utility will create both\n2. Document Name - name of a file that will be created',
+      description: 'Profile Id of a profile file that will be created',
     },
   ];
 
@@ -59,6 +58,8 @@ export default class CreateProfile extends Command {
   static examples = [
     '$ superface create:profile sms/service',
     '$ superface create:profile sms/service -u SendSMS ReceiveSMS',
+    '$ superface create:profile sms/service --template pubs',
+    '$ superface create:profile sms/service -s 4',
   ];
 
   private warnCallback? = (message: string) => this.log(yellow(message));
