@@ -1,18 +1,14 @@
 import { flags as oclifFlags } from '@oclif/command';
 import { SuperJson } from '@superfaceai/one-sdk';
 import { grey, yellow } from 'chalk';
-import inquirer from 'inquirer';
 import { join as joinPath } from 'path';
 
-import { META_FILE, SUPERFACE_DIR } from '../../common';
+import { META_FILE } from '../../common';
 import { Command } from '../../common/command.abstract';
 import { developerError } from '../../common/error';
 import { formatShellLog } from '../../common/log';
 import { OutputStream } from '../../common/output-stream';
-import { NORMALIZED_CWD_PATH } from '../../common/path';
 import { createProviderJson } from '../../logic/create';
-import { initSuperface } from '../../logic/init';
-import { detectSuperJson } from '../../logic/install';
 
 export default class CreateProvider extends Command {
   static strict = false;
@@ -64,31 +60,11 @@ export default class CreateProvider extends Command {
       this.logCallback = undefined;
       this.warnCallback = undefined;
     }
-    let superPath = await detectSuperJson(process.cwd(), flags.scan);
+    const superPath = await this.getSuperPath(flags.scan, {
+      logCb: this.logCallback,
+      warnCb: this.warnCallback,
+    });
 
-    if (!superPath) {
-      this.warnCallback?.("File 'super.json' has not been found.");
-
-      const response: { init: boolean } = await inquirer.prompt({
-        name: 'init',
-        message: 'Would you like to initialize new superface structure?',
-        type: 'confirm',
-      });
-
-      if (!response.init) {
-        this.exit(0);
-      }
-
-      this.logCallback?.(
-        "Initializing superface directory with empty 'super.json'"
-      );
-      await initSuperface(
-        NORMALIZED_CWD_PATH,
-        { profiles: {}, providers: {} },
-        { logCb: this.logCallback }
-      );
-      superPath = SUPERFACE_DIR;
-    }
     // typecheck the template flag
     switch (flags.template) {
       case 'empty':

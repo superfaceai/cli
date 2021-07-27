@@ -3,24 +3,19 @@ import { isValidIdentifier } from '@superfaceai/ast';
 import { SuperJson } from '@superfaceai/one-sdk';
 import { parseDocumentId } from '@superfaceai/parser';
 import { grey, yellow } from 'chalk';
-import inquirer from 'inquirer';
 import { join as joinPath } from 'path';
 
 import {
   composeUsecaseName,
   DEFAULT_PROFILE_VERSION_STR,
   META_FILE,
-  SUPERFACE_DIR,
 } from '../../common';
 import { Command } from '../../common/command.abstract';
 import { developerError, userError } from '../../common/error';
 import { mkdirQuiet } from '../../common/io';
 import { formatShellLog } from '../../common/log';
 import { OutputStream } from '../../common/output-stream';
-import { NORMALIZED_CWD_PATH } from '../../common/path';
 import { createMap } from '../../logic/create';
-import { initSuperface } from '../../logic/init';
-import { detectSuperJson } from '../../logic/install';
 
 export default class CreateMap extends Command {
   static strict = false;
@@ -122,36 +117,16 @@ export default class CreateMap extends Command {
       await mkdirQuiet(scope);
     }
 
-    //Common
     if (flags.quiet) {
       this.logCallback = undefined;
       this.warnCallback = undefined;
     }
-    let superPath = await detectSuperJson(process.cwd(), flags.scan);
 
-    if (!superPath) {
-      this.warnCallback?.("File 'super.json' has not been found.");
+    const superPath = await this.getSuperPath(flags.scan, {
+      logCb: this.logCallback,
+      warnCb: this.warnCallback,
+    });
 
-      const response: { init: boolean } = await inquirer.prompt({
-        name: 'init',
-        message: 'Would you like to initialize new superface structure?',
-        type: 'confirm',
-      });
-
-      if (!response.init) {
-        this.exit();
-      }
-
-      this.logCallback?.(
-        "Initializing superface directory with empty 'super.json'"
-      );
-      await initSuperface(
-        NORMALIZED_CWD_PATH,
-        { profiles: {}, providers: {} },
-        { logCb: this.logCallback }
-      );
-      superPath = SUPERFACE_DIR;
-    }
     // typecheck the template flag
     switch (flags.template) {
       case 'empty':

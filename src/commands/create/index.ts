@@ -4,18 +4,11 @@ import { parseDocumentId } from '@superfaceai/parser';
 import { grey, yellow } from 'chalk';
 import inquirer from 'inquirer';
 
-import {
-  composeUsecaseName,
-  DEFAULT_PROFILE_VERSION_STR,
-  SUPERFACE_DIR,
-} from '../../common';
+import { composeUsecaseName, DEFAULT_PROFILE_VERSION_STR } from '../../common';
 import { Command } from '../../common/command.abstract';
 import { developerError, userError } from '../../common/error';
 import { mkdirQuiet } from '../../common/io';
-import { NORMALIZED_CWD_PATH } from '../../common/path';
 import { create } from '../../logic/create';
-import { initSuperface } from '../../logic/init';
-import { detectSuperJson } from '../../logic/install';
 
 export default class Create extends Command {
   static strict = false;
@@ -179,31 +172,10 @@ export default class Create extends Command {
       await mkdirQuiet(scope);
     }
 
-    let superPath = await detectSuperJson(process.cwd(), flags.scan);
-
-    if (!superPath) {
-      this.warnCallback?.("File 'super.json' has not been found.");
-
-      const response: { init: boolean } = await inquirer.prompt({
-        name: 'init',
-        message: 'Would you like to initialize new superface structure?',
-        type: 'confirm',
-      });
-
-      if (!response.init) {
-        this.exit();
-      }
-
-      this.logCallback?.(
-        "Initializing superface directory with empty 'super.json'"
-      );
-      await initSuperface(
-        NORMALIZED_CWD_PATH,
-        { profiles: {}, providers: {} },
-        { logCb: this.logCallback }
-      );
-      superPath = SUPERFACE_DIR;
-    }
+    const superPath = await this.getSuperPath(flags.scan, {
+      logCb: this.logCallback,
+      warnCb: this.warnCallback,
+    });
 
     await create(
       superPath,
