@@ -3,17 +3,17 @@ import { SuperJson } from '@superfaceai/one-sdk';
 import inquirer from 'inquirer';
 import { mocked } from 'ts-jest/utils';
 
-import { create } from '../logic/create';
-import { initSuperface } from '../logic/init';
-import Create from './create';
+import { create } from '../../logic/create';
+import { initSuperface } from '../../logic/init';
+import Create from '.';
 
 //Mock create logic
-jest.mock('../logic/create', () => ({
+jest.mock('../../logic/create', () => ({
   create: jest.fn(),
 }));
 
 //Mock init logic
-jest.mock('../logic/init', () => ({
+jest.mock('../../logic/init', () => ({
   initSuperface: jest.fn(),
 }));
 

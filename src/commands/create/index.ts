@@ -4,25 +4,22 @@ import { parseDocumentId } from '@superfaceai/parser';
 import { grey, yellow } from 'chalk';
 import inquirer from 'inquirer';
 
-import { Command } from '../common/command.abstract';
 import {
   composeUsecaseName,
+  CreateMode,
   DEFAULT_PROFILE_VERSION_STR,
   inferCreateMode,
   SUPERFACE_DIR,
-} from '../common/document';
-import { CreateMode } from '../common/document.interfaces';
-import { developerError, userError } from '../common/error';
-import { mkdirQuiet } from '../common/io';
-import { NORMALIZED_CWD_PATH } from '../common/path';
-import { create } from '../logic/create';
-import { initSuperface } from '../logic/init';
-import { detectSuperJson } from '../logic/install';
+} from '../../common';
+import { Command } from '../../common/command.abstract';
+import { developerError, userError } from '../../common/error';
+import { mkdirQuiet } from '../../common/io';
+import { NORMALIZED_CWD_PATH } from '../../common/path';
+import { create } from '../../logic/create';
+import { initSuperface } from '../../logic/init';
+import { detectSuperJson } from '../../logic/install';
 
 export default class Create extends Command {
-  // hide the command from help
-  static hidden = true;
-
   static strict = false;
 
   static description = 'Creates empty map and profile on a local filesystem.';
@@ -84,13 +81,6 @@ export default class Create extends Command {
 
   async run(): Promise<void> {
     const { argv, flags } = this.parse(Create);
-
-    //Warn user
-    this.log(
-      yellow(
-        'You are using a hidden command. This command is not intended for public consumption yet. It might be broken, hard to use or simply redundant. Tread with care.'
-      )
-    );
 
     if (flags.quiet) {
       this.logCallback = undefined;

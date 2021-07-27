@@ -2,14 +2,14 @@ import { SuperJson } from '@superfaceai/one-sdk';
 import { getLocal } from 'mockttp';
 import { join as joinPath } from 'path';
 
-import { mkdir, rimraf } from '../common/io';
+import { mkdir, rimraf } from '../../common/io';
 import {
   ENTER,
   execCLI,
   mockResponsesForProfile,
   mockResponsesForProvider,
   setUpTempDir,
-} from '../test/utils';
+} from '../../test/utils';
 
 const mockServer = getLocal();
 
