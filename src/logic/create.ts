@@ -6,7 +6,6 @@ import { composeVersion, EXTENSIONS, META_FILE } from '../common/document';
 import { userError } from '../common/error';
 import { formatShellLog, LogCallback } from '../common/log';
 import { OutputStream } from '../common/output-stream';
-import { TemplateType } from '../templates/common';
 import * as mapTemplate from '../templates/map';
 import * as profileTemplate from '../templates/profile';
 import * as providerTemplate from '../templates/provider';
@@ -23,7 +22,6 @@ export async function createProfile(
     version: DocumentVersion;
   },
   usecaseNames: string[],
-  template: TemplateType,
   options?: {
     force?: boolean;
     logCb?: LogCallback;
@@ -43,7 +41,7 @@ export async function createProfile(
     filePath,
     [
       profileTemplate.header(profileName, version),
-      ...usecaseNames.map(u => profileTemplate.usecase(template, u)),
+      ...usecaseNames.map(u => profileTemplate.empty(u)),
     ].join(''),
     { force: options?.force, dirs: true }
   );
@@ -73,7 +71,6 @@ export async function createMap(
     version: DocumentVersion;
   },
   usecaseNames: string[],
-  template: TemplateType,
   options?: {
     force?: boolean;
     logCb?: LogCallback;
@@ -95,7 +92,7 @@ export async function createMap(
     filePath,
     [
       mapTemplate.header(profileName, id.provider, version, id.variant),
-      ...usecaseNames.map(u => mapTemplate.map(template, u)),
+      ...usecaseNames.map(u => mapTemplate.empty(u)),
     ].join(''),
     { force: options?.force, dirs: true }
   );
@@ -117,7 +114,6 @@ export async function createProviderJson(
   basePath: string,
   superJson: SuperJson,
   name: string,
-  template: TemplateType,
   options?: {
     force?: boolean;
     logCb?: LogCallback;
@@ -126,7 +122,7 @@ export async function createProviderJson(
   const filePath = joinPath(basePath, `${name}.provider.json`);
   const created = await OutputStream.writeIfAbsent(
     filePath,
-    providerTemplate.provider(template, name),
+    providerTemplate.empty(name),
     { force: options?.force }
   );
 
@@ -155,7 +151,6 @@ export async function create(
     middle: string[];
     version: DocumentVersion;
   },
-  template: TemplateType,
   options?: {
     logCb?: LogCallback;
     warnCb?: LogCallback;
@@ -189,7 +184,6 @@ export async function create(
       superJson,
       { scope, name, provider, version },
       usecases,
-      template,
       { logCb: options?.logCb }
     );
   }
@@ -200,19 +194,14 @@ export async function create(
         2
       );
     }
-    await createProviderJson('', superJson, provider, template, {
+    await createProviderJson('', superJson, provider, {
       logCb: options?.logCb,
     });
   }
   if (create.createProfile) {
-    await createProfile(
-      '',
-      superJson,
-      { scope, name, version },
-      usecases,
-      template,
-      { logCb: options?.logCb }
-    );
+    await createProfile('', superJson, { scope, name, version }, usecases, {
+      logCb: options?.logCb,
+    });
   }
 
   // write new information to super.json

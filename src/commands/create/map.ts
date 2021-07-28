@@ -48,11 +48,6 @@ export default class CreateMap extends Command {
       description: 'Variant of a map',
       dependsOn: ['provider'],
     }),
-    template: oclifFlags.string({
-      options: ['empty', 'pubs'],
-      default: 'empty',
-      description: 'Template to initialize the usecases and maps with',
-    }),
     scan: oclifFlags.integer({
       char: 's',
       description:
@@ -75,11 +70,7 @@ export default class CreateMap extends Command {
     //Check input
     const documentName = argv[0];
 
-    if (
-      documentName === 'profile' ||
-      documentName === 'map' ||
-      documentName === 'both'
-    ) {
+    if (documentName === 'profile' || documentName === 'map') {
       throw userError('Name of your document is reserved!', 1);
     }
 
@@ -101,7 +92,7 @@ export default class CreateMap extends Command {
     } = documentStructure;
 
     if (version === undefined) {
-      throw developerError('version must be present', 1);
+      throw developerError('Version must be present', 1);
     }
 
     // if there is no specified usecase - create usecase with same name as profile name
@@ -127,15 +118,6 @@ export default class CreateMap extends Command {
       warnCb: this.warnCallback,
     });
 
-    // typecheck the template flag
-    switch (flags.template) {
-      case 'empty':
-      case 'pubs':
-        break;
-      default:
-        throw developerError('Invalid --template flag option', 1);
-    }
-
     //Load super json
     const loadedResult = await SuperJson.load(joinPath(superPath, META_FILE));
     const superJson = loadedResult.match(
@@ -152,7 +134,6 @@ export default class CreateMap extends Command {
       superJson,
       { scope, name, provider, variant, version },
       usecases,
-      flags.template,
       {
         logCb: this.logCallback,
       }

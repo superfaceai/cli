@@ -135,7 +135,6 @@ export async function generateSpecifiedProfiles(
       superJson,
       { scope, name, version },
       [composeUsecaseName(name)],
-      'empty',
       { logCb }
     );
   }

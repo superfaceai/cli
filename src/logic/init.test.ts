@@ -114,7 +114,6 @@ describe('Init logic', () => {
         mockSuperJson,
         { scope: undefined, name: 'first-test-name', version: { major: 1 } },
         [composeUsecaseName('first-test-name')],
-        'empty',
         { logCb: undefined }
       );
       expect(createProfile).toHaveBeenNthCalledWith(
@@ -123,7 +122,6 @@ describe('Init logic', () => {
         mockSuperJson,
         { scope: undefined, name: 'second-test-name', version: { major: 2 } },
         [composeUsecaseName('second-test-name')],
-        'empty',
         { logCb: undefined }
       );
     });

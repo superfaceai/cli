@@ -13,7 +13,7 @@ import {
 
 const mockServer = getLocal();
 
-describe('Create CLI command', () => {
+describe('Interactive create CLI command', () => {
   //File specific path
   const TEMP_PATH = joinPath('test', 'tmp');
   let documentName, provider;
@@ -43,7 +43,7 @@ describe('Create CLI command', () => {
 
       let result = await execCLI(
         tempDir,
-        ['create', documentName],
+        ['create', documentName, '-i'],
         mockServer.url,
         {
           inputs: [
@@ -91,7 +91,7 @@ describe('Create CLI command', () => {
 
       let result = await execCLI(
         tempDir,
-        ['create', documentName, '-u', 'SendSMS'],
+        ['create', documentName, '-u', 'SendSMS', '-i'],
         mockServer.url,
         {
           inputs: [
@@ -137,7 +137,7 @@ describe('Create CLI command', () => {
 
       let result = await execCLI(
         tempDir,
-        ['create', documentName, '-u', 'ReceiveSMS', 'SendSMS'],
+        ['create', documentName, '-u', 'ReceiveSMS', 'SendSMS', '-i'],
         mockServer.url,
         {
           inputs: [
@@ -185,7 +185,7 @@ describe('Create CLI command', () => {
 
       let result = await execCLI(
         tempDir,
-        ['create', documentName, '-p', provider],
+        ['create', documentName, '-p', provider, '-i'],
         mockServer.url,
         {
           inputs: [
@@ -241,7 +241,7 @@ describe('Create CLI command', () => {
 
       let result = await execCLI(
         tempDir,
-        ['create', documentName, '-u', 'SendSMS', '-p', provider],
+        ['create', documentName, '-u', 'SendSMS', '-p', provider, '-i'],
         mockServer.url,
         {
           inputs: [
@@ -300,7 +300,16 @@ describe('Create CLI command', () => {
 
       let result = await execCLI(
         tempDir,
-        ['create', documentName, '-p', provider, '-u', 'ReceiveSMS', 'SendSMS'],
+        [
+          'create',
+          documentName,
+          '-p',
+          provider,
+          '-u',
+          'ReceiveSMS',
+          'SendSMS',
+          '-i',
+        ],
         mockServer.url,
         {
           inputs: [
@@ -357,7 +366,7 @@ describe('Create CLI command', () => {
 
       let result = await execCLI(
         tempDir,
-        ['create', documentName, '-p', provider],
+        ['create', documentName, '-p', provider, '-i'],
         mockServer.url,
         {
           inputs: [
@@ -424,7 +433,7 @@ describe('Create CLI command', () => {
 
       let result = await execCLI(
         tempDir,
-        ['create', documentName, '-u', 'SendSMS', '-p', 'twilio'],
+        ['create', documentName, '-u', 'SendSMS', '-p', 'twilio', '-i'],
         mockServer.url,
         {
           inputs: [
@@ -490,7 +499,16 @@ describe('Create CLI command', () => {
 
       let result = await execCLI(
         tempDir,
-        ['create', documentName, '-u', 'SendSMS', 'ReceiveSMS', '-p', provider],
+        [
+          'create',
+          documentName,
+          '-u',
+          'SendSMS',
+          'ReceiveSMS',
+          '-p',
+          provider,
+          '-i',
+        ],
         mockServer.url,
         {
           inputs: [

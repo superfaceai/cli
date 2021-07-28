@@ -20,7 +20,7 @@ jest.mock('../../logic/init', () => ({
 //Mock inquirer
 jest.mock('inquirer');
 
-describe('Create CLI command', () => {
+describe('Interactive create CLI command', () => {
   let documentName: string;
   let provider: string;
 
@@ -47,7 +47,7 @@ describe('Create CLI command', () => {
         .mockResolvedValueOnce({ init: true });
 
       documentName = 'sendsms';
-      await expect(Create.run([documentName, '-q'])).resolves.toBeUndefined();
+      await expect(Create.run([documentName, '-i'])).resolves.toBeUndefined();
       expect(create).toHaveBeenCalledTimes(1);
       expect(create).toHaveBeenCalledWith(
         'superface',
@@ -58,8 +58,7 @@ describe('Create CLI command', () => {
           scope: undefined,
           version: { label: undefined, major: 1, minor: 0, patch: 0 },
         },
-        'empty',
-        { logCb: undefined, warnCb: undefined }
+        { logCb: expect.anything(), warnCb: expect.anything() }
       );
     });
 
@@ -78,7 +77,7 @@ describe('Create CLI command', () => {
 
       documentName = 'sms/service';
       await expect(
-        Create.run([documentName, '-u', 'SendSMS'])
+        Create.run([documentName, '-u', 'SendSMS', '-i'])
       ).resolves.toBeUndefined();
 
       expect(create).toHaveBeenCalledTimes(1);
@@ -91,7 +90,6 @@ describe('Create CLI command', () => {
           scope: 'sms',
           version: { label: undefined, major: 1, minor: 0, patch: 0 },
         },
-        'empty',
         { logCb: expect.anything(), warnCb: expect.anything() }
       );
     });
@@ -111,7 +109,7 @@ describe('Create CLI command', () => {
 
       documentName = 'sms/service';
       await expect(
-        Create.run([documentName, '-u', 'ReceiveSMS', 'SendSMS'])
+        Create.run([documentName, '-u', 'ReceiveSMS', 'SendSMS', '-i'])
       ).resolves.toBeUndefined();
 
       expect(create).toHaveBeenCalledTimes(1);
@@ -124,7 +122,6 @@ describe('Create CLI command', () => {
           scope: 'sms',
           version: { label: undefined, major: 1, minor: 0, patch: 0 },
         },
-        'empty',
         { logCb: expect.anything(), warnCb: expect.anything() }
       );
     });
@@ -145,7 +142,7 @@ describe('Create CLI command', () => {
       documentName = 'sms/service';
       provider = 'twilio';
       await expect(
-        Create.run([documentName, '-p', provider])
+        Create.run([documentName, '-p', provider, '-i'])
       ).resolves.toBeUndefined();
 
       expect(create).toHaveBeenCalledTimes(1);
@@ -158,7 +155,6 @@ describe('Create CLI command', () => {
           scope: 'sms',
           version: { label: undefined, major: 1, minor: 0, patch: 0 },
         },
-        'empty',
         { logCb: expect.anything(), warnCb: expect.anything() }
       );
     });
@@ -179,7 +175,7 @@ describe('Create CLI command', () => {
       documentName = 'sms/service';
       provider = 'twilio';
       await expect(
-        Create.run([documentName, '-u', 'SendSMS', '-p', provider])
+        Create.run([documentName, '-u', 'SendSMS', '-p', provider, '-i'])
       ).resolves.toBeUndefined();
 
       expect(create).toHaveBeenCalledTimes(1);
@@ -192,7 +188,6 @@ describe('Create CLI command', () => {
           scope: 'sms',
           version: { label: undefined, major: 1, minor: 0, patch: 0 },
         },
-        'empty',
         { logCb: expect.anything(), warnCb: expect.anything() }
       );
     });
@@ -220,6 +215,7 @@ describe('Create CLI command', () => {
           '-u',
           'ReceiveSMS',
           'SendSMS',
+          '-i',
         ])
       ).resolves.toBeUndefined();
       expect(create).toHaveBeenCalledTimes(1);
@@ -232,7 +228,6 @@ describe('Create CLI command', () => {
           scope: 'sms',
           version: { label: undefined, major: 1, minor: 0, patch: 0 },
         },
-        'empty',
         { logCb: expect.anything(), warnCb: expect.anything() }
       );
     });
@@ -253,7 +248,7 @@ describe('Create CLI command', () => {
       documentName = 'sms/service';
       provider = 'twilio';
       await expect(
-        Create.run([documentName, '-p', provider])
+        Create.run([documentName, '-p', provider, '-i'])
       ).resolves.toBeUndefined();
 
       expect(create).toHaveBeenCalledTimes(1);
@@ -266,7 +261,6 @@ describe('Create CLI command', () => {
           scope: 'sms',
           version: { label: undefined, major: 1, minor: 0, patch: 0 },
         },
-        'empty',
         { logCb: expect.anything(), warnCb: expect.anything() }
       );
     });
@@ -287,7 +281,7 @@ describe('Create CLI command', () => {
       documentName = 'sms/service';
       provider = 'twilio';
       await expect(
-        Create.run([documentName, '-u', 'SendSMS', '-p', 'twilio'])
+        Create.run([documentName, '-u', 'SendSMS', '-p', 'twilio', '-i'])
       ).resolves.toBeUndefined();
 
       expect(create).toHaveBeenCalledTimes(1);
@@ -300,7 +294,6 @@ describe('Create CLI command', () => {
           scope: 'sms',
           version: { label: undefined, major: 1, minor: 0, patch: 0 },
         },
-        'empty',
         { logCb: expect.anything(), warnCb: expect.anything() }
       );
     });
@@ -328,6 +321,7 @@ describe('Create CLI command', () => {
           'ReceiveSMS',
           '-p',
           provider,
+          '-i',
         ])
       ).resolves.toBeUndefined();
       expect(create).toHaveBeenCalledTimes(1);
@@ -340,7 +334,6 @@ describe('Create CLI command', () => {
           scope: 'sms',
           version: { label: undefined, major: 1, minor: 0, patch: 0 },
         },
-        'empty',
         { logCb: expect.anything(), warnCb: expect.anything() }
       );
     });
@@ -359,10 +352,6 @@ describe('Create CLI command', () => {
       await expect(Create.run(['profile'])).rejects.toEqual(
         new CLIError('Name of your document is reserved!')
       );
-
-      await expect(Create.run(['both'])).rejects.toEqual(
-        new CLIError('Name of your document is reserved!')
-      );
     });
 
     it('throws error on invalid document', async () => {
@@ -379,7 +368,9 @@ describe('Create CLI command', () => {
         //Init
         .mockResolvedValueOnce({ init: true });
 
-      await expect(Create.run([documentName, '-u', 'SendSMS'])).rejects.toEqual(
+      await expect(
+        Create.run([documentName, '-u', 'SendSMS', '-i'])
+      ).rejects.toEqual(
         new CLIError('"vT_7!" is not a valid lowercase identifier')
       );
     });
@@ -399,7 +390,7 @@ describe('Create CLI command', () => {
         .mockResolvedValueOnce({ init: true });
 
       await expect(
-        Create.run([documentName, '-v', '', '-u', 'SendSMS'])
+        Create.run([documentName, '-v', '', '-u', 'SendSMS', '-i'])
       ).rejects.toEqual(
         new CLIError(
           'could not parse version: major component is not a valid number'
@@ -421,9 +412,9 @@ describe('Create CLI command', () => {
         //Init
         .mockResolvedValueOnce({ init: true });
 
-      await expect(Create.run([documentName, '-u', '7_L§'])).rejects.toEqual(
-        new CLIError('Invalid usecase name: 7_L§')
-      );
+      await expect(
+        Create.run([documentName, '-u', '7_L§', '-i'])
+      ).rejects.toEqual(new CLIError('Invalid usecase name: 7_L§'));
     });
   });
 });

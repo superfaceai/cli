@@ -82,13 +82,12 @@ describe('Create provider CLI command', () => {
         '',
         new SuperJson({}),
         'twilio',
-        'empty',
         { logCb: expect.anything() }
       );
       expect(writeOnceSpy).toHaveBeenCalledTimes(1);
     });
 
-    it('creates provider with quiet flag and template', async () => {
+    it('creates provider with quiet flag', async () => {
       const loadSpy = jest
         .spyOn(SuperJson, 'load')
         .mockResolvedValue(ok(mockSuperJson));
@@ -101,7 +100,7 @@ describe('Create provider CLI command', () => {
       provider = 'twilio';
 
       await expect(
-        CreateProvider.run([provider, '-q', '--template', 'pubs'])
+        CreateProvider.run([provider, '-q'])
       ).resolves.toBeUndefined();
 
       expect(loadSpy).toHaveBeenCalledTimes(1);
@@ -111,35 +110,9 @@ describe('Create provider CLI command', () => {
         '',
         mockSuperJson,
         'twilio',
-        'pubs',
         { logCb: undefined }
       );
       expect(writeOnceSpy).toHaveBeenCalledTimes(1);
-    });
-
-    it('throws error on invalid template', async () => {
-      const loadSpy = jest
-        .spyOn(SuperJson, 'load')
-        .mockResolvedValue(ok(mockSuperJson));
-      const writeOnceSpy = jest
-        .spyOn(OutputStream, 'writeOnce')
-        .mockResolvedValue(undefined);
-      mocked(initSuperface).mockResolvedValue(new SuperJson({}));
-      jest.spyOn(inquirer, 'prompt').mockResolvedValueOnce({ init: true });
-
-      provider = 'twilio';
-
-      await expect(
-        CreateProvider.run([provider, '--template', 'test'])
-      ).rejects.toEqual(
-        new CLIError(
-          'Expected --template=test to be one of: empty, pubs\nSee more help with --help'
-        )
-      );
-
-      expect(loadSpy).not.toHaveBeenCalled();
-      expect(createProviderJson).not.toHaveBeenCalled();
-      expect(writeOnceSpy).not.toHaveBeenCalled();
     });
   });
 });

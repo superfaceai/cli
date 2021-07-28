@@ -2,15 +2,9 @@ import { CLIError } from '@oclif/errors';
 import { err, ok, SuperJson } from '@superfaceai/one-sdk';
 
 import { OutputStream } from '../common/output-stream';
-import { empty as emptyMap, pubs as pubsMap } from '../templates/map';
-import {
-  empty as emptyProfile,
-  pubs as pubsProfile,
-} from '../templates/profile';
-import {
-  empty as emptyProvider,
-  pubs as pubsProvider,
-} from '../templates/provider';
+import { empty as emptyMap } from '../templates/map';
+import { empty as emptyProfile } from '../templates/profile';
+import { empty as emptyProvider } from '../templates/provider';
 import { create, createMap, createProfile, createProviderJson } from './create';
 
 describe('Create logic', () => {
@@ -33,13 +27,7 @@ describe('Create logic', () => {
         .mockResolvedValue(true);
 
       await expect(
-        createProfile(
-          mockBasePath,
-          mockSuperJson,
-          mockId,
-          mockUsecaseNames,
-          'empty'
-        )
+        createProfile(mockBasePath, mockSuperJson, mockId, mockUsecaseNames)
       ).resolves.toBeUndefined();
 
       expect(writeIfAbsentSpy).toHaveBeenCalledTimes(1);
@@ -68,13 +56,7 @@ describe('Create logic', () => {
         .mockResolvedValue(true);
 
       await expect(
-        createProfile(
-          mockBasePath,
-          mockSuperJson,
-          mockId,
-          mockUsecaseNames,
-          'empty'
-        )
+        createProfile(mockBasePath, mockSuperJson, mockId, mockUsecaseNames)
       ).resolves.toBeUndefined();
 
       expect(writeIfAbsentSpy).toHaveBeenCalledTimes(1);
@@ -102,13 +84,7 @@ describe('Create logic', () => {
         .mockResolvedValue(true);
 
       await expect(
-        createProfile(
-          mockBasePath,
-          mockSuperJson,
-          mockId,
-          mockUsecaseNames,
-          'pubs'
-        )
+        createProfile(mockBasePath, mockSuperJson, mockId, mockUsecaseNames)
       ).resolves.toBeUndefined();
 
       expect(writeIfAbsentSpy).toHaveBeenCalledTimes(1);
@@ -118,7 +94,7 @@ describe('Create logic', () => {
         'test-path/test-scope/test-name.supr',
         [
           `name = "${mockId.scope}/${mockId.name}"\nversion = "1.0.0"\n`,
-          pubsProfile(mockUsecaseNames[0]),
+          emptyProfile(mockUsecaseNames[0]),
         ].join(''),
         { dirs: true, force: undefined }
       );
@@ -137,13 +113,7 @@ describe('Create logic', () => {
         .mockResolvedValue(true);
 
       await expect(
-        createProfile(
-          mockBasePath,
-          mockSuperJson,
-          mockId,
-          mockUsecaseNames,
-          'pubs'
-        )
+        createProfile(mockBasePath, mockSuperJson, mockId, mockUsecaseNames)
       ).resolves.toBeUndefined();
 
       expect(writeIfAbsentSpy).toHaveBeenCalledTimes(1);
@@ -151,7 +121,7 @@ describe('Create logic', () => {
         'test-path/test-name.supr',
         [
           `name = "${mockId.name}"\nversion = "1.0.0"\n`,
-          pubsProfile(mockUsecaseNames[0]),
+          emptyProfile(mockUsecaseNames[0]),
         ].join(''),
         { dirs: true, force: undefined }
       );
@@ -174,13 +144,7 @@ describe('Create logic', () => {
         .mockResolvedValue(true);
 
       await expect(
-        createMap(
-          mockBasePath,
-          mockSuperJson,
-          mockId,
-          mockUsecaseNames,
-          'empty'
-        )
+        createMap(mockBasePath, mockSuperJson, mockId, mockUsecaseNames)
       ).resolves.toBeUndefined();
 
       expect(writeIfAbsentSpy).toHaveBeenCalledTimes(1);
@@ -210,13 +174,7 @@ describe('Create logic', () => {
         .mockResolvedValue(true);
 
       await expect(
-        createMap(
-          mockBasePath,
-          mockSuperJson,
-          mockId,
-          mockUsecaseNames,
-          'empty'
-        )
+        createMap(mockBasePath, mockSuperJson, mockId, mockUsecaseNames)
       ).resolves.toBeUndefined();
 
       expect(writeIfAbsentSpy).toHaveBeenCalledTimes(1);
@@ -247,7 +205,7 @@ describe('Create logic', () => {
         .mockResolvedValue(true);
 
       await expect(
-        createMap(mockBasePath, mockSuperJson, mockId, mockUsecaseNames, 'pubs')
+        createMap(mockBasePath, mockSuperJson, mockId, mockUsecaseNames)
       ).resolves.toBeUndefined();
 
       expect(writeIfAbsentSpy).toHaveBeenCalledTimes(1);
@@ -257,7 +215,7 @@ describe('Create logic', () => {
         'test-path/test-scope/test-name.twilio.suma',
         [
           `profile = "${mockId.scope}/${mockId.name}@1.0"\nprovider = "${mockId.provider}"\n`,
-          pubsMap(mockUsecaseNames[0]),
+          emptyMap(mockUsecaseNames[0]),
         ].join(''),
         { dirs: true, force: undefined }
       );
@@ -277,7 +235,7 @@ describe('Create logic', () => {
         .mockResolvedValue(true);
 
       await expect(
-        createMap(mockBasePath, mockSuperJson, mockId, mockUsecaseNames, 'pubs')
+        createMap(mockBasePath, mockSuperJson, mockId, mockUsecaseNames)
       ).resolves.toBeUndefined();
 
       expect(writeIfAbsentSpy).toHaveBeenCalledTimes(1);
@@ -287,7 +245,7 @@ describe('Create logic', () => {
         'test-path/test-name.twilio.suma',
         [
           `profile = "${mockId.name}@1.0"\nprovider = "${mockId.provider}"\n`,
-          pubsMap(mockUsecaseNames[0]),
+          emptyMap(mockUsecaseNames[0]),
         ].join(''),
         { dirs: true, force: undefined }
       );
@@ -303,7 +261,7 @@ describe('Create logic', () => {
         .mockResolvedValue(true);
 
       await expect(
-        createProviderJson(mockBasePath, mockSuperJson, mockName, 'pubs')
+        createProviderJson(mockBasePath, mockSuperJson, mockName)
       ).resolves.toBeUndefined();
 
       expect(writeIfAbsentSpy).toHaveBeenCalledTimes(1);
@@ -311,7 +269,7 @@ describe('Create logic', () => {
         writeIfAbsentSpy
       ).toHaveBeenCalledWith(
         'test-path/twilio.provider.json',
-        pubsProvider(mockName),
+        emptyProvider(mockName),
         { force: undefined }
       );
     });
@@ -325,7 +283,7 @@ describe('Create logic', () => {
         .mockResolvedValue(true);
 
       await expect(
-        createProviderJson(mockBasePath, mockSuperJson, mockName, 'empty')
+        createProviderJson(mockBasePath, mockSuperJson, mockName)
       ).resolves.toBeUndefined();
 
       expect(writeIfAbsentSpy).toHaveBeenCalledTimes(1);
@@ -385,8 +343,7 @@ describe('Create logic', () => {
           mockSuperPath,
           { createProfile: true, createMap: false, createProvider: false },
           mockUsecases,
-          mockDocumentStructure,
-          'empty'
+          mockDocumentStructure
         )
       ).resolves.toBeUndefined();
 
@@ -433,8 +390,7 @@ describe('Create logic', () => {
           mockSuperPath,
           { createProfile: true, createMap: false, createProvider: false },
           mockUsecases,
-          mockDocumentStructure,
-          'empty'
+          mockDocumentStructure
         )
       ).resolves.toBeUndefined();
 
@@ -474,8 +430,7 @@ describe('Create logic', () => {
           mockSuperPath,
           { createProfile: false, createMap: true, createProvider: true },
           mockUsecases,
-          mockDocumentStructure,
-          'empty'
+          mockDocumentStructure
         )
       ).resolves.toBeUndefined();
 
@@ -537,8 +492,7 @@ describe('Create logic', () => {
           mockSuperPath,
           { createProfile: false, createMap: true, createProvider: false },
           mockUsecases,
-          mockDocumentStructure,
-          'empty'
+          mockDocumentStructure
         )
       ).resolves.toBeUndefined();
 
@@ -592,8 +546,7 @@ describe('Create logic', () => {
           mockSuperPath,
           { createProfile: true, createMap: true, createProvider: false },
           mockUsecases,
-          mockDocumentStructure,
-          'empty'
+          mockDocumentStructure
         )
       ).resolves.toBeUndefined();
 
@@ -665,8 +618,7 @@ describe('Create logic', () => {
           mockSuperPath,
           { createProfile: false, createMap: true, createProvider: false },
           mockUsecases,
-          mockDocumentStructure,
-          'empty'
+          mockDocumentStructure
         )
       ).rejects.toEqual(
         new CLIError('Provider name must be provided when generating a map.')
@@ -710,8 +662,7 @@ describe('Create logic', () => {
           mockSuperPath,
           { createProfile: false, createMap: false, createProvider: true },
           mockUsecases,
-          mockDocumentStructure,
-          'empty'
+          mockDocumentStructure
         )
       ).rejects.toEqual(
         new CLIError(
@@ -757,8 +708,7 @@ describe('Create logic', () => {
           mockSuperPath,
           { createProfile: true, createMap: true, createProvider: false },
           mockUsecases,
-          mockDocumentStructure,
-          'empty'
+          mockDocumentStructure
         )
       ).rejects.toEqual(
         new CLIError('Provider name must be provided when generating a map.')

@@ -5,7 +5,7 @@ import { join as joinPath } from 'path';
 
 import { META_FILE } from '../../common';
 import { Command } from '../../common/command.abstract';
-import { developerError } from '../../common/error';
+import { userError } from '../../common/error';
 import { formatShellLog } from '../../common/log';
 import { OutputStream } from '../../common/output-stream';
 import { createProviderJson } from '../../logic/create';
@@ -30,11 +30,6 @@ export default class CreateProvider extends Command {
       description: 'Variant of a map',
       required: false,
     }),
-    template: oclifFlags.string({
-      options: ['empty', 'pubs'],
-      default: 'empty',
-      description: 'Template to initialize the usecases and maps with',
-    }),
     scan: oclifFlags.integer({
       char: 's',
       description:
@@ -56,6 +51,13 @@ export default class CreateProvider extends Command {
   async run(): Promise<void> {
     const { argv, flags } = this.parse(CreateProvider);
 
+    //Check input
+    const documentName = argv[0];
+
+    if (documentName === 'profile' || documentName === 'map') {
+      throw userError('Name of your document is reserved!', 1);
+    }
+
     if (flags.quiet) {
       this.logCallback = undefined;
       this.warnCallback = undefined;
@@ -64,15 +66,6 @@ export default class CreateProvider extends Command {
       logCb: this.logCallback,
       warnCb: this.warnCallback,
     });
-
-    // typecheck the template flag
-    switch (flags.template) {
-      case 'empty':
-      case 'pubs':
-        break;
-      default:
-        throw developerError('Invalid --template flag option', 1);
-    }
 
     //Load super json
     const loadedResult = await SuperJson.load(joinPath(superPath, META_FILE));
@@ -86,7 +79,7 @@ export default class CreateProvider extends Command {
       }
     );
 
-    await createProviderJson('', superJson, argv[0], flags.template, {
+    await createProviderJson('', superJson, documentName, {
       logCb: this.logCallback,
     });
 

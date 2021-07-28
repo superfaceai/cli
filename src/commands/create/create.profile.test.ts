@@ -88,13 +88,12 @@ describe('Create profile CLI command', () => {
           version: { major: 1, minor: 0, patch: 0, label: undefined },
         },
         ['Sendsms'],
-        'empty',
         { logCb: undefined }
       );
       expect(writeOnceSpy).toHaveBeenCalledTimes(1);
     });
 
-    it('creates profile with one usecase and template', async () => {
+    it('creates profile with one usecase', async () => {
       const loadSpy = jest
         .spyOn(SuperJson, 'load')
         .mockResolvedValue(ok(mockSuperJson));
@@ -107,7 +106,7 @@ describe('Create profile CLI command', () => {
       documentName = 'sms/service';
 
       await expect(
-        CreateProfile.run([documentName, '-u', 'SendSMS', '--template', 'pubs'])
+        CreateProfile.run([documentName, '-u', 'SendSMS'])
       ).resolves.toBeUndefined();
 
       expect(loadSpy).toHaveBeenCalledTimes(1);
@@ -122,7 +121,6 @@ describe('Create profile CLI command', () => {
           version: { major: 1, minor: 0, patch: 0, label: undefined },
         },
         ['SendSMS'],
-        'pubs',
         { logCb: expect.anything() }
       );
       expect(writeOnceSpy).toHaveBeenCalledTimes(1);
@@ -156,35 +154,9 @@ describe('Create profile CLI command', () => {
           version: { major: 1, minor: 0, patch: 0, label: undefined },
         },
         ['ReceiveSMS', 'SendSMS'],
-        'empty',
         { logCb: expect.anything() }
       );
       expect(writeOnceSpy).toHaveBeenCalledTimes(1);
-    });
-
-    it('throws error on invalid template', async () => {
-      const loadSpy = jest
-        .spyOn(SuperJson, 'load')
-        .mockResolvedValue(ok(mockSuperJson));
-      const writeOnceSpy = jest
-        .spyOn(OutputStream, 'writeOnce')
-        .mockResolvedValue(undefined);
-      mocked(initSuperface).mockResolvedValue(new SuperJson({}));
-      jest.spyOn(inquirer, 'prompt').mockResolvedValueOnce({ init: true });
-
-      documentName = 'sms/service';
-
-      await expect(
-        CreateProfile.run([documentName, '--template', 'test'])
-      ).rejects.toEqual(
-        new CLIError(
-          'Expected --template=test to be one of: empty, pubs\nSee more help with --help'
-        )
-      );
-
-      expect(loadSpy).not.toHaveBeenCalled();
-      expect(createProfile).not.toHaveBeenCalled();
-      expect(writeOnceSpy).not.toHaveBeenCalled();
     });
 
     it('throws error on invalid document name', async () => {
@@ -193,10 +165,6 @@ describe('Create profile CLI command', () => {
       );
 
       await expect(CreateProfile.run(['profile'])).rejects.toEqual(
-        new CLIError('Name of your document is reserved!')
-      );
-
-      await expect(CreateProfile.run(['both'])).rejects.toEqual(
         new CLIError('Name of your document is reserved!')
       );
     });

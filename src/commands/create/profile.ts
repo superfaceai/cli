@@ -42,11 +42,6 @@ export default class CreateProfile extends Command {
       default: DEFAULT_PROFILE_VERSION_STR,
       description: 'Version of a profile',
     }),
-    template: oclifFlags.string({
-      options: ['empty', 'pubs'],
-      default: 'empty',
-      description: 'Template to initialize the usecases and maps with',
-    }),
     scan: oclifFlags.integer({
       char: 's',
       description:
@@ -71,11 +66,7 @@ export default class CreateProfile extends Command {
     //Check input
     const documentName = argv[0];
 
-    if (
-      documentName === 'profile' ||
-      documentName === 'map' ||
-      documentName === 'both'
-    ) {
+    if (documentName === 'profile' || documentName === 'map') {
       throw userError('Name of your document is reserved!', 1);
     }
 
@@ -95,7 +86,7 @@ export default class CreateProfile extends Command {
     } = documentStructure;
 
     if (version === undefined) {
-      throw developerError('version must be present', 1);
+      throw developerError('Version must be present', 1);
     }
 
     // if there is no specified usecase - create usecase with same name as profile name
@@ -120,15 +111,6 @@ export default class CreateProfile extends Command {
       warnCb: this.warnCallback,
     });
 
-    // typecheck the template flag
-    switch (flags.template) {
-      case 'empty':
-      case 'pubs':
-        break;
-      default:
-        throw developerError('Invalid --template flag option', 1);
-    }
-
     //Load super json
     const loadedResult = await SuperJson.load(joinPath(superPath, META_FILE));
     const superJson = loadedResult.match(
@@ -140,16 +122,9 @@ export default class CreateProfile extends Command {
       }
     );
 
-    await createProfile(
-      '',
-      superJson,
-      { scope, name, version },
-      usecases,
-      flags.template,
-      {
-        logCb: this.logCallback,
-      }
-    );
+    await createProfile('', superJson, { scope, name, version }, usecases, {
+      logCb: this.logCallback,
+    });
 
     // write new information to super.json
     await OutputStream.writeOnce(superJson.path, superJson.stringified);
