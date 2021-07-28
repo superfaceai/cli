@@ -148,7 +148,8 @@ export async function create(
   usecases: string[],
   documentStructure: {
     scope?: string;
-    middle: string[];
+    name?: string;
+    provider?: string;
     version: DocumentVersion;
   },
   options?: {
@@ -166,16 +167,18 @@ export async function create(
       return new SuperJson({});
     }
   );
-  const {
-    scope,
-    middle: [name, provider],
-    version,
-  } = documentStructure;
+  const { scope, name, provider, version } = documentStructure;
 
   if (create.createMap) {
     if (!provider) {
       throw userError(
         'Provider name must be provided when generating a map.',
+        2
+      );
+    }
+    if (!name) {
+      throw userError(
+        'Profile name must be provided when generating a map.',
         2
       );
     }
@@ -199,6 +202,12 @@ export async function create(
     });
   }
   if (create.createProfile) {
+    if (!name) {
+      throw userError(
+        'Profile name must be provided when generating a profile',
+        2
+      );
+    }
     await createProfile('', superJson, { scope, name, version }, usecases, {
       logCb: options?.logCb,
     });

@@ -2,14 +2,14 @@ import { SuperJson } from '@superfaceai/one-sdk';
 import { getLocal } from 'mockttp';
 import { join as joinPath } from 'path';
 
-import { mkdir, rimraf } from '../../common/io';
+import { mkdir, rimraf } from '../common/io';
 import {
   ENTER,
   execCLI,
   mockResponsesForProfile,
   mockResponsesForProvider,
   setUpTempDir,
-} from '../../test/utils';
+} from '../test/utils';
 
 const mockServer = getLocal();
 
@@ -43,7 +43,7 @@ describe('Interactive create CLI command', () => {
 
       let result = await execCLI(
         tempDir,
-        ['create', documentName, '-i'],
+        ['create', '--profileId', documentName, '-i'],
         mockServer.url,
         {
           inputs: [
@@ -91,7 +91,7 @@ describe('Interactive create CLI command', () => {
 
       let result = await execCLI(
         tempDir,
-        ['create', documentName, '-u', 'SendSMS', '-i'],
+        ['create', '--profileId', documentName, '-u', 'SendSMS', '-i'],
         mockServer.url,
         {
           inputs: [
@@ -137,7 +137,15 @@ describe('Interactive create CLI command', () => {
 
       let result = await execCLI(
         tempDir,
-        ['create', documentName, '-u', 'ReceiveSMS', 'SendSMS', '-i'],
+        [
+          'create',
+          '--profileId',
+          documentName,
+          '-u',
+          'ReceiveSMS',
+          'SendSMS',
+          '-i',
+        ],
         mockServer.url,
         {
           inputs: [
@@ -185,7 +193,14 @@ describe('Interactive create CLI command', () => {
 
       let result = await execCLI(
         tempDir,
-        ['create', documentName, '-p', provider, '-i'],
+        [
+          'create',
+          '--profileId',
+          documentName,
+          '--providerName',
+          provider,
+          '-i',
+        ],
         mockServer.url,
         {
           inputs: [
@@ -241,7 +256,16 @@ describe('Interactive create CLI command', () => {
 
       let result = await execCLI(
         tempDir,
-        ['create', documentName, '-u', 'SendSMS', '-p', provider, '-i'],
+        [
+          'create',
+          '--profileId',
+          documentName,
+          '-u',
+          'SendSMS',
+          '--providerName',
+          provider,
+          '-i',
+        ],
         mockServer.url,
         {
           inputs: [
@@ -302,8 +326,9 @@ describe('Interactive create CLI command', () => {
         tempDir,
         [
           'create',
+          '--profileId',
           documentName,
-          '-p',
+          '--providerName',
           provider,
           '-u',
           'ReceiveSMS',
@@ -366,7 +391,14 @@ describe('Interactive create CLI command', () => {
 
       let result = await execCLI(
         tempDir,
-        ['create', documentName, '-p', provider, '-i'],
+        [
+          'create',
+          '--profileId',
+          documentName,
+          '--providerName',
+          provider,
+          '-i',
+        ],
         mockServer.url,
         {
           inputs: [
@@ -433,7 +465,16 @@ describe('Interactive create CLI command', () => {
 
       let result = await execCLI(
         tempDir,
-        ['create', documentName, '-u', 'SendSMS', '-p', 'twilio', '-i'],
+        [
+          'create',
+          '--profileId',
+          documentName,
+          '-u',
+          'SendSMS',
+          '--providerName',
+          'twilio',
+          '-i',
+        ],
         mockServer.url,
         {
           inputs: [
@@ -501,11 +542,12 @@ describe('Interactive create CLI command', () => {
         tempDir,
         [
           'create',
+          '--profileId',
           documentName,
           '-u',
           'SendSMS',
           'ReceiveSMS',
-          '-p',
+          '--providerName',
           provider,
           '-i',
         ],
@@ -513,14 +555,14 @@ describe('Interactive create CLI command', () => {
         {
           inputs: [
             //Create profile
-            { value: ENTER, timeout: 1000 },
+            { value: ENTER, timeout: 2000 },
             //Create map
-            { value: ENTER, timeout: 1000 },
+            { value: ENTER, timeout: 2000 },
             //Create provider
-            { value: 'n', timeout: 1000 },
-            { value: ENTER, timeout: 200 },
+            { value: 'n', timeout: 2000 },
+            { value: ENTER, timeout: 500 },
             //Init superface
-            { value: ENTER, timeout: 1000 },
+            { value: ENTER, timeout: 2000 },
           ],
         }
       );

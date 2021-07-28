@@ -3,17 +3,17 @@ import { SuperJson } from '@superfaceai/one-sdk';
 import inquirer from 'inquirer';
 import { mocked } from 'ts-jest/utils';
 
-import { create } from '../../logic/create';
-import { initSuperface } from '../../logic/init';
-import Create from '.';
+import { create } from '../logic/create';
+import { initSuperface } from '../logic/init';
+import Create from './create';
 
 //Mock create logic
-jest.mock('../../logic/create', () => ({
+jest.mock('../logic/create', () => ({
   create: jest.fn(),
 }));
 
 //Mock init logic
-jest.mock('../../logic/init', () => ({
+jest.mock('../logic/init', () => ({
   initSuperface: jest.fn(),
 }));
 
@@ -47,14 +47,16 @@ describe('Interactive create CLI command', () => {
         .mockResolvedValueOnce({ init: true });
 
       documentName = 'sendsms';
-      await expect(Create.run([documentName, '-i'])).resolves.toBeUndefined();
+      await expect(
+        Create.run(['--profileId', documentName, '-i'])
+      ).resolves.toBeUndefined();
       expect(create).toHaveBeenCalledTimes(1);
       expect(create).toHaveBeenCalledWith(
         'superface',
         { createProfile: true, createMap: false, createProvider: false },
         ['Sendsms'],
         {
-          middle: ['sendsms'],
+          name: 'sendsms',
           scope: undefined,
           version: { label: undefined, major: 1, minor: 0, patch: 0 },
         },
@@ -77,7 +79,7 @@ describe('Interactive create CLI command', () => {
 
       documentName = 'sms/service';
       await expect(
-        Create.run([documentName, '-u', 'SendSMS', '-i'])
+        Create.run(['--profileId', documentName, '-u', 'SendSMS', '-i'])
       ).resolves.toBeUndefined();
 
       expect(create).toHaveBeenCalledTimes(1);
@@ -86,7 +88,7 @@ describe('Interactive create CLI command', () => {
         { createProfile: true, createMap: false, createProvider: false },
         ['SendSMS'],
         {
-          middle: ['service'],
+          name: 'service',
           scope: 'sms',
           version: { label: undefined, major: 1, minor: 0, patch: 0 },
         },
@@ -109,7 +111,14 @@ describe('Interactive create CLI command', () => {
 
       documentName = 'sms/service';
       await expect(
-        Create.run([documentName, '-u', 'ReceiveSMS', 'SendSMS', '-i'])
+        Create.run([
+          '--profileId',
+          documentName,
+          '-u',
+          'ReceiveSMS',
+          'SendSMS',
+          '-i',
+        ])
       ).resolves.toBeUndefined();
 
       expect(create).toHaveBeenCalledTimes(1);
@@ -118,7 +127,7 @@ describe('Interactive create CLI command', () => {
         { createProfile: true, createMap: false, createProvider: false },
         ['ReceiveSMS', 'SendSMS'],
         {
-          middle: ['service'],
+          name: 'service',
           scope: 'sms',
           version: { label: undefined, major: 1, minor: 0, patch: 0 },
         },
@@ -142,7 +151,13 @@ describe('Interactive create CLI command', () => {
       documentName = 'sms/service';
       provider = 'twilio';
       await expect(
-        Create.run([documentName, '-p', provider, '-i'])
+        Create.run([
+          '--profileId',
+          documentName,
+          '--providerName',
+          provider,
+          '-i',
+        ])
       ).resolves.toBeUndefined();
 
       expect(create).toHaveBeenCalledTimes(1);
@@ -151,7 +166,8 @@ describe('Interactive create CLI command', () => {
         { createProfile: false, createMap: true, createProvider: false },
         ['Service'],
         {
-          middle: ['service', 'twilio'],
+          name: 'service',
+          provider: 'twilio',
           scope: 'sms',
           version: { label: undefined, major: 1, minor: 0, patch: 0 },
         },
@@ -175,7 +191,15 @@ describe('Interactive create CLI command', () => {
       documentName = 'sms/service';
       provider = 'twilio';
       await expect(
-        Create.run([documentName, '-u', 'SendSMS', '-p', provider, '-i'])
+        Create.run([
+          '--profileId',
+          documentName,
+          '-u',
+          'SendSMS',
+          '--providerName',
+          provider,
+          '-i',
+        ])
       ).resolves.toBeUndefined();
 
       expect(create).toHaveBeenCalledTimes(1);
@@ -184,7 +208,8 @@ describe('Interactive create CLI command', () => {
         { createProfile: false, createMap: true, createProvider: true },
         ['SendSMS'],
         {
-          middle: ['service', 'twilio'],
+          name: 'service',
+          provider: 'twilio',
           scope: 'sms',
           version: { label: undefined, major: 1, minor: 0, patch: 0 },
         },
@@ -209,8 +234,9 @@ describe('Interactive create CLI command', () => {
       provider = 'twilio';
       await expect(
         Create.run([
+          '--profileId',
           documentName,
-          '-p',
+          '--providerName',
           'twilio',
           '-u',
           'ReceiveSMS',
@@ -224,7 +250,8 @@ describe('Interactive create CLI command', () => {
         { createProfile: false, createMap: true, createProvider: true },
         ['ReceiveSMS', 'SendSMS'],
         {
-          middle: ['service', 'twilio'],
+          name: 'service',
+          provider: 'twilio',
           scope: 'sms',
           version: { label: undefined, major: 1, minor: 0, patch: 0 },
         },
@@ -248,7 +275,13 @@ describe('Interactive create CLI command', () => {
       documentName = 'sms/service';
       provider = 'twilio';
       await expect(
-        Create.run([documentName, '-p', provider, '-i'])
+        Create.run([
+          '--profileId',
+          documentName,
+          '--providerName',
+          provider,
+          '-i',
+        ])
       ).resolves.toBeUndefined();
 
       expect(create).toHaveBeenCalledTimes(1);
@@ -257,7 +290,8 @@ describe('Interactive create CLI command', () => {
         { createProfile: true, createMap: true, createProvider: true },
         ['Service'],
         {
-          middle: ['service', 'twilio'],
+          name: 'service',
+          provider: 'twilio',
           scope: 'sms',
           version: { label: undefined, major: 1, minor: 0, patch: 0 },
         },
@@ -281,7 +315,15 @@ describe('Interactive create CLI command', () => {
       documentName = 'sms/service';
       provider = 'twilio';
       await expect(
-        Create.run([documentName, '-u', 'SendSMS', '-p', 'twilio', '-i'])
+        Create.run([
+          '--profileId',
+          documentName,
+          '-u',
+          'SendSMS',
+          '--providerName',
+          'twilio',
+          '-i',
+        ])
       ).resolves.toBeUndefined();
 
       expect(create).toHaveBeenCalledTimes(1);
@@ -290,7 +332,8 @@ describe('Interactive create CLI command', () => {
         { createProfile: true, createMap: true, createProvider: false },
         ['SendSMS'],
         {
-          middle: ['service', 'twilio'],
+          name: 'service',
+          provider: 'twilio',
           scope: 'sms',
           version: { label: undefined, major: 1, minor: 0, patch: 0 },
         },
@@ -315,11 +358,12 @@ describe('Interactive create CLI command', () => {
       provider = 'twilio';
       await expect(
         Create.run([
+          '--profileId',
           documentName,
           '-u',
           'SendSMS',
           'ReceiveSMS',
-          '-p',
+          '--providerName',
           provider,
           '-i',
         ])
@@ -330,7 +374,8 @@ describe('Interactive create CLI command', () => {
         { createProfile: true, createMap: true, createProvider: false },
         ['SendSMS', 'ReceiveSMS'],
         {
-          middle: ['service', 'twilio'],
+          name: 'service',
+          provider: 'twilio',
           scope: 'sms',
           version: { label: undefined, major: 1, minor: 0, patch: 0 },
         },
@@ -339,18 +384,26 @@ describe('Interactive create CLI command', () => {
     });
 
     it('throws error on invalid command', async () => {
-      await expect(Create.run(['profile', 'map', 'test'])).rejects.toEqual(
+      await expect(Create.run(['profile'])).rejects.toEqual(
         new CLIError('Invalid command!')
       );
     });
 
     it('throws error on invalid document name', async () => {
-      await expect(Create.run(['map'])).rejects.toEqual(
-        new CLIError('Name of your document is reserved!')
+      await expect(Create.run(['--profileId', 'map'])).rejects.toEqual(
+        new CLIError('ProfileId is reserved!')
       );
 
-      await expect(Create.run(['profile'])).rejects.toEqual(
-        new CLIError('Name of your document is reserved!')
+      await expect(Create.run(['--profileId', 'profile'])).rejects.toEqual(
+        new CLIError('ProfileId is reserved!')
+      );
+
+      await expect(Create.run(['--providerName', 'map'])).rejects.toEqual(
+        new CLIError('ProviderName is reserved!')
+      );
+
+      await expect(Create.run(['--providerName', 'profile'])).rejects.toEqual(
+        new CLIError('ProviderName is reserved!')
       );
     });
 
@@ -369,7 +422,7 @@ describe('Interactive create CLI command', () => {
         .mockResolvedValueOnce({ init: true });
 
       await expect(
-        Create.run([documentName, '-u', 'SendSMS', '-i'])
+        Create.run(['--profileId', documentName, '-u', 'SendSMS', '-i'])
       ).rejects.toEqual(
         new CLIError('"vT_7!" is not a valid lowercase identifier')
       );
@@ -390,7 +443,15 @@ describe('Interactive create CLI command', () => {
         .mockResolvedValueOnce({ init: true });
 
       await expect(
-        Create.run([documentName, '-v', '', '-u', 'SendSMS', '-i'])
+        Create.run([
+          '--profileId',
+          documentName,
+          '-v',
+          '',
+          '-u',
+          'SendSMS',
+          '-i',
+        ])
       ).rejects.toEqual(
         new CLIError(
           'could not parse version: major component is not a valid number'
@@ -413,7 +474,7 @@ describe('Interactive create CLI command', () => {
         .mockResolvedValueOnce({ init: true });
 
       await expect(
-        Create.run([documentName, '-u', '7_L§', '-i'])
+        Create.run(['--profileId', documentName, '-u', '7_L§', '-i'])
       ).rejects.toEqual(new CLIError('Invalid usecase name: 7_L§'));
     });
   });
