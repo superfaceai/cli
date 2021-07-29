@@ -191,13 +191,14 @@ describe('Create logic', () => {
   describe('when creating document', () => {
     const mockName = 'test-name';
     const mockProvider = 'provider';
+    const secondMockProvider = 'secondProvider';
     const mockScope = 'test-scope';
     const mockSuperPath = 'test-super-path';
     const mockUsecases = ['usecase'];
     let mockDocumentStructure: {
       scope?: string;
       name?: string;
-      provider?: string;
+      providerNames: string[];
       version: {
         major: number;
         minor: number;
@@ -212,13 +213,100 @@ describe('Create logic', () => {
       mockDocumentStructure = {
         scope: mockScope,
         name: mockName,
-        provider: mockProvider,
+        providerNames: [mockProvider],
         version: {
           major: 1,
           minor: 0,
           patch: 0,
         },
       };
+    });
+    it('creates one provider correctly', async () => {
+      const loadSpy = jest
+        .spyOn(SuperJson, 'load')
+        .mockResolvedValue(ok(mockSuperJson));
+      const writeIfAbsentSpy = jest
+        .spyOn(OutputStream, 'writeIfAbsent')
+        .mockResolvedValue(true);
+      const writeOnceSpy = jest
+        .spyOn(OutputStream, 'writeOnce')
+        .mockResolvedValue(undefined);
+
+      await expect(
+        create(
+          mockSuperPath,
+          { createProfile: false, createMap: false, createProvider: true },
+          mockUsecases,
+          mockDocumentStructure
+        )
+      ).resolves.toBeUndefined();
+
+      expect(loadSpy).toHaveBeenCalledTimes(1);
+
+      expect(writeOnceSpy).toHaveBeenCalledTimes(1);
+      expect(mockSuperJson.normalized).toEqual({
+        profiles: {},
+        providers: {
+          provider: { file: 'provider.provider.json', security: [] },
+        },
+      });
+
+      expect(writeIfAbsentSpy).toHaveBeenCalledTimes(1);
+
+      expect(writeIfAbsentSpy).toHaveBeenCalledWith(
+        'provider.provider.json',
+        emptyProvider(mockProvider),
+        { force: undefined }
+      );
+    });
+
+    it('creates multiple providers correctly', async () => {
+      const loadSpy = jest
+        .spyOn(SuperJson, 'load')
+        .mockResolvedValue(ok(mockSuperJson));
+      const writeIfAbsentSpy = jest
+        .spyOn(OutputStream, 'writeIfAbsent')
+        .mockResolvedValue(true);
+      const writeOnceSpy = jest
+        .spyOn(OutputStream, 'writeOnce')
+        .mockResolvedValue(undefined);
+
+      mockDocumentStructure.providerNames = [mockProvider, secondMockProvider]
+
+      await expect(
+        create(
+          mockSuperPath,
+          { createProfile: false, createMap: false, createProvider: true },
+          mockUsecases,
+          mockDocumentStructure
+        )
+      ).resolves.toBeUndefined();
+
+      expect(loadSpy).toHaveBeenCalledTimes(1);
+
+      expect(writeOnceSpy).toHaveBeenCalledTimes(1);
+      expect(mockSuperJson.normalized).toEqual({
+        profiles: {},
+        providers: {
+          provider: { file: 'provider.provider.json', security: [] },
+          secondProvider: { file: 'secondProvider.provider.json', security: [] },
+        },
+      });
+
+      expect(writeIfAbsentSpy).toHaveBeenCalledTimes(2);
+
+      expect(writeIfAbsentSpy).toHaveBeenNthCalledWith(
+        1,
+        'provider.provider.json',
+        emptyProvider(mockProvider),
+        { force: undefined }
+      );
+      expect(writeIfAbsentSpy).toHaveBeenNthCalledWith(
+        2,
+        'secondProvider.provider.json',
+        emptyProvider(secondMockProvider),
+        { force: undefined }
+      );
     });
 
     it('creates profile correctly', async () => {
@@ -489,6 +577,7 @@ describe('Create logic', () => {
     it('throws error when provider is missing - creating map', async () => {
       mockDocumentStructure = {
         scope: mockScope,
+        providerNames: [],
         name: mockName,
         version: {
           major: 1,
@@ -533,6 +622,7 @@ describe('Create logic', () => {
     it('throws error when provider is missing - creating provider', async () => {
       mockDocumentStructure = {
         scope: mockScope,
+        providerNames: [],
         name: mockName,
         version: {
           major: 1,
@@ -579,7 +669,7 @@ describe('Create logic', () => {
     it('throws error when profile name is missing - creating map', async () => {
       mockDocumentStructure = {
         scope: mockScope,
-        provider: mockProvider,
+        providerNames: [mockProvider],
         version: {
           major: 1,
           minor: 0,
@@ -623,7 +713,7 @@ describe('Create logic', () => {
     it('throws error when profile name is missing - creating profile', async () => {
       mockDocumentStructure = {
         scope: mockScope,
-        provider: mockProvider,
+        providerNames: [mockProvider],
         version: {
           major: 1,
           minor: 0,
@@ -667,6 +757,7 @@ describe('Create logic', () => {
     it('throws error when provider is missing - creating map and profile', async () => {
       mockDocumentStructure = {
         scope: mockScope,
+        providerNames: [],
         name: mockName,
         version: {
           major: 1,

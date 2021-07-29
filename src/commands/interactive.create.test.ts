@@ -158,7 +158,7 @@ describe('Interactive create CLI command', () => {
           provider,
           '-i',
           '-t',
-          'bugfix'
+          'bugfix',
         ])
       ).resolves.toBeUndefined();
 
@@ -169,7 +169,49 @@ describe('Interactive create CLI command', () => {
         ['Service'],
         {
           name: 'service',
-          provider: 'twilio',
+          providerNames: ['twilio'],
+          variant: 'bugfix',
+          scope: 'sms',
+          version: { label: undefined, major: 1, minor: 0, patch: 0 },
+        },
+        { logCb: expect.anything(), warnCb: expect.anything() }
+      );
+    });
+
+    it('creates multiple maps', async () => {
+      mocked(initSuperface).mockResolvedValue(new SuperJson({}));
+      jest
+        .spyOn(inquirer, 'prompt')
+        //Create profile
+        .mockResolvedValueOnce({ create: false })
+        //Create map
+        .mockResolvedValueOnce({ create: true })
+        //Create provider
+        .mockResolvedValueOnce({ create: false })
+        //Init
+        .mockResolvedValueOnce({ init: true });
+
+      documentName = 'sms/service';
+      await expect(
+        Create.run([
+          '--profileId',
+          documentName,
+          '--providerName',
+          'twilio', 'tyntec',
+          '-i',
+          '-t',
+          'bugfix',
+        ])
+      ).resolves.toBeUndefined();
+
+      expect(create).toHaveBeenCalledTimes(1);
+      expect(create).toHaveBeenCalledWith(
+        'superface',
+        { createProfile: false, createMap: true, createProvider: false },
+        ['Service'],
+        {
+          name: 'service',
+          providerNames: ['twilio', 'tyntec'],
           variant: 'bugfix',
           scope: 'sms',
           version: { label: undefined, major: 1, minor: 0, patch: 0 },
@@ -212,7 +254,7 @@ describe('Interactive create CLI command', () => {
         ['SendSMS'],
         {
           name: 'service',
-          provider: 'twilio',
+          providerNames: ['twilio'],
           scope: 'sms',
           version: { label: undefined, major: 1, minor: 0, patch: 0 },
         },
@@ -254,7 +296,7 @@ describe('Interactive create CLI command', () => {
         ['ReceiveSMS', 'SendSMS'],
         {
           name: 'service',
-          provider: 'twilio',
+          providerNames: ['twilio'],
           scope: 'sms',
           version: { label: undefined, major: 1, minor: 0, patch: 0 },
         },
@@ -294,7 +336,7 @@ describe('Interactive create CLI command', () => {
         ['Service'],
         {
           name: 'service',
-          provider: 'twilio',
+          providerNames: ['twilio'],
           scope: 'sms',
           version: { label: undefined, major: 1, minor: 0, patch: 0 },
         },
@@ -336,7 +378,7 @@ describe('Interactive create CLI command', () => {
         ['SendSMS'],
         {
           name: 'service',
-          provider: 'twilio',
+          providerNames: ['twilio'],
           scope: 'sms',
           version: { label: undefined, major: 1, minor: 0, patch: 0 },
         },
@@ -378,7 +420,7 @@ describe('Interactive create CLI command', () => {
         ['SendSMS', 'ReceiveSMS'],
         {
           name: 'service',
-          provider: 'twilio',
+          providerNames: ['twilio'],
           scope: 'sms',
           version: { label: undefined, major: 1, minor: 0, patch: 0 },
         },
@@ -402,11 +444,11 @@ describe('Interactive create CLI command', () => {
       );
 
       await expect(Create.run(['--providerName', 'map'])).rejects.toEqual(
-        new CLIError('ProviderName is reserved!')
+        new CLIError('ProviderName "map" is reserved!')
       );
 
       await expect(Create.run(['--providerName', 'profile'])).rejects.toEqual(
-        new CLIError('ProviderName is reserved!')
+        new CLIError('ProviderName "profile" is reserved!')
       );
     });
 

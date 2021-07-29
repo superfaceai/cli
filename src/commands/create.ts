@@ -31,6 +31,7 @@ export default class Create extends Command {
         'Profile Id in format [scope](optional)[name]@[version](optional)',
     }),
     providerName: oclifFlags.string({
+      multiple: true,
       description: 'Name of provider',
     }),
     profile: oclifFlags.boolean({
@@ -86,7 +87,7 @@ export default class Create extends Command {
     '$ superface create --profileId sms/service --providerName twilio --map -u SendSMS ReceiveSMS',
     '$ superface create --profileId sms/service --providerName twilio --map -t bugfix -u SendSMS ReceiveSMS',
     //Provider only
-    '$ superface create -providerName twillio --provider',
+    '$ superface create --providerName twillio --provider',
     //Profile and provider
     '$ superface create --profileId sms/service --providerName twilio --profile --provider',
     '$ superface create --profileId sms/service --providerName twilio --profile --provider -u SendSMS ReceiveSMS',
@@ -95,13 +96,12 @@ export default class Create extends Command {
     '$ superface create --profileId sms/service --providerName twilio --map --profile -u SendSMS ReceiveSMS',
     '$ superface create --profileId sms/service --providerName twilio --map --profile -t bugfix -v 1.1-rev133 -u SendSMS ReceiveSMS',
     //Profile, map and provider
-    '$ superface create  --profileId sms/service --providerName twilio --provider --map --profile -u SendSMS ReceiveSMS',
-    '$ superface create  --profileId sms/service --providerName twilio --provider --map --profile -t bugfix -v 1.1-rev133 -u SendSMS ReceiveSMS',
+    '$ superface create --profileId sms/service --providerName twilio --provider --map --profile -u SendSMS ReceiveSMS',
+    '$ superface create --profileId sms/service --providerName twilio --provider --map --profile -t bugfix -v 1.1-rev133 -u SendSMS ReceiveSMS',
     //Interactive
     '$ superface create --profileId sms/service -i',
     '$ superface create --profileId sms/service -u SendSMS ReceiveSMS -i',
     '$ superface create --profileId sms/service --providerName twilio -i',
-    '$ superface create --profileId sms/service --providerName twilio -u SendSMS ReceiveSMS -i',
     '$ superface create --profileId sms/service --providerName twilio -u SendSMS ReceiveSMS -i',
     '$ superface create --profileId sms/service --providerName twilio -t bugfix -v 1.1-rev133 -u SendSMS ReceiveSMS -i',
   ];
@@ -130,8 +130,8 @@ export default class Create extends Command {
       this.logCallback = undefined;
       this.warnCallback = undefined;
     }
-    let profileId,
-      providerName: string | undefined = undefined;
+    let profileId: string | undefined = undefined;
+    let providerNames: string[] = [];
 
     //Check inputs
     if (flags.profileId) {
@@ -141,18 +141,23 @@ export default class Create extends Command {
       profileId = flags.profileId;
     }
     if (flags.providerName) {
-      if (flags.providerName === 'profile' || flags.providerName === 'map') {
-        throw userError('ProviderName is reserved!', 1);
+      for (const provider of flags.providerName) {
+        if (provider === 'profile' || provider === 'map') {
+          throw userError(`ProviderName "${provider}" is reserved!`, 1);
+        }
+        if (!isValidDocumentIdentifier(provider)) {
+          throw userError(`Invalid provider name: ${provider}`, 1);
+        }
       }
-      providerName = flags.providerName;
     }
+    providerNames = flags.providerName;
 
     // output a warning when generating profile only and provider is specified
     if (flags.profile && !flags.map && !flags.provider && flags.providerName) {
       this.warn(
         'Provider should not be specified when generating profile only'
       );
-      providerName = undefined;
+      providerNames = [];
 
       // output a warning when variant is specified as well
       if (flags.variant) {
@@ -211,11 +216,6 @@ export default class Create extends Command {
       }
     }
 
-    //We are creating provider or map - parse provider name
-    if (providerName && !isValidDocumentIdentifier(providerName)) {
-      throw userError(`Invalid provider name: ${providerName}`, 1);
-    }
-
     // create scope directory if it already doesn't exist
     if (scope) {
       await mkdirQuiet(scope);
@@ -237,7 +237,7 @@ export default class Create extends Command {
       {
         scope,
         version,
-        provider: providerName,
+        providerNames,
         name,
         variant: flags.variant,
       },

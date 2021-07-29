@@ -149,7 +149,7 @@ export async function create(
   documentStructure: {
     scope?: string;
     name?: string;
-    provider?: string;
+    providerNames: string[];
     version: DocumentVersion;
     variant?: string;
   },
@@ -168,10 +168,16 @@ export async function create(
       return new SuperJson({});
     }
   );
-  const { scope, name, provider, version, variant } = documentStructure;
+  const {
+    scope,
+    name,
+    providerNames: providers,
+    version,
+    variant,
+  } = documentStructure;
 
   if (create.createMap) {
-    if (!provider) {
+    if (providers.length === 0) {
       throw userError(
         'Provider name must be provided when generating a map.',
         2
@@ -183,24 +189,28 @@ export async function create(
         2
       );
     }
-    await createMap(
-      '',
-      superJson,
-      { scope, name, provider, variant, version },
-      usecases,
-      { logCb: options?.logCb }
-    );
+    for (const provider of providers) {
+      await createMap(
+        '',
+        superJson,
+        { scope, name, provider, variant, version },
+        usecases,
+        { logCb: options?.logCb }
+      );
+    }
   }
   if (create.createProvider) {
-    if (!provider) {
+    if (providers.length === 0) {
       throw userError(
         'Provider name must be provided when generating a provider.',
         2
       );
     }
-    await createProviderJson('', superJson, provider, {
-      logCb: options?.logCb,
-    });
+    for (const provider of providers) {
+      await createProviderJson('', superJson, provider, {
+        logCb: options?.logCb,
+      });
+    }
   }
   if (create.createProfile) {
     if (!name) {
