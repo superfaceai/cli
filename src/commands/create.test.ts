@@ -37,7 +37,7 @@ describe('Create CLI command', () => {
       mocked(initSuperface).mockResolvedValue(new SuperJson({}));
       jest.spyOn(inquirer, 'prompt').mockResolvedValueOnce({ init: true });
 
-      provider = 'sms/service';
+      provider = 'twilio';
       await expect(
         Create.run(['--providerName', provider, '--provider'])
       ).resolves.toBeUndefined();
@@ -56,13 +56,13 @@ describe('Create CLI command', () => {
       );
     });
 
-    it('creates profile with one usecase (with usecase name from cli)', async () => {
+    it('creates profile with one usecase (with usecase name from cli) and quiet falg', async () => {
       mocked(initSuperface).mockResolvedValue(new SuperJson({}));
       jest.spyOn(inquirer, 'prompt').mockResolvedValueOnce({ init: true });
 
       documentName = 'sendsms';
       await expect(
-        Create.run(['--profileId', documentName, '--profile'])
+        Create.run(['--profileId', documentName, '--profile', '-q'])
       ).resolves.toBeUndefined();
       expect(create).toHaveBeenCalledTimes(1);
       expect(create).toHaveBeenCalledWith(
@@ -74,7 +74,7 @@ describe('Create CLI command', () => {
           scope: undefined,
           version: { label: undefined, major: 1, minor: 0, patch: 0 },
         },
-        { logCb: expect.anything(), warnCb: expect.anything() }
+        { logCb: undefined, warnCb: undefined }
       );
     });
 
@@ -131,7 +131,7 @@ describe('Create CLI command', () => {
       );
     });
 
-    it('creates map with one provider (with provider name from cli)', async () => {
+    it('creates map with one provider (with provider name from cli) and variant', async () => {
       mocked(initSuperface).mockResolvedValue(new SuperJson({}));
       jest.spyOn(inquirer, 'prompt').mockResolvedValueOnce({ init: true });
 
@@ -144,6 +144,8 @@ describe('Create CLI command', () => {
           '--providerName',
           provider,
           '--map',
+          '-t',
+          'bugfix'
         ])
       ).resolves.toBeUndefined();
 
@@ -155,6 +157,7 @@ describe('Create CLI command', () => {
         {
           name: 'service',
           provider: 'twilio',
+          variant: 'bugfix',
           scope: 'sms',
           version: { label: undefined, major: 1, minor: 0, patch: 0 },
         },
@@ -353,6 +356,32 @@ describe('Create CLI command', () => {
       await expect(Create.run(['--providerName', 'profile'])).rejects.toEqual(
         new CLIError('ProviderName is reserved!')
       );
+    });
+
+    it('throws error on invalid variant', async () => {
+      await expect(
+        Create.run([
+          '--profileId',
+          'sms/service',
+          '--providerName',
+          'twilio',
+          '--map',
+          '-t',
+          'vT_7!',
+        ])
+      ).rejects.toEqual(new CLIError('Invalid map variant: vT_7!'));
+    });
+
+    it('throws error on invalid provider name', async () => {
+      await expect(
+        Create.run([
+          '--profileId',
+          'sms/service',
+          '--providerName',
+          'vT_7!',
+          '--map',
+        ])
+      ).rejects.toEqual(new CLIError('Invalid provider name: vT_7!'));
     });
 
     it('throws error on invalid document', async () => {

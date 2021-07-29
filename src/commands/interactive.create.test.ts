@@ -135,7 +135,7 @@ describe('Interactive create CLI command', () => {
       );
     });
 
-    it('creates map with one provider (with provider name from cli)', async () => {
+    it('creates map with one provider (with provider name from cli) and variant', async () => {
       mocked(initSuperface).mockResolvedValue(new SuperJson({}));
       jest
         .spyOn(inquirer, 'prompt')
@@ -157,6 +157,8 @@ describe('Interactive create CLI command', () => {
           '--providerName',
           provider,
           '-i',
+          '-t',
+          'bugfix'
         ])
       ).resolves.toBeUndefined();
 
@@ -168,6 +170,7 @@ describe('Interactive create CLI command', () => {
         {
           name: 'service',
           provider: 'twilio',
+          variant: 'bugfix',
           scope: 'sms',
           version: { label: undefined, major: 1, minor: 0, patch: 0 },
         },
@@ -407,7 +410,54 @@ describe('Interactive create CLI command', () => {
       );
     });
 
-    it('throws error on invalid document', async () => {
+    it('throws error on invalid variant', async () => {
+      jest
+        .spyOn(inquirer, 'prompt')
+        //Create profile
+        .mockResolvedValueOnce({ create: false })
+        //Create map
+        .mockResolvedValueOnce({ create: true })
+        //Create provider
+        .mockResolvedValueOnce({ create: false })
+        //Init
+        .mockResolvedValueOnce({ init: true });
+
+      await expect(
+        Create.run([
+          '--profileId',
+          'sms/service',
+          '--providerName',
+          'twilio',
+          '-t',
+          'vT_7!',
+        ])
+      ).rejects.toEqual(new CLIError('Invalid map variant: vT_7!'));
+    });
+
+    it('throws error on invalid provider name', async () => {
+      jest
+        .spyOn(inquirer, 'prompt')
+        //Create profile
+        .mockResolvedValueOnce({ create: false })
+        //Create map
+        .mockResolvedValueOnce({ create: true })
+        //Create provider
+        .mockResolvedValueOnce({ create: false })
+        //Init
+        .mockResolvedValueOnce({ init: true });
+
+      await expect(
+        Create.run([
+          '--profileId',
+          'sms/service',
+          '--providerName',
+          'vT_7!',
+          '--map',
+        ])
+      ).rejects.toEqual(new CLIError('Invalid provider name: vT_7!'));
+    });
+
+    it('throws error on invalid profile name', async () => {
       documentName = 'vT_7!';
 
       jest

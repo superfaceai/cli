@@ -151,6 +151,7 @@ export async function create(
     name?: string;
     provider?: string;
     version: DocumentVersion;
+    variant?: string;
   },
   options?: {
     logCb?: LogCallback;
@@ -167,7 +168,7 @@ export async function create(
       return new SuperJson({});
     }
   );
-  const { scope, name, provider, version } = documentStructure;
+  const { scope, name, provider, version, variant } = documentStructure;
 
   if (create.createMap) {
     if (!provider) {
@@ -185,7 +186,7 @@ export async function create(
     await createMap(
       '',
       superJson,
-      { scope, name, provider, version },
+      { scope, name, provider, variant, version },
       usecases,
       { logCb: options?.logCb }
     );
@@ -204,7 +205,7 @@ export async function create(
   if (create.createProfile) {
     if (!name) {
       throw userError(
-        'Profile name must be provided when generating a profile',
+        'Profile name must be provided when generating a profile.',
         2
       );
     }

@@ -1,6 +1,10 @@
 import { flags as oclifFlags } from '@oclif/command';
 import { isValidIdentifier } from '@superfaceai/ast';
-import { DocumentVersion, parseDocumentId } from '@superfaceai/parser';
+import {
+  DocumentVersion,
+  isValidDocumentIdentifier,
+  parseProfileId,
+} from '@superfaceai/parser';
 import { grey, yellow } from 'chalk';
 import inquirer from 'inquirer';
 
@@ -76,15 +80,15 @@ export default class Create extends Command {
     //Profile only
     '$ superface create --profileId sms/service --profile',
     '$ superface create --profileId sms/service --profile -u SendSMS ReceiveSMS',
-    '$ superface create --profileId sms/service --profile  -v 1.1-rev133 -u SendSMS ReceiveSMS',
+    '$ superface create --profileId sms/service --profile -v 1.1-rev133 -u SendSMS ReceiveSMS',
     //Map only
-    '$ superface create --profileId sms/service --providerName twillio --map', //we need profile and provider
-    '$ superface create --profileId sms/service twilliom--map -u SendSMS ReceiveSMS',
-    '$ superface create --profileId sms/service twillio --map -t bugfix -u SendSMS ReceiveSMS',
+    '$ superface create --profileId sms/service --providerName twilio --map',
+    '$ superface create --profileId sms/service --providerName twilio --map -u SendSMS ReceiveSMS',
+    '$ superface create --profileId sms/service --providerName twilio --map -t bugfix -u SendSMS ReceiveSMS',
     //Provider only
-    '$ superface create -p twillio', //anything else?
+    '$ superface create -providerName twillio --provider',
     //Profile and provider
-    '$ superface create --profileId sms/service --providerName twilio  --profile --provider',
+    '$ superface create --profileId sms/service --providerName twilio --profile --provider',
     '$ superface create --profileId sms/service --providerName twilio --profile --provider -u SendSMS ReceiveSMS',
     '$ superface create --profileId sms/service --providerName twilio --profile --provider -v 1.1-rev133 -u SendSMS ReceiveSMS',
     //Profile and map
@@ -122,14 +126,14 @@ export default class Create extends Command {
       );
     }
 
-    //Manual
     if (flags.quiet) {
       this.logCallback = undefined;
       this.warnCallback = undefined;
     }
     let profileId,
-      provider: string | undefined = undefined;
+      providerName: string | undefined = undefined;
 
+    //Check inputs
     if (flags.profileId) {
       if (flags.profileId === 'profile' || flags.profileId === 'map') {
         throw userError('ProfileId is reserved!', 1);
@@ -140,15 +144,15 @@ export default class Create extends Command {
       if (flags.providerName === 'profile' || flags.providerName === 'map') {
         throw userError('ProviderName is reserved!', 1);
       }
-      provider = flags.providerName;
+      providerName = flags.providerName;
     }
 
     // output a warning when generating profile only and provider is specified
-    if (flags.profile && !flags.map && flags.providerName) {
+    if (flags.profile && !flags.map && !flags.provider && flags.providerName) {
       this.warn(
         'Provider should not be specified when generating profile only'
       );
-      provider = undefined;
+      providerName = undefined;
 
       // output a warning when variant is specified as well
       if (flags.variant) {
@@ -177,25 +181,25 @@ export default class Create extends Command {
     let version: DocumentVersion | undefined = DEFAULT_PROFILE_VERSION;
     let usecases: string[] = [];
     if (profileId) {
-      // parse document name and flags
-      const providerName = provider ? `.${provider}` : '';
-      const variant = flags.variant ? `.${flags.variant}` : '';
-      const documentId = `${
-        profileId ? profileId : ''
-      }${providerName}${variant}@${flags.version}`;
-      const documentResult = parseDocumentId(documentId);
-
-      if (documentResult.kind === 'error') {
-        throw userError(documentResult.message, 1);
+      // parse profile Id
+      const parsedProfileId = parseProfileId(`${profileId}@${flags.version}`);
+      if (parsedProfileId.kind === 'error') {
+        throw userError(parsedProfileId.message, 1);
       }
 
       // compose document structure from the result
-      scope = documentResult.value.scope;
-      version = documentResult.value.version;
-      name = documentResult.value.middle[0];
+      scope = parsedProfileId.value.scope;
+      version = parsedProfileId.value.version;
+      name = parsedProfileId.value.name;
 
+      // parse variant
+      if (flags.variant && !isValidDocumentIdentifier(flags.variant)) {
+        throw userError(`Invalid map variant: ${flags.variant}`, 1);
+      }
+
+      //just a sane check
       if (version === undefined) {
-        throw developerError('version must be present', 1);
+        throw developerError('Version must be present', 1);
       }
 
       // if there is no specified usecase - create usecase with same name as profile name
@@ -205,8 +209,11 @@ export default class Create extends Command {
           throw userError(`Invalid usecase name: ${usecase}`, 1);
         }
       }
-    } else {
-      //We are creatin provider only - parse provider name
+    }
+
+    //We are creating provider or map - parse provider name
+    if (providerName && !isValidDocumentIdentifier(providerName)) {
+      throw userError(`Invalid provider name: ${providerName}`, 1);
     }
 
     // create scope directory if it already doesn't exist
@@ -230,9 +237,9 @@ export default class Create extends Command {
       {
         scope,
         version,
-        provider,
+        provider: providerName,
         name,
-        //Add variant
+        variant: flags.variant,
       },
       {
         logCb: this.logCallback,

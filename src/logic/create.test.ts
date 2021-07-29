@@ -69,63 +69,6 @@ describe('Create logic', () => {
         { dirs: true, force: undefined }
       );
     });
-
-    it('creates pubs profile with scope', async () => {
-      const mockBasePath = 'test-path';
-      const mockId = {
-        scope: 'test-scope',
-        name: 'test-name',
-        version: { major: 1 },
-      };
-      const mockSuperJson = new SuperJson({});
-      const mockUsecaseNames = ['test-usecase'];
-      const writeIfAbsentSpy = jest
-        .spyOn(OutputStream, 'writeIfAbsent')
-        .mockResolvedValue(true);
-
-      await expect(
-        createProfile(mockBasePath, mockSuperJson, mockId, mockUsecaseNames)
-      ).resolves.toBeUndefined();
-
-      expect(writeIfAbsentSpy).toHaveBeenCalledTimes(1);
-      expect(
-        writeIfAbsentSpy
-      ).toHaveBeenCalledWith(
-        'test-path/test-scope/test-name.supr',
-        [
-          `name = "${mockId.scope}/${mockId.name}"\nversion = "1.0.0"\n`,
-          emptyProfile(mockUsecaseNames[0]),
-        ].join(''),
-        { dirs: true, force: undefined }
-      );
-    });
-
-    it('creates pubs profile without scope', async () => {
-      const mockBasePath = 'test-path';
-      const mockId = {
-        name: 'test-name',
-        version: { major: 1 },
-      };
-      const mockSuperJson = new SuperJson({});
-      const mockUsecaseNames = ['test-usecase'];
-      const writeIfAbsentSpy = jest
-        .spyOn(OutputStream, 'writeIfAbsent')
-        .mockResolvedValue(true);
-
-      await expect(
-        createProfile(mockBasePath, mockSuperJson, mockId, mockUsecaseNames)
-      ).resolves.toBeUndefined();
-
-      expect(writeIfAbsentSpy).toHaveBeenCalledTimes(1);
-      expect(writeIfAbsentSpy).toHaveBeenCalledWith(
-        'test-path/test-name.supr',
-        [
-          `name = "${mockId.name}"\nversion = "1.0.0"\n`,
-          emptyProfile(mockUsecaseNames[0]),
-        ].join(''),
-        { dirs: true, force: undefined }
-      );
-    });
   });
 
   describe('when creating map', () => {
@@ -190,13 +133,13 @@ describe('Create logic', () => {
       );
     });
 
-    it('creates pubs map with scope', async () => {
+    it('creates empty map without scope and with variant', async () => {
       const mockBasePath = 'test-path';
       const mockId = {
-        scope: 'test-scope',
         name: 'test-name',
         provider: 'twilio',
         version: { major: 1 },
+        variant: 'bugfix',
       };
       const mockSuperJson = new SuperJson({});
       const mockUsecaseNames = ['test-usecase'];
@@ -212,39 +155,9 @@ describe('Create logic', () => {
       expect(
         writeIfAbsentSpy
       ).toHaveBeenCalledWith(
-        'test-path/test-scope/test-name.twilio.suma',
+        'test-path/test-name.twilio.bugfix.suma',
         [
-          `profile = "${mockId.scope}/${mockId.name}@1.0"\nprovider = "${mockId.provider}"\n`,
-          emptyMap(mockUsecaseNames[0]),
-        ].join(''),
-        { dirs: true, force: undefined }
-      );
-    });
-
-    it('creates pubs map without scope', async () => {
-      const mockBasePath = 'test-path';
-      const mockId = {
-        name: 'test-name',
-        provider: 'twilio',
-        version: { major: 1 },
-      };
-      const mockSuperJson = new SuperJson({});
-      const mockUsecaseNames = ['test-usecase'];
-      const writeIfAbsentSpy = jest
-        .spyOn(OutputStream, 'writeIfAbsent')
-        .mockResolvedValue(true);
-
-      await expect(
-        createMap(mockBasePath, mockSuperJson, mockId, mockUsecaseNames)
-      ).resolves.toBeUndefined();
-
-      expect(writeIfAbsentSpy).toHaveBeenCalledTimes(1);
-      expect(
-        writeIfAbsentSpy
-      ).toHaveBeenCalledWith(
-        'test-path/test-name.twilio.suma',
-        [
-          `profile = "${mockId.name}@1.0"\nprovider = "${mockId.provider}"\n`,
+          `profile = "${mockId.name}@1.0"\nprovider = "${mockId.provider}"\nvariant = "bugfix"\n`,
           emptyMap(mockUsecaseNames[0]),
         ].join(''),
         { dirs: true, force: undefined }
@@ -252,28 +165,6 @@ describe('Create logic', () => {
     });
   });
   describe('when creating provider json', () => {
-    it('creates pubs provider', async () => {
-      const mockBasePath = 'test-path';
-      const mockName = 'twilio';
-      const mockSuperJson = new SuperJson({});
-      const writeIfAbsentSpy = jest
-        .spyOn(OutputStream, 'writeIfAbsent')
-        .mockResolvedValue(true);
-
-      await expect(
-        createProviderJson(mockBasePath, mockSuperJson, mockName)
-      ).resolves.toBeUndefined();
-
-      expect(writeIfAbsentSpy).toHaveBeenCalledTimes(1);
-      expect(
-        writeIfAbsentSpy
-      ).toHaveBeenCalledWith(
-        'test-path/twilio.provider.json',
-        emptyProvider(mockName),
-        { force: undefined }
-      );
-    });
-
     it('creates empty provider', async () => {
       const mockBasePath = 'test-path';
       const mockName = 'twilio';
@@ -312,6 +203,7 @@ describe('Create logic', () => {
         minor: number;
         patch: number;
       };
+      variant?: string;
     };
     let mockSuperJson: SuperJson;
 
@@ -670,6 +562,94 @@ describe('Create logic', () => {
         new CLIError(
           'Provider name must be provided when generating a provider.'
         )
+      );
+
+      expect(loadSpy).toHaveBeenCalledTimes(1);
+
+      expect(writeOnceSpy).toHaveBeenCalledTimes(0);
+
+      expect(mockSuperJson.normalized).toEqual({
+        profiles: {},
+        providers: {},
+      });
+
+      expect(writeIfAbsentSpy).toHaveBeenCalledTimes(0);
+    });
+
+    it('throws error when profile name is missing - creating map', async () => {
+      mockDocumentStructure = {
+        scope: mockScope,
+        provider: mockProvider,
+        version: {
+          major: 1,
+          minor: 0,
+          patch: 0,
+        },
+      };
+
+      const loadSpy = jest
+        .spyOn(SuperJson, 'load')
+        .mockResolvedValue(ok(mockSuperJson));
+      const writeIfAbsentSpy = jest
+        .spyOn(OutputStream, 'writeIfAbsent')
+        .mockResolvedValue(true);
+      const writeOnceSpy = jest
+        .spyOn(OutputStream, 'writeOnce')
+        .mockResolvedValue(undefined);
+
+      await expect(
+        create(
+          mockSuperPath,
+          { createProfile: false, createMap: true, createProvider: false },
+          mockUsecases,
+          mockDocumentStructure
+        )
+      ).rejects.toEqual(
+        new CLIError('Profile name must be provided when generating a map.')
+      );
+
+      expect(loadSpy).toHaveBeenCalledTimes(1);
+
+      expect(writeOnceSpy).toHaveBeenCalledTimes(0);
+
+      expect(mockSuperJson.normalized).toEqual({
+        profiles: {},
+        providers: {},
+      });
+
+      expect(writeIfAbsentSpy).toHaveBeenCalledTimes(0);
+    });
+
+    it('throws error when profile name is missing - creating profile', async () => {
+      mockDocumentStructure = {
+        scope: mockScope,
+        provider: mockProvider,
+        version: {
+          major: 1,
+          minor: 0,
+          patch: 0,
+        },
+      };
+
+      const loadSpy = jest
+        .spyOn(SuperJson, 'load')
+        .mockResolvedValue(ok(mockSuperJson));
+      const writeIfAbsentSpy = jest
+        .spyOn(OutputStream, 'writeIfAbsent')
+        .mockResolvedValue(true);
+      const writeOnceSpy = jest
+        .spyOn(OutputStream, 'writeOnce')
+        .mockResolvedValue(undefined);
+
+      await expect(
+        create(
+          mockSuperPath,
+          { createProfile: true, createMap: false, createProvider: false },
+          mockUsecases,
+          mockDocumentStructure
+        )
+      ).rejects.toEqual(
+        new CLIError('Profile name must be provided when generating a profile.')
       );
 
       expect(loadSpy).toHaveBeenCalledTimes(1);
