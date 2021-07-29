@@ -113,6 +113,10 @@ export default class Create extends Command {
   async run(): Promise<void> {
     const { flags } = this.parse(Create);
 
+    if (!flags.profileId && !flags.providerName) {
+      throw userError('Invalid command! Specify profileId or providerName', 1);
+    }
+
     //Not creating anything
     if (!flags.provider && !flags.profile && !flags.map && !flags.interactive) {
       this.warn(
@@ -122,9 +126,6 @@ export default class Create extends Command {
       return;
     }
 
-    if (!flags.profileId && !flags.providerName) {
-      throw userError('Invalid command! Specify profileId or providerName', 1);
-    }
     //Interactive
     if (flags.interactive) {
       flags.profile = await this.createPrompt(

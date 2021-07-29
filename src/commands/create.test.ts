@@ -606,21 +606,21 @@ describe('Create CLI command', () => {
     });
 
     it('throws error on invalid document name', async () => {
-      await expect(Create.run(['--profileId', 'map'])).rejects.toEqual(
-        new CLIError('ProfileId is reserved!')
-      );
+      await expect(
+        Create.run(['--profileId', 'map', '--profile'])
+      ).rejects.toEqual(new CLIError('ProfileId is reserved!'));
 
-      await expect(Create.run(['--profileId', 'profile'])).rejects.toEqual(
-        new CLIError('ProfileId is reserved!')
-      );
+      await expect(
+        Create.run(['--profileId', 'profile', '--profile'])
+      ).rejects.toEqual(new CLIError('ProfileId is reserved!'));
 
-      await expect(Create.run(['--providerName', 'map'])).rejects.toEqual(
-        new CLIError('ProviderName "map" is reserved!')
-      );
+      await expect(
+        Create.run(['--providerName', 'map', '--provider'])
+      ).rejects.toEqual(new CLIError('ProviderName "map" is reserved!'));
 
-      await expect(Create.run(['--providerName', 'profile'])).rejects.toEqual(
-        new CLIError('ProviderName "profile" is reserved!')
-      );
+      await expect(
+        Create.run(['--providerName', 'profile', '--provider'])
+      ).rejects.toEqual(new CLIError('ProviderName "profile" is reserved!'));
     });
 
     it('throws error on missing profileId and providerNamse', async () => {
@@ -661,7 +661,7 @@ describe('Create CLI command', () => {
       jest.spyOn(inquirer, 'prompt').mockResolvedValueOnce({ init: true });
 
       await expect(
-        Create.run(['--profileId', documentName, '-u', 'SendSMS'])
+        Create.run(['--profileId', documentName, '-u', 'SendSMS', '--profile'])
       ).rejects.toEqual(
         new CLIError('"vT_7!" is not a valid lowercase identifier')
       );
@@ -673,7 +673,15 @@ describe('Create CLI command', () => {
       jest.spyOn(inquirer, 'prompt').mockResolvedValueOnce({ init: true });
 
       await expect(
-        Create.run(['--profileId', documentName, '-v', '', '-u', 'SendSMS'])
+        Create.run([
+          '--profileId',
+          documentName,
+          '-v',
+          '',
+          '-u',
+          'SendSMS',
+          '--profile',
+        ])
       ).rejects.toEqual(
         new CLIError(
           'could not parse version: major component is not a valid number'
@@ -687,7 +695,7 @@ describe('Create CLI command', () => {
       jest.spyOn(inquirer, 'prompt').mockResolvedValueOnce({ init: true });
 
       await expect(
-        Create.run(['--profileId', documentName, '-u', '7_L§'])
+        Create.run(['--profileId', documentName, '-u', '7_L§', '--profile'])
       ).rejects.toEqual(new CLIError('Invalid usecase name: 7_L§'));
     });
   });

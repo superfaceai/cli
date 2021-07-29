@@ -436,32 +436,26 @@ describe('Interactive create CLI command', () => {
     });
 
     it('throws error on invalid document name', async () => {
-      await expect(Create.run(['--profileId', 'map'])).rejects.toEqual(
-        new CLIError('ProfileId is reserved!')
-      );
+      await expect(
+        Create.run(['--profileId', 'map', '--profile'])
+      ).rejects.toEqual(new CLIError('ProfileId is reserved!'));
 
-      await expect(Create.run(['--profileId', 'profile'])).rejects.toEqual(
-        new CLIError('ProfileId is reserved!')
-      );
+      await expect(
+        Create.run(['--profileId', 'profile', '--profile'])
+      ).rejects.toEqual(new CLIError('ProfileId is reserved!'));
 
-      await expect(Create.run(['--providerName', 'map'])).rejects.toEqual(
-        new CLIError('ProviderName "map" is reserved!')
-      );
+      await expect(
+        Create.run(['--providerName', 'map', '--provider'])
+      ).rejects.toEqual(new CLIError('ProviderName "map" is reserved!'));
 
-      await expect(Create.run(['--providerName', 'profile'])).rejects.toEqual(
-        new CLIError('ProviderName "profile" is reserved!')
-      );
+      await expect(
+        Create.run(['--providerName', 'profile', '--provider'])
+      ).rejects.toEqual(new CLIError('ProviderName "profile" is reserved!'));
     });
 
     it('throws error on invalid variant', async () => {
       jest
         .spyOn(inquirer, 'prompt')
-        //Create profile
-        .mockResolvedValueOnce({ create: false })
-        //Create map
-        .mockResolvedValueOnce({ create: true })
-        //Create provider
-        .mockResolvedValueOnce({ create: false })
         //Init
         .mockResolvedValueOnce({ init: true });
 
@@ -473,6 +467,8 @@ describe('Interactive create CLI command', () => {
           'twilio',
           '-t',
           'vT_7!',
+          '--profile',
+          '--map',
         ])
       ).rejects.toEqual(new CLIError('Invalid map variant: vT_7!'));
     });
@@ -480,12 +476,6 @@ describe('Interactive create CLI command', () => {
     it('throws error on invalid provider name', async () => {
       jest
         .spyOn(inquirer, 'prompt')
-        //Create profile
-        .mockResolvedValueOnce({ create: false })
-        //Create map
-        .mockResolvedValueOnce({ create: true })
-        //Create provider
-        .mockResolvedValueOnce({ create: false })
         //Init
         .mockResolvedValueOnce({ init: true });
 
