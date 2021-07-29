@@ -271,7 +271,7 @@ describe('Create logic', () => {
         .spyOn(OutputStream, 'writeOnce')
         .mockResolvedValue(undefined);
 
-      mockDocumentStructure.providerNames = [mockProvider, secondMockProvider]
+      mockDocumentStructure.providerNames = [mockProvider, secondMockProvider];
 
       await expect(
         create(
@@ -289,7 +289,10 @@ describe('Create logic', () => {
         profiles: {},
         providers: {
           provider: { file: 'provider.provider.json', security: [] },
-          secondProvider: { file: 'secondProvider.provider.json', security: [] },
+          secondProvider: {
+            file: 'secondProvider.provider.json',
+            security: [],
+          },
         },
       });
 

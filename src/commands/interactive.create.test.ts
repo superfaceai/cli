@@ -197,7 +197,8 @@ describe('Interactive create CLI command', () => {
           '--profileId',
           documentName,
           '--providerName',
-          'twilio', 'tyntec',
+          'twilio',
+          'tyntec',
           '-i',
           '-t',
           'bugfix',
@@ -430,7 +431,7 @@ describe('Interactive create CLI command', () => {
 
     it('throws error on invalid command', async () => {
       await expect(Create.run(['profile'])).rejects.toEqual(
-        new CLIError('Invalid command!')
+        new CLIError('Invalid command! Specify profileId or providerName')
       );
     });
 
