@@ -26,6 +26,7 @@ export default class Create extends Command {
 
   static flags = {
     ...Command.flags,
+    //Inputs
     profileId: oclifFlags.string({
       description: 'Profile Id in format [scope](optional)/[name]',
     }),
@@ -34,6 +35,7 @@ export default class Create extends Command {
       description:
         'Names of provider. This argument is used to create maps and/or providers',
     }),
+    //What do we create
     profile: oclifFlags.boolean({
       description: 'Create a profile',
       dependsOn: ['profileId'],
@@ -45,12 +47,6 @@ export default class Create extends Command {
     provider: oclifFlags.boolean({
       description: 'Create a provider',
       dependsOn: ['providerName'],
-    }),
-    interactive: oclifFlags.boolean({
-      char: 'i',
-      description: `When set to true, command is used in interactive mode.`,
-      default: false,
-      exclusive: ['quiet', 'profile', 'map', 'provider'],
     }),
     usecase: oclifFlags.string({
       char: 'u',
@@ -67,6 +63,12 @@ export default class Create extends Command {
       char: 'v',
       default: DEFAULT_PROFILE_VERSION_STR,
       description: 'Version of a profile',
+    }), //Command modifiers
+    interactive: oclifFlags.boolean({
+      char: 'i',
+      description: `When set to true, command is used in interactive mode.`,
+      default: false,
+      exclusive: ['quiet', 'profile', 'map', 'provider'],
     }),
     scan: oclifFlags.integer({
       char: 's',
@@ -77,34 +79,14 @@ export default class Create extends Command {
   };
 
   static examples = [
-    //Manual
-    //Profile only
     '$ superface create --profileId sms/service --profile',
-    '$ superface create --profileId sms/service --profile -u SendSMS ReceiveSMS',
     '$ superface create --profileId sms/service --profile -v 1.1-rev133 -u SendSMS ReceiveSMS',
-    //Map only
     '$ superface create --profileId sms/service --providerName twilio --map',
-    '$ superface create --profileId sms/service --providerName twilio tyntec --map -u SendSMS ReceiveSMS',
-    '$ superface create --profileId sms/service --providerName twilio --map -t bugfix -u SendSMS ReceiveSMS',
-    //Provider only
-    '$ superface create --providerName twillio --provider',
-    '$ superface create --providerName twillio tyntec --provider',
-    //Profile and provider
-    '$ superface create --profileId sms/service --providerName twilio --profile --provider',
-    '$ superface create --profileId sms/service --providerName twilio tyntec --profile --provider -u SendSMS ReceiveSMS',
-    '$ superface create --profileId sms/service --providerName twilio --profile --provider -v 1.1-rev133 -u SendSMS ReceiveSMS',
-    //Profile and map
-    '$ superface create --profileId sms/service --providerName twilio --map --profile -u SendSMS ReceiveSMS',
-    '$ superface create --profileId sms/service --providerName twilio --map --profile -t bugfix -v 1.1-rev133 -u SendSMS ReceiveSMS',
-    //Profile, map and provider
-    '$ superface create --profileId sms/service --providerName twilio --provider --map --profile -u SendSMS ReceiveSMS',
+    '$ superface create --profileId sms/service --providerName twilio --map -t bugfix',
+    '$ superface create --providerName twilio tyntec --provider',
     '$ superface create --profileId sms/service --providerName twilio --provider --map --profile -t bugfix -v 1.1-rev133 -u SendSMS ReceiveSMS',
     //Interactive
     '$ superface create --profileId sms/service -i',
-    '$ superface create --profileId sms/service -u SendSMS ReceiveSMS -i',
-    '$ superface create --profileId sms/service --providerName twilio -i',
-    '$ superface create --profileId sms/service --providerName twilio -u SendSMS ReceiveSMS -i',
-    '$ superface create --profileId sms/service --providerName twilio -t bugfix -v 1.1-rev133 -u SendSMS ReceiveSMS -i',
   ];
 
   private warnCallback? = (message: string) => this.log(yellow(message));

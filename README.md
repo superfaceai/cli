@@ -121,28 +121,13 @@ OPTIONS
 
 EXAMPLES
   $ superface create --profileId sms/service --profile
-  $ superface create --profileId sms/service --profile -u SendSMS ReceiveSMS
   $ superface create --profileId sms/service --profile -v 1.1-rev133 -u SendSMS ReceiveSMS
   $ superface create --profileId sms/service --providerName twilio --map
-  $ superface create --profileId sms/service --providerName twilio tyntec --map -u SendSMS ReceiveSMS
-  $ superface create --profileId sms/service --providerName twilio --map -t bugfix -u SendSMS ReceiveSMS
-  $ superface create --providerName twillio --provider
-  $ superface create --providerName twillio tyntec --provider
-  $ superface create --profileId sms/service --providerName twilio --profile --provider
-  $ superface create --profileId sms/service --providerName twilio tyntec --profile --provider -u SendSMS ReceiveSMS
-  $ superface create --profileId sms/service --providerName twilio --profile --provider -v 1.1-rev133 -u SendSMS 
-  ReceiveSMS
-  $ superface create --profileId sms/service --providerName twilio --map --profile -u SendSMS ReceiveSMS
-  $ superface create --profileId sms/service --providerName twilio --map --profile -t bugfix -v 1.1-rev133 -u SendSMS 
-  ReceiveSMS
-  $ superface create --profileId sms/service --providerName twilio --provider --map --profile -u SendSMS ReceiveSMS
+  $ superface create --profileId sms/service --providerName twilio --map -t bugfix
+  $ superface create --providerName twilio tyntec --provider
   $ superface create --profileId sms/service --providerName twilio --provider --map --profile -t bugfix -v 1.1-rev133 -u 
   SendSMS ReceiveSMS
   $ superface create --profileId sms/service -i
-  $ superface create --profileId sms/service -u SendSMS ReceiveSMS -i
-  $ superface create --profileId sms/service --providerName twilio -i
-  $ superface create --profileId sms/service --providerName twilio -u SendSMS ReceiveSMS -i
-  $ superface create --profileId sms/service --providerName twilio -t bugfix -v 1.1-rev133 -u SendSMS ReceiveSMS -i
 ```
 
 _See code: [src/commands/create/profile.ts](https://github.com/superfaceai/cli/tree/main/src/commands/create/profile.ts)_
