@@ -111,17 +111,17 @@ describe('Init logic', () => {
       expect(createProfile).toHaveBeenNthCalledWith(
         1,
         'test/superface/grid',
-        mockSuperJson,
         { scope: undefined, name: 'first-test-name', version: { major: 1 } },
         [composeUsecaseName('first-test-name')],
+        mockSuperJson,
         { logCb: undefined }
       );
       expect(createProfile).toHaveBeenNthCalledWith(
         2,
         'test/superface/grid',
-        mockSuperJson,
         { scope: undefined, name: 'second-test-name', version: { major: 2 } },
         [composeUsecaseName('second-test-name')],
+        mockSuperJson,
         { logCb: undefined }
       );
     });

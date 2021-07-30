@@ -15,13 +15,13 @@ import * as providerTemplate from '../templates/provider';
  */
 export async function createProfile(
   basePath: string,
-  superJson: SuperJson,
   id: {
     scope?: string;
     name: string;
     version: DocumentVersion;
   },
   usecaseNames: string[],
+  superJson?: SuperJson,
   options?: {
     force?: boolean;
     logCb?: LogCallback;
@@ -50,10 +50,11 @@ export async function createProfile(
     options?.logCb?.(
       `-> Created ${filePath} (name = "${profileName}", version = "${version}")`
     );
-
-    superJson.addProfile(profileName, {
-      file: relativePath(dirname(superJson.path), filePath),
-    });
+    if (superJson) {
+      superJson.addProfile(profileName, {
+        file: relativePath(dirname(superJson.path), filePath),
+      });
+    }
   }
 }
 
@@ -62,7 +63,6 @@ export async function createProfile(
  */
 export async function createMap(
   basePath: string,
-  superJson: SuperJson,
   id: {
     scope?: string;
     name: string;
@@ -71,6 +71,7 @@ export async function createMap(
     version: DocumentVersion;
   },
   usecaseNames: string[],
+  superJson?: SuperJson,
   options?: {
     force?: boolean;
     logCb?: LogCallback;
@@ -101,10 +102,11 @@ export async function createMap(
     options?.logCb?.(
       `-> Created ${filePath} (profile = "${profileName}@${version}", provider = "${id.provider}")`
     );
-
-    superJson.addProfileProvider(profileName, id.provider, {
-      file: relativePath(dirname(superJson.path), filePath),
-    });
+    if (superJson) {
+      superJson.addProfileProvider(profileName, id.provider, {
+        file: relativePath(dirname(superJson.path), filePath),
+      });
+    }
   }
 }
 /**
@@ -112,8 +114,8 @@ export async function createMap(
  */
 export async function createProviderJson(
   basePath: string,
-  superJson: SuperJson,
   name: string,
+  superJson?: SuperJson,
   options?: {
     force?: boolean;
     logCb?: LogCallback;
@@ -128,10 +130,11 @@ export async function createProviderJson(
 
   if (created) {
     options?.logCb?.(`-> Created ${name}.provider.json`);
-
-    superJson.addProvider(name, {
-      file: relativePath(dirname(superJson.path), filePath),
-    });
+    if (superJson) {
+      superJson.addProvider(name, {
+        file: relativePath(dirname(superJson.path), filePath),
+      });
+    }
   }
 }
 
@@ -139,7 +142,6 @@ export async function createProviderJson(
  * Creates a new document
  */
 export async function create(
-  superPath: string,
   create: {
     createProfile: boolean;
     createMap: boolean;
@@ -153,21 +155,26 @@ export async function create(
     version: DocumentVersion;
     variant?: string;
   },
+  superPath?: string,
   options?: {
     logCb?: LogCallback;
     warnCb?: LogCallback;
   }
 ): Promise<void> {
-  //Load super json
-  const loadedResult = await SuperJson.load(joinPath(superPath, META_FILE));
-  const superJson = loadedResult.match(
-    v => v,
-    err => {
-      options?.warnCb?.(err);
+  //Load super json if we have path
+  let superJson: SuperJson | undefined = undefined;
+  if (superPath) {
+    const loadedResult = await SuperJson.load(joinPath(superPath, META_FILE));
+    superJson = loadedResult.match(
+      v => v,
+      err => {
+        options?.warnCb?.(err);
 
-      return new SuperJson({});
-    }
-  );
+        return new SuperJson({});
+      }
+    );
+  }
+
   const {
     scope,
     name,
@@ -192,9 +199,9 @@ export async function create(
     for (const provider of providers) {
       await createMap(
         '',
-        superJson,
         { scope, name, provider, variant, version },
         usecases,
+        superJson,
         { logCb: options?.logCb }
       );
     }
@@ -207,7 +214,7 @@ export async function create(
       );
     }
     for (const provider of providers) {
-      await createProviderJson('', superJson, provider, {
+      await createProviderJson('', provider, superJson, {
         logCb: options?.logCb,
       });
     }
@@ -219,14 +226,16 @@ export async function create(
         2
       );
     }
-    await createProfile('', superJson, { scope, name, version }, usecases, {
+    await createProfile('', { scope, name, version }, usecases, superJson, {
       logCb: options?.logCb,
     });
   }
 
   // write new information to super.json
-  await OutputStream.writeOnce(superJson.path, superJson.stringified);
-  options?.logCb?.(
-    formatShellLog("echo '<updated super.json>' >", [superJson.path])
-  );
+  if (superJson) {
+    await OutputStream.writeOnce(superJson.path, superJson.stringified);
+    options?.logCb?.(
+      formatShellLog("echo '<updated super.json>' >", [superJson.path])
+    );
+  }
 }

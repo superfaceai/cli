@@ -12,11 +12,15 @@ import {
   composeUsecaseName,
   DEFAULT_PROFILE_VERSION,
   DEFAULT_PROFILE_VERSION_STR,
+  SUPERFACE_DIR,
 } from '../common';
 import { Command } from '../common/command.abstract';
 import { developerError, userError } from '../common/error';
 import { mkdirQuiet } from '../common/io';
+import { NORMALIZED_CWD_PATH } from '../common/path';
 import { create } from '../logic/create';
+import { initSuperface } from '../logic/init';
+import { detectSuperJson } from '../logic/install';
 
 export default class Create extends Command {
   static strict = false;
@@ -63,7 +67,22 @@ export default class Create extends Command {
       char: 'v',
       default: DEFAULT_PROFILE_VERSION_STR,
       description: 'Version of a profile',
-    }), //Command modifiers
+    }),
+    //Command modifiers
+    init: oclifFlags.boolean({
+      default: false,
+      description: `When set to true, command will initialize Superface`,
+      exclusive: ['no-init'],
+    }),
+    ['no-init']: oclifFlags.boolean({
+      default: false,
+      description: `When set to true, command won't initialize Superface`,
+      exclusive: ['init'],
+    }),
+    ['no-super-json']: oclifFlags.boolean({
+      default: false,
+      description: `When set to true, command won't change super.json`,
+    }),
     interactive: oclifFlags.boolean({
       char: 'i',
       description: `When set to true, command is used in interactive mode.`,
@@ -214,13 +233,51 @@ export default class Create extends Command {
       await mkdirQuiet(scope);
     }
 
-    const superPath = await this.getSuperPath(flags.scan, {
-      logCb: this.logCallback,
-      warnCb: this.warnCallback,
-    });
+    let initSf = false;
+    let superPath: string | undefined = await detectSuperJson(
+      process.cwd(),
+      flags.scan
+    );
+    //We do want to init
+    if (flags.init) {
+      if (superPath) {
+        this.warnCallback?.('Superface has been already initialized');
+      } else {
+        initSf = true;
+      }
+    }
+    //We promtp user
+    if (!flags['no-init'] && !flags.init && !superPath) {
+      this.warnCallback?.("File 'super.json' has not been found.");
+
+      const response: { init: boolean } = await inquirer.prompt({
+        name: 'init',
+        message: 'Would you like to initialize new superface structure?',
+        type: 'confirm',
+      });
+
+      initSf = response.init;
+    }
+
+    //Init SF
+    if (initSf) {
+      this.logCallback?.(
+        "Initializing superface directory with empty 'super.json'"
+      );
+      await initSuperface(
+        NORMALIZED_CWD_PATH,
+        { profiles: {}, providers: {} },
+        { logCb: this.logCallback }
+      );
+      superPath = SUPERFACE_DIR;
+    }
+
+    //Do not change superJson
+    if (flags['no-super-json']) {
+      superPath = undefined;
+    }
 
     await create(
-      superPath,
       {
         createProvider: !!flags.provider,
         createMap: !!flags.map,
@@ -234,6 +291,7 @@ export default class Create extends Command {
         name,
         variant: flags.variant,
       },
+      superPath,
       {
         logCb: this.logCallback,
         warnCb: this.warnCallback,

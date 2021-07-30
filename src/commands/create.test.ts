@@ -33,6 +33,174 @@ describe('Create CLI command', () => {
   });
 
   describe('when running create command', () => {
+    //Init, no init flags
+    it('creates profile with one usecase (with usecase name from cli) and no init flag', async () => {
+      mocked(initSuperface).mockResolvedValue(new SuperJson({}));
+      const promptSpy = jest.spyOn(inquirer, 'prompt');
+
+      documentName = 'sendsms';
+      await expect(
+        Create.run(['--profileId', documentName, '--profile', '--no-init'])
+      ).resolves.toBeUndefined();
+      expect(create).toHaveBeenCalledTimes(1);
+      expect(create).toHaveBeenCalledWith(
+        { createProfile: true, createMap: false, createProvider: false },
+        ['Sendsms'],
+        {
+          name: 'sendsms',
+          scope: undefined,
+          version: { label: undefined, major: 1, minor: 0, patch: 0 },
+        },
+        //Do not pass the path
+        undefined,
+        { logCb: expect.anything(), warnCb: expect.anything() }
+      );
+      expect(promptSpy).not.toHaveBeenCalled();
+      expect(initSuperface).not.toHaveBeenCalled();
+    });
+    it('creates profile with one usecase and init flag', async () => {
+      mocked(initSuperface).mockResolvedValue(new SuperJson({}));
+      const promptSpy = jest.spyOn(inquirer, 'prompt');
+
+      documentName = 'sendsms';
+      await expect(
+        Create.run([
+          '--profileId',
+          documentName,
+          '--profile',
+          '-u',
+          'SendSMS',
+          '--init',
+        ])
+      ).resolves.toBeUndefined();
+      expect(create).toHaveBeenCalledTimes(1);
+      expect(create).toHaveBeenCalledWith(
+        { createProfile: true, createMap: false, createProvider: false },
+        ['SendSMS'],
+        {
+          name: 'sendsms',
+          scope: undefined,
+          version: { label: undefined, major: 1, minor: 0, patch: 0 },
+        },
+        //Pass the path
+        'superface',
+        { logCb: expect.anything(), warnCb: expect.anything() }
+      );
+      expect(promptSpy).not.toHaveBeenCalled();
+      expect(initSuperface).toHaveBeenCalledTimes(1);
+    });
+
+    it('creates map with one usecase and no init or no-init flag, user confirms prompt', async () => {
+      mocked(initSuperface).mockResolvedValue(new SuperJson({}));
+      const promptSpy = jest
+        .spyOn(inquirer, 'prompt')
+        .mockResolvedValueOnce({ init: true });
+
+      documentName = 'sendsms';
+      provider = 'twilio';
+      await expect(
+        Create.run([
+          '--profileId',
+          documentName,
+          '--providerName',
+          provider,
+          '--map',
+          '-u',
+          'SendSMS',
+        ])
+      ).resolves.toBeUndefined();
+      expect(create).toHaveBeenCalledTimes(1);
+      expect(create).toHaveBeenCalledWith(
+        { createProfile: false, createMap: true, createProvider: false },
+        ['SendSMS'],
+        {
+          name: 'sendsms',
+          providerNames: [provider],
+          scope: undefined,
+          version: { label: undefined, major: 1, minor: 0, patch: 0 },
+        },
+        //Pass the path
+        'superface',
+        { logCb: expect.anything(), warnCb: expect.anything() }
+      );
+      expect(promptSpy).toHaveBeenCalledTimes(1);
+      expect(initSuperface).toHaveBeenCalledTimes(1);
+    });
+    it('creates map with one usecase and no init or no-init flag, user does not confirm prompt', async () => {
+      mocked(initSuperface).mockResolvedValue(new SuperJson({}));
+      const promptSpy = jest
+        .spyOn(inquirer, 'prompt')
+        .mockResolvedValueOnce({ init: false });
+
+      documentName = 'sendsms';
+      provider = 'twilio';
+      await expect(
+        Create.run([
+          '--profileId',
+          documentName,
+          '--providerName',
+          provider,
+          '--map',
+          '-u',
+          'SendSMS',
+        ])
+      ).resolves.toBeUndefined();
+      expect(create).toHaveBeenCalledTimes(1);
+      expect(create).toHaveBeenCalledWith(
+        { createProfile: false, createMap: true, createProvider: false },
+        ['SendSMS'],
+        {
+          name: 'sendsms',
+          providerNames: [provider],
+          scope: undefined,
+          version: { label: undefined, major: 1, minor: 0, patch: 0 },
+        },
+        //Do not pass the path
+        undefined,
+        { logCb: expect.anything(), warnCb: expect.anything() }
+      );
+      expect(promptSpy).toHaveBeenCalledTimes(1);
+      expect(initSuperface).not.toHaveBeenCalled();
+    });
+    //No-super-json flag
+    it('creates map with one usecase and  no-super.json flag', async () => {
+      mocked(initSuperface).mockResolvedValue(new SuperJson({}));
+      const promptSpy = jest
+        .spyOn(inquirer, 'prompt')
+        .mockResolvedValueOnce({ init: true });
+
+      documentName = 'sendsms';
+      provider = 'twilio';
+      await expect(
+        Create.run([
+          '--profileId',
+          documentName,
+          '--providerName',
+          provider,
+          '--map',
+          '-u',
+          'SendSMS',
+          '--no-super-json',
+        ])
+      ).resolves.toBeUndefined();
+      expect(create).toHaveBeenCalledTimes(1);
+      expect(create).toHaveBeenCalledWith(
+        { createProfile: false, createMap: true, createProvider: false },
+        ['SendSMS'],
+        {
+          name: 'sendsms',
+          providerNames: [provider],
+          scope: undefined,
+          version: { label: undefined, major: 1, minor: 0, patch: 0 },
+        },
+        //Do not pass the path
+        undefined,
+        { logCb: expect.anything(), warnCb: expect.anything() }
+      );
+      //We prompt user and init SF but not pass path to create logic
+      expect(promptSpy).toHaveBeenCalledTimes(1);
+      expect(initSuperface).toHaveBeenCalled();
+    });
     //Profile
     it('creates profile with one usecase (with usecase name from cli) and quiet flag', async () => {
       mocked(initSuperface).mockResolvedValue(new SuperJson({}));
@@ -44,7 +212,6 @@ describe('Create CLI command', () => {
       ).resolves.toBeUndefined();
       expect(create).toHaveBeenCalledTimes(1);
       expect(create).toHaveBeenCalledWith(
-        'superface',
         { createProfile: true, createMap: false, createProvider: false },
         ['Sendsms'],
         {
@@ -52,6 +219,7 @@ describe('Create CLI command', () => {
           scope: undefined,
           version: { label: undefined, major: 1, minor: 0, patch: 0 },
         },
+        'superface',
         { logCb: undefined, warnCb: undefined }
       );
     });
@@ -67,7 +235,6 @@ describe('Create CLI command', () => {
 
       expect(create).toHaveBeenCalledTimes(1);
       expect(create).toHaveBeenCalledWith(
-        'superface',
         { createProfile: true, createMap: false, createProvider: false },
         ['SendSMS'],
         {
@@ -75,6 +242,7 @@ describe('Create CLI command', () => {
           scope: 'sms',
           version: { label: undefined, major: 1, minor: 0, patch: 0 },
         },
+        'superface',
         { logCb: expect.anything(), warnCb: expect.anything() }
       );
     });
@@ -97,7 +265,6 @@ describe('Create CLI command', () => {
 
       expect(create).toHaveBeenCalledTimes(1);
       expect(create).toHaveBeenCalledWith(
-        'superface',
         { createProfile: true, createMap: false, createProvider: false },
         ['ReceiveSMS', 'SendSMS'],
         {
@@ -105,6 +272,7 @@ describe('Create CLI command', () => {
           scope: 'sms',
           version: { label: undefined, major: 1, minor: 0, patch: 0 },
         },
+        'superface',
         { logCb: expect.anything(), warnCb: expect.anything() }
       );
     });
@@ -129,7 +297,6 @@ describe('Create CLI command', () => {
 
       expect(create).toHaveBeenCalledTimes(1);
       expect(create).toHaveBeenCalledWith(
-        'superface',
         { createProfile: true, createMap: false, createProvider: false },
         ['ReceiveSMS', 'SendSMS'],
         {
@@ -137,6 +304,7 @@ describe('Create CLI command', () => {
           scope: 'sms',
           version: { label: 'rev133', major: 1, minor: 1, patch: undefined },
         },
+        'superface',
         { logCb: expect.anything(), warnCb: expect.anything() }
       );
     });
@@ -160,7 +328,6 @@ describe('Create CLI command', () => {
 
       expect(create).toHaveBeenCalledTimes(1);
       expect(create).toHaveBeenCalledWith(
-        'superface',
         { createProfile: false, createMap: true, createProvider: false },
         ['Service'],
         {
@@ -169,6 +336,7 @@ describe('Create CLI command', () => {
           scope: 'sms',
           version: { label: undefined, major: 1, minor: 0, patch: 0 },
         },
+        'superface',
         { logCb: expect.anything(), warnCb: expect.anything() }
       );
     });
@@ -196,7 +364,6 @@ describe('Create CLI command', () => {
 
       expect(create).toHaveBeenCalledTimes(1);
       expect(create).toHaveBeenCalledWith(
-        'superface',
         { createProfile: false, createMap: true, createProvider: false },
         ['ReceiveSMS', 'SendSMS'],
         {
@@ -205,6 +372,7 @@ describe('Create CLI command', () => {
           scope: 'sms',
           version: { label: undefined, major: 1, minor: 0, patch: 0 },
         },
+        'superface',
         { logCb: expect.anything(), warnCb: expect.anything() }
       );
     });
@@ -220,7 +388,6 @@ describe('Create CLI command', () => {
 
       expect(create).toHaveBeenCalledTimes(1);
       expect(create).toHaveBeenCalledWith(
-        'superface',
         { createProfile: false, createMap: false, createProvider: true },
         [],
         {
@@ -228,6 +395,7 @@ describe('Create CLI command', () => {
           scope: undefined,
           version: { label: undefined, major: 1, minor: 0, patch: 0 },
         },
+        'superface',
         { logCb: expect.anything(), warnCb: expect.anything() }
       );
     });
@@ -244,7 +412,6 @@ describe('Create CLI command', () => {
 
       expect(create).toHaveBeenCalledTimes(1);
       expect(create).toHaveBeenCalledWith(
-        'superface',
         { createProfile: false, createMap: false, createProvider: true },
         [],
         {
@@ -252,6 +419,7 @@ describe('Create CLI command', () => {
           scope: undefined,
           version: { label: undefined, major: 1, minor: 0, patch: 0 },
         },
+        'superface',
         { logCb: expect.anything(), warnCb: expect.anything() }
       );
     });
@@ -277,7 +445,6 @@ describe('Create CLI command', () => {
 
       expect(create).toHaveBeenCalledTimes(1);
       expect(create).toHaveBeenCalledWith(
-        'superface',
         { createProfile: true, createMap: false, createProvider: true },
         ['SendSMS'],
         {
@@ -286,6 +453,7 @@ describe('Create CLI command', () => {
           scope: 'sms',
           version: { label: undefined, major: 1, minor: 0, patch: 0 },
         },
+        'superface',
         { logCb: expect.anything(), warnCb: expect.anything() }
       );
     });
@@ -314,7 +482,6 @@ describe('Create CLI command', () => {
 
       expect(create).toHaveBeenCalledTimes(1);
       expect(create).toHaveBeenCalledWith(
-        'superface',
         { createProfile: true, createMap: false, createProvider: true },
         ['SendSMS', 'ReciveSMS'],
         {
@@ -323,6 +490,7 @@ describe('Create CLI command', () => {
           scope: 'sms',
           version: { label: undefined, major: 1, minor: 0, patch: 0 },
         },
+        'superface',
         { logCb: expect.anything(), warnCb: expect.anything() }
       );
     });
@@ -353,7 +521,6 @@ describe('Create CLI command', () => {
 
       expect(create).toHaveBeenCalledTimes(1);
       expect(create).toHaveBeenCalledWith(
-        'superface',
         { createProfile: true, createMap: false, createProvider: true },
         ['SendSMS', 'ReciveSMS'],
         {
@@ -362,6 +529,7 @@ describe('Create CLI command', () => {
           scope: 'sms',
           version: { label: 'rev133', major: 1, minor: 1, patch: undefined },
         },
+        'superface',
         { logCb: expect.anything(), warnCb: expect.anything() }
       );
     });
@@ -387,7 +555,6 @@ describe('Create CLI command', () => {
 
       expect(create).toHaveBeenCalledTimes(1);
       expect(create).toHaveBeenCalledWith(
-        'superface',
         { createProfile: true, createMap: true, createProvider: false },
         ['SendSMS'],
         {
@@ -396,6 +563,7 @@ describe('Create CLI command', () => {
           scope: 'sms',
           version: { label: undefined, major: 1, minor: 0, patch: 0 },
         },
+        'superface',
         { logCb: expect.anything(), warnCb: expect.anything() }
       );
     });
@@ -421,7 +589,6 @@ describe('Create CLI command', () => {
       ).resolves.toBeUndefined();
       expect(create).toHaveBeenCalledTimes(1);
       expect(create).toHaveBeenCalledWith(
-        'superface',
         { createProfile: true, createMap: true, createProvider: false },
         ['SendSMS', 'ReceiveSMS'],
         {
@@ -430,6 +597,7 @@ describe('Create CLI command', () => {
           scope: 'sms',
           version: { label: undefined, major: 1, minor: 0, patch: 0 },
         },
+        'superface',
         { logCb: expect.anything(), warnCb: expect.anything() }
       );
     });
@@ -457,7 +625,6 @@ describe('Create CLI command', () => {
       ).resolves.toBeUndefined();
       expect(create).toHaveBeenCalledTimes(1);
       expect(create).toHaveBeenCalledWith(
-        'superface',
         { createProfile: true, createMap: true, createProvider: false },
         ['SendSMS', 'ReceiveSMS'],
         {
@@ -466,6 +633,7 @@ describe('Create CLI command', () => {
           scope: 'sms',
           version: { label: undefined, major: 1, minor: 0, patch: 0 },
         },
+        'superface',
         { logCb: expect.anything(), warnCb: expect.anything() }
       );
     });
@@ -490,7 +658,6 @@ describe('Create CLI command', () => {
 
       expect(create).toHaveBeenCalledTimes(1);
       expect(create).toHaveBeenCalledWith(
-        'superface',
         { createProfile: false, createMap: true, createProvider: false },
         ['Service'],
         {
@@ -500,6 +667,7 @@ describe('Create CLI command', () => {
           scope: 'sms',
           version: { label: undefined, major: 1, minor: 0, patch: 0 },
         },
+        'superface',
         { logCb: expect.anything(), warnCb: expect.anything() }
       );
     });
@@ -525,7 +693,6 @@ describe('Create CLI command', () => {
 
       expect(create).toHaveBeenCalledTimes(1);
       expect(create).toHaveBeenCalledWith(
-        'superface',
         { createProfile: false, createMap: true, createProvider: true },
         ['SendSMS'],
         {
@@ -534,6 +701,7 @@ describe('Create CLI command', () => {
           scope: 'sms',
           version: { label: undefined, major: 1, minor: 0, patch: 0 },
         },
+        'superface',
         { logCb: expect.anything(), warnCb: expect.anything() }
       );
     });
@@ -559,7 +727,6 @@ describe('Create CLI command', () => {
       ).resolves.toBeUndefined();
       expect(create).toHaveBeenCalledTimes(1);
       expect(create).toHaveBeenCalledWith(
-        'superface',
         { createProfile: false, createMap: true, createProvider: true },
         ['ReceiveSMS', 'SendSMS'],
         {
@@ -568,6 +735,7 @@ describe('Create CLI command', () => {
           scope: 'sms',
           version: { label: undefined, major: 1, minor: 0, patch: 0 },
         },
+        'superface',
         { logCb: expect.anything(), warnCb: expect.anything() }
       );
     });
@@ -592,7 +760,6 @@ describe('Create CLI command', () => {
 
       expect(create).toHaveBeenCalledTimes(1);
       expect(create).toHaveBeenCalledWith(
-        'superface',
         { createProfile: true, createMap: true, createProvider: true },
         ['Service'],
         {
@@ -601,6 +768,7 @@ describe('Create CLI command', () => {
           scope: 'sms',
           version: { label: undefined, major: 1, minor: 0, patch: 0 },
         },
+        'superface',
         { logCb: expect.anything(), warnCb: expect.anything() }
       );
     });

@@ -132,9 +132,9 @@ export async function generateSpecifiedProfiles(
 
     await createProfile(
       joinPath(path, GRID_DIR),
-      superJson,
       { scope, name, version },
       [composeUsecaseName(name)],
+      superJson,
       { logCb }
     );
   }
