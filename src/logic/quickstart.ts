@@ -19,7 +19,7 @@ import { join as joinPath } from 'path';
 
 import { developerError, userError } from '../common/error';
 import { fetchProviders, getStoreUrl } from '../common/http';
-import { exists, readFile } from '../common/io';
+import { detectSuperJson, exists, readFile } from '../common/io';
 import { LogCallback } from '../common/log';
 import { OutputStream } from '../common/output-stream';
 import { PackageManager } from '../common/package-manager';
@@ -27,7 +27,7 @@ import { NORMALIZED_CWD_PATH } from '../common/path';
 import { envVariable } from '../templates/env';
 import { installProvider } from './configure';
 import { initSuperface } from './init';
-import { detectSuperJson, installProfiles } from './install';
+import { installProfiles } from './install';
 import {
   loadProfileAst,
   profileExists,

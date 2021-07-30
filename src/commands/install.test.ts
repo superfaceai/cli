@@ -2,17 +2,22 @@ import { CLIError } from '@oclif/errors';
 import { SuperJson } from '@superfaceai/one-sdk';
 import { mocked } from 'ts-jest/utils';
 
+import { detectSuperJson } from '../common/io';
 import { installProvider } from '../logic/configure';
 import { initSuperface } from '../logic/init';
-import { detectSuperJson, installProfiles } from '../logic/install';
+import { installProfiles } from '../logic/install';
 import { interactiveInstall } from '../logic/quickstart';
 import { MockStd, mockStd } from '../test/mock-std';
 import Install from './install';
 
 //Mock install logic
 jest.mock('../logic/install', () => ({
-  detectSuperJson: jest.fn(),
   installProfiles: jest.fn(),
+}));
+
+//Mock detectSuperJson function
+jest.mock('../common/io', () => ({
+  detectSuperJson: jest.fn(),
 }));
 
 //Mock configure logic

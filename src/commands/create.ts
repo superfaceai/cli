@@ -13,11 +13,10 @@ import {
 } from '../common/document';
 import { CreateMode } from '../common/document.interfaces';
 import { developerError, userError } from '../common/error';
-import { mkdirQuiet } from '../common/io';
+import { detectSuperJson, mkdirQuiet } from '../common/io';
 import { NORMALIZED_CWD_PATH } from '../common/path';
 import { create } from '../logic/create';
 import { initSuperface } from '../logic/init';
-import { detectSuperJson } from '../logic/install';
 
 export default class Create extends Command {
   // hide the command from help

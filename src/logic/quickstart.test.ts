@@ -4,10 +4,9 @@ import inquirer from 'inquirer';
 import { mocked } from 'ts-jest/utils';
 
 import { fetchProfiles, fetchProviders, getStoreUrl } from '../common/http';
-import { exists, readFile } from '../common/io';
+import { detectSuperJson, exists, readFile } from '../common/io';
 import { OutputStream } from '../common/output-stream';
 import { initSuperface } from './init';
-import { detectSuperJson } from './install';
 import { interactiveInstall } from './quickstart';
 import {
   loadProfileAst,

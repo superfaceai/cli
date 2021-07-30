@@ -42,11 +42,14 @@ export const EXTENSIONS = {
 
 export const SUPERFACE_DIR = 'superface';
 export const META_FILE = 'super.json';
+export const TEST_CONFIG = 'sf-test-config.json';
 export const UNCOMPILED_SDK_FILE = 'sdk.ts';
 export const SUPER_PATH = joinPath(SUPERFACE_DIR, META_FILE);
 export const GRID_DIR = joinPath(SUPERFACE_DIR, 'grid');
 export const TYPES_DIR = joinPath(SUPERFACE_DIR, 'types');
 export const BUILD_DIR = joinPath(SUPERFACE_DIR, 'build');
+export const TEST_CONFIG_PATH = joinPath(SUPERFACE_DIR, TEST_CONFIG);
+export type CONFIG_FILE = typeof META_FILE | typeof TEST_CONFIG;
 
 /**
  * Detects whether the file on path is Superface Map or Superface Profile based on the extension.

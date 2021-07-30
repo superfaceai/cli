@@ -1,14 +1,12 @@
 import { ProfileDocumentNode } from '@superfaceai/ast';
 import { SuperJson } from '@superfaceai/one-sdk';
-import { join as joinPath, normalize, relative as relativePath } from 'path';
+import { join as joinPath, relative as relativePath } from 'path';
 
 import {
   composeVersion,
   EXTENSIONS,
   META_FILE,
   parseProfileDocument,
-  SUPER_PATH,
-  SUPERFACE_DIR,
   UNCOMPILED_SDK_FILE,
 } from '../common/document';
 import {
@@ -17,7 +15,7 @@ import {
   fetchProfileInfo,
   ProfileInfo,
 } from '../common/http';
-import { exists, isAccessible } from '../common/io';
+import { exists } from '../common/io';
 import { formatShellLog, LogCallback } from '../common/log';
 import { OutputStream } from '../common/output-stream';
 import { pathParentLevel, replaceExt } from '../common/path';
@@ -42,42 +40,6 @@ const INSTALL_LOCAL_PATH_PARENT_LIMIT = (() => {
 
   return value;
 })();
-
-/**
- * Detects the existence of a `super.json` file in specified number of levels
- * of parent directories.
- *
- * @param cwd - currently scanned working directory
- *
- * Returns relative path to a directory where `super.json` is detected.
- */
-export async function detectSuperJson(
-  cwd: string,
-  level?: number
-): Promise<string | undefined> {
-  // check whether super.json is accessible in cwd
-  if (await isAccessible(joinPath(cwd, META_FILE))) {
-    return normalize(relativePath(process.cwd(), cwd));
-  }
-
-  // check whether super.json is accessible in cwd/superface
-  if (await isAccessible(joinPath(cwd, SUPER_PATH))) {
-    return normalize(relativePath(process.cwd(), joinPath(cwd, SUPERFACE_DIR)));
-  }
-
-  // default behaviour - do not scan outside cwd
-  if (level === undefined || level < 1) {
-    return undefined;
-  }
-
-  // check if user has permissions outside cwd
-  cwd = joinPath(cwd, '..');
-  if (!(await isAccessible(cwd))) {
-    return undefined;
-  }
-
-  return await detectSuperJson(cwd, --level);
-}
 
 type InstallOptions = {
   logCb?: LogCallback;

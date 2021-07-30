@@ -2,9 +2,9 @@ import { isValidDocumentName } from '@superfaceai/ast';
 import { SuperJson } from '@superfaceai/one-sdk';
 import { mocked } from 'ts-jest/utils';
 
+import { detectSuperJson } from '../common/io';
 import { installProvider } from '../logic/configure';
 import { initSuperface } from '../logic/init';
-import { detectSuperJson } from '../logic/install';
 import Configure from './configure';
 
 //Mock ast
@@ -17,8 +17,8 @@ jest.mock('../logic/init', () => ({
   initSuperface: jest.fn(),
 }));
 
-//Mock install logic
-jest.mock('../logic/install', () => ({
+//Mock detectSuperJson function
+jest.mock('../common/io', () => ({
   detectSuperJson: jest.fn(),
 }));
 

@@ -1,7 +1,6 @@
 import { CLIError } from '@oclif/errors';
 import { ProfileDocumentNode } from '@superfaceai/ast';
 import { ok, SuperJson } from '@superfaceai/one-sdk';
-import { join } from 'path';
 import { mocked } from 'ts-jest/utils';
 
 import { parseProfileDocument } from '../common/document';
@@ -10,11 +9,10 @@ import {
   fetchProfileAST,
   fetchProfileInfo,
 } from '../common/http';
-import { exists, mkdirQuiet, rimraf } from '../common/io';
+import { exists } from '../common/io';
 import { OutputStream } from '../common/output-stream';
 import { transpileFiles } from '../logic/generate';
 import {
-  detectSuperJson,
   getExistingProfileIds,
   getProfileFromStore,
   installProfiles,
@@ -44,101 +42,6 @@ jest.mock('../logic/generate');
 describe('Install CLI logic', () => {
   afterEach(() => {
     jest.resetAllMocks();
-  });
-
-  describe('when detecting super json', () => {
-    let INITIAL_CWD: string;
-    // eslint-disable-next-line @typescript-eslint/unbound-method
-    const originalWriteOnce = OutputStream.writeOnce;
-
-    beforeAll(async () => {
-      INITIAL_CWD = process.cwd();
-      //Mock static side of OutputStream
-      const mockWrite = jest.fn();
-      OutputStream.writeOnce = mockWrite;
-
-      //create mock nested paths
-      let path = join(
-        'fixtures',
-        'install',
-        'playground',
-        'superface',
-        'nested1'
-      );
-      await mkdirQuiet(path);
-      path = join(
-        'fixtures',
-        'install',
-        'playground',
-        'superface',
-        'nested1',
-        'nested2'
-      );
-      await mkdirQuiet(path);
-    });
-
-    afterAll(async () => {
-      OutputStream.writeOnce = originalWriteOnce;
-      process.chdir(INITIAL_CWD);
-      await rimraf(
-        join('fixtures', 'install', 'playground', 'superface', 'nested1')
-      );
-    });
-
-    afterEach(() => {
-      process.chdir(INITIAL_CWD);
-      jest.resetAllMocks();
-    });
-
-    it('detects super.json in cwd', async () => {
-      process.chdir(join('fixtures', 'install', 'playground', 'superface'));
-      expect(await detectSuperJson(process.cwd())).toEqual('.');
-    }, 10000);
-
-    it('detects super.json from 1 level above', async () => {
-      process.chdir(join('fixtures', 'install', 'playground'));
-      expect(await detectSuperJson(process.cwd())).toEqual('superface');
-    }, 10000);
-
-    it('does not detect super.json from 2 levels above', async () => {
-      process.chdir(join('fixtures', 'install'));
-      expect(await detectSuperJson(process.cwd())).toBeUndefined();
-    }, 10000);
-
-    it('detects super.json from 1 level below', async () => {
-      process.chdir(
-        join('fixtures', 'install', 'playground', 'superface', 'nested1')
-      );
-      expect(await detectSuperJson(process.cwd(), 1)).toEqual('..');
-    }, 10000);
-
-    it('detects super.json from 2 levels below', async () => {
-      process.chdir(
-        join(
-          'fixtures',
-          'install',
-          'playground',
-          'superface',
-          'nested1',
-          'nested2'
-        )
-      );
-      expect(await detectSuperJson(process.cwd(), 2)).toEqual('../..');
-    }, 10000);
-
-    it('does not detect super.json from 2 levels below without level', async () => {
-      process.chdir(
-        join(
-          'fixtures',
-          'install',
-          'playground',
-          'superface',
-          'nested1',
-          'nested2'
-        )
-      );
-      expect(await detectSuperJson(process.cwd())).toBeUndefined();
-    }, 10000);
   });
 
   describe('when geting profile from store', () => {

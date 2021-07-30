@@ -5,9 +5,9 @@ import { join as joinPath } from 'path';
 
 import { Command } from '../common/command.abstract';
 import { META_FILE, SUPERFACE_DIR } from '../common/document';
+import { detectSuperJson } from '../common/io';
 import { installProvider } from '../logic/configure';
 import { initSuperface } from '../logic/init';
-import { detectSuperJson } from '../logic/install';
 
 export default class Configure extends Command {
   static description =

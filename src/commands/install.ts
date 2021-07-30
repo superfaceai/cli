@@ -6,12 +6,12 @@ import { join as joinPath } from 'path';
 import { Command } from '../common/command.abstract';
 import { META_FILE, SUPERFACE_DIR, trimExtension } from '../common/document';
 import { userError } from '../common/error';
+import { detectSuperJson } from '../common/io';
 import { LogCallback } from '../common/log';
 import { NORMALIZED_CWD_PATH } from '../common/path';
 import { installProvider } from '../logic/configure';
 import { initSuperface } from '../logic/init';
 import {
-  detectSuperJson,
   installProfiles,
   LocalRequest as LocalInstallRequest,
   StoreRequest as StoreInstallRequest,

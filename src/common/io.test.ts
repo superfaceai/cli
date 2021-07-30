@@ -3,6 +3,7 @@ import { join } from 'path';
 import { Writable } from 'stream';
 
 import {
+  detectConfigurationFile,
   execFile,
   exists,
   isAccessible,
@@ -15,10 +16,10 @@ import {
   streamWrite,
 } from '../common/io';
 import { OutputStream } from '../common/output-stream';
-import { SUPER_PATH } from './document';
+import { META_FILE, SUPER_PATH, TEST_CONFIG } from './document';
 
 describe('IO functions', () => {
-  const WORKING_DIR = join('fixtures', 'io');
+  const WORKING_DIR = join('fixtures', 'io', 'playground');
 
   const FIXTURE = {
     superJson: SUPER_PATH,
@@ -181,6 +182,99 @@ describe('IO functions', () => {
       await expect(isAccessible('some/made/up/file.json')).resolves.toEqual(
         false
       );
+    }, 10000);
+  });
+
+  describe('when detecting configuration file', () => {
+    let FIXTURE_CWD: string;
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    const originalWriteOnce = OutputStream.writeOnce;
+
+    beforeAll(async () => {
+      process.chdir('..');
+      FIXTURE_CWD = process.cwd();
+
+      //Mock static side of OutputStream
+      const mockWrite = jest.fn();
+      OutputStream.writeOnce = mockWrite;
+
+      //create mock nested paths
+      let path = join('playground', 'superface', 'nested1');
+      await mkdirQuiet(path);
+
+      path = join('playground', 'superface', 'nested1', 'nested2');
+      await mkdirQuiet(path);
+    });
+
+    afterAll(async () => {
+      OutputStream.writeOnce = originalWriteOnce;
+      await rimraf(join('playground', 'superface', 'nested1'));
+
+      process.chdir('playground');
+    });
+
+    afterEach(() => {
+      process.chdir(FIXTURE_CWD);
+      jest.resetAllMocks();
+    });
+
+    it('detects configuration file in cwd', async () => {
+      process.chdir(join('playground', 'superface'));
+      expect(await detectConfigurationFile(META_FILE, process.cwd())).toEqual(
+        '.'
+      );
+      expect(await detectConfigurationFile(TEST_CONFIG, process.cwd())).toEqual(
+        '.'
+      );
+    }, 10000);
+
+    it('detects configuration file from 1 level above', async () => {
+      process.chdir('playground');
+      expect(await detectConfigurationFile(META_FILE, process.cwd())).toEqual(
+        'superface'
+      );
+      expect(await detectConfigurationFile(TEST_CONFIG, process.cwd())).toEqual(
+        'superface'
+      );
+    }, 10000);
+
+    it('does not detect configuration file from 2 levels above', async () => {
+      expect(
+        await detectConfigurationFile(META_FILE, process.cwd())
+      ).toBeUndefined();
+      expect(
+        await detectConfigurationFile(TEST_CONFIG, process.cwd())
+      ).toBeUndefined();
+    }, 10000);
+
+    it('detects configuration file from 1 level below', async () => {
+      process.chdir(join('playground', 'superface', 'nested1'));
+      expect(
+        await detectConfigurationFile(META_FILE, process.cwd(), 1)
+      ).toEqual('..');
+      expect(
+        await detectConfigurationFile(TEST_CONFIG, process.cwd(), 1)
+      ).toEqual('..');
+    }, 10000);
+
+    it('detects configuration file from 2 levels below', async () => {
+      process.chdir(join('playground', 'superface', 'nested1', 'nested2'));
+      expect(
+        await detectConfigurationFile(META_FILE, process.cwd(), 2)
+      ).toEqual('../..');
+      expect(
+        await detectConfigurationFile(TEST_CONFIG, process.cwd(), 2)
+      ).toEqual('../..');
+    }, 10000);
+
+    it('does not detect configuration file from 2 levels below without level', async () => {
+      process.chdir(join('playground', 'superface', 'nested1', 'nested2'));
+      expect(
+        await detectConfigurationFile(META_FILE, process.cwd())
+      ).toBeUndefined();
+      expect(
+        await detectConfigurationFile(TEST_CONFIG, process.cwd())
+      ).toBeUndefined();
     }, 10000);
   });
 });

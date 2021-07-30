@@ -1,12 +1,19 @@
 import * as childProcess from 'child_process';
 import * as fs from 'fs';
-import { basename } from 'path';
+import {
+  basename,
+  join as joinPath,
+  normalize,
+  relative as relativePath,
+} from 'path';
 import rimrafCallback from 'rimraf';
 import { Writable } from 'stream';
 import { promisify } from 'util';
 
+import { CONFIG_FILE, META_FILE, SUPERFACE_DIR, TEST_CONFIG } from './document';
 import { assertIsIOError } from './error';
 import { SkipFileType } from './flags';
+import { LogCallback } from './log';
 
 export const access = promisify(fs.access);
 export const mkdir = promisify(fs.mkdir);
@@ -229,4 +236,71 @@ export async function isAccessible(path: string): Promise<boolean> {
 export function basenameWithoutExt(path: string): string {
   // NOTE: Naive implementation, but should work for any case
   return basename(path).split('.')[0];
+}
+
+/**
+ * Detects the existence of configuration file in specified number of levels
+ * of parent directories.
+ *
+ * @param cwd - currently scanned working directory
+ *
+ * Returns relative path to a directory where config file is detected.
+ */
+export async function detectConfigurationFile<T extends CONFIG_FILE>(
+  file: T,
+  cwd: string,
+  level?: number
+): Promise<string | undefined> {
+  // check whether sf-test-config.json is accessible in cwd
+  if (await isAccessible(joinPath(cwd, file))) {
+    return normalize(relativePath(process.cwd(), cwd));
+  }
+
+  // check whether sf-test-config.json is accessible in cwd/superface
+  if (await isAccessible(joinPath(cwd, SUPERFACE_DIR, file))) {
+    return normalize(relativePath(process.cwd(), joinPath(cwd, SUPERFACE_DIR)));
+  }
+
+  // default behaviour - do not scan outside cwd
+  if (level === undefined || level < 1) {
+    return undefined;
+  }
+
+  // check if user has permissions outside cwd
+  cwd = joinPath(cwd, '..');
+  if (!(await isAccessible(cwd))) {
+    return undefined;
+  }
+
+  return await detectConfigurationFile(file, cwd, --level);
+}
+
+/**
+ * Detects the existence of a `super.json` file in specified number of levels of parent directories.
+ */
+export async function detectSuperJson(
+  cwd: string,
+  level?: number,
+  options?: {
+    logCb?: LogCallback;
+  }
+): Promise<string | undefined> {
+  options?.logCb?.('Detecting present super.json configuration file');
+
+  return await detectConfigurationFile(META_FILE, cwd, level);
+}
+
+/**
+ * Detects the existence of a `sf-test-config.json` file in specified number of levels of parent directories.
+ */
+export async function detectTestConfig(
+  cwd: string,
+  level?: number,
+  options?: {
+    logCb?: LogCallback;
+  }
+): Promise<string | undefined> {
+  options?.logCb?.('Detecting present sf-test-config.json configuration file');
+
+  return await detectConfigurationFile(TEST_CONFIG, cwd, level);
 }
