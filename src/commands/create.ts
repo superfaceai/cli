@@ -16,7 +16,7 @@ import {
 } from '../common';
 import { Command } from '../common/command.abstract';
 import { developerError, userError } from '../common/error';
-import { mkdirQuiet } from '../common/io';
+import { exists, mkdirQuiet } from '../common/io';
 import { NORMALIZED_CWD_PATH } from '../common/path';
 import { create } from '../logic/create';
 import { initSuperface } from '../logic/init';
@@ -81,13 +81,18 @@ export default class Create extends Command {
     }),
     ['no-super-json']: oclifFlags.boolean({
       default: false,
-      description: `When set to true, command won't change super.json`,
+      description: `When set to true, command won't change SuperJson file`,
     }),
     interactive: oclifFlags.boolean({
       char: 'i',
       description: `When set to true, command is used in interactive mode.`,
       default: false,
       exclusive: ['quiet', 'profile', 'map', 'provider'],
+    }),
+    path: oclifFlags.string({
+      char: 'p',
+      default: undefined,
+      description: 'Base path where files will be created',
     }),
     scan: oclifFlags.integer({
       char: 's',
@@ -104,7 +109,6 @@ export default class Create extends Command {
     '$ superface create --profileId sms/service --providerName twilio --map -t bugfix',
     '$ superface create --providerName twilio tyntec --provider',
     '$ superface create --profileId sms/service --providerName twilio --provider --map --profile -t bugfix -v 1.1-rev133 -u SendSMS ReceiveSMS',
-    //Interactive
     '$ superface create --profileId sms/service -i',
   ];
 
@@ -116,6 +120,12 @@ export default class Create extends Command {
 
     if (!flags.profileId && !flags.providerName) {
       throw userError('Invalid command! Specify profileId or providerName', 1);
+    }
+    if (flags.path && !(await exists(flags.path))) {
+      throw userError(
+        `Invalid command! Path "${flags.path}" does not exist`,
+        1
+      );
     }
 
     //Not creating anything
@@ -246,7 +256,7 @@ export default class Create extends Command {
         initSf = true;
       }
     }
-    //We promtp user
+    //We prompt user
     if (!flags['no-init'] && !flags.init && !superPath) {
       this.warnCallback?.("File 'super.json' has not been found.");
 
@@ -292,6 +302,7 @@ export default class Create extends Command {
         variant: flags.variant,
       },
       superPath,
+      flags.path,
       {
         logCb: this.logCallback,
         warnCb: this.warnCallback,

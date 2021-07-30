@@ -156,6 +156,7 @@ export async function create(
     variant?: string;
   },
   superPath?: string,
+  basePath?: string,
   options?: {
     logCb?: LogCallback;
     warnCb?: LogCallback;
@@ -198,7 +199,7 @@ export async function create(
     }
     for (const provider of providers) {
       await createMap(
-        '',
+        basePath ?? '',
         { scope, name, provider, variant, version },
         usecases,
         superJson,
@@ -214,7 +215,7 @@ export async function create(
       );
     }
     for (const provider of providers) {
-      await createProviderJson('', provider, superJson, {
+      await createProviderJson(basePath ?? '', provider, superJson, {
         logCb: options?.logCb,
       });
     }
@@ -226,9 +227,15 @@ export async function create(
         2
       );
     }
-    await createProfile('', { scope, name, version }, usecases, superJson, {
-      logCb: options?.logCb,
-    });
+    await createProfile(
+      basePath ?? '',
+      { scope, name, version },
+      usecases,
+      superJson,
+      {
+        logCb: options?.logCb,
+      }
+    );
   }
 
   // write new information to super.json

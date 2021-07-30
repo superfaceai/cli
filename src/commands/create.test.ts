@@ -51,7 +51,9 @@ describe('Create CLI command', () => {
           scope: undefined,
           version: { label: undefined, major: 1, minor: 0, patch: 0 },
         },
-        //Do not pass the path
+        //Do not pass the super path
+        undefined,
+        //Do not pass the base path
         undefined,
         { logCb: expect.anything(), warnCb: expect.anything() }
       );
@@ -82,8 +84,10 @@ describe('Create CLI command', () => {
           scope: undefined,
           version: { label: undefined, major: 1, minor: 0, patch: 0 },
         },
-        //Pass the path
+        //Pass the super path
         'superface',
+        //Do not pass the base path
+        undefined,
         { logCb: expect.anything(), warnCb: expect.anything() }
       );
       expect(promptSpy).not.toHaveBeenCalled();
@@ -119,8 +123,10 @@ describe('Create CLI command', () => {
           scope: undefined,
           version: { label: undefined, major: 1, minor: 0, patch: 0 },
         },
-        //Pass the path
+        //Pass the super path
         'superface',
+        //Do not pass the base path
+        undefined,
         { logCb: expect.anything(), warnCb: expect.anything() }
       );
       expect(promptSpy).toHaveBeenCalledTimes(1);
@@ -155,7 +161,9 @@ describe('Create CLI command', () => {
           scope: undefined,
           version: { label: undefined, major: 1, minor: 0, patch: 0 },
         },
-        //Do not pass the path
+        //Do not pass the super path
+        undefined,
+        //Do not pass the base path
         undefined,
         { logCb: expect.anything(), warnCb: expect.anything() }
       );
@@ -193,7 +201,9 @@ describe('Create CLI command', () => {
           scope: undefined,
           version: { label: undefined, major: 1, minor: 0, patch: 0 },
         },
-        //Do not pass the path
+        //Do not pass the super path
+        undefined,
+        //Do not pass the base path
         undefined,
         { logCb: expect.anything(), warnCb: expect.anything() }
       );
@@ -220,6 +230,8 @@ describe('Create CLI command', () => {
           version: { label: undefined, major: 1, minor: 0, patch: 0 },
         },
         'superface',
+        //Do not pass the base path
+        undefined,
         { logCb: undefined, warnCb: undefined }
       );
     });
@@ -243,6 +255,7 @@ describe('Create CLI command', () => {
           version: { label: undefined, major: 1, minor: 0, patch: 0 },
         },
         'superface',
+        undefined,
         { logCb: expect.anything(), warnCb: expect.anything() }
       );
     });
@@ -273,11 +286,13 @@ describe('Create CLI command', () => {
           version: { label: undefined, major: 1, minor: 0, patch: 0 },
         },
         'superface',
+        //Do not pass the base path
+        undefined,
         { logCb: expect.anything(), warnCb: expect.anything() }
       );
     });
 
-    it('creates profile with multiple usecases and version', async () => {
+    it('creates profile with multiple usecases and version and basePath', async () => {
       mocked(initSuperface).mockResolvedValue(new SuperJson({}));
       jest.spyOn(inquirer, 'prompt').mockResolvedValueOnce({ init: true });
 
@@ -292,6 +307,8 @@ describe('Create CLI command', () => {
           '--profile',
           '-v',
           '1.1-rev133',
+          '-p',
+          'test',
         ])
       ).resolves.toBeUndefined();
 
@@ -305,6 +322,8 @@ describe('Create CLI command', () => {
           version: { label: 'rev133', major: 1, minor: 1, patch: undefined },
         },
         'superface',
+        //Pass the base path
+        'test',
         { logCb: expect.anything(), warnCb: expect.anything() }
       );
     });
@@ -337,6 +356,8 @@ describe('Create CLI command', () => {
           version: { label: undefined, major: 1, minor: 0, patch: 0 },
         },
         'superface',
+        //Do not pass the base path
+        undefined,
         { logCb: expect.anything(), warnCb: expect.anything() }
       );
     });
@@ -373,6 +394,8 @@ describe('Create CLI command', () => {
           version: { label: undefined, major: 1, minor: 0, patch: 0 },
         },
         'superface',
+        //Do not pass the base path
+        undefined,
         { logCb: expect.anything(), warnCb: expect.anything() }
       );
     });
@@ -396,6 +419,8 @@ describe('Create CLI command', () => {
           version: { label: undefined, major: 1, minor: 0, patch: 0 },
         },
         'superface',
+        //Do not pass the base path
+        undefined,
         { logCb: expect.anything(), warnCb: expect.anything() }
       );
     });
@@ -420,6 +445,8 @@ describe('Create CLI command', () => {
           version: { label: undefined, major: 1, minor: 0, patch: 0 },
         },
         'superface',
+        //Do not pass the base path
+        undefined,
         { logCb: expect.anything(), warnCb: expect.anything() }
       );
     });
@@ -454,6 +481,8 @@ describe('Create CLI command', () => {
           version: { label: undefined, major: 1, minor: 0, patch: 0 },
         },
         'superface',
+        //Do not pass the base path
+        undefined,
         { logCb: expect.anything(), warnCb: expect.anything() }
       );
     });
@@ -491,6 +520,8 @@ describe('Create CLI command', () => {
           version: { label: undefined, major: 1, minor: 0, patch: 0 },
         },
         'superface',
+        //Do not pass the base path
+        undefined,
         { logCb: expect.anything(), warnCb: expect.anything() }
       );
     });
@@ -530,6 +561,8 @@ describe('Create CLI command', () => {
           version: { label: 'rev133', major: 1, minor: 1, patch: undefined },
         },
         'superface',
+        //Do not pass the base path
+        undefined,
         { logCb: expect.anything(), warnCb: expect.anything() }
       );
     });
@@ -564,6 +597,8 @@ describe('Create CLI command', () => {
           version: { label: undefined, major: 1, minor: 0, patch: 0 },
         },
         'superface',
+        //Do not pass the base path
+        undefined,
         { logCb: expect.anything(), warnCb: expect.anything() }
       );
     });
@@ -598,6 +633,8 @@ describe('Create CLI command', () => {
           version: { label: undefined, major: 1, minor: 0, patch: 0 },
         },
         'superface',
+        //Do not pass the base path
+        undefined,
         { logCb: expect.anything(), warnCb: expect.anything() }
       );
     });
@@ -634,6 +671,8 @@ describe('Create CLI command', () => {
           version: { label: undefined, major: 1, minor: 0, patch: 0 },
         },
         'superface',
+        //Do not pass the base path
+        undefined,
         { logCb: expect.anything(), warnCb: expect.anything() }
       );
     });
@@ -668,6 +707,8 @@ describe('Create CLI command', () => {
           version: { label: undefined, major: 1, minor: 0, patch: 0 },
         },
         'superface',
+        //Do not pass the base path
+        undefined,
         { logCb: expect.anything(), warnCb: expect.anything() }
       );
     });
@@ -702,6 +743,8 @@ describe('Create CLI command', () => {
           version: { label: undefined, major: 1, minor: 0, patch: 0 },
         },
         'superface',
+        //Do not pass the base path
+        undefined,
         { logCb: expect.anything(), warnCb: expect.anything() }
       );
     });
@@ -736,6 +779,8 @@ describe('Create CLI command', () => {
           version: { label: undefined, major: 1, minor: 0, patch: 0 },
         },
         'superface',
+        //Do not pass the base path
+        undefined,
         { logCb: expect.anything(), warnCb: expect.anything() }
       );
     });
@@ -769,6 +814,8 @@ describe('Create CLI command', () => {
           version: { label: undefined, major: 1, minor: 0, patch: 0 },
         },
         'superface',
+        //Do not pass the base path
+        undefined,
         { logCb: expect.anything(), warnCb: expect.anything() }
       );
     });

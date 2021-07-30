@@ -1,6 +1,6 @@
 import { SuperJson, SuperJsonDocument } from '@superfaceai/one-sdk';
 import { parseProfileId } from '@superfaceai/parser';
-import { basename, join as joinPath } from 'path';
+import { join as joinPath } from 'path';
 
 import {
   composeUsecaseName,
@@ -13,7 +13,6 @@ import { userError } from '../common/error';
 import { mkdir, mkdirQuiet } from '../common/io';
 import { formatShellLog, LogCallback } from '../common/log';
 import { OutputStream } from '../common/output-stream';
-import * as initTemplate from '../templates/init';
 import { createProfile } from './create';
 
 /**
@@ -46,22 +45,6 @@ export async function initSuperface(
     const created = await mkdir(appPath, { recursive: true });
     if (created) {
       options?.logCb?.(formatShellLog('mkdir', [appPath]));
-    }
-  }
-
-  // create README.md
-  {
-    const readmePath = joinPath(appPath, 'README.md');
-    const created = await OutputStream.writeIfAbsent(
-      readmePath,
-      initTemplate.readme(basename(appPath)),
-      { force: options?.force }
-    );
-
-    if (created) {
-      options?.logCb?.(
-        formatShellLog("echo '<README.md template>' >", [readmePath])
-      );
     }
   }
 

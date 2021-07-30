@@ -1,13 +1,11 @@
 import { CLIError } from '@oclif/errors';
 import { ok, SuperJson } from '@superfaceai/one-sdk';
 import { parseProfileId } from '@superfaceai/parser';
-import { basename } from 'path';
 import { mocked } from 'ts-jest/utils';
 
 import { composeUsecaseName } from '../common/document';
 import { mkdir, mkdirQuiet } from '../common/io';
 import { OutputStream } from '../common/output-stream';
-import * as initTemplate from '../templates/init';
 import { createProfile } from './create';
 import { generateSpecifiedProfiles, initSuperface } from './init';
 
@@ -54,15 +52,8 @@ describe('Init logic', () => {
       expect(mkdirQuiet).toHaveBeenNthCalledWith(2, 'test/superface/grid');
       expect(mkdirQuiet).toHaveBeenNthCalledWith(3, 'test/superface/types');
 
-      expect(writeIfAbsentSpy).toHaveBeenCalledTimes(2);
-      expect(writeIfAbsentSpy).toHaveBeenNthCalledWith(
-        1,
-        'test/README.md',
-        initTemplate.readme(basename('test')),
-        { force: undefined }
-      );
-      expect(writeIfAbsentSpy).toHaveBeenNthCalledWith(
-        2,
+      expect(writeIfAbsentSpy).toHaveBeenCalledTimes(1);
+      expect(writeIfAbsentSpy).toHaveBeenCalledWith(
         'test/superface/super.json',
         expect.anything(),
         { force: undefined }

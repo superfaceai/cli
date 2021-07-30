@@ -33,7 +33,7 @@ describe('Interactive create CLI command', () => {
   });
 
   describe('when running create command', () => {
-    it('creates profile with one usecase (with usecase name from cli)', async () => {
+    it('creates profile with one usecase (with usecase name from cli) with path flag', async () => {
       mocked(initSuperface).mockResolvedValue(new SuperJson({}));
       jest
         .spyOn(inquirer, 'prompt')
@@ -48,7 +48,7 @@ describe('Interactive create CLI command', () => {
 
       documentName = 'sendsms';
       await expect(
-        Create.run(['--profileId', documentName, '-i'])
+        Create.run(['--profileId', documentName, '-i', '-p', 'test'])
       ).resolves.toBeUndefined();
       expect(create).toHaveBeenCalledTimes(1);
       expect(create).toHaveBeenCalledWith(
@@ -60,6 +60,8 @@ describe('Interactive create CLI command', () => {
           version: { label: undefined, major: 1, minor: 0, patch: 0 },
         },
         'superface',
+        //Pass the base path
+        'test',
         { logCb: expect.anything(), warnCb: expect.anything() }
       );
     });
@@ -92,6 +94,8 @@ describe('Interactive create CLI command', () => {
           version: { label: undefined, major: 1, minor: 0, patch: 0 },
         },
         'superface',
+        //Do not pass the base path
+        undefined,
         { logCb: expect.anything(), warnCb: expect.anything() }
       );
     });
@@ -131,6 +135,8 @@ describe('Interactive create CLI command', () => {
           version: { label: undefined, major: 1, minor: 0, patch: 0 },
         },
         'superface',
+        //Do not pass the base path
+        undefined,
         { logCb: expect.anything(), warnCb: expect.anything() }
       );
     });
@@ -174,6 +180,8 @@ describe('Interactive create CLI command', () => {
           version: { label: undefined, major: 1, minor: 0, patch: 0 },
         },
         'superface',
+        //Do not pass the base path
+        undefined,
         { logCb: expect.anything(), warnCb: expect.anything() }
       );
     });
@@ -217,6 +225,8 @@ describe('Interactive create CLI command', () => {
           version: { label: undefined, major: 1, minor: 0, patch: 0 },
         },
         'superface',
+        //Do not pass the base path
+        undefined,
         { logCb: expect.anything(), warnCb: expect.anything() }
       );
     });
@@ -259,6 +269,8 @@ describe('Interactive create CLI command', () => {
           version: { label: undefined, major: 1, minor: 0, patch: 0 },
         },
         'superface',
+        //Do not pass the base path
+        undefined,
         { logCb: expect.anything(), warnCb: expect.anything() }
       );
     });
@@ -301,6 +313,8 @@ describe('Interactive create CLI command', () => {
           version: { label: undefined, major: 1, minor: 0, patch: 0 },
         },
         'superface',
+        //Do not pass the base path
+        undefined,
         { logCb: expect.anything(), warnCb: expect.anything() }
       );
     });
@@ -341,6 +355,8 @@ describe('Interactive create CLI command', () => {
           version: { label: undefined, major: 1, minor: 0, patch: 0 },
         },
         'superface',
+        //Do not pass the base path
+        undefined,
         { logCb: expect.anything(), warnCb: expect.anything() }
       );
     });
@@ -383,6 +399,8 @@ describe('Interactive create CLI command', () => {
           version: { label: undefined, major: 1, minor: 0, patch: 0 },
         },
         'superface',
+        //Do not pass the base path
+        undefined,
         { logCb: expect.anything(), warnCb: expect.anything() }
       );
     });
@@ -425,6 +443,8 @@ describe('Interactive create CLI command', () => {
           version: { label: undefined, major: 1, minor: 0, patch: 0 },
         },
         'superface',
+        //Do not pass the base path
+        undefined,
         { logCb: expect.anything(), warnCb: expect.anything() }
       );
     });
