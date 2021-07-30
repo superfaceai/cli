@@ -1,0 +1,18 @@
+{
+  "profiles": {
+    "starwars/character-information": {
+      "version": "1.0.3",
+      "providers": {
+        "swapi": {}
+      },
+      "priority": [
+        "swapi"
+      ]
+    }
+  },
+  "providers": {
+    "swapi": {
+      "security": []
+    }
+  }
+}
