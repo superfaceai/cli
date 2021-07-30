@@ -3,9 +3,16 @@ import { SuperJson } from '@superfaceai/one-sdk';
 import inquirer from 'inquirer';
 import { mocked } from 'ts-jest/utils';
 
+import { exists } from '../common/io';
 import { create } from '../logic/create';
 import { initSuperface } from '../logic/init';
 import Create from './create';
+
+//Mock io
+jest.mock('../common/io', () => ({
+  ...jest.requireActual<Record<string, unknown>>('../common/io'),
+  exists: jest.fn(),
+}));
 
 //Mock create logic
 jest.mock('../logic/create', () => ({
@@ -294,6 +301,7 @@ describe('Create CLI command', () => {
 
     it('creates profile with multiple usecases and version and basePath', async () => {
       mocked(initSuperface).mockResolvedValue(new SuperJson({}));
+      mocked(exists).mockResolvedValue(true);
       jest.spyOn(inquirer, 'prompt').mockResolvedValueOnce({ init: true });
 
       documentName = 'sms/service';
