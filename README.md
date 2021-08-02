@@ -98,6 +98,7 @@ USAGE
 OPTIONS
   -h, --help                   show CLI help
   -i, --interactive            When set to true, command is used in interactive mode.
+  -p, --path=path              Base path where files will be created
   -q, --quiet                  When set to true, disables the shell echo output of init actions.
 
   -s, --scan=scan              When number provided, scan for super.json outside cwd within range represented by this
@@ -109,7 +110,13 @@ OPTIONS
 
   -v, --version=version        [default: 1.0.0] Version of a profile
 
+  --init                       When set to true, command will initialize Superface
+
   --map                        Create a map
+
+  --no-init                    When set to true, command won't initialize Superface
+
+  --no-super-json              When set to true, command won't change SuperJson file
 
   --profile                    Create a profile
 
@@ -117,7 +124,7 @@ OPTIONS
 
   --provider                   Create a provider
 
-  --providerName=providerName  Names of provider. This argument is used to create maps and/or providers
+  --providerName=providerName  Names of providers. This argument is used to create maps and/or providers
 
 EXAMPLES
   $ superface create --profileId sms/service --profile
@@ -127,7 +134,7 @@ EXAMPLES
   $ superface create --providerName twilio tyntec --provider
   $ superface create --profileId sms/service --providerName twilio --provider --map --profile -t bugfix -v 1.1-rev133 -u 
   SendSMS ReceiveSMS
-  $ superface create --profileId sms/service -i
+  $ superface create -i
 ```
 
 _See code: [src/commands/create/profile.ts](https://github.com/superfaceai/cli/tree/main/src/commands/create/profile.ts)_

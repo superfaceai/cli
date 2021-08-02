@@ -37,7 +37,7 @@ export default class Create extends Command {
     providerName: oclifFlags.string({
       multiple: true,
       description:
-        'Names of provider. This argument is used to create maps and/or providers',
+        'Names of providers. This argument is used to create maps and/or providers',
     }),
     //What do we create
     profile: oclifFlags.boolean({
@@ -104,11 +104,11 @@ export default class Create extends Command {
     '$ superface create --profileId sms/service --providerName twilio --map -t bugfix',
     '$ superface create --providerName twilio tyntec --provider',
     '$ superface create --profileId sms/service --providerName twilio --provider --map --profile -t bugfix -v 1.1-rev133 -u SendSMS ReceiveSMS',
-    '$ superface create --profileId sms/service -i',
+    '$ superface create -i',
   ];
 
-  private warnCallback? = (message: string) => this.log(yellow(message));
-  private logCallback? = (message: string) => this.log(grey(message));
+  private warnCallback?= (message: string) => this.log(yellow(message));
+  private logCallback?= (message: string) => this.log(grey(message));
 
   async run(): Promise<void> {
     const { flags } = this.parse(Create);
@@ -167,8 +167,7 @@ export default class Create extends Command {
         ]);
         while (!exit) {
           providerInput = await this.inputPrompt(
-            `Enter provider name of ${
-              priorityToString.get(priority) || priority
+            `Enter provider name of ${priorityToString.get(priority) || priority
             } provider.\nExit loop by pressing enter without any input.`
           );
           if (!providerInput) {
