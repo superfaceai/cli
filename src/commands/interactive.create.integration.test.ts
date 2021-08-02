@@ -41,25 +41,23 @@ describe('Interactive create CLI command', () => {
     it('creates profile with one usecase (with usecase name from cli)', async () => {
       documentName = 'sendsms';
 
-      let result = await execCLI(
-        tempDir,
-        ['create', '--profileId', documentName, '-i'],
-        mockServer.url,
-        {
-          inputs: [
-            //Create profile
-            { value: ENTER, timeout: 2000 },
-            //Create map
-            { value: 'n', timeout: 2000 },
-            { value: ENTER, timeout: 200 },
-            //Create provider
-            { value: 'n', timeout: 2000 },
-            { value: ENTER, timeout: 200 },
-            //Init superface
-            { value: ENTER, timeout: 2000 },
-          ],
-        }
-      );
+      let result = await execCLI(tempDir, ['create', '-i'], mockServer.url, {
+        inputs: [
+          //Create profile
+          { value: ENTER, timeout: 2000 },
+          //Create map
+          { value: 'n', timeout: 2000 },
+          { value: ENTER, timeout: 200 },
+          //Create provider
+          { value: 'n', timeout: 2000 },
+          { value: ENTER, timeout: 200 },
+          //Profile
+          { value: documentName, timeout: 2000 },
+          { value: ENTER, timeout: 200 },
+          //Init superface
+          { value: ENTER, timeout: 200 },
+        ],
+      });
 
       expect(result.stdout).toMatch(
         `-> Created ${documentName}.supr (name = "${documentName}", version = "1.0.0")`
@@ -91,7 +89,7 @@ describe('Interactive create CLI command', () => {
 
       let result = await execCLI(
         tempDir,
-        ['create', '--profileId', documentName, '-u', 'SendSMS', '-i'],
+        ['create', '-u', 'SendSMS', '-i'],
         mockServer.url,
         {
           inputs: [
@@ -103,8 +101,11 @@ describe('Interactive create CLI command', () => {
             //Create provider
             { value: 'n', timeout: 2000 },
             { value: ENTER, timeout: 200 },
+            //Profile
+            { value: documentName, timeout: 2000 },
+            { value: ENTER, timeout: 200 },
             //Init superface
-            { value: ENTER, timeout: 2000 },
+            { value: ENTER, timeout: 200 },
           ],
         }
       );
@@ -137,15 +138,7 @@ describe('Interactive create CLI command', () => {
 
       let result = await execCLI(
         tempDir,
-        [
-          'create',
-          '--profileId',
-          documentName,
-          '-u',
-          'ReceiveSMS',
-          'SendSMS',
-          '-i',
-        ],
+        ['create', '-u', 'ReceiveSMS', 'SendSMS', '-i'],
         mockServer.url,
         {
           inputs: [
@@ -157,8 +150,11 @@ describe('Interactive create CLI command', () => {
             //Create provider
             { value: 'n', timeout: 2000 },
             { value: ENTER, timeout: 200 },
+            //Profile
+            { value: documentName, timeout: 2000 },
+            { value: ENTER, timeout: 500 },
             //Init superface
-            { value: ENTER, timeout: 2000 },
+            { value: ENTER, timeout: 200 },
           ],
         }
       );
@@ -191,32 +187,27 @@ describe('Interactive create CLI command', () => {
       documentName = 'sms/service';
       provider = 'twilio';
 
-      let result = await execCLI(
-        tempDir,
-        [
-          'create',
-          '--profileId',
-          documentName,
-          '--providerName',
-          provider,
-          '-i',
+      let result = await execCLI(tempDir, ['create', '-i'], mockServer.url, {
+        inputs: [
+          //Create profile
+          { value: 'n', timeout: 2000 },
+          { value: ENTER, timeout: 200 },
+          //Create map
+          { value: ENTER, timeout: 2000 },
+          //Create provider
+          { value: 'n', timeout: 2000 },
+          { value: ENTER, timeout: 200 },
+          //Profile
+          { value: documentName, timeout: 2000 },
+          { value: ENTER, timeout: 200 },
+          //Provider
+          { value: provider, timeout: 2000 },
+          { value: ENTER, timeout: 200 },
+          { value: ENTER, timeout: 200 },
+          //Init superface
+          { value: ENTER, timeout: 200 },
         ],
-        mockServer.url,
-        {
-          inputs: [
-            //Create profile
-            { value: 'n', timeout: 1000 },
-            { value: ENTER, timeout: 200 },
-            //Create map
-            { value: ENTER, timeout: 1000 },
-            //Create provider
-            { value: 'n', timeout: 1000 },
-            { value: ENTER, timeout: 200 },
-            //Init superface
-            { value: ENTER, timeout: 1000 },
-          ],
-        }
-      );
+      });
       expect(result.stdout).toContain(
         `-> Created ${documentName}.${provider}.suma (profile = "${documentName}@1.0", provider = "${provider}")`
       );
@@ -256,16 +247,7 @@ describe('Interactive create CLI command', () => {
 
       let result = await execCLI(
         tempDir,
-        [
-          'create',
-          '--profileId',
-          documentName,
-          '-u',
-          'SendSMS',
-          '--providerName',
-          provider,
-          '-i',
-        ],
+        ['create', '-u', 'SendSMS', '-i'],
         mockServer.url,
         {
           inputs: [
@@ -276,8 +258,15 @@ describe('Interactive create CLI command', () => {
             { value: ENTER, timeout: 1000 },
             //Create provider
             { value: ENTER, timeout: 1000 },
+            //Profile
+            { value: documentName, timeout: 2000 },
+            { value: ENTER, timeout: 200 },
+            //Provider
+            { value: provider, timeout: 2000 },
+            { value: ENTER, timeout: 200 },
+            { value: ENTER, timeout: 200 },
             //Init superface
-            { value: ENTER, timeout: 1000 },
+            { value: ENTER, timeout: 200 },
           ],
         }
       );
@@ -324,17 +313,7 @@ describe('Interactive create CLI command', () => {
 
       let result = await execCLI(
         tempDir,
-        [
-          'create',
-          '--profileId',
-          documentName,
-          '--providerName',
-          provider,
-          '-u',
-          'ReceiveSMS',
-          'SendSMS',
-          '-i',
-        ],
+        ['create', '-u', 'ReceiveSMS', 'SendSMS', '-i'],
         mockServer.url,
         {
           inputs: [
@@ -346,8 +325,15 @@ describe('Interactive create CLI command', () => {
             //Create provider
             { value: 'n', timeout: 1000 },
             { value: ENTER, timeout: 200 },
+            //Profile
+            { value: documentName, timeout: 2000 },
+            { value: ENTER, timeout: 200 },
+            //Provider
+            { value: provider, timeout: 2000 },
+            { value: ENTER, timeout: 200 },
+            { value: ENTER, timeout: 200 },
             //Init superface
-            { value: ENTER, timeout: 1000 },
+            { value: ENTER, timeout: 200 },
           ],
         }
       );
@@ -389,31 +375,26 @@ describe('Interactive create CLI command', () => {
       documentName = 'sms/service';
       provider = 'twilio';
 
-      let result = await execCLI(
-        tempDir,
-        [
-          'create',
-          '--profileId',
-          documentName,
-          '--providerName',
-          provider,
-          '-i',
+      let result = await execCLI(tempDir, ['create', '-i'], mockServer.url, {
+        inputs: [
+          //Create profile
+          { value: ENTER, timeout: 1000 },
+          //Create map
+          { value: ENTER, timeout: 1000 },
+          //Create provider
+          { value: 'n', timeout: 1000 },
+          { value: ENTER, timeout: 200 },
+          //Profile
+          { value: documentName, timeout: 2000 },
+          { value: ENTER, timeout: 200 },
+          //Provider
+          { value: provider, timeout: 2000 },
+          { value: ENTER, timeout: 200 },
+          { value: ENTER, timeout: 200 },
+          //Init superface
+          { value: ENTER, timeout: 200 },
         ],
-        mockServer.url,
-        {
-          inputs: [
-            //Create profile
-            { value: ENTER, timeout: 1000 },
-            //Create map
-            { value: ENTER, timeout: 1000 },
-            //Create provider
-            { value: 'n', timeout: 1000 },
-            { value: ENTER, timeout: 200 },
-            //Init superface
-            { value: ENTER, timeout: 1000 },
-          ],
-        }
-      );
+      });
       expect(result.stdout).toContain(
         `-> Created ${documentName}.supr (name = "${documentName}", version = "1.0.0")`
       );
@@ -465,16 +446,7 @@ describe('Interactive create CLI command', () => {
 
       let result = await execCLI(
         tempDir,
-        [
-          'create',
-          '--profileId',
-          documentName,
-          '-u',
-          'SendSMS',
-          '--providerName',
-          'twilio',
-          '-i',
-        ],
+        ['create', '-u', 'SendSMS', '-i'],
         mockServer.url,
         {
           inputs: [
@@ -485,8 +457,15 @@ describe('Interactive create CLI command', () => {
             //Create provider
             { value: 'n', timeout: 1000 },
             { value: ENTER, timeout: 200 },
+            //Profile
+            { value: documentName, timeout: 2000 },
+            { value: ENTER, timeout: 200 },
+            //Provider
+            { value: provider, timeout: 2000 },
+            { value: ENTER, timeout: 200 },
+            { value: ENTER, timeout: 200 },
             //Init superface
-            { value: ENTER, timeout: 1000 },
+            { value: ENTER, timeout: 200 },
           ],
         }
       );
@@ -540,17 +519,7 @@ describe('Interactive create CLI command', () => {
 
       let result = await execCLI(
         tempDir,
-        [
-          'create',
-          '--profileId',
-          documentName,
-          '-u',
-          'SendSMS',
-          'ReceiveSMS',
-          '--providerName',
-          provider,
-          '-i',
-        ],
+        ['create', '-u', 'SendSMS', 'ReceiveSMS', '-i'],
         mockServer.url,
         {
           inputs: [
@@ -561,8 +530,15 @@ describe('Interactive create CLI command', () => {
             //Create provider
             { value: 'n', timeout: 2000 },
             { value: ENTER, timeout: 500 },
+            //Profile
+            { value: documentName, timeout: 2000 },
+            { value: ENTER, timeout: 500 },
+            //Provider
+            { value: provider, timeout: 2000 },
+            { value: ENTER, timeout: 200 },
+            { value: ENTER, timeout: 200 },
             //Init superface
-            { value: ENTER, timeout: 2000 },
+            { value: ENTER, timeout: 200 },
           ],
         }
       );

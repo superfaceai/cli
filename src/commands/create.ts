@@ -42,26 +42,21 @@ export default class Create extends Command {
     //What do we create
     profile: oclifFlags.boolean({
       description: 'Create a profile',
-      dependsOn: ['profileId'],
     }),
     map: oclifFlags.boolean({
       description: 'Create a map',
-      dependsOn: ['profileId', 'providerName'],
     }),
     provider: oclifFlags.boolean({
       description: 'Create a provider',
-      dependsOn: ['providerName'],
     }),
     usecase: oclifFlags.string({
       char: 'u',
       multiple: true,
       description: 'Usecases that profile or map contains',
-      dependsOn: ['profileId'],
     }),
     variant: oclifFlags.string({
       char: 't',
       description: 'Variant of a map',
-      dependsOn: ['profileId', 'providerName'],
     }),
     version: oclifFlags.string({
       char: 'v',
@@ -118,7 +113,7 @@ export default class Create extends Command {
   async run(): Promise<void> {
     const { flags } = this.parse(Create);
 
-    if (!flags.profileId && !flags.providerName) {
+    if (!flags.profileId && !flags.providerName && !flags.interactive) {
       throw userError('Invalid command! Specify profileId or providerName', 1);
     }
     if (flags.path && !(await exists(flags.path))) {
@@ -139,13 +134,58 @@ export default class Create extends Command {
 
     //Interactive
     if (flags.interactive) {
-      flags.profile = await this.createPrompt(
+      flags.profile = await this.confirmPrompt(
         'Do you want to create a profile?'
       );
-      flags.map = await this.createPrompt('Do you want to create a map?');
-      flags.provider = await this.createPrompt(
+      flags.map = await this.confirmPrompt('Do you want to create a map?');
+      flags.provider = await this.confirmPrompt(
         'Do you want to create a provider?'
       );
+      //We need profile Id
+      if (!flags.profileId && (flags.profile || flags.map)) {
+        let profileInput: string | undefined = undefined;
+        profileInput = await this.inputPrompt(
+          'Enter profile Id in format [scope](optional)/[name]'
+        );
+        if (!profileInput) {
+          throw userError('Invalid command! Profile Id must be defined', 1);
+        }
+        flags.profileId = profileInput;
+      }
+      //We need provider name
+      if (!flags.providerName && (flags.provider || flags.map)) {
+        flags.providerName = [];
+        let priority = 1;
+        let exit = false;
+        let providerInput: string | undefined = undefined;
+        const priorityToString: Map<number, string> = new Map([
+          [1, 'primary'],
+          [2, 'secondary'],
+          [3, 'third'],
+          [4, 'fourth'],
+          [5, 'fifth'],
+        ]);
+        while (!exit) {
+          providerInput = await this.inputPrompt(
+            `Enter provider name of ${
+              priorityToString.get(priority) || priority
+            } provider.\nExit loop by pressing enter without any input.`
+          );
+          if (!providerInput) {
+            //We don't have any name
+            if (priority === 1) {
+              throw userError(
+                'Invalid command! At least one provider must be defined',
+                1
+              );
+            }
+            exit = true;
+            continue;
+          }
+          flags.providerName.push(providerInput);
+          priority++;
+        }
+      }
     }
 
     if (flags.quiet) {
@@ -156,6 +196,21 @@ export default class Create extends Command {
     let providerNames: string[] = [];
 
     //Check inputs
+    if (flags.profile && !flags.profileId) {
+      throw userError('--profileId= must be provided when creating profile', 1);
+    }
+    if (flags.map && !flags.profileId) {
+      throw userError('--profileId= must be provided when creating map', 1);
+    }
+    if (flags.map && !flags.providerName) {
+      throw userError('--providerName= must be provided when creating map', 1);
+    }
+    if (flags.providerName && !flags.providerName) {
+      throw userError(
+        '--providerName= must be provided when creating provider',
+        1
+      );
+    }
     if (flags.profileId) {
       if (flags.profileId === 'profile' || flags.profileId === 'map') {
         throw userError('ProfileId is reserved!', 1);
@@ -310,7 +365,18 @@ export default class Create extends Command {
     );
   }
 
-  async createPrompt(message: string): Promise<boolean> {
+  async inputPrompt(message: string): Promise<string | undefined> {
+    const prompt: { input: string | undefined } = await inquirer.prompt({
+      name: 'input',
+      message,
+      type: 'input',
+      default: undefined,
+    });
+
+    return prompt.input;
+  }
+
+  async confirmPrompt(message: string): Promise<boolean> {
     const prompt: { create: boolean } = await inquirer.prompt({
       name: 'create',
       message,
