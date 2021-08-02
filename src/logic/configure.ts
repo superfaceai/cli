@@ -6,6 +6,7 @@ import {
   parseProviderJson,
   ProfileProviderDefaults,
   ProviderJson,
+  SecurityScheme,
   SecurityValues,
   SuperJson,
 } from '@superfaceai/one-sdk';
@@ -17,10 +18,48 @@ import {
 } from '../common/document';
 import { userError } from '../common/error';
 import { fetchProviderInfo } from '../common/http';
-import { readFile } from '../common/io';
+import { exists, readFile } from '../common/io';
 import { formatShellLog, LogCallback } from '../common/log';
 import { OutputStream } from '../common/output-stream';
+import { envVariable } from '../templates/env';
 
+export async function updateEnv(
+  provider: string,
+  securitySchemes: SecurityScheme[],
+  options?: { warnCb?: LogCallback }
+): Promise<void> {
+  let envContent = '';
+  //Get .env file
+  if (await exists('.env')) {
+    envContent = (await readFile('.env')).toString();
+  }
+  //Get security values of installed provider
+  const envProviderName = provider.replace('-', '_').toUpperCase();
+
+  for (const scheme of securitySchemes) {
+    let value: string | undefined;
+    if (isApiKeySecurityScheme(scheme)) {
+      value = envVariable(`${envProviderName}_API_KEY`, '');
+    } else if (isBasicAuthSecurityScheme(scheme)) {
+      value = envVariable(`${envProviderName}_USERNAME`, '');
+      value = envVariable(`${envProviderName}_PASSWORD`, '');
+    } else if (isBearerTokenSecurityScheme(scheme)) {
+      value = envVariable(`${envProviderName}_TOKEN`, '');
+    } else if (isDigestSecurityScheme(scheme)) {
+      value = envVariable(`${envProviderName}_DIGEST`, '');
+    } else {
+      options?.warnCb?.(
+        `⚠️  Provider: "${provider}" contains unknown security scheme`
+      );
+    }
+    //Do not overide existing values
+    if (value && !envContent.includes(value.trim())) {
+      envContent += value;
+    }
+  }
+  //Write .env file
+  await OutputStream.writeOnce('.env', envContent);
+}
 /**
  * Handle responses from superface registry.
  * It saves new information about provider into super.json.
@@ -124,6 +163,7 @@ export async function installProvider(parameters: {
     warnCb?: LogCallback;
     force?: boolean;
     local: boolean;
+    updateEnv?: boolean;
   };
 }): Promise<void> {
   const loadedResult = await SuperJson.load(
@@ -193,6 +233,13 @@ export async function installProvider(parameters: {
   parameters.options?.logCb?.(
     formatShellLog("echo '<updated super.json>' >", [superJson.path])
   );
+
+  // update .env
+  if (parameters.options?.updateEnv && providerInfo.securitySchemes) {
+    await updateEnv(providerInfo.name, providerInfo.securitySchemes, {
+      warnCb: parameters.options.warnCb,
+    });
+  }
   if (providerInfo.securitySchemes && providerInfo.securitySchemes.length > 0) {
     // inform user about instlaled security schemes
     if (numOfConfigured === 0) {

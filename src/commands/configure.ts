@@ -96,6 +96,7 @@ export default class Configure extends Command {
         warnCb: this.warnCallback,
         force: flags.force,
         local: flags.local,
+        updateEnv: true,
       },
     });
   }

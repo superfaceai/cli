@@ -66,6 +66,7 @@ describe('Configure CLI command', () => {
         options: {
           force: false,
           local: false,
+          updateEnv: true,
           logCb: expect.anything(),
           warnCb: expect.anything(),
         },
@@ -98,6 +99,7 @@ describe('Configure CLI command', () => {
         defaults: undefined,
         options: {
           force: false,
+          updateEnv: true,
           local: false,
           logCb: undefined,
           warnCb: undefined,
