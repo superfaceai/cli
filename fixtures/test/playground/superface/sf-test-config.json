@@ -9,15 +9,25 @@
           "characterName": "yoda"
         },
         "result": { "height": "66", "weight": "17", "yearOfBirth": "896BBY" },
-        "isError": false
+        "isError": true
       },
       {
         "usecase": "RetrieveCharacterInformation",
         "input": {
-          "characterName": "yoda"
+          "characterName": "notExistingCharacter"
         },
-        "result": { "height": "66", "weight": "55", "yearOfBirth": "896BBY" },
+        "result": null,
         "isError": true
+      }
+    ],
+    "mockedRequests": [
+      {
+        "method": "GET",
+        "url": "/people",
+        "status": 404,
+        "body": {
+          "data": "not found"
+        }
       }
     ]
   }
