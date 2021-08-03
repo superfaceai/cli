@@ -28,6 +28,11 @@ export default class Configure extends Command {
       description: 'Specifies profile to associate with provider',
       required: true,
     }),
+    ['no-env']: oclifFlags.boolean({
+      description:
+        'When set to true command does not prepare security varibles in .env file',
+      default: false,
+    }),
     force: oclifFlags.boolean({
       char: 'f',
       description:
@@ -96,7 +101,7 @@ export default class Configure extends Command {
         warnCb: this.warnCallback,
         force: flags.force,
         local: flags.local,
-        updateEnv: true,
+        updateEnv: !flags['no-env'],
       },
     });
   }

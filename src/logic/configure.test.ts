@@ -12,7 +12,7 @@ import {
 import { mocked } from 'ts-jest/utils';
 
 import { fetchProviderInfo } from '../common/http';
-import { exists, readFile } from '../common/io';
+import { readFile, readFileQuiet } from '../common/io';
 import { OutputStream } from '../common/output-stream';
 import {
   getProviderFromStore,
@@ -71,8 +71,7 @@ describe('Configure CLI logic', () => {
 
   describe('when updating env file', () => {
     it('updates env file correctly', async () => {
-      mocked(exists).mockResolvedValue(true);
-      mocked(readFile).mockResolvedValue('TEST_API_KEY=something\n');
+      mocked(readFileQuiet).mockResolvedValue('TEST_API_KEY=something\n');
       const writeOnceSpy = jest
         .spyOn(OutputStream, 'writeOnce')
         .mockResolvedValue(undefined);
@@ -83,12 +82,12 @@ describe('Configure CLI logic', () => {
       expect(writeOnceSpy).toHaveBeenCalledTimes(1);
       expect(writeOnceSpy).toHaveBeenCalledWith(
         '.env',
-        `TEST_API_KEY=something\nTEST_TOKEN=\nTEST_PASSWORD=\nTEST_DIGEST=\n`
+        `TEST_API_KEY=something\nTEST_TOKEN=\nTEST_USERNAME=\nTEST_PASSWORD=\nTEST_DIGEST=\n`
       );
     });
 
     it('creates new env file correctly', async () => {
-      mocked(exists).mockResolvedValue(false);
+      mocked(readFileQuiet).mockResolvedValue(undefined);
       const writeOnceSpy = jest
         .spyOn(OutputStream, 'writeOnce')
         .mockResolvedValue(undefined);
@@ -99,12 +98,12 @@ describe('Configure CLI logic', () => {
       expect(writeOnceSpy).toHaveBeenCalledTimes(1);
       expect(writeOnceSpy).toHaveBeenCalledWith(
         '.env',
-        `TEST_API_KEY=\nTEST_TOKEN=\nTEST_PASSWORD=\nTEST_DIGEST=\n`
+        `TEST_API_KEY=\nTEST_TOKEN=\nTEST_USERNAME=\nTEST_PASSWORD=\nTEST_DIGEST=\n`
       );
     });
 
     it('does not update env file on unknown scheme', async () => {
-      mocked(exists).mockResolvedValue(false);
+      mocked(readFileQuiet).mockResolvedValue(undefined);
       const writeOnceSpy = jest
         .spyOn(OutputStream, 'writeOnce')
         .mockResolvedValue(undefined);
@@ -444,7 +443,7 @@ describe('Configure CLI logic', () => {
       expect(writeOnceSpy).toHaveBeenCalledTimes(2);
       expect(writeOnceSpy).toHaveBeenCalledWith(
         '.env',
-        `TEST_API_KEY=\nTEST_TOKEN=\nTEST_PASSWORD=\nTEST_DIGEST=\n`
+        `TEST_API_KEY=\nTEST_TOKEN=\nTEST_USERNAME=\nTEST_PASSWORD=\nTEST_DIGEST=\n`
       );
     });
 
@@ -591,7 +590,7 @@ describe('Configure CLI logic', () => {
       expect(writeOnceSpy).toHaveBeenCalledTimes(2);
       expect(writeOnceSpy).toHaveBeenCalledWith(
         '.env',
-        `TEST_API_KEY=\nTEST_TOKEN=\nTEST_PASSWORD=\nTEST_DIGEST=\n`
+        `TEST_API_KEY=\nTEST_TOKEN=\nTEST_USERNAME=\nTEST_PASSWORD=\nTEST_DIGEST=\n`
       );
     });
 
