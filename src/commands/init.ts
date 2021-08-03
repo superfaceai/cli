@@ -134,12 +134,6 @@ export default class Init extends Command {
       quietMode: 'You can also use this command in quiet mode with flag `-q`.',
       quiet: '',
     };
-    //Warn user
-    this.log(
-      yellow(
-        'You are using a hidden command. This command is not intended for public consumption yet. It might be broken, hard to use or simply redundant. Tread with care.'
-      )
-    );
 
     if (flags.quiet) {
       this.logCallback = undefined;
