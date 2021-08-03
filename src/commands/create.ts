@@ -143,8 +143,7 @@ export default class Create extends Command {
       );
       //We need profile Id
       if (!flags.profileId && (flags.profile || flags.map)) {
-        let profileInput: string | undefined = undefined;
-        profileInput = await this.inputPrompt(
+        const profileInput = await this.inputPrompt(
           'Enter profile Id in format [scope](optional)/[name]'
         );
         if (!profileInput) {
@@ -157,7 +156,6 @@ export default class Create extends Command {
         flags.providerName = [];
         let priority = 1;
         let exit = false;
-        let providerInput: string | undefined = undefined;
         const priorityToString: Map<number, string> = new Map([
           [1, 'primary'],
           [2, 'secondary'],
@@ -166,7 +164,7 @@ export default class Create extends Command {
           [5, 'fifth'],
         ]);
         while (!exit) {
-          providerInput = await this.inputPrompt(
+          const providerInput = await this.inputPrompt(
             `Enter provider name of ${
               priorityToString.get(priority) || priority
             } provider.\nExit loop by pressing enter without any input.`
