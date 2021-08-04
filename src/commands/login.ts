@@ -1,12 +1,12 @@
+import { bold, green, grey, yellow } from 'chalk';
+import inquirer from 'inquirer';
+import { Netrc } from 'netrc-parser';
+import * as open from 'open';
+
 import { Command } from '../common/command.abstract';
 import { userError } from '../common/error';
-import { bold, green, grey, yellow } from 'chalk';
-import * as open from 'open'
-
-import Netrc from 'netrc-parser'
-import { LogCallback } from '../common/types';
-import inquirer from 'inquirer';
 import { getStoreUrl } from '../common/http';
+import { LogCallback } from '../common/types';
 
 export default class Login extends Command {
   static description = 'Initiate login to superface server';
@@ -17,14 +17,12 @@ export default class Login extends Command {
   };
   //TODO: some args
 
-
-  private warnCallback?= (message: string) =>
+  private warnCallback? = (message: string) =>
     this.log('⚠️  ' + yellow(message));
 
-  private logCallback?= (message: string) => this.log(grey(message));
-  private successCallback?= (message: string) =>
+  private logCallback? = (message: string) => this.log(grey(message));
+  private successCallback? = (message: string) =>
     this.log(bold(green(message)));
-
 
   async run(): Promise<void> {
     let loggedIn = false;
@@ -48,34 +46,44 @@ export default class Login extends Command {
       throw userError('Cannot log in with SUPERFACE_API_KEY set', 1);
     }
 
-    await Netrc.load()
+    const netrc = new Netrc();
+    await netrc.load();
     //TODO: key name
-    const previousEntry = Netrc.machines['api.heroku.com']
+    const host = 'api.heroku.com';
+    const previousEntry = netrc.machines[host];
 
     try {
       //TODO: check if already loged in and logged out
       if (previousEntry && previousEntry.password) {
-        this.logCallback?.('Already logged in')
+        this.logCallback?.('Already logged in');
         // await this.logout(previousEntry.password)
       }
     } catch (err) {
-      this.warnCallback?.(err)
+      this.warnCallback?.(err);
     }
 
+    //TODO: login should return credentials
+    await this.login({ logCb: this.logCallback, warnCb: this.warnCallback });
+    loggedIn = true;
+    this.successCallback?.('Logged in');
 
-    await this.login({ logCb: this.logCallback, warnCb: this.warnCallback })
-    loggedIn = true
-    this.successCallback?.('Logged in')
+    //TODO: we store credentials in Netrc
+    if (!netrc.machines[host]) netrc.machines[host] = {};
+    // netrc.machines[host].login = entry.login
+    // netrc.machines[host].password = entry.password
+    delete netrc.machines[host].method;
+    delete netrc.machines[host].org;
+    await netrc.save();
   }
+
   async login(options?: {
-    logCb?: LogCallback
-    warnCb?: LogCallback
+    logCb?: LogCallback;
+    warnCb?: LogCallback;
   }): Promise<void> {
     //TODO we need to decide if we want to use service-client
 
     //TODO: post to /auth/cli and verification url
-    const browserUrl = new URL(getStoreUrl() + '/auth/cli').href
-    //TODO: start polling verification url
+    const browserUrl = new URL(getStoreUrl() + '/auth/cli').href;
 
     //TODO: open browser on browser url /auth/cli/browser - maybe force flag to skip prompting?
     const prompt: { open: boolean } = await inquirer.prompt({
@@ -85,21 +93,23 @@ export default class Login extends Command {
       default: true,
     });
     const showUrl = () => {
-      options?.warnCb?.(`Please open url: ${browserUrl} in your browser to continue with login.`)
-    }
+      options?.warnCb?.(
+        `Please open url: ${browserUrl} in your browser to continue with login.`
+      );
+    };
     if (!prompt.open) {
-      showUrl()
+      showUrl();
     } else {
-      const childProcess = await open.default(browserUrl, { wait: false })
+      const childProcess = await open.default(browserUrl, { wait: false });
       childProcess.on('error', err => {
-        options?.warnCb?.(err.message)
-        showUrl()
-      })
+        options?.warnCb?.(err.message);
+        showUrl();
+      });
       childProcess.on('close', code => {
-        if (code !== 0) showUrl()
-      })
+        if (code !== 0) showUrl();
+      });
     }
+    //TODO: start polling verification url
     //TODO: polling should return token that we will save to .netrc and will be added to every api call - service client would halp us with refreshing
-
   }
 }
