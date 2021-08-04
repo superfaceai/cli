@@ -1,0 +1,84 @@
+"""
+Geocoding
+Code or decode an postal address to or from geographical coordinates.
+"""
+name = "address/geocoding"
+version = "3.0.2"
+
+"""
+Geocode address
+
+Geocode postal address into geographical coordinates (latitude and longitude)
+"""
+usecase Geocode {
+  input {
+    query
+    streetAddress
+    addressLocality
+    addressRegion
+    addressCountry
+    postalCode
+  }
+
+  result {
+    latitude!
+    longitude!
+  }
+}
+
+"""
+Reverse geocode
+
+Decodes geographical coordinates (latitude and longitude) into postal addresses
+"""
+usecase ReverseGeocode {
+  input {
+    latitude!
+    longitude!
+  }
+
+  result [{
+    addressCountry
+    addressRegion
+    addressLocality
+    streetAddress
+    postalCode
+    formattedAddress
+  }]  
+}
+
+"Query
+  Free-form query string to search for. For example, '1600 Amphitheatre Parkway, Mountain View, CA' or just 'Mountain View'"
+field query
+
+"Country
+  The country. For example, USA. You can also provide the two-letter ISO 3166-1 alpha-2 country code."
+field addressCountry
+
+"Region
+  The region in which the locality is, and which is in the country. For example, California or another appropriate first-level Administrative division"
+field addressRegion
+
+"Locality
+  The locality in which the street address is, and which is in the region. For example, Mountain View."
+field addressLocality
+
+"Postal code
+  The postal code. For example, 94043."
+field postalCode
+
+"Street address
+  The street address. For example, 1600 Amphitheatre Pkwy."
+field streetAddress
+
+"Latitude
+  The latitude of a location. For example 37.42242 (WGS 84)."
+field latitude
+
+"Longitude
+  The longitude of a location. For example -122.08585 (WGS 84)."
+field longitude
+
+"Formatted address
+  Address formatted as one string"
+field formattedAddress

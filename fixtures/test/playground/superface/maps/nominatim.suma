@@ -1,0 +1,106 @@
+profile = "address/geocoding@3.0"
+provider = "nominatim"
+
+// Google Geocoding API documentation
+//   https://developers.google.com/maps/documentation/geocoding/start
+
+map Geocode {
+  http GET "/search" {
+    request {
+      query {
+        format = 'json'
+        q = input.query
+        street = input.streetAddress
+        city = input.addressLocality
+        state = input.addressRegion
+        country = input.addressCountry
+        postalcode = input.postalCode
+      }
+    }
+
+    response 200 "application/json" {
+      return map error if (statusCode !== 200) {
+        title = "Error geocoding address"
+      }
+
+      map result {
+        latitude = body[0].lat
+        longitude = body[0].lon
+      }
+    }
+  }
+}
+
+map ReverseGeocode {
+  http GET "/reverse" {
+    request {
+      query {
+        format = 'json'
+        lat = input.latitude
+        lon = input.longitude
+      }
+    }
+
+    response 200 "application/json" {
+      return map error if (statusCode !== 200) {
+        title = "Error reverse geocoding coordinates"
+      }
+
+      mappedAddress = {};
+
+      // country code
+      set if (body.address.country_code) {
+        mappedAddress.addressCountry = body.address.country_code;
+      }
+
+      // region
+      set if (body.address.city_district) {
+        mappedAddress.addressRegion = body.address.city_district;
+      }
+      set if (body.address.county) {
+        mappedAddress.addressRegion = `${mappedAddress.addressRegion}, ${body.address.county}`;
+      }
+      set if (body.address.state) {
+         mappedAddress.addressRegion = `${mappedAddress.addressRegion}, ${body.address.state}`
+      }
+
+      // locality - city
+      set if (body.address.city) {
+          mappedAddress.addressLocality = body.address.city;
+      }
+      set if (body.address.city && body.address.borough) {
+        mappedAddress.addressLocality = body.address.borough + ', ' + body.address.city;
+      }
+
+      // locality - town
+      set if (!body.address.city && body.address.town) {
+          mappedAddress.addressLocality = body.address.town;
+      }
+
+      // locality - village
+      set if (!body.address.town && body.address.village) {
+          mappedAddress.addressLocality = body.address.village;
+      }
+
+      // street address
+      set if (body.address.road) {
+        mappedAddress.streetAddress = body.address.road;
+      }
+      set if (body.address.house_number) {
+          mappedAddress.streetAddress = body.address.house_number  + ' ' + mappedAddress.streetAddress;
+      }
+
+      // postal code
+      set if (body.address.postcode) {
+        mappedAddress.postalCode = body.address.postcode;
+      }
+        
+      // formatted address
+      set if (body.display_name) {
+        mappedAddress.formattedAddress = body.display_name;
+      }
+
+      map result [mappedAddress] 
+    }
+  }
+}

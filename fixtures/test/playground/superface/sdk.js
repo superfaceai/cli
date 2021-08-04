@@ -14,5 +14,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.SuperfaceClient = void 0;
 var one_sdk_1 = require("@superfaceai/one-sdk");
 var character_information_1 = require("./types/starwars/character-information");
-var typeDefinitions = __assign({}, character_information_1.starwarsCharacterInformation);
+var geocoding_1 = require("./types/address/geocoding");
+var typeDefinitions = __assign(__assign({}, character_information_1.starwarsCharacterInformation), geocoding_1.addressGeocoding);
 exports.SuperfaceClient = one_sdk_1.createTypedClient(typeDefinitions);

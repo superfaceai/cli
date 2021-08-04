@@ -46,5 +46,41 @@
         "isError": true
       }
     ]
+  },
+  {
+    "profileId": "address/geocoding",
+    "provider": "nominatim",
+    "data": [
+      {
+        "useCase": "Geocode",
+        "input": {
+          "query": "Praha"
+        },
+        "isError": false
+      },
+      {
+        "useCase": "Geocode",
+        "input": {
+          "query": "NoWayJose"
+        },
+        "isError": true
+      },
+      {
+        "useCase": "ReverseGeocode",
+        "input": {
+          "latitude": 50.0874654,
+          "longitude": 14.4212535
+        },
+        "isError": false
+      },
+      {
+        "useCase": "ReverseGeocode",
+        "input": {
+          "latitude": 40.0874654,
+          "longitude": 14.4212535
+        },
+        "isError": true
+      }
+    ]
   }
 ]

@@ -2,16 +2,29 @@
   "profiles": {
     "starwars/character-information": {
       "version": "1.0.3",
-      "providers": {
-        "swapi": {}
-      },
       "priority": [
         "swapi"
-      ]
+      ],
+      "providers": {
+        "swapi": {}
+      }
+    },
+    "address/geocoding": {
+      "version": "3.0.2",
+      "priority": ["nominatim"],
+      "providers": {
+        "nominatim": {
+          "file": "./maps/nominatim.suma"
+        }
+      }
     }
   },
   "providers": {
     "swapi": {
+      "security": []
+    },
+    "nominatim": {
+      "file": "./providers/nominatim.json",
       "security": []
     }
   }
