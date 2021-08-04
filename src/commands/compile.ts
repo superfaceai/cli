@@ -1,24 +1,24 @@
 import { flags as oclifFlags } from '@oclif/command';
+import { SuperJson } from '@superfaceai/one-sdk';
 import { Source } from '@superfaceai/parser';
-import { yellow } from 'chalk';
 import { basename, join as joinPath } from 'path';
 
 import { Command } from '../common/command.abstract';
 import {
   DOCUMENT_PARSE_FUNCTION,
   inferDocumentTypeWithFlag,
+  META_FILE,
 } from '../common/document';
 import { DocumentType } from '../common/document.interfaces';
 import { userError } from '../common/error';
 import { DocumentTypeFlag, documentTypeFlag } from '../common/flags';
 import { isDirectoryQuiet, readFile } from '../common/io';
 import { OutputStream } from '../common/output-stream';
+import { detectSuperJson } from '../logic/install';
 
 export default class Compile extends Command {
-  // hide the command from help
-  static hidden = true;
-
-  static description = 'Compiles the given profile or map.';
+  static description =
+    'Compiles files locally linked in super.json or the given profile or map.';
 
   static flags = {
     ...Command.flags,
@@ -42,8 +42,7 @@ export default class Compile extends Command {
     }),
   };
 
-  // Require at least one file but allow multiple files
-  static args = [{ name: 'file', required: true }];
+  static args = [{ name: 'file' }];
   static strict = false;
 
   async run(): Promise<void> {
@@ -51,19 +50,37 @@ export default class Compile extends Command {
 
     const { argv, flags } = this.parse(Compile);
 
+    let files: string[] = [];
+    if (!argv || argv.length === 0) {
+      const superPath = await detectSuperJson(process.cwd());
+      if (!superPath) {
+        throw userError('Unable to compile, super.json not found', 1);
+      }
+      //Load super json
+      const loadedResult = await SuperJson.load(joinPath(superPath, META_FILE));
+      const superJson = loadedResult.match(
+        v => v,
+        err => {
+          throw userError(`Unable to load super.json: ${err}`, 1);
+        }
+      );
+      for (const profile of Object.values(superJson.normalized.profiles)) {
+        if ('file' in profile) {
+          files.push(superJson.resolvePath(profile.file));
+        }
+        for (const profileProvider of Object.values(profile.providers))
+          if ('file' in profileProvider) {
+            files.push(superJson.resolvePath(profileProvider.file));
+          }
+      }
+    } else {
+      files = argv;
+    }
+
     // process output path and prepare output stream
     // outputStream is set when the output points to a file and thus
     // is shared across all input files
     const outputPath = flags.output?.trim();
-
-    if (outputPath !== '-' && outputPath !== '-2') {
-      //Warn user
-      this.warn(
-        yellow(
-          'You are using a hidden command. This command is not intended for public consumption yet. It might be broken, hard to use or simply redundant. Tread with care.'
-        )
-      );
-    }
 
     let outputStream: OutputStream | undefined = undefined;
     if (outputPath !== undefined) {
@@ -73,9 +90,9 @@ export default class Compile extends Command {
         outputStream = new OutputStream(outputPath, { append: flags.append });
       }
     }
-
+    //TODO: compiled files destination - reuse "OneParser"?
     await Promise.all(
-      argv.map(
+      files.map(
         async (file): Promise<void> => {
           // Shared stream
           let fileOutputStream = outputStream;
