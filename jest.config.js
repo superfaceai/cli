@@ -6,4 +6,5 @@ module.exports = {
     "/dist/",
   ],
   testTimeout: 10000,
+  snapshotResolver: "./test/snapshot-resolver.js"
 };
