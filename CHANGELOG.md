@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Create command new flags
 - Create command ability to create only provider or only map
 - Visible init command
+- Configure command prepares env variables in .env file
 
 ## [0.0.20] - 2021-07-20
 ### Added
