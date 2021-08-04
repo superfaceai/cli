@@ -143,14 +143,14 @@ describe('Interactive install CLI command', () => {
                 'XXX_bb064dd57c302911602dd097bc29bedaea6a021c25a66992d475ed959aa526c7_37bce8b5',
               timeout: 4000,
             },
-            { value: ENTER, timeout: 500 },
+            { value: ENTER, timeout: 1000 },
             //Correct SDK token
             {
               value:
                 'sfs_bb064dd57c302911602dd097bc29bedaea6a021c25a66992d475ed959aa526c7_37bce8b5',
               timeout: 4000,
             },
-            { value: ENTER, timeout: 500 },
+            { value: ENTER, timeout: 1000 },
           ],
         }
       );
