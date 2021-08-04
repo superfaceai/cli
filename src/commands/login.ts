@@ -6,6 +6,7 @@ import * as open from 'open'
 import Netrc from 'netrc-parser'
 import { LogCallback } from '../common/types';
 import inquirer from 'inquirer';
+import { getStoreUrl } from '../common/http';
 
 export default class Login extends Command {
   static description = 'Initiate login to superface server';
@@ -72,12 +73,11 @@ export default class Login extends Command {
   }): Promise<void> {
     //TODO we need to decide if we want to use service-client
 
-    //TODO: post to /auth/cli and get browser url, verification url
-    const browserUrl = 'https://www.google.com/';
-
+    //TODO: post to /auth/cli and verification url
+    const browserUrl = new URL(getStoreUrl() + '/auth/cli').href
     //TODO: start polling verification url
 
-    //TODO: open browser on browser url - maybe force flag to skip prompting?
+    //TODO: open browser on browser url /auth/cli/browser - maybe force flag to skip prompting?
     const prompt: { open: boolean } = await inquirer.prompt({
       name: 'open',
       message: `Do you want to open browser with url: ${browserUrl}.`,
