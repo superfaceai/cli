@@ -4,7 +4,6 @@ import inquirer from 'inquirer';
 
 import { SF_API_URL_VARIABLE, SF_PRODUCTION } from '../common';
 import { Command } from '../common/command.abstract';
-import { userError } from '../common/error';
 import { publish } from '../logic/publish';
 
 export default class Publish extends Command {
@@ -17,15 +16,16 @@ export default class Publish extends Command {
     {
       name: 'path',
       description: 'Path to profile, map or provider',
+      required: true,
     },
   ];
 
   static flags = {
     ...Command.flags,
-    all: flags.boolean({
-      default: false,
-      description: 'Publish all profiles, maps and providers',
-    }),
+    // all: flags.boolean({
+    //   default: false,
+    //   description: 'Publish all profiles, maps and providers',
+    // }),
     'dry-run': flags.boolean({
       default: false,
       description: 'Runs without sending actual request.',
@@ -54,9 +54,9 @@ export default class Publish extends Command {
 
     const path = argv[0];
 
-    if (!path && !flags.all) {
-      throw userError('PATH argument or --all flag must be specified', 1);
-    }
+    // if (!path && !flags.all) {
+    //   throw userError('PATH argument or --all flag must be specified', 1);
+    // }
 
     if (flags.quiet) {
       this.logCallback = undefined;

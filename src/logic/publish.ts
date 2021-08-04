@@ -52,6 +52,7 @@ export async function publish(
   } else if (path.endsWith(EXTENSIONS.profile.source)) {
     //TODO: use sdk parser to cache ast
     const parsedFile = parseProfile(new Source(file, path));
+    //TODO: some better way of validation
     if (isProfileDocumentNode(parsedFile)) {
       options?.logCb?.(
         `Publishing profile "${parsedFile.header.name}" from: ${path}`
@@ -65,6 +66,7 @@ export async function publish(
   } else if (path.endsWith(EXTENSIONS.map.source)) {
     //TODO: use sdk parser to cache ast
     const parsedFile = parseMap(new Source(file, path));
+    //TODO: some better way of validation
     if (isMapDocumentNode(parsedFile)) {
       options?.logCb?.(
         `Publishing map for profile "${parsedFile.header.profile.name}" and provider "${parsedFile.header.provider}" from: ${path}`
