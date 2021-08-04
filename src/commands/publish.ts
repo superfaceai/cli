@@ -64,9 +64,10 @@ export default class Publish extends Command {
     //TODO: Check/Lint/Test here
     // await check({ logCb: this.logCallback });
 
+    //TODO: do we want to keep SF_API_URL
     const baseUrl = process.env[SF_API_URL_VARIABLE] || SF_PRODUCTION;
 
-    if (baseUrl === SF_PRODUCTION && !flags.force) {
+    if (baseUrl === SF_PRODUCTION && !flags.force && !flags['dry-run']) {
       const response: { upload: boolean } = await inquirer.prompt({
         name: 'upload',
         message:
