@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Create command interactive mode
+- Create command new flags
+- Create command ability to create only provider or only map
+- Visible init command
+
 ## [0.0.20] - 2021-07-20
 ### Added
 - Multiple usecases in interactive install command
