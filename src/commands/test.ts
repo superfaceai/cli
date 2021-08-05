@@ -1,8 +1,9 @@
+import { flags as oclifFlags } from '@oclif/command';
 import { grey, red } from 'chalk';
 
 import { Command } from '../common/command.abstract';
 import { detectTestConfig } from '../common/io';
-import { runTest } from '../logic/test';
+import { runTest, updateMocksAndRecordings } from '../logic/test';
 
 export default class Test extends Command {
   static strict = false;
@@ -14,31 +15,40 @@ export default class Test extends Command {
     {
       name: 'testName',
       required: false,
-      description: 'Name of the test to execute',
+      description: 'Name of provider by which to filter test cases',
     },
   ];
 
   static flags = {
     ...Command.flags,
+    updateSnapshots: oclifFlags.boolean({
+      default: false,
+      description: 'Updates currently present snapshots in your project',
+    }),
+    updateRecordings: oclifFlags.boolean({
+      default: false,
+      description: 'Updates currently recorded http traffic in your test cases',
+    }),
   };
 
   static examples = [
     '$ superface test',
     '$ superface test -q',
     '$ superface test sendgrid',
+    '$ superface test --updateSnapshots --updateRecordings',
   ];
 
   private logCallback? = (message: string) => this.log(grey(message));
   private errorCallback? = (message: string) => this.error(red(message));
 
   async run(): Promise<void> {
-    const { flags } = this.parse(Test);
+    const { args, flags } = this.parse(Test);
 
     if (flags.quiet) {
       this.logCallback = undefined;
     }
 
-    const testConfigPath = detectTestConfig(process.cwd(), undefined, {
+    const testConfigPath = await detectTestConfig(process.cwd(), undefined, {
       logCb: this.logCallback,
     });
 
@@ -48,9 +58,14 @@ export default class Test extends Command {
       );
     }
 
+    await updateMocksAndRecordings(testConfigPath, {
+      updateSnapshots: flags.updateSnapshots,
+      updateRecordings: flags.updateRecordings,
+    });
+
     // TODO: implement filtering tests based on argument
 
-    await runTest(testConfigPath, {
+    await runTest(testConfigPath, args.testName, {
       logCb: this.logCallback,
       errorCb: this.errorCallback,
     });
