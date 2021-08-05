@@ -1,3 +1,9 @@
+import {
+  AuthToken,
+  MEDIA_TYPE_JSON,
+  ServiceApiError,
+  ServiceApiErrorResponse,
+} from '@superfaceai/service-client';
 import { bold, green, grey, yellow } from 'chalk';
 import inquirer from 'inquirer';
 import { Netrc } from 'netrc-parser';
@@ -5,7 +11,7 @@ import * as open from 'open';
 
 import { Command } from '../common/command.abstract';
 import { userError } from '../common/error';
-import { getStoreUrl } from '../common/http';
+import { getStoreUrl, SuperfaceClient } from '../common/http';
 import { LogCallback } from '../common/types';
 
 export default class Login extends Command {
@@ -17,11 +23,11 @@ export default class Login extends Command {
   };
   //TODO: some args
 
-  private warnCallback? = (message: string) =>
+  private warnCallback?= (message: string) =>
     this.log('⚠️  ' + yellow(message));
 
-  private logCallback? = (message: string) => this.log(grey(message));
-  private successCallback? = (message: string) =>
+  private logCallback?= (message: string) => this.log(grey(message));
+  private successCallback?= (message: string) =>
     this.log(bold(green(message)));
 
   async run(): Promise<void> {
@@ -53,39 +59,58 @@ export default class Login extends Command {
     const previousEntry = netrc.machines[host];
 
     try {
-      //TODO: check if already loged in and logged out
+      //Tcheck if already logged in and logout
       if (previousEntry && previousEntry.password) {
         this.logCallback?.('Already logged in');
+        //logout form service client
+        SuperfaceClient.getClient().logout();
+        //TODO: logout fron services
         // await this.logout(previousEntry.password)
       }
     } catch (err) {
       this.warnCallback?.(err);
     }
 
-    //TODO: login should return credentials
-    await this.login({ logCb: this.logCallback, warnCb: this.warnCallback });
+    const authToken = await this.login({
+      logCb: this.logCallback,
+      warnCb: this.warnCallback,
+    });
     loggedIn = true;
     this.successCallback?.('Logged in');
 
     //TODO: we store credentials in Netrc
     if (!netrc.machines[host]) netrc.machines[host] = {};
+    //TODO: how to store AuthToken
     // netrc.machines[host].login = entry.login
     // netrc.machines[host].password = entry.password
     delete netrc.machines[host].method;
     delete netrc.machines[host].org;
     await netrc.save();
+    //save authToken to ServiceClient instance
+    SuperfaceClient.getClient().login(authToken);
   }
 
   async login(options?: {
     logCb?: LogCallback;
     warnCb?: LogCallback;
-  }): Promise<void> {
-    //TODO we need to decide if we want to use service-client
+  }): Promise<AuthToken> {
+    //post to /auth/cli and verification url
+    const initLoginResponse = await SuperfaceClient.getClient().fetch(
+      '/auth/cli',
+      { method: 'POST', headers: { 'Content-Type': MEDIA_TYPE_JSON } }
+    );
+    if (!initLoginResponse.ok) {
+      //TODO: use userError
+      const errorResponse = (await initLoginResponse.json()) as ServiceApiErrorResponse;
+      throw new ServiceApiError(errorResponse);
+    }
 
-    //TODO: post to /auth/cli and verification url
-    const browserUrl = new URL(getStoreUrl() + '/auth/cli').href;
+    const initLogin = (await initLoginResponse.json()) as {
+      verify_url: string;
+    };
 
-    //TODO: open browser on browser url /auth/cli/browser - maybe force flag to skip prompting?
+    //open browser on browser url /auth/cli/browser - maybe force flag to skip prompting?
+    const browserUrl = new URL(getStoreUrl() + '/auth/cli/browser').href;
     const prompt: { open: boolean } = await inquirer.prompt({
       name: 'open',
       message: `Do you want to open browser with url: ${browserUrl}.`,
@@ -109,7 +134,29 @@ export default class Login extends Command {
         if (code !== 0) showUrl();
       });
     }
-    //TODO: start polling verification url
-    //TODO: polling should return token that we will save to .netrc and will be added to every api call - service client would halp us with refreshing
+    //start polling verification url
+    const fetchAuth = async (retries = 3): Promise<AuthToken> => {
+      try {
+        const authResponse = await SuperfaceClient.getClient().fetch(
+          initLogin.verify_url,
+          { method: 'GET', headers: { 'Content-Type': MEDIA_TYPE_JSON } }
+        );
+
+        if (!authResponse.ok) {
+          //TODO: use userError
+          const errorResponse = (await authResponse.json()) as ServiceApiErrorResponse;
+          throw new ServiceApiError(errorResponse);
+        }
+
+        return (await authResponse.json()) as AuthToken;
+      } catch (err) {
+        //TODO: err resolution
+        if (retries > 0 && err instanceof ServiceApiError && err.status > 500)
+          return fetchAuth(retries - 1);
+        throw err;
+      }
+    };
+
+    return fetchAuth();
   }
 }
