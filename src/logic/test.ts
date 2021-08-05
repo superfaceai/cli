@@ -119,7 +119,7 @@ export function templatedTest(
           ).to.matchSnapshot();
         } else {
           expect(result.isOk()).to.be.true;
-          
+
           if (testCase.result) {
             expect(result.isOk() && result.value).to.deep.equal(
               testCase.result
@@ -171,8 +171,10 @@ export async function updatePresentSnapshot(
 
 export async function updateMocksAndRecordings(
   configPath: string,
-  updateSnapshots: boolean,
-  updateRecordings: boolean,
+  {
+    updateSnapshots,
+    updateRecordings,
+  }: { updateSnapshots: boolean; updateRecordings: boolean },
   options?: {
     logCb?: LogCallback;
     errorCb?: LogCallback;
