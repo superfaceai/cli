@@ -6,13 +6,6 @@ export enum DocumentType {
   PROFILE_AST = 'profile.ast',
 }
 
-export enum CreateMode {
-  PROFILE = 'profile',
-  MAP = 'map',
-  BOTH = 'both',
-  UNKNOWN = 'unknown',
-}
-
 export interface VersionStructure {
   major: number;
   minor: number;

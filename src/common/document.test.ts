@@ -11,7 +11,6 @@ import {
   constructProfileSettings,
   constructProviderSettings,
   findLocalCapabilities,
-  inferCreateMode,
   inferDocumentType,
   inferDocumentTypeWithFlag,
   isMapFile,
@@ -78,14 +77,6 @@ describe('Document functions', () => {
       expect(inferDocumentTypeWithFlag('auto', 'TesT.supr.ast.json ')).toEqual(
         DocumentType.PROFILE_AST
       );
-    });
-  });
-
-  describe('when infering create mode', () => {
-    it('infers create mode correctly', async () => {
-      expect(inferCreateMode('map')).toEqual(DocumentType.MAP);
-      expect(inferCreateMode('profile')).toEqual(DocumentType.PROFILE);
-      expect(inferCreateMode('json')).toEqual(DocumentType.UNKNOWN);
     });
   });
 

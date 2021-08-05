@@ -66,6 +66,33 @@ describe('Configure CLI command', () => {
         options: {
           force: false,
           local: false,
+          updateEnv: true,
+          logCb: expect.anything(),
+          warnCb: expect.anything(),
+        },
+      });
+    });
+
+    it('configures provider with no env flag', async () => {
+      mocked(isValidDocumentName).mockReturnValue(true);
+      mocked(detectSuperJson).mockResolvedValue(superPath);
+
+      await expect(
+        Configure.run([provider, '-p', profileId, '--no-env'])
+      ).resolves.toBeUndefined();
+
+      expect(detectSuperJson).toHaveBeenCalledTimes(1);
+
+      expect(installProvider).toHaveBeenCalledTimes(1);
+      expect(installProvider).toHaveBeenCalledWith({
+        superPath,
+        provider,
+        profileId,
+        defaults: undefined,
+        options: {
+          force: false,
+          local: false,
+          updateEnv: false,
           logCb: expect.anything(),
           warnCb: expect.anything(),
         },
@@ -98,6 +125,7 @@ describe('Configure CLI command', () => {
         defaults: undefined,
         options: {
           force: false,
+          updateEnv: true,
           local: false,
           logCb: undefined,
           warnCb: undefined,
