@@ -24,6 +24,7 @@ export const rimraf = promisify(rimrafCallback);
 export const rmdir = promisify(fs.rmdir);
 export const stat = promisify(fs.stat);
 export const execShell = promisify(childProcess.exec);
+export const unlink = promisify(fs.unlink);
 
 export interface WritingOptions {
   append?: boolean;
@@ -65,20 +66,6 @@ export async function readFileQuiet(path: string): Promise<string | undefined> {
 }
 
 /**
- * Reads a file and converts to string.
- * Returns `undefined` if reading fails for any reason.
- */
- export function readFileQuietSync(path: string): string | undefined {
-  try {
-    const file = fs.readFileSync(path, { encoding: 'utf8' });
-
-    return file.toString();
-  } catch (_) {
-    return undefined;
-  }
-}
-
-/**
  * Creates a directory without erroring if it already exists.
  * Returns `true` if the directory was created.
  */
@@ -108,28 +95,6 @@ export async function mkdirQuiet(path: string): Promise<boolean> {
 export async function isFileQuiet(path: string): Promise<boolean> {
   try {
     const statInfo = await stat(path);
-
-    return statInfo.isFile();
-  } catch (err: unknown) {
-    assertIsIOError(err);
-
-    // allow ENOENT, which means it is not a file
-    if (err.code !== 'ENOENT') {
-      throw err;
-    }
-  }
-
-  return false;
-}
-
-/**
- * Returns `true` if the given path is a file.
- *
- * Uses the `statSync` syscall (follows symlinks) and ignores the `ENOENT` error (non-existent file just returns `false`).
- */
- export function isFileQuietSync(path: string): boolean {
-  try {
-    const statInfo = fs.statSync(path);
 
     return statInfo.isFile();
   } catch (err: unknown) {
@@ -267,29 +232,6 @@ export async function isAccessible(path: string): Promise<boolean> {
 }
 
 /**
- * Returns `true` if directory or file
- * exists, is readable and is writable for the current user.
- */
- export function isAccessibleSync(path: string): boolean {
-  try {
-     fs.accessSync(
-      path,
-      fs.constants.F_OK | fs.constants.R_OK | fs.constants.W_OK
-    );
-  } catch (err: unknown) {
-    assertIsIOError(err);
-
-    if (err.code === 'ENOENT' || err.code === 'EACCES') {
-      return false;
-    }
-
-    throw err;
-  }
-
-  return true;
-}
-
-/**
  * Returns file name with path and all extensions stripped
  */
 export function basenameWithoutExt(path: string): string {
@@ -335,43 +277,6 @@ export async function detectConfigurationFile<T extends CONFIG_FILE>(
 }
 
 /**
- * Detects the existence of configuration file in specified number of levels
- * of parent directories.
- *
- * @param cwd - currently scanned working directory
- *
- * Returns relative path to a directory where config file is detected.
- */
- export function detectConfigurationFileSync<T extends CONFIG_FILE>(
-  file: T,
-  cwd: string,
-  level?: number
-): string | undefined {
-  // check whether sf-test-config.json is accessible in cwd
-  if (isAccessibleSync(joinPath(cwd, file))) {
-    return normalize(relativePath(process.cwd(), cwd));
-  }
-
-  // check whether sf-test-config.json is accessible in cwd/superface
-  if (isAccessibleSync(joinPath(cwd, SUPERFACE_DIR, file))) {
-    return normalize(relativePath(process.cwd(), joinPath(cwd, SUPERFACE_DIR)));
-  }
-
-  // default behaviour - do not scan outside cwd
-  if (level === undefined || level < 1) {
-    return undefined;
-  }
-
-  // check if user has permissions outside cwd
-  cwd = joinPath(cwd, '..');
-  if (!(isAccessibleSync(cwd))) {
-    return undefined;
-  }
-
-  return detectConfigurationFileSync(file, cwd, --level);
-}
-
-/**
  * Detects the existence of a `super.json` file in specified number of levels of parent directories.
  */
 export async function detectSuperJson(
@@ -389,14 +294,35 @@ export async function detectSuperJson(
 /**
  * Detects the existence of a `sf-test-config.json` file in specified number of levels of parent directories.
  */
-export function detectTestConfig(
+export async function detectTestConfig(
   cwd: string,
   level?: number,
   options?: {
     logCb?: LogCallback;
   }
-): string | undefined {
+): Promise<string | undefined> {
   options?.logCb?.('Detecting present sf-test-config.json configuration file');
 
-  return detectConfigurationFileSync(TEST_CONFIG, cwd, level);
+  return await detectConfigurationFile(TEST_CONFIG, cwd, level);
+}
+
+// TODO: make this more granular to filter this according to testName argument
+export async function removeDirQuiet(path: string): Promise<void> {
+  try {
+    if ((await readdir(path)).length > 0) {
+      await rimraf(path);
+    } 
+  } catch (error) {
+    throw error;
+  }
+}
+
+export async function removeFileQuiet(path: string): Promise<void> {
+  try {
+    if (await isFileQuiet(path)) {
+      await unlink(path);
+    }
+  } catch (error) {
+    throw error;
+  }
 }
