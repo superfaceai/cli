@@ -16,34 +16,6 @@
           "characterName": "notExistingCharacter"
         },
         "isError": true
-      },
-      {
-        "useCase": "RetrieveCharacterInformation",
-        "input": {
-          "characterName": "luke skywalker"
-        },
-        "isError": false
-      },
-      {
-        "useCase": "RetrieveCharacterInformation",
-        "input": {
-          "characterName": "Leia Organa"
-        },
-        "isError": false
-      },
-      {
-        "useCase": "RetrieveCharacterInformation",
-        "input": {
-          "characterName": "Leieieieie"
-        },
-        "isError": true
-      },
-      {
-        "useCase": "RetrieveCharacterInformation",
-        "input": {
-          "characterName": "asdagsdg"
-        },
-        "isError": true
       }
     ]
   },
