@@ -1,15 +1,13 @@
+import { join as joinPath } from 'path';
+
+import { TEST_CONFIG } from './document';
 import { userError } from './error';
-import {
-  isFileQuiet,
-  isFileQuietSync,
-  readFileQuiet,
-  readFileQuietSync,
-} from './io';
+import { isFileQuiet, readFileQuiet } from './io';
 
 export interface TestingCase {
   useCase: string;
   input: unknown;
-  result: unknown;
+  result?: unknown;
   isError: boolean;
 }
 
@@ -32,20 +30,16 @@ export interface TestingInput {
 export type TestConfiguration = TestingInput[];
 
 export class TestConfig {
-  public configuration: TestConfiguration;
-  public readonly path: string;
+  constructor(public configuration: TestConfiguration, readonly path: string) {}
 
-  constructor(configuration: TestConfiguration, path?: string) {
-    this.configuration = configuration;
-    this.path = path ?? '';
-  }
+  static async load(path: string, testName?: string): Promise<TestConfig> {
+    const filePath = joinPath(path, TEST_CONFIG);
 
-  static loadSync(path: string, testName?: string): TestConfig {
-    if (!isFileQuietSync(path)) {
+    if (!(await isFileQuiet(filePath))) {
       throw userError('configuration is not a file', 2);
     }
 
-    const data = readFileQuietSync(path);
+    const data = await readFileQuiet(filePath);
 
     if (data === undefined) {
       throw userError('reading file failed', 2);
@@ -57,19 +51,5 @@ export class TestConfig {
       testName ? config.filter(input => input.provider === testName) : config,
       path
     );
-  }
-
-  static async load(path: string): Promise<TestConfig> {
-    if (!(await isFileQuiet(path))) {
-      throw userError('configuration is not a file', 2);
-    }
-
-    const data = await readFileQuiet(path);
-
-    if (data === undefined) {
-      throw userError('reading file failed', 2);
-    }
-
-    return new TestConfig(JSON.parse(data) as TestConfiguration, path);
   }
 }
