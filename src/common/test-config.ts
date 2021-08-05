@@ -7,12 +7,13 @@ import {
 } from './io';
 
 export interface TestingCase {
-  usecase: string;
+  useCase: string;
   input: unknown;
   result: unknown;
   isError: boolean;
 }
 
+// TODO: refactor to match recorded requests?
 export interface MockedHttpRequests {
   method: 'GET' | 'POST';
   url: string;
@@ -24,7 +25,7 @@ export interface TestingInput {
   profileId: string;
   provider: string;
   data: TestingCase[];
-  mockedRequests?: MockedHttpRequests[];
+  // mockedRequests?: MockedHttpRequests[];
   // mockedResponses?: MockedHttpResponse[];
 }
 
@@ -69,9 +70,6 @@ export class TestConfig {
       throw userError('reading file failed', 2);
     }
 
-    return new TestConfig(
-      JSON.parse(data) as TestConfiguration,
-      path
-    );
+    return new TestConfig(JSON.parse(data) as TestConfiguration, path);
   }
 }

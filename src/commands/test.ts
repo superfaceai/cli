@@ -1,8 +1,8 @@
-import { grey } from 'chalk';
-import { run as runJest } from 'jest';
+import { grey, red } from 'chalk';
 
 import { Command } from '../common/command.abstract';
 import { detectTestConfig } from '../common/io';
+import { runTest } from '../logic/test';
 
 export default class Test extends Command {
   static strict = false;
@@ -29,6 +29,7 @@ export default class Test extends Command {
   ];
 
   private logCallback? = (message: string) => this.log(grey(message));
+  private errorCallback? = (message: string) => this.error(red(message));
 
   async run(): Promise<void> {
     const { flags } = this.parse(Test);
@@ -37,7 +38,7 @@ export default class Test extends Command {
       this.logCallback = undefined;
     }
 
-    const testConfigPath = await detectTestConfig(process.cwd(), undefined, {
+    const testConfigPath = detectTestConfig(process.cwd(), undefined, {
       logCb: this.logCallback,
     });
 
@@ -49,6 +50,9 @@ export default class Test extends Command {
 
     // TODO: implement filtering tests based on argument
 
-    await runJest(['templated-test.test']);
+    await runTest(testConfigPath, {
+      logCb: this.logCallback,
+      errorCb: this.errorCallback,
+    });
   }
 }
