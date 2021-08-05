@@ -5,6 +5,5 @@ module.exports = {
   coveragePathIgnorePatterns: [
     "/dist/",
   ],
-  testTimeout: 10000,
-  snapshotResolver: "./test/snapshot-resolver.js"
+  testTimeout: 10000
 };
