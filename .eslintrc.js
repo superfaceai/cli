@@ -17,7 +17,6 @@ module.exports = {
     'plugin:@typescript-eslint/recommended-requiring-type-checking',
     'plugin:import/errors',
     'plugin:import/warnings',
-    'plugin:jest/recommended',
     'prettier',
   ],
   rules: {
@@ -45,6 +44,9 @@ module.exports = {
   },
   overrides: [{
     files: '*.test.ts',
+    extends: [
+      'plugin:jest/recommended'
+    ],
     rules: {
       '@typescript-eslint/no-explicit-any': 'off',
       '@typescript-eslint/no-unsafe-assignment': 'off',
@@ -52,4 +54,7 @@ module.exports = {
       '@typescript-eslint/unbound-method': 'off',
     }
   }],
+  env: {
+    "jest/globals": true
+  }
 };
