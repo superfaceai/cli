@@ -29,19 +29,17 @@ describe('lint CLI command', () => {
   describe('lint CLI command', () => {
     it('throws when super.json not found', async () => {
       mocked(detectSuperJson).mockResolvedValue(undefined);
-      await expect(
-        Lint.run([])
-      ).rejects.toEqual(new CLIError('Unable to compile, super.json not found'))
+      await expect(Lint.run([])).rejects.toEqual(
+        new CLIError('Unable to compile, super.json not found')
+      );
     });
 
     it('throws when super.json not loaded correctly', async () => {
       mocked(detectSuperJson).mockResolvedValue('.');
-      jest
-        .spyOn(SuperJson, 'load')
-        .mockResolvedValue(err('test error'));
-      await expect(
-        Lint.run([])
-      ).rejects.toEqual(new CLIError('Unable to load super.json: test error'))
+      jest.spyOn(SuperJson, 'load').mockResolvedValue(err('test error'));
+      await expect(Lint.run([])).rejects.toEqual(
+        new CLIError('Unable to load super.json: test error')
+      );
     });
 
     it('lints one profile and one map file from super.json', async () => {
@@ -53,16 +51,16 @@ describe('lint CLI command', () => {
             defaults: {},
             providers: {
               swapi: {
-                file: `../${mockProfile}.swapi.suma`
-              }
+                file: `../${mockProfile}.swapi.suma`,
+              },
             },
           },
         },
         providers: {
           swapi: {
-            file: "../swapi.provider.json",
-            security: []
-          }
+            file: '../swapi.provider.json',
+            security: [],
+          },
         },
       });
       const loadSpy = jest
@@ -78,13 +76,14 @@ describe('lint CLI command', () => {
         .spyOn(OutputStream.prototype, 'cleanup')
         .mockResolvedValue(undefined);
 
-      await expect(
-        Lint.run([])
-      ).resolves.toBeUndefined();
+      await expect(Lint.run([])).resolves.toBeUndefined();
 
       expect(lintFiles).toHaveBeenCalledTimes(1);
       expect(lintFiles).toHaveBeenCalledWith(
-        [expect.stringContaining(`${mockProfile}.supr`), expect.stringContaining(`${mockProfile}.swapi.suma`)],
+        [
+          expect.stringContaining(`${mockProfile}.supr`),
+          expect.stringContaining(`${mockProfile}.swapi.suma`),
+        ],
         expect.anything(),
         'auto',
         expect.anything()

@@ -59,6 +59,7 @@ npx @superfaceai/cli install [profileId eg. communication/send-email] -i
 * [`superface create`](#superface-create)
 * [`superface init [NAME]`](#superface-init-name)
 * [`superface install [PROFILEID]`](#superface-install-profileid)
+* [`superface lint [FILE]`](#superface-lint-file)
 
 ## `superface configure PROVIDERNAME`
 
@@ -77,6 +78,7 @@ OPTIONS
   -l, --local            When set to true, provider name argument is used as a filepath to provider.json file
   -p, --profile=profile  (required) Specifies profile to associate with provider
   -q, --quiet            When set to true, disables the shell echo output of init actions.
+  --no-env               When set to true command does not prepare security varibles in .env file
 
 EXAMPLES
   $ superface configure twilio -p send-sms
@@ -205,6 +207,37 @@ EXAMPLES
 ```
 
 _See code: [src/commands/install.ts](https://github.com/superfaceai/cli/tree/main/src/commands/install.ts)_
+
+## `superface lint [FILE]`
+
+Lints maps and profiles locally linked in super.json. Path to single file can be provided. Outputs the linter issues to STDOUT by default.
+
+```
+USAGE
+  $ superface lint [FILE]
+
+OPTIONS
+  -f, --outputFormat=long|short|json   [default: long] Output format to use to display errors and warnings.
+  -h, --help                           show CLI help
+
+  -o, --output=output                  [default: -] Filename where the output will be written. `-` is stdout, `-2` is
+                                       stderr.
+
+  -q, --quiet                          When set to true, disables output of warnings.
+
+  -t, --documentType=auto|map|profile  [default: auto] Document type to parse. `auto` attempts to infer from file
+                                       extension.
+
+  -v, --validate                       Validate maps to specific profile.
+
+  --append                             Open output file in append mode instead of truncating it if it exists. Has no
+                                       effect with stdout and stderr streams.
+
+DESCRIPTION
+  Linter ends with non zero exit code if errors are found.
+```
+
+_See code: [dist/commands/lint.ts](https://github.com/superfaceai/cli/blob/v0.0.22/dist/commands/lint.ts)_
 <!-- commandsstop -->
 
 ## Interactive install

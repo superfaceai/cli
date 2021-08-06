@@ -21,11 +21,8 @@ import {
 type OutputFormatFlag = 'long' | 'short' | 'json';
 
 export default class Lint extends Command {
-  // hide the command from help
-  static hidden = true;
-
   static description =
-    'Lints maps and profiles linked in super.json. Path to single file can be provided. Outputs the linter issues to STDOUT by default.\nLinter ends with non zero exit code if errors are found.';
+    'Lints maps and profiles locally linked in super.json. Path to single file can be provided. Outputs the linter issues to STDOUT by default.\nLinter ends with non zero exit code if errors are found.';
 
   // Allow multiple files
   static args = [{ name: 'file' }];
