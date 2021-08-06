@@ -1,13 +1,21 @@
 import { CLIError } from '@oclif/errors';
+import { err, ok, SuperJson } from '@superfaceai/one-sdk';
 import { mocked } from 'ts-jest/utils';
 
 import { OutputStream } from '../common/output-stream';
+import { detectSuperJson } from '../logic/install';
 import { lintFiles, lintMapsToProfile } from '../logic/lint';
 import Lint from './lint';
 
 //Mock output stream
 jest.mock('../common/output-stream');
 
+//Mock install logic
+jest.mock('../logic/install', () => ({
+  detectSuperJson: jest.fn(),
+}));
+
+//Mock init logic
 jest.mock('../logic/lint', () => ({
   ...jest.requireActual<Record<string, unknown>>('../logic/lint'),
   lintFiles: jest.fn(),
@@ -19,6 +27,76 @@ describe('lint CLI command', () => {
     jest.resetAllMocks();
   });
   describe('lint CLI command', () => {
+    it('throws when super.json not found', async () => {
+      mocked(detectSuperJson).mockResolvedValue(undefined);
+      await expect(
+        Lint.run([])
+      ).rejects.toEqual(new CLIError('Unable to compile, super.json not found'))
+    });
+
+    it('throws when super.json not loaded correctly', async () => {
+      mocked(detectSuperJson).mockResolvedValue('.');
+      jest
+        .spyOn(SuperJson, 'load')
+        .mockResolvedValue(err('test error'));
+      await expect(
+        Lint.run([])
+      ).rejects.toEqual(new CLIError('Unable to load super.json: test error'))
+    });
+
+    it('lints one profile and one map file from super.json', async () => {
+      const mockProfile = 'starwars/character-information';
+      const mockSuperJson = new SuperJson({
+        profiles: {
+          [mockProfile]: {
+            file: `../${mockProfile}.supr`,
+            defaults: {},
+            providers: {
+              swapi: {
+                file: `../${mockProfile}.swapi.suma`
+              }
+            },
+          },
+        },
+        providers: {
+          swapi: {
+            file: "../swapi.provider.json",
+            security: []
+          }
+        },
+      });
+      const loadSpy = jest
+        .spyOn(SuperJson, 'load')
+        .mockResolvedValue(ok(mockSuperJson));
+
+      mocked(detectSuperJson).mockResolvedValue('.');
+      mocked(lintFiles).mockResolvedValue([[0, 0]]);
+      const writeSpy = jest
+        .spyOn(OutputStream.prototype, 'write')
+        .mockResolvedValue(undefined);
+      const cleanupSpy = jest
+        .spyOn(OutputStream.prototype, 'cleanup')
+        .mockResolvedValue(undefined);
+
+      await expect(
+        Lint.run([])
+      ).resolves.toBeUndefined();
+
+      expect(lintFiles).toHaveBeenCalledTimes(1);
+      expect(lintFiles).toHaveBeenCalledWith(
+        [expect.stringContaining(`${mockProfile}.supr`), expect.stringContaining(`${mockProfile}.swapi.suma`)],
+        expect.anything(),
+        'auto',
+        expect.anything()
+      );
+
+      expect(loadSpy).toHaveBeenCalledTimes(1);
+      expect(writeSpy).toHaveBeenCalledTimes(1);
+      expect(writeSpy).toHaveBeenCalledWith(`\nDetected 0 problems\n`);
+
+      expect(cleanupSpy).toHaveBeenCalledTimes(1);
+    });
+
     it('lints one profile and one map file', async () => {
       mocked(lintFiles).mockResolvedValue([[0, 0]]);
       const writeSpy = jest
