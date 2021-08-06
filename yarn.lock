@@ -907,6 +907,13 @@
     debug "^4.3.1"
     typescript "~4.1"
 
+"@superfaceai/service-client@^0.0.17":
+  version "0.0.17"
+  resolved "https://registry.yarnpkg.com/@superfaceai/service-client/-/service-client-0.0.17.tgz#38e6e1749d1e5dd4ce9b2bce03104a15154abf4f"
+  integrity sha512-Wiml8S5aJ3S5yi0yfrmZBDVWrbtnbKvpqMxuKxSxvPnXj7qetSnngt4BOOMbTnb7iuZhIpi7B9BBQsSNwbo6TA==
+  dependencies:
+    cross-fetch "^3.1.0"
+
 "@tootallnate/once@1":
   version "1.1.2"
   resolved "https://registry.yarnpkg.com/@tootallnate/once/-/once-1.1.2.tgz#ccb91445360179a04e7fe6aff78c00ffc1eeaf82"
@@ -1939,7 +1946,7 @@ cors@^2.8.4:
     object-assign "^4"
     vary "^1"
 
-cross-fetch@^3.0.5:
+cross-fetch@^3.0.5, cross-fetch@^3.1.0:
   version "3.1.4"
   resolved "https://registry.yarnpkg.com/cross-fetch/-/cross-fetch-3.1.4.tgz#9723f3a3a247bf8b89039f3a380a9244e8fa2f39"
   integrity sha512-1eAtFWdIubi6T4XPy6ei9iUFoKpUkIF971QLN8lIvvvwueI65+Nw5haMNKUwfJxabqlIIDODJKGrQ66gxC0PbQ==

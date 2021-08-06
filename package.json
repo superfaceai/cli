@@ -52,6 +52,7 @@
     "@superfaceai/ast": "^0.0.25",
     "@superfaceai/one-sdk": "^0.0.29",
     "@superfaceai/parser": "0.0.19",
+    "@superfaceai/service-client": "^0.0.17",
     "chalk": "^4.1.0",
     "debug": "^4.3.1",
     "inquirer": "^7.3.3",

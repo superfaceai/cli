@@ -1,10 +1,15 @@
 import { CLIError } from '@oclif/errors';
 import { MapDocumentNode, ProfileDocumentNode } from '@superfaceai/ast';
 import { parseMap, parseProfile } from '@superfaceai/parser';
+// import { SuperfaceClient } from '../common/http';
+import { ServiceClient } from '@superfaceai/service-client';
 import { mocked } from 'ts-jest/utils';
 
 import { exists, readFile } from '../common/io';
 import { publish } from './publish';
+
+//Mock service client
+jest.mock('@superfaceai/service-client');
 
 //Mock io
 jest.mock('../common/io', () => ({
@@ -23,6 +28,172 @@ describe('Publish logic', () => {
   describe('when publishing', () => {
     afterEach(() => {
       jest.resetAllMocks();
+    });
+
+    it('publishes profile', async () => {
+      const mockProfileDocument: ProfileDocumentNode = {
+        kind: 'ProfileDocument',
+        header: {
+          kind: 'ProfileHeader',
+          name: 'test-profile',
+          version: {
+            major: 1,
+            minor: 0,
+            patch: 0,
+          },
+        },
+        definitions: [],
+      };
+      const mockPath = '/test/path.supr';
+      const mockContent = 'profile content';
+      mocked(exists).mockResolvedValue(true);
+      mocked(readFile).mockResolvedValue(mockContent);
+      mocked(parseProfile).mockReturnValue(mockProfileDocument);
+      const createSpy = jest
+        .spyOn(ServiceClient.prototype, 'createProfile')
+        .mockResolvedValue(undefined);
+      await expect(publish(mockPath)).resolves.toBeUndefined();
+
+      expect(createSpy).toHaveBeenCalledWith(mockContent);
+    });
+
+    it('does not publish profile with --dry-run flag', async () => {
+      const mockProfileDocument: ProfileDocumentNode = {
+        kind: 'ProfileDocument',
+        header: {
+          kind: 'ProfileHeader',
+          name: 'test-profile',
+          version: {
+            major: 1,
+            minor: 0,
+            patch: 0,
+          },
+        },
+        definitions: [],
+      };
+      const mockPath = '/test/path.supr';
+      const mockContent = 'profile content';
+      mocked(exists).mockResolvedValue(true);
+      mocked(readFile).mockResolvedValue(mockContent);
+      mocked(parseProfile).mockReturnValue(mockProfileDocument);
+      const createSpy = jest
+        .spyOn(ServiceClient.prototype, 'createProfile')
+        .mockResolvedValue(undefined);
+      await expect(
+        publish(mockPath, { dryRun: true })
+      ).resolves.toBeUndefined();
+
+      expect(createSpy).not.toHaveBeenCalled();
+    });
+
+    it('publishes map', async () => {
+      const mockMapDocument: MapDocumentNode = {
+        kind: 'MapDocument',
+        header: {
+          kind: 'MapHeader',
+          profile: {
+            name: 'different-test-profile',
+            scope: 'some-map-scope',
+            version: {
+              major: 1,
+              minor: 0,
+              patch: 0,
+            },
+          },
+          provider: 'test-profile',
+        },
+        definitions: [],
+      };
+      const mockPath = '/test/path.suma';
+      const mockContent = 'map content';
+      mocked(exists).mockResolvedValue(true);
+      mocked(readFile).mockResolvedValue(mockContent);
+      mocked(parseMap).mockReturnValue(mockMapDocument);
+      const createSpy = jest
+        .spyOn(ServiceClient.prototype, 'createMap')
+        .mockResolvedValue(undefined);
+      await expect(publish(mockPath)).resolves.toBeUndefined();
+
+      expect(createSpy).toHaveBeenCalledWith(mockContent);
+    });
+
+    it('does not publish map with --dry-run flag', async () => {
+      const mockMapDocument: MapDocumentNode = {
+        kind: 'MapDocument',
+        header: {
+          kind: 'MapHeader',
+          profile: {
+            name: 'different-test-profile',
+            scope: 'some-map-scope',
+            version: {
+              major: 1,
+              minor: 0,
+              patch: 0,
+            },
+          },
+          provider: 'test-profile',
+        },
+        definitions: [],
+      };
+      const mockPath = '/test/path.suma';
+      const mockContent = 'map content';
+      mocked(exists).mockResolvedValue(true);
+      mocked(readFile).mockResolvedValue(mockContent);
+      mocked(parseMap).mockReturnValue(mockMapDocument);
+      const createSpy = jest
+        .spyOn(ServiceClient.prototype, 'createMap')
+        .mockResolvedValue(undefined);
+      await expect(
+        publish(mockPath, { dryRun: true })
+      ).resolves.toBeUndefined();
+
+      expect(createSpy).not.toHaveBeenCalled();
+    });
+
+    it('publishes provider', async () => {
+      const mockPath = '/test/path.json';
+      const mockContent = JSON.stringify({
+        name: 'swapi',
+        services: [
+          {
+            id: 'default',
+            baseUrl: 'https://swapi.dev/api',
+          },
+        ],
+        defaultService: 'default',
+      });
+      mocked(exists).mockResolvedValue(true);
+      mocked(readFile).mockResolvedValue(mockContent);
+      const createSpy = jest
+        .spyOn(ServiceClient.prototype, 'createProvider')
+        .mockResolvedValue(undefined);
+      await expect(publish(mockPath)).resolves.toBeUndefined();
+
+      expect(createSpy).toHaveBeenCalledWith(mockContent);
+    });
+
+    it('does not publish provider with --dry-run flag', async () => {
+      const mockPath = '/test/path.json';
+      const mockContent = JSON.stringify({
+        name: 'swapi',
+        services: [
+          {
+            id: 'default',
+            baseUrl: 'https://swapi.dev/api',
+          },
+        ],
+        defaultService: 'default',
+      });
+      mocked(exists).mockResolvedValue(true);
+      mocked(readFile).mockResolvedValue(mockContent);
+      const createSpy = jest
+        .spyOn(ServiceClient.prototype, 'createProvider')
+        .mockResolvedValue(undefined);
+      await expect(
+        publish(mockPath, { dryRun: true })
+      ).resolves.toBeUndefined();
+
+      expect(createSpy).not.toHaveBeenCalled();
     });
 
     it('throws when path does not exist', async () => {

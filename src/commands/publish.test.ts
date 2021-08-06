@@ -49,8 +49,7 @@ describe('Publish CLI command', () => {
     });
 
     it('calls publish correctly with --dry-run', async () => {
-      const promptSpy = jest
-        .spyOn(inquirer, 'prompt')
+      const promptSpy = jest.spyOn(inquirer, 'prompt');
       mocked(publish).mockResolvedValue(undefined);
 
       await expect(

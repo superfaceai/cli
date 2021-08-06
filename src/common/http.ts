@@ -5,6 +5,7 @@ import {
   VERSION as SDK_VERSION,
 } from '@superfaceai/one-sdk';
 import { VERSION as PARSER_VERSION } from '@superfaceai/parser';
+import { ServiceClient } from '@superfaceai/service-client';
 import superagent, { Response } from 'superagent';
 
 import { VERSION } from '..';
@@ -29,6 +30,21 @@ export enum ContentType {
   JSON = 'application/json',
   PROFILE = 'application/vnd.superface.profile',
   AST = 'application/vnd.superface.profile+json',
+}
+
+//TODO: not sure about this approach
+export class SuperfaceClient {
+  private static serviceClient: ServiceClient;
+
+  public static getClient(): ServiceClient {
+    if (!SuperfaceClient.serviceClient) {
+      SuperfaceClient.serviceClient = new ServiceClient({
+        baseUrl: getStoreUrl(),
+      });
+    }
+
+    return SuperfaceClient.serviceClient;
+  }
 }
 
 export function getStoreUrl(): string {

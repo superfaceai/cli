@@ -4,6 +4,7 @@ import { parseMap, parseProfile, Source } from '@superfaceai/parser';
 
 import { EXTENSIONS } from '../common';
 import { userError } from '../common/error';
+import { SuperfaceClient } from '../common/http';
 import { exists, readFile } from '../common/io';
 import { LogCallback } from '../common/log';
 
@@ -29,13 +30,10 @@ export async function publish(
     throw userError('Do not use compiled files! Use .supr or .suma files', 1);
   }
 
-  // const client = new ServiceClient({
-  //   baseUrl,
-  //   refreshToken: process.env.SUPERFACE_STORE_REFRESH_TOKEN,
-  // });
-
   const data = await readFile(path);
   const file = Buffer.isBuffer(data) ? data.toString('utf8') : data;
+  //TODO: check if user is logged in
+  const client = SuperfaceClient.getClient();
 
   if (path.endsWith(EXTENSIONS.provider)) {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -44,7 +42,7 @@ export async function publish(
       options?.logCb?.(`Publishing provider ${parsedFile.name} from: ${path}`);
 
       if (!options?.dryRun) {
-        // await client.createProvider(file);
+        await client.createProvider(file);
       }
     } else {
       throw userError('File does not have provider json structure', 1);
@@ -58,7 +56,7 @@ export async function publish(
         `Publishing profile "${parsedFile.header.name}" from: ${path}`
       );
       if (!options?.dryRun) {
-        // await client.createProfile(file);
+        await client.createProfile(file);
       }
     } else {
       throw userError('Unknown profile file structure', 1);
@@ -73,7 +71,7 @@ export async function publish(
       );
 
       if (!options?.dryRun) {
-        // await client.createMap(file);
+        await client.createMap(file);
       }
     } else {
       throw userError('Unknown map file structure', 1);
