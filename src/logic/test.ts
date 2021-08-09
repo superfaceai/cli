@@ -12,8 +12,12 @@ import { TestConfig, TestingInput } from '../common/test-config';
 import { runMochaTests, suite } from '../test/mocha-utils';
 
 export async function runTest(
-  configPath: string,
-  testName?: string,
+  config: {
+    path: string;
+    updateSnapshots: boolean;
+    updateRecordings: boolean;
+    testName?: string;
+  },
   options?: {
     logCb?: LogCallback;
     errorCb?: LogCallback;
@@ -22,9 +26,9 @@ export async function runTest(
   // set up snapshot matcher .to.matchSnapshot()
   useChai(chaiJestSnapshot);
 
-  const config = await TestConfig.load(configPath, testName);
+  const testConfig = await TestConfig.load(config);
   const mocha = new Mocha({ timeout: 15000 });
-  prepareTests(mocha, config);
+  await prepareTests(mocha, testConfig);
 
   try {
     await runMochaTests(mocha);
@@ -37,11 +41,23 @@ export async function runTest(
   mocha.dispose();
 }
 
-export function prepareTests(mocha: Mocha, config: TestConfig): void {
+export async function prepareTests(
+  mocha: Mocha,
+  config: TestConfig
+): Promise<void> {
+  if (config.updateSnapshots) {
+    await updatePresentSnapshot(config.path);
+  }
+
+  if (config.updateRecordings) {
+    await updatePresentMocks(config.path);
+  }
+
   nockBack.fixtures = joinPath(config.path, '.cache', 'nock');
   nockBack.setMode('record');
 
   const parentSuite = suite(mocha.suite, '$ superface test');
+
   parentSuite.beforeAll(() => {
     chaiJestSnapshot.setFilename(
       joinPath(config.path, '.cache', 'snapshot.snap')
@@ -142,7 +158,7 @@ export async function updatePresentMocks(
     logCb?: LogCallback;
     errorCb?: LogCallback;
   }
-) {
+): Promise<void> {
   options?.logCb?.('Updating nock http recordings');
   try {
     await removeDirQuiet(joinPath(configPath, '.cache', 'nock'));
@@ -160,31 +176,11 @@ export async function updatePresentSnapshot(
     logCb?: LogCallback;
     errorCb?: LogCallback;
   }
-) {
+): Promise<void> {
   options?.logCb?.('Updating nock http recordings');
   try {
     await removeFileQuiet(joinPath(configPath, '.cache', 'snapshot.snap'));
   } catch (error) {
     options?.errorCb?.(error);
-  }
-}
-
-export async function updateMocksAndRecordings(
-  configPath: string,
-  {
-    updateSnapshots,
-    updateRecordings,
-  }: { updateSnapshots: boolean; updateRecordings: boolean },
-  options?: {
-    logCb?: LogCallback;
-    errorCb?: LogCallback;
-  }
-): Promise<void> {
-  if (updateSnapshots) {
-    await updatePresentSnapshot(configPath, options);
-  }
-
-  if (updateRecordings) {
-    await updatePresentMocks(configPath, options);
   }
 }

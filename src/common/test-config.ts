@@ -29,10 +29,22 @@ export interface TestingInput {
 
 export type TestConfiguration = TestingInput[];
 
+// TODO: Extend TestConfig for maintainability of snapshots and recordings
 export class TestConfig {
-  constructor(public configuration: TestConfiguration, readonly path: string) {}
+  constructor(
+    readonly path: string,
+    public readonly configuration: TestConfiguration,
+    public readonly updateSnapshots: boolean,
+    public readonly updateRecordings: boolean
+  ) {}
 
-  static async load(path: string, testName?: string): Promise<TestConfig> {
+  static async load(config: {
+    path: string;
+    updateSnapshots: boolean;
+    updateRecordings: boolean;
+    testName?: string;
+  }): Promise<TestConfig> {
+    const { path, updateSnapshots, updateRecordings, testName } = config;
     const filePath = joinPath(path, TEST_CONFIG);
 
     if (!(await isFileQuiet(filePath))) {
@@ -40,16 +52,25 @@ export class TestConfig {
     }
 
     const data = await readFileQuiet(filePath);
-
+    
     if (data === undefined) {
       throw userError('reading file failed', 2);
     }
 
-    const config = JSON.parse(data) as TestConfiguration;
+    // TODO: implement validation
+    let testConfiguration = JSON.parse(data) as TestConfiguration;
+
+    if (testName) {
+      testConfiguration = testConfiguration.filter(
+        input => input.provider === testName
+      );
+    }
 
     return new TestConfig(
-      testName ? config.filter(input => input.provider === testName) : config,
-      path
+      path,
+      testConfiguration,
+      updateSnapshots,
+      updateRecordings
     );
   }
 }

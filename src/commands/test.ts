@@ -3,7 +3,7 @@ import { grey, red } from 'chalk';
 
 import { Command } from '../common/command.abstract';
 import { detectTestConfig } from '../common/io';
-import { runTest, updateMocksAndRecordings } from '../logic/test';
+import { runTest } from '../logic/test';
 
 export default class Test extends Command {
   static strict = false;
@@ -58,16 +58,17 @@ export default class Test extends Command {
       );
     }
 
-    await updateMocksAndRecordings(testConfigPath, {
-      updateSnapshots: flags.updateSnapshots,
-      updateRecordings: flags.updateRecordings,
-    });
-
-    // TODO: implement filtering tests based on argument
-
-    await runTest(testConfigPath, args.testName, {
-      logCb: this.logCallback,
-      errorCb: this.errorCallback,
-    });
+    await runTest(
+      {
+        path: testConfigPath,
+        updateSnapshots: flags.updateSnapshots,
+        updateRecordings: flags.updateRecordings,
+        testName: args.testName,
+      },
+      {
+        logCb: this.logCallback,
+        errorCb: this.errorCallback,
+      }
+    );
   }
 }
