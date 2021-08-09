@@ -119,7 +119,7 @@ describe('Configure CLI command', () => {
       };
       await mockServer
         .get('/providers/' + emptyProvider)
-        .withHeaders({ Accept: ContentType.JSON })
+        .withHeaders({ 'Content-Type': ContentType.JSON })
         .thenJson(200, mockProviderInfo);
 
       result = await execCLI(
@@ -168,7 +168,7 @@ describe('Configure CLI command', () => {
       };
       await mockServer
         .get('/providers/' + providerWithoutSecurity)
-        .withHeaders({ Accept: ContentType.JSON })
+        .withHeaders({ 'Content-Type': ContentType.JSON })
         .thenJson(200, mockProviderInfo);
 
       result = await execCLI(
@@ -340,7 +340,7 @@ describe('Configure CLI command', () => {
 
       await mockServer
         .get('/providers/' + simpleProvider)
-        .withHeaders({ Accept: ContentType.JSON })
+        .withHeaders({ 'Content-Type': ContentType.JSON })
         .thenJson(200, mockProviderInfo);
 
       const result = await execCLI(

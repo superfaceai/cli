@@ -1,7 +1,6 @@
 import { CLIError } from '@oclif/errors';
 import { MapDocumentNode, ProfileDocumentNode } from '@superfaceai/ast';
 import { parseMap, parseProfile } from '@superfaceai/parser';
-// import { SuperfaceClient } from '../common/http';
 import { ServiceClient } from '@superfaceai/service-client';
 import { mocked } from 'ts-jest/utils';
 
