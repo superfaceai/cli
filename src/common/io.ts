@@ -308,21 +308,13 @@ export async function detectTestConfig(
 
 // TODO: make this more granular to filter this according to testName argument
 export async function removeDirQuiet(path: string): Promise<void> {
-  try {
-    if ((await readdir(path)).length > 0) {
-      await rimraf(path);
-    } 
-  } catch (error) {
-    throw error;
+  if ((await readdir(path)).length > 0) {
+    await rimraf(path);
   }
 }
 
 export async function removeFileQuiet(path: string): Promise<void> {
-  try {
-    if (await isFileQuiet(path)) {
-      await unlink(path);
-    }
-  } catch (error) {
-    throw error;
+  if (await isFileQuiet(path)) {
+    await unlink(path);
   }
 }
