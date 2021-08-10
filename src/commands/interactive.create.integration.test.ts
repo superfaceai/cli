@@ -96,16 +96,16 @@ describe('Interactive create CLI command', () => {
             //Create profile
             { value: ENTER, timeout: 2000 },
             //Create map
-            { value: 'n', timeout: 1200 },
-            { value: ENTER, timeout: 200 },
+            { value: 'n', timeout: 2000 },
+            { value: ENTER, timeout: 100 },
             //Create provider
             { value: 'n', timeout: 2000 },
-            { value: ENTER, timeout: 200 },
+            { value: ENTER, timeout: 100 },
             //Profile
             { value: documentName, timeout: 2000 },
             { value: ENTER, timeout: 200 },
             //Init superface
-            { value: ENTER, timeout: 200 },
+            { value: ENTER, timeout: 500 },
           ],
         }
       );
