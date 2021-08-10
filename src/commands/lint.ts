@@ -74,6 +74,13 @@ export default class Lint extends Command {
       description: 'Validate maps to specific profile.',
     }),
 
+    scan: oclifFlags.integer({
+      char: 's',
+      description:
+        'When number provided, scan for super.json outside cwd within range represented by this number.',
+      required: false,
+    }),
+
     quiet: oclifFlags.boolean({
       char: 'q',
       default: false,
@@ -86,11 +93,17 @@ export default class Lint extends Command {
   async run(): Promise<void> {
     const { argv, flags } = this.parse(Lint);
 
+    if (flags.scan && (typeof flags.scan !== 'number' || flags.scan > 5)) {
+      throw userError(
+        '--scan/-s : Number of levels to scan cannot be higher than 5',
+        1
+      );
+    }
     let files: string[] = [];
     if (!argv || argv.length === 0) {
-      const superPath = await detectSuperJson(process.cwd());
+      const superPath = await detectSuperJson(process.cwd(), flags.scan);
       if (!superPath) {
-        throw userError('Unable to compile, super.json not found', 1);
+        throw userError('Unable to lint, super.json not found', 1);
       }
       //Load super json
       const loadedResult = await SuperJson.load(joinPath(superPath, META_FILE));
