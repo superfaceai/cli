@@ -5,7 +5,12 @@ import {
   VERSION as SDK_VERSION,
 } from '@superfaceai/one-sdk';
 import { VERSION as PARSER_VERSION } from '@superfaceai/parser';
-import { ServiceClient } from '@superfaceai/service-client';
+import {
+  AuthToken,
+  ServiceApiError,
+  ServiceApiErrorResponse,
+  ServiceClient,
+} from '@superfaceai/service-client';
 import superagent, { Response } from 'superagent';
 
 import { VERSION } from '..';
@@ -24,6 +29,12 @@ export interface ProfileInfo {
 
 export interface GetProfileResponse {
   response: ProfileInfo | string;
+}
+
+export interface InitLoginResponse {
+  verify_url: string; //'https://superface.ai/auth/cli/verify?token=stub',
+  browser_url: string; //'https://superface.ai/auth/cli/browser?code=stub'
+  expires_at: string; //'2022-01-01T00:00:00.000Z'
 }
 
 export enum ContentType {
@@ -121,4 +132,45 @@ export async function fetchProviderInfo(
   const response = await fetch(query, ContentType.JSON);
 
   return parseProviderJson(response.body);
+}
+
+export async function initLogin(): Promise<InitLoginResponse> {
+  const initLoginResponse = await SuperfaceClient.getClient().fetch(
+    '/auth/cli',
+    { method: 'POST', headers: { 'Content-Type': ContentType.JSON } }
+  );
+  if (!initLoginResponse.ok) {
+    const errorResponse = (await initLoginResponse.json()) as ServiceApiErrorResponse;
+    throw new ServiceApiError(errorResponse);
+  }
+
+  //TODO: where check expiresAt?
+  return (await initLoginResponse.json()) as InitLoginResponse;
+}
+
+//TODO: check what actual return type is
+export async function fetchVerificationUrl(url: string): Promise<AuthToken> {
+  const fetchAuth = async (retries = 3): Promise<AuthToken> => {
+    try {
+      const authResponse = await SuperfaceClient.getClient().fetch(url, {
+        method: 'GET',
+        headers: { 'Content-Type': ContentType.JSON },
+      });
+
+      if (!authResponse.ok) {
+        //TODO: use userError
+        const errorResponse = (await authResponse.json()) as ServiceApiErrorResponse;
+        throw new ServiceApiError(errorResponse);
+      }
+
+      return (await authResponse.json()) as AuthToken;
+    } catch (err) {
+      //TODO: err resolution
+      if (retries > 0 && err instanceof ServiceApiError && err.status > 500)
+        return fetchAuth(retries - 1);
+      throw err;
+    }
+  };
+
+  return fetchAuth();
 }

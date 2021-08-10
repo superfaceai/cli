@@ -2,6 +2,7 @@
 import { ProviderJson } from '@superfaceai/one-sdk';
 import { execFile } from 'child_process';
 import concat from 'concat-stream';
+import { Headers, Response } from 'cross-fetch';
 import { Mockttp } from 'mockttp';
 import { constants } from 'os';
 import { join as joinPath, relative } from 'path';
@@ -220,6 +221,23 @@ export async function execCLI(
   });
 }
 
+/**
+ * Retruns mock Response with passed data
+ */
+export function mockResponse(
+  status: number,
+  statusText: string,
+  headers?: Record<string, string>,
+  data?: Record<string, unknown> | Buffer | string
+): Response {
+  const ResponseInit = {
+    status,
+    statusText,
+    headers: new Headers(headers),
+  };
+
+  return new Response(data ? JSON.stringify(data) : undefined, ResponseInit);
+}
 /**
  * Creates a random directory in `path` and returns the path
  */

@@ -1,18 +1,11 @@
-import {
-  AuthToken,
-  MEDIA_TYPE_JSON,
-  ServiceApiError,
-  ServiceApiErrorResponse,
-} from '@superfaceai/service-client';
+import { flags as oclifFlags } from '@oclif/command';
 import { bold, green, grey, yellow } from 'chalk';
-import inquirer from 'inquirer';
 import { Netrc } from 'netrc-parser';
-import * as open from 'open';
 
 import { Command } from '../common/command.abstract';
 import { userError } from '../common/error';
-import { getStoreUrl, SuperfaceClient } from '../common/http';
-import { LogCallback } from '../common/types';
+import { SuperfaceClient } from '../common/http';
+import { login } from '../logic/login';
 
 export default class Login extends Command {
   static description = 'Initiate login to superface server';
@@ -20,14 +13,19 @@ export default class Login extends Command {
   //TODO: some flags?
   static flags = {
     ...Command.flags,
+    force: oclifFlags.boolean({
+      char: 'f',
+      description: `When set to true user won't be asked to confirm browser opening`,
+      default: false,
+    }),
   };
   //TODO: some args
 
-  private warnCallback?= (message: string) =>
+  private warnCallback? = (message: string) =>
     this.log('⚠️  ' + yellow(message));
 
-  private logCallback?= (message: string) => this.log(grey(message));
-  private successCallback?= (message: string) =>
+  private logCallback? = (message: string) => this.log(grey(message));
+  private successCallback? = (message: string) =>
     this.log(bold(green(message)));
 
   async run(): Promise<void> {
@@ -40,47 +38,46 @@ export default class Login extends Command {
       this.successCallback = undefined;
     }
 
-    //TODO: heroku timeouts after 10 minutes - keep it?
+    //TODO: heroku timeouts after 10 minutes - keep it? Or leverage expiresAt?
     setTimeout(() => {
       if (!loggedIn) {
         throw userError('Timed out', 1);
       }
     }, 1000 * 60 * 10).unref();
 
-    //TODO: env variable name
-    if (process.env.SUPERFACE_API_KEY) {
-      throw userError('Cannot log in with SUPERFACE_API_KEY set', 1);
+    if (process.env.SUPERFACE_REFRESH_TOKEN) {
+      //TODO: login flow when there is SUPERFACE_REFRESH_TOKEN? setOptions on ServiceClient and store it in netrc?
+      throw userError('Cannot log in with SUPERFACE_REFRESH_TOKEN set', 1);
     }
 
     const netrc = new Netrc();
     await netrc.load();
     //TODO: key name
-    const host = 'api.heroku.com';
+    const host = 'api.superface.ai';
     const previousEntry = netrc.machines[host];
 
     try {
-      //Tcheck if already logged in and logout
+      //check if already logged in and logout
       if (previousEntry && previousEntry.password) {
         this.logCallback?.('Already logged in');
-        //logout form service client
+        //logout from service client
         SuperfaceClient.getClient().logout();
-        //TODO: logout fron services
+        //TODO: logout from services
         // await this.logout(previousEntry.password)
       }
     } catch (err) {
       this.warnCallback?.(err);
     }
 
-    const authToken = await this.login({
+    const authToken = await login({
       logCb: this.logCallback,
       warnCb: this.warnCallback,
+      force: flags.force,
     });
-    loggedIn = true;
-    this.successCallback?.('Logged in');
 
     //TODO: we store credentials in Netrc
     if (!netrc.machines[host]) netrc.machines[host] = {};
-    //TODO: how to store AuthToken
+    //TODO: how to store AuthToken object
     // netrc.machines[host].login = entry.login
     // netrc.machines[host].password = entry.password
     delete netrc.machines[host].method;
@@ -88,75 +85,8 @@ export default class Login extends Command {
     await netrc.save();
     //save authToken to ServiceClient instance
     SuperfaceClient.getClient().login(authToken);
-  }
 
-  async login(options?: {
-    logCb?: LogCallback;
-    warnCb?: LogCallback;
-  }): Promise<AuthToken> {
-    //post to /auth/cli and verification url
-    const initLoginResponse = await SuperfaceClient.getClient().fetch(
-      '/auth/cli',
-      { method: 'POST', headers: { 'Content-Type': MEDIA_TYPE_JSON } }
-    );
-    if (!initLoginResponse.ok) {
-      //TODO: use userError
-      const errorResponse = (await initLoginResponse.json()) as ServiceApiErrorResponse;
-      throw new ServiceApiError(errorResponse);
-    }
-
-    const initLogin = (await initLoginResponse.json()) as {
-      verify_url: string;
-    };
-
-    //open browser on browser url /auth/cli/browser - maybe force flag to skip prompting?
-    const browserUrl = new URL(getStoreUrl() + '/auth/cli/browser').href;
-    const prompt: { open: boolean } = await inquirer.prompt({
-      name: 'open',
-      message: `Do you want to open browser with url: ${browserUrl}.`,
-      type: 'confirm',
-      default: true,
-    });
-    const showUrl = () => {
-      options?.warnCb?.(
-        `Please open url: ${browserUrl} in your browser to continue with login.`
-      );
-    };
-    if (!prompt.open) {
-      showUrl();
-    } else {
-      const childProcess = await open.default(browserUrl, { wait: false });
-      childProcess.on('error', err => {
-        options?.warnCb?.(err.message);
-        showUrl();
-      });
-      childProcess.on('close', code => {
-        if (code !== 0) showUrl();
-      });
-    }
-    //start polling verification url
-    const fetchAuth = async (retries = 3): Promise<AuthToken> => {
-      try {
-        const authResponse = await SuperfaceClient.getClient().fetch(
-          initLogin.verify_url,
-          { method: 'GET', headers: { 'Content-Type': MEDIA_TYPE_JSON } }
-        );
-
-        if (!authResponse.ok) {
-          //TODO: use userError
-          const errorResponse = (await authResponse.json()) as ServiceApiErrorResponse;
-          throw new ServiceApiError(errorResponse);
-        }
-
-        return (await authResponse.json()) as AuthToken;
-      } catch (err) {
-        //TODO: err resolution
-        if (retries > 0 && err instanceof ServiceApiError && err.status > 500)
-          return fetchAuth(retries - 1);
-        throw err;
-      }
-    };
-
-    return fetchAuth();
+    loggedIn = true;
+    this.successCallback?.('Logged in');
   }
 }
