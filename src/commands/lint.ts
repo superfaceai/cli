@@ -80,15 +80,15 @@ export default class Lint extends Command {
         'When number provided, scan for super.json outside cwd within range represented by this number.',
       required: false,
     }),
-
-    quiet: oclifFlags.boolean({
-      char: 'q',
-      default: false,
-      description: 'When set to true, disables output of warnings.',
-    }),
-
-    help: oclifFlags.help({ char: 'h' }),
   };
+
+  static examples = [
+    '$ superface lint',
+    '$ superface lint -o -2',
+    '$ superface lint -f json',
+    '$ superface lint my/path/to/sms/service@1.0',
+    '$ superface lint -s',
+  ];
 
   async run(): Promise<void> {
     const { argv, flags } = this.parse(Lint);

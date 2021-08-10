@@ -225,6 +225,9 @@ OPTIONS
 
   -q, --quiet                          When set to true, disables output of warnings.
 
+  -s, --scan=scan                      When number provided, scan for super.json outside cwd within range represented by
+                                       this number.
+
   -t, --documentType=auto|map|profile  [default: auto] Document type to parse. `auto` attempts to infer from file
                                        extension.
 
@@ -237,7 +240,7 @@ DESCRIPTION
   Linter ends with non zero exit code if errors are found.
 ```
 
-_See code: [dist/commands/lint.ts](https://github.com/superfaceai/cli/blob/v0.0.22/dist/commands/lint.ts)_
+_See code: [src/commands/lint.ts](https://github.com/superfaceai/cli/tree/main/src/commands/lint.ts)_
 <!-- commandsstop -->
 
 ## Interactive install
