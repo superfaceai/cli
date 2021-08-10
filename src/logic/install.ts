@@ -404,8 +404,6 @@ export async function getProfileFromStore(
   options?.logCb?.(`\nFetching profile ${profileId} from the Store`);
 
   try {
-    options?.logCb?.(`BEFORE GET Profile Info ${profileId}`);
-
     info = await fetchProfileInfo(profileId);
     options?.logCb?.(`GET Profile Info ${profileId}`);
 
