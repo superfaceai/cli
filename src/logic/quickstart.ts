@@ -265,7 +265,6 @@ export async function interactiveInstall(
         logCb: options?.logCb,
         warnCb: options?.warnCb,
         force: true,
-        local: false,
       },
     });
   }
