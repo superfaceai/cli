@@ -1,15 +1,11 @@
-import { Profile, Provider, SuperfaceClient } from '@superfaceai/one-sdk';
-import { expect, use as useChai } from 'chai';
-import chaiJestSnapshot from 'chai-jest-snapshot';
-import Mocha from 'mocha';
+import { SuperfaceClient } from '@superfaceai/one-sdk';
 import { back, back as nockBack, restore as restoreNocks } from 'nock';
 import { join as joinPath } from 'path';
+import tap from 'tap';
 
-import { removeTimestamp } from '../common/format';
 import { removeDirQuiet, removeFileQuiet } from '../common/io';
 import { LogCallback } from '../common/log';
 import { TestConfig, TestingInput } from '../common/test-config';
-import { runMochaTests, suite } from '../test/mocha-utils';
 
 export async function runTest(
   config: {
@@ -23,28 +19,19 @@ export async function runTest(
     errorCb?: LogCallback;
   }
 ): Promise<void> {
-  // set up snapshot matcher .to.matchSnapshot()
-  useChai(chaiJestSnapshot);
-
   const testConfig = await TestConfig.load(config);
-  const mocha = new Mocha({ timeout: 15000 });
-  await prepareTests(mocha, testConfig);
 
   try {
-    await runMochaTests(mocha);
-    options?.logCb?.('Templated test was executed with mocha');
+    await prepareTests(testConfig);
+    options?.logCb?.('Templated test was executed with tap');
   } catch (error) {
     options?.errorCb?.(error);
   }
 
   restoreNocks();
-  mocha.dispose();
 }
 
-export async function prepareTests(
-  mocha: Mocha,
-  config: TestConfig
-): Promise<void> {
+export async function prepareTests(config: TestConfig): Promise<void> {
   if (config.updateSnapshots) {
     await updatePresentSnapshot(config.path);
   }
@@ -56,97 +43,77 @@ export async function prepareTests(
   nockBack.fixtures = joinPath(config.path, '.cache', 'nock');
   nockBack.setMode('record');
 
-  const parentSuite = suite(mocha.suite, '$ superface test');
+  await tap.test('$ superface test', { bail: false }, async t => {
+    t.plan(config.configuration.length);
 
-  parentSuite.beforeAll(() => {
-    chaiJestSnapshot.setFilename(
-      joinPath(config.path, '.cache', 'snapshot.snap')
-    );
+    for (const entry of config.configuration.entries()) {
+      await templatedTest(t, entry);
+    }
   });
-
-  for (const entry of config.configuration.entries()) {
-    templatedTest(entry, parentSuite);
-  }
 }
 
-export function templatedTest(
-  [index, config]: [index: number, config: TestingInput],
-  parentSuite: Mocha.Suite
-): void {
-  let client: SuperfaceClient;
-  let profile: Profile;
-  let provider: Provider;
+export async function templatedTest(
+  parent: Tap.Test,
+  [index, config]: [index: number, config: TestingInput]
+): Promise<void> {
+  const client = new SuperfaceClient();
+  const profile = await client.getProfile(config.profileId);
+  const provider = await client.getProvider(config.provider);
   let nockDone: () => void;
 
-  const testInputSuite = suite(
-    parentSuite,
-    `${config.profileId}/${config.provider}`
-  );
+  await parent.test(
+    `${config.profileId}/${config.provider}`,
+    async testingInput => {
+      testingInput.plan(3);
 
-  testInputSuite.beforeAll(async () => {
-    client = new SuperfaceClient();
-    profile = await client.getProfile(config.profileId);
-    provider = await client.getProvider(config.provider);
+      await testingInput.test('should have profile defined', t => {
+        t.ok(profile);
+      });
 
-    process.env.SUPERFACE_DISABLE_METRIC_REPORTING = 'true';
-  });
+      await testingInput.test('should have provider defined', t => {
+        t.ok(provider);
+      });
 
-  testInputSuite.addTest(
-    new Mocha.Test('should have profile defined', () => {
-      expect(profile).not.to.be.undefined;
-    })
-  );
-
-  testInputSuite.addTest(
-    new Mocha.Test('should have provider defined', () => {
-      expect(provider).not.to.be.undefined;
-    })
-  );
-
-  const testCaseSuite = suite(testInputSuite, 'testing cases');
-
-  testCaseSuite.beforeAll(async () => {
-    ({ nockDone } = await back(
-      `${config.profileId}-${config.provider}-${index}.json`
-    ));
-  });
-
-  testCaseSuite.afterAll(() => {
-    nockDone();
-  });
-
-  for (const [i, testCase] of config.data.entries()) {
-    testCaseSuite.addTest(
-      new Mocha.Test(`${i + 1} - ${testCase.useCase}`, async () => {
-        chaiJestSnapshot.setTestName(testCase.useCase);
-
-        const useCase = profile.getUseCase(testCase.useCase);
-        expect(useCase).not.to.be.undefined;
-
-        // TODO: fix unknown types
-        const result = await useCase.perform(testCase.input as any, {
-          provider,
+      await testingInput.test('testing cases', async testingCase => {
+        testingCase.plan(config.data.length);
+        testingCase.before(async () => {
+          ({ nockDone } = await back(
+            `${config.profileId}-${config.provider}-${index}.json`
+          ));
         });
 
-        if (testCase.isError) {
-          expect(result.isErr()).to.be.true;
-          expect(
-            result.isErr() && removeTimestamp(result.error.message)
-          ).to.matchSnapshot();
-        } else {
-          expect(result.isOk()).to.be.true;
+        for (const [i, testCase] of config.data.entries()) {
+          await testingCase.test(`${i + 1} - ${testCase.useCase}`, async t => {
+            const useCase = profile.getUseCase(testCase.useCase);
+            t.ok(useCase);
 
-          if (testCase.result) {
-            expect(result.isOk() && result.value).to.deep.equal(
-              testCase.result
-            );
-          } else {
-            expect(result.isOk() && result.value).to.matchSnapshot();
-          }
+            // TODO: fix unknown types
+            const result = await useCase.perform(testCase.input as any, {
+              provider,
+            });
+
+            if (testCase.isError) {
+              t.ok(result.isErr());
+
+              // expect(
+              //   result.isErr() && removeTimestamp(result.error.message)
+              // ).to.matchSnapshot();
+            } else {
+              t.ok(result.isOk());
+
+              if (testCase.result) {
+                t.equal(result.isOk() && result.value, testCase.result);
+              } else {
+                // expect(result.isOk() && result.value).to.matchSnapshot();
+              }
+            }
+          });
         }
-      })
-    );
-  }
+
+        nockDone();
+      });
+    }
+  );
 }
 
 /**

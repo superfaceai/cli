@@ -5,7 +5,7 @@ export abstract class Command extends OclifCommand {
     quiet: flags.boolean({
       char: 'q',
       description:
-        'When set to true, disables the shell echo output of init actions.',
+        'When set to true, disables the shell echo output.',
       default: false,
     }),
     help: flags.help({ char: 'h' }),

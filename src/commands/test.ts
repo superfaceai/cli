@@ -58,6 +58,11 @@ export default class Test extends Command {
       );
     }
 
+    if (args.testName !== undefined && typeof args.testName !== 'string') {
+      this.error('Argument must be valid provider id.')
+    }
+
+    // // dryRun?
     await runTest(
       {
         path: testConfigPath,
