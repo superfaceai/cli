@@ -255,10 +255,8 @@ export async function interactiveInstall(
       provider,
       profileId,
       defaults: {
-        defaults: {
-          [selectedUseCase]: {
-            retryPolicy: await selectRetryPolicy(provider, selectedUseCase),
-          },
+        [selectedUseCase]: {
+          retryPolicy: await selectRetryPolicy(provider, selectedUseCase),
         },
       },
       options: {
