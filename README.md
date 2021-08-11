@@ -62,7 +62,7 @@ npx @superfaceai/cli install [profileId eg. communication/send-email] -i
 
 ## `superface configure PROVIDERNAME`
 
-Automatically initializes superface directory in current working directory if needed, communicates with Superface Store API, stores provider configuration in super.json
+Configures new provider and map for already installed profile. Provider configuration is dowloaded from a Superface registry or from local file.
 
 ```
 USAGE
@@ -72,17 +72,20 @@ ARGUMENTS
   PROVIDERNAME  Provider name.
 
 OPTIONS
-  -f, --force            When set to true and when provider exists in super.json, overwrites them.
-  -h, --help             show CLI help
-  -l, --local            When set to true, provider name argument is used as a filepath to provider.json file
-  -p, --profile=profile  (required) Specifies profile to associate with provider
-  -q, --quiet            When set to true, disables the shell echo output of init actions.
+  -f, --force                    When set to true and when provider exists in super.json, overwrites them.
+  -h, --help                     show CLI help
+  -p, --profile=profile          (required) Specifies profile to associate with provider
+  -q, --quiet                    When set to true, disables the shell echo output of init actions.
+  --localMap=localMap            Optional filepath to .suma map file
+  --localProvider=localProvider  Optional filepath to provider.json file
+  --no-env                       When set to true command does not prepare security varibles in .env file
 
 EXAMPLES
   $ superface configure twilio -p send-sms
   $ superface configure twilio -p send-sms -q
   $ superface configure twilio -p send-sms -f
-  $ superface configure providers/twilio.provider.json -p send-sms -l
+  $ superface configure twilio -p send-sms --local-provider providers/twilio.provider.json
+  $ superface configure twilio -p send-sms --local-map maps/send-sms.twilio.suma
 ```
 
 _See code: [src/commands/configure.ts](https://github.com/superfaceai/cli/tree/main/src/commands/configure.ts)_
