@@ -59,6 +59,7 @@ npx @superfaceai/cli install [profileId eg. communication/send-email] -i
 * [`superface create`](#superface-create)
 * [`superface init [NAME]`](#superface-init-name)
 * [`superface install [PROFILEID]`](#superface-install-profileid)
+* [`superface publish PATH`](#superface-publish-path)
 
 ## `superface configure PROVIDERNAME`
 
@@ -77,6 +78,7 @@ OPTIONS
   -l, --local            When set to true, provider name argument is used as a filepath to provider.json file
   -p, --profile=profile  (required) Specifies profile to associate with provider
   -q, --quiet            When set to true, disables the shell echo output of init actions.
+  --no-env               When set to true command does not prepare security varibles in .env file
 
 EXAMPLES
   $ superface configure twilio -p send-sms
@@ -205,6 +207,31 @@ EXAMPLES
 ```
 
 _See code: [src/commands/install.ts](https://github.com/superfaceai/cli/tree/main/src/commands/install.ts)_
+
+## `superface publish PATH`
+
+Uploads map/profile/provider to Store - use paths to `.supr` file for profiles, `.suma` for maps and `.json` for providers. Do not use path ending with `.ast.json` (compiled files).
+
+```
+USAGE
+  $ superface publish PATH
+
+ARGUMENTS
+  PATH  Path to profile, map or provider
+
+OPTIONS
+  -f, --force  Publishes without asking any confirmation.
+  -h, --help   show CLI help
+  -q, --quiet  When set to true, disables the shell echo output of init actions.
+  --dry-run    Runs without sending actual request.
+
+EXAMPLES
+  $ station publish capabilities/vcs/user-repos/maps/bitbucket.suma -f
+  $ station publish capabilities/vcs/user-repos/maps/bitbucket.suma -q
+  $ station publish capabilities/vcs/user-repos/maps/bitbucket.suma --dry-run
+```
+
+_See code: [src/commands/publish.ts](https://github.com/superfaceai/cli/tree/main/src/commands/publish.ts)_
 <!-- commandsstop -->
 
 ## Interactive install
