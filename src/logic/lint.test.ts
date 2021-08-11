@@ -132,7 +132,7 @@ describe('Lint logic', () => {
       expect(parseMap).toHaveBeenCalledWith(new Source(mockContent, mockPath));
 
       expect(readFile).toHaveBeenCalledTimes(1);
-      expect(readFile).toHaveBeenCalledWith(mockPath);
+      expect(readFile).toHaveBeenCalledWith(mockPath, { encoding: 'utf-8' });
 
       expect(writeElementSpy).toHaveBeenCalledTimes(1);
       expect(writeElementSpy).toHaveBeenCalledWith(
@@ -165,7 +165,7 @@ describe('Lint logic', () => {
       );
 
       expect(readFile).toHaveBeenCalledTimes(1);
-      expect(readFile).toHaveBeenCalledWith(mockPath);
+      expect(readFile).toHaveBeenCalledWith(mockPath, { encoding: 'utf-8' });
 
       expect(writeElementSpy).toHaveBeenCalledTimes(1);
       expect(writeElementSpy).toHaveBeenCalledWith(
@@ -225,7 +225,7 @@ describe('Lint logic', () => {
       expect(parseMap).toHaveBeenCalledWith(new Source(mockContent, mockPath));
 
       expect(readFile).toHaveBeenCalledTimes(1);
-      expect(readFile).toHaveBeenCalledWith(mockPath);
+      expect(readFile).toHaveBeenCalledWith(mockPath, { encoding: 'utf-8' });
     });
 
     it('lints profile type file without errors', async () => {
@@ -261,7 +261,7 @@ describe('Lint logic', () => {
       );
 
       expect(readFile).toHaveBeenCalledTimes(1);
-      expect(readFile).toHaveBeenCalledWith(mockPath);
+      expect(readFile).toHaveBeenCalledWith(mockPath, { encoding: 'utf-8' });
     });
 
     it('lints profile type file with errors', async () => {
@@ -288,7 +288,7 @@ describe('Lint logic', () => {
       );
 
       expect(readFile).toHaveBeenCalledTimes(1);
-      expect(readFile).toHaveBeenCalledWith(mockPath);
+      expect(readFile).toHaveBeenCalledWith(mockPath, { encoding: 'utf-8' });
     });
 
     it('lints map type file with errors', async () => {
@@ -313,7 +313,7 @@ describe('Lint logic', () => {
       expect(parseMap).toHaveBeenCalledWith(new Source(mockContent, mockPath));
 
       expect(readFile).toHaveBeenCalledTimes(1);
-      expect(readFile).toHaveBeenCalledWith(mockPath);
+      expect(readFile).toHaveBeenCalledWith(mockPath, { encoding: 'utf-8' });
     });
   });
 
@@ -946,7 +946,7 @@ describe('Lint logic', () => {
       );
 
       expect(readFile).toHaveBeenCalledTimes(1);
-      expect(readFile).toHaveBeenCalledWith(mockPath);
+      expect(readFile).toHaveBeenCalledWith(mockPath, { encoding: 'utf-8' });
     });
   });
 
@@ -981,7 +981,7 @@ describe('Lint logic', () => {
       expect(parseMap).toHaveBeenCalledWith(new Source(mockContent, mockPath));
 
       expect(readFile).toHaveBeenCalledTimes(1);
-      expect(readFile).toHaveBeenCalledWith(mockPath);
+      expect(readFile).toHaveBeenCalledWith(mockPath, { encoding: 'utf-8' });
     });
   });
 });

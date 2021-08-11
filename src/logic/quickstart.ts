@@ -279,7 +279,7 @@ export async function interactiveInstall(
 
   //Get .env file
   if (await exists('.env')) {
-    envContent = (await readFile('.env')).toString();
+    envContent = await readFile('.env', { encoding: 'utf-8' });
   }
   let selectedSchema: SecurityValues;
   for (const provider of Object.keys(installedProviders)) {

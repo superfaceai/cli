@@ -206,10 +206,14 @@ describe('Publish logic', () => {
     it('throws when path has ast.json extension', async () => {
       mocked(exists).mockResolvedValue(true);
       await expect(publish('/test/test.suma.ast.json')).rejects.toEqual(
-        new CLIError('Do not use compiled files! Use .supr or .suma files')
+        new CLIError(
+          'Please use a .supr or .suma file instead of .ast.json compiled file'
+        )
       );
       await expect(publish('/test/test.supr.ast.json')).rejects.toEqual(
-        new CLIError('Do not use compiled files! Use .supr or .suma files')
+        new CLIError(
+          'Please use a .supr or .suma file instead of .ast.json compiled file'
+        )
       );
     });
 
@@ -219,7 +223,7 @@ describe('Publish logic', () => {
       mocked(exists).mockResolvedValue(true);
       mocked(readFile).mockResolvedValue(mockContent);
       await expect(publish(moskPath)).rejects.toEqual(
-        new CLIError('Unknown file suffix')
+        new CLIError('Unknown file extension')
       );
     });
 

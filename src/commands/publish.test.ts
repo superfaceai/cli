@@ -49,14 +49,16 @@ describe('Publish CLI command', () => {
     });
 
     it('calls publish correctly with --dry-run', async () => {
-      const promptSpy = jest.spyOn(inquirer, 'prompt');
+      const promptSpy = jest
+        .spyOn(inquirer, 'prompt')
+        .mockResolvedValueOnce({ upload: true });
       mocked(publish).mockResolvedValue(undefined);
 
       await expect(
         Publish.run([mockPath, '--dry-run'])
       ).resolves.toBeUndefined();
 
-      expect(promptSpy).toHaveBeenCalledTimes(0);
+      expect(promptSpy).toHaveBeenCalledTimes(1);
       expect(publish).toHaveBeenCalledWith(mockPath, {
         logCb: expect.anything(),
         dryRun: true,

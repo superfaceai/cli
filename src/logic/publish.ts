@@ -27,11 +27,13 @@ export async function publish(
     path.endsWith(EXTENSIONS.map.build) ||
     path.endsWith(EXTENSIONS.profile.build)
   ) {
-    throw userError('Do not use compiled files! Use .supr or .suma files', 1);
+    throw userError(
+      'Please use a .supr or .suma file instead of .ast.json compiled file',
+      1
+    );
   }
 
-  const data = await readFile(path);
-  const file = Buffer.isBuffer(data) ? data.toString('utf8') : data;
+  const file = await readFile(path, { encoding: 'utf-8' });
   //TODO: check if user is logged in
   const client = SuperfaceClient.getClient();
 
@@ -77,6 +79,6 @@ export async function publish(
       throw userError('Unknown map file structure', 1);
     }
   } else {
-    throw userError('Unknown file suffix', 1);
+    throw userError('Unknown file extension', 1);
   }
 }

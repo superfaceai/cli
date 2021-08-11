@@ -257,7 +257,9 @@ describe('Interactive install CLI command', () => {
         },
       });
       //Check .env
-      const env = (await readFile(joinPath(tempDir, '.env'))).toString();
+      const env = await readFile(joinPath(tempDir, '.env'), {
+        encoding: 'utf-8',
+      });
       expect(env).toMatch('SENDGRID_TOKEN=sendgridToken\n');
       expect(env).toMatch('MAILGUN_USERNAME=username\n');
       expect(env).toMatch('MAILGUN_PASSWORD=password\n');
@@ -537,7 +539,9 @@ describe('Interactive install CLI command', () => {
         },
       });
       //Check .env
-      const env = (await readFile(joinPath(tempDir, '.env'))).toString();
+      const env = await readFile(joinPath(tempDir, '.env'), {
+        encoding: 'utf-8',
+      });
       expect(env).toMatch('TEST=test\n');
       expect(env).toMatch('MAILGUN_USERNAME=username\n');
       expect(env).toMatch('MAILGUN_PASSWORD=password\n');

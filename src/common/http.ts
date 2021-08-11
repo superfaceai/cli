@@ -10,7 +10,8 @@ import {
   ServiceClient,
 } from '@superfaceai/service-client';
 
-import { VERSION } from '..';
+import { SF_API_URL_VARIABLE, VERSION } from '..';
+import { SF_PRODUCTION } from './document';
 import { userError } from './error';
 
 export interface ProfileInfo {
@@ -34,7 +35,6 @@ export enum ContentType {
   AST = 'application/vnd.superface.profile+json',
 }
 
-//TODO: not sure about this approach
 export class SuperfaceClient {
   private static serviceClient: ServiceClient;
 
@@ -50,7 +50,7 @@ export class SuperfaceClient {
 }
 
 export function getStoreUrl(): string {
-  const envUrl = process.env.SUPERFACE_API_URL;
+  const envUrl = process.env[SF_API_URL_VARIABLE];
 
   if (envUrl) {
     const passedValue = new URL(envUrl).href;
@@ -62,7 +62,7 @@ export function getStoreUrl(): string {
     return passedValue;
   }
 
-  return 'https://superface.ai';
+  return SF_PRODUCTION;
 }
 
 export async function fetchProviders(profile: string): Promise<ProviderJson[]> {
@@ -81,7 +81,7 @@ export async function fetchProviders(profile: string): Promise<ProviderJson[]> {
     }
   );
 
-  await unwrapSuperfaceResponse(response);
+  await checkSuperfaceResponse(response);
 
   return ((await response.json()) as { data: ProviderJson[] }).data;
 }
@@ -101,7 +101,7 @@ export async function fetchProfileInfo(
     },
   });
 
-  await unwrapSuperfaceResponse(response);
+  await checkSuperfaceResponse(response);
 
   return (await response.json()) as ProfileInfo;
 }
@@ -119,7 +119,7 @@ export async function fetchProfile(profileId: string): Promise<string> {
     },
   });
 
-  await unwrapSuperfaceResponse(response);
+  await checkSuperfaceResponse(response);
 
   return response.text();
 }
@@ -139,7 +139,7 @@ export async function fetchProfileAST(
     },
   });
 
-  await unwrapSuperfaceResponse(response);
+  await checkSuperfaceResponse(response);
 
   return (await response.json()) as ProfileDocumentNode;
 }
@@ -155,7 +155,7 @@ export async function fetchProviderInfo(
   return parseProviderJson(response);
 }
 
-async function unwrapSuperfaceResponse(response: Response): Promise<Response> {
+async function checkSuperfaceResponse(response: Response): Promise<Response> {
   if (!response.ok) {
     const errorResponse = (await response.json()) as ServiceApiErrorResponse;
     throw userError(errorResponse.detail, 1);

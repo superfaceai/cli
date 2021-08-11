@@ -133,7 +133,7 @@ export default class Compile extends Command {
     }
 
     const parseFunction = DOCUMENT_PARSE_FUNCTION[documentType];
-    const content = (await readFile(path)).toString();
+    const content = await readFile(path, { encoding: 'utf-8' });
     const source = new Source(content, basename(path));
 
     return parseFunction(source);
