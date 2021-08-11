@@ -90,14 +90,13 @@ export async function fetchProviders(profile: string): Promise<ProviderJson[]> {
 export async function fetchProfileInfo(
   profileId: string
 ): Promise<ProfileInfo> {
-  const userAgent = `superface cli/${VERSION} (${process.platform}-${process.arch}) ${process.release.name}-${process.version} (with @superfaceai/one-sdk@${SDK_VERSION}, @superfaceai/parser@${PARSER_VERSION})`;
   const response = await SuperfaceClient.getClient().fetch(`/${profileId}`, {
     //TODO: enable auth
     authenticate: false,
     method: 'GET',
     headers: {
+      ...commonHeaders(),
       Accept: ContentType.JSON,
-      'User-Agent': userAgent,
     },
   });
 
@@ -107,15 +106,13 @@ export async function fetchProfileInfo(
 }
 
 export async function fetchProfile(profileId: string): Promise<string> {
-  const userAgent = `superface cli/${VERSION} (${process.platform}-${process.arch}) ${process.release.name}-${process.version} (with @superfaceai/one-sdk@${SDK_VERSION}, @superfaceai/parser@${PARSER_VERSION})`;
-
   const response = await SuperfaceClient.getClient().fetch(`/${profileId}`, {
     //TODO: enable auth
     authenticate: false,
     method: 'GET',
     headers: {
+      ...commonHeaders(),
       Accept: ContentType.PROFILE,
-      'User-Agent': userAgent,
     },
   });
 
@@ -127,15 +124,13 @@ export async function fetchProfile(profileId: string): Promise<string> {
 export async function fetchProfileAST(
   profileId: string
 ): Promise<ProfileDocumentNode> {
-  const userAgent = `superface cli/${VERSION} (${process.platform}-${process.arch}) ${process.release.name}-${process.version} (with @superfaceai/one-sdk@${SDK_VERSION}, @superfaceai/parser@${PARSER_VERSION})`;
-
   const response = await SuperfaceClient.getClient().fetch(`/${profileId}`, {
     //TODO: enable auth
     authenticate: false,
     method: 'GET',
     headers: {
+      ...commonHeaders(),
       Accept: ContentType.AST,
-      'User-Agent': userAgent,
     },
   });
 
@@ -162,4 +157,10 @@ async function checkSuperfaceResponse(response: Response): Promise<Response> {
   }
 
   return response;
+}
+
+function commonHeaders(): Record<string, string> {
+  return {
+    'User-Agent': `superface cli/${VERSION} (${process.platform}-${process.arch}) ${process.release.name}-${process.version} (with @superfaceai/one-sdk@${SDK_VERSION}, @superfaceai/parser@${PARSER_VERSION})`,
+  };
 }
