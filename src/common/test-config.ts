@@ -35,7 +35,8 @@ export class TestConfig {
     readonly path: string,
     public readonly configuration: TestConfiguration,
     public readonly updateSnapshots: boolean,
-    public readonly updateRecordings: boolean
+    public readonly updateRecordings: boolean,
+    public readonly testName?: string
   ) {}
 
   static async load(config: {
@@ -70,7 +71,8 @@ export class TestConfig {
       path,
       testConfiguration,
       updateSnapshots,
-      updateRecordings
+      updateRecordings,
+      testName
     );
   }
 }

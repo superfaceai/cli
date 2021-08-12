@@ -3,7 +3,7 @@ import { grey, red } from 'chalk';
 
 import { Command } from '../common/command.abstract';
 import { detectTestConfig } from '../common/io';
-import { runTest } from '../logic/test';
+import { runTests } from '../logic/test';
 
 export default class Test extends Command {
   static strict = false;
@@ -29,6 +29,10 @@ export default class Test extends Command {
       default: false,
       description: 'Updates currently recorded http traffic in your test cases',
     }),
+    generage: oclifFlags.boolean({
+      char: 'g',
+      description: 'Sets options to force generating new tests from present ts-test-config.json'
+    })
   };
 
   static examples = [
@@ -58,7 +62,13 @@ export default class Test extends Command {
       );
     }
 
-    await runTest(
+    if (args.testName !== undefined && typeof args.testName !== 'string') {
+      this.error('error')
+    }
+
+    // TODO: add check for jest configiration file
+
+    await runTests(
       {
         path: testConfigPath,
         updateSnapshots: flags.updateSnapshots,
@@ -68,6 +78,7 @@ export default class Test extends Command {
       {
         logCb: this.logCallback,
         errorCb: this.errorCallback,
+        force: flags.generage
       }
     );
   }
