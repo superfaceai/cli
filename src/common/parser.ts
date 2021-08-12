@@ -12,11 +12,7 @@ import { join as joinPath } from 'path';
 import { EXTENSIONS } from './document';
 import { userError } from './error';
 
-const DEFAULT_CACHE_PATH = joinPath(
-  process.cwd(),
-  'superface',
-  '.cache'
-);
+const DEFAULT_CACHE_PATH = joinPath(process.cwd(), 'superface', '.cache');
 /**
  * THIS ENTIRE FILE IS A HACK TO ENABLE PARSING TO SUPERFACE CACHE AND IT WILL BE REMOVED WHEN ONE SDK SUPPORTS PARSING
  */
@@ -60,9 +56,11 @@ export class Parser {
       // const parsedMap = assertMapDocumentNode(
       //   JSON.parse(await fsp.readFile(hashedPath, { encoding: 'utf8' }))
       // );
-      const parsedMap = JSON.parse(await fsp.readFile(hashedPath, { encoding: 'utf8' })) as MapDocumentNode
+      const parsedMap = JSON.parse(
+        await fsp.readFile(hashedPath, { encoding: 'utf8' })
+      ) as MapDocumentNode;
       if (!isMapDocumentNode(parsedMap)) {
-        throw userError('Not valid map document node', 1)
+        throw userError('Not valid map document node', 1);
       }
       //End of hack
       this.mapCache[hashedPath] = parsedMap;
@@ -135,11 +133,12 @@ export class Parser {
       //   JSON.parse(await fsp.readFile(hashedPath, { encoding: 'utf8' }))
       // );
 
-      const parsedProfile =
-        JSON.parse(await fsp.readFile(hashedPath, { encoding: 'utf8' })) as ProfileDocumentNode
+      const parsedProfile = JSON.parse(
+        await fsp.readFile(hashedPath, { encoding: 'utf8' })
+      ) as ProfileDocumentNode;
 
       if (!isProfileDocumentNode(parsedProfile)) {
-        throw userError('Not valid profile document node', 1)
+        throw userError('Not valid profile document node', 1);
       }
       //End of hack
 
