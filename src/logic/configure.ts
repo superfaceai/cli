@@ -6,6 +6,7 @@ import {
   parseProviderJson,
   ProfileProviderDefaults,
   ProviderJson,
+  SecurityScheme,
   SecurityValues,
   SuperJson,
 } from '@superfaceai/one-sdk';
@@ -17,10 +18,42 @@ import {
 } from '../common/document';
 import { userError } from '../common/error';
 import { fetchProviderInfo } from '../common/http';
-import { readFile } from '../common/io';
+import { readFile, readFileQuiet } from '../common/io';
 import { formatShellLog, LogCallback } from '../common/log';
 import { OutputStream } from '../common/output-stream';
+import { prepareEnvVariables } from '../templates/env';
 
+export async function updateEnv(
+  provider: string,
+  securitySchemes: SecurityScheme[],
+  options?: { warnCb?: LogCallback }
+): Promise<void> {
+  //Get .env file
+  let envContent = (await readFileQuiet('.env')) || '';
+  //Prepare env values from security schemes
+  const values = prepareEnvVariables(securitySchemes, provider);
+
+  envContent += values
+    .filter((value: string | undefined) => {
+      if (!value) {
+        options?.warnCb?.(
+          `⚠️  Provider: "${provider}" contains unknown security scheme`
+        );
+
+        return false;
+      }
+      //Do not overide existing values
+      if (envContent.includes(value.trim())) {
+        return false;
+      }
+
+      return true;
+    })
+    .join('');
+
+  //Write .env file
+  await OutputStream.writeOnce('.env', envContent);
+}
 /**
  * Handle responses from superface registry.
  * It saves new information about provider into super.json.
@@ -124,6 +157,7 @@ export async function installProvider(parameters: {
     warnCb?: LogCallback;
     force?: boolean;
     local: boolean;
+    updateEnv?: boolean;
   };
 }): Promise<void> {
   const loadedResult = await SuperJson.load(
@@ -193,6 +227,13 @@ export async function installProvider(parameters: {
   parameters.options?.logCb?.(
     formatShellLog("echo '<updated super.json>' >", [superJson.path])
   );
+
+  // update .env
+  if (parameters.options?.updateEnv && providerInfo.securitySchemes) {
+    await updateEnv(providerInfo.name, providerInfo.securitySchemes, {
+      warnCb: parameters.options.warnCb,
+    });
+  }
   if (providerInfo.securitySchemes && providerInfo.securitySchemes.length > 0) {
     // inform user about instlaled security schemes
     if (numOfConfigured === 0) {

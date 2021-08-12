@@ -1,6 +1,8 @@
 import { flags as oclifFlags } from '@oclif/command';
-import { yellow } from 'chalk';
+import { SuperJson } from '@superfaceai/one-sdk';
+import { join as joinPath } from 'path';
 
+import { META_FILE } from '../common';
 import { Command } from '../common/command.abstract';
 import { developerError, userError } from '../common/error';
 import { DocumentTypeFlag, documentTypeFlag } from '../common/flags';
@@ -8,6 +10,7 @@ import { formatWordPlurality } from '../common/format';
 import { ListWriter } from '../common/list-writer';
 import { OutputStream } from '../common/output-stream';
 import { ReportFormat } from '../common/report.interfaces';
+import { detectSuperJson } from '../logic/install';
 import {
   formatHuman,
   formatJson,
@@ -18,14 +21,11 @@ import {
 type OutputFormatFlag = 'long' | 'short' | 'json';
 
 export default class Lint extends Command {
-  // hide the command from help
-  static hidden = true;
-
   static description =
-    'Lints a map or profile file. Outputs the linter issues to STDOUT by default.\nLinter ends with non zero exit code if errors are found.';
+    'Lints maps and profiles locally linked in super.json. Path to single file can be provided. Outputs the linter issues to STDOUT by default.\nLinter ends with non zero exit code if errors are found.';
 
-  // Require at least one file but allow multiple files
-  static args = [{ name: 'file', required: true }];
+  // Allow multiple files
+  static args = [{ name: 'file' }];
   static strict = false;
 
   static flags = {
@@ -74,25 +74,56 @@ export default class Lint extends Command {
       description: 'Validate maps to specific profile.',
     }),
 
-    quiet: oclifFlags.boolean({
-      char: 'q',
-      default: false,
-      description: 'When set to true, disables output of warnings.',
+    scan: oclifFlags.integer({
+      char: 's',
+      description:
+        'When number provided, scan for super.json outside cwd within range represented by this number.',
+      required: false,
     }),
-
-    help: oclifFlags.help({ char: 'h' }),
   };
+
+  static examples = [
+    '$ superface lint',
+    '$ superface lint -o -2',
+    '$ superface lint -f json',
+    '$ superface lint my/path/to/sms/service@1.0',
+    '$ superface lint -s',
+  ];
 
   async run(): Promise<void> {
     const { argv, flags } = this.parse(Lint);
 
-    if (flags.output !== '-' && flags.output !== '-2') {
-      //Warn user
-      this.log(
-        yellow(
-          'You are using a hidden command. This command is not intended for public consumption yet. It might be broken, hard to use or simply redundant. Tread with care.'
-        )
+    if (flags.scan && (typeof flags.scan !== 'number' || flags.scan > 5)) {
+      throw userError(
+        '--scan/-s : Number of levels to scan cannot be higher than 5',
+        1
       );
+    }
+    let files: string[] = [];
+    if (!argv || argv.length === 0) {
+      const superPath = await detectSuperJson(process.cwd(), flags.scan);
+      if (!superPath) {
+        throw userError('Unable to lint, super.json not found', 1);
+      }
+      //Load super json
+      const loadedResult = await SuperJson.load(joinPath(superPath, META_FILE));
+      const superJson = loadedResult.match(
+        v => v,
+        err => {
+          throw userError(`Unable to load super.json: ${err}`, 1);
+        }
+      );
+      for (const profile of Object.values(superJson.normalized.profiles)) {
+        if ('file' in profile) {
+          files.push(superJson.resolvePath(profile.file));
+        }
+        for (const profileProvider of Object.values(profile.providers))
+          if ('file' in profileProvider) {
+            files.push(superJson.resolvePath(profileProvider.file));
+          }
+      }
+    } else {
+      files = argv;
     }
 
     const outputStream = new OutputStream(flags.output, {
@@ -106,7 +137,7 @@ export default class Lint extends Command {
         {
           totals = await Lint.processFiles(
             new ListWriter(outputStream, '\n'),
-            argv,
+            files,
             flags.documentType,
             flags.validate,
             report =>
@@ -131,7 +162,7 @@ export default class Lint extends Command {
           await outputStream.write('{"reports":[');
           totals = await Lint.processFiles(
             new ListWriter(outputStream, ','),
-            argv,
+            files,
             flags.documentType,
             flags.validate,
             report => formatJson(report)

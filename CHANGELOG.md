@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.0.22] - 2021-08-04
+### Added
+- Create command interactive mode
+- Create command new flags
+- Create command ability to create only provider or only map
+- Visible init command
+- Configure command prepares env variables in .env file
+
 ## [0.0.20] - 2021-07-20
 ### Added
 - Multiple usecases in interactive install command
@@ -119,7 +127,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Transpile command
 - CI github flow
 
-[Unreleased]: https://github.com/superfaceai/cli/compare/v0.0.20...HEAD
+[Unreleased]: https://github.com/superfaceai/cli/compare/v0.0.22...HEAD
+[0.0.22]: https://github.com/superfaceai/cli/compare/v0.0.20...v0.0.22
 [0.0.20]: https://github.com/superfaceai/cli/compare/v0.0.19...v0.0.20
 [0.0.19]: https://github.com/superfaceai/cli/compare/v0.0.18...v0.0.19
 [0.0.18]: https://github.com/superfaceai/cli/compare/v0.0.17...v0.0.18

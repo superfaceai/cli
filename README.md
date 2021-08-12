@@ -56,7 +56,10 @@ npx @superfaceai/cli install [profileId eg. communication/send-email] -i
 
   <!-- commands -->
 * [`superface configure PROVIDERNAME`](#superface-configure-providername)
+* [`superface create`](#superface-create)
+* [`superface init [NAME]`](#superface-init-name)
 * [`superface install [PROFILEID]`](#superface-install-profileid)
+* [`superface lint [FILE]`](#superface-lint-file)
 
 ## `superface configure PROVIDERNAME`
 
@@ -75,6 +78,7 @@ OPTIONS
   -l, --local            When set to true, provider name argument is used as a filepath to provider.json file
   -p, --profile=profile  (required) Specifies profile to associate with provider
   -q, --quiet            When set to true, disables the shell echo output of init actions.
+  --no-env               When set to true command does not prepare security varibles in .env file
 
 EXAMPLES
   $ superface configure twilio -p send-sms
@@ -84,6 +88,85 @@ EXAMPLES
 ```
 
 _See code: [src/commands/configure.ts](https://github.com/superfaceai/cli/tree/main/src/commands/configure.ts)_
+
+## `superface create`
+
+Creates empty map, profile or/and provider on a local filesystem.
+
+```
+USAGE
+  $ superface create
+
+OPTIONS
+  -h, --help                   show CLI help
+  -i, --interactive            When set to true, command is used in interactive mode.
+  -p, --path=path              Base path where files will be created
+  -q, --quiet                  When set to true, disables the shell echo output of init actions.
+
+  -s, --scan=scan              When number provided, scan for super.json outside cwd within range represented by this
+                               number.
+
+  -t, --variant=variant        Variant of a map
+
+  -u, --usecase=usecase        Usecases that profile or map contains
+
+  -v, --version=version        [default: 1.0.0] Version of a profile
+
+  --init                       When set to true, command will initialize Superface
+
+  --map                        Create a map
+
+  --no-init                    When set to true, command won't initialize Superface
+
+  --no-super-json              When set to true, command won't change SuperJson file
+
+  --profile                    Create a profile
+
+  --profileId=profileId        Profile Id in format [scope](optional)/[name]
+
+  --provider                   Create a provider
+
+  --providerName=providerName  Names of providers. This argument is used to create maps and/or providers
+
+EXAMPLES
+  $ superface create --profileId sms/service --profile
+  $ superface create --profileId sms/service --profile -v 1.1-rev133 -u SendSMS ReceiveSMS
+  $ superface create --profileId sms/service --providerName twilio --map
+  $ superface create --profileId sms/service --providerName twilio --map -t bugfix
+  $ superface create --providerName twilio tyntec --provider
+  $ superface create --profileId sms/service --providerName twilio --provider --map --profile -t bugfix -v 1.1-rev133 -u 
+  SendSMS ReceiveSMS
+  $ superface create -i
+```
+
+_See code: [src/commands/create/profile.ts](https://github.com/superfaceai/cli/tree/main/src/commands/create/profile.ts)_
+
+## `superface init [NAME]`
+
+Initializes superface local folder structure.
+
+```
+USAGE
+  $ superface init [NAME]
+
+ARGUMENTS
+  NAME  Name of parent directory.
+
+OPTIONS
+  -h, --help             show CLI help
+  -p, --prompt           When set to true, prompt will be executed.
+  -q, --quiet            When set to true, disables the shell echo output of init actions.
+  --profiles=profiles    Profile identifiers.
+  --providers=providers  Provider names.
+
+EXAMPLES
+  superface init
+  superface init foo
+  superface init foo --providers bar twilio
+  superface init foo --profiles my-profile@1.1.0 another-profile@2.0 --providers osm gmaps
+```
+
+_See code: [src/commands/create/provider.ts](https://github.com/superfaceai/cli/tree/main/src/commands/create/provider.ts)_
 
 ## `superface install [PROFILEID]`
 
@@ -124,6 +207,40 @@ EXAMPLES
 ```
 
 _See code: [src/commands/install.ts](https://github.com/superfaceai/cli/tree/main/src/commands/install.ts)_
+
+## `superface lint [FILE]`
+
+Lints maps and profiles locally linked in super.json. Path to single file can be provided. Outputs the linter issues to STDOUT by default.
+
+```
+USAGE
+  $ superface lint [FILE]
+
+OPTIONS
+  -f, --outputFormat=long|short|json   [default: long] Output format to use to display errors and warnings.
+  -h, --help                           show CLI help
+
+  -o, --output=output                  [default: -] Filename where the output will be written. `-` is stdout, `-2` is
+                                       stderr.
+
+  -q, --quiet                          When set to true, disables output of warnings.
+
+  -s, --scan=scan                      When number provided, scan for super.json outside cwd within range represented by
+                                       this number.
+
+  -t, --documentType=auto|map|profile  [default: auto] Document type to parse. `auto` attempts to infer from file
+                                       extension.
+
+  -v, --validate                       Validate maps to specific profile.
+
+  --append                             Open output file in append mode instead of truncating it if it exists. Has no
+                                       effect with stdout and stderr streams.
+
+DESCRIPTION
+  Linter ends with non zero exit code if errors are found.
+```
+
+_See code: [src/commands/lint.ts](https://github.com/superfaceai/cli/tree/main/src/commands/lint.ts)_
 <!-- commandsstop -->
 
 ## Interactive install
