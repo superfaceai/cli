@@ -1,25 +1,5 @@
 [
   {
-    "profileId": "starwars/character-information",
-    "provider": "swapi",
-    "data": [
-      {
-        "useCase": "RetrieveCharacterInformation",
-        "input": {
-          "characterName": "yoda"
-        },
-        "isError": false
-      },
-      {
-        "useCase": "RetrieveCharacterInformation",
-        "input": {
-          "characterName": "notExistingCharacter"
-        },
-        "isError": true
-      }
-    ]
-  },
-  {
     "profileId": "address/geocoding",
     "provider": "nominatim",
     "data": [
@@ -48,10 +28,34 @@
       {
         "useCase": "ReverseGeocode",
         "input": {
+          "latitude": 54.0874654,
+          "longitude": 14.4212535
+        },
+        "isError": false
+      },
+      {
+        "useCase": "ReverseGeocode",
+        "input": {
           "latitude": 40.0874654,
           "longitude": 14.4212535
         },
         "isError": true
+      },
+      {
+        "useCase": "ReverseGeocode",
+        "input": {
+          "latitude": 0.0,
+          "longitude": 0.0
+        },
+        "isError": true
+      },
+      {
+        "useCase": "ReverseGeocode",
+        "input": {
+          "latitude": 0.0874654,
+          "longitude": 14.4212535
+        },
+        "isError": false
       }
     ]
   }
