@@ -1,158 +1,119 @@
 import { flags as oclifFlags } from '@oclif/command';
+import { isValidProviderName } from '@superfaceai/ast';
 import { SuperJson } from '@superfaceai/one-sdk';
-import { Source } from '@superfaceai/parser';
-import { basename, join as joinPath } from 'path';
+import { parseDocumentId } from '@superfaceai/parser';
+import { join as joinPath } from 'path';
 
 import { Command } from '../common/command.abstract';
 import {
-  DOCUMENT_PARSE_FUNCTION,
-  inferDocumentTypeWithFlag,
   META_FILE,
 } from '../common/document';
-import { DocumentType } from '../common/document.interfaces';
 import { userError } from '../common/error';
-import { DocumentTypeFlag, documentTypeFlag } from '../common/flags';
-import { isDirectoryQuiet, readFile } from '../common/io';
-import { OutputStream } from '../common/output-stream';
+import { exists, readFile } from '../common/io';
+import { Parser } from '../common/parser';
 import { detectSuperJson } from '../logic/install';
 
 export default class Compile extends Command {
   static description =
     'Compiles files locally linked in super.json or the given profile or map.';
 
+  static hidden = true
+
   static flags = {
     ...Command.flags,
-    documentType: documentTypeFlag,
-    output: oclifFlags.string({
-      char: 'o',
-      description:
-        'Specifies directory or filename where the compiled file should be written. `-` is stdout, `-2` is stderr. By default, the output is written alongside the input file with `.ast.json` suffix added.',
-      default: undefined,
+    //Inputs
+    profileId: oclifFlags.string({
+      description: 'Profile Id in format [scope](optional)/[name]',
+      required: true
     }),
-    append: oclifFlags.boolean({
-      default: false,
+    providerName: oclifFlags.string({
       description:
-        'Open output file in append mode instead of truncating it if it exists. Has no effect with stdout and stderr streams.',
+        'Name of provider. This argument is used to compile map',
     }),
-
-    compact: oclifFlags.boolean({
-      char: 'c',
-      default: false,
-      description: 'Use compact JSON representation of the compiled file.',
+    //What do we compile
+    profile: oclifFlags.boolean({
+      description: 'Compile a profile',
+      dependsOn: ['profileId']
+    }),
+    map: oclifFlags.boolean({
+      description: 'Compile a map',
+      dependsOn: ['providerName', 'profileId']
     }),
   };
 
-  static args = [{ name: 'file' }];
   static strict = false;
 
   async run(): Promise<void> {
-    const DEFAULT_EXTENSION = '.ast.json';
 
-    const { argv, flags } = this.parse(Compile);
+    const { flags } = this.parse(Compile);
 
-    let files: string[] = [];
-    if (!argv || argv.length === 0) {
-      const superPath = await detectSuperJson(process.cwd());
-      if (!superPath) {
-        throw userError('Unable to compile, super.json not found', 1);
-      }
-      //Load super json
-      const loadedResult = await SuperJson.load(joinPath(superPath, META_FILE));
-      const superJson = loadedResult.match(
-        v => v,
-        err => {
-          throw userError(`Unable to load super.json: ${err}`, 1);
-        }
-      );
-      for (const profile of Object.values(superJson.normalized.profiles)) {
-        if ('file' in profile) {
-          files.push(superJson.resolvePath(profile.file));
-        }
-        for (const profileProvider of Object.values(profile.providers))
-          if ('file' in profileProvider) {
-            files.push(superJson.resolvePath(profileProvider.file));
-          }
-      }
-    } else {
-      files = argv;
+    const superPath = await detectSuperJson(process.cwd());
+    if (!superPath) {
+      throw userError('Unable to compile, super.json not found', 1);
     }
-
-    // process output path and prepare output stream
-    // outputStream is set when the output points to a file and thus
-    // is shared across all input files
-    const outputPath = flags.output?.trim();
-
-    let outputStream: OutputStream | undefined = undefined;
-    if (outputPath !== undefined) {
-      const isDirectory = await isDirectoryQuiet(outputPath);
-      if (!isDirectory) {
-        this.debug(`Compiling all files to "${outputPath}"`);
-        outputStream = new OutputStream(outputPath, { append: flags.append });
+    //Load super json
+    const loadedResult = await SuperJson.load(joinPath(superPath, META_FILE));
+    const superJson = loadedResult.match(
+      v => v,
+      err => {
+        throw userError(`Unable to load super.json: ${err}`, 1);
       }
-    }
-    //TODO: compiled files destination - reuse "OneParser"?
-    await Promise.all(
-      files.map(
-        async (file): Promise<void> => {
-          // Shared stream
-          let fileOutputStream = outputStream;
-          if (fileOutputStream === undefined) {
-            if (outputPath !== undefined) {
-              // Shared directory, name based on file
-              const sharedDirectory = joinPath(
-                outputPath,
-                basename(file) + DEFAULT_EXTENSION
-              );
-              this.debug(`Compiling "${file}" to "${sharedDirectory}"`);
-
-              fileOutputStream = new OutputStream(sharedDirectory, {
-                append: flags.append,
-              });
-            } else {
-              // File specific path based on file path
-              this.debug(
-                `Compiling "${file}" to "${file + DEFAULT_EXTENSION}"`
-              );
-              fileOutputStream = new OutputStream(file + DEFAULT_EXTENSION, {
-                append: flags.append,
-              });
-            }
-          }
-
-          const ast = await Compile.compileFile(file, flags.documentType);
-          const json = JSON.stringify(
-            ast,
-            undefined,
-            flags.compact ? undefined : 2
-          );
-
-          await fileOutputStream.write(json);
-          if (fileOutputStream != outputStream) {
-            await fileOutputStream.cleanup();
-          }
-        }
-      )
     );
+    //Check flags
+    const parsedProfileId = parseDocumentId(flags.profileId)
+    if (parsedProfileId.kind == 'error') {
+      throw userError(`Invalid profile id: ${parsedProfileId.message}`, 1)
+    }
+    const profileSettings = superJson.normalized.profiles[flags.profileId]
 
-    await outputStream?.cleanup();
-  }
-
-  static async compileFile(
-    path: string,
-    typeFlag: DocumentTypeFlag
-  ): Promise<unknown> {
-    const documentType = inferDocumentTypeWithFlag(typeFlag, path);
-    if (
-      documentType !== DocumentType.MAP &&
-      documentType !== DocumentType.PROFILE
-    ) {
-      throw userError('Could not infer document type', 1);
+    if (!profileSettings) {
+      throw userError(`Profile id: "${flags.profileId}" not found in super.json`, 1)
     }
 
-    const parseFunction = DOCUMENT_PARSE_FUNCTION[documentType];
-    const content = (await readFile(path)).toString();
-    const source = new Source(content, basename(path));
 
-    return parseFunction(source);
+    //Load profile
+    if (flags.profile) {
+      if (!('file' in profileSettings)) {
+        throw userError(`Profile id: "${flags.profileId}" not locally linked in super.json`, 1)
+      }
+      const path = superJson.resolvePath(profileSettings.file)
+
+      if (!await exists(path)) {
+        throw userError(`Path: "${path}" does not exist`, 1)
+      }
+
+      const source = await readFile(path, { encoding: 'utf-8' })
+
+      await Parser.parseProfile(source, flags.profileId, { profileName: parsedProfileId.value.middle[0], scope: parsedProfileId.value.scope }, true)
+    }
+
+    if (flags.map) {
+      if (!flags.providerName) {
+        throw userError(`Invalid command --providerName is required when compiling map`, 1)
+      }
+      if (!isValidProviderName(flags.providerName)) {
+        throw userError(`Invalid provider name: "${flags.providerName}"`, 1);
+      }
+
+      const profileProviderSettings = superJson.normalized.profiles[flags.profileId].providers[flags.providerName]
+
+      if (!profileProviderSettings) {
+        throw userError(`Provider: "${flags.providerName}" not found in profile: "${flags.profileId}" in super.json`, 1)
+      }
+
+      if (!('file' in profileProviderSettings)) {
+        throw userError(`Provider: "${flags.providerName}" not locally linked in super.json in profile: "${flags.profileId}"`, 1)
+      }
+      const path = superJson.resolvePath(profileProviderSettings.file)
+
+      if (!await exists(path)) {
+        throw userError(`Path: "${path}" does not exist`, 1)
+      }
+
+      const source = await readFile(path, { encoding: 'utf-8' })
+
+      await Parser.parseMap(source, flags.profileId, { profileName: parsedProfileId.value.middle[0], scope: parsedProfileId.value.scope, providerName: flags.providerName }, true)
+
+    }
   }
 }
