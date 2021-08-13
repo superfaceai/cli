@@ -64,7 +64,12 @@ export function handleProviderResponse(
   profileId: string,
   response: ProviderJson,
   defaults?: ProfileProviderDefaults,
-  options?: { logCb?: LogCallback; warnCb?: LogCallback }
+  options?: {
+    logCb?: LogCallback;
+    warnCb?: LogCallback;
+    localMap?: string;
+    localProvider?: string;
+  }
 ): number {
   options?.logCb?.(`Installing provider: "${response.name}"`);
 
@@ -108,14 +113,29 @@ export function handleProviderResponse(
     }
   }
   // update super.json
-  superJson.addProvider(response.name, { security });
+  superJson.addProvider(response.name, {
+    security,
+    file: options?.localProvider
+      ? superJson.relativePath(options.localProvider)
+      : undefined,
+  });
 
   //constructProfileProviderSettings returns Record<string, ProfileProviderEntry>
-  superJson.addProfileProvider(
-    profileId,
-    response.name,
-    defaults || constructProfileProviderSettings([response.name])[response.name]
-  );
+  let settings = defaults
+    ? { defaults }
+    : constructProfileProviderSettings([response.name])[response.name];
+
+  if (options?.localMap) {
+    if (typeof settings === 'string') {
+      settings = { file: superJson.relativePath(options.localMap) };
+    } else {
+      settings = {
+        ...settings,
+        file: superJson.relativePath(options.localMap),
+      };
+    }
+  }
+  superJson.addProfileProvider(profileId, response.name, settings);
 
   return security.length;
 }
@@ -156,7 +176,8 @@ export async function installProvider(parameters: {
     logCb?: LogCallback;
     warnCb?: LogCallback;
     force?: boolean;
-    local: boolean;
+    localMap?: string;
+    localProvider?: string;
     updateEnv?: boolean;
   };
 }): Promise<void> {
@@ -185,9 +206,11 @@ export async function installProvider(parameters: {
   //Load provider info
   let providerInfo: ProviderJson;
   //Load from file
-  if (parameters.options?.local) {
+  if (parameters.options?.localProvider) {
     try {
-      const file = await readFile(parameters.provider, { encoding: 'utf-8' });
+      const file = await readFile(parameters.options.localProvider, {
+        encoding: 'utf-8',
+      });
       providerInfo = parseProviderJson(JSON.parse(file));
     } catch (error) {
       throw userError(error, 1);

@@ -93,6 +93,7 @@ describe('Configure CLI command', () => {
         providers: { [provider]: {} },
       });
     }, 30000);
+
     it('configures provider with empty security schemes correctly', async () => {
       const emptyProvider = 'empty';
       let result = await execCLI(
@@ -145,6 +146,7 @@ describe('Configure CLI command', () => {
         providers: { [emptyProvider]: {} },
       });
     }, 20000);
+
     it('configures provider without security schemes correctly', async () => {
       const providerWithoutSecurity = 'provider-without-security';
       let result = await execCLI(
@@ -292,6 +294,7 @@ describe('Configure CLI command', () => {
 
       expect(superJson.document).toEqual(localSuperJson);
     }, 20000);
+
     it('overrides existing super.json with a force flag', async () => {
       const simpleProvider = 'simple-provider';
       //set existing super.json
@@ -374,7 +377,8 @@ describe('Configure CLI command', () => {
       });
     }, 20000);
   });
-  describe('when there is a path flag', () => {
+
+  describe('when there is a localProvider flag', () => {
     it('loads provider data from file', async () => {
       let result = await execCLI(
         tempDir,
@@ -389,10 +393,11 @@ describe('Configure CLI command', () => {
         tempDir,
         [
           'configure',
-          `../../../fixtures/providers/${provider}.json`,
+          `${provider}`,
           '-p',
           profileId,
-          '-l',
+          '--localProvider',
+          `../../../fixtures/providers/${provider}.json`,
         ],
         mockServer.url
       );
@@ -403,6 +408,9 @@ describe('Configure CLI command', () => {
       const superJson = (
         await SuperJson.load(joinPath(tempDir, 'superface', 'super.json'))
       ).unwrap();
+      expect(superJson.normalized.providers[provider].file).toEqual(
+        expect.stringContaining(`../../../fixtures/providers/${provider}.json`)
+      );
 
       expect(superJson.normalized.providers[provider].security).toEqual([
         {
@@ -450,13 +458,18 @@ describe('Configure CLI command', () => {
       await expect(
         execCLI(
           tempDir,
-          ['configure', 'some/path', '-p', profileId, '-l'],
+          [
+            'configure',
+            provider,
+            '-p',
+            profileId,
+            '--localProvider',
+            'some/path',
+          ],
           mockServer.url
         )
       ).rejects.toEqual(
-        expect.stringContaining(
-          "Error: ENOENT: no such file or directory, open 'some/path'"
-        )
+        expect.stringContaining('Error: Local path: "some/path" does not exist')
       );
 
       const finalSuperJson = (
@@ -465,5 +478,67 @@ describe('Configure CLI command', () => {
 
       expect(finalSuperJson.document).toEqual(localSuperJson);
     }, 10000);
+  });
+
+  describe('when there is a localMap flag', () => {
+    it('fetch provider data from store and adds local map to super.json', async () => {
+      let result = await execCLI(
+        tempDir,
+        ['install', 'starwars/character-information'],
+        mockServer.url
+      );
+      expect(result.stdout).toMatch(
+        'All profiles (1) have been installed successfully.'
+      );
+
+      result = await execCLI(
+        tempDir,
+        [
+          'configure',
+          `${provider}`,
+          '-p',
+          profileId,
+          '--localMap',
+          `../../../fixtures/valid.suma`,
+        ],
+        mockServer.url
+      );
+
+      expect(result.stdout).toContain(
+        `🆗 All security schemes have been configured successfully.`
+      );
+      const superJson = (
+        await SuperJson.load(joinPath(tempDir, 'superface', 'super.json'))
+      ).unwrap();
+
+      expect(superJson.normalized.providers[provider].security).toEqual([
+        {
+          id: 'api',
+          apikey: '$SWAPI_API_KEY',
+        },
+        {
+          id: 'bearer',
+          token: '$SWAPI_TOKEN',
+        },
+        {
+          id: 'basic',
+          password: '$SWAPI_PASSWORD',
+          username: '$SWAPI_USERNAME',
+        },
+        {
+          id: 'digest',
+          digest: '$SWAPI_DIGEST',
+        },
+      ]);
+      expect(superJson.document.profiles![profileId]).toEqual({
+        version: profileVersion,
+        priority: [provider],
+        providers: {
+          [provider]: {
+            file: expect.stringContaining('../../../fixtures/valid.suma'),
+          },
+        },
+      });
+    }, 20000);
   });
 });

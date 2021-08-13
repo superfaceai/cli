@@ -353,7 +353,7 @@ describe('Configure CLI logic', () => {
       expect(addProfileProviderSpy).toHaveBeenCalledWith(
         mockProfileId,
         providerName,
-        { testUseCase: { retryPolicy: OnFail.CIRCUIT_BREAKER } }
+        { defaults: { testUseCase: { retryPolicy: OnFail.CIRCUIT_BREAKER } } }
       );
 
       expect(addProviderSpy).toHaveBeenCalledTimes(1);
@@ -410,7 +410,7 @@ describe('Configure CLI logic', () => {
           defaults: {
             testUseCase: { retryPolicy: OnFail.CIRCUIT_BREAKER },
           },
-          options: { updateEnv: true, local: false },
+          options: { updateEnv: true },
         })
       ).resolves.toBeUndefined();
 
@@ -423,7 +423,7 @@ describe('Configure CLI logic', () => {
       expect(addProfileProviderSpy).toHaveBeenCalledWith(
         mockProfileId,
         providerName,
-        { testUseCase: { retryPolicy: OnFail.CIRCUIT_BREAKER } }
+        { defaults: { testUseCase: { retryPolicy: OnFail.CIRCUIT_BREAKER } } }
       );
 
       expect(addProviderSpy).toHaveBeenCalledTimes(1);
@@ -447,7 +447,78 @@ describe('Configure CLI logic', () => {
       );
     });
 
-    it('installs provider correctly with local flag', async () => {
+    it('installs provider correctly with localMap flag', async () => {
+      //normalized is getter on SuperJson - unable to mock or spy on
+      Object.assign(mockSuperJson, {
+        normalized: {
+          profiles: {
+            [mockProfileId]: {
+              version: '1.0.0',
+              defaults: {},
+              providers: {},
+            },
+          },
+          providers: {},
+        },
+      });
+      const loadSpy = jest
+        .spyOn(SuperJson, 'load')
+        .mockResolvedValue(ok(mockSuperJson));
+
+      const addProviderSpy = jest.spyOn(SuperJson.prototype, 'addProvider');
+      const addProfileProviderSpy = jest.spyOn(
+        SuperJson.prototype,
+        'addProfileProvider'
+      );
+
+      const writeOnceSpy = jest
+        .spyOn(OutputStream, 'writeOnce')
+        .mockResolvedValue(undefined);
+
+      mocked(fetchProviderInfo).mockResolvedValue(mockProviderJson);
+
+      await expect(
+        installProvider({
+          superPath: 'some/path',
+          provider: providerName,
+          profileId: mockProfileId,
+          defaults: undefined,
+          options: {
+            localMap: 'maps/send-sms.twilio.suma',
+          },
+        })
+      ).resolves.toBeUndefined();
+
+      expect(loadSpy).toHaveBeenCalledTimes(1);
+      expect(loadSpy).toHaveBeenCalledWith('some/path/super.json');
+
+      expect(fetchProviderInfo).toHaveBeenCalledTimes(1);
+
+      expect(addProfileProviderSpy).toHaveBeenCalledTimes(1);
+      expect(addProfileProviderSpy).toHaveBeenCalledWith(
+        mockProfileId,
+        providerName,
+        {}
+      );
+
+      expect(addProviderSpy).toHaveBeenCalledTimes(1);
+      expect(addProviderSpy).toHaveBeenCalledWith(providerName, {
+        security: [
+          { apikey: '$TEST_API_KEY', id: 'api' },
+          { id: 'bearer', token: '$TEST_TOKEN' },
+          {
+            id: 'basic',
+            password: '$TEST_PASSWORD',
+            username: '$TEST_USERNAME',
+          },
+          { digest: '$TEST_DIGEST', id: 'digest' },
+        ],
+      });
+
+      expect(writeOnceSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('installs provider correctly with localProvider flag', async () => {
       //normalized is getter on SuperJson - unable to mock or spy on
       Object.assign(mockSuperJson, {
         normalized: {
@@ -484,7 +555,7 @@ describe('Configure CLI logic', () => {
           profileId: mockProfileId,
           defaults: undefined,
           options: {
-            local: true,
+            localProvider: 'providers/twilio.provider.json',
           },
         })
       ).resolves.toBeUndefined();
@@ -518,7 +589,7 @@ describe('Configure CLI logic', () => {
       expect(writeOnceSpy).toHaveBeenCalledTimes(1);
     });
 
-    it('installs provider correctly with local flag and updates env file', async () => {
+    it('installs provider correctly with localMap flag and updates env file', async () => {
       //normalized is getter on SuperJson - unable to mock or spy on
       Object.assign(mockSuperJson, {
         normalized: {
@@ -546,7 +617,7 @@ describe('Configure CLI logic', () => {
         .spyOn(OutputStream, 'writeOnce')
         .mockResolvedValue(undefined);
 
-      mocked(readFile).mockResolvedValue(JSON.stringify(mockProviderJson));
+      mocked(fetchProviderInfo).mockResolvedValue(mockProviderJson);
 
       await expect(
         installProvider({
@@ -555,7 +626,7 @@ describe('Configure CLI logic', () => {
           profileId: mockProfileId,
           defaults: undefined,
           options: {
-            local: true,
+            localMap: 'maps/send-sms.twilio.suma',
             updateEnv: true,
           },
         })
@@ -564,7 +635,7 @@ describe('Configure CLI logic', () => {
       expect(loadSpy).toHaveBeenCalledTimes(1);
       expect(loadSpy).toHaveBeenCalledWith('some/path/super.json');
 
-      expect(fetchProviderInfo).not.toHaveBeenCalled();
+      expect(fetchProviderInfo).toHaveBeenCalledTimes(1);
 
       expect(addProfileProviderSpy).toHaveBeenCalledTimes(1);
       expect(addProfileProviderSpy).toHaveBeenCalledWith(
@@ -620,7 +691,7 @@ describe('Configure CLI logic', () => {
           profileId: mockProfileId,
           defaults: undefined,
           options: {
-            local: true,
+            localProvider: 'some/error/path',
           },
         })
       ).rejects.toEqual(new CLIError('test'));
