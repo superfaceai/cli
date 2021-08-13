@@ -77,7 +77,7 @@ OPTIONS
   -h, --help             show CLI help
   -l, --local            When set to true, provider name argument is used as a filepath to provider.json file
   -p, --profile=profile  (required) Specifies profile to associate with provider
-  -q, --quiet            When set to true, disables the shell echo output of init actions.
+  -q, --quiet            When set to true, disables the shell echo output of action.
   --no-env               When set to true command does not prepare security varibles in .env file
 
 EXAMPLES
@@ -101,7 +101,7 @@ OPTIONS
   -h, --help                   show CLI help
   -i, --interactive            When set to true, command is used in interactive mode.
   -p, --path=path              Base path where files will be created
-  -q, --quiet                  When set to true, disables the shell echo output of init actions.
+  -q, --quiet                  When set to true, disables the shell echo output of action.
 
   -s, --scan=scan              When number provided, scan for super.json outside cwd within range represented by this
                                number.
@@ -155,7 +155,7 @@ ARGUMENTS
 OPTIONS
   -h, --help             show CLI help
   -p, --prompt           When set to true, prompt will be executed.
-  -q, --quiet            When set to true, disables the shell echo output of init actions.
+  -q, --quiet            When set to true, disables the shell echo output of action.
   --profiles=profiles    Profile identifiers.
   --providers=providers  Provider names.
 
@@ -191,7 +191,7 @@ OPTIONS
 
   -p, --providers=providers  Provider name.
 
-  -q, --quiet                When set to true, disables the shell echo output of init actions.
+  -q, --quiet                When set to true, disables the shell echo output of action.
 
   -s, --scan=scan            When number provided, scan for super.json outside cwd within range represented by this
                              number.
@@ -223,7 +223,7 @@ OPTIONS
   -o, --output=output                  [default: -] Filename where the output will be written. `-` is stdout, `-2` is
                                        stderr.
 
-  -q, --quiet                          When set to true, disables output of warnings.
+  -q, --quiet                          When set to true, disables the shell echo output of action.
 
   -s, --scan=scan                      When number provided, scan for super.json outside cwd within range represented by
                                        this number.
@@ -238,6 +238,13 @@ OPTIONS
 
 DESCRIPTION
   Linter ends with non zero exit code if errors are found.
+
+EXAMPLES
+  $ superface lint
+  $ superface lint -o -2
+  $ superface lint -f json
+  $ superface lint my/path/to/sms/service@1.0
+  $ superface lint -s
 ```
 
 _See code: [src/commands/lint.ts](https://github.com/superfaceai/cli/tree/main/src/commands/lint.ts)_

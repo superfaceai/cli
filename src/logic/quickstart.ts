@@ -255,17 +255,14 @@ export async function interactiveInstall(
       provider,
       profileId,
       defaults: {
-        defaults: {
-          [selectedUseCase]: {
-            retryPolicy: await selectRetryPolicy(provider, selectedUseCase),
-          },
+        [selectedUseCase]: {
+          retryPolicy: await selectRetryPolicy(provider, selectedUseCase),
         },
       },
       options: {
         logCb: options?.logCb,
         warnCb: options?.warnCb,
         force: true,
-        local: false,
       },
     });
   }
