@@ -13,8 +13,7 @@ import { Parser } from '../common/parser';
 import { detectSuperJson } from '../logic/install';
 
 export default class Compile extends Command {
-  static description =
-    'Compiles files locally linked in super.json or the given profile or map.';
+  static description = 'Compiles profile or map locally linked in super.json.';
 
   static hidden = true;
 
@@ -40,6 +39,13 @@ export default class Compile extends Command {
   };
 
   static strict = false;
+
+  static examples = [
+    '$ superface compile --profileId starwars/character-information --profile',
+    '$ superface compile --profileId starwars/character-information --profile -q',
+    '$ superface compile --profileId starwars/character-information --providerName swapi --map',
+    '$ superface compile --profileId starwars/character-information --providerName swapi --map --profile',
+  ];
 
   private logCallback? = (message: string) => this.log(grey(message));
   private successCallback? = (message: string) =>
