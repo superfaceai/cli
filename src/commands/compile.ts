@@ -2,6 +2,7 @@ import { flags as oclifFlags } from '@oclif/command';
 import { isValidProviderName } from '@superfaceai/ast';
 import { SuperJson } from '@superfaceai/one-sdk';
 import { parseDocumentId } from '@superfaceai/parser';
+import { bold, green, grey } from 'chalk';
 import { join as joinPath } from 'path';
 
 import { Command } from '../common/command.abstract';
@@ -40,8 +41,17 @@ export default class Compile extends Command {
 
   static strict = false;
 
+  private logCallback? = (message: string) => this.log(grey(message));
+  private successCallback? = (message: string) =>
+    this.log(bold(green(message)));
+
   async run(): Promise<void> {
     const { flags } = this.parse(Compile);
+
+    if (flags.quiet) {
+      this.logCallback = undefined;
+      this.successCallback = undefined;
+    }
 
     const superPath = await detectSuperJson(process.cwd());
     if (!superPath) {
@@ -71,6 +81,7 @@ export default class Compile extends Command {
 
     //Load profile
     if (flags.profile) {
+      this.logCallback?.(`Compiling profile: "${flags.profileId}".`);
       if (!('file' in profileSettings)) {
         throw userError(
           `Profile id: "${flags.profileId}" not locally linked in super.json`,
@@ -84,15 +95,18 @@ export default class Compile extends Command {
       }
 
       const source = await readFile(path, { encoding: 'utf-8' });
-
       await Parser.parseProfile(
         source,
-        flags.profileId,
+        path,
         {
           profileName: parsedProfileId.value.middle[0],
           scope: parsedProfileId.value.scope,
         },
         true
+      );
+
+      this.successCallback?.(
+        `🆗 profile: "${flags.profileId}" compiled successfully.`
       );
     }
 
@@ -103,6 +117,10 @@ export default class Compile extends Command {
           1
         );
       }
+      this.logCallback?.(
+        `Compiling map for profile: "${flags.profileId}" and provider: "${flags.providerName}".`
+      );
+
       if (!isValidProviderName(flags.providerName)) {
         throw userError(`Invalid provider name: "${flags.providerName}"`, 1);
       }
@@ -135,13 +153,17 @@ export default class Compile extends Command {
 
       await Parser.parseMap(
         source,
-        flags.profileId,
+        path,
         {
           profileName: parsedProfileId.value.middle[0],
           scope: parsedProfileId.value.scope,
           providerName: flags.providerName,
         },
         true
+      );
+
+      this.successCallback?.(
+        `🆗 map for profile: "${flags.profileId}" and provider: "${flags.providerName}" compiled successfully.`
       );
     }
   }

@@ -76,10 +76,9 @@ export class Parser {
       for (const file of (await fsp.readdir(cachePath)).filter(cachedFile =>
         cachedFileRegex.test(cachedFile)
       )) {
-        await fsp.unlink(file);
+        await fsp.unlink(joinPath(cachePath, file));
       }
     } catch (e) {
-      console.log(e);
       void e;
     }
 
