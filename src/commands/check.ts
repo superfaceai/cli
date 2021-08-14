@@ -1,7 +1,7 @@
 import { flags as oclifFlags } from '@oclif/command';
 import { isValidProviderName, SuperJson } from '@superfaceai/one-sdk';
 import { parseDocumentId } from '@superfaceai/parser';
-import { grey } from 'chalk';
+import { grey, yellow } from 'chalk';
 import { join as joinPath } from 'path';
 
 import { DEFAULT_PROFILE_VERSION_STR, META_FILE } from '../common';
@@ -33,13 +33,16 @@ export default class Check extends Command {
 
   static examples = ['$ station check', '$ station check -q'];
 
-  private logCallback? = (message: string) => this.log(grey(message));
+  private logCallback?= (message: string) => this.log(grey(message));
+  private warnCallback?= (message: string) => this.log(yellow(message));
+
 
   async run(): Promise<void> {
     const { flags } = this.parse(Check);
 
     if (flags.quiet) {
       this.logCallback = undefined;
+      this.warnCallback = undefined;
     }
     //Check inputs
     if (!flags.providerName) {
@@ -101,7 +104,7 @@ export default class Check extends Command {
     } = {};
     const profileProviderSettings =
       superJson.normalized.profiles[flags.profileId].providers[
-        flags.providerName
+      flags.providerName
       ];
 
     if (!profileProviderSettings) {
@@ -128,6 +131,7 @@ export default class Check extends Command {
 
     await check(superJson, profile, flags.providerName, map, {
       logCb: this.logCallback,
+      warnCB: this.warnCallback
     });
   }
 }

@@ -37,11 +37,12 @@ export async function check(
   map: {
     variant?: string;
   },
-  options?: { logCb?: LogCallback }
+  options?: { logCb?: LogCallback; warnCB?: LogCallback }
 ): Promise<void> {
   let profileAst: ProfileDocumentNode;
   let mapAst: MapDocumentNode;
   let providerJson: ProviderJson;
+  let numberOfRemoteFilesUsed = 0;
 
   //Load profile AST
   const profileId = `${profile.scope ? `${profile.scope}/` : ''}${
@@ -58,6 +59,7 @@ export async function check(
     //Load from store
     options?.logCb?.(`Loading profile: "${profileId}" from Superface store`);
     profileAst = await fetchProfileAST(profileId);
+    numberOfRemoteFilesUsed++;
   }
   if (!isProfileDocumentNode(profileAst)) {
     throw userError(`Profile file has unknown structure`, 1);
@@ -85,6 +87,7 @@ export async function check(
       profile.version,
       map.variant
     );
+    numberOfRemoteFilesUsed++;
   }
 
   if (!isMapDocumentNode(mapAst)) {
@@ -102,6 +105,13 @@ export async function check(
   } else {
     options?.logCb?.(`Loading provider "${provider}" from Superface store`);
     providerJson = await fetchProviderInfo(provider);
+    numberOfRemoteFilesUsed++;
+  }
+
+  if (numberOfRemoteFilesUsed === 3) {
+    options?.warnCB?.(
+      `All files for specified capability have been downloaded - checking only remote files is redundant`
+    );
   }
 
   options?.logCb?.(
