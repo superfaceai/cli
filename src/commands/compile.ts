@@ -21,7 +21,7 @@ export default class Compile extends Command {
     ...Command.flags,
     //Inputs
     profileId: oclifFlags.string({
-      description: 'Profile Id in format [scope](optional)/[name]',
+      description: 'Profile Id in format [scope/](optional)[name]',
       required: true,
     }),
     providerName: oclifFlags.string({
