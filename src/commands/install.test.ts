@@ -211,7 +211,6 @@ describe('Install CLI command', () => {
           logCb: expect.anything(),
           warnCb: expect.anything(),
           force: false,
-          local: false,
         },
       });
       expect(installProvider).toHaveBeenNthCalledWith(2, {
@@ -223,7 +222,6 @@ describe('Install CLI command', () => {
           logCb: expect.anything(),
           warnCb: expect.anything(),
           force: false,
-          local: false,
         },
       });
     }, 10000);
@@ -262,7 +260,6 @@ describe('Install CLI command', () => {
           logCb: expect.anything(),
           warnCb: expect.anything(),
           force: false,
-          local: false,
         },
       });
       expect(installProvider).toHaveBeenNthCalledWith(2, {
@@ -274,7 +271,6 @@ describe('Install CLI command', () => {
           logCb: expect.anything(),
           warnCb: expect.anything(),
           force: false,
-          local: false,
         },
       });
       expect(installProvider).toHaveBeenNthCalledWith(3, {
@@ -286,7 +282,6 @@ describe('Install CLI command', () => {
           logCb: expect.anything(),
           warnCb: expect.anything(),
           force: false,
-          local: false,
         },
       });
       expect(installProvider).toHaveBeenNthCalledWith(4, {
@@ -298,7 +293,6 @@ describe('Install CLI command', () => {
           logCb: expect.anything(),
           warnCb: expect.anything(),
           force: false,
-          local: false,
         },
       });
     }, 10000);
