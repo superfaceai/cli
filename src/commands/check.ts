@@ -1,8 +1,10 @@
-import { SuperJson } from '@superfaceai/one-sdk';
+import { flags as oclifFlags } from '@oclif/command';
+import { isValidProviderName, SuperJson } from '@superfaceai/one-sdk';
+import { parseDocumentId } from '@superfaceai/parser';
 import { grey } from 'chalk';
 import { join as joinPath } from 'path';
 
-import { META_FILE } from '../common';
+import { DEFAULT_PROFILE_VERSION_STR, META_FILE } from '../common';
 import { Command } from '../common/command.abstract';
 import { userError } from '../common/error';
 import { check } from '../logic/check';
@@ -12,17 +14,26 @@ export default class Check extends Command {
   static strict = false;
 
   static description =
-    'Checks if all local profiles have maps with corresponding version, scope, name, use case definitions and providers';
+    'Checks if specofoed capability has profile and map with corresponding version, scope, name, use case definitions and provider';
 
   static args = [];
 
   static flags = {
     ...Command.flags,
+    //Inputs
+    profileId: oclifFlags.string({
+      description: 'Profile Id in format [scope](optional)/[name]',
+      required: true,
+    }),
+    providerName: oclifFlags.string({
+      description: 'Name of provider.',
+      required: true,
+    }),
   };
 
   static examples = ['$ station check', '$ station check -q'];
 
-  private logCallback?= (message: string) => this.log(grey(message));
+  private logCallback? = (message: string) => this.log(grey(message));
 
   async run(): Promise<void> {
     const { flags } = this.parse(Check);
@@ -30,12 +41,19 @@ export default class Check extends Command {
     if (flags.quiet) {
       this.logCallback = undefined;
     }
+    //Check inputs
+    if (!flags.providerName) {
+      throw userError(`Invalid command --providerName is required`, 1);
+    }
+    if (!flags.profileId) {
+      throw userError(`Invalid command --profileId is required`, 1);
+    }
 
+    //Load super json
     const superPath = await detectSuperJson(process.cwd());
     if (!superPath) {
       throw userError('Unable to compile, super.json not found', 1);
     }
-    //Load super json
     const loadedResult = await SuperJson.load(joinPath(superPath, META_FILE));
     const superJson = loadedResult.match(
       v => v,
@@ -44,7 +62,72 @@ export default class Check extends Command {
       }
     );
 
-    await check(superJson, { logCb: this.logCallback });
+    const parsedProfileId = parseDocumentId(flags.profileId);
+    if (parsedProfileId.kind == 'error') {
+      throw userError(`Invalid profile id: ${parsedProfileId.message}`, 1);
+    }
+
+    if (!isValidProviderName(flags.providerName)) {
+      throw userError(`Invalid provider name: "${flags.providerName}"`, 1);
+    }
+
+    const profile: {
+      name: string;
+      scope?: string;
+      version?: string;
+    } = {
+      name: parsedProfileId.value.middle[0],
+      scope: parsedProfileId.value.scope,
+    };
+
+    //Get profile info
+    const profileSettings = superJson.normalized.profiles[flags.profileId];
+    if (!profileSettings) {
+      throw userError(
+        `Profile id: "${flags.profileId}" not found in super.json`,
+        1
+      );
+    }
+
+    if ('version' in profileSettings) {
+      profile.version = profileSettings.version;
+    } else {
+      profile.version = DEFAULT_PROFILE_VERSION_STR;
+    }
+
+    //Get map info
+    const map: {
+      variant?: string;
+    } = {};
+    const profileProviderSettings =
+      superJson.normalized.profiles[flags.profileId].providers[
+        flags.providerName
+      ];
+
+    if (!profileProviderSettings) {
+      throw userError(
+        `Provider: "${flags.providerName}" not found in profile: "${flags.profileId}" in super.json`,
+        1
+      );
+    }
+
+    //TODO: how to resolve map revision??
+    if ('mapVariant' in profileProviderSettings) {
+      map.variant = profileProviderSettings.mapVariant;
+    }
+
+    //Get provider info
+    const providerSettings = superJson.normalized.providers[flags.providerName];
+
+    if (!providerSettings) {
+      throw userError(
+        `Provider: "${flags.providerName}" not found in super.json`,
+        1
+      );
+    }
+
+    await check(superJson, profile, flags.providerName, map, {
+      logCb: this.logCallback,
+    });
   }
 }
-

@@ -1,4 +1,4 @@
-import { ProfileDocumentNode } from '@superfaceai/ast';
+import { MapDocumentNode, ProfileDocumentNode } from '@superfaceai/ast';
 import {
   parseProviderJson,
   ProviderJson,
@@ -8,6 +8,7 @@ import { VERSION as PARSER_VERSION } from '@superfaceai/parser';
 import superagent, { Response } from 'superagent';
 
 import { VERSION } from '..';
+import { DEFAULT_PROFILE_VERSION_STR } from './document';
 import { userError } from './error';
 
 export interface ProfileInfo {
@@ -107,4 +108,24 @@ export async function fetchProviderInfo(
   const response = await fetch(query, ContentType.JSON);
 
   return parseProviderJson(response.body);
+}
+
+//HACK: we don' have service client in this branch so we are making request directly. Use service-client in the future
+export async function fetchMapAST(
+  profile: string,
+  provider: string,
+  scope?: string,
+  version?: string,
+  variant?: string
+): Promise<MapDocumentNode> {
+  const url = variant
+    ? `/${scope ? `${scope}/` : ''}${profile}.${provider}.${variant}@${
+        version ? version : DEFAULT_PROFILE_VERSION_STR
+      }`
+    : `/${scope ? `${scope}/` : ''}${profile}.${provider}@${
+        version ? version : DEFAULT_PROFILE_VERSION_STR
+      }}`;
+  const response = await fetch(url, ContentType.AST);
+
+  return response.body as MapDocumentNode;
 }

@@ -4,52 +4,117 @@ import {
   isProfileDocumentNode,
   isUseCaseDefinitionNode,
   MapDocumentNode,
-  ProfileASTNode,
   ProfileDocumentNode,
 } from '@superfaceai/ast';
-import { parseProviderJson, SuperJson } from '@superfaceai/one-sdk';
+import {
+  parseProviderJson,
+  ProviderJson,
+  SuperJson,
+} from '@superfaceai/one-sdk';
+import { parseMap, parseProfile, Source } from '@superfaceai/parser';
 
 import { userError } from '../common/error';
-import { exists, readFile } from '../common/io';
+import {
+  fetchMapAST,
+  fetchProfileAST,
+  fetchProviderInfo,
+} from '../common/http';
 import { LogCallback } from '../common/log';
+import {
+  findLocalMapSource,
+  findLocalProfileSource,
+  findLocalProviderSource,
+} from './check.utils';
 
-//TODO: loading should be done from .cache - path should be resolved from profileId
-async function loadProfileAst(path: string): Promise<ProfileDocumentNode> {
-  if (!(await exists(path))) {
-    throw userError(`File: "${path}" not found - forgot to compile?`, 1);
+export async function check(
+  superJson: SuperJson,
+  profile: {
+    name: string;
+    scope?: string;
+    version?: string;
+  },
+  provider: string,
+  map: {
+    variant?: string;
+  },
+  options?: { logCb?: LogCallback }
+): Promise<void> {
+  let profileAst: ProfileDocumentNode;
+  let mapAst: MapDocumentNode;
+  let providerJson: ProviderJson;
+
+  //Load profile AST
+  const profileId = `${profile.scope ? `${profile.scope}/` : ''}${
+    profile.name
+  }${profile.version ? `@${profile.version}` : ''}`;
+  const profileSource = await findLocalProfileSource(
+    superJson,
+    profile,
+    options
+  );
+  if (profileSource) {
+    profileAst = parseProfile(new Source(profileSource, profileId));
+  } else {
+    //Load from store
+    options?.logCb?.(`Loading profile: "${profileId}" from Superface store`);
+    profileAst = await fetchProfileAST(profileId);
   }
-  const astFile = await readFile(path);
-  const ast = Buffer.isBuffer(astFile) ? astFile.toString('utf8') : astFile;
-  let astJson: ProfileASTNode;
+  if (!isProfileDocumentNode(profileAst)) {
+    throw userError(`Profile file has unknown structure`, 1);
+  }
+
+  //Load map AST
+  const mapSource = await findLocalMapSource(
+    superJson,
+    profile,
+    provider,
+    options
+  );
+  if (mapSource) {
+    mapAst = parseMap(new Source(mapSource, `${profile.name}.${provider}`));
+  } else {
+    //Load from store
+    options?.logCb?.(
+      `Loading map for profile: "${profileId}" and provider: "${provider}" from Superface store`
+    );
+    //TODO: use actual implementation
+    mapAst = await fetchMapAST(
+      profile.name,
+      provider,
+      profile.scope,
+      profile.version,
+      map.variant
+    );
+  }
+
+  if (!isMapDocumentNode(mapAst)) {
+    throw userError(`Map file has unknown structure`, 1);
+  }
+
+  //Load provider.json
+  const localProviderJson = await findLocalProviderSource(
+    superJson,
+    provider,
+    options
+  );
+  if (localProviderJson) {
+    providerJson = localProviderJson;
+  } else {
+    options?.logCb?.(`Loading provider "${provider}" from Superface store`);
+    providerJson = await fetchProviderInfo(provider);
+  }
+
+  options?.logCb?.(
+    `Checking profile: "${profile.name}" and map for provider: "${provider}"`
+  );
+  //Check map and profile
+  checkMapAndProfile(profileAst, mapAst, options);
+
   try {
-    astJson = JSON.parse(ast) as ProfileDocumentNode;
+    parseProviderJson(providerJson);
   } catch (error) {
     throw userError(error, 1);
   }
-  if (!isProfileDocumentNode(astJson)) {
-    throw userError(`File "${path}" has unknown structure`, 1);
-  }
-
-  return astJson;
-}
-//TODO: loading should be done from .cache - path should be resolved from map
-async function loadMapAst(path: string): Promise<MapDocumentNode> {
-  if (!(await exists(path))) {
-    throw userError(`File: "${path}" not found - forgot to compile?`, 1);
-  }
-  const astFile = await readFile(path);
-  const ast = Buffer.isBuffer(astFile) ? astFile.toString('utf8') : astFile;
-  let astJson: MapDocumentNode;
-  try {
-    astJson = JSON.parse(ast) as MapDocumentNode;
-  } catch (error) {
-    throw userError(error, 1);
-  }
-  if (!isMapDocumentNode(astJson)) {
-    throw userError(`File "${path}" has unknown structure`, 1);
-  }
-
-  return astJson;
 }
 //TODO: return array of warnings/errors
 function checkMapAndProfile(
@@ -60,7 +125,7 @@ function checkMapAndProfile(
   }
 ): void {
   options?.logCb?.(
-    `Checking versions of profile: "${profile.header.name}" and map for provider: ""${map.header.provider}`
+    `Checking versions of profile: "${profile.header.name}" and map for provider: "${map.header.provider}"`
   );
   //Header
   if (profile.header.scope !== map.header.profile.scope) {
@@ -126,71 +191,6 @@ function checkMapAndProfile(
       );
     }
   }
-}
 
-export async function check(
-  superJson: SuperJson,
-  options?: { logCb?: LogCallback }
-): Promise<void> {
-  // const scopes = await getDirectories(`./${PROFILE_BUILD_PATH}`);
-  let profileAst: ProfileDocumentNode;
-  let mapAst: MapDocumentNode;
-
-  for (const [profileName, profileSettings] of Object.entries(
-    superJson.normalized.profiles
-  )) {
-    if ('file' in profileSettings) {
-      //Load profile
-      options?.logCb?.(
-        `Checking profile: "${profileName}" on path "./${profileSettings.file}"`
-      );
-      profileAst = await loadProfileAst(
-        superJson.resolvePath(profileSettings.file)
-      );
-
-      for (const [
-        profileProviderName,
-        profileProviderSettings,
-      ] of Object.entries(superJson.normalized.profiles[profileName].providers))
-        //TODO: actual value should not matter - ast should 
-        if ('file' in profileProviderSettings) {
-          //Load map
-          mapAst = await loadMapAst(profileProviderSettings.file);
-
-          //Check map and profile
-          checkMapAndProfile(profileAst, mapAst);
-
-          //Check provider
-          const providerSettings =
-            superJson.normalized.providers[profileProviderName];
-          if (!providerSettings.file) {
-            throw userError(
-              `Map for profile: "${profileName}" na provider: "${profileProviderName}" implemented localy but provider.json not`,
-              1
-            );
-          } else {
-            if (!(await exists(providerSettings.file))) {
-              throw userError(
-                `Provider "${mapAst.header.provider}" not found`,
-                1
-              );
-            }
-
-            const providerFile = await readFile(providerSettings.file);
-            const provider = Buffer.isBuffer(providerFile)
-              ? providerFile.toString('utf8')
-              : providerFile;
-
-            options?.logCb?.(
-              `Checking provider: "${profileProviderName}" on path: "${providerSettings.file}"`
-            );
-            try {
-              parseProviderJson(JSON.parse(provider));
-            } catch (error) {
-              throw userError(error, 1);
-            }
-          }
-        }
-    }
-  }
+  options?.logCb?.(`Checking complete without errors`);
 }
