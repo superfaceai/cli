@@ -227,7 +227,6 @@ export default class Install extends Command {
           logCb: this.logCallback,
           warnCb: this.warnCallback,
           force: flags.force,
-          local: false,
         },
       });
     }
