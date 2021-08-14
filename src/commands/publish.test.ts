@@ -18,7 +18,7 @@ describe('Publish CLI command', () => {
   describe('running publish command', () => {
     const mockPath = './starwars/test.suma';
 
-    it('calls publish correctly', async () => {
+    it.skip('calls publish correctly', async () => {
       const promptSpy = jest
         .spyOn(inquirer, 'prompt')
         .mockResolvedValueOnce({ upload: true });
@@ -33,7 +33,7 @@ describe('Publish CLI command', () => {
       });
     });
 
-    it('calls publish correctly with force flag', async () => {
+    it.skip('calls publish correctly with force flag', async () => {
       const promptSpy = jest
         .spyOn(inquirer, 'prompt')
         .mockResolvedValueOnce({ upload: true });
@@ -48,7 +48,7 @@ describe('Publish CLI command', () => {
       });
     });
 
-    it('calls publish correctly with --dry-run', async () => {
+    it.skip('calls publish correctly with --dry-run', async () => {
       const promptSpy = jest
         .spyOn(inquirer, 'prompt')
         .mockResolvedValueOnce({ upload: true });
@@ -65,7 +65,7 @@ describe('Publish CLI command', () => {
       });
     });
 
-    it('calls publish correctly with --quiet flag', async () => {
+    it.skip('calls publish correctly with --quiet flag', async () => {
       const promptSpy = jest
         .spyOn(inquirer, 'prompt')
         .mockResolvedValueOnce({ upload: true });
@@ -80,7 +80,7 @@ describe('Publish CLI command', () => {
       });
     });
 
-    it('does not call publish when user decline prompt', async () => {
+    it.skip('does not call publish when user decline prompt', async () => {
       const promptSpy = jest
         .spyOn(inquirer, 'prompt')
         .mockResolvedValueOnce({ upload: false });
