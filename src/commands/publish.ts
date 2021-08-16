@@ -31,10 +31,12 @@ export default class Publish extends Command {
     //Inputs
     profileId: flags.string({
       description: 'Profile Id in format [scope/](optional)[name]',
+      required: true,
     }),
     providerName: flags.string({
       description:
         'Name of provider. This argument is used to publish map or provider',
+      required: true,
     }),
     'dry-run': flags.boolean({
       default: false,
@@ -91,7 +93,6 @@ export default class Publish extends Command {
     if (!superPath) {
       throw userError('Unable to publish, super.json not found', 1);
     }
-    //Load super json
     const loadedResult = await SuperJson.load(joinPath(superPath, META_FILE));
     const superJson = loadedResult.match(
       v => v,
@@ -101,21 +102,33 @@ export default class Publish extends Command {
     );
     let path: string;
 
+    //Check if there is defined capability in super.json
+    const profileSettings = superJson.normalized.profiles[flags.profileId];
+    if (!profileSettings) {
+      throw userError(
+        `Unable to publish, profile ${flags.profileId} not found in super.json`,
+        1
+      );
+    }
+    const profileProviderSettings =
+      profileSettings.providers[flags.providerName];
+    if (!profileProviderSettings) {
+      throw userError(
+        `Unable to publish, provider: "${flags.providerName}" not found in profile ${flags.profileId} in super.json`,
+        1
+      );
+    }
+
+    const providerSettings = superJson.normalized.providers[flags.providerName];
+    if (!providerSettings) {
+      throw userError(
+        `Unable to publish, provider: "${flags.providerName}" not found in super.json`,
+        1
+      );
+    }
+
     //Publishing profile
     if (documentType === 'profile') {
-      if (!flags.profileId) {
-        throw userError(
-          '--profileId must be specified when publishing profile',
-          1
-        );
-      }
-      const profileSettings = superJson.normalized.profiles[flags.profileId];
-      if (!profileSettings) {
-        throw userError(
-          `Unable to publish, profile ${flags.profileId} not found in super.json`,
-          1
-        );
-      }
       if (!('file' in profileSettings)) {
         throw userError(
           `When publishing profile, profile must be locally linked in super.json`,
@@ -126,30 +139,6 @@ export default class Publish extends Command {
 
       //Publishing map
     } else if (documentType === 'map') {
-      if (!flags.profileId) {
-        throw userError('--profileId must be specified when publishing map', 1);
-      }
-      if (!flags.providerName) {
-        throw userError(
-          '--providerName must be specified when publishing map',
-          1
-        );
-      }
-      const profileSettings = superJson.normalized.profiles[flags.profileId];
-      if (!profileSettings) {
-        throw userError(
-          `Unable to publish, profile ${flags.profileId} not found in super.json`,
-          1
-        );
-      }
-      const profileProviderSettings =
-        profileSettings.providers[flags.providerName];
-      if (!profileProviderSettings) {
-        throw userError(
-          `Unable to publish, provider: "${flags.providerName}" not found in profile ${flags.profileId} in super.json`,
-          1
-        );
-      }
       if (!('file' in profileProviderSettings)) {
         throw userError(
           `When publishing map, map must be locally linked in super.json`,
@@ -160,20 +149,6 @@ export default class Publish extends Command {
 
       //Publishing provider
     } else if (documentType === 'provider') {
-      if (!flags.providerName) {
-        throw userError(
-          '--providerName must be specified when publishing provider',
-          1
-        );
-      }
-      const providerSettings =
-        superJson.normalized.providers[flags.providerName];
-      if (!providerSettings) {
-        throw userError(
-          `Unable to publish, provider: "${flags.providerName}" not found in super.json`,
-          1
-        );
-      }
       if (!('file' in providerSettings) || !providerSettings.file) {
         throw userError(
           `When publishing provider, provider must be locally linked in super.json`,
