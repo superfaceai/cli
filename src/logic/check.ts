@@ -70,7 +70,7 @@ export async function check(
   if (mapSource) {
     mapAst = parseMap(new Source(mapSource, `${profile.name}.${provider}`));
     options?.logCb?.(
-      `Map for profile: "${profileId}" and provider: "${provider}"found on local filesystem`
+      `Map for profile: "${profileId}" and provider: "${provider}" found on local filesystem`
     );
   } else {
     //Load from store
@@ -96,9 +96,9 @@ export async function check(
   const localProviderJson = await findLocalProviderSource(superJson, provider);
   if (localProviderJson) {
     providerJson = localProviderJson;
-    options?.logCb?.(`Provider: "${provider}" found on local filesystem`);
+    options?.logCb?.(`Provider: "${provider}" found on local file system`);
   } else {
-    options?.logCb?.(`Loading provider "${provider}" from Superface store`);
+    options?.logCb?.(`Loading provider: "${provider}" from Superface store`);
     providerJson = await fetchProviderInfo(provider);
     numberOfRemoteFilesUsed++;
   }

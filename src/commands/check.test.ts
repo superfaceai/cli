@@ -4,7 +4,7 @@ import { mocked } from 'ts-jest/utils';
 
 import { check, CheckResult, formatHuman, formatJson } from '../logic/check';
 import { detectSuperJson } from '../logic/install';
-import { MockStd,mockStd } from '../test/mock-std';
+import { MockStd, mockStd } from '../test/mock-std';
 import Check from './check';
 
 //Mock install logic
