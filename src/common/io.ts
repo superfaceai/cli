@@ -10,7 +10,7 @@ import rimrafCallback from 'rimraf';
 import { Writable } from 'stream';
 import { promisify } from 'util';
 
-import { CONFIG_FILE, META_FILE, SUPERFACE_DIR, TEST_CONFIG } from './document';
+import { ConfigFile, META_FILE, SUPERFACE_DIR, TEST_CONFIG } from './document';
 import { assertIsIOError } from './error';
 import { SkipFileType } from './flags';
 import { LogCallback } from './log';
@@ -247,7 +247,7 @@ export function basenameWithoutExt(path: string): string {
  *
  * Returns relative path to a directory where config file is detected.
  */
-export async function detectConfigurationFile<T extends CONFIG_FILE>(
+export async function detectConfigurationFile<T extends ConfigFile>(
   file: T,
   cwd: string,
   level?: number

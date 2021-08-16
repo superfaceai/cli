@@ -49,7 +49,8 @@ export const GRID_DIR = joinPath(SUPERFACE_DIR, 'grid');
 export const TYPES_DIR = joinPath(SUPERFACE_DIR, 'types');
 export const BUILD_DIR = joinPath(SUPERFACE_DIR, 'build');
 export const TEST_CONFIG_PATH = joinPath(SUPERFACE_DIR, TEST_CONFIG);
-export type CONFIG_FILE = typeof META_FILE | typeof TEST_CONFIG;
+
+export type ConfigFile = typeof META_FILE | typeof TEST_CONFIG;
 
 /**
  * Detects whether the file on path is Superface Map or Superface Profile based on the extension.
