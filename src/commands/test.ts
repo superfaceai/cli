@@ -62,7 +62,7 @@ export default class Test extends Command {
       );
     }
 
-    if (args.testName !== undefined && typeof args.testName !== 'string') {
+    if (typeof args.testName !== 'undefined' && typeof args.testName !== 'string') {
       this.error('error')
     }
 
