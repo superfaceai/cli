@@ -40,7 +40,7 @@ export async function check(
   map: {
     variant?: string;
   },
-  options?: { logCb?: LogCallback; warnCB?: LogCallback }
+  options?: { logCb?: LogCallback; warnCb?: LogCallback }
 ): Promise<CheckResult[]> {
   let profileAst: ProfileDocumentNode;
   let mapAst: MapDocumentNode;
@@ -104,7 +104,7 @@ export async function check(
   }
 
   if (numberOfRemoteFilesUsed === 3) {
-    options?.warnCB?.(
+    options?.warnCb?.(
       `All files for specified capability have been downloaded - checking only remote files is redundant`
     );
   }

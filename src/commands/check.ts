@@ -4,7 +4,7 @@ import { parseDocumentId } from '@superfaceai/parser';
 import { grey, yellow } from 'chalk';
 import { join as joinPath } from 'path';
 
-import { DEFAULT_PROFILE_VERSION_STR, META_FILE } from '../common';
+import { META_FILE } from '../common';
 import { Command } from '../common/command.abstract';
 import { userError } from '../common/error';
 import { check, formatHuman, formatJson } from '../logic/check';
@@ -61,18 +61,10 @@ export default class Check extends Command {
       );
     }
 
-    //Check inputs
-    if (!flags.providerName) {
-      throw userError(`Invalid command --providerName is required`, 1);
-    }
-    if (!flags.profileId) {
-      throw userError(`Invalid command --profileId is required`, 1);
-    }
-
     //Load super json
     const superPath = await detectSuperJson(process.cwd(), flags.scan);
     if (!superPath) {
-      throw userError('Unable to compile, super.json not found', 1);
+      throw userError('Unable to check, super.json not found', 1);
     }
     const loadedResult = await SuperJson.load(joinPath(superPath, META_FILE));
     const superJson = loadedResult.match(
@@ -111,8 +103,6 @@ export default class Check extends Command {
 
     if ('version' in profileSettings) {
       profile.version = profileSettings.version;
-    } else {
-      profile.version = DEFAULT_PROFILE_VERSION_STR;
     }
 
     //Get map info
@@ -148,10 +138,10 @@ export default class Check extends Command {
 
     const result = await check(superJson, profile, flags.providerName, map, {
       logCb: this.logCallback,
-      warnCB: this.warnCallback,
+      warnCb: this.warnCallback,
     });
     if (flags.json) {
-      this.logCallback?.(formatJson(result));
+      this.log(formatJson(result));
     } else {
       this.log(formatHuman(result));
     }

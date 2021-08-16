@@ -15,7 +15,7 @@ jest.mock('../logic/install', () => ({
   detectSuperJson: jest.fn(),
 }));
 
-//Mock init logic
+//Mock lint logic
 jest.mock('../logic/lint', () => ({
   ...jest.requireActual<Record<string, unknown>>('../logic/lint'),
   lintFiles: jest.fn(),
