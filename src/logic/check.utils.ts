@@ -3,7 +3,6 @@ import { join as joinPath } from 'path';
 
 import { EXTENSIONS } from '../common';
 import { exists, readdir, readFile } from '../common/io';
-import { LogCallback } from '../common/log';
 
 export async function findLocalProfileSource(
   superJson: SuperJson,
@@ -11,13 +10,8 @@ export async function findLocalProfileSource(
     name: string;
     scope?: string;
     version?: string;
-  },
-  options?: { logCb?: LogCallback }
+  }
 ): Promise<string | undefined> {
-  const profileId = `${profile.scope ?? ''}/${profile.name}${
-    profile.version ? `@${profile.version}` : ''
-  }`;
-
   //Check file property
   const profileName = profile.scope
     ? `${profile.scope}/${profile.name}`
@@ -26,10 +20,6 @@ export async function findLocalProfileSource(
   if (profileSettings !== undefined && 'file' in profileSettings) {
     const resolvedPath = superJson.resolvePath(profileSettings.file);
     if (await exists(resolvedPath)) {
-      options?.logCb?.(
-        `Profile: "${profileId}" found on path: "${resolvedPath}"`
-      );
-
       return readFile(resolvedPath, { encoding: 'utf-8' });
     }
   }
@@ -43,10 +33,6 @@ export async function findLocalProfileSource(
     );
     const resolvedPath = new SuperJson().resolvePath(path);
     if (await exists(resolvedPath)) {
-      options?.logCb?.(
-        `Profile: "${profileId}" found on path: "${resolvedPath}"`
-      );
-
       return readFile(resolvedPath, { encoding: 'utf-8' });
     }
   } else {
@@ -64,16 +50,11 @@ export async function findLocalProfileSource(
       if (path) {
         const resolvedPath = superJson.resolvePath(joinPath(basePath, path));
         if (await exists(resolvedPath)) {
-          options?.logCb?.(
-            `Profile: "${profileId}" found on path: "${resolvedPath}"`
-          );
-
           return readFile(resolvedPath, { encoding: 'utf-8' });
         }
       }
     }
   }
-  options?.logCb?.(`Profile: "${profileId}" not found locally`);
 
   return;
 }
@@ -84,8 +65,7 @@ export async function findLocalMapSource(
     name: string;
     scope?: string;
   },
-  provider: string,
-  options?: { logCb?: LogCallback }
+  provider: string
 ): Promise<string | undefined> {
   //Check file property
   const profileName = profile.scope
@@ -97,26 +77,17 @@ export async function findLocalMapSource(
     if (profileProviderSettings && 'file' in profileProviderSettings) {
       const resolvedPath = superJson.resolvePath(profileProviderSettings.file);
       if (await exists(resolvedPath)) {
-        options?.logCb?.(
-          `Map for profile: "${profileName}" and provider: "${provider}"found on path: "${resolvedPath}"`
-        );
-
         return readFile(resolvedPath, { encoding: 'utf-8' });
       }
     }
   }
-
-  options?.logCb?.(
-    `Map for profile: "${profileName}" and provider: "${provider}" not found locally`
-  );
 
   return;
 }
 
 export async function findLocalProviderSource(
   superJson: SuperJson,
-  provider: string,
-  options?: { logCb?: LogCallback }
+  provider: string
 ): Promise<ProviderJson | undefined> {
   //Check file property
   const providerSettings = superJson.normalized.providers[provider];
@@ -127,17 +98,11 @@ export async function findLocalProviderSource(
   ) {
     const resolvedPath = superJson.resolvePath(providerSettings.file);
     if (await exists(resolvedPath)) {
-      options?.logCb?.(
-        `Provider: "${provider}" found on path: "${resolvedPath}"`
-      );
-
       return JSON.parse(
         await readFile(resolvedPath, { encoding: 'utf-8' })
       ) as ProviderJson;
     }
   }
-
-  options?.logCb?.(`Provider: "${provider}" not found locally`);
 
   return;
 }

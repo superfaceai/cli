@@ -48,13 +48,10 @@ export async function check(
   const profileId = `${profile.scope ? `${profile.scope}/` : ''}${
     profile.name
   }${profile.version ? `@${profile.version}` : ''}`;
-  const profileSource = await findLocalProfileSource(
-    superJson,
-    profile,
-    options
-  );
+  const profileSource = await findLocalProfileSource(superJson, profile);
   if (profileSource) {
     profileAst = parseProfile(new Source(profileSource, profileId));
+    options?.logCb?.(`Profile: "${profileId}" found on local file system`);
   } else {
     //Load from store
     options?.logCb?.(`Loading profile: "${profileId}" from Superface store`);
@@ -66,14 +63,12 @@ export async function check(
   }
 
   //Load map AST
-  const mapSource = await findLocalMapSource(
-    superJson,
-    profile,
-    provider,
-    options
-  );
+  const mapSource = await findLocalMapSource(superJson, profile, provider);
   if (mapSource) {
     mapAst = parseMap(new Source(mapSource, `${profile.name}.${provider}`));
+    options?.logCb?.(
+      `Map for profile: "${profileId}" and provider: "${provider}"found on local filesystem`
+    );
   } else {
     //Load from store
     options?.logCb?.(
@@ -95,13 +90,10 @@ export async function check(
   }
 
   //Load provider.json
-  const localProviderJson = await findLocalProviderSource(
-    superJson,
-    provider,
-    options
-  );
+  const localProviderJson = await findLocalProviderSource(superJson, provider);
   if (localProviderJson) {
     providerJson = localProviderJson;
+    options?.logCb?.(`Provider: "${provider}" found on local filesystem`);
   } else {
     options?.logCb?.(`Loading provider "${provider}" from Superface store`);
     providerJson = await fetchProviderInfo(provider);
