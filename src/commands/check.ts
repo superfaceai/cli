@@ -14,7 +14,7 @@ export default class Check extends Command {
   static strict = false;
 
   static description =
-    'Checks if specofoed capability has profile and map with corresponding version, scope, name, use case definitions and provider';
+    'Checks if specified capability has profile and map with corresponding version, scope, name, use case definitions and provider';
 
   static args = [];
 
@@ -29,13 +29,18 @@ export default class Check extends Command {
       description: 'Name of provider.',
       required: true,
     }),
+    scan: oclifFlags.integer({
+      char: 's',
+      description:
+        'When number provided, scan for super.json outside cwd within range represented by this number.',
+      required: false,
+    }),
   };
 
   static examples = ['$ station check', '$ station check -q'];
 
-  private logCallback?= (message: string) => this.log(grey(message));
-  private warnCallback?= (message: string) => this.log(yellow(message));
-
+  private logCallback? = (message: string) => this.log(grey(message));
+  private warnCallback? = (message: string) => this.log(yellow(message));
 
   async run(): Promise<void> {
     const { flags } = this.parse(Check);
@@ -44,6 +49,14 @@ export default class Check extends Command {
       this.logCallback = undefined;
       this.warnCallback = undefined;
     }
+
+    if (flags.scan && (typeof flags.scan !== 'number' || flags.scan > 5)) {
+      throw userError(
+        '--scan/-s : Number of levels to scan cannot be higher than 5',
+        1
+      );
+    }
+
     //Check inputs
     if (!flags.providerName) {
       throw userError(`Invalid command --providerName is required`, 1);
@@ -53,7 +66,7 @@ export default class Check extends Command {
     }
 
     //Load super json
-    const superPath = await detectSuperJson(process.cwd());
+    const superPath = await detectSuperJson(process.cwd(), flags.scan);
     if (!superPath) {
       throw userError('Unable to compile, super.json not found', 1);
     }
@@ -104,7 +117,7 @@ export default class Check extends Command {
     } = {};
     const profileProviderSettings =
       superJson.normalized.profiles[flags.profileId].providers[
-      flags.providerName
+        flags.providerName
       ];
 
     if (!profileProviderSettings) {
@@ -131,7 +144,7 @@ export default class Check extends Command {
 
     await check(superJson, profile, flags.providerName, map, {
       logCb: this.logCallback,
-      warnCB: this.warnCallback
+      warnCB: this.warnCallback,
     });
   }
 }
