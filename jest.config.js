@@ -5,5 +5,6 @@ module.exports = {
   coveragePathIgnorePatterns: [
     "/dist/",
   ],
+  testRegex: "(.*\\.(test|spec))\\.ts$",
   testTimeout: 10000
 };
