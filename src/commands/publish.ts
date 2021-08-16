@@ -1,5 +1,6 @@
 import { flags } from '@oclif/command';
-import { SuperJson } from '@superfaceai/one-sdk';
+import { isValidProviderName, SuperJson } from '@superfaceai/one-sdk';
+import { parseDocumentId } from '@superfaceai/parser';
 import { grey } from 'chalk';
 import inquirer from 'inquirer';
 import { join as joinPath } from 'path';
@@ -88,6 +89,16 @@ export default class Publish extends Command {
       // this.warnCallback = undefined;
     }
 
+    // Check inputs
+    const parsedProfileId = parseDocumentId(flags.profileId);
+    if (parsedProfileId.kind == 'error') {
+      throw userError(`Invalid profile id: ${parsedProfileId.message}`, 1);
+    }
+
+    if (!isValidProviderName(flags.providerName)) {
+      throw userError(`Invalid provider name: "${flags.providerName}"`, 1);
+    }
+
     //Load super json
     const superPath = await detectSuperJson(process.cwd(), flags.scan);
     if (!superPath) {
@@ -164,6 +175,19 @@ export default class Publish extends Command {
     }
     //TODO: Lint
     //TODO: Check
+    // const profile = {
+    //   name: parsedProfileId.value.middle[0],
+    //   scope: parsedProfileId.value.scope,
+    //   version: ('version' in profileSettings) ? profileSettings.version : DEFAULT_PROFILE_VERSION_STR
+    // }
+    // const map = {
+    //   variant: ('mapVariant' in profileProviderSettings) ? profileProviderSettings.mapVariant : undefined
+    // }
+
+    // await check(superJson, profile, flags.providerName, map, {
+    //   logCb: this.logCallback,
+    //   warnCB: this.warnCallback
+    // });
     //TODO: Test
 
     await publish(path, {
