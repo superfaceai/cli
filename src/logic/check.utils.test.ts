@@ -17,7 +17,7 @@ import {
 } from './check.utils';
 
 jest.mock('../common/io');
-describe('Quickstart logic', () => {
+describe('Check utils', () => {
   afterEach(() => {
     jest.resetAllMocks();
   });
