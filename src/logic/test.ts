@@ -2,7 +2,7 @@ import { run as runJest } from 'jest';
 import { back as nockBack, restore as restoreNocks } from 'nock';
 import { join as joinPath } from 'path';
 
-import { removeDirQuiet, removeFileQuiet } from '../common/io';
+import { removeDirQuiet } from '../common/io';
 import { LogCallback } from '../common/log';
 import { OutputStream } from '../common/output-stream';
 import { TestConfig, TestingInput } from '../common/test-config';
@@ -120,6 +120,7 @@ export async function runTests(
     nockBack.setMode('record');
 
     for (const entry of testConfig.configuration.entries()) {
+      // TODO: add check or prompt
       await generateTest(entry, testConfig.path, options);
       await test(entry, testConfig, options);
     }
