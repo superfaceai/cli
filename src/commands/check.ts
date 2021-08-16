@@ -7,7 +7,7 @@ import { join as joinPath } from 'path';
 import { DEFAULT_PROFILE_VERSION_STR, META_FILE } from '../common';
 import { Command } from '../common/command.abstract';
 import { userError } from '../common/error';
-import { check } from '../logic/check';
+import { check, formatHuman, formatJson } from '../logic/check';
 import { detectSuperJson } from '../logic/install';
 
 export default class Check extends Command {
@@ -34,6 +34,10 @@ export default class Check extends Command {
       description:
         'When number provided, scan for super.json outside cwd within range represented by this number.',
       required: false,
+    }),
+    json: oclifFlags.boolean({
+      char: 'j',
+      description: 'Formats result to JSON',
     }),
   };
 
@@ -142,9 +146,14 @@ export default class Check extends Command {
       );
     }
 
-    await check(superJson, profile, flags.providerName, map, {
+    const result = await check(superJson, profile, flags.providerName, map, {
       logCb: this.logCallback,
       warnCB: this.warnCallback,
     });
+    if (flags.json) {
+      this.logCallback?.(formatJson(result));
+    } else {
+      this.log(formatHuman(result));
+    }
   }
 }
