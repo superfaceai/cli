@@ -8,7 +8,7 @@ import {
 import * as fs from 'fs';
 import { mocked } from 'ts-jest/utils';
 
-import { EXTENSIONS } from '../common';
+import { DEFAULT_PROFILE_VERSION_STR, EXTENSIONS } from '../common';
 import { exists, readdir, readFile } from '../common/io';
 import {
   findLocalMapSource,
@@ -121,7 +121,7 @@ describe('Check utils', () => {
           isFIFO: () => false,
           isFile: () => true,
           isSocket: () => false,
-          name: `${profile.name}${EXTENSIONS.profile.source}`,
+          name: `${profile.name}@${DEFAULT_PROFILE_VERSION_STR}${EXTENSIONS.profile.source}`,
         },
         {
           isBlockDevice: () => false,
@@ -131,7 +131,7 @@ describe('Check utils', () => {
           isFIFO: () => false,
           isFile: () => true,
           isSocket: () => false,
-          name: `${profile.name}${EXTENSIONS.profile.build}`,
+          name: `${profile.name}@${DEFAULT_PROFILE_VERSION_STR}${EXTENSIONS.profile.build}`,
         },
       ];
       mocked(exists).mockResolvedValue(true);
@@ -150,7 +150,7 @@ describe('Check utils', () => {
       );
       expect(exists).toHaveBeenCalledWith(
         expect.stringContaining(
-          `grid/starwars/character-information${EXTENSIONS.profile.source}`
+          `grid/${profile.scope}/${profile.name}@${DEFAULT_PROFILE_VERSION_STR}${EXTENSIONS.profile.source}`
         )
       );
     });
@@ -166,7 +166,7 @@ describe('Check utils', () => {
           isFIFO: () => false,
           isFile: () => false,
           isSocket: () => false,
-          name: `${profile.name}${EXTENSIONS.profile.source}`,
+          name: `${profile.name}@${DEFAULT_PROFILE_VERSION_STR}${EXTENSIONS.profile.source}`,
         },
         {
           isBlockDevice: () => false,
@@ -176,7 +176,7 @@ describe('Check utils', () => {
           isFIFO: () => false,
           isFile: () => true,
           isSocket: () => false,
-          name: `${profile.name}${EXTENSIONS.profile.build}`,
+          name: `${profile.name}@${DEFAULT_PROFILE_VERSION_STR}${EXTENSIONS.profile.build}`,
         },
       ];
       mocked(exists).mockResolvedValue(true);
@@ -195,7 +195,7 @@ describe('Check utils', () => {
       );
       expect(exists).toHaveBeenCalledWith(
         expect.stringContaining(
-          `grid/starwars/character-information${EXTENSIONS.profile.source}`
+          `grid/${profile.scope}/${profile.name}@${DEFAULT_PROFILE_VERSION_STR}${EXTENSIONS.profile.source}`
         )
       );
     });
@@ -211,7 +211,7 @@ describe('Check utils', () => {
           isFIFO: () => false,
           isFile: () => false,
           isSocket: () => false,
-          name: `${profile.name}${EXTENSIONS.profile.build}`,
+          name: `${profile.name}@${DEFAULT_PROFILE_VERSION_STR}${EXTENSIONS.profile.build}`,
         },
         {
           isBlockDevice: () => false,
@@ -221,7 +221,7 @@ describe('Check utils', () => {
           isFIFO: () => false,
           isFile: () => true,
           isSocket: () => false,
-          name: `${profile.name}${EXTENSIONS.profile.build}`,
+          name: `${profile.name}@${DEFAULT_PROFILE_VERSION_STR}${EXTENSIONS.profile.build}`,
         },
       ];
       mocked(exists).mockResolvedValue(true);
@@ -251,7 +251,7 @@ describe('Check utils', () => {
           isFIFO: () => false,
           isFile: () => false,
           isSocket: () => false,
-          name: `${profile.name}${EXTENSIONS.profile.source}`,
+          name: `${profile.name}@${DEFAULT_PROFILE_VERSION_STR}${EXTENSIONS.profile.source}`,
         },
         {
           isBlockDevice: () => false,
@@ -261,7 +261,7 @@ describe('Check utils', () => {
           isFIFO: () => false,
           isFile: () => true,
           isSocket: () => false,
-          name: `${profile.name}${EXTENSIONS.profile.build}`,
+          name: `${profile.name}@${DEFAULT_PROFILE_VERSION_STR}${EXTENSIONS.profile.build}`,
         },
       ];
       mocked(exists).mockResolvedValueOnce(true).mockResolvedValueOnce(false);
@@ -280,7 +280,7 @@ describe('Check utils', () => {
       );
       expect(exists).toHaveBeenCalledWith(
         expect.stringContaining(
-          `grid/starwars/character-information${EXTENSIONS.profile.source}`
+          `grid/${profile.scope}/${profile.name}@${DEFAULT_PROFILE_VERSION_STR}${EXTENSIONS.profile.source}`
         )
       );
     });

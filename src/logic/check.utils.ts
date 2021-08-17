@@ -45,7 +45,9 @@ export async function findLocalProfileSource(
         .map(dirent => dirent.name);
       //Find files with similar name to profile and with .ast.json extension
       const path = files.find(
-        f => f.includes(profile.name) && f.endsWith(EXTENSIONS.profile.source)
+        f =>
+          f.startsWith(`${profile.name}@`) &&
+          f.endsWith(EXTENSIONS.profile.source)
       );
       if (path) {
         const resolvedPath = superJson.resolvePath(joinPath(basePath, path));

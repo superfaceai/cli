@@ -14,7 +14,7 @@ export default class Check extends Command {
   static strict = false;
 
   static description =
-    'Checks if specified capability has profile and map with corresponding version, scope, name, use case definitions and provider';
+    'Checks if specified capability is correctly set up in super.json and has profile and map with corresponding version, scope, name, use case definitions and provider';
 
   static args = [];
 
@@ -22,7 +22,7 @@ export default class Check extends Command {
     ...Command.flags,
     //Inputs
     profileId: oclifFlags.string({
-      description: 'Profile Id in format [scope](optional)/[name]',
+      description: 'Profile Id in format [scope/](optional)[name]',
       required: true,
     }),
     providerName: oclifFlags.string({
@@ -41,7 +41,12 @@ export default class Check extends Command {
     }),
   };
 
-  static examples = ['$ station check', '$ station check -q'];
+  static examples = [
+    '$ station check --profileId starwars/character-information --providerName swapi',
+    '$ station check --profileId starwars/character-information --providerName swapi -j',
+    '$ station check --profileId starwars/character-information --providerName swapi -s 3',
+    '$ station check --profileId starwars/character-information --providerName swapi -q',
+  ];
 
   private logCallback? = (message: string) => this.log(grey(message));
   private warnCallback? = (message: string) => this.log(yellow(message));

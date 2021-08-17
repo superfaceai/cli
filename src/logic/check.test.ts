@@ -7,7 +7,6 @@ import {
   SecurityType,
   SuperJson,
 } from '@superfaceai/one-sdk';
-import { parseMap, parseProfile } from '@superfaceai/parser';
 import { green, red, yellow } from 'chalk';
 import { mocked } from 'ts-jest/utils';
 
@@ -16,6 +15,7 @@ import {
   fetchProfileAST,
   fetchProviderInfo,
 } from '../common/http';
+import { Parser } from '../common/parser';
 import {
   check,
   checkMapAndProfile,
@@ -28,13 +28,6 @@ import {
   findLocalProfileSource,
   findLocalProviderSource,
 } from './check.utils';
-
-//Mock parser
-jest.mock('@superfaceai/parser', () => ({
-  ...jest.requireActual<Record<string, unknown>>('@superfaceai/parser'),
-  parseProfile: jest.fn(),
-  parseMap: jest.fn(),
-}));
 
 //Mock check utils
 jest.mock('./check.utils', () => ({
@@ -171,8 +164,12 @@ describe('Check utils', () => {
       mocked(findLocalMapSource).mockResolvedValue(mockMapSource);
       mocked(findLocalProfileSource).mockResolvedValue(mockProfileSource);
       mocked(findLocalProviderSource).mockResolvedValue(mockProviderJson);
-      mocked(parseMap).mockReturnValue(mockMapDocument);
-      mocked(parseProfile).mockReturnValue(mockProfileDocument);
+      const parseMapSpy = jest
+        .spyOn(Parser, 'parseMap')
+        .mockResolvedValue(mockMapDocument);
+      const parseProfileSpy = jest
+        .spyOn(Parser, 'parseProfile')
+        .mockResolvedValue(mockProfileDocument);
 
       await expect(
         check(mockSuperJson, mockProfile, provider, map)
@@ -191,7 +188,8 @@ describe('Check utils', () => {
         mockProfile,
         provider
       );
-
+      expect(parseProfileSpy).toHaveBeenCalled();
+      expect(parseMapSpy).toHaveBeenCalled();
       expect(fetchMapAST).not.toHaveBeenCalled();
       expect(fetchProfileAST).not.toHaveBeenCalled();
       expect(fetchProviderInfo).not.toHaveBeenCalled();
