@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Compile command compiles to cache
 - Compile command scoped for single file
 - Lint command loading file paths from super.json 
 
