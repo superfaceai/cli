@@ -94,6 +94,8 @@ export async function interactiveInstall(
       superPath,
       requests: [
         {
+          profileName: profile,
+          scope: scope,
           kind: 'store',
           profileId,
           version: version,
