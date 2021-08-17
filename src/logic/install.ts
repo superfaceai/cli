@@ -1,6 +1,5 @@
 import { ProfileDocumentNode } from '@superfaceai/ast';
 import { SuperJson } from '@superfaceai/one-sdk';
-import { parseDocumentId } from '@superfaceai/parser';
 import { join as joinPath, normalize, relative as relativePath } from 'path';
 
 import {
@@ -12,7 +11,6 @@ import {
   SUPERFACE_DIR,
   UNCOMPILED_SDK_FILE,
 } from '../common/document';
-import { userError } from '../common/error';
 import {
   fetchProfile,
   fetchProfileAST,
@@ -472,10 +470,8 @@ async function fetchStoreRequestCheckedOrDeferred(
     }
 
     sourcePath = paths.sourcePath;
-    // astPath = paths.astPath;
   } else {
     sourcePath = request.sourcePath;
-    // astPath = request.astPath;
   }
 
   // save the downloaded data
@@ -491,28 +487,10 @@ async function fetchStoreRequestCheckedOrDeferred(
     return undefined;
   }
 
-  const parsedProfileId = parseDocumentId(request.profileId);
-  if (parsedProfileId.kind == 'error') {
-    throw userError(`Invalid profile id: ${parsedProfileId.message}`, 1);
-  }
   await Parser.parseProfile(fetched.profile, request.profileId, {
-    profileName: parsedProfileId.value.middle[0],
-    scope: parsedProfileId.value.scope,
+    profileName: request.profileName,
+    scope: request.scope,
   });
-  // try {
-  //   await OutputStream.writeOnce(
-  //     astPath,
-  //     JSON.stringify(fetched.ast, undefined, 2)
-  //   );
-  //   options?.logCb?.(formatShellLog("echo '<compiled profile>' >", [astPath]));
-  // } catch (err) {
-  //   options?.warnCb?.(
-  //     // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-  //     `Could not write built profile ${request.profileId}: ${err}`
-  //   );
-
-  //   return undefined;
-  // }
 
   return {
     ...request,
@@ -520,7 +498,6 @@ async function fetchStoreRequestCheckedOrDeferred(
     profileId: request.profileId,
     version: request.version,
     sourcePath,
-    // astPath,
     pathOutsideGrid: request.pathOutsideGrid,
     info: fetched.info,
     profileSource: fetched.profile,
@@ -548,13 +525,14 @@ export async function getExistingProfileIds(
           return {
             profileId,
             version: profileSettings.version,
-            profileName: profilePathParts[0],
+            profileName: profilePathParts[profilePathParts.length - 1],
             scope: profilePathParts[0],
           };
         }
 
         if ('file' in profileSettings) {
           try {
+            //TODO: we could get ast here
             const { header } = await parseProfileDocument(
               superJson.resolvePath(profileSettings.file)
             );
@@ -562,8 +540,8 @@ export async function getExistingProfileIds(
             return {
               profileId,
               version: composeVersion(header.version),
-              scope: profilePathParts[0],
-              profileName: profilePathParts[profilePathParts.length - 1],
+              scope: header.scope,
+              profileName: header.name,
             };
           } catch (err) {
             options?.warnCb?.(

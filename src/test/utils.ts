@@ -30,13 +30,13 @@ export async function mockResponsesForProfile(
 ): Promise<void> {
   const basePath = joinPath(path, profile);
   const profileInfo = JSON.parse(
-    (await readFile(basePath + '.json')).toString()
+    await readFile(basePath + '.json', { encoding: 'utf-8' })
   );
-  const profileSource = (
-    await readFile(basePath + EXTENSIONS.profile.source)
-  ).toString();
+  const profileSource = await readFile(basePath + EXTENSIONS.profile.source, {
+    encoding: 'utf-8',
+  });
   const profileAST = JSON.parse(
-    (await readFile(basePath + EXTENSIONS.profile.build)).toString()
+    await readFile(basePath + EXTENSIONS.profile.build, { encoding: 'utf-8' })
   );
   await server
     .get('/' + profile)
@@ -45,7 +45,7 @@ export async function mockResponsesForProfile(
   await server
     .get('/' + profile)
     .withHeaders({ Accept: ContentType.PROFILE })
-    .thenReply(200, profileSource, { ContentType: ContentType.PROFILE });
+    .thenReply(200, profileSource, { 'Content-Type': ContentType.PROFILE });
   await server
     .get('/' + profile)
     .withHeaders({ Accept: ContentType.AST })
@@ -65,7 +65,7 @@ export async function mockResponsesForProvider(
 ): Promise<void> {
   const basePath = joinPath(path, provider);
   const providerInfo = JSON.parse(
-    (await readFile(basePath + '.json')).toString()
+    await readFile(basePath + '.json', { encoding: 'utf-8' })
   );
 
   await server
@@ -90,7 +90,7 @@ export async function mockResponsesForProfileProviders(
   for (const p of providers) {
     const basePath = joinPath(path, p);
     providersInfo.push(
-      JSON.parse((await readFile(basePath + '.json')).toString())
+      JSON.parse(await readFile(basePath + '.json', { encoding: 'utf-8' }))
     );
   }
   await server
