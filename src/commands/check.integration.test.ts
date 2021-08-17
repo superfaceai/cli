@@ -6,6 +6,7 @@ import { mkdir, rimraf } from '../common/io';
 import { OutputStream } from '../common/output-stream';
 import {
   execCLI,
+  mockResponsesForMap,
   mockResponsesForProfile,
   mockResponsesForProfileProviders,
   mockResponsesForProvider,
@@ -48,7 +49,6 @@ describe('Create CLI command', () => {
   beforeAll(async () => {
     await mkdir(TEMP_PATH, { recursive: true });
     await mockServer.start();
-    mockServer.enableDebug();
     await mockResponsesForProfile(mockServer, profileId);
     await mockResponsesForProfile(
       mockServer,
@@ -56,6 +56,20 @@ describe('Create CLI command', () => {
     );
     await mockResponsesForProfileProviders(mockServer, [provider], profileId);
     await mockResponsesForProvider(mockServer, 'swapi');
+    await mockResponsesForMap(
+      mockServer,
+      { name: 'character-information', scope: 'starwars' },
+      provider
+    );
+    await mockResponsesForMap(
+      mockServer,
+      {
+        name: 'character-information',
+        scope: 'starwars',
+        version: profileVersion,
+      },
+      provider
+    );
   });
   beforeEach(async () => {
     tempDir = await setUpTempDir(TEMP_PATH);
@@ -69,6 +83,48 @@ describe('Create CLI command', () => {
     await mockServer.stop();
   });
   describe('when checking capability', () => {
+    it('checks capability with local map, profile and provider', async () => {
+      const mockSuperJson = new SuperJson({
+        profiles: {
+          [profileId]: {
+            file: `../../../../${sourceFixture.profile}`,
+            providers: {
+              [provider]: {
+                file: `../../../../${sourceFixture.map}`,
+              },
+            },
+          },
+        },
+        providers: {
+          [provider]: {
+            file: `../../../../${sourceFixture.provider}`,
+          },
+        },
+      });
+
+      await mkdir(joinPath(tempDir, 'superface'));
+      await OutputStream.writeOnce(
+        joinPath(tempDir, 'superface', 'super.json'),
+        mockSuperJson.stringified
+      );
+
+      const result = await execCLI(
+        tempDir,
+        ['check', '--profileId', profileId, '--providerName', provider],
+        mockServer.url
+      );
+      expect(result.stdout).toContain(
+        `Profile: "${profileId}" found on local file system`
+      );
+      expect(result.stdout).toContain(
+        `Map for profile: "${profileId}" and provider: "${provider}" found on local filesystem`
+      );
+      expect(result.stdout).toContain(
+        `Provider: "${provider}" found on local file system`
+      );
+      expect(result.stdout).toContain('🆗 check without errors.');
+    });
+
     it('checks capability with local map', async () => {
       const mockSuperJson = new SuperJson({
         profiles: {
@@ -109,15 +165,51 @@ describe('Create CLI command', () => {
       expect(result.stdout).toContain('🆗 check without errors.');
     });
 
-    it('checks capability with local map, profile and provider', async () => {
+    it('checks capability with local profile', async () => {
       const mockSuperJson = new SuperJson({
         profiles: {
           [profileId]: {
             file: `../../../../${sourceFixture.profile}`,
             providers: {
-              [provider]: {
-                file: `../../../../${sourceFixture.map}`,
-              },
+              [provider]: {},
+            },
+          },
+        },
+        providers: {
+          [provider]: {},
+        },
+      });
+
+      await mkdir(joinPath(tempDir, 'superface'));
+      await OutputStream.writeOnce(
+        joinPath(tempDir, 'superface', 'super.json'),
+        mockSuperJson.stringified
+      );
+
+      const result = await execCLI(
+        tempDir,
+        ['check', '--profileId', profileId, '--providerName', provider],
+        mockServer.url
+      );
+      expect(result.stdout).toContain(
+        `Profile: "${profileId}" found on local file system`
+      );
+      expect(result.stdout).toContain(
+        `Loading map for profile: "${profileId}" and provider: "${provider}" from Superface store`
+      );
+      expect(result.stdout).toContain(
+        `Loading provider: "${provider}" from Superface store`
+      );
+      expect(result.stdout).toContain('🆗 check without errors.');
+    });
+
+    it('checks capability with local provider', async () => {
+      const mockSuperJson = new SuperJson({
+        profiles: {
+          [profileId]: {
+            version: profileVersion,
+            providers: {
+              [provider]: {},
             },
           },
         },
@@ -140,10 +232,10 @@ describe('Create CLI command', () => {
         mockServer.url
       );
       expect(result.stdout).toContain(
-        `Profile: "${profileId}" found on local file system`
+        `Loading profile: "${profileId}@${profileVersion}" from Superface store`
       );
       expect(result.stdout).toContain(
-        `Map for profile: "${profileId}" and provider: "${provider}" found on local filesystem`
+        `Loading map for profile: "${profileId}@${profileVersion}" and provider: "${provider}" from Superface store`
       );
       expect(result.stdout).toContain(
         `Provider: "${provider}" found on local file system`

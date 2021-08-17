@@ -28,8 +28,10 @@ export interface GetProfileResponse {
 
 export enum ContentType {
   JSON = 'application/json',
-  PROFILE = 'application/vnd.superface.profile',
-  AST = 'application/vnd.superface.profile+json',
+  PROFILE_SOURCE = 'application/vnd.superface.profile',
+  PROFILE_AST = 'application/vnd.superface.profile+json',
+  MAP_SOURCE = 'application/vnd.superface.map',
+  MAP_AST = 'application/vnd.superface.map+json',
 }
 
 export function getStoreUrl(): string {
@@ -86,7 +88,7 @@ export async function fetchProfileInfo(
 export async function fetchProfile(profileId: string): Promise<string> {
   const query = new URL(profileId, getStoreUrl()).href;
 
-  const response = await fetch(query, ContentType.PROFILE);
+  const response = await fetch(query, ContentType.PROFILE_SOURCE);
 
   return (response.body as Buffer).toString();
 }
@@ -96,7 +98,7 @@ export async function fetchProfileAST(
 ): Promise<ProfileDocumentNode> {
   const query = new URL(profileId, getStoreUrl()).href;
 
-  const response = await fetch(query, ContentType.AST);
+  const response = await fetch(query, ContentType.PROFILE_AST);
 
   return response.body as ProfileDocumentNode;
 }
@@ -118,14 +120,16 @@ export async function fetchMapAST(
   version?: string,
   variant?: string
 ): Promise<MapDocumentNode> {
-  const url = variant
+  const path = variant
     ? `/${scope ? `${scope}/` : ''}${profile}.${provider}.${variant}@${
         version ? version : DEFAULT_PROFILE_VERSION_STR
       }`
     : `/${scope ? `${scope}/` : ''}${profile}.${provider}@${
         version ? version : DEFAULT_PROFILE_VERSION_STR
-      }}`;
-  const response = await fetch(url, ContentType.AST);
+      }`;
+  const url = new URL(path, getStoreUrl()).href;
+
+  const response = await fetch(url, ContentType.MAP_AST);
 
   return response.body as MapDocumentNode;
 }
