@@ -64,7 +64,7 @@ export default class Login extends Command {
           //TODO: do not log out if logged in?
           this.logCallback?.('Already logged in, logging out');
           //logout from service client - make this part of CLI logout command
-          SuperfaceClient.getClient().logout();
+          await SuperfaceClient.getClient().logout();
           //TODO: logout from services
           // await this.logout(previousEntry.password)
         }
@@ -80,7 +80,7 @@ export default class Login extends Command {
     });
 
     //save authToken to ServiceClient instance Or this is handled by service client or http functions?
-    SuperfaceClient.getClient().login(authToken);
+    await SuperfaceClient.getClient().login(authToken);
 
     loggedIn = true;
     this.successCallback?.('Logged in');

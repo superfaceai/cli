@@ -24,7 +24,7 @@ export function loadNetrc(): {
 
 export async function saveNetrc(
   baseUrl: string,
-  refreshToken: string
+  refreshToken: string | null
 ): Promise<void> {
   const netrc = new Netrc();
   await netrc.load();
@@ -32,7 +32,7 @@ export async function saveNetrc(
   //Remove old record
   netrc.machines[SUPERFACE_NETRC_HOST] = {};
 
-  netrc.machines[SUPERFACE_NETRC_HOST].password = refreshToken;
+  netrc.machines[SUPERFACE_NETRC_HOST].password = refreshToken || undefined;
   netrc.machines[SUPERFACE_NETRC_HOST].baseUrl = baseUrl;
   await netrc.save();
 }
