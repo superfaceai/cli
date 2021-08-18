@@ -2,62 +2,7 @@ import { SuperJson } from '@superfaceai/one-sdk';
 import { join as joinPath } from 'path';
 
 import { EXTENSIONS } from '..';
-import { exists, readdir, readFile } from '../common/io';
-
-//TODO: when merged use findLocalProfileSource from check.utils
-export async function loadProfileSource(
-  superJson: SuperJson,
-  profile: { profile: string; scope?: string; version?: string }
-): Promise<string | undefined> {
-  let sourcePath: string | undefined = undefined;
-  const basePath = profile.scope ? joinPath('grid', profile.scope) : 'grid';
-  if (profile.version) {
-    const path = joinPath(
-      basePath,
-      `${profile.profile}@${profile.version}${EXTENSIONS.profile.source}`
-    );
-    const resolvedPath = superJson.resolvePath(path);
-    if (await exists(resolvedPath)) {
-      sourcePath = resolvedPath;
-    }
-  } else {
-    //Look for any version
-    const scopePath = superJson.resolvePath(basePath);
-    if (await exists(scopePath)) {
-      //Get files in profile directory
-      const files = (await readdir(scopePath, { withFileTypes: true }))
-        .filter(dirent => dirent.isFile() || dirent.isSymbolicLink())
-        .map(dirent => dirent.name);
-      //Find files with similar name to profile and with .ast.json extension
-      const path = files.find(
-        f =>
-          f.startsWith(`${profile.profile}@`) &&
-          f.endsWith(EXTENSIONS.profile.source)
-      );
-      if (path) {
-        const resolvedPath = superJson.resolvePath(joinPath(basePath, path));
-        if (await exists(resolvedPath)) sourcePath = resolvedPath;
-      }
-    }
-  }
-
-  //Check file property
-  const profileName = profile.scope
-    ? `${profile.scope}/${profile.profile}`
-    : profile.profile;
-  const profileSettings = superJson.normalized.profiles[profileName];
-  if (profileSettings !== undefined && 'file' in profileSettings) {
-    const resolvedPath = superJson.resolvePath(profileSettings.file);
-    if (await exists(resolvedPath)) {
-      sourcePath = resolvedPath;
-    }
-  }
-  if (!sourcePath) {
-    return;
-  }
-
-  return readFile(sourcePath, { encoding: 'utf-8' });
-}
+import { exists, readdir } from '../common/io';
 
 export async function profileExists(
   superJson: SuperJson,

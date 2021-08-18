@@ -12,6 +12,7 @@ export async function findLocalProfileSource(
     version?: string;
   }
 ): Promise<string | undefined> {
+  console.log('looking for', profile);
   //Check file property
   const profileName = profile.scope
     ? `${profile.scope}/${profile.name}`
@@ -31,7 +32,7 @@ export async function findLocalProfileSource(
       basePath,
       `${profile.name}@${profile.version}${EXTENSIONS.profile.source}`
     );
-    const resolvedPath = new SuperJson().resolvePath(path);
+    const resolvedPath = superJson.resolvePath(path);
     if (await exists(resolvedPath)) {
       return readFile(resolvedPath, { encoding: 'utf-8' });
     }
@@ -57,6 +58,8 @@ export async function findLocalProfileSource(
       }
     }
   }
+
+  console.log('not found');
 
   return;
 }
