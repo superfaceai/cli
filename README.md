@@ -254,20 +254,28 @@ _See code: [src/commands/lint.ts](https://github.com/superfaceai/cli/tree/main/s
 
 ## `superface publish PATH`
 
-Uploads map/profile/provider to Store - use paths to `.supr` file for profiles, `.suma` for maps and `.json` for providers. Do not use path ending with `.ast.json` (compiled files).
+Uploads map/profile/provider to Store. Published file must be locally linked in super.json
 
 ```
 USAGE
   $ superface publish PATH
 
 ARGUMENTS
-  PATH  Path to profile, map or provider
+  PATH  (map|profile|provider) Document type of publeshed file
 
 OPTIONS
-  -f, --force  Publishes without asking any confirmation.
-  -h, --help   show CLI help
-  -q, --quiet  When set to true, disables the shell echo output of action.
-  --dry-run    Runs without sending actual request.
+  -f, --force                  Publishes without asking any confirmation.
+  -h, --help                   show CLI help
+  -q, --quiet                  When set to true, disables the shell echo output of action.
+
+  -s, --scan=scan              When number provided, scan for super.json outside cwd within range represented by this
+                               number.
+
+  --dry-run                    Runs without sending actual request.
+
+  --profileId=profileId        (required) Profile Id in format [scope/](optional)[name]
+
+  --providerName=providerName  (required) Name of provider. This argument is used to publish map or provider
 
 EXAMPLES
   $ station publish capabilities/vcs/user-repos/maps/bitbucket.suma -f
