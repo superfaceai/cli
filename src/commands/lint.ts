@@ -19,6 +19,7 @@ import {
 } from '../logic/lint';
 
 type OutputFormatFlag = 'long' | 'short' | 'json';
+//TODO: decide if we want to merge check and lint. If we dont we need to refactor this to scope to one capability and to compile
 
 export default class Lint extends Command {
   static description =

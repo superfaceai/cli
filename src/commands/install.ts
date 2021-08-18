@@ -175,21 +175,24 @@ export default class Install extends Command {
       let profileName: string;
 
       if (flags.local) {
-        requests.push({
-          kind: 'local',
-          path: profileArg,
-        });
-
         profileName = trimExtension(
           profilePathParts[profilePathParts.length - 1]
         );
-      } else {
         requests.push({
+          profileName,
+          scope: profilePathParts[0],
+          kind: 'local',
+          path: profileArg,
+        });
+      } else {
+        profileName = profilePathParts[profilePathParts.length - 1];
+        requests.push({
+          profileName,
+          scope: profilePathParts[0],
           kind: 'store',
           profileId,
           version,
         });
-        profileName = profilePathParts[profilePathParts.length - 1];
       }
 
       if (!isValidDocumentName(profileName)) {

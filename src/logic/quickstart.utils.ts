@@ -1,26 +1,24 @@
-import { isProfileDocumentNode, ProfileDocumentNode } from '@superfaceai/ast';
 import { SuperJson } from '@superfaceai/one-sdk';
 import { join as joinPath } from 'path';
 
 import { EXTENSIONS } from '..';
-import { userError } from '../common/error';
 import { exists, readdir, readFile } from '../common/io';
 
-//TODO: rewrite using od sdk parser
-export async function loadProfileAst(
+//TODO: when merged use findLocalProfileSource from check.utils
+export async function loadProfileSource(
   superJson: SuperJson,
   profile: { profile: string; scope?: string; version?: string }
-): Promise<ProfileDocumentNode | undefined> {
-  let astPath: string | undefined = undefined;
+): Promise<string | undefined> {
+  let sourcePath: string | undefined = undefined;
   const basePath = profile.scope ? joinPath('grid', profile.scope) : 'grid';
   if (profile.version) {
     const path = joinPath(
       basePath,
-      `${profile.profile}@${profile.version}${EXTENSIONS.profile.build}`
+      `${profile.profile}@${profile.version}${EXTENSIONS.profile.source}`
     );
     const resolvedPath = superJson.resolvePath(path);
     if (await exists(resolvedPath)) {
-      astPath = resolvedPath;
+      sourcePath = resolvedPath;
     }
   } else {
     //Look for any version
@@ -32,11 +30,13 @@ export async function loadProfileAst(
         .map(dirent => dirent.name);
       //Find files with similar name to profile and with .ast.json extension
       const path = files.find(
-        f => f.includes(profile.profile) && f.endsWith(EXTENSIONS.profile.build)
+        f =>
+          f.startsWith(`${profile.profile}@`) &&
+          f.endsWith(EXTENSIONS.profile.source)
       );
       if (path) {
         const resolvedPath = superJson.resolvePath(joinPath(basePath, path));
-        if (await exists(resolvedPath)) astPath = resolvedPath;
+        if (await exists(resolvedPath)) sourcePath = resolvedPath;
       }
     }
   }
@@ -49,26 +49,14 @@ export async function loadProfileAst(
   if (profileSettings !== undefined && 'file' in profileSettings) {
     const resolvedPath = superJson.resolvePath(profileSettings.file);
     if (await exists(resolvedPath)) {
-      astPath = resolvedPath;
+      sourcePath = resolvedPath;
     }
   }
-  if (!astPath) {
+  if (!sourcePath) {
     return;
   }
-  const document = (await JSON.parse(
-    await readFile(astPath, { encoding: 'utf-8' })
-  )) as ProfileDocumentNode;
 
-  if (!isProfileDocumentNode(document)) {
-    throw userError(
-      `Profile ${profileName}${
-        profile.version ? `@${profile.version}` : ''
-      } loaded from ${astPath} is not valid ProfileDocumentNode`,
-      1
-    );
-  }
-
-  return document;
+  return readFile(sourcePath, { encoding: 'utf-8' });
 }
 
 export async function profileExists(

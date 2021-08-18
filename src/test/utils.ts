@@ -45,7 +45,9 @@ export async function mockResponsesForProfile(
   await server
     .get('/' + profile)
     .withHeaders({ Accept: ContentType.PROFILE_SOURCE })
-    .thenReply(200, profileSource, { ContentType: ContentType.PROFILE_SOURCE });
+    .thenReply(200, profileSource, {
+      'Content-Type': ContentType.PROFILE_SOURCE,
+    });
   await server
     .get('/' + profile)
     .withHeaders({ Accept: ContentType.PROFILE_AST })
