@@ -1,4 +1,4 @@
-import { ProfileDocumentNode } from '@superfaceai/ast';
+import { MapDocumentNode, ProfileDocumentNode } from '@superfaceai/ast';
 import {
   parseProviderJson,
   ProviderJson,
@@ -8,6 +8,7 @@ import { VERSION as PARSER_VERSION } from '@superfaceai/parser';
 import superagent, { Response } from 'superagent';
 
 import { VERSION } from '..';
+import { DEFAULT_PROFILE_VERSION_STR } from './document';
 import { userError } from './error';
 
 export interface ProfileInfo {
@@ -27,8 +28,10 @@ export interface GetProfileResponse {
 
 export enum ContentType {
   JSON = 'application/json',
-  PROFILE = 'application/vnd.superface.profile',
-  AST = 'application/vnd.superface.profile+json',
+  PROFILE_SOURCE = 'application/vnd.superface.profile',
+  PROFILE_AST = 'application/vnd.superface.profile+json',
+  MAP_SOURCE = 'application/vnd.superface.map',
+  MAP_AST = 'application/vnd.superface.map+json',
 }
 
 export function getStoreUrl(): string {
@@ -85,7 +88,7 @@ export async function fetchProfileInfo(
 export async function fetchProfile(profileId: string): Promise<string> {
   const query = new URL(profileId, getStoreUrl()).href;
 
-  const response = await fetch(query, ContentType.PROFILE);
+  const response = await fetch(query, ContentType.PROFILE_SOURCE);
 
   return (response.body as Buffer).toString();
 }
@@ -95,7 +98,7 @@ export async function fetchProfileAST(
 ): Promise<ProfileDocumentNode> {
   const query = new URL(profileId, getStoreUrl()).href;
 
-  const response = await fetch(query, ContentType.AST);
+  const response = await fetch(query, ContentType.PROFILE_AST);
 
   return response.body as ProfileDocumentNode;
 }
@@ -107,4 +110,26 @@ export async function fetchProviderInfo(
   const response = await fetch(query, ContentType.JSON);
 
   return parseProviderJson(response.body);
+}
+
+//HACK: we don' have service client in this branch so we are making request directly. Use service-client in the future
+export async function fetchMapAST(
+  profile: string,
+  provider: string,
+  scope?: string,
+  version?: string,
+  variant?: string
+): Promise<MapDocumentNode> {
+  const path = variant
+    ? `/${scope ? `${scope}/` : ''}${profile}.${provider}.${variant}@${
+        version ? version : DEFAULT_PROFILE_VERSION_STR
+      }`
+    : `/${scope ? `${scope}/` : ''}${profile}.${provider}@${
+        version ? version : DEFAULT_PROFILE_VERSION_STR
+      }`;
+  const url = new URL(path, getStoreUrl()).href;
+
+  const response = await fetch(url, ContentType.MAP_AST);
+
+  return response.body as MapDocumentNode;
 }

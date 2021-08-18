@@ -26,14 +26,11 @@ import { PackageManager } from '../common/package-manager';
 import { Parser } from '../common/parser';
 import { NORMALIZED_CWD_PATH } from '../common/path';
 import { envVariable } from '../templates/env';
+import { findLocalProfileSource } from './check.utils';
 import { installProvider } from './configure';
 import { initSuperface } from './init';
 import { detectSuperJson, installProfiles } from './install';
-import {
-  loadProfileSource,
-  profileExists,
-  providerExists,
-} from './quickstart.utils';
+import { profileExists, providerExists } from './quickstart.utils';
 
 export async function interactiveInstall(
   profileArg: string,
@@ -194,8 +191,8 @@ export async function interactiveInstall(
   }
 
   //Get installed usecases
-  const profileSource = await loadProfileSource(superJson, {
-    profile,
+  const profileSource = await findLocalProfileSource(superJson, {
+    name: profile,
     scope,
     version,
   });

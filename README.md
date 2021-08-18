@@ -55,11 +55,41 @@ npx @superfaceai/cli install [profileId eg. communication/send-email] -i
 ## Usage
 
   <!-- commands -->
+* [`superface check`](#superface-check)
 * [`superface configure PROVIDERNAME`](#superface-configure-providername)
 * [`superface create`](#superface-create)
 * [`superface init [NAME]`](#superface-init-name)
 * [`superface install [PROFILEID]`](#superface-install-profileid)
 * [`superface lint [FILE]`](#superface-lint-file)
+
+## `superface check`
+
+Checks if specified capability is correctly set up in super.json, has profile and map with corresponding version, scope, name, use case definitions and provider
+
+```
+USAGE
+  $ superface check
+
+OPTIONS
+  -h, --help                   show CLI help
+  -j, --json                   Formats result to JSON
+  -q, --quiet                  When set to true, disables the shell echo output of action.
+
+  -s, --scan=scan              When number provided, scan for super.json outside cwd within range represented by this
+                               number.
+
+  --profileId=profileId        (required) Profile Id in format [scope/](optional)[name]
+
+  --providerName=providerName  (required) Name of provider.
+
+EXAMPLES
+  $ superface check --profileId starwars/character-information --providerName swapi
+  $ superface check --profileId starwars/character-information --providerName swapi -j
+  $ superface check --profileId starwars/character-information --providerName swapi -s 3
+  $ superface check --profileId starwars/character-information --providerName swapi -q
+```
+
+_See code: [src/commands/check.ts](https://github.com/superfaceai/cli/tree/main/src/commands/check.ts)_
 
 ## `superface configure PROVIDERNAME`
 
