@@ -60,7 +60,14 @@ describe('Install CLI command', () => {
       expect(installProfiles).toHaveBeenCalledTimes(1);
       expect(installProfiles).toHaveBeenCalledWith({
         superPath: 'superface',
-        requests: [{ kind: 'store', profileId: profileName }],
+        requests: [
+          {
+            kind: 'store',
+            profileId: profileName,
+            profileName: 'character-information',
+            scope: 'starwars',
+          },
+        ],
         options: {
           logCb: expect.anything(),
           warnCb: expect.anything(),
@@ -77,7 +84,14 @@ describe('Install CLI command', () => {
       expect(installProfiles).toHaveBeenCalledTimes(1);
       expect(installProfiles).toHaveBeenCalledWith({
         superPath: '.',
-        requests: [{ kind: 'store', profileId: profileName }],
+        requests: [
+          {
+            kind: 'store',
+            profileId: profileName,
+            profileName: 'character-information',
+            scope: 'starwars',
+          },
+        ],
         options: {
           logCb: expect.anything(),
           warnCb: expect.anything(),
@@ -94,7 +108,14 @@ describe('Install CLI command', () => {
       expect(installProfiles).toHaveBeenCalledTimes(1);
       expect(installProfiles).toHaveBeenCalledWith({
         superPath: '.',
-        requests: [{ kind: 'store', profileId: profileName }],
+        requests: [
+          {
+            kind: 'store',
+            profileId: profileName,
+            profileName: 'character-information',
+            scope: 'starwars',
+          },
+        ],
         options: {
           logCb: undefined,
           warnCb: undefined,
@@ -194,7 +215,14 @@ describe('Install CLI command', () => {
       expect(installProfiles).toHaveBeenCalledTimes(1);
       expect(installProfiles).toHaveBeenCalledWith({
         superPath: '.',
-        requests: [{ kind: 'store', profileId: profileName }],
+        requests: [
+          {
+            kind: 'store',
+            profileId: profileName,
+            profileName: 'character-information',
+            scope: 'starwars',
+          },
+        ],
         options: {
           logCb: expect.anything(),
           warnCb: expect.anything(),
@@ -243,7 +271,14 @@ describe('Install CLI command', () => {
       expect(installProfiles).toHaveBeenCalledTimes(1);
       expect(installProfiles).toHaveBeenCalledWith({
         superPath: '.',
-        requests: [{ kind: 'store', profileId: profileName }],
+        requests: [
+          {
+            kind: 'store',
+            profileId: profileName,
+            profileName: 'character-information',
+            scope: 'starwars',
+          },
+        ],
         options: {
           logCb: expect.anything(),
           warnCb: expect.anything(),
