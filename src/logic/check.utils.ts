@@ -12,7 +12,6 @@ export async function findLocalProfileSource(
     version?: string;
   }
 ): Promise<string | undefined> {
-  console.log('looking for', profile);
   //Check file property
   const profileName = profile.scope
     ? `${profile.scope}/${profile.name}`
@@ -58,8 +57,6 @@ export async function findLocalProfileSource(
       }
     }
   }
-
-  console.log('not found');
 
   return;
 }
