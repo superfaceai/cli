@@ -4,7 +4,8 @@ import { Netrc } from 'netrc-parser';
 
 import { Command } from '../common/command.abstract';
 import { userError } from '../common/error';
-import { SuperfaceClient } from '../common/http';
+import { getStoreUrl, SuperfaceClient } from '../common/http';
+import { saveNetrc, SUPERFACE_NETRC_HOST } from '../common/netrc';
 import { login } from '../logic/login';
 
 export default class Login extends Command {
@@ -19,7 +20,6 @@ export default class Login extends Command {
       default: false,
     }),
   };
-  //TODO: some args
 
   private warnCallback? = (message: string) =>
     this.log('⚠️  ' + yellow(message));
@@ -38,7 +38,7 @@ export default class Login extends Command {
       this.successCallback = undefined;
     }
 
-    //TODO: heroku timeouts after 10 minutes - keep it? Or leverage expiresAt?
+    //TODO: heroku timeouts after 10 minutes - keep it?
     setTimeout(() => {
       if (!loggedIn) {
         throw userError('Timed out', 1);
@@ -46,27 +46,31 @@ export default class Login extends Command {
     }, 1000 * 60 * 10).unref();
 
     if (process.env.SUPERFACE_REFRESH_TOKEN) {
-      //TODO: login flow when there is SUPERFACE_REFRESH_TOKEN? setOptions on ServiceClient and store it in netrc?
-      throw userError('Cannot log in with SUPERFACE_REFRESH_TOKEN set', 1);
-    }
+      this.warnCallback?.(`Using value from SUPERFACE_REFRESH_TOKEN`);
+      //TODO: login flow when there is SUPERFACE_REFRESH_TOKEN? Store it in netrc and left service-client to use it, what about baseUrl?
+      await saveNetrc(getStoreUrl(), process.env.SUPERFACE_REFRESH_TOKEN);
+    } else {
+      const netrc = new Netrc();
+      await netrc.load();
+      const previousEntry = netrc.machines[SUPERFACE_NETRC_HOST];
 
-    const netrc = new Netrc();
-    await netrc.load();
-    //TODO: key name
-    const host = 'api.superface.ai';
-    const previousEntry = netrc.machines[host];
-
-    try {
-      //check if already logged in and logout
-      if (previousEntry && previousEntry.password) {
-        this.logCallback?.('Already logged in');
-        //logout from service client
-        SuperfaceClient.getClient().logout();
-        //TODO: logout from services
-        // await this.logout(previousEntry.password)
+      try {
+        //check if already logged in and logout
+        if (
+          previousEntry &&
+          previousEntry.password &&
+          'baseUrl' in previousEntry
+        ) {
+          //TODO: do not log out if logged in?
+          this.logCallback?.('Already logged in, logging out');
+          //logout from service client - make this part of CLI logout command
+          SuperfaceClient.getClient().logout();
+          //TODO: logout from services
+          // await this.logout(previousEntry.password)
+        }
+      } catch (err) {
+        this.warnCallback?.(err);
       }
-    } catch (err) {
-      this.warnCallback?.(err);
     }
 
     const authToken = await login({
@@ -75,15 +79,7 @@ export default class Login extends Command {
       force: flags.force,
     });
 
-    //TODO: we store credentials in Netrc
-    if (!netrc.machines[host]) netrc.machines[host] = {};
-    //TODO: how to store AuthToken object
-    // netrc.machines[host].login = entry.login
-    // netrc.machines[host].password = entry.password
-    delete netrc.machines[host].method;
-    delete netrc.machines[host].org;
-    await netrc.save();
-    //save authToken to ServiceClient instance
+    //save authToken to ServiceClient instance Or this is handled by service client or http functions?
     SuperfaceClient.getClient().login(authToken);
 
     loggedIn = true;

@@ -45,5 +45,5 @@ export async function login(options?: {
   }
 
   //start polling verification url
-  return await fetchVerificationUrl(new URL(initializeLogin.verify_url).href);
+  return fetchVerificationUrl(new URL(initializeLogin.verify_url).href);
 }

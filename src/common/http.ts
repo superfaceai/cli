@@ -15,6 +15,7 @@ import superagent, { Response } from 'superagent';
 
 import { VERSION } from '..';
 import { userError } from './error';
+import { loadNetrc, saveNetrc } from './netrc';
 
 export interface ProfileInfo {
   owner: string;
@@ -48,9 +49,14 @@ export class SuperfaceClient {
 
   public static getClient(): ServiceClient {
     if (!SuperfaceClient.serviceClient) {
+      const netrcRecord = loadNetrc();
       SuperfaceClient.serviceClient = new ServiceClient({
-        baseUrl: getStoreUrl(),
+        //TODO: Left baseUrl resolution on service client if we dont find it in netrc?
+        baseUrl: netrcRecord.baseUrl || getStoreUrl(),
+        refreshToken: netrcRecord.refreshToken,
+        refreshTokenUpdatedHandler: saveNetrc,
       });
+      //TODO: check refresh token validity or left it to actual fetch call
     }
 
     return SuperfaceClient.serviceClient;
@@ -137,7 +143,10 @@ export async function fetchProviderInfo(
 export async function initLogin(): Promise<InitLoginResponse> {
   const initLoginResponse = await SuperfaceClient.getClient().fetch(
     '/auth/cli',
-    { method: 'POST', headers: { 'Content-Type': ContentType.JSON } }
+    {
+      method: 'POST',
+      headers: { 'Content-Type': ContentType.JSON },
+    }
   );
   if (!initLoginResponse.ok) {
     const errorResponse = (await initLoginResponse.json()) as ServiceApiErrorResponse;
@@ -163,6 +172,7 @@ export async function fetchVerificationUrl(url: string): Promise<AuthToken> {
         throw new ServiceApiError(errorResponse);
       }
 
+      //TODO: Call service client login?
       return (await authResponse.json()) as AuthToken;
     } catch (err) {
       //TODO: err resolution
