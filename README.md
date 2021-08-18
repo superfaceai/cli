@@ -64,7 +64,7 @@ npx @superfaceai/cli install [profileId eg. communication/send-email] -i
 
 ## `superface check`
 
-Checks if specified capability is correctly set up in super.json and has profile and map with corresponding version, scope, name, use case definitions and provider
+Checks if specified capability is correctly set up in super.json, has profile and map with corresponding version, scope, name, use case definitions and provider
 
 ```
 USAGE
@@ -83,10 +83,10 @@ OPTIONS
   --providerName=providerName  (required) Name of provider.
 
 EXAMPLES
-  $ station check --profileId starwars/character-information --providerName swapi
-  $ station check --profileId starwars/character-information --providerName swapi -j
-  $ station check --profileId starwars/character-information --providerName swapi -s 3
-  $ station check --profileId starwars/character-information --providerName swapi -q
+  $ superface check --profileId starwars/character-information --providerName swapi
+  $ superface check --profileId starwars/character-information --providerName swapi -j
+  $ superface check --profileId starwars/character-information --providerName swapi -s 3
+  $ superface check --profileId starwars/character-information --providerName swapi -q
 ```
 
 _See code: [src/commands/check.ts](https://github.com/superfaceai/cli/tree/main/src/commands/check.ts)_

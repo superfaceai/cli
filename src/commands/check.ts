@@ -14,7 +14,7 @@ export default class Check extends Command {
   static strict = false;
 
   static description =
-    'Checks if specified capability is correctly set up in super.json and has profile and map with corresponding version, scope, name, use case definitions and provider';
+    'Checks if specified capability is correctly set up in super.json, has profile and map with corresponding version, scope, name, use case definitions and provider';
 
   static args = [];
 
@@ -42,10 +42,10 @@ export default class Check extends Command {
   };
 
   static examples = [
-    '$ station check --profileId starwars/character-information --providerName swapi',
-    '$ station check --profileId starwars/character-information --providerName swapi -j',
-    '$ station check --profileId starwars/character-information --providerName swapi -s 3',
-    '$ station check --profileId starwars/character-information --providerName swapi -q',
+    '$ superface check --profileId starwars/character-information --providerName swapi',
+    '$ superface check --profileId starwars/character-information --providerName swapi -j',
+    '$ superface check --profileId starwars/character-information --providerName swapi -s 3',
+    '$ superface check --profileId starwars/character-information --providerName swapi -q',
   ];
 
   private logCallback? = (message: string) => this.log(grey(message));
