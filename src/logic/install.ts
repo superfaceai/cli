@@ -1,9 +1,12 @@
 import { ProfileDocumentNode } from '@superfaceai/ast';
 import { SuperJson } from '@superfaceai/one-sdk';
-import { join as joinPath, normalize, relative as relativePath, basename } from 'path';
 import createDebug from 'debug';
-
-const installDebug = createDebug('superface:install');
+import {
+  basename,
+  join as joinPath,
+  normalize,
+  relative as relativePath,
+} from 'path';
 
 import {
   composeVersion,
@@ -12,8 +15,8 @@ import {
   parseProfileDocument,
   SUPER_PATH,
   SUPERFACE_DIR,
-  UNCOMPILED_SDK_FILE,
   trimExtension,
+  UNCOMPILED_SDK_FILE,
 } from '../common/document';
 import {
   fetchProfile,
@@ -32,6 +35,8 @@ import {
   generateTypingsForProfile,
   transpileFiles,
 } from './generate';
+
+const installDebug = createDebug('superface:install');
 
 /**
  * Detects the existence of a `super.json` file in specified number of levels
@@ -80,22 +85,24 @@ export type LocalRequest = {
   path: string;
 };
 type LocalRequestRead = LocalRequest & {
-  profileId: ProfileId,
+  profileId: ProfileId;
   profileAst: ProfileDocumentNode;
 };
 type LocalRequestChecked = LocalRequestRead;
 
 type StoreRequestVersionKnown = {
   kind: 'store';
-  profileId: ProfileId,
+  profileId: ProfileId;
   version: string;
 };
 type StoreRequestVersionUnknown = {
   kind: 'store';
-  profileId: ProfileId,
+  profileId: ProfileId;
   version: undefined;
 };
-export type StoreRequest = StoreRequestVersionKnown | StoreRequestVersionUnknown;
+export type StoreRequest =
+  | StoreRequestVersionKnown
+  | StoreRequestVersionUnknown;
 
 type StoreRequestChecked = StoreRequestVersionKnown & {
   sourcePath: string;
@@ -232,9 +239,7 @@ async function readLocalRequest(
     const profileSource = await readFile(request.path, { encoding: 'utf-8' });
 
     // TODO: this should be extracted from the file header or not needed at all
-    const profileIdStr = trimExtension(
-      basename(request.path)
-    );
+    const profileIdStr = trimExtension(basename(request.path));
     const profileId = ProfileId.fromId(profileIdStr);
 
     const profileAst = await Parser.parseProfile(profileSource, request.path, {
@@ -245,7 +250,10 @@ async function readLocalRequest(
     return {
       ...request,
       // make sure to take the id from the ast
-      profileId: ProfileId.fromScopeName(profileAst.header.scope, profileAst.header.name),
+      profileId: ProfileId.fromScopeName(
+        profileAst.header.scope,
+        profileAst.header.name
+      ),
       profileAst,
     };
   } catch (err) {
@@ -258,7 +266,7 @@ async function readLocalRequest(
 
 /**
  * Checks local request that has been read against super.json.
- * 
+ *
  * Warns when the profile has already been installed from the same path.
  * Requires force flag to overwrite an existing installed profile.
  */
@@ -275,7 +283,7 @@ async function checkLocalRequestRead(
   if ('file' in profileSettings) {
     if (relativePath(profileSettings.file, request.path) === '') {
       options?.warnCb?.(
-        `Profile ${request.profileId} already installed from the same path: "${request.path}". Skipping.`
+        `Profile ${request.profileId.id} already installed from the same path: "${request.path}". Skipping.`
       );
 
       return undefined;
@@ -284,7 +292,7 @@ async function checkLocalRequestRead(
 
   if (options?.force !== true) {
     options?.warnCb?.(
-      `Profile ${request.profileId} already installed from a different path: "${request.path}". Pass \`--force\` to override.`
+      `Profile ${request.profileId.id} already installed from a different path: "${request.path}". Pass \`--force\` to override.`
     );
 
     return undefined;
@@ -295,10 +303,10 @@ async function checkLocalRequestRead(
 
 /**
  * Checks store request against super.json.
- * 
+ *
  * If the save path cannot be deduced at this point the check is deferred until the fetch happens.
  * The save path cannot be deduced if no version was provided to the install command.
- * 
+ *
  * If the save path can be deduced because version was provided or if super.json specifies a file then require force flag to override.
  */
 async function checkStoreRequest(
@@ -327,7 +335,7 @@ async function checkStoreRequest(
   if (request.version === undefined) {
     return {
       ...request,
-      version: undefined
+      version: undefined,
     };
   }
 
@@ -337,15 +345,18 @@ async function checkStoreRequest(
       options?.warnCb?.(
         `Profile ${request.profileId.id} already installed from a path: "${profileSettings.file}". Pass \`--force\` to override.`
       );
-      
+
       return undefined;
     }
 
-    if ('version' in profileSettings && request.version !== profileSettings.version) {
+    if (
+      'version' in profileSettings &&
+      request.version !== profileSettings.version
+    ) {
       options?.warnCb?.(
         `Profile ${request.profileId.id} already installed with version: ${profileSettings.version}. Pass \`--force\` to override.`
       );
-      
+
       return undefined;
     }
   }
@@ -370,7 +381,7 @@ async function checkStoreRequest(
   // if we've gotten this far then either we aren't overwriting anything or the force flag is present
   return {
     ...request,
-    sourcePath
+    sourcePath,
   };
 }
 
@@ -437,7 +448,7 @@ async function fetchStoreRequestCheckedOrDeferred(
       superJson,
       {
         ...request,
-        version: fetched.info.profile_version
+        version: fetched.info.profile_version,
       },
       options
     );
@@ -451,8 +462,12 @@ async function fetchStoreRequestCheckedOrDeferred(
 
   // save the downloaded data
   try {
-    await OutputStream.writeOnce(request.sourcePath, fetched.profile, { dirs: true });
-    options?.logCb?.(formatShellLog("echo '<profile>' >", [request.sourcePath]));
+    await OutputStream.writeOnce(request.sourcePath, fetched.profile, {
+      dirs: true,
+    });
+    options?.logCb?.(
+      formatShellLog("echo '<profile>' >", [request.sourcePath])
+    );
   } catch (err) {
     options?.warnCb?.(
       // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
@@ -465,7 +480,7 @@ async function fetchStoreRequestCheckedOrDeferred(
   // cache the profile
   await Parser.parseProfile(fetched.profile, request.profileId.id, {
     profileName: request.profileId.name,
-    scope: request.profileId.scope
+    scope: request.profileId.scope,
   });
 
   return {
@@ -484,9 +499,7 @@ export async function getExistingProfileIds(
   options?: {
     warnCb?: LogCallback;
   }
-): Promise<
-  { profileId: ProfileId; version: string; }[]
-> {
+): Promise<{ profileId: ProfileId; version: string }[]> {
   return Promise.all(
     Object.entries(superJson.normalized.profiles).map(
       async ([profileIdStr, profileSettings]) => {
@@ -495,7 +508,7 @@ export async function getExistingProfileIds(
         if ('version' in profileSettings) {
           return {
             profileId,
-            version: profileSettings.version
+            version: profileSettings.version,
           };
         }
 
@@ -508,11 +521,11 @@ export async function getExistingProfileIds(
 
             return {
               profileId: ProfileId.fromScopeName(header.scope, header.name),
-              version: composeVersion(header.version)
+              version: composeVersion(header.version),
             };
           } catch (err) {
             options?.warnCb?.(
-              `No version for profile ${profileId} was found, returning default version 1.0.0`
+              `No version for profile ${profileId.id} was found, returning default version 1.0.0`
             );
           }
         }
@@ -520,7 +533,7 @@ export async function getExistingProfileIds(
         // default
         return {
           profileId,
-          version: '1.0.0'
+          version: '1.0.0',
         };
       }
     )
@@ -562,7 +575,7 @@ export async function installProfiles(parameters: {
       ({ profileId, version }) => ({
         kind: 'store',
         profileId,
-        version
+        version,
       })
     );
   }

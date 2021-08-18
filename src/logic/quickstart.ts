@@ -43,7 +43,10 @@ export async function interactiveInstall(
 ): Promise<void> {
   const [profileIdStr, version] = profileArg.split('@');
   const profilePathParts = profileIdStr.split('/');
-  const profileId = ProfileId.fromScopeName(profilePathParts[0], profilePathParts[profilePathParts.length - 1]);
+  const profileId = ProfileId.fromScopeName(
+    profilePathParts[0],
+    profilePathParts[profilePathParts.length - 1]
+  );
 
   if (!isValidDocumentName(profileId.name)) {
     options?.warnCb?.(`Invalid profile name: ${profileId.name}`);
@@ -215,7 +218,7 @@ export async function interactiveInstall(
   if (profileUsecases.length > 1) {
     const useCaseResponse: { useCase: string } = await inquirer.prompt({
       name: 'useCase',
-      message: `Installed profile "${profileId}" has more than one use case.\nSelect one you want to configure:`,
+      message: `Installed profile "${profileId.id}" has more than one use case.\nSelect one you want to configure:`,
       type: 'list',
       choices: profileUsecases.map(usecase => usecase.name),
     });

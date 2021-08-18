@@ -186,7 +186,7 @@ export default class Install extends Command {
         requests.push({
           kind: 'store',
           profileId,
-          version
+          version,
         });
       }
     } else {

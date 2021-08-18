@@ -197,7 +197,7 @@ export async function installProvider(parameters: {
   //Check profile existance
   if (!superJson.normalized.profiles[parameters.profileId.id]) {
     throw userError(
-      `❌ profile ${parameters.profileId} not found in ${parameters.superPath}. Forgot to install?`,
+      `❌ profile ${parameters.profileId.id} not found in ${parameters.superPath}. Forgot to install?`,
       1
     );
   }

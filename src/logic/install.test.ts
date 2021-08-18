@@ -226,7 +226,7 @@ describe('Install CLI logic', () => {
       published_at: '2021-01-29T08:10:50.925Z',
       published_by: '',
     };
-    
+
     afterEach(() => {
       jest.resetAllMocks();
     });
@@ -310,15 +310,13 @@ describe('Install CLI logic', () => {
         },
       });
 
-      const existsMock = mocked(exists).mockImplementation(
-        async (path) => {
-          if (path.includes('third')) {
-            return true;
-          } else {
-            return false;
-          }
+      const existsMock = mocked(exists).mockImplementation(async path => {
+        if (path.includes('third')) {
+          return true;
+        } else {
+          return false;
         }
-      );
+      });
       const fetchProfileInfoMock = mocked(fetchProfileInfo).mockImplementation(
         profileId => {
           if (profileId === 'none') {
@@ -353,15 +351,23 @@ describe('Install CLI logic', () => {
             {
               kind: 'store',
               profileId: ProfileId.fromId('first'),
-              version: '1.0.1'
+              version: '1.0.1',
             },
-            { kind: 'store', profileId: ProfileId.fromId('none'), version: undefined },
+            {
+              kind: 'store',
+              profileId: ProfileId.fromId('none'),
+              version: undefined,
+            },
             {
               kind: 'store',
               profileId: ProfileId.fromId('se/cond'),
-              version: '2.2.0'
+              version: '2.2.0',
             },
-            { kind: 'store', profileId: ProfileId.fromId('third'), version: undefined },
+            {
+              kind: 'store',
+              profileId: ProfileId.fromId('third'),
+              version: undefined,
+            },
           ],
           { warnCb: warnCbMock }
         )
@@ -408,20 +414,20 @@ describe('Install CLI logic', () => {
             file: 'first.supr',
           },
           'local/second': {
-            file: 'second.supr'
+            file: 'second.supr',
           },
           'local/third': {
-            file: 'third.supr'
+            file: 'third.supr',
           },
           'remote/first': {
-            version: '1.0.0'
+            version: '1.0.0',
           },
           'remote/second': {
-            version: '1.0.1'
+            version: '1.0.1',
           },
           'remote/third': {
-            version: '1.0.1'
-          }
+            version: '1.0.1',
+          },
         },
       });
 
@@ -443,44 +449,39 @@ describe('Install CLI logic', () => {
       });
       jest
         .spyOn(Parser, 'parseProfile')
-        .mockImplementation(
-          (
-            _input: string,
-            fileName: string
-          ) => {
-            let scope;
-            let name;
-            let version;
+        .mockImplementation((_input: string, fileName: string) => {
+          let scope;
+          let name;
+          let version;
 
-            if (fileName === 'local-second.supr') {
-              scope = 'local';
-              name = 'second';
-              version = { major: 1, minor: 1, patch: 0 };
-            } else if (fileName === 'local-third.supr') {
-              scope = 'local';
-              name = 'third';
-              version = { major: 1, minor: 1, patch: 0 };
-            } else if (fileName === 'remote-third.supr') {
-              scope = 'remote';
-              name = 'third';
-              version = { major: 1, minor: 1, patch: 0 };
-            } else {
-              return Promise.resolve(undefined) as any;
-            }
-
-            return Promise.resolve({
-              kind: 'ProfileDocument',
-              header: {
-                kind: 'ProfileHeader',
-                scope,
-                name,
-                version
-              },
-              definitions: [],
-            });
+          if (fileName === 'local-second.supr') {
+            scope = 'local';
+            name = 'second';
+            version = { major: 1, minor: 1, patch: 0 };
+          } else if (fileName === 'local-third.supr') {
+            scope = 'local';
+            name = 'third';
+            version = { major: 1, minor: 1, patch: 0 };
+          } else if (fileName === 'remote-third.supr') {
+            scope = 'remote';
+            name = 'third';
+            version = { major: 1, minor: 1, patch: 0 };
+          } else {
+            name = '';
+            version = { major: 0, minor: 0, patch: 0 };
           }
-        )
-      ;
+
+          return Promise.resolve({
+            kind: 'ProfileDocument',
+            header: {
+              kind: 'ProfileHeader',
+              scope,
+              name,
+              version,
+            },
+            definitions: [],
+          });
+        });
 
       await expect(
         resolveInstallationRequests(
@@ -489,15 +490,15 @@ describe('Install CLI logic', () => {
             {
               kind: 'store',
               profileId: ProfileId.fromId('local/first'),
-              version: '1.0.1'
+              version: '1.0.1',
             },
             {
               kind: 'local',
-              path: 'local-second.supr'
+              path: 'local-second.supr',
             },
             {
               kind: 'local',
-              path: 'local-third.supr'
+              path: 'local-third.supr',
             },
 
             {
@@ -512,7 +513,7 @@ describe('Install CLI logic', () => {
             },
             {
               kind: 'local',
-              path: 'remote-third.supr'
+              path: 'remote-third.supr',
             },
           ],
           { warnCb: console.log, force: true }
@@ -522,22 +523,22 @@ describe('Install CLI logic', () => {
       expect(stubSuperJson.document).toEqual({
         profiles: {
           'local/first': {
-            version: '1.0.1'
+            version: '1.0.1',
           },
           'local/second': {
-            file: 'local-second.supr'
+            file: 'local-second.supr',
           },
           'local/third': {
-            file: 'local-third.supr'
+            file: 'local-third.supr',
           },
           'remote/first': {
-            version: '1.0.1'
+            version: '1.0.1',
           },
           'remote/second': {
-            version: '1.0.1'
+            version: '1.0.1',
           },
           'remote/third': {
-            file: 'remote-third.supr'
+            file: 'remote-third.supr',
           },
         },
       });
@@ -553,7 +554,7 @@ describe('Install CLI logic', () => {
       await expect(getExistingProfileIds(stubSuperJson)).resolves.toEqual([
         {
           profileId: ProfileId.fromId(profileId),
-          version: '1.0.1'
+          version: '1.0.1',
         },
       ]);
     });
@@ -578,7 +579,7 @@ describe('Install CLI logic', () => {
       await expect(getExistingProfileIds(stubSuperJson)).resolves.toEqual([
         {
           profileId: ProfileId.fromScopeName('scope', 'test'),
-          version: '1.0.0'
+          version: '1.0.0',
         },
       ]);
     });
@@ -651,8 +652,11 @@ describe('Install CLI logic', () => {
             requests: [
               {
                 kind: 'store',
-                profileId: ProfileId.fromScopeName('starwars', 'character-information'),
-                version: undefined
+                profileId: ProfileId.fromScopeName(
+                  'starwars',
+                  'character-information'
+                ),
+                version: undefined,
               },
             ],
           })

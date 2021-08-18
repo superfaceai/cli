@@ -7,7 +7,7 @@ import { ProfileId } from '../common/profile';
 
 export async function profileExists(
   superJson: SuperJson,
-  profile: { id: ProfileId, version?: string }
+  profile: { id: ProfileId; version?: string }
 ): Promise<boolean> {
   //Check source file
   //Look for specific version
@@ -21,7 +21,9 @@ export async function profileExists(
     }
   } else {
     //Look for any version
-    const scopePath = superJson.resolvePath(joinPath('grid', profile.id.scope ?? ''));
+    const scopePath = superJson.resolvePath(
+      joinPath('grid', profile.id.scope ?? '')
+    );
 
     if (await exists(scopePath)) {
       //Get files in profile directory
@@ -42,8 +44,7 @@ export async function profileExists(
   }
 
   //Check file property
-  const profileSettings =
-    superJson.normalized.profiles[`${profile.id.id}`];
+  const profileSettings = superJson.normalized.profiles[`${profile.id.id}`];
   if (profileSettings !== undefined && 'file' in profileSettings) {
     if (await exists(superJson.resolvePath(profileSettings.file))) {
       return true;

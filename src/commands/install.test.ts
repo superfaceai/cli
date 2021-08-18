@@ -1,8 +1,8 @@
 import { CLIError } from '@oclif/errors';
 import { SuperJson } from '@superfaceai/one-sdk';
 import { mocked } from 'ts-jest/utils';
-import { ProfileId } from '../common/profile';
 
+import { ProfileId } from '../common/profile';
 import { installProvider } from '../logic/configure';
 import { initSuperface } from '../logic/init';
 import { detectSuperJson, installProfiles } from '../logic/install';
@@ -64,7 +64,10 @@ describe('Install CLI command', () => {
         requests: [
           {
             kind: 'store',
-            profileId: ProfileId.fromScopeName('starwars', 'character-information')
+            profileId: ProfileId.fromScopeName(
+              'starwars',
+              'character-information'
+            ),
           },
         ],
         options: {
@@ -86,7 +89,10 @@ describe('Install CLI command', () => {
         requests: [
           {
             kind: 'store',
-            profileId: ProfileId.fromScopeName('starwars', 'character-information')
+            profileId: ProfileId.fromScopeName(
+              'starwars',
+              'character-information'
+            ),
           },
         ],
         options: {
@@ -108,7 +114,10 @@ describe('Install CLI command', () => {
         requests: [
           {
             kind: 'store',
-            profileId: ProfileId.fromScopeName('starwars', 'character-information')
+            profileId: ProfileId.fromScopeName(
+              'starwars',
+              'character-information'
+            ),
           },
         ],
         options: {
@@ -148,7 +157,7 @@ describe('Install CLI command', () => {
       mocked(detectSuperJson).mockResolvedValue('.');
       const profileName = 'characterInformation';
 
-      await expect(Install.run([profileName])).rejects.toThrow()
+      await expect(Install.run([profileName])).rejects.toThrow();
       expect(installProfiles).not.toHaveBeenCalled();
     }, 10000);
 
@@ -156,7 +165,7 @@ describe('Install CLI command', () => {
       mocked(detectSuperJson).mockResolvedValue('.');
       const profileName = 'starwars/characterInformation';
 
-      await expect(Install.run([profileName])).rejects.toThrow()
+      await expect(Install.run([profileName])).rejects.toThrow();
       expect(installProfiles).not.toHaveBeenCalled();
     }, 10000);
 
@@ -209,7 +218,10 @@ describe('Install CLI command', () => {
         requests: [
           {
             kind: 'store',
-            profileId: ProfileId.fromScopeName('starwars', 'character-information')
+            profileId: ProfileId.fromScopeName(
+              'starwars',
+              'character-information'
+            ),
           },
         ],
         options: {
@@ -263,7 +275,10 @@ describe('Install CLI command', () => {
         requests: [
           {
             kind: 'store',
-            profileId: ProfileId.fromScopeName('starwars', 'character-information')
+            profileId: ProfileId.fromScopeName(
+              'starwars',
+              'character-information'
+            ),
           },
         ],
         options: {
