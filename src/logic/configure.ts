@@ -21,6 +21,7 @@ import { fetchProviderInfo } from '../common/http';
 import { readFile, readFileQuiet } from '../common/io';
 import { formatShellLog, LogCallback } from '../common/log';
 import { OutputStream } from '../common/output-stream';
+import { ProfileId } from '../common/profile';
 import { prepareEnvVariables } from '../templates/env';
 
 export async function updateEnv(
@@ -61,7 +62,7 @@ export async function updateEnv(
  */
 export function handleProviderResponse(
   superJson: SuperJson,
-  profileId: string,
+  profileId: ProfileId,
   response: ProviderJson,
   defaults?: ProfileProviderDefaults,
   options?: {
@@ -135,7 +136,7 @@ export function handleProviderResponse(
       };
     }
   }
-  superJson.addProfileProvider(profileId, response.name, settings);
+  superJson.addProfileProvider(profileId.id, response.name, settings);
 
   return security.length;
 }
@@ -170,7 +171,7 @@ export async function getProviderFromStore(
 export async function installProvider(parameters: {
   superPath: string;
   provider: string;
-  profileId: string;
+  profileId: ProfileId;
   defaults?: ProfileProviderDefaults;
   options?: {
     logCb?: LogCallback;
@@ -192,11 +193,9 @@ export async function installProvider(parameters: {
       return new SuperJson({});
     }
   );
-  //Check if there is a version inside profile id
-  parameters.profileId = parameters.profileId.split('@')[0];
 
   //Check profile existance
-  if (!superJson.normalized.profiles[parameters.profileId]) {
+  if (!superJson.normalized.profiles[parameters.profileId.id]) {
     throw userError(
       `❌ profile ${parameters.profileId} not found in ${parameters.superPath}. Forgot to install?`,
       1
