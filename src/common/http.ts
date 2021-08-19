@@ -1,4 +1,4 @@
-import { ProfileDocumentNode } from '@superfaceai/ast';
+import { MapDocumentNode, ProfileDocumentNode } from '@superfaceai/ast';
 import {
   parseProviderJson,
   ProviderJson,
@@ -11,7 +11,7 @@ import {
 } from '@superfaceai/service-client';
 
 import { SF_API_URL_VARIABLE, VERSION } from '..';
-import { SF_PRODUCTION } from './document';
+import { DEFAULT_PROFILE_VERSION_STR, SF_PRODUCTION } from './document';
 import { userError } from './error';
 
 export interface ProfileInfo {
@@ -31,8 +31,10 @@ export interface GetProfileResponse {
 
 export enum ContentType {
   JSON = 'application/json',
-  PROFILE = 'application/vnd.superface.profile',
-  AST = 'application/vnd.superface.profile+json',
+  PROFILE_SOURCE = 'application/vnd.superface.profile',
+  PROFILE_AST = 'application/vnd.superface.profile+json',
+  MAP_SOURCE = 'application/vnd.superface.map',
+  MAP_AST = 'application/vnd.superface.map+json',
 }
 
 export class SuperfaceClient {
@@ -112,7 +114,7 @@ export async function fetchProfile(profileId: string): Promise<string> {
     method: 'GET',
     headers: {
       ...commonHeaders(),
-      Accept: ContentType.PROFILE,
+      Accept: ContentType.PROFILE_SOURCE,
     },
   });
 
@@ -130,7 +132,7 @@ export async function fetchProfileAST(
     method: 'GET',
     headers: {
       ...commonHeaders(),
-      Accept: ContentType.AST,
+      Accept: ContentType.PROFILE_AST,
     },
   });
 
@@ -163,4 +165,34 @@ function commonHeaders(): Record<string, string> {
   return {
     'User-Agent': `superface cli/${VERSION} (${process.platform}-${process.arch}) ${process.release.name}-${process.version} (with @superfaceai/one-sdk@${SDK_VERSION}, @superfaceai/parser@${PARSER_VERSION})`,
   };
+}
+
+//HACK: we don' have service client in this branch so we are making request directly. Use service-client in the future
+export async function fetchMapAST(
+  profile: string,
+  provider: string,
+  scope?: string,
+  version?: string,
+  variant?: string
+): Promise<MapDocumentNode> {
+  const path = variant
+    ? `/${scope ? `${scope}/` : ''}${profile}.${provider}.${variant}@${
+        version ? version : DEFAULT_PROFILE_VERSION_STR
+      }`
+    : `/${scope ? `${scope}/` : ''}${profile}.${provider}@${
+        version ? version : DEFAULT_PROFILE_VERSION_STR
+      }`;
+  const response = await SuperfaceClient.getClient().fetch(path, {
+    //TODO: enable auth
+    authenticate: false,
+    method: 'GET',
+    headers: {
+      ...commonHeaders(),
+      Accept: ContentType.MAP_AST,
+    },
+  });
+
+  await checkSuperfaceResponse(response);
+
+  return (await response.json()) as MapDocumentNode;
 }

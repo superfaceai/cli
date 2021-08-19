@@ -17,10 +17,11 @@ import {
   fetchProfileInfo,
   ProfileInfo,
 } from '../common/http';
-import { exists, isAccessible } from '../common/io';
+import { exists, isAccessible, readFile } from '../common/io';
 import { formatShellLog, LogCallback } from '../common/log';
 import { OutputStream } from '../common/output-stream';
-import { pathParentLevel, replaceExt } from '../common/path';
+import { Parser } from '../common/parser';
+import { pathParentLevel } from '../common/path';
 import { arrayFilterUndefined } from '../common/util';
 import {
   generateTypesFile,
@@ -85,7 +86,13 @@ type InstallOptions = {
   force?: boolean;
 };
 
-export type LocalRequest = {
+type RequestBase = {
+  profileName: string;
+  scope?: string;
+  version?: string;
+};
+
+export type LocalRequest = RequestBase & {
   kind: 'local';
   path: string;
 };
@@ -95,14 +102,14 @@ type LocalRequestRead = LocalRequest & {
 };
 type LocalRequestChecked = LocalRequestRead;
 
-export type StoreRequest = {
+export type StoreRequest = RequestBase & {
   kind: 'store';
   profileId: string;
   version?: string;
 };
 type StoreRequestChecked = StoreRequest & {
   sourcePath: string;
-  astPath: string;
+  // astPath: string;
   pathOutsideGrid: boolean;
 };
 type StoreRequestDeferredCheck = StoreRequest & { version: undefined } & {
@@ -238,7 +245,11 @@ async function readLocalRequest(
   options?: InstallOptions
 ): Promise<LocalRequestRead | undefined> {
   try {
-    const profileAst = await parseProfileDocument(request.path);
+    const profileSource = await readFile(request.path, { encoding: 'utf-8' });
+    const profileAst = await Parser.parseProfile(profileSource, request.path, {
+      profileName: request.profileName,
+      scope: request.scope,
+    });
 
     return {
       ...request,
@@ -290,13 +301,13 @@ async function checkStoreRequestGridPathHelper(
   profileId: string,
   version: string,
   options?: InstallOptions
-): Promise<{ sourcePath: string; astPath: string } | undefined> {
+): Promise<{ sourcePath: string } | undefined> {
   const path = joinPath(
     'grid',
     `${profileId}@${version}${EXTENSIONS.profile.source}`
   );
   const sourcePath = superJson.resolvePath(path);
-  const astPath = replaceExt(sourcePath, EXTENSIONS.profile.build);
+  // const astPath = replaceExt(sourcePath, EXTENSIONS.profile.build);
 
   if (options?.force !== true && (await exists(sourcePath))) {
     options?.warnCb?.(
@@ -306,7 +317,7 @@ async function checkStoreRequestGridPathHelper(
     return undefined;
   }
 
-  return { sourcePath, astPath };
+  return { sourcePath };
 }
 
 /**
@@ -324,7 +335,8 @@ async function checkStoreRequest(
   // super.json specifies `file`
   if (profileSettings !== undefined && 'file' in profileSettings) {
     const sourcePath = superJson.resolvePath(profileSettings.file);
-    const astPath = replaceExt(sourcePath, EXTENSIONS.profile.build);
+    //TODO: remove or point to .cahce
+    // const astPath = replaceExt(sourcePath, EXTENSIONS.profile.build);
 
     if (pathParentLevel(sourcePath) > INSTALL_LOCAL_PATH_PARENT_LIMIT) {
       options?.warnCb?.(
@@ -343,11 +355,12 @@ async function checkStoreRequest(
     }
 
     return {
+      ...request,
       kind: 'store',
       profileId: request.profileId,
       version: request.version,
       sourcePath,
-      astPath,
+      // astPath,
       pathOutsideGrid: true,
     };
   }
@@ -355,6 +368,7 @@ async function checkStoreRequest(
   // check must be deferred
   if (request.version === undefined) {
     return {
+      ...request,
       kind: 'store',
       profileId: request.profileId,
       version: undefined,
@@ -374,12 +388,13 @@ async function checkStoreRequest(
   }
 
   return {
+    ...request,
     kind: 'store',
     profileId: request.profileId,
     version: request.version,
     pathOutsideGrid: false,
     sourcePath: paths.sourcePath,
-    astPath: paths.astPath,
+    // astPath: paths.astPath,
   };
 }
 
@@ -442,7 +457,7 @@ async function fetchStoreRequestCheckedOrDeferred(
 
   // run the deferred check, resolve paths
   let sourcePath;
-  let astPath;
+  // let astPath;
   if (!('sourcePath' in request)) {
     const paths = await checkStoreRequestGridPathHelper(
       superJson,
@@ -455,10 +470,8 @@ async function fetchStoreRequestCheckedOrDeferred(
     }
 
     sourcePath = paths.sourcePath;
-    astPath = paths.astPath;
   } else {
     sourcePath = request.sourcePath;
-    astPath = request.astPath;
   }
 
   // save the downloaded data
@@ -474,27 +487,17 @@ async function fetchStoreRequestCheckedOrDeferred(
     return undefined;
   }
 
-  try {
-    await OutputStream.writeOnce(
-      astPath,
-      JSON.stringify(fetched.ast, undefined, 2)
-    );
-    options?.logCb?.(formatShellLog("echo '<compiled profile>' >", [astPath]));
-  } catch (err) {
-    options?.warnCb?.(
-      // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-      `Could not write built profile ${request.profileId}: ${err}`
-    );
-
-    return undefined;
-  }
+  await Parser.parseProfile(fetched.profile, request.profileId, {
+    profileName: request.profileName,
+    scope: request.scope,
+  });
 
   return {
+    ...request,
     kind: 'store',
     profileId: request.profileId,
     version: request.version,
     sourcePath,
-    astPath,
     pathOutsideGrid: request.pathOutsideGrid,
     info: fetched.info,
     profileSource: fetched.profile,
@@ -510,21 +513,36 @@ export async function getExistingProfileIds(
   options?: {
     warnCb?: LogCallback;
   }
-): Promise<{ profileId: string; version: string }[]> {
+): Promise<
+  { profileId: string; version: string; profileName: string; scope?: string }[]
+> {
   return Promise.all(
     Object.entries(superJson.normalized.profiles).map(
       async ([profileId, profileSettings]) => {
+        const profilePathParts = profileId.split('/');
+
         if ('version' in profileSettings) {
-          return { profileId, version: profileSettings.version };
+          return {
+            profileId,
+            version: profileSettings.version,
+            profileName: profilePathParts[profilePathParts.length - 1],
+            scope: profilePathParts[0],
+          };
         }
 
         if ('file' in profileSettings) {
           try {
+            //TODO: we could get ast here
             const { header } = await parseProfileDocument(
               superJson.resolvePath(profileSettings.file)
             );
 
-            return { profileId, version: composeVersion(header.version) };
+            return {
+              profileId,
+              version: composeVersion(header.version),
+              scope: header.scope,
+              profileName: header.name,
+            };
           } catch (err) {
             options?.warnCb?.(
               `No version for profile ${profileId} was found, returning default version 1.0.0`
@@ -533,7 +551,12 @@ export async function getExistingProfileIds(
         }
 
         // default
-        return { profileId, version: '1.0.0' };
+        return {
+          profileId,
+          version: '1.0.0',
+          profileName: profilePathParts[profilePathParts.length - 1],
+          scope: profilePathParts[0],
+        };
       }
     )
   );
@@ -571,7 +594,13 @@ export async function installProfiles(parameters: {
       parameters.options
     );
     parameters.requests = existingProfileIds.map<StoreRequest>(
-      ({ profileId, version }) => ({ kind: 'store', profileId, version })
+      ({ profileId, version, scope, profileName }) => ({
+        kind: 'store',
+        profileId,
+        version,
+        scope,
+        profileName,
+      })
     );
   }
 

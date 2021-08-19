@@ -23,16 +23,14 @@ import { exists, readFile } from '../common/io';
 import { LogCallback } from '../common/log';
 import { OutputStream } from '../common/output-stream';
 import { PackageManager } from '../common/package-manager';
+import { Parser } from '../common/parser';
 import { NORMALIZED_CWD_PATH } from '../common/path';
 import { envVariable } from '../templates/env';
+import { findLocalProfileSource } from './check.utils';
 import { installProvider } from './configure';
 import { initSuperface } from './init';
 import { detectSuperJson, installProfiles } from './install';
-import {
-  loadProfileAst,
-  profileExists,
-  providerExists,
-} from './quickstart.utils';
+import { profileExists, providerExists } from './quickstart.utils';
 
 export async function interactiveInstall(
   profileArg: string,
@@ -94,6 +92,8 @@ export async function interactiveInstall(
       superPath,
       requests: [
         {
+          profileName: profile,
+          scope: scope,
           kind: 'store',
           profileId,
           version: version,
@@ -191,14 +191,18 @@ export async function interactiveInstall(
   }
 
   //Get installed usecases
-  const profileAst = await loadProfileAst(superJson, {
-    profile,
+  const profileSource = await findLocalProfileSource(superJson, {
+    name: profile,
     scope,
     version,
   });
-  if (!profileAst) {
-    throw developerError('Profile AST not found after installation', 1);
+  if (!profileSource) {
+    throw developerError('Profile source not found after installation', 1);
   }
+  const profileAst = await Parser.parseProfile(profileSource, profileId, {
+    profileName: profile,
+    scope,
+  });
   const profileUsecases = getProfileUsecases(profileAst);
   //Check usecase
   if (profileUsecases.length === 0) {

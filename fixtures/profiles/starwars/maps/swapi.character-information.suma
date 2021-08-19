@@ -1,0 +1,33 @@
+profile = "starwars/character-information@1.0"
+provider = "swapi"
+
+map RetrieveCharacterInformation {
+  http GET "/people/" {
+    request {
+      query {
+        search = input.characterName
+      }
+    }
+
+    response 200 "application/json" {
+      return map error if (body.count === 0) {
+        message = "No character found"
+      }
+
+      entries = body.results.filter(result => result.name.toLowerCase() === input.characterName.toLowerCase())
+
+      return map error if (entries.length === 0) {
+        message = "Specified character name is incorrect, did you mean to enter one of following?"
+        characters = body.results.map(result => result.name)
+      }
+      
+      character = entries[0]
+
+      map result {
+        height = character.height
+        weight = character.mass
+        yearOfBirth = character.birth_year
+      }
+    }
+  }
+}

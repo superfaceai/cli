@@ -9,6 +9,7 @@ import { ServiceApiError, ServiceClient } from '@superfaceai/service-client';
 
 import {
   ContentType,
+  fetchMapAST,
   fetchProfile,
   fetchProfileAST,
   fetchProfileInfo,
@@ -18,6 +19,7 @@ import {
   // getStoreUrl,
 } from '../common/http';
 import { mockResponse } from '../test/utils';
+import { DEFAULT_PROFILE_VERSION_STR } from './document';
 
 describe('HTTP functions', () => {
   const profileId = 'starwars/character-information';
@@ -198,7 +200,7 @@ describe('HTTP functions', () => {
         authenticate: false,
         method: 'GET',
         headers: {
-          Accept: ContentType.PROFILE,
+          Accept: ContentType.PROFILE_SOURCE,
           'User-Agent': expect.any(String),
         },
       });
@@ -220,7 +222,7 @@ describe('HTTP functions', () => {
         authenticate: false,
         method: 'GET',
         headers: {
-          Accept: ContentType.PROFILE,
+          Accept: ContentType.PROFILE_SOURCE,
           'User-Agent': expect.any(String),
         },
       });
@@ -266,7 +268,7 @@ describe('HTTP functions', () => {
         authenticate: false,
         method: 'GET',
         headers: {
-          Accept: ContentType.AST,
+          Accept: ContentType.PROFILE_AST,
           'User-Agent': expect.any(String),
         },
       });
@@ -288,7 +290,7 @@ describe('HTTP functions', () => {
         authenticate: false,
         method: 'GET',
         headers: {
-          Accept: ContentType.AST,
+          Accept: ContentType.PROFILE_AST,
           'User-Agent': expect.any(String),
         },
       });
@@ -325,7 +327,7 @@ describe('HTTP functions', () => {
       ],
       defaultService: 'test-service',
     };
-    it('calls superagent correctly', async () => {
+    it('calls superface client correctly', async () => {
       const provider = 'mailchimp';
       const fetchSpy = jest
         .spyOn(ServiceClient.prototype, 'fetch')
@@ -372,6 +374,119 @@ describe('HTTP functions', () => {
           'Content-Type': ContentType.JSON,
         },
       });
+    }, 10000);
+  });
+
+  describe('when fetching map ast', () => {
+    const profileName = 'character-information';
+    const scope = 'starwars';
+    const provider = 'swapi';
+    const version = '1.0.2';
+    const variant = 'test';
+
+    //mock map ast
+    const mockMapDocument = {
+      kind: 'MapDocument',
+      header: {
+        kind: 'MapHeader',
+        profile: {
+          name: 'different-test-profile',
+          scope: 'some-map-scope',
+          version: {
+            major: 1,
+            minor: 0,
+            patch: 0,
+          },
+        },
+        provider: 'test-profile',
+      },
+      definitions: [],
+    };
+
+    it('calls superface client correctly', async () => {
+      const fetchSpy = jest
+        .spyOn(ServiceClient.prototype, 'fetch')
+        .mockResolvedValue(mockResponse(200, 'OK', undefined, mockMapDocument));
+
+      await expect(fetchMapAST(profileName, provider)).resolves.toEqual(
+        mockMapDocument
+      );
+      expect(fetchSpy).toHaveBeenCalledTimes(1);
+      expect(fetchSpy).toHaveBeenCalledWith(
+        `/${profileName}.${provider}@${DEFAULT_PROFILE_VERSION_STR}`,
+        {
+          authenticate: false,
+          method: 'GET',
+          headers: {
+            Accept: ContentType.MAP_AST,
+            'User-Agent': expect.any(String),
+          },
+        }
+      );
+    }, 10000);
+
+    it('calls superface client correctly with scope,version and variant', async () => {
+      const mockMapDocument = {
+        kind: 'MapDocument',
+        header: {
+          kind: 'MapHeader',
+          profile: {
+            name: 'different-test-profile',
+            scope: 'some-map-scope',
+            version: {
+              major: 1,
+              minor: 0,
+              patch: 0,
+            },
+          },
+          provider: 'test-profile',
+        },
+        definitions: [],
+      };
+      const fetchSpy = jest
+        .spyOn(ServiceClient.prototype, 'fetch')
+        .mockResolvedValue(mockResponse(200, 'OK', undefined, mockMapDocument));
+
+      await expect(
+        fetchMapAST(profileName, provider, scope, version, variant)
+      ).resolves.toEqual(mockMapDocument);
+      expect(fetchSpy).toHaveBeenCalledTimes(1);
+      expect(fetchSpy).toHaveBeenCalledWith(
+        `/${scope}/${profileName}.${provider}.${variant}@${version}`,
+        {
+          authenticate: false,
+          method: 'GET',
+          headers: {
+            Accept: ContentType.MAP_AST,
+            'User-Agent': expect.any(String),
+          },
+        }
+      );
+    }, 10000);
+
+    it('throws error when request fails', async () => {
+      const fetchSpy = jest
+        .spyOn(ServiceClient.prototype, 'fetch')
+        .mockResolvedValue(
+          mockResponse(404, 'Not Found', undefined, { detail: 'Not Found' })
+        );
+
+      await expect(
+        fetchMapAST(profileName, provider, scope, version)
+      ).rejects.toEqual(new CLIError('Not Found'));
+
+      expect(fetchSpy).toHaveBeenCalledTimes(1);
+      expect(fetchSpy).toHaveBeenCalledWith(
+        `/${scope}/${profileName}.${provider}@${version}`,
+        {
+          authenticate: false,
+          method: 'GET',
+          headers: {
+            Accept: ContentType.MAP_AST,
+            'User-Agent': expect.any(String),
+          },
+        }
+      );
     }, 10000);
   });
 });
