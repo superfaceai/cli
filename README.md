@@ -308,9 +308,10 @@ OPTIONS
   --providerName=providerName  (required) Name of provider. This argument is used to publish map or provider
 
 EXAMPLES
-  $ station publish capabilities/vcs/user-repos/maps/bitbucket.suma -f
-  $ station publish capabilities/vcs/user-repos/maps/bitbucket.suma -q
-  $ station publish capabilities/vcs/user-repos/maps/bitbucket.suma --dry-run
+  $ superface publish map --profileId starwars/characeter-information --providerName swapi -s 4
+  $ superface publish profile --profileId starwars/characeter-information --providerName swapi -f
+  $ superface publish provider --profileId starwars/characeter-information --providerName swapi -q
+  $ superface publish profile --profileId starwars/characeter-information --providerName swapi --dry-run
 ```
 
 _See code: [src/commands/publish.ts](https://github.com/superfaceai/cli/tree/main/src/commands/publish.ts)_

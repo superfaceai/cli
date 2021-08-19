@@ -57,9 +57,10 @@ export default class Publish extends Command {
   };
 
   static examples = [
-    '$ station publish capabilities/vcs/user-repos/maps/bitbucket.suma -f',
-    '$ station publish capabilities/vcs/user-repos/maps/bitbucket.suma -q',
-    '$ station publish capabilities/vcs/user-repos/maps/bitbucket.suma --dry-run',
+    '$ superface publish map --profileId starwars/characeter-information --providerName swapi -s 4',
+    '$ superface publish profile --profileId starwars/characeter-information --providerName swapi -f',
+    '$ superface publish provider --profileId starwars/characeter-information --providerName swapi -q',
+    '$ superface publish profile --profileId starwars/characeter-information --providerName swapi --dry-run',
   ];
 
   private logCallback? = (message: string) => this.log(grey(message));
@@ -99,6 +100,13 @@ export default class Publish extends Command {
       throw userError(`Invalid provider name: "${flags.providerName}"`, 1);
     }
 
+    if (flags.scan && (typeof flags.scan !== 'number' || flags.scan > 5)) {
+      throw userError(
+        '--scan/-s : Number of levels to scan cannot be higher than 5',
+        1
+      );
+    }
+
     //Load super json
     const superPath = await detectSuperJson(process.cwd(), flags.scan);
     if (!superPath) {
@@ -117,7 +125,7 @@ export default class Publish extends Command {
     const profileSettings = superJson.normalized.profiles[flags.profileId];
     if (!profileSettings) {
       throw userError(
-        `Unable to publish, profile ${flags.profileId} not found in super.json`,
+        `Unable to publish, profile: "${flags.profileId}" not found in super.json`,
         1
       );
     }
@@ -125,7 +133,7 @@ export default class Publish extends Command {
       profileSettings.providers[flags.providerName];
     if (!profileProviderSettings) {
       throw userError(
-        `Unable to publish, provider: "${flags.providerName}" not found in profile ${flags.profileId} in super.json`,
+        `Unable to publish, provider: "${flags.providerName}" not found in profile: "${flags.profileId}" in super.json`,
         1
       );
     }
