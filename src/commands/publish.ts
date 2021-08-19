@@ -198,9 +198,17 @@ export default class Publish extends Command {
     // });
     //TODO: Test
 
-    await publish(path, {
-      logCb: this.logCallback,
-      dryRun: flags['dry-run'],
-    });
+    await publish(
+      path,
+      {
+        profileName: parsedProfileId.value.middle[0],
+        scope: parsedProfileId.value.scope,
+        providerName: flags.providerName,
+      },
+      {
+        logCb: this.logCallback,
+        dryRun: flags['dry-run'],
+      }
+    );
   }
 }

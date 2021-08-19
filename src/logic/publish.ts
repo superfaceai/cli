@@ -1,15 +1,20 @@
 import { isMapDocumentNode, isProfileDocumentNode } from '@superfaceai/ast';
 import { isProviderJson } from '@superfaceai/one-sdk';
-import { parseMap, parseProfile, Source } from '@superfaceai/parser';
 
 import { EXTENSIONS } from '../common';
 import { userError } from '../common/error';
 import { SuperfaceClient } from '../common/http';
 import { exists, readFile } from '../common/io';
 import { LogCallback } from '../common/log';
+import { Parser } from '../common/parser';
 
 export async function publish(
   path: string,
+  info: {
+    profileName: string;
+    scope?: string;
+    providerName: string;
+  },
   // baseUrl: string,
   options?: {
     logCb?: LogCallback;
@@ -51,7 +56,11 @@ export async function publish(
     }
   } else if (path.endsWith(EXTENSIONS.profile.source)) {
     //TODO: use sdk parser to cache ast
-    const parsedFile = parseProfile(new Source(file, path));
+    const parsedFile = await Parser.parseProfile(
+      file,
+      `${info.scope ? `${info.scope}/` : ''}${info.profileName}`,
+      info
+    );
     //TODO: some better way of validation
     if (isProfileDocumentNode(parsedFile)) {
       options?.logCb?.(
@@ -65,7 +74,13 @@ export async function publish(
     }
   } else if (path.endsWith(EXTENSIONS.map.source)) {
     //TODO: use sdk parser to cache ast
-    const parsedFile = parseMap(new Source(file, path));
+    const parsedFile = await Parser.parseMap(
+      file,
+      `${info.scope ? `${info.scope}/` : ''}${info.profileName}.${
+        info.providerName
+      }`,
+      info
+    );
     //TODO: some better way of validation
     if (isMapDocumentNode(parsedFile)) {
       options?.logCb?.(

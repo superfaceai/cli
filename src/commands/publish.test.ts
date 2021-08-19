@@ -461,10 +461,18 @@ describe('Publish CLI command', () => {
 
       expect(promptSpy).toHaveBeenCalledTimes(1);
       expect(loadSpy).toHaveBeenCalled();
-      expect(publish).toHaveBeenCalledWith(mockProfilePath, {
-        logCb: expect.anything(),
-        dryRun: false,
-      });
+      expect(publish).toHaveBeenCalledWith(
+        mockProfilePath,
+        {
+          profileName: 'character-information',
+          providerName: 'swapi',
+          scope: 'starwars',
+        },
+        {
+          logCb: expect.anything(),
+          dryRun: false,
+        }
+      );
     });
 
     it('calls publish correctly when publishing map', async () => {
@@ -506,10 +514,18 @@ describe('Publish CLI command', () => {
 
       expect(promptSpy).toHaveBeenCalledTimes(1);
       expect(loadSpy).toHaveBeenCalled();
-      expect(publish).toHaveBeenCalledWith(mockMapPath, {
-        logCb: expect.anything(),
-        dryRun: false,
-      });
+      expect(publish).toHaveBeenCalledWith(
+        mockMapPath,
+        {
+          profileName: 'character-information',
+          providerName: 'swapi',
+          scope: 'starwars',
+        },
+        {
+          logCb: expect.anything(),
+          dryRun: false,
+        }
+      );
     });
 
     it('calls publish correctly when publishing provider', async () => {
@@ -551,10 +567,18 @@ describe('Publish CLI command', () => {
 
       expect(promptSpy).toHaveBeenCalledTimes(1);
       expect(loadSpy).toHaveBeenCalled();
-      expect(publish).toHaveBeenCalledWith(mockProviderPath, {
-        logCb: expect.anything(),
-        dryRun: false,
-      });
+      expect(publish).toHaveBeenCalledWith(
+        mockProviderPath,
+        {
+          profileName: 'character-information',
+          providerName: 'swapi',
+          scope: 'starwars',
+        },
+        {
+          logCb: expect.anything(),
+          dryRun: false,
+        }
+      );
       expect(detectSuperJson).toHaveBeenCalledWith(process.cwd(), 3);
     });
 
@@ -594,10 +618,18 @@ describe('Publish CLI command', () => {
 
       expect(promptSpy).not.toHaveBeenCalledTimes(1);
       expect(loadSpy).toHaveBeenCalled();
-      expect(publish).toHaveBeenCalledWith(mockMapPath, {
-        logCb: expect.anything(),
-        dryRun: false,
-      });
+      expect(publish).toHaveBeenCalledWith(
+        mockMapPath,
+        {
+          profileName: 'character-information',
+          providerName: 'swapi',
+          scope: 'starwars',
+        },
+        {
+          logCb: expect.anything(),
+          dryRun: false,
+        }
+      );
     });
 
     it('calls publish correctly when publishing provider with --dry-run flag', async () => {
@@ -638,10 +670,18 @@ describe('Publish CLI command', () => {
 
       expect(promptSpy).toHaveBeenCalledTimes(1);
       expect(loadSpy).toHaveBeenCalled();
-      expect(publish).toHaveBeenCalledWith(mockProviderPath, {
-        logCb: expect.anything(),
-        dryRun: true,
-      });
+      expect(publish).toHaveBeenCalledWith(
+        mockProviderPath,
+        {
+          profileName: 'character-information',
+          providerName: 'swapi',
+          scope: 'starwars',
+        },
+        {
+          logCb: expect.anything(),
+          dryRun: true,
+        }
+      );
     });
 
     it('calls publish correctly when publishing profile with --quiet flag', async () => {
@@ -680,10 +720,18 @@ describe('Publish CLI command', () => {
 
       expect(promptSpy).toHaveBeenCalledTimes(1);
       expect(loadSpy).toHaveBeenCalled();
-      expect(publish).toHaveBeenCalledWith(mockProfilePath, {
-        logCb: undefined,
-        dryRun: false,
-      });
+      expect(publish).toHaveBeenCalledWith(
+        mockProfilePath,
+        {
+          profileName: 'character-information',
+          providerName: 'swapi',
+          scope: 'starwars',
+        },
+        {
+          logCb: undefined,
+          dryRun: false,
+        }
+      );
     });
   });
 });

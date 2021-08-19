@@ -1,10 +1,10 @@
 import { CLIError } from '@oclif/errors';
 import { MapDocumentNode, ProfileDocumentNode } from '@superfaceai/ast';
-import { parseMap, parseProfile } from '@superfaceai/parser';
 import { ServiceClient } from '@superfaceai/service-client';
 import { mocked } from 'ts-jest/utils';
 
 import { exists, readFile } from '../common/io';
+import { Parser } from '../common/parser';
 import { publish } from './publish';
 
 //Mock service client
@@ -25,6 +25,10 @@ jest.mock('@superfaceai/parser', () => ({
 
 describe('Publish logic', () => {
   describe('when publishing', () => {
+    const mockProfileName = 'character-information';
+    const mockProviderName = 'swapi';
+    const mockScope = 'starwars';
+
     afterEach(() => {
       jest.resetAllMocks();
     });
@@ -45,15 +49,31 @@ describe('Publish logic', () => {
       };
       const mockPath = '/test/path.supr';
       const mockContent = 'profile content';
+
       mocked(exists).mockResolvedValue(true);
       mocked(readFile).mockResolvedValue(mockContent);
-      mocked(parseProfile).mockReturnValue(mockProfileDocument);
+      const parseSpy = jest
+        .spyOn(Parser, 'parseProfile')
+        .mockResolvedValue(mockProfileDocument);
+
       const createSpy = jest
         .spyOn(ServiceClient.prototype, 'createProfile')
         .mockResolvedValue(undefined);
-      await expect(publish(mockPath)).resolves.toBeUndefined();
+
+      const info = {
+        profileName: mockProfileName,
+        providerName: mockProviderName,
+        scope: mockScope,
+      };
+      await expect(publish(mockPath, info)).resolves.toBeUndefined();
 
       expect(createSpy).toHaveBeenCalledWith(mockContent);
+
+      expect(parseSpy).toHaveBeenCalledWith(
+        mockContent,
+        `${info.scope}/${info.profileName}`,
+        info
+      );
     });
 
     it('does not publish profile with --dry-run flag', async () => {
@@ -74,15 +94,27 @@ describe('Publish logic', () => {
       const mockContent = 'profile content';
       mocked(exists).mockResolvedValue(true);
       mocked(readFile).mockResolvedValue(mockContent);
-      mocked(parseProfile).mockReturnValue(mockProfileDocument);
+      const parseSpy = jest
+        .spyOn(Parser, 'parseProfile')
+        .mockResolvedValue(mockProfileDocument);
       const createSpy = jest
         .spyOn(ServiceClient.prototype, 'createProfile')
         .mockResolvedValue(undefined);
+      const info = {
+        profileName: mockProfileName,
+        providerName: mockProviderName,
+      };
+
       await expect(
-        publish(mockPath, { dryRun: true })
+        publish(mockPath, info, { dryRun: true })
       ).resolves.toBeUndefined();
 
       expect(createSpy).not.toHaveBeenCalled();
+      expect(parseSpy).toHaveBeenCalledWith(
+        mockContent,
+        info.profileName,
+        info
+      );
     });
 
     it('publishes map', async () => {
@@ -107,13 +139,26 @@ describe('Publish logic', () => {
       const mockContent = 'map content';
       mocked(exists).mockResolvedValue(true);
       mocked(readFile).mockResolvedValue(mockContent);
-      mocked(parseMap).mockReturnValue(mockMapDocument);
+      const parseSpy = jest
+        .spyOn(Parser, 'parseMap')
+        .mockResolvedValue(mockMapDocument);
       const createSpy = jest
         .spyOn(ServiceClient.prototype, 'createMap')
         .mockResolvedValue(undefined);
-      await expect(publish(mockPath)).resolves.toBeUndefined();
+      const info = {
+        profileName: mockProfileName,
+        providerName: mockProviderName,
+        scope: mockScope,
+      };
+
+      await expect(publish(mockPath, info)).resolves.toBeUndefined();
 
       expect(createSpy).toHaveBeenCalledWith(mockContent);
+      expect(parseSpy).toHaveBeenCalledWith(
+        mockContent,
+        `${info.scope}/${info.profileName}.${info.providerName}`,
+        info
+      );
     });
 
     it('does not publish map with --dry-run flag', async () => {
@@ -138,15 +183,27 @@ describe('Publish logic', () => {
       const mockContent = 'map content';
       mocked(exists).mockResolvedValue(true);
       mocked(readFile).mockResolvedValue(mockContent);
-      mocked(parseMap).mockReturnValue(mockMapDocument);
+      const parseSpy = jest
+        .spyOn(Parser, 'parseMap')
+        .mockResolvedValue(mockMapDocument);
       const createSpy = jest
         .spyOn(ServiceClient.prototype, 'createMap')
         .mockResolvedValue(undefined);
+      const info = {
+        profileName: mockProfileName,
+        providerName: mockProviderName,
+      };
+
       await expect(
-        publish(mockPath, { dryRun: true })
+        publish(mockPath, info, { dryRun: true })
       ).resolves.toBeUndefined();
 
       expect(createSpy).not.toHaveBeenCalled();
+      expect(parseSpy).toHaveBeenCalledWith(
+        mockContent,
+        `${info.profileName}.${info.providerName}`,
+        info
+      );
     });
 
     it('publishes provider', async () => {
@@ -166,7 +223,13 @@ describe('Publish logic', () => {
       const createSpy = jest
         .spyOn(ServiceClient.prototype, 'createProvider')
         .mockResolvedValue(undefined);
-      await expect(publish(mockPath)).resolves.toBeUndefined();
+      await expect(
+        publish(mockPath, {
+          profileName: mockProfileName,
+          providerName: mockProviderName,
+          scope: mockScope,
+        })
+      ).resolves.toBeUndefined();
 
       expect(createSpy).toHaveBeenCalledWith(mockContent);
     });
@@ -189,7 +252,15 @@ describe('Publish logic', () => {
         .spyOn(ServiceClient.prototype, 'createProvider')
         .mockResolvedValue(undefined);
       await expect(
-        publish(mockPath, { dryRun: true })
+        publish(
+          mockPath,
+          {
+            profileName: mockProfileName,
+            providerName: mockProviderName,
+            scope: mockScope,
+          },
+          { dryRun: true }
+        )
       ).resolves.toBeUndefined();
 
       expect(createSpy).not.toHaveBeenCalled();
@@ -198,19 +269,35 @@ describe('Publish logic', () => {
     it('throws when path does not exist', async () => {
       const mockPath = '/test/path.suma';
       mocked(exists).mockResolvedValue(false);
-      await expect(publish(mockPath)).rejects.toEqual(
-        new CLIError('Path does not exist')
-      );
+      await expect(
+        publish(mockPath, {
+          profileName: mockProfileName,
+          providerName: mockProviderName,
+          scope: mockScope,
+        })
+      ).rejects.toEqual(new CLIError('Path does not exist'));
     });
 
     it('throws when path has ast.json extension', async () => {
       mocked(exists).mockResolvedValue(true);
-      await expect(publish('/test/test.suma.ast.json')).rejects.toEqual(
+      await expect(
+        publish('/test/test.suma.ast.json', {
+          profileName: mockProfileName,
+          providerName: mockProviderName,
+          scope: mockScope,
+        })
+      ).rejects.toEqual(
         new CLIError(
           'Please use a .supr or .suma file instead of .ast.json compiled file'
         )
       );
-      await expect(publish('/test/test.supr.ast.json')).rejects.toEqual(
+      await expect(
+        publish('/test/test.supr.ast.json', {
+          profileName: mockProfileName,
+          providerName: mockProviderName,
+          scope: mockScope,
+        })
+      ).rejects.toEqual(
         new CLIError(
           'Please use a .supr or .suma file instead of .ast.json compiled file'
         )
@@ -222,9 +309,13 @@ describe('Publish logic', () => {
       const moskPath = '/test/path.stp';
       mocked(exists).mockResolvedValue(true);
       mocked(readFile).mockResolvedValue(mockContent);
-      await expect(publish(moskPath)).rejects.toEqual(
-        new CLIError('Unknown file extension')
-      );
+      await expect(
+        publish(moskPath, {
+          profileName: mockProfileName,
+          providerName: mockProviderName,
+          scope: mockScope,
+        })
+      ).rejects.toEqual(new CLIError('Unknown file extension'));
     });
 
     it('throws when loaded file has not provider json structure', async () => {
@@ -232,7 +323,13 @@ describe('Publish logic', () => {
       const moskPath = '/test/path.json';
       mocked(exists).mockResolvedValue(true);
       mocked(readFile).mockResolvedValue(mockContent);
-      await expect(publish(moskPath)).rejects.toEqual(
+      await expect(
+        publish(moskPath, {
+          profileName: mockProfileName,
+          providerName: mockProviderName,
+          scope: mockScope,
+        })
+      ).rejects.toEqual(
         new CLIError('File does not have provider json structure')
       );
     });
@@ -256,11 +353,22 @@ describe('Publish logic', () => {
       const moskPath = '/test/path.supr';
       mocked(exists).mockResolvedValue(true);
       mocked(readFile).mockResolvedValue(mockContent);
-      mocked(parseProfile).mockReturnValue(
-        mockProfileDocument as ProfileDocumentNode
-      );
-      await expect(publish(moskPath)).rejects.toEqual(
+      const parseSpy = jest
+        .spyOn(Parser, 'parseProfile')
+        .mockResolvedValue(mockProfileDocument as ProfileDocumentNode);
+      const info = {
+        profileName: mockProfileName,
+        providerName: mockProviderName,
+        scope: mockScope,
+      };
+
+      await expect(publish(moskPath, info)).rejects.toEqual(
         new CLIError('Unknown profile file structure')
+      );
+      expect(parseSpy).toHaveBeenCalledWith(
+        mockContent,
+        `${info.scope}/${info.profileName}`,
+        info
       );
     });
 
@@ -286,9 +394,21 @@ describe('Publish logic', () => {
       const moskPath = '/test/path.suma';
       mocked(exists).mockResolvedValue(true);
       mocked(readFile).mockResolvedValue(mockContent);
-      mocked(parseMap).mockReturnValue(mockMapDocument as MapDocumentNode);
-      await expect(publish(moskPath)).rejects.toEqual(
+      const parseSpy = jest
+        .spyOn(Parser, 'parseMap')
+        .mockResolvedValue(mockMapDocument as MapDocumentNode);
+      const info = {
+        profileName: mockProfileName,
+        providerName: mockProviderName,
+        scope: mockScope,
+      };
+      await expect(publish(moskPath, info)).rejects.toEqual(
         new CLIError('Unknown map file structure')
+      );
+      expect(parseSpy).toHaveBeenCalledWith(
+        mockContent,
+        `${info.scope}/${info.profileName}.${info.providerName}`,
+        info
       );
     });
   });
