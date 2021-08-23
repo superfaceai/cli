@@ -15,6 +15,7 @@ import { userError } from '../common/error';
 import { fetchMapAST, fetchProfileAST } from '../common/http';
 import { LogCallback } from '../common/log';
 import { Parser } from '../common/parser';
+import { ProfileId } from '../common/profile';
 import { ProfileMapReport } from '../common/report.interfaces';
 import { checkMapAndProfile, CheckResult } from './check';
 import { findLocalMapSource, findLocalProfileSource } from './check.utils';
@@ -75,11 +76,8 @@ export function prePublishLint(
  */
 export async function loadProfile(
   superJson: SuperJson,
-  profile: {
-    name: string;
-    scope?: string;
-    version?: string;
-  },
+  profile: ProfileId,
+  version?: string,
   options?: {
     logCb?: LogCallback;
   }
@@ -90,7 +88,7 @@ export async function loadProfile(
 
   const profileId = `${profile.scope ? `${profile.scope}/` : ''}${
     profile.name
-  }${profile.version ? `@${profile.version}` : ''}`;
+  }${version ? `@${version}` : ''}`;
 
   if (source) {
     ast = await Parser.parseProfile(source, profileId, {
@@ -111,15 +109,12 @@ export async function loadProfile(
  */
 export async function loadMap(
   superJson: SuperJson,
-  profile: {
-    name: string;
-    scope?: string;
-    version?: string;
-  },
+  profile: ProfileId,
   provider: string,
   map: {
     variant?: string;
   },
+  version?: string,
   options?: {
     logCb?: LogCallback;
   }
@@ -127,7 +122,7 @@ export async function loadMap(
   let ast: MapDocumentNode;
   const profileId = `${profile.scope ? `${profile.scope}/` : ''}${
     profile.name
-  }${profile.version ? `@${profile.version}` : ''}`;
+  }${version ? `@${version}` : ''}`;
 
   const source = await findLocalMapSource(superJson, profile, provider);
   if (source) {
@@ -148,7 +143,7 @@ export async function loadMap(
       profile.name,
       provider,
       profile.scope,
-      profile.version,
+      version,
       map.variant
     );
   }

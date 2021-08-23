@@ -4,11 +4,12 @@ import inquirer from 'inquirer';
 import { mocked } from 'ts-jest/utils';
 
 import { DEFAULT_PROFILE_VERSION_STR, EXTENSIONS } from '../common';
+import { ProfileId } from '../common/profile';
 import { detectSuperJson } from '../logic/install';
 import { publish } from '../logic/publish';
 import Publish from './publish';
 
-//Mock publish logix
+//Mock publish logic
 jest.mock('../logic/publish', () => ({
   publish: jest.fn(),
 }));
@@ -462,15 +463,18 @@ describe('Publish CLI command', () => {
       expect(promptSpy).toHaveBeenCalledTimes(1);
       expect(loadSpy).toHaveBeenCalled();
       expect(publish).toHaveBeenCalledWith(
-        mockProfilePath,
+        'profile',
+        mockSuperJson,
+        ProfileId.fromId(profileId),
+        provider,
         {
-          profileName: 'character-information',
-          providerName: 'swapi',
-          scope: 'starwars',
+          variant: undefined,
         },
+        DEFAULT_PROFILE_VERSION_STR,
         {
           logCb: expect.anything(),
           dryRun: false,
+          quiet: false,
         }
       );
     });
@@ -515,15 +519,18 @@ describe('Publish CLI command', () => {
       expect(promptSpy).toHaveBeenCalledTimes(1);
       expect(loadSpy).toHaveBeenCalled();
       expect(publish).toHaveBeenCalledWith(
-        mockMapPath,
+        'map',
+        mockSuperJson,
+        ProfileId.fromId(profileId),
+        provider,
         {
-          profileName: 'character-information',
-          providerName: 'swapi',
-          scope: 'starwars',
+          variant: undefined,
         },
+        DEFAULT_PROFILE_VERSION_STR,
         {
           logCb: expect.anything(),
           dryRun: false,
+          quiet: false,
         }
       );
     });
@@ -568,15 +575,18 @@ describe('Publish CLI command', () => {
       expect(promptSpy).toHaveBeenCalledTimes(1);
       expect(loadSpy).toHaveBeenCalled();
       expect(publish).toHaveBeenCalledWith(
-        mockProviderPath,
+        'provider',
+        mockSuperJson,
+        ProfileId.fromId(profileId),
+        provider,
         {
-          profileName: 'character-information',
-          providerName: 'swapi',
-          scope: 'starwars',
+          variant: undefined,
         },
+        DEFAULT_PROFILE_VERSION_STR,
         {
           logCb: expect.anything(),
           dryRun: false,
+          quiet: false,
         }
       );
       expect(detectSuperJson).toHaveBeenCalledWith(process.cwd(), 3);
@@ -619,15 +629,16 @@ describe('Publish CLI command', () => {
       expect(promptSpy).not.toHaveBeenCalledTimes(1);
       expect(loadSpy).toHaveBeenCalled();
       expect(publish).toHaveBeenCalledWith(
-        mockMapPath,
-        {
-          profileName: 'character-information',
-          providerName: 'swapi',
-          scope: 'starwars',
-        },
+        'map',
+        mockSuperJson,
+        ProfileId.fromId(profileId),
+        provider,
+        { variant: undefined },
+        DEFAULT_PROFILE_VERSION_STR,
         {
           logCb: expect.anything(),
           dryRun: false,
+          quiet: false,
         }
       );
     });
@@ -671,15 +682,18 @@ describe('Publish CLI command', () => {
       expect(promptSpy).toHaveBeenCalledTimes(1);
       expect(loadSpy).toHaveBeenCalled();
       expect(publish).toHaveBeenCalledWith(
-        mockProviderPath,
+        'provider',
+        mockSuperJson,
+        ProfileId.fromId(profileId),
+        provider,
         {
-          profileName: 'character-information',
-          providerName: 'swapi',
-          scope: 'starwars',
+          variant: undefined,
         },
+        DEFAULT_PROFILE_VERSION_STR,
         {
           logCb: expect.anything(),
           dryRun: true,
+          quiet: false,
         }
       );
     });
@@ -721,15 +735,18 @@ describe('Publish CLI command', () => {
       expect(promptSpy).toHaveBeenCalledTimes(1);
       expect(loadSpy).toHaveBeenCalled();
       expect(publish).toHaveBeenCalledWith(
-        mockProfilePath,
+        'profile',
+        mockSuperJson,
+        ProfileId.fromId(profileId),
+        provider,
         {
-          profileName: 'character-information',
-          providerName: 'swapi',
-          scope: 'starwars',
+          variant: undefined,
         },
+        DEFAULT_PROFILE_VERSION_STR,
         {
           logCb: undefined,
           dryRun: false,
+          quiet: true,
         }
       );
     });

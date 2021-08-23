@@ -4,6 +4,7 @@ import { yellow } from 'chalk';
 import { userError } from '../common/error';
 import { fetchProviderInfo, SuperfaceClient } from '../common/http';
 import { LogCallback } from '../common/log';
+import { ProfileId } from '../common/profile';
 import {
   formatHuman as checkFormatHuman,
   formatJson as checkFormatJson,
@@ -23,16 +24,12 @@ import {
 export async function publish(
   publishing: 'map' | 'profile' | 'provider',
   superJson: SuperJson,
-  //TODO: Use Eda's profile approach
-  profile: {
-    name: string;
-    scope?: string;
-    version?: string;
-  },
+  profile: ProfileId,
   provider: string,
   map: {
     variant?: string;
   },
+  version?: string,
   options?: {
     logCb?: LogCallback;
     dryRun?: boolean;
@@ -40,24 +37,26 @@ export async function publish(
     quiet?: boolean;
   }
 ): Promise<string | undefined> {
-  //TODO: Use Eda's profile approach
-  const profileId = `${profile.scope ? `${profile.scope}/` : ''}${
-    profile.name
-  }${profile.version ? `@${profile.version}` : ''}`;
-
   //Profile
-  const profileFiles = await loadProfile(superJson, profile, options);
+  const profileFiles = await loadProfile(superJson, profile, version, options);
   if (!profileFiles.source && publishing === 'profile') {
     throw userError(
-      `Profile: "${profileId}" not found on local file system`,
+      `Profile: "${profile.id}" not found on local file system`,
       1
     );
   }
   //Map
-  const mapFiles = await loadMap(superJson, profile, provider, map, options);
+  const mapFiles = await loadMap(
+    superJson,
+    profile,
+    provider,
+    map,
+    version,
+    options
+  );
   if (!mapFiles.source && publishing == 'map') {
     throw userError(
-      `Map for profile: "${profileId}" and provider: "${provider}" not found on local filesystem`,
+      `Map for profile: "${profile.id}" and provider: "${provider}" not found on local filesystem`,
       1
     );
   }

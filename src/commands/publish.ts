@@ -9,6 +9,7 @@ import { DEFAULT_PROFILE_VERSION_STR, EXTENSIONS, META_FILE } from '../common';
 import { Command } from '../common/command.abstract';
 import { userError } from '../common/error';
 import { getStoreUrl } from '../common/http';
+import { ProfileId } from '../common/profile';
 import { detectSuperJson } from '../logic/install';
 import { publish } from '../logic/publish';
 
@@ -199,14 +200,12 @@ export default class Publish extends Command {
         1
       );
     }
-    const profile = {
-      name: parsedProfileId.value.middle[0],
-      scope: parsedProfileId.value.scope,
-      version:
-        'version' in profileSettings
-          ? profileSettings.version
-          : DEFAULT_PROFILE_VERSION_STR,
-    };
+
+    const version =
+      'version' in profileSettings
+        ? profileSettings.version
+        : DEFAULT_PROFILE_VERSION_STR;
+
     const map = {
       variant:
         'mapVariant' in profileProviderSettings
@@ -217,9 +216,10 @@ export default class Publish extends Command {
     const result = await publish(
       documentType,
       superJson,
-      profile,
+      ProfileId.fromId(flags.profileId),
       flags.providerName,
       map,
+      version,
       {
         logCb: this.logCallback,
         dryRun: flags['dry-run'],
