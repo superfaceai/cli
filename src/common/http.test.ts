@@ -38,6 +38,29 @@ describe('HTTP functions', () => {
     jest.resetAllMocks();
   });
 
+  describe('when getting store url', () => {
+    const originalValue = process.env.SUPERFACE_API_URL;
+
+    afterAll(() => {
+      if (originalValue) {
+        process.env.SUPERFACE_API_URL = originalValue;
+      }
+    });
+    it('returns url from env with backslash', async () => {
+      process.env.SUPERFACE_API_URL = 'https://test/url.ai/';
+      expect(getStoreUrl()).toEqual('https://test/url.ai');
+    });
+    it('returns url from env without backslash', async () => {
+      process.env.SUPERFACE_API_URL = 'https://test/url.ai';
+      expect(getStoreUrl()).toEqual('https://test/url.ai');
+    });
+
+    it('returns default url', async () => {
+      delete process.env.SUPERFACE_API_URL;
+      expect(getStoreUrl()).toEqual('https://superface.ai');
+    });
+  });
+
   describe('when fetching data', () => {
     it('calls superagent correctly', async () => {
       mockInnerSet.mockResolvedValue({ body: 'test' });
@@ -361,7 +384,7 @@ describe('HTTP functions', () => {
       (jest.spyOn(superagent, 'get') as jest.Mock).mockReturnValue({
         set: mockSet,
       });
-      const mockUrl = new URL('mailchimp', `${getStoreUrl()}providers/`).href;
+      const mockUrl = new URL('mailchimp', `${getStoreUrl()}/providers/`).href;
 
       await expect(fetchProviderInfo('mailchimp')).resolves.toEqual(
         mockProviderJson

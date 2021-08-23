@@ -14,7 +14,11 @@ import {
 import superagent, { Response } from 'superagent';
 
 import { VERSION } from '..';
-import { DEFAULT_PROFILE_VERSION_STR } from './document';
+import {
+  DEFAULT_PROFILE_VERSION_STR,
+  SF_API_URL_VARIABLE,
+  SF_PRODUCTION,
+} from './document';
 import { userError } from './error';
 import { loadNetrc, saveNetrc } from './netrc';
 
@@ -73,9 +77,19 @@ export class SuperfaceClient {
   }
 }
 export function getStoreUrl(): string {
-  const envUrl = process.env.SUPERFACE_API_URL;
+  const envUrl = process.env[SF_API_URL_VARIABLE];
 
-  return envUrl ? new URL(envUrl).href : new URL('https://superface.ai/').href;
+  if (envUrl) {
+    const passedValue = new URL(envUrl).href;
+    //remove ending /
+    if (passedValue.endsWith('/')) {
+      return passedValue.substring(0, passedValue.length - 1);
+    }
+
+    return passedValue;
+  }
+
+  return SF_PRODUCTION;
 }
 //TODO: use service client
 export async function fetch(
@@ -106,7 +120,7 @@ export async function fetchProfiles(): Promise<
 }
 
 export async function fetchProviders(profile: string): Promise<ProviderJson[]> {
-  const query = new URL('providers', getStoreUrl()).href;
+  const query = new URL('/providers', getStoreUrl()).href;
 
   const response = await fetch(query, ContentType.JSON, { profile });
 
@@ -144,12 +158,12 @@ export async function fetchProfileAST(
 export async function fetchProviderInfo(
   providerName: string
 ): Promise<ProviderJson> {
-  const query = new URL(providerName, `${getStoreUrl()}providers/`).href;
+  const query = new URL(providerName, `${getStoreUrl()}/providers/`).href;
   const response = await fetch(query, ContentType.JSON);
 
   return parseProviderJson(response.body);
 }
-
+//TODO: use service-client function
 export async function initLogin(): Promise<InitLoginResponse> {
   const initLoginResponse = await SuperfaceClient.getClient().fetch(
     '/auth/cli',
@@ -166,11 +180,11 @@ export async function initLogin(): Promise<InitLoginResponse> {
   //TODO: where check expiresAt?
   return (await initLoginResponse.json()) as InitLoginResponse;
 }
-
-//TODO: check what actual return type is
+//TODO: use service-client function
 export async function fetchVerificationUrl(url: string): Promise<AuthToken> {
   const fetchAuth = async (retries = 3): Promise<AuthToken> => {
     try {
+      //FIX: url resolution, verify_url has its own baseUrl so we cant use ours - update service client?
       const authResponse = await SuperfaceClient.getClient().fetch(url, {
         method: 'GET',
         headers: { 'Content-Type': ContentType.JSON },

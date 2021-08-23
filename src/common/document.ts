@@ -40,6 +40,8 @@ export const EXTENSIONS = {
   },
 };
 
+export const SF_API_URL_VARIABLE = 'SUPERFACE_API_URL';
+export const SF_PRODUCTION = 'https://superface.ai';
 export const SUPERFACE_DIR = 'superface';
 export const META_FILE = 'super.json';
 export const UNCOMPILED_SDK_FILE = 'sdk.ts';

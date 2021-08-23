@@ -23,7 +23,7 @@ export async function login(options?: {
   if (!options?.force) {
     const prompt: { open: boolean } = await inquirer.prompt({
       name: 'open',
-      message: `Do you want to open browser with url: ${browserUrl}.`,
+      message: `Do you want to open browser with superface login page?`,
       type: 'confirm',
       default: true,
     });
@@ -48,9 +48,7 @@ export async function login(options?: {
   }
 
   //start polling verification url
-  const authToken = await fetchVerificationUrl(
-    new URL(initializeLogin.verify_url).href
-  );
+  const authToken = await fetchVerificationUrl(initializeLogin.verify_url);
   //Save credentials to client instance and netrc
   await SuperfaceClient.getClient().login(authToken);
 }
