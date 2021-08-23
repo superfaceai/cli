@@ -47,8 +47,9 @@ export function prePublishCheck(
         if ('path' in issue && 'message' in issue) {
           result.push({
             kind: 'error',
-            message: `Provider check error: ${(issue as { message: string }).message
-              } on path ${(issue as { path: string }).path}`,
+            message: `Provider check error: ${
+              (issue as { message: string }).message
+            } on path ${(issue as { path: string }).path}`,
           });
         }
       }
@@ -87,8 +88,9 @@ export async function loadProfile(
 
   const source = await findLocalProfileSource(superJson, profile);
 
-  const profileId = `${profile.scope ? `${profile.scope}/` : ''}${profile.name
-    }${profile.version ? `@${profile.version}` : ''}`;
+  const profileId = `${profile.scope ? `${profile.scope}/` : ''}${
+    profile.name
+  }${profile.version ? `@${profile.version}` : ''}`;
 
   if (source) {
     ast = await Parser.parseProfile(source, profileId, {
@@ -123,8 +125,9 @@ export async function loadMap(
   }
 ): Promise<{ ast: MapDocumentNode; source?: string }> {
   let ast: MapDocumentNode;
-  const profileId = `${profile.scope ? `${profile.scope}/` : ''}${profile.name
-    }${profile.version ? `@${profile.version}` : ''}`;
+  const profileId = `${profile.scope ? `${profile.scope}/` : ''}${
+    profile.name
+  }${profile.version ? `@${profile.version}` : ''}`;
 
   const source = await findLocalMapSource(superJson, profile, provider);
   if (source) {

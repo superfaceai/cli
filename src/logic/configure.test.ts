@@ -14,6 +14,7 @@ import { mocked } from 'ts-jest/utils';
 import { fetchProviderInfo } from '../common/http';
 import { readFile, readFileQuiet } from '../common/io';
 import { OutputStream } from '../common/output-stream';
+import { ProfileId } from '../common/profile';
 import {
   getProviderFromStore,
   handleProviderResponse,
@@ -124,7 +125,7 @@ describe('Configure CLI logic', () => {
   });
   describe('when handling provider response', () => {
     const mockSuperJson = new SuperJson();
-    const mockProfileId = 'testProfile';
+    const mockProfileId = ProfileId.fromId('test-profile');
     it('add providers to super json', async () => {
       const addProviderSpy = jest.spyOn(SuperJson.prototype, 'addProvider');
       const addProfileProviderSpy = jest.spyOn(
@@ -152,7 +153,7 @@ describe('Configure CLI logic', () => {
 
       expect(addProfileProviderSpy).toHaveBeenCalledTimes(1);
       expect(addProfileProviderSpy).toHaveBeenCalledWith(
-        mockProfileId,
+        mockProfileId.id,
         providerName,
         {}
       );
@@ -219,7 +220,7 @@ describe('Configure CLI logic', () => {
 
       expect(addProfileProviderSpy).toHaveBeenCalledTimes(1);
       expect(addProfileProviderSpy).toHaveBeenCalledWith(
-        mockProfileId,
+        mockProfileId.id,
         'provider-test',
         {}
       );
@@ -265,7 +266,7 @@ describe('Configure CLI logic', () => {
 
       expect(addProfileProviderSpy).toHaveBeenCalledTimes(1);
       expect(addProfileProviderSpy).toHaveBeenCalledWith(
-        mockProfileId,
+        mockProfileId.id,
         providerName,
         {}
       );
@@ -291,10 +292,10 @@ describe('Configure CLI logic', () => {
   });
 
   describe('when instaling provider', () => {
-    const mockProfileId = 'testProfile';
+    const mockProfileId = ProfileId.fromId('test-profile');
     const mockSuperJson = new SuperJson({
       profiles: {
-        [mockProfileId]: {
+        [mockProfileId.id]: {
           version: '1.0.0',
           defaults: {},
           providers: {},
@@ -308,7 +309,7 @@ describe('Configure CLI logic', () => {
       Object.assign(mockSuperJson, {
         normalized: {
           profiles: {
-            [mockProfileId]: {
+            [mockProfileId.id]: {
               version: '1.0.0',
               defaults: {},
               providers: {},
@@ -351,7 +352,7 @@ describe('Configure CLI logic', () => {
 
       expect(addProfileProviderSpy).toHaveBeenCalledTimes(1);
       expect(addProfileProviderSpy).toHaveBeenCalledWith(
-        mockProfileId,
+        mockProfileId.id,
         providerName,
         { defaults: { testUseCase: { retryPolicy: OnFail.CIRCUIT_BREAKER } } }
       );
@@ -378,7 +379,7 @@ describe('Configure CLI logic', () => {
       Object.assign(mockSuperJson, {
         normalized: {
           profiles: {
-            [mockProfileId]: {
+            [mockProfileId.id]: {
               version: '1.0.0',
               defaults: {},
               providers: {},
@@ -421,7 +422,7 @@ describe('Configure CLI logic', () => {
 
       expect(addProfileProviderSpy).toHaveBeenCalledTimes(1);
       expect(addProfileProviderSpy).toHaveBeenCalledWith(
-        mockProfileId,
+        mockProfileId.id,
         providerName,
         { defaults: { testUseCase: { retryPolicy: OnFail.CIRCUIT_BREAKER } } }
       );
@@ -452,7 +453,7 @@ describe('Configure CLI logic', () => {
       Object.assign(mockSuperJson, {
         normalized: {
           profiles: {
-            [mockProfileId]: {
+            [mockProfileId.id]: {
               version: '1.0.0',
               defaults: {},
               providers: {},
@@ -496,7 +497,7 @@ describe('Configure CLI logic', () => {
 
       expect(addProfileProviderSpy).toHaveBeenCalledTimes(1);
       expect(addProfileProviderSpy).toHaveBeenCalledWith(
-        mockProfileId,
+        mockProfileId.id,
         providerName,
         {}
       );
@@ -523,7 +524,7 @@ describe('Configure CLI logic', () => {
       Object.assign(mockSuperJson, {
         normalized: {
           profiles: {
-            [mockProfileId]: {
+            [mockProfileId.id]: {
               version: '1.0.0',
               defaults: {},
               providers: {},
@@ -567,7 +568,7 @@ describe('Configure CLI logic', () => {
 
       expect(addProfileProviderSpy).toHaveBeenCalledTimes(1);
       expect(addProfileProviderSpy).toHaveBeenCalledWith(
-        mockProfileId,
+        mockProfileId.id,
         providerName,
         {}
       );
@@ -594,7 +595,7 @@ describe('Configure CLI logic', () => {
       Object.assign(mockSuperJson, {
         normalized: {
           profiles: {
-            [mockProfileId]: {
+            [mockProfileId.id]: {
               version: '1.0.0',
               defaults: {},
               providers: {},
@@ -639,7 +640,7 @@ describe('Configure CLI logic', () => {
 
       expect(addProfileProviderSpy).toHaveBeenCalledTimes(1);
       expect(addProfileProviderSpy).toHaveBeenCalledWith(
-        mockProfileId,
+        mockProfileId.id,
         providerName,
         {}
       );
@@ -670,7 +671,7 @@ describe('Configure CLI logic', () => {
       Object.assign(mockSuperJson, {
         normalized: {
           profiles: {
-            [mockProfileId]: {
+            [mockProfileId.id]: {
               version: '1.0.0',
               defaults: {},
               providers: {},
@@ -722,7 +723,7 @@ describe('Configure CLI logic', () => {
         })
       ).rejects.toEqual(
         new CLIError(
-          `❌ profile ${mockProfileId} not found in some/path. Forgot to install?`
+          `❌ profile ${mockProfileId.id} not found in some/path. Forgot to install?`
         )
       );
 
@@ -737,7 +738,7 @@ describe('Configure CLI logic', () => {
       Object.assign(mockSuperJson, {
         normalized: {
           profiles: {
-            [mockProfileId]: {
+            [mockProfileId.id]: {
               version: '1.0.0',
               defaults: {},
               providers: {},
