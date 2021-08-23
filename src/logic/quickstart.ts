@@ -25,6 +25,7 @@ import { OutputStream } from '../common/output-stream';
 import { PackageManager } from '../common/package-manager';
 import { Parser } from '../common/parser';
 import { NORMALIZED_CWD_PATH } from '../common/path';
+import { ProfileId } from '../common/profile';
 import { envVariable } from '../templates/env';
 import { findLocalProfileSource } from './check.utils';
 import { installProvider } from './configure';
@@ -40,13 +41,15 @@ export async function interactiveInstall(
     successCb?: LogCallback;
   }
 ): Promise<void> {
-  const [profileId, version] = profileArg.split('@');
-  const profilePathParts = profileId.split('/');
-  const profile = profilePathParts[profilePathParts.length - 1];
-  const scope = profilePathParts[0];
+  const [profileIdStr, version] = profileArg.split('@');
+  const profilePathParts = profileIdStr.split('/');
+  const profileId = ProfileId.fromScopeName(
+    profilePathParts[0],
+    profilePathParts[profilePathParts.length - 1]
+  );
 
-  if (!isValidDocumentName(profile)) {
-    options?.warnCb?.(`Invalid profile name: ${profile}`);
+  if (!isValidDocumentName(profileId.name)) {
+    options?.warnCb?.(`Invalid profile name: ${profileId.name}`);
 
     return;
   }
@@ -78,10 +81,10 @@ export async function interactiveInstall(
 
   let installProfile = true;
   //Override existing profile
-  if (await profileExists(superJson, { profile, scope, version })) {
+  if (await profileExists(superJson, { id: profileId, version })) {
     if (
       !(await confirmPrompt(
-        `Profile "${scope}/${profile}" already exists.\nDo you want to override it?:`
+        `Profile "${profileId.id}" already exists.\nDo you want to override it?:`
       ))
     )
       installProfile = false;
@@ -92,8 +95,6 @@ export async function interactiveInstall(
       superPath,
       requests: [
         {
-          profileName: profile,
-          scope: scope,
           kind: 'store',
           profileId,
           version: version,
@@ -192,16 +193,16 @@ export async function interactiveInstall(
 
   //Get installed usecases
   const profileSource = await findLocalProfileSource(superJson, {
-    name: profile,
-    scope,
+    name: profileId.name,
+    scope: profileId.scope,
     version,
   });
   if (!profileSource) {
     throw developerError('Profile source not found after installation', 1);
   }
-  const profileAst = await Parser.parseProfile(profileSource, profileId, {
-    profileName: profile,
-    scope,
+  const profileAst = await Parser.parseProfile(profileSource, profileId.id, {
+    profileName: profileId.name,
+    scope: profileId.scope,
   });
   const profileUsecases = getProfileUsecases(profileAst);
   //Check usecase
@@ -217,7 +218,7 @@ export async function interactiveInstall(
   if (profileUsecases.length > 1) {
     const useCaseResponse: { useCase: string } = await inquirer.prompt({
       name: 'useCase',
-      message: `Installed profile "${profileId}" has more than one use case.\nSelect one you want to configure:`,
+      message: `Installed profile "${profileId.id}" has more than one use case.\nSelect one you want to configure:`,
       type: 'list',
       choices: profileUsecases.map(usecase => usecase.name),
     });
@@ -242,7 +243,7 @@ export async function interactiveInstall(
       )
     ) {
       //Add provider failover
-      superJson.addProfileDefaults(profileId, {
+      superJson.addProfileDefaults(profileId.id, {
         [selectedUseCase]: { providerFailover: true },
       });
       await OutputStream.writeOnce(superJson.path, superJson.stringified, {
@@ -414,7 +415,7 @@ export async function interactiveInstall(
   //Lead to docs page
   options?.successCb?.(
     `\nNow you can follow our documentation to use installed capability: "${
-      new URL(profileId, getStoreUrl()).href
+      new URL(profileId.id, getStoreUrl()).href
     }"`
   );
 }

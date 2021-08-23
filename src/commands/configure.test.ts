@@ -4,6 +4,7 @@ import { SuperJson } from '@superfaceai/one-sdk';
 import { mocked } from 'ts-jest/utils';
 
 import { exists } from '../common/io';
+import { ProfileId } from '../common/profile';
 import { installProvider } from '../logic/configure';
 import { initSuperface } from '../logic/init';
 import { detectSuperJson } from '../logic/install';
@@ -42,7 +43,7 @@ describe('Configure CLI command', () => {
   describe('when running configure command', () => {
     const provider = 'twilio';
     const superPath = 'some/path';
-    const profileId = 'sms';
+    const profileId = ProfileId.fromId('sms');
 
     it('does not configure on invalid provider name', async () => {
       mocked(isValidDocumentName).mockReturnValue(false);
@@ -81,7 +82,7 @@ describe('Configure CLI command', () => {
       mocked(detectSuperJson).mockResolvedValue(superPath);
 
       await expect(
-        Configure.run([provider, '-p', profileId])
+        Configure.run([provider, '-p', profileId.id])
       ).resolves.toBeUndefined();
 
       expect(detectSuperJson).toHaveBeenCalledTimes(1);
@@ -108,7 +109,7 @@ describe('Configure CLI command', () => {
       mocked(detectSuperJson).mockResolvedValue(superPath);
 
       await expect(
-        Configure.run([provider, '-p', profileId, '--no-env'])
+        Configure.run([provider, '-p', profileId.id, '--no-env'])
       ).resolves.toBeUndefined();
 
       expect(detectSuperJson).toHaveBeenCalledTimes(1);
@@ -136,7 +137,7 @@ describe('Configure CLI command', () => {
       mocked(initSuperface).mockResolvedValue(new SuperJson());
 
       await expect(
-        Configure.run([provider, '-p', profileId, '-q'])
+        Configure.run([provider, '-p', profileId.id, '-q'])
       ).resolves.toBeUndefined();
 
       expect(detectSuperJson).toHaveBeenCalledTimes(1);

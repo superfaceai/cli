@@ -7,6 +7,7 @@ import { Command } from '../common/command.abstract';
 import { META_FILE, SUPERFACE_DIR } from '../common/document';
 import { userError } from '../common/error';
 import { exists } from '../common/io';
+import { ProfileId } from '../common/profile';
 import { installProvider } from '../logic/configure';
 import { initSuperface } from '../logic/init';
 import { detectSuperJson } from '../logic/install';
@@ -103,7 +104,7 @@ export default class Configure extends Command {
     await installProvider({
       superPath,
       provider: args.providerName as string,
-      profileId: flags.profile.trim(),
+      profileId: ProfileId.fromId(flags.profile.trim()),
       defaults: undefined,
       options: {
         logCb: this.logCallback,
