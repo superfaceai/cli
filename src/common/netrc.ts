@@ -1,20 +1,15 @@
 import { Netrc } from 'netrc-parser';
 
-//TODO: different key name?
-export const SUPERFACE_NETRC_HOST = 'api.superface.ai';
+import { getStoreUrl } from './http';
 
 export function loadNetrc(): {
-  baseUrl?: string;
+  baseUrl: string;
   refreshToken?: string;
 } {
   const netrc = new Netrc();
+  const baseUrl = getStoreUrl();
   netrc.loadSync();
-  const superfaceEntry = netrc.machines[SUPERFACE_NETRC_HOST] ?? {};
-
-  let baseUrl: string | undefined = undefined;
-  if ('baseUrl' in superfaceEntry) {
-    baseUrl = (superfaceEntry as { baseUrl: string }).baseUrl;
-  }
+  const superfaceEntry = netrc.machines[baseUrl] ?? {};
 
   return {
     baseUrl,
@@ -30,9 +25,9 @@ export async function saveNetrc(
   await netrc.load();
 
   //Remove old record
-  netrc.machines[SUPERFACE_NETRC_HOST] = {};
+  netrc.machines[baseUrl] = {};
 
-  netrc.machines[SUPERFACE_NETRC_HOST].password = refreshToken || undefined;
-  netrc.machines[SUPERFACE_NETRC_HOST].baseUrl = baseUrl;
+  netrc.machines[baseUrl].password = refreshToken || undefined;
+  netrc.machines[baseUrl].baseUrl = baseUrl;
   await netrc.save();
 }

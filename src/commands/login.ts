@@ -5,7 +5,6 @@ import { Netrc } from 'netrc-parser';
 import { Command } from '../common/command.abstract';
 import { userError } from '../common/error';
 import { getStoreUrl, SuperfaceClient } from '../common/http';
-import { saveNetrc, SUPERFACE_NETRC_HOST } from '../common/netrc';
 import { login } from '../logic/login';
 
 export default class Login extends Command {
@@ -45,22 +44,18 @@ export default class Login extends Command {
       }
     }, 1000 * 60 * 10).unref();
 
+    const storeUrl = getStoreUrl();
     if (process.env.SUPERFACE_REFRESH_TOKEN) {
-      this.warnCallback?.(`Using value from SUPERFACE_REFRESH_TOKEN`);
-      //TODO: login flow when there is SUPERFACE_REFRESH_TOKEN? Store it in netrc and left service-client to use it, what about baseUrl?
-      await saveNetrc(getStoreUrl(), process.env.SUPERFACE_REFRESH_TOKEN);
+      this.warnCallback?.(
+        `Using value from SUPERFACE_REFRESH_TOKEN environment variable`
+      );
     } else {
       const netrc = new Netrc();
       await netrc.load();
-      const previousEntry = netrc.machines[SUPERFACE_NETRC_HOST];
-
+      const previousEntry = netrc.machines[storeUrl];
       try {
         //check if already logged in and logout
-        if (
-          previousEntry &&
-          previousEntry.password &&
-          'baseUrl' in previousEntry
-        ) {
+        if (previousEntry && previousEntry.password) {
           //TODO: do not log out if logged in?
           this.logCallback?.('Already logged in, logging out');
           //logout from service client - make this part of CLI logout command
@@ -73,14 +68,11 @@ export default class Login extends Command {
       }
     }
 
-    const authToken = await login({
+    await login({
       logCb: this.logCallback,
       warnCb: this.warnCallback,
       force: flags.force,
     });
-
-    //save authToken to ServiceClient instance Or this is handled by service client or http functions?
-    await SuperfaceClient.getClient().login(authToken);
 
     loggedIn = true;
     this.successCallback?.('Logged in');

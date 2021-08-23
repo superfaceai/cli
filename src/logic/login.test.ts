@@ -1,14 +1,21 @@
-// import { exec } from 'child_process';
+import { ServiceClient } from '@superfaceai/service-client';
 import { ChildProcess } from 'child_process';
 import { EventEmitter } from 'events';
 import inquirer from 'inquirer';
 import * as open from 'open';
 import { mocked } from 'ts-jest/utils';
 
-import { fetchVerificationUrl, initLogin } from '../common/http';
+import {
+  fetchVerificationUrl,
+  initLogin,
+  SuperfaceClient,
+} from '../common/http';
 import { login } from './login';
 
+jest.mock('@superfaceai/service-client');
+
 jest.mock('../common/http', () => ({
+  ...jest.requireActual<Record<string, unknown>>('../common/http'),
   initLogin: jest.fn(),
   fetchVerificationUrl: jest.fn(),
 }));
@@ -57,15 +64,21 @@ describe('Login logic', () => {
         .mockResolvedValue(new MockChildProcess() as ChildProcess);
       mocked(fetchVerificationUrl).mockResolvedValue(mockVerifyResponse);
 
-      await expect(login({ logCb: stdout, warnCb: stderr })).resolves.toEqual(
-        mockVerifyResponse
-      );
+      const loginSpy = jest.spyOn(ServiceClient.prototype, 'login');
+      jest
+        .spyOn(SuperfaceClient, 'getClient')
+        .mockImplementation(() => new ServiceClient());
+
+      await expect(
+        login({ logCb: stdout, warnCb: stderr })
+      ).resolves.toBeUndefined();
 
       expect(initLogin).toHaveBeenCalledTimes(1);
       expect(fetchVerificationUrl).toHaveBeenCalledTimes(1);
       expect(fetchVerificationUrl).toHaveBeenCalledWith(
         mockInitResponse.verify_url
       );
+      expect(loginSpy).toHaveBeenCalledWith(mockVerifyResponse);
     });
   });
 });

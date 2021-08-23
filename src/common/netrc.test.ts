@@ -1,6 +1,13 @@
-import { loadNetrc, saveNetrc, SUPERFACE_NETRC_HOST } from './netrc';
+import { mocked } from 'ts-jest/utils';
+
+import { getStoreUrl } from './http';
+import { loadNetrc, saveNetrc } from './netrc';
+
+jest.mock('./http');
 
 const mockRefreshToken = 'RT';
+const mockBaseUrlWithExistingRecord = 'existing';
+const mockBaseUrlWithEmptyRecord = 'empty';
 const mockBaseUrl = 'superface.ai';
 
 const mockLoadSync = jest.fn();
@@ -15,10 +22,10 @@ jest.mock('netrc-parser', () => {
         save: mockSave,
         load: mockLoad,
         machines: {
-          [SUPERFACE_NETRC_HOST]: {
-            baseUrl: mockBaseUrl,
+          [mockBaseUrlWithExistingRecord]: {
             password: mockRefreshToken,
           },
+          [mockBaseUrlWithEmptyRecord]: {},
         },
       };
     }),
@@ -26,10 +33,28 @@ jest.mock('netrc-parser', () => {
 });
 describe('NetRc functions', () => {
   describe('when loading netrc record', () => {
-    it('calls netrc correctly', () => {
+    it('calls netrc correctly with existing record', () => {
+      mocked(getStoreUrl).mockReturnValue(mockBaseUrlWithExistingRecord);
+      expect(loadNetrc()).toEqual({
+        baseUrl: mockBaseUrlWithExistingRecord,
+        refreshToken: mockRefreshToken,
+      });
+      expect(mockLoadSync).toHaveBeenCalled();
+    });
+    it('calls netrc correctly with empty record', () => {
+      mocked(getStoreUrl).mockReturnValue(mockBaseUrlWithEmptyRecord);
+      expect(loadNetrc()).toEqual({
+        baseUrl: mockBaseUrlWithEmptyRecord,
+        refreshToken: undefined,
+      });
+      expect(mockLoadSync).toHaveBeenCalled();
+    });
+
+    it('calls netrc correctly with undefined record', () => {
+      mocked(getStoreUrl).mockReturnValue(mockBaseUrl);
       expect(loadNetrc()).toEqual({
         baseUrl: mockBaseUrl,
-        refreshToken: mockRefreshToken,
+        refreshToken: undefined,
       });
       expect(mockLoadSync).toHaveBeenCalled();
     });
@@ -40,6 +65,13 @@ describe('NetRc functions', () => {
       await expect(
         saveNetrc(mockBaseUrl, mockRefreshToken)
       ).resolves.toBeUndefined();
+
+      expect(mockLoad).toHaveBeenCalled();
+      expect(mockSave).toHaveBeenCalled();
+    });
+
+    it('calls netrc correctly with null refresh token', async () => {
+      await expect(saveNetrc(mockBaseUrl, null)).resolves.toBeUndefined();
 
       expect(mockLoad).toHaveBeenCalled();
       expect(mockSave).toHaveBeenCalled();

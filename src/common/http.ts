@@ -49,13 +49,20 @@ export class SuperfaceClient {
 
   public static getClient(): ServiceClient {
     if (!SuperfaceClient.serviceClient) {
-      const netrcRecord = loadNetrc();
-      SuperfaceClient.serviceClient = new ServiceClient({
-        //TODO: Left baseUrl resolution on service client if we dont find it in netrc?
-        baseUrl: netrcRecord.baseUrl || getStoreUrl(),
-        refreshToken: netrcRecord.refreshToken,
-        refreshTokenUpdatedHandler: saveNetrc,
-      });
+      //Use refresh token form env if found
+      if (process.env.SUPERFACE_REFRESH_TOKEN) {
+        SuperfaceClient.serviceClient = new ServiceClient({
+          refreshToken: process.env.SUPERFACE_REFRESH_TOKEN,
+          refreshTokenUpdatedHandler: saveNetrc,
+        });
+      } else {
+        const netrcRecord = loadNetrc();
+        SuperfaceClient.serviceClient = new ServiceClient({
+          baseUrl: netrcRecord.baseUrl,
+          refreshToken: netrcRecord.refreshToken,
+          refreshTokenUpdatedHandler: saveNetrc,
+        });
+      }
       //TODO: check refresh token validity or left it to actual fetch call
     }
 

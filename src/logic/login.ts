@@ -1,15 +1,18 @@
-import { AuthToken } from '@superfaceai/service-client';
 import inquirer from 'inquirer';
 import * as open from 'open';
 
-import { fetchVerificationUrl, initLogin } from '../common/http';
+import {
+  fetchVerificationUrl,
+  initLogin,
+  SuperfaceClient,
+} from '../common/http';
 import { LogCallback } from '../common/log';
 
 export async function login(options?: {
   logCb?: LogCallback;
   warnCb?: LogCallback;
   force?: boolean;
-}): Promise<AuthToken> {
+}): Promise<void> {
   //get verification url, browser url and expiresAt
   const initializeLogin = await initLogin();
 
@@ -45,5 +48,9 @@ export async function login(options?: {
   }
 
   //start polling verification url
-  return fetchVerificationUrl(new URL(initializeLogin.verify_url).href);
+  const authToken = await fetchVerificationUrl(
+    new URL(initializeLogin.verify_url).href
+  );
+  //Save credentials to client instance and netrc
+  await SuperfaceClient.getClient().login(authToken);
 }
