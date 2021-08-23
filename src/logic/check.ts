@@ -93,7 +93,6 @@ export async function check(
     options?.logCb?.(
       `Loading map for profile: "${profileId}" and provider: "${provider}" from Superface store`
     );
-    //TODO: use actual implementation
     mapAst = await fetchMapAST(
       profile.name,
       provider,

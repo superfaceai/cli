@@ -1,99 +1,151 @@
-import { isMapDocumentNode, isProfileDocumentNode } from '@superfaceai/ast';
-import { isProviderJson } from '@superfaceai/one-sdk';
+import { SuperJson } from '@superfaceai/one-sdk';
+import { yellow } from 'chalk';
 
-import { EXTENSIONS } from '../common';
 import { userError } from '../common/error';
-import { SuperfaceClient } from '../common/http';
-import { exists, readFile } from '../common/io';
+import { fetchProviderInfo, SuperfaceClient } from '../common/http';
 import { LogCallback } from '../common/log';
-import { Parser } from '../common/parser';
+import {
+  formatHuman as checkFormatHuman,
+  formatJson as checkFormatJson,
+} from './check';
+import { findLocalProviderSource } from './check.utils';
+import {
+  formatHuman as lintFormatHuman,
+  formatJson as lintFormatJson,
+} from './lint';
+import {
+  loadMap,
+  loadProfile,
+  prePublishCheck,
+  prePublishLint,
+} from './publish.utils';
 
 export async function publish(
-  path: string,
-  info: {
-    profileName: string;
+  publishing: 'map' | 'profile' | 'provider',
+  superJson: SuperJson,
+  //TODO: Use Eda's profile approach
+  profile: {
+    name: string;
     scope?: string;
-    providerName: string;
+    version?: string;
   },
-  // baseUrl: string,
+  provider: string,
+  map: {
+    variant?: string;
+  },
   options?: {
     logCb?: LogCallback;
     dryRun?: boolean;
+    json?: boolean;
+    quiet?: boolean;
   }
-): Promise<void> {
-  if (!(await exists(path))) {
-    throw userError('Path does not exist', 1);
-  }
-  //TODO: check if user is logged in
-  // if (!process.env.SUPERFACE_STORE_REFRESH_TOKEN) {
-  //   throw userError('Env variable SUPERFACE_STORE_REFRESH_TOKEN is missing', 1);
-  // }
-  if (
-    path.endsWith(EXTENSIONS.map.build) ||
-    path.endsWith(EXTENSIONS.profile.build)
-  ) {
+): Promise<string | undefined> {
+  //TODO: Use Eda's profile approach
+  const profileId = `${profile.scope ? `${profile.scope}/` : ''}${
+    profile.name
+  }${profile.version ? `@${profile.version}` : ''}`;
+
+  //Profile
+  const profileFiles = await loadProfile(superJson, profile, options);
+  if (!profileFiles.source && publishing === 'profile') {
     throw userError(
-      'Please use a .supr or .suma file instead of .ast.json compiled file',
+      `Profile: "${profileId}" not found on local file system`,
+      1
+    );
+  }
+  //Map
+  const mapFiles = await loadMap(superJson, profile, provider, map, options);
+  if (!mapFiles.source && publishing == 'map') {
+    throw userError(
+      `Map for profile: "${profileId}" and provider: "${provider}" not found on local filesystem`,
       1
     );
   }
 
-  const file = await readFile(path, { encoding: 'utf-8' });
+  //Provider
+  let providerJson;
+  const localProviderJson = await findLocalProviderSource(superJson, provider);
+  if (!localProviderJson && publishing === 'provider') {
+    throw userError(
+      `Provider: "${provider}" not found on local file system`,
+      1
+    );
+  }
+  if (localProviderJson) {
+    providerJson = localProviderJson;
+    options?.logCb?.(`Provider: "${provider}" found on local file system`);
+  } else {
+    options?.logCb?.(`Loading provider: "${provider}" from Superface store`);
+    providerJson = await fetchProviderInfo(provider);
+  }
+
+  //Check
+  const checkReport = prePublishCheck(
+    profileFiles.ast,
+    mapFiles.ast,
+    providerJson
+  );
+  //Lint
+  const lintReport = prePublishLint(profileFiles.ast, mapFiles.ast);
+
+  //TODO: do we want to be this strict?
+  if (
+    checkReport.length !== 0 ||
+    lintReport.errors.length !== 0 ||
+    lintReport.warnings.length !== 0
+  ) {
+    //Print reports
+    if (options?.json) {
+      return JSON.stringify({
+        check: {
+          reports: checkFormatJson(checkReport),
+          total: {
+            errors: checkReport.filter(result => result.kind === 'error')
+              .length,
+            warnings: checkReport.filter(result => result.kind === 'warn')
+              .length,
+          },
+        },
+        lint: {
+          reports: lintFormatJson(lintReport),
+          total: {
+            errors: lintReport.errors.length,
+            warnings: lintReport.warnings.length,
+          },
+        },
+      });
+    } else {
+      let reportStr = yellow('Check results:\n');
+      reportStr += checkFormatHuman(checkReport);
+      reportStr += yellow('\n\nLint results:\n');
+      reportStr += lintFormatHuman(lintReport, options?.quiet ?? false);
+
+      return reportStr;
+    }
+  }
+
   //TODO: check if user is logged in
   const client = SuperfaceClient.getClient();
 
-  if (path.endsWith(EXTENSIONS.provider)) {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const parsedFile = JSON.parse(file);
-    if (isProviderJson(parsedFile)) {
-      options?.logCb?.(`Publishing provider ${parsedFile.name} from: ${path}`);
-
-      if (!options?.dryRun) {
-        await client.createProvider(file);
-      }
-    } else {
-      throw userError('File does not have provider json structure', 1);
+  if (publishing === 'provider') {
+    options?.logCb?.(`Publishing provider ${provider}`);
+    if (!options?.dryRun) {
+      await client.createProvider(JSON.stringify(providerJson));
     }
-  } else if (path.endsWith(EXTENSIONS.profile.source)) {
-    //TODO: use sdk parser to cache ast
-    const parsedFile = await Parser.parseProfile(
-      file,
-      `${info.scope ? `${info.scope}/` : ''}${info.profileName}`,
-      info
+  } else if (publishing === 'profile' && profileFiles.source) {
+    options?.logCb?.(`Publishing profile "${profile.name}"`);
+    if (!options?.dryRun) {
+      await client.createProfile(profileFiles.source);
+    }
+  } else if (publishing === 'map' && mapFiles.source) {
+    options?.logCb?.(
+      `Publishing map for profile "${profile.name}" and provider "${provider}"`
     );
-    //TODO: some better way of validation
-    if (isProfileDocumentNode(parsedFile)) {
-      options?.logCb?.(
-        `Publishing profile "${parsedFile.header.name}" from: ${path}`
-      );
-      if (!options?.dryRun) {
-        await client.createProfile(file);
-      }
-    } else {
-      throw userError('Unknown profile file structure', 1);
-    }
-  } else if (path.endsWith(EXTENSIONS.map.source)) {
-    //TODO: use sdk parser to cache ast
-    const parsedFile = await Parser.parseMap(
-      file,
-      `${info.scope ? `${info.scope}/` : ''}${info.profileName}.${
-        info.providerName
-      }`,
-      info
-    );
-    //TODO: some better way of validation
-    if (isMapDocumentNode(parsedFile)) {
-      options?.logCb?.(
-        `Publishing map for profile "${parsedFile.header.profile.name}" and provider "${parsedFile.header.provider}" from: ${path}`
-      );
 
-      if (!options?.dryRun) {
-        await client.createMap(file);
-      }
-    } else {
-      throw userError('Unknown map file structure', 1);
+    if (!options?.dryRun) {
+      await client.createMap(mapFiles.source);
     }
-  } else {
-    throw userError('Unknown file extension', 1);
   }
+
+  return;
 }

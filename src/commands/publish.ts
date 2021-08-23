@@ -1,11 +1,11 @@
 import { flags } from '@oclif/command';
 import { isValidProviderName, SuperJson } from '@superfaceai/one-sdk';
 import { parseDocumentId } from '@superfaceai/parser';
-import { grey } from 'chalk';
+import { green, grey, yellow } from 'chalk';
 import inquirer from 'inquirer';
 import { join as joinPath } from 'path';
 
-import { META_FILE } from '../common';
+import { DEFAULT_PROFILE_VERSION_STR, EXTENSIONS, META_FILE } from '../common';
 import { Command } from '../common/command.abstract';
 import { userError } from '../common/error';
 import { getStoreUrl } from '../common/http';
@@ -54,6 +54,10 @@ export default class Publish extends Command {
         'When number provided, scan for super.json outside cwd within range represented by this number.',
       required: false,
     }),
+    json: flags.boolean({
+      char: 'j',
+      description: 'Formats result to JSON',
+    }),
   };
 
   static examples = [
@@ -64,8 +68,8 @@ export default class Publish extends Command {
   ];
 
   private logCallback? = (message: string) => this.log(grey(message));
-  // private warnCallback?= (message: string) => this.log(yellow(message));
-  // private successCallback?= (message: string) => this.log(green(message));
+  private warnCallback? = (message: string) => this.log(yellow(message));
+  private successCallback? = (message: string) => this.log(green(message));
 
   async run(): Promise<void> {
     const { argv, flags } = this.parse(Publish);
@@ -86,8 +90,8 @@ export default class Publish extends Command {
 
     if (flags.quiet) {
       this.logCallback = undefined;
-      // this.successCallback = undefined;
-      // this.warnCallback = undefined;
+      this.successCallback = undefined;
+      this.warnCallback = undefined;
     }
 
     // Check inputs
@@ -119,7 +123,6 @@ export default class Publish extends Command {
         throw userError(`Unable to load super.json: ${err}`, 1);
       }
     );
-    let path: string;
 
     //Check if there is defined capability in super.json
     const profileSettings = superJson.normalized.profiles[flags.profileId];
@@ -154,7 +157,12 @@ export default class Publish extends Command {
           1
         );
       }
-      path = profileSettings.file;
+      if (!profileSettings.file.endsWith(EXTENSIONS.profile.source)) {
+        throw userError(
+          `Profile path: "${profileSettings.file}" must leads to "${EXTENSIONS.profile.source}" file`,
+          1
+        );
+      }
 
       //Publishing map
     } else if (documentType === 'map') {
@@ -164,7 +172,12 @@ export default class Publish extends Command {
           1
         );
       }
-      path = profileProviderSettings.file;
+      if (!profileProviderSettings.file.endsWith(EXTENSIONS.map.source)) {
+        throw userError(
+          `Map path: "${profileProviderSettings.file}" must leads to "${EXTENSIONS.map.source}" file`,
+          1
+        );
+      }
 
       //Publishing provider
     } else if (documentType === 'provider') {
@@ -174,41 +187,51 @@ export default class Publish extends Command {
           1
         );
       }
-      path = providerSettings.file;
+      if (!providerSettings.file.endsWith(EXTENSIONS.provider)) {
+        throw userError(
+          `Provider path: "${providerSettings.file}" must leads to "${EXTENSIONS.provider}" file`,
+          1
+        );
+      }
     } else {
       throw userError(
         'Document type must be one of "map", "profile", "provider"',
         1
       );
     }
-    //TODO: Lint
-    //TODO: Check
-    // const profile = {
-    //   name: parsedProfileId.value.middle[0],
-    //   scope: parsedProfileId.value.scope,
-    //   version: ('version' in profileSettings) ? profileSettings.version : DEFAULT_PROFILE_VERSION_STR
-    // }
-    // const map = {
-    //   variant: ('mapVariant' in profileProviderSettings) ? profileProviderSettings.mapVariant : undefined
-    // }
+    const profile = {
+      name: parsedProfileId.value.middle[0],
+      scope: parsedProfileId.value.scope,
+      version:
+        'version' in profileSettings
+          ? profileSettings.version
+          : DEFAULT_PROFILE_VERSION_STR,
+    };
+    const map = {
+      variant:
+        'mapVariant' in profileProviderSettings
+          ? profileProviderSettings.mapVariant
+          : undefined,
+    };
 
-    // await check(superJson, profile, flags.providerName, map, {
-    //   logCb: this.logCallback,
-    //   warnCB: this.warnCallback
-    // });
-    //TODO: Test
-
-    await publish(
-      path,
-      {
-        profileName: parsedProfileId.value.middle[0],
-        scope: parsedProfileId.value.scope,
-        providerName: flags.providerName,
-      },
+    const result = await publish(
+      documentType,
+      superJson,
+      profile,
+      flags.providerName,
+      map,
       {
         logCb: this.logCallback,
         dryRun: flags['dry-run'],
+        json: flags.json,
+        quiet: flags.quiet,
       }
     );
+    if (result) {
+      this.warnCallback?.('Publishing command ended up with error:\n');
+      this.log(result);
+    } else {
+      this.successCallback?.(`🆗 file have been published successfully.`);
+    }
   }
 }
