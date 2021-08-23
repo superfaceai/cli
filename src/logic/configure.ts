@@ -21,6 +21,7 @@ import { fetchProviderInfo } from '../common/http';
 import { readFile, readFileQuiet } from '../common/io';
 import { formatShellLog, LogCallback } from '../common/log';
 import { OutputStream } from '../common/output-stream';
+import { ProfileId } from '../common/profile';
 import { prepareEnvVariables } from '../templates/env';
 
 export async function updateEnv(
@@ -61,10 +62,15 @@ export async function updateEnv(
  */
 export function handleProviderResponse(
   superJson: SuperJson,
-  profileId: string,
+  profileId: ProfileId,
   response: ProviderJson,
   defaults?: ProfileProviderDefaults,
-  options?: { logCb?: LogCallback; warnCb?: LogCallback }
+  options?: {
+    logCb?: LogCallback;
+    warnCb?: LogCallback;
+    localMap?: string;
+    localProvider?: string;
+  }
 ): number {
   options?.logCb?.(`Installing provider: "${response.name}"`);
 
@@ -108,14 +114,29 @@ export function handleProviderResponse(
     }
   }
   // update super.json
-  superJson.addProvider(response.name, { security });
+  superJson.addProvider(response.name, {
+    security,
+    file: options?.localProvider
+      ? superJson.relativePath(options.localProvider)
+      : undefined,
+  });
 
   //constructProfileProviderSettings returns Record<string, ProfileProviderEntry>
-  superJson.addProfileProvider(
-    profileId,
-    response.name,
-    defaults || constructProfileProviderSettings([response.name])[response.name]
-  );
+  let settings = defaults
+    ? { defaults }
+    : constructProfileProviderSettings([response.name])[response.name];
+
+  if (options?.localMap) {
+    if (typeof settings === 'string') {
+      settings = { file: superJson.relativePath(options.localMap) };
+    } else {
+      settings = {
+        ...settings,
+        file: superJson.relativePath(options.localMap),
+      };
+    }
+  }
+  superJson.addProfileProvider(profileId.id, response.name, settings);
 
   return security.length;
 }
@@ -150,13 +171,14 @@ export async function getProviderFromStore(
 export async function installProvider(parameters: {
   superPath: string;
   provider: string;
-  profileId: string;
+  profileId: ProfileId;
   defaults?: ProfileProviderDefaults;
   options?: {
     logCb?: LogCallback;
     warnCb?: LogCallback;
     force?: boolean;
-    local: boolean;
+    localMap?: string;
+    localProvider?: string;
     updateEnv?: boolean;
   };
 }): Promise<void> {
@@ -171,13 +193,11 @@ export async function installProvider(parameters: {
       return new SuperJson({});
     }
   );
-  //Check if there is a version inside profile id
-  parameters.profileId = parameters.profileId.split('@')[0];
 
   //Check profile existance
-  if (!superJson.normalized.profiles[parameters.profileId]) {
+  if (!superJson.normalized.profiles[parameters.profileId.id]) {
     throw userError(
-      `❌ profile ${parameters.profileId} not found in ${parameters.superPath}. Forgot to install?`,
+      `❌ profile ${parameters.profileId.id} not found in ${parameters.superPath}. Forgot to install?`,
       1
     );
   }
@@ -185,9 +205,11 @@ export async function installProvider(parameters: {
   //Load provider info
   let providerInfo: ProviderJson;
   //Load from file
-  if (parameters.options?.local) {
+  if (parameters.options?.localProvider) {
     try {
-      const file = await readFile(parameters.provider, { encoding: 'utf-8' });
+      const file = await readFile(parameters.options.localProvider, {
+        encoding: 'utf-8',
+      });
       providerInfo = parseProviderJson(JSON.parse(file));
     } catch (error) {
       throw userError(error, 1);

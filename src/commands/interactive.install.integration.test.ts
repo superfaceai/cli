@@ -109,7 +109,7 @@ describe('Interactive install CLI command', () => {
           inputs: [
             //Select providers priority
             //Sendgrid
-            { value: DOWN, timeout: 8000 },
+            { value: DOWN, timeout: 10000 },
             //Confirm slection
             { value: ENTER, timeout: 500 },
             //Mailgun
@@ -119,13 +119,13 @@ describe('Interactive install CLI command', () => {
             //Exit
             { value: UP, timeout: 6000 },
             //Confirm slection
-            { value: ENTER, timeout: 1000 },
+            { value: ENTER, timeout: 2000 },
             //Select usecase
-            { value: ENTER, timeout: 1000 },
+            { value: ENTER, timeout: 2000 },
             //Confirm provider failover
-            { value: ENTER, timeout: 1000 },
+            { value: ENTER, timeout: 2000 },
             //None
-            { value: ENTER, timeout: 1000 },
+            { value: ENTER, timeout: 2000 },
             //Sendgrid token
             { value: 'sendgridToken', timeout: 8000 },
             { value: ENTER, timeout: 500 },
@@ -272,7 +272,7 @@ describe('Interactive install CLI command', () => {
       expect(
         (parsed as { dependencies: Record<string, string> }).dependencies
       ).not.toBeUndefined();
-    }, 60000);
+    }, 70000);
 
     it('installs the profile, overrides existing super.json and updates .env', async () => {
       //Existing env

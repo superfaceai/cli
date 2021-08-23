@@ -260,7 +260,10 @@ describe('HTTP functions', () => {
       await expect(fetchProfile(profileId)).resolves.toEqual(mockProfile);
 
       expect(mockSet).toHaveBeenCalledTimes(1);
-      expect(mockSet).toHaveBeenCalledWith('Accept', ContentType.PROFILE);
+      expect(mockSet).toHaveBeenCalledWith(
+        'Accept',
+        ContentType.PROFILE_SOURCE
+      );
       expect(mockInnerSet).toHaveBeenCalledTimes(1);
       expect(mockInnerSet).toHaveBeenCalledWith(
         'User-Agent',
@@ -311,7 +314,7 @@ describe('HTTP functions', () => {
       await expect(fetchProfileAST(profileId)).resolves.toEqual(mockProfileAst);
 
       expect(mockSet).toHaveBeenCalledTimes(1);
-      expect(mockSet).toHaveBeenCalledWith('Accept', ContentType.AST);
+      expect(mockSet).toHaveBeenCalledWith('Accept', ContentType.PROFILE_AST);
       expect(mockInnerSet).toHaveBeenCalledTimes(1);
       expect(mockInnerSet).toHaveBeenCalledWith(
         'User-Agent',

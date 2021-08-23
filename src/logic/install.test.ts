@@ -10,8 +10,10 @@ import {
   fetchProfileAST,
   fetchProfileInfo,
 } from '../common/http';
-import { exists, mkdirQuiet, rimraf } from '../common/io';
+import { exists, mkdirQuiet, readFile, rimraf } from '../common/io';
 import { OutputStream } from '../common/output-stream';
+import { Parser } from '../common/parser';
+import { ProfileId } from '../common/profile';
 import { transpileFiles } from '../logic/generate';
 import {
   detectSuperJson,
@@ -37,6 +39,7 @@ jest.mock('../common/document', () => ({
 jest.mock('../common/io', () => ({
   ...jest.requireActual<Record<string, unknown>>('../common/io'),
   exists: jest.fn(),
+  readFile: jest.fn(),
 }));
 
 jest.mock('../logic/generate');
@@ -213,6 +216,17 @@ describe('Install CLI logic', () => {
   });
 
   describe('when resolving installation requests', () => {
+    const MOCK_PROFILE_RESPONSE = {
+      profile_id: 'starwars/character-information@1.0.1',
+      profile_name: 'starwars/character-information',
+      profile_version: '1.0.1',
+      url: 'https://superface.dev/starwars/character-information@1.0.1',
+      owner: 'freaz',
+      owner_url: '',
+      published_at: '2021-01-29T08:10:50.925Z',
+      published_by: '',
+    };
+
     afterEach(() => {
       jest.resetAllMocks();
     });
@@ -221,47 +235,63 @@ describe('Install CLI logic', () => {
       const stubSuperJson = new SuperJson({
         profiles: {
           'se/cond': {
-            file: 'second',
+            file: 'second.supr',
           },
         },
       });
+      mocked(readFile).mockResolvedValueOnce('.');
 
-      mocked(parseProfileDocument)
-        .mockResolvedValueOnce({
-          kind: 'ProfileDocument',
-          header: {
-            kind: 'ProfileHeader',
-            name: 'first',
-            version: { major: 1, minor: 1, patch: 0 },
-          },
-          definitions: [],
-        })
-        .mockRejectedValueOnce('error')
-        .mockResolvedValueOnce({
-          kind: 'ProfileDocument',
-          header: {
-            kind: 'ProfileHeader',
-            name: 'se/cond',
-            version: { major: 2, minor: 2, patch: 0 },
-          },
-          definitions: [],
-        });
+      //We are running static function inside of promise all - we can't be sure about order of calls
+      jest
+        .spyOn(Parser, 'parseProfile')
+        .mockImplementation(
+          (
+            _input: string,
+            _fileName: string,
+            _info: { profileName: string; scope?: string }
+          ) => {
+            if (_info.profileName === 'first') {
+              return Promise.resolve({
+                kind: 'ProfileDocument',
+                header: {
+                  kind: 'ProfileHeader',
+                  name: 'first',
+                  version: { major: 1, minor: 1, patch: 0 },
+                },
+                definitions: [],
+              });
+            } else if (_info.profileName === 'second') {
+              return Promise.resolve({
+                kind: 'ProfileDocument',
+                header: {
+                  kind: 'ProfileHeader',
+                  scope: 'se',
+                  name: 'cond',
+                  version: { major: 2, minor: 2, patch: 0 },
+                },
+                definitions: [],
+              });
+            } else {
+              return Promise.reject('error');
+            }
+          }
+        );
 
       await expect(
         resolveInstallationRequests(stubSuperJson, [
-          { kind: 'local', path: 'first' },
-          { kind: 'local', path: 'none' },
-          { kind: 'local', path: 'second' },
+          { kind: 'local', path: 'first.supr' },
+          { kind: 'local', path: 'none.supr' },
+          { kind: 'local', path: 'second.supr' },
         ])
       ).resolves.toEqual(1);
 
       expect(stubSuperJson.document).toEqual({
         profiles: {
           first: {
-            file: 'first',
+            file: 'first.supr',
           },
           'se/cond': {
-            file: 'second',
+            file: 'second.supr',
           },
         },
       });
@@ -280,26 +310,19 @@ describe('Install CLI logic', () => {
         },
       });
 
-      const mockInfoResponse = {
-        profile_id: 'starwars/character-information@1.0.1',
-        profile_name: 'starwars/character-information',
-        profile_version: '1.0.1',
-        url: 'https://superface.dev/starwars/character-information@1.0.1',
-        owner: 'freaz',
-        owner_url: '',
-        published_at: '2021-01-29T08:10:50.925Z',
-        published_by: '',
-      };
-
-      const existsMock = mocked(exists)
-        .mockResolvedValueOnce(false)
-        .mockResolvedValue(true);
+      const existsMock = mocked(exists).mockImplementation(async path => {
+        if (path.includes('third')) {
+          return true;
+        } else {
+          return false;
+        }
+      });
       const fetchProfileInfoMock = mocked(fetchProfileInfo).mockImplementation(
         profileId => {
           if (profileId === 'none') {
             return Promise.reject('none does not exist');
           } else {
-            return Promise.resolve(mockInfoResponse);
+            return Promise.resolve(MOCK_PROFILE_RESPONSE);
           }
         }
       );
@@ -325,28 +348,32 @@ describe('Install CLI logic', () => {
         resolveInstallationRequests(
           stubSuperJson,
           [
-            { kind: 'store', profileId: 'first', version: '1.0.1' },
-            { kind: 'store', profileId: 'none' },
-            { kind: 'store', profileId: 'se/cond', version: '2.2.0' },
-            { kind: 'store', profileId: 'third' },
+            {
+              kind: 'store',
+              profileId: ProfileId.fromId('first'),
+              version: '1.0.1',
+            },
+            {
+              kind: 'store',
+              profileId: ProfileId.fromId('none'),
+              version: undefined,
+            },
+            {
+              kind: 'store',
+              profileId: ProfileId.fromId('se/cond'),
+              version: '2.2.0',
+            },
+            {
+              kind: 'store',
+              profileId: ProfileId.fromId('third'),
+              version: undefined,
+            },
           ],
           { warnCb: warnCbMock }
         )
       ).resolves.toEqual(1);
 
-      expect(existsMock).toHaveBeenNthCalledWith(
-        1,
-        expect.stringContaining('first@1.0.1.supr')
-      );
-      expect(existsMock).toHaveBeenNthCalledWith(
-        2,
-        expect.stringContaining('second.supr')
-      );
-      expect(existsMock).toHaveBeenNthCalledWith(
-        3,
-        expect.stringContaining('third@1.0.1.supr')
-      );
-      expect(existsMock).toHaveBeenCalledTimes(3);
+      expect(existsMock).toHaveBeenCalled();
 
       expect(stubSuperJson.document).toEqual({
         profiles: {
@@ -365,7 +392,7 @@ describe('Install CLI logic', () => {
 
       expect(warnCbMock).toHaveBeenNthCalledWith(
         1,
-        expect.stringContaining('File already exists:')
+        expect.stringContaining('already installed from a path')
       );
       expect(warnCbMock).toHaveBeenNthCalledWith(
         2,
@@ -373,19 +400,162 @@ describe('Install CLI logic', () => {
       );
       expect(warnCbMock).toHaveBeenNthCalledWith(
         3,
-        expect.stringContaining('File already exists:')
+        expect.stringContaining('Target file already exists:')
       );
       expect(warnCbMock).toHaveBeenCalledTimes(3);
     }, 10000);
+
+    it('overrides everything with force flag', async () => {
+      jest.spyOn(OutputStream, 'writeOnce').mockResolvedValue();
+
+      const stubSuperJson = new SuperJson({
+        profiles: {
+          'local/first': {
+            file: 'first.supr',
+          },
+          'local/second': {
+            file: 'second.supr',
+          },
+          'local/third': {
+            file: 'third.supr',
+          },
+          'remote/first': {
+            version: '1.0.0',
+          },
+          'remote/second': {
+            version: '1.0.1',
+          },
+          'remote/third': {
+            version: '1.0.1',
+          },
+        },
+      });
+
+      mocked(exists).mockResolvedValue(true);
+      mocked(fetchProfileInfo).mockResolvedValue(MOCK_PROFILE_RESPONSE);
+      mocked(fetchProfile).mockResolvedValue('mock profile');
+      mocked(fetchProfileAST).mockResolvedValue({
+        kind: 'ProfileDocument',
+        header: {
+          kind: 'ProfileHeader',
+          name: 'mock profile',
+          version: {
+            major: 1,
+            minor: 0,
+            patch: 1,
+          },
+        },
+        definitions: [],
+      });
+      jest
+        .spyOn(Parser, 'parseProfile')
+        .mockImplementation((_input: string, fileName: string) => {
+          let scope;
+          let name;
+          let version;
+
+          if (fileName === 'local-second.supr') {
+            scope = 'local';
+            name = 'second';
+            version = { major: 1, minor: 1, patch: 0 };
+          } else if (fileName === 'local-third.supr') {
+            scope = 'local';
+            name = 'third';
+            version = { major: 1, minor: 1, patch: 0 };
+          } else if (fileName === 'remote-third.supr') {
+            scope = 'remote';
+            name = 'third';
+            version = { major: 1, minor: 1, patch: 0 };
+          } else {
+            name = '';
+            version = { major: 0, minor: 0, patch: 0 };
+          }
+
+          return Promise.resolve({
+            kind: 'ProfileDocument',
+            header: {
+              kind: 'ProfileHeader',
+              scope,
+              name,
+              version,
+            },
+            definitions: [],
+          });
+        });
+
+      await expect(
+        resolveInstallationRequests(
+          stubSuperJson,
+          [
+            {
+              kind: 'store',
+              profileId: ProfileId.fromId('local/first'),
+              version: '1.0.1',
+            },
+            {
+              kind: 'local',
+              path: 'local-second.supr',
+            },
+            {
+              kind: 'local',
+              path: 'local-third.supr',
+            },
+
+            {
+              kind: 'store',
+              profileId: ProfileId.fromId('remote/first'),
+              version: '1.0.1',
+            },
+            {
+              kind: 'store',
+              profileId: ProfileId.fromId('remote/second'),
+              version: '1.0.1',
+            },
+            {
+              kind: 'local',
+              path: 'remote-third.supr',
+            },
+          ],
+          { warnCb: console.log, force: true }
+        )
+      ).resolves.toEqual(6);
+
+      expect(stubSuperJson.document).toEqual({
+        profiles: {
+          'local/first': {
+            version: '1.0.1',
+          },
+          'local/second': {
+            file: 'local-second.supr',
+          },
+          'local/third': {
+            file: 'local-third.supr',
+          },
+          'remote/first': {
+            version: '1.0.1',
+          },
+          'remote/second': {
+            version: '1.0.1',
+          },
+          'remote/third': {
+            file: 'remote-third.supr',
+          },
+        },
+      });
+    });
   });
 
   describe('when geting profile id', () => {
     it('returns correct id and version', async () => {
-      const profileName = 'starwars/character-information';
+      const profileId = 'starwars/character-information';
       const stubSuperJson = new SuperJson({});
-      stubSuperJson.addProfile(profileName, { version: '1.0.1' });
+
+      stubSuperJson.addProfile(profileId, { version: '1.0.1' });
       await expect(getExistingProfileIds(stubSuperJson)).resolves.toEqual([
-        { profileId: 'starwars/character-information', version: '1.0.1' },
+        {
+          profileId: ProfileId.fromId(profileId),
+          version: '1.0.1',
+        },
       ]);
     });
 
@@ -394,18 +564,23 @@ describe('Install CLI logic', () => {
         header: {
           kind: 'ProfileHeader',
           name: 'test',
+          scope: 'scope',
           version: { major: 1, minor: 0, patch: 0 },
         },
         kind: 'ProfileDocument',
         definitions: [],
       });
-      const profileName = 'starwars/character-information';
+
+      const profileId = 'starwars/character-information';
       const stubSuperJson = new SuperJson({});
-      stubSuperJson.addProfile(profileName, {
+      stubSuperJson.addProfile(profileId, {
         file: 'fixtures/install/playground/character-information.supr',
       });
       await expect(getExistingProfileIds(stubSuperJson)).resolves.toEqual([
-        { profileId: 'starwars/character-information', version: '1.0.0' },
+        {
+          profileId: ProfileId.fromScopeName('scope', 'test'),
+          version: '1.0.0',
+        },
       ]);
     });
 
@@ -466,37 +641,48 @@ describe('Install CLI logic', () => {
         mocked(fetchProfileAST).mockResolvedValue(mockProfileAst);
         mocked(fetchProfile).mockResolvedValue(mockProfile);
         mocked(fetchProfileInfo).mockResolvedValue(mockProfileInfo);
-
-        const profileName = 'starwars/character-information';
+        const parsedProfileSpy = jest
+          .spyOn(Parser, 'parseProfile')
+          .mockResolvedValue(mockProfileAst);
+        const profileId = 'starwars/character-information';
 
         await expect(
           installProfiles({
             superPath: '.',
-            requests: [{ kind: 'store', profileId: profileName }],
+            requests: [
+              {
+                kind: 'store',
+                profileId: ProfileId.fromScopeName(
+                  'starwars',
+                  'character-information'
+                ),
+                version: undefined,
+              },
+            ],
           })
         ).resolves.toBeUndefined();
 
         expect(fetchProfileInfo).toHaveBeenCalledTimes(1);
         expect(fetchProfile).toHaveBeenCalledTimes(1);
         expect(fetchProfileAST).toHaveBeenCalledTimes(1);
-        expect(fetchProfile).toHaveBeenCalledWith(profileName);
-        expect(fetchProfileInfo).toHaveBeenCalledWith(profileName);
-        expect(fetchProfileAST).toHaveBeenCalledWith(profileName);
+        expect(fetchProfile).toHaveBeenCalledWith(profileId);
+        expect(fetchProfileInfo).toHaveBeenCalledWith(profileId);
+        expect(fetchProfileAST).toHaveBeenCalledWith(profileId);
 
         //actual path is changing
         expect(mockWrite).toHaveBeenCalledWith(expect.anything(), mockProfile, {
           dirs: true,
         });
-        expect(mockWrite).toHaveBeenCalledWith(
-          expect.anything(),
-          JSON.stringify(mockProfileAst, undefined, 2)
-        );
+        expect(parsedProfileSpy).toHaveBeenCalledWith(mockProfile, profileId, {
+          profileName: 'character-information',
+          scope: 'starwars',
+        });
         expect(mockWrite).toHaveBeenCalledWith(
           '',
           JSON.stringify(
             {
               profiles: {
-                [profileName]: {
+                [profileId]: {
                   version: '1.0.1',
                 },
               },
@@ -523,6 +709,7 @@ describe('Install CLI logic', () => {
 
         mockLoad.mockResolvedValue(ok(stubSuperJson));
         SuperJson.load = mockLoad;
+        const parsedProfileSpy = jest.spyOn(Parser, 'parseProfile');
 
         await expect(
           installProfiles({ superPath: '.', requests: [] })
@@ -560,19 +747,23 @@ describe('Install CLI logic', () => {
           mockProfile,
           { dirs: true }
         );
-        expect(mockWrite).toHaveBeenCalledWith(
-          expect.stringContaining('first@1.0.0.supr.ast.json'),
-          JSON.stringify(mockProfileAst, undefined, 2)
+        expect(parsedProfileSpy).toHaveBeenCalledWith(
+          mockProfile,
+          'starwars/first',
+          { profileName: 'first', scope: 'starwars' }
         );
+
         expect(mockWrite).toHaveBeenCalledWith(
           expect.stringContaining('second@2.0.0.supr'),
           mockProfile,
           { dirs: true }
         );
-        expect(mockWrite).toHaveBeenCalledWith(
-          expect.stringContaining('second@2.0.0.supr.ast.json'),
-          JSON.stringify(mockProfileAst, undefined, 2)
+        expect(parsedProfileSpy).toHaveBeenCalledWith(
+          mockProfile,
+          'starwars/second',
+          { profileName: 'second', scope: 'starwars' }
         );
+
         expect(mockWrite).toHaveBeenCalledWith(
           '',
           JSON.stringify(

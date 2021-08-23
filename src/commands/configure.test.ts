@@ -1,11 +1,19 @@
+import { CLIError } from '@oclif/errors';
 import { isValidDocumentName } from '@superfaceai/ast';
 import { SuperJson } from '@superfaceai/one-sdk';
 import { mocked } from 'ts-jest/utils';
 
+import { exists } from '../common/io';
+import { ProfileId } from '../common/profile';
 import { installProvider } from '../logic/configure';
 import { initSuperface } from '../logic/init';
 import { detectSuperJson } from '../logic/install';
 import Configure from './configure';
+
+//Mock io
+jest.mock('../common/io', () => ({
+  exists: jest.fn(),
+}));
 
 //Mock ast
 jest.mock('@superfaceai/ast', () => ({
@@ -35,13 +43,35 @@ describe('Configure CLI command', () => {
   describe('when running configure command', () => {
     const provider = 'twilio';
     const superPath = 'some/path';
-    const profileId = 'sms';
+    const profileId = ProfileId.fromId('sms');
 
     it('does not configure on invalid provider name', async () => {
       mocked(isValidDocumentName).mockReturnValue(false);
+      await expect(Configure.run(['U7!O', '-p', 'test'])).rejects.toEqual(
+        new CLIError('Invalid provider name')
+      );
+
+      expect(detectSuperJson).not.toHaveBeenCalled();
+      expect(installProvider).not.toHaveBeenCalled();
+    });
+
+    it('does not configure on non-existent map path', async () => {
+      mocked(isValidDocumentName).mockReturnValue(false);
+      mocked(exists).mockResolvedValue(false);
       await expect(
-        Configure.run(['U7!O', '-p', 'test'])
-      ).resolves.toBeUndefined();
+        Configure.run(['swapi', '-p', 'test', '--localMap', 'some/path'])
+      ).rejects.toEqual(new CLIError('Local path: "some/path" does not exist'));
+
+      expect(detectSuperJson).not.toHaveBeenCalled();
+      expect(installProvider).not.toHaveBeenCalled();
+    });
+
+    it('does not configure on non-existent provider path', async () => {
+      mocked(isValidDocumentName).mockReturnValue(false);
+      mocked(exists).mockResolvedValue(false);
+      await expect(
+        Configure.run(['swapi', '-p', 'test', '--localProvider', 'some/path'])
+      ).rejects.toEqual(new CLIError('Local path: "some/path" does not exist'));
 
       expect(detectSuperJson).not.toHaveBeenCalled();
       expect(installProvider).not.toHaveBeenCalled();
@@ -52,7 +82,7 @@ describe('Configure CLI command', () => {
       mocked(detectSuperJson).mockResolvedValue(superPath);
 
       await expect(
-        Configure.run([provider, '-p', profileId])
+        Configure.run([provider, '-p', profileId.id])
       ).resolves.toBeUndefined();
 
       expect(detectSuperJson).toHaveBeenCalledTimes(1);
@@ -65,7 +95,8 @@ describe('Configure CLI command', () => {
         defaults: undefined,
         options: {
           force: false,
-          local: false,
+          localMap: undefined,
+          localProvider: undefined,
           updateEnv: true,
           logCb: expect.anything(),
           warnCb: expect.anything(),
@@ -78,7 +109,7 @@ describe('Configure CLI command', () => {
       mocked(detectSuperJson).mockResolvedValue(superPath);
 
       await expect(
-        Configure.run([provider, '-p', profileId, '--no-env'])
+        Configure.run([provider, '-p', profileId.id, '--no-env'])
       ).resolves.toBeUndefined();
 
       expect(detectSuperJson).toHaveBeenCalledTimes(1);
@@ -91,7 +122,8 @@ describe('Configure CLI command', () => {
         defaults: undefined,
         options: {
           force: false,
-          local: false,
+          localMap: undefined,
+          localProvider: undefined,
           updateEnv: false,
           logCb: expect.anything(),
           warnCb: expect.anything(),
@@ -105,7 +137,7 @@ describe('Configure CLI command', () => {
       mocked(initSuperface).mockResolvedValue(new SuperJson());
 
       await expect(
-        Configure.run([provider, '-p', profileId, '-q'])
+        Configure.run([provider, '-p', profileId.id, '-q'])
       ).resolves.toBeUndefined();
 
       expect(detectSuperJson).toHaveBeenCalledTimes(1);
@@ -126,7 +158,8 @@ describe('Configure CLI command', () => {
         options: {
           force: false,
           updateEnv: true,
-          local: false,
+          localMap: undefined,
+          localProvider: undefined,
           logCb: undefined,
           warnCb: undefined,
         },
