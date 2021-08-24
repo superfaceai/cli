@@ -265,7 +265,7 @@ describe('Interactive install CLI command', () => {
       expect(
         (parsed as { dependencies: Record<string, string> }).dependencies
       ).not.toBeUndefined();
-    }, 70000);
+    }, 80000);
 
     it('installs the profile, overrides existing super.json and updates .env', async () => {
       //Existing env
@@ -546,6 +546,6 @@ describe('Interactive install CLI command', () => {
       expect(
         (parsed as { dependencies: Record<string, string> }).dependencies
       ).not.toBeUndefined();
-    }, 60000);
+    }, 80000);
   });
 });
