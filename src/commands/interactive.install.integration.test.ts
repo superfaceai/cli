@@ -108,35 +108,28 @@ describe('Interactive install CLI command', () => {
         {
           inputs: [
             //Select providers priority
-            //Sendgrid
-            { value: DOWN, timeout: 5000 },
-            //Confirm slection
+            //Select sendgrid provider
+            { value: DOWN, timeout: 10000 },
             { value: ENTER, timeout: 500 },
-            //Mailgun
-            { value: DOWN, timeout: 1000 },
-            //Confirm slection
+            //exit
+            { value: UP, timeout: 6000 },
+            //Confirm selection
             { value: ENTER, timeout: 500 },
-            //Exit
-            { value: UP, timeout: 4000 },
-            //Confirm slection
-            { value: ENTER, timeout: 2000 },
-            //Select usecase
-            { value: ENTER, timeout: 1000 },
-            //Confirm provider failover
-            { value: ENTER, timeout: 2000 },
+            //______OK______
             //None
-            { value: ENTER, timeout: 2000 },
+            { value: ENTER, timeout: 3000 },
             //Sendgrid token
-            { value: 'sendgridToken', timeout: 4000 },
+            { value: 'sendgridToken', timeout: 3000 },
             { value: ENTER, timeout: 500 },
-            //Mailgun username
-            { value: 'username', timeout: 4000 },
-            { value: ENTER, timeout: 500 },
-            //Mailgun password
-            { value: 'password', timeout: 4000 },
-            { value: ENTER, timeout: 500 },
+            // //Mailgun username
+            // { value: 'username', timeout: 4000 },
+            // { value: ENTER, timeout: 500 },
+            // //Mailgun password
+            // { value: 'password', timeout: 4000 },
+            // { value: ENTER, timeout: 500 },
             //Confirm dotenv installation
-            { value: ENTER, timeout: 4000 },
+            { value: 'y', timeout: 4000 },
+            { value: ENTER, timeout: 500 },
             //Correct SDK token
             {
               value:
@@ -144,7 +137,8 @@ describe('Interactive install CLI command', () => {
               timeout: 4000,
             },
             { value: ENTER, timeout: 500 },
-          ], debug: true
+          ],
+          // debug: true,
         }
       );
 
@@ -201,23 +195,14 @@ describe('Interactive install CLI command', () => {
         profiles: {
           [`${profile.scope}/${profile.name}`]: {
             version: profile.version,
-            priority: ['sendgrid', 'mailgun'],
-            defaults: {
-              SendEmail: {
-                providerFailover: true,
-              },
-            },
+            priority: ['sendgrid'],
+            // defaults: {
+            // SendEmail: {
+            //   providerFailover: true,
+            // },
+            // },
             providers: {
               sendgrid: {
-                defaults: {
-                  SendEmail: {
-                    retryPolicy: {
-                      kind: OnFail.NONE,
-                    },
-                  },
-                },
-              },
-              mailgun: {
                 defaults: {
                   SendEmail: {
                     retryPolicy: {
@@ -238,22 +223,13 @@ describe('Interactive install CLI command', () => {
               },
             ],
           },
-          mailgun: {
-            security: [
-              {
-                id: 'basic',
-                username: '$MAILGUN_USERNAME',
-                password: '$MAILGUN_PASSWORD',
-              },
-            ],
-          },
         },
       });
       //Check .env
       const env = (await readFile(joinPath(tempDir, '.env'))).toString();
       expect(env).toMatch('SENDGRID_TOKEN=sendgridToken\n');
-      expect(env).toMatch('MAILGUN_USERNAME=username\n');
-      expect(env).toMatch('MAILGUN_PASSWORD=password\n');
+      // expect(env).toMatch('MAILGUN_USERNAME=username\n');
+      // expect(env).toMatch('MAILGUN_PASSWORD=password\n');
       expect(env).toMatch(
         'SUPERFACE_SDK_TOKEN=sfs_bb064dd57c302911602dd097bc29bedaea6a021c25a66992d475ed959aa526c7_37bce8b5\n'
       );

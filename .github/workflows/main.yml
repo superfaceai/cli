@@ -35,7 +35,7 @@ jobs:
       - name: Build
         run: yarn build
       - name: Test
-        run: yarn test src/commands/interactive.install.integration.test.ts
+        run: yarn test
 
   lint:
     runs-on: ubuntu-latest
