@@ -113,21 +113,21 @@ describe('Interactive install CLI command', () => {
             //Confirm slection
             { value: ENTER, timeout: 500 },
             //Mailgun
-            { value: DOWN, timeout: 6000 },
+            { value: DOWN, timeout: 10000 },
             //Confirm slection
             { value: ENTER, timeout: 500 },
             //Exit
-            { value: UP, timeout: 6000 },
+            { value: UP, timeout: 4000 },
             //Confirm slection
             { value: ENTER, timeout: 2000 },
             //Select usecase
-            { value: ENTER, timeout: 2000 },
+            { value: ENTER, timeout: 1000 },
             //Confirm provider failover
             { value: ENTER, timeout: 2000 },
             //None
             { value: ENTER, timeout: 2000 },
             //Sendgrid token
-            { value: 'sendgridToken', timeout: 8000 },
+            { value: 'sendgridToken', timeout: 4000 },
             { value: ENTER, timeout: 500 },
             //Mailgun username
             { value: 'username', timeout: 4000 },
@@ -137,20 +137,13 @@ describe('Interactive install CLI command', () => {
             { value: ENTER, timeout: 500 },
             //Confirm dotenv installation
             { value: ENTER, timeout: 4000 },
-            //Incorrect SDK token
-            {
-              value:
-                'XXX_bb064dd57c302911602dd097bc29bedaea6a021c25a66992d475ed959aa526c7_37bce8b5',
-              timeout: 4000,
-            },
-            { value: ENTER, timeout: 1000 },
             //Correct SDK token
             {
               value:
                 'sfs_bb064dd57c302911602dd097bc29bedaea6a021c25a66992d475ed959aa526c7_37bce8b5',
               timeout: 4000,
             },
-            { value: ENTER, timeout: 1000 },
+            { value: ENTER, timeout: 100 },
           ],
         }
       );
