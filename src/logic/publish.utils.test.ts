@@ -3,7 +3,7 @@ import { MapDocumentNode, ProfileDocumentNode } from '@superfaceai/ast';
 import { SuperJson } from '@superfaceai/one-sdk';
 import { mocked } from 'ts-jest/utils';
 
-import { fetchMapAST,fetchProfileAST } from '../common/http';
+import { fetchMapAST, fetchProfileAST } from '../common/http';
 import { Parser } from '../common/parser';
 import { ProfileId } from '../common/profile';
 import { ProfileMapReport } from '../common/report.interfaces';

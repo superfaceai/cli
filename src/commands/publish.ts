@@ -12,6 +12,8 @@ import { getStoreUrl } from '../common/http';
 import { ProfileId } from '../common/profile';
 import { detectSuperJson } from '../logic/install';
 import { publish } from '../logic/publish';
+import Configure from './configure';
+import Install from './install';
 
 export default class Publish extends Command {
   static strict = false;
@@ -228,10 +230,65 @@ export default class Publish extends Command {
       }
     );
     if (result) {
-      this.warnCallback?.('Publishing command ended up with error:\n');
+      this.warnCallback?.('Publishing command ended up with errors:\n');
       this.log(result);
-    } else {
-      this.successCallback?.(`🆗 file have been published successfully.`);
+
+      return;
+    }
+
+    this.successCallback?.(`🆗 file have been published successfully.`);
+    let transition = true;
+    if (!flags.force) {
+      const prompt: { continue: boolean } = await inquirer.prompt({
+        name: 'continue',
+        message: `Do you want to switch to remote ${documentType} instead of locally linked one?:`,
+        type: 'confirm',
+        default: true,
+      });
+      transition = prompt.continue;
+    }
+    if (transition) {
+      if (documentType === 'profile') {
+        await Install.run([flags.profileId, '-f']);
+      }
+      if (documentType === 'map') {
+        if (providerSettings.file) {
+          await Configure.run([
+            flags.providerName,
+            '-p',
+            flags.profileId,
+            '--local-provider',
+            superJson.resolvePath(providerSettings.file),
+            '-f',
+          ]);
+        } else {
+          await Configure.run([
+            flags.providerName,
+            '-p',
+            flags.profileId,
+            '-f',
+          ]);
+        }
+      }
+      if (documentType === 'provider') {
+        if ('file' in profileProviderSettings) {
+          await Configure.run([
+            flags.providerName,
+            '-p',
+            flags.profileId,
+            '--local-map',
+            superJson.resolvePath(profileProviderSettings.file),
+            '-f',
+          ]);
+        } else {
+          await Configure.run([
+            flags.providerName,
+            '-p',
+            flags.profileId,
+            '-f',
+          ]);
+        }
+      }
     }
   }
 }
