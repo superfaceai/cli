@@ -93,7 +93,7 @@ export async function publish(
     lintReport.errors.length !== 0 ||
     lintReport.warnings.length !== 0
   ) {
-    //Print reports
+    //Format reports
     if (options?.json) {
       return JSON.stringify({
         check: {

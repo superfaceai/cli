@@ -72,7 +72,7 @@ export function prePublishLint(
 }
 
 /**
- * Loads profile source (if present on local filesystem) and AST (downloaded when not found locally)
+ * Loads profile source (if present on local filesystem) and AST (downloaded when source not found locally, compiled when found)
  */
 export async function loadProfile(
   superJson: SuperJson,
@@ -105,7 +105,7 @@ export async function loadProfile(
   return { ast, source };
 }
 /**
- * Loads map source (if present on local filesystem) and AST (downloaded when not found locally)
+ * Loads map source (if present on local filesystem) and AST (downloaded when source not found locally, compiled when found)
  */
 export async function loadMap(
   superJson: SuperJson,
