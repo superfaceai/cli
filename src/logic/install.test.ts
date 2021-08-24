@@ -550,7 +550,7 @@ describe('Install CLI logic', () => {
       const profileId = 'starwars/character-information';
       const stubSuperJson = new SuperJson({});
 
-      stubSuperJson.addProfile(profileId, { version: '1.0.1' });
+      stubSuperJson.mergeProfile(profileId, { version: '1.0.1' });
       await expect(getExistingProfileIds(stubSuperJson)).resolves.toEqual([
         {
           profileId: ProfileId.fromId(profileId),
@@ -573,7 +573,7 @@ describe('Install CLI logic', () => {
 
       const profileId = 'starwars/character-information';
       const stubSuperJson = new SuperJson({});
-      stubSuperJson.addProfile(profileId, {
+      stubSuperJson.mergeProfile(profileId, {
         file: 'fixtures/install/playground/character-information.supr',
       });
       await expect(getExistingProfileIds(stubSuperJson)).resolves.toEqual([
@@ -704,8 +704,8 @@ describe('Install CLI logic', () => {
         const mockLoad = jest.fn();
 
         const stubSuperJson = new SuperJson({});
-        stubSuperJson.addProfile('starwars/first', { version: '1.0.0' });
-        stubSuperJson.addProfile('starwars/second', { version: '2.0.0' });
+        stubSuperJson.mergeProfile('starwars/first', { version: '1.0.0' });
+        stubSuperJson.mergeProfile('starwars/second', { version: '2.0.0' });
 
         mockLoad.mockResolvedValue(ok(stubSuperJson));
         SuperJson.load = mockLoad;

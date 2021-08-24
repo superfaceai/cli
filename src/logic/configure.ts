@@ -113,13 +113,17 @@ export function handleProviderResponse(
       }
     }
   }
+
   // update super.json
-  superJson.addProvider(response.name, {
+  // superJson.setProvider(response.name, {
+  superJson.mergeProvider(response.name, {
     security,
     file: options?.localProvider
       ? superJson.relativePath(options.localProvider)
-      : undefined,
+      : undefined
   });
+
+  superJson.mergeProvider
 
   //constructProfileProviderSettings returns Record<string, ProfileProviderEntry>
   let settings = defaults
@@ -136,7 +140,8 @@ export function handleProviderResponse(
       };
     }
   }
-  superJson.addProfileProvider(profileId.id, response.name, settings);
+  // superJson.setProfileProvider(profileId.id, response.name, settings);
+  superJson.mergeProfileProvider(profileId.id, response.name, settings);
 
   return security.length;
 }
@@ -187,7 +192,7 @@ export async function installProvider(parameters: {
   const superJson = loadedResult.match(
     v => v,
     err => {
-      parameters.options?.warnCb?.(err);
+      parameters.options?.warnCb?.(err.formatLong());
 
       return new SuperJson({});
     }

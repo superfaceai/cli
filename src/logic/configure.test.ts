@@ -127,18 +127,18 @@ describe('Configure CLI logic', () => {
     const mockSuperJson = new SuperJson();
     const mockProfileId = ProfileId.fromId('test-profile');
     it('add providers to super json', async () => {
-      const addProviderSpy = jest.spyOn(SuperJson.prototype, 'addProvider');
-      const addProfileProviderSpy = jest.spyOn(
+      const mergeProviderSpy = jest.spyOn(SuperJson.prototype, 'mergeProvider');
+      const mergeProfileProviderSpy = jest.spyOn(
         SuperJson.prototype,
-        'addProfileProvider'
+        'mergeProfileProvider'
       );
 
       expect(
         handleProviderResponse(mockSuperJson, mockProfileId, mockProviderJson)
       ).toEqual(4);
 
-      expect(addProviderSpy).toHaveBeenCalledTimes(1);
-      expect(addProviderSpy).toHaveBeenCalledWith(providerName, {
+      expect(mergeProviderSpy).toHaveBeenCalledTimes(1);
+      expect(mergeProviderSpy).toHaveBeenCalledWith(providerName, {
         security: [
           { apikey: '$TEST_API_KEY', id: 'api' },
           { id: 'bearer', token: '$TEST_TOKEN' },
@@ -151,8 +151,8 @@ describe('Configure CLI logic', () => {
         ],
       });
 
-      expect(addProfileProviderSpy).toHaveBeenCalledTimes(1);
-      expect(addProfileProviderSpy).toHaveBeenCalledWith(
+      expect(mergeProfileProviderSpy).toHaveBeenCalledTimes(1);
+      expect(mergeProfileProviderSpy).toHaveBeenCalledWith(
         mockProfileId.id,
         providerName,
         {}
@@ -160,10 +160,10 @@ describe('Configure CLI logic', () => {
     });
 
     it('add provider with - in name to super json', async () => {
-      const addProviderSpy = jest.spyOn(SuperJson.prototype, 'addProvider');
-      const addProfileProviderSpy = jest.spyOn(
+      const mergeProviderSpy = jest.spyOn(SuperJson.prototype, 'mergeProvider');
+      const mergeProfileProviderSpy = jest.spyOn(
         SuperJson.prototype,
-        'addProfileProvider'
+        'mergeProfileProvider'
       );
 
       const customProviderJson: ProviderJson = {
@@ -204,8 +204,8 @@ describe('Configure CLI logic', () => {
         handleProviderResponse(mockSuperJson, mockProfileId, customProviderJson)
       ).toEqual(4);
 
-      expect(addProviderSpy).toHaveBeenCalledTimes(1);
-      expect(addProviderSpy).toHaveBeenCalledWith('provider-test', {
+      expect(mergeProviderSpy).toHaveBeenCalledTimes(1);
+      expect(mergeProviderSpy).toHaveBeenCalledWith('provider-test', {
         security: [
           { apikey: '$PROVIDER_TEST_API_KEY', id: 'api' },
           { id: 'bearer', token: '$PROVIDER_TEST_TOKEN' },
@@ -218,8 +218,8 @@ describe('Configure CLI logic', () => {
         ],
       });
 
-      expect(addProfileProviderSpy).toHaveBeenCalledTimes(1);
-      expect(addProfileProviderSpy).toHaveBeenCalledWith(
+      expect(mergeProfileProviderSpy).toHaveBeenCalledTimes(1);
+      expect(mergeProfileProviderSpy).toHaveBeenCalledWith(
         mockProfileId.id,
         'provider-test',
         {}
@@ -245,10 +245,10 @@ describe('Configure CLI logic', () => {
         ],
         defaultService: 'swapidev',
       };
-      const addProviderSpy = jest.spyOn(SuperJson.prototype, 'addProvider');
-      const addProfileProviderSpy = jest.spyOn(
+      const mergeProviderSpy = jest.spyOn(SuperJson.prototype, 'mergeProvider');
+      const mergeProfileProviderSpy = jest.spyOn(
         SuperJson.prototype,
-        'addProfileProvider'
+        'mergeProfileProvider'
       );
 
       expect(
@@ -259,13 +259,13 @@ describe('Configure CLI logic', () => {
         )
       ).toEqual(0);
 
-      expect(addProviderSpy).toHaveBeenCalledTimes(1);
-      expect(addProviderSpy).toHaveBeenCalledWith(providerName, {
+      expect(mergeProviderSpy).toHaveBeenCalledTimes(1);
+      expect(mergeProviderSpy).toHaveBeenCalledWith(providerName, {
         security: [],
       });
 
-      expect(addProfileProviderSpy).toHaveBeenCalledTimes(1);
-      expect(addProfileProviderSpy).toHaveBeenCalledWith(
+      expect(mergeProfileProviderSpy).toHaveBeenCalledTimes(1);
+      expect(mergeProfileProviderSpy).toHaveBeenCalledWith(
         mockProfileId.id,
         providerName,
         {}
@@ -324,10 +324,10 @@ describe('Configure CLI logic', () => {
 
       mocked(fetchProviderInfo).mockResolvedValue(mockProviderJson);
 
-      const addProviderSpy = jest.spyOn(SuperJson.prototype, 'addProvider');
-      const addProfileProviderSpy = jest.spyOn(
+      const mergeProviderSpy = jest.spyOn(SuperJson.prototype, 'mergeProvider');
+      const mergeProfileProviderSpy = jest.spyOn(
         SuperJson.prototype,
-        'addProfileProvider'
+        'mergeProfileProvider'
       );
 
       const writeOnceSpy = jest
@@ -350,15 +350,15 @@ describe('Configure CLI logic', () => {
 
       expect(fetchProviderInfo).toHaveBeenCalledTimes(1);
 
-      expect(addProfileProviderSpy).toHaveBeenCalledTimes(1);
-      expect(addProfileProviderSpy).toHaveBeenCalledWith(
+      expect(mergeProfileProviderSpy).toHaveBeenCalledTimes(1);
+      expect(mergeProfileProviderSpy).toHaveBeenCalledWith(
         mockProfileId.id,
         providerName,
         { defaults: { testUseCase: { retryPolicy: OnFail.CIRCUIT_BREAKER } } }
       );
 
-      expect(addProviderSpy).toHaveBeenCalledTimes(1);
-      expect(addProviderSpy).toHaveBeenCalledWith(providerName, {
+      expect(mergeProviderSpy).toHaveBeenCalledTimes(1);
+      expect(mergeProviderSpy).toHaveBeenCalledWith(providerName, {
         security: [
           { apikey: '$TEST_API_KEY', id: 'api' },
           { id: 'bearer', token: '$TEST_TOKEN' },
@@ -393,10 +393,10 @@ describe('Configure CLI logic', () => {
         .mockResolvedValue(ok(mockSuperJson));
       mocked(fetchProviderInfo).mockResolvedValue(mockProviderJson);
 
-      const addProviderSpy = jest.spyOn(SuperJson.prototype, 'addProvider');
-      const addProfileProviderSpy = jest.spyOn(
+      const mergeProviderSpy = jest.spyOn(SuperJson.prototype, 'mergeProvider');
+      const mergeProfileProviderSpy = jest.spyOn(
         SuperJson.prototype,
-        'addProfileProvider'
+        'mergeProfileProvider'
       );
 
       const writeOnceSpy = jest
@@ -420,15 +420,15 @@ describe('Configure CLI logic', () => {
 
       expect(fetchProviderInfo).toHaveBeenCalledTimes(1);
 
-      expect(addProfileProviderSpy).toHaveBeenCalledTimes(1);
-      expect(addProfileProviderSpy).toHaveBeenCalledWith(
+      expect(mergeProfileProviderSpy).toHaveBeenCalledTimes(1);
+      expect(mergeProfileProviderSpy).toHaveBeenCalledWith(
         mockProfileId.id,
         providerName,
         { defaults: { testUseCase: { retryPolicy: OnFail.CIRCUIT_BREAKER } } }
       );
 
-      expect(addProviderSpy).toHaveBeenCalledTimes(1);
-      expect(addProviderSpy).toHaveBeenCalledWith(providerName, {
+      expect(mergeProviderSpy).toHaveBeenCalledTimes(1);
+      expect(mergeProviderSpy).toHaveBeenCalledWith(providerName, {
         security: [
           { apikey: '$TEST_API_KEY', id: 'api' },
           { id: 'bearer', token: '$TEST_TOKEN' },
@@ -466,10 +466,10 @@ describe('Configure CLI logic', () => {
         .spyOn(SuperJson, 'load')
         .mockResolvedValue(ok(mockSuperJson));
 
-      const addProviderSpy = jest.spyOn(SuperJson.prototype, 'addProvider');
-      const addProfileProviderSpy = jest.spyOn(
+      const mergeProviderSpy = jest.spyOn(SuperJson.prototype, 'mergeProvider');
+      const mergeProfileProviderSpy = jest.spyOn(
         SuperJson.prototype,
-        'addProfileProvider'
+        'mergeProfileProvider'
       );
 
       const writeOnceSpy = jest
@@ -495,15 +495,15 @@ describe('Configure CLI logic', () => {
 
       expect(fetchProviderInfo).toHaveBeenCalledTimes(1);
 
-      expect(addProfileProviderSpy).toHaveBeenCalledTimes(1);
-      expect(addProfileProviderSpy).toHaveBeenCalledWith(
+      expect(mergeProfileProviderSpy).toHaveBeenCalledTimes(1);
+      expect(mergeProfileProviderSpy).toHaveBeenCalledWith(
         mockProfileId.id,
         providerName,
         {}
       );
 
-      expect(addProviderSpy).toHaveBeenCalledTimes(1);
-      expect(addProviderSpy).toHaveBeenCalledWith(providerName, {
+      expect(mergeProviderSpy).toHaveBeenCalledTimes(1);
+      expect(mergeProviderSpy).toHaveBeenCalledWith(providerName, {
         security: [
           { apikey: '$TEST_API_KEY', id: 'api' },
           { id: 'bearer', token: '$TEST_TOKEN' },
@@ -537,10 +537,10 @@ describe('Configure CLI logic', () => {
         .spyOn(SuperJson, 'load')
         .mockResolvedValue(ok(mockSuperJson));
 
-      const addProviderSpy = jest.spyOn(SuperJson.prototype, 'addProvider');
-      const addProfileProviderSpy = jest.spyOn(
+      const mergeProviderSpy = jest.spyOn(SuperJson.prototype, 'mergeProvider');
+      const mergeProfileProviderSpy = jest.spyOn(
         SuperJson.prototype,
-        'addProfileProvider'
+        'mergeProfileProvider'
       );
 
       const writeOnceSpy = jest
@@ -566,15 +566,15 @@ describe('Configure CLI logic', () => {
 
       expect(fetchProviderInfo).not.toHaveBeenCalled();
 
-      expect(addProfileProviderSpy).toHaveBeenCalledTimes(1);
-      expect(addProfileProviderSpy).toHaveBeenCalledWith(
+      expect(mergeProfileProviderSpy).toHaveBeenCalledTimes(1);
+      expect(mergeProfileProviderSpy).toHaveBeenCalledWith(
         mockProfileId.id,
         providerName,
         {}
       );
 
-      expect(addProviderSpy).toHaveBeenCalledTimes(1);
-      expect(addProviderSpy).toHaveBeenCalledWith(providerName, {
+      expect(mergeProviderSpy).toHaveBeenCalledTimes(1);
+      expect(mergeProviderSpy).toHaveBeenCalledWith(providerName, {
         security: [
           { apikey: '$TEST_API_KEY', id: 'api' },
           { id: 'bearer', token: '$TEST_TOKEN' },
@@ -608,10 +608,10 @@ describe('Configure CLI logic', () => {
         .spyOn(SuperJson, 'load')
         .mockResolvedValue(ok(mockSuperJson));
 
-      const addProviderSpy = jest.spyOn(SuperJson.prototype, 'addProvider');
-      const addProfileProviderSpy = jest.spyOn(
+      const mergeProviderSpy = jest.spyOn(SuperJson.prototype, 'mergeProvider');
+      const mergeProfileProviderSpy = jest.spyOn(
         SuperJson.prototype,
-        'addProfileProvider'
+        'mergeProfileProvider'
       );
 
       const writeOnceSpy = jest
@@ -638,15 +638,15 @@ describe('Configure CLI logic', () => {
 
       expect(fetchProviderInfo).toHaveBeenCalledTimes(1);
 
-      expect(addProfileProviderSpy).toHaveBeenCalledTimes(1);
-      expect(addProfileProviderSpy).toHaveBeenCalledWith(
+      expect(mergeProfileProviderSpy).toHaveBeenCalledTimes(1);
+      expect(mergeProfileProviderSpy).toHaveBeenCalledWith(
         mockProfileId.id,
         providerName,
         {}
       );
 
-      expect(addProviderSpy).toHaveBeenCalledTimes(1);
-      expect(addProviderSpy).toHaveBeenCalledWith(providerName, {
+      expect(mergeProviderSpy).toHaveBeenCalledTimes(1);
+      expect(mergeProviderSpy).toHaveBeenCalledWith(providerName, {
         security: [
           { apikey: '$TEST_API_KEY', id: 'api' },
           { id: 'bearer', token: '$TEST_TOKEN' },
@@ -753,10 +753,10 @@ describe('Configure CLI logic', () => {
 
       mocked(fetchProviderInfo).mockResolvedValue(mockProviderJson);
 
-      const addProviderSpy = jest.spyOn(SuperJson.prototype, 'addProvider');
-      const addProfileProviderSpy = jest.spyOn(
+      const mergeProviderSpy = jest.spyOn(SuperJson.prototype, 'mergeProvider');
+      const mergeProfileProviderSpy = jest.spyOn(
         SuperJson.prototype,
-        'addProfileProvider'
+        'mergeProfileProvider'
       );
 
       const writeOnceSpy = jest
@@ -776,8 +776,8 @@ describe('Configure CLI logic', () => {
 
       expect(fetchProviderInfo).toHaveBeenCalledTimes(1);
 
-      expect(addProfileProviderSpy).not.toHaveBeenCalled();
-      expect(addProviderSpy).not.toHaveBeenCalled();
+      expect(mergeProfileProviderSpy).not.toHaveBeenCalled();
+      expect(mergeProviderSpy).not.toHaveBeenCalled();
       expect(writeOnceSpy).not.toHaveBeenCalled();
     });
   });
