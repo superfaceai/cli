@@ -113,7 +113,7 @@ describe('Interactive install CLI command', () => {
             //Confirm slection
             { value: ENTER, timeout: 500 },
             //Mailgun
-            { value: DOWN, timeout: 5000 },
+            { value: DOWN, timeout: 1000 },
             //Confirm slection
             { value: ENTER, timeout: 500 },
             //Exit
@@ -143,7 +143,7 @@ describe('Interactive install CLI command', () => {
                 'sfs_bb064dd57c302911602dd097bc29bedaea6a021c25a66992d475ed959aa526c7_37bce8b5',
               timeout: 4000,
             },
-            { value: ENTER, timeout: 100 },
+            { value: ENTER, timeout: 500 },
           ], debug: true
         }
       );
