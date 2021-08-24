@@ -722,9 +722,7 @@ describe('Configure CLI logic', () => {
           profileId: mockProfileId,
         })
       ).rejects.toEqual(
-        new CLIError(
-          `❌ profile ${mockProfileId.id} not found in some/path. Forgot to install?`
-        )
+        new CLIError(`❌ profile ${mockProfileId.id} not found in "some/path/super.json".`)
       );
 
       expect(fetchProviderInfo).not.toHaveBeenCalled();
