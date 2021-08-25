@@ -13,7 +13,7 @@ import {
 } from '@superfaceai/parser';
 import { basename, join as joinPath } from 'path';
 
-import { CreateMode, DocumentType } from './document.interfaces';
+import { DocumentType } from './document.interfaces';
 import { userError } from './error';
 import { DocumentTypeFlag } from './flags';
 import { readdir, readFile } from './io';
@@ -109,14 +109,6 @@ export function isMapFile(file: string): boolean {
 
 export function isUnknownFile(file: string): boolean {
   return inferDocumentType(file) === DocumentType.UNKNOWN;
-}
-
-export function inferCreateMode(value: string): CreateMode {
-  return value === 'profile'
-    ? CreateMode.PROFILE
-    : value === 'map'
-    ? CreateMode.MAP
-    : CreateMode.UNKNOWN;
 }
 
 export function composeVersion(

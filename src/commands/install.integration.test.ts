@@ -246,7 +246,7 @@ describe('Install CLI command', () => {
         mockServer.url
       );
 
-      expect(result.stdout).toMatch('File already exists:');
+      expect(result.stdout).toMatch('already installed from a path:');
 
       expect(result.stdout).toMatch('❌ No profiles have been installed');
     }, 20000);
