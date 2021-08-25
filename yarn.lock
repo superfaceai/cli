@@ -882,10 +882,10 @@
   resolved "https://registry.yarnpkg.com/@superfaceai/ast/-/ast-0.0.25.tgz#f8bb0d6d7e74932600c8326cd6c445540e42a952"
   integrity sha512-5zSC2X+gqPiEvjKHcGLEjUsKJ4RNyXM8AmKhNSNw3CoahmSwftCFIL4YRHzeI+nnvh82qd5RbxNFeRt0Tn4adA==
 
-"@superfaceai/one-sdk@^0.0.30":
-  version "0.0.30"
-  resolved "https://registry.yarnpkg.com/@superfaceai/one-sdk/-/one-sdk-0.0.30.tgz#7b26896945e78c30c7d874d6bce1b3a953b5a71b"
-  integrity sha512-z5MVVd5YM6QtbrW94agjAe1pz/26ZRdtx3vuJXjLsvAqcOzEuGBEfZ4fS3kvxNF/VCsDbr7lYvlrq/z3fp10+g==
+"@superfaceai/one-sdk@0.0.31":
+  version "0.0.31"
+  resolved "https://registry.yarnpkg.com/@superfaceai/one-sdk/-/one-sdk-0.0.31.tgz#132cf5cc0b63030d91ef924a061dc7cc7ba692c5"
+  integrity sha512-Dzuep+RDIQOKKhOUhu0O6aYcWXszAbtakwROtpDIEP3vh9sgY6a8b8CAzXRHyUO9zu5P660xEPz04GKJNKlr2g==
   dependencies:
     "@superfaceai/ast" "0.0.23"
     abort-controller "^3.0.0"

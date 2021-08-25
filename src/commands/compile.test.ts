@@ -1,6 +1,7 @@
 import { CLIError } from '@oclif/errors';
 import { MapDocumentNode, ProfileDocumentNode } from '@superfaceai/ast';
 import { err, ok, SuperJson } from '@superfaceai/one-sdk';
+import { SDKExecutionError } from '@superfaceai/one-sdk/dist/internal/errors';
 import { mocked } from 'ts-jest/utils';
 
 import { exists, readFile } from '../common/io';
@@ -87,14 +88,16 @@ describe('Compile CLI command', () => {
       mocked(detectSuperJson).mockResolvedValue('.');
       const loadSpy = jest
         .spyOn(SuperJson, 'load')
-        .mockResolvedValue(err('test'));
+        .mockResolvedValue(
+          err(new SDKExecutionError('test', [], []))
+        );
       await expect(
         Compile.run([
           '--profileId',
           'starwars/character-information',
           '--profile',
         ])
-      ).rejects.toEqual(new CLIError('Unable to load super.json: test'));
+      ).rejects.toEqual(new CLIError('Unable to load super.json: test\n'));
       expect(loadSpy).toHaveBeenCalledTimes(1);
     });
 

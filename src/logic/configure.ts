@@ -83,7 +83,7 @@ export function handleProviderResponse(
           response.securitySchemes.length
         } security schemes`
       );
-      //Char - is not allowed in env variables so replace it with _
+      // Char "-" is not allowed in env variables so replace it with "_"
       const envProviderName = response.name.replace('-', '_').toUpperCase();
       if (isApiKeySecurityScheme(scheme)) {
         security.push({
@@ -115,15 +115,12 @@ export function handleProviderResponse(
   }
 
   // update super.json
-  // superJson.setProvider(response.name, {
-  superJson.mergeProvider(response.name, {
+  superJson.setProvider(response.name, {
     security,
     file: options?.localProvider
       ? superJson.relativePath(options.localProvider)
       : undefined
   });
-
-  superJson.mergeProvider
 
   //constructProfileProviderSettings returns Record<string, ProfileProviderEntry>
   let settings = defaults
@@ -140,8 +137,7 @@ export function handleProviderResponse(
       };
     }
   }
-  // superJson.setProfileProvider(profileId.id, response.name, settings);
-  superJson.mergeProfileProvider(profileId.id, response.name, settings);
+  superJson.setProfileProvider(profileId.id, response.name, settings);
 
   return security.length;
 }
