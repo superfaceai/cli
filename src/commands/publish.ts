@@ -5,7 +5,7 @@ import { green, grey, yellow } from 'chalk';
 import inquirer from 'inquirer';
 import { join as joinPath } from 'path';
 
-import { DEFAULT_PROFILE_VERSION_STR, EXTENSIONS, META_FILE } from '../common';
+import { EXTENSIONS, META_FILE } from '../common';
 import { Command } from '../common/command.abstract';
 import { userError } from '../common/error';
 import { getStoreUrl } from '../common/http';
@@ -70,9 +70,9 @@ export default class Publish extends Command {
     '$ superface publish profile --profileId starwars/characeter-information --providerName swapi --dry-run',
   ];
 
-  private logCallback? = (message: string) => this.log(grey(message));
-  private warnCallback? = (message: string) => this.log(yellow(message));
-  private successCallback? = (message: string) => this.log(green(message));
+  private logCallback?= (message: string) => this.log(grey(message));
+  private warnCallback?= (message: string) => this.log(yellow(message));
+  private successCallback?= (message: string) => this.log(green(message));
 
   async run(): Promise<void> {
     const { argv, flags } = this.parse(Publish);
@@ -206,7 +206,7 @@ export default class Publish extends Command {
     const version =
       'version' in profileSettings
         ? profileSettings.version
-        : DEFAULT_PROFILE_VERSION_STR;
+        : undefined;
 
     const map = {
       variant:
@@ -236,7 +236,9 @@ export default class Publish extends Command {
       return;
     }
 
-    this.successCallback?.(`🆗 file have been published successfully.`);
+    this.successCallback?.(
+      `🆗 ${documentType} has been published successfully.`
+    );
     let transition = true;
     if (!flags.force) {
       const prompt: { continue: boolean } = await inquirer.prompt({

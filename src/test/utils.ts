@@ -159,6 +159,26 @@ export async function mockResponsesForProfileProviders(
 }
 
 /**
+ * Mocks HTTP responses for a publishing endpoint
+ */
+export async function mockResponsesForPublish(server: Mockttp): Promise<void> {
+  await server
+    .post('/providers')
+    .withHeaders({ 'Content-Type': ContentType.JSON })
+    .thenJson(200, {});
+
+  await server
+    .post('/profiles')
+    .withHeaders({ 'Content-Type': ContentType.TEXT })
+    .thenJson(200, {});
+
+  await server
+    .post('/maps')
+    .withHeaders({ 'Content-Type': ContentType.TEXT })
+    .thenJson(200, {});
+}
+
+/**
  * Executes the Superface CLI binary
  *
  * @export

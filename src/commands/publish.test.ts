@@ -608,7 +608,7 @@ describe('Publish CLI command', () => {
         {
           variant: undefined,
         },
-        DEFAULT_PROFILE_VERSION_STR,
+        undefined,
         {
           logCb: expect.anything(),
           dryRun: false,
@@ -1057,7 +1057,7 @@ describe('Publish CLI command', () => {
         {
           variant: undefined,
         },
-        DEFAULT_PROFILE_VERSION_STR,
+        undefined,
         {
           logCb: undefined,
           dryRun: false,
@@ -1115,7 +1115,7 @@ describe('Publish CLI command', () => {
         {
           variant: undefined,
         },
-        DEFAULT_PROFILE_VERSION_STR,
+        undefined,
         {
           logCb: undefined,
           dryRun: false,

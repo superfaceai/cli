@@ -31,6 +31,7 @@ export interface GetProfileResponse {
 
 export enum ContentType {
   JSON = 'application/json',
+  TEXT = 'text/plain',
   PROFILE_SOURCE = 'application/vnd.superface.profile',
   PROFILE_AST = 'application/vnd.superface.profile+json',
   MAP_SOURCE = 'application/vnd.superface.map',
