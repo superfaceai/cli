@@ -1,158 +1,87 @@
-import { Profile, Provider, SuperfaceClient } from '@superfaceai/one-sdk';
-import { expect, use as useChai } from 'chai';
-import chaiJestSnapshot from 'chai-jest-snapshot';
-import Mocha from 'mocha';
-import { back, back as nockBack, restore as restoreNocks } from 'nock';
+import { run as runJest } from 'jest';
+import { back as nockBack, restore as restoreNocks } from 'nock';
 import { join as joinPath } from 'path';
 
-import { removeTimestamp } from '../common/format';
-import { removeDirQuiet, removeFileQuiet } from '../common/io';
+import { removeDirQuiet } from '../common/io';
 import { LogCallback } from '../common/log';
+import { OutputStream } from '../common/output-stream';
 import { TestConfig, TestingInput } from '../common/test-config';
-import { runMochaTests, suite } from '../test/mocha-utils';
+import { buildTest } from '../templates/jest-test';
 
-export async function runTest(
-  config: {
-    path: string;
-    updateSnapshots: boolean;
-    updateRecordings: boolean;
-    testName?: string;
-  },
+// TODO: centralize TestConfig 
+
+export async function executeJest(
+  config: TestConfig,
   options?: {
     logCb?: LogCallback;
     errorCb?: LogCallback;
   }
 ): Promise<void> {
-  // set up snapshot matcher .to.matchSnapshot()
-  useChai(chaiJestSnapshot);
+  const argv = [];
 
-  const testConfig = await TestConfig.load(config);
-  const mocha = new Mocha({ timeout: 15000 });
-  await prepareTests(mocha, testConfig);
+  if (config.testName !== undefined) {
+    argv.push(`${config.testName}.test.ts`);
+  }
+
+  if (config.updateSnapshots) {
+    argv.push('--updateSnapshot');
+  }
 
   try {
-    await runMochaTests(mocha);
-    options?.logCb?.('Templated test was executed with mocha');
+    await runJest(argv, process.cwd());
   } catch (error) {
     options?.errorCb?.(error);
   }
-
-  restoreNocks();
-  mocha.dispose();
 }
 
-export async function prepareTests(
-  mocha: Mocha,
-  config: TestConfig
-): Promise<void> {
-  if (config.updateSnapshots) {
-    await updatePresentSnapshot(config.path);
-  }
-
-  if (config.updateRecordings) {
-    await updatePresentMocks(config.path);
-  }
-
-  nockBack.fixtures = joinPath(config.path, '.cache', 'nock');
-  nockBack.setMode('record');
-
-  const parentSuite = suite(mocha.suite, '$ superface test');
-
-  parentSuite.beforeAll(() => {
-    chaiJestSnapshot.setFilename(
-      joinPath(config.path, '.cache', 'snapshot.snap')
-    );
-  });
-
-  for (const entry of config.configuration.entries()) {
-    templatedTest(entry, parentSuite);
-  }
-}
-
-export function templatedTest(
+export async function test(
   [index, config]: [index: number, config: TestingInput],
-  parentSuite: Mocha.Suite
-): void {
-  let client: SuperfaceClient;
-  let profile: Profile;
-  let provider: Provider;
-  let nockDone: () => void;
-
-  const testInputSuite = suite(
-    parentSuite,
-    `${config.profileId}/${config.provider}`
+  testConfig: TestConfig,
+  options?: {
+    logCb?: LogCallback;
+    errorCb?: LogCallback;
+  }
+) {
+  const { nockDone } = await nockBack(
+    `${config.profileId}-${config.provider}-${index}.json`
   );
 
-  testInputSuite.beforeAll(async () => {
-    client = new SuperfaceClient();
-    profile = await client.getProfile(config.profileId);
-    provider = await client.getProvider(config.provider);
+  await executeJest(testConfig, options);
 
-    process.env.SUPERFACE_DISABLE_METRIC_REPORTING = 'true';
-  });
+  nockDone();
+}
 
-  testInputSuite.addTest(
-    new Mocha.Test('should have profile defined', () => {
-      expect(profile).not.to.be.undefined;
-    })
+export async function generateTest(
+  [index, config]: [index: number, config: TestingInput],
+  path: string,
+  options?: {
+    logCb?: LogCallback;
+    errorCb?: LogCallback;
+    force?: boolean;
+  }
+) {
+  const [scope, profile] = config.profileId.split('/');
+  const fileName = `${scope}-${profile}-${config.provider}-${index}.test.ts`;
+  const testPath = joinPath(path, '.cache', '__tests__', fileName);
+
+  const created = await OutputStream.writeIfAbsent(
+    testPath,
+    buildTest([index, config]),
+    {
+      force: options?.force,
+      dirs: true,
+    }
   );
 
-  testInputSuite.addTest(
-    new Mocha.Test('should have provider defined', () => {
-      expect(provider).not.to.be.undefined;
-    })
-  );
-
-  const testCaseSuite = suite(testInputSuite, 'testing cases');
-
-  testCaseSuite.beforeAll(async () => {
-    ({ nockDone } = await back(
-      `${config.profileId}-${config.provider}-${index}.json`
-    ));
-  });
-
-  testCaseSuite.afterAll(() => {
-    nockDone();
-  });
-
-  for (const [i, testCase] of config.data.entries()) {
-    testCaseSuite.addTest(
-      new Mocha.Test(`${i + 1} - ${testCase.useCase}`, async () => {
-        chaiJestSnapshot.setTestName(testCase.useCase);
-
-        const useCase = profile.getUseCase(testCase.useCase);
-        expect(useCase).not.to.be.undefined;
-
-        // TODO: fix unknown types
-        const result = await useCase.perform(testCase.input as any, {
-          provider,
-        });
-
-        if (testCase.isError) {
-          expect(result.isErr()).to.be.true;
-          expect(
-            result.isErr() && removeTimestamp(result.error.message)
-          ).to.matchSnapshot();
-        } else {
-          expect(result.isOk()).to.be.true;
-
-          if (testCase.result) {
-            expect(result.isOk() && result.value).to.deep.equal(
-              testCase.result
-            );
-          } else {
-            expect(result.isOk() && result.value).to.matchSnapshot();
-          }
-        }
-      })
-    );
+  if (created) {
+    options?.logCb?.(`Created test file ${fileName} in ${path}`);
   }
 }
 
 /**
  * Updates nock http recordings located in <project-dir>/superface/.cache/nock/
  */
-export async function updatePresentMocks(
+ export async function updatePresentMocks(
   configPath: string,
   options?: {
     logCb?: LogCallback;
@@ -167,20 +96,37 @@ export async function updatePresentMocks(
   }
 }
 
-/**
- * Updates snapshot located in <project-dir>/superface/.cache/
- */
-export async function updatePresentSnapshot(
-  configPath: string,
+export async function runTests(
+  config: {
+    path: string;
+    updateSnapshots: boolean;
+    updateRecordings: boolean;
+    testName?: string;
+  },
   options?: {
     logCb?: LogCallback;
     errorCb?: LogCallback;
+    force?: boolean;
   }
 ): Promise<void> {
-  options?.logCb?.('Updating nock http recordings');
+  const testConfig = await TestConfig.load(config);
+
   try {
-    await removeFileQuiet(joinPath(configPath, '.cache', 'snapshot.snap'));
+    if (testConfig.updateRecordings) {
+      await updatePresentMocks(testConfig.path);
+    }
+
+    nockBack.fixtures = joinPath(testConfig.path, '.cache', 'nock');
+    nockBack.setMode('record');
+
+    for (const entry of testConfig.configuration.entries()) {
+      // TODO: add check or prompt
+      await generateTest(entry, testConfig.path, options);
+      await test(entry, testConfig, options);
+    }
   } catch (error) {
     options?.errorCb?.(error);
   }
+
+  restoreNocks();
 }

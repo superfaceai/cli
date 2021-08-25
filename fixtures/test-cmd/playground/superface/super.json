@@ -10,7 +10,7 @@
       }
     },
     "address/geocoding": {
-      "version": "3.0.2",
+      "file": "./grid/address/geocoding@3.0.2.supr",
       "priority": ["nominatim"],
       "providers": {
         "nominatim": {

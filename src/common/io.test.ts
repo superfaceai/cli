@@ -191,19 +191,20 @@ describe('IO functions', () => {
     const originalWriteOnce = OutputStream.writeOnce;
 
     beforeAll(async () => {
-      process.chdir('..');
-      FIXTURE_CWD = process.cwd();
+      FIXTURE_CWD = join(process.cwd(), '..');
 
       //Mock static side of OutputStream
       const mockWrite = jest.fn();
       OutputStream.writeOnce = mockWrite;
 
       //create mock nested paths
-      let path = join('playground', 'superface', 'nested1');
+      let path = join('superface', 'nested1');
       await mkdirQuiet(path);
 
-      path = join('playground', 'superface', 'nested1', 'nested2');
+      path = join('superface', 'nested1', 'nested2');
       await mkdirQuiet(path);
+
+      process.chdir('..');
     });
 
     afterAll(async () => {

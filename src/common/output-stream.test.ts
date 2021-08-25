@@ -11,7 +11,7 @@ jest.mock('../common/io', () => ({
   streamEnd: jest.fn(),
 }));
 describe('OutputStream', () => {
-  const WORKING_DIR = join('fixtures', 'io');
+  const WORKING_DIR = join('fixtures', 'output-stream');
 
   let INITIAL_CWD: string;
 
