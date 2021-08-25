@@ -202,10 +202,7 @@ export async function execCLI(
       // Set a timeout to wait for CLI response. If CLI takes longer than
       // maxTimeout to respond, kill the childProcess and notify user
       killIOTimeout = setTimeout(() => {
-        console.error(
-          'Error: Reached I/O timeout, next input: ',
-          userInputs[0]
-        );
+        console.error('Error: Reached I/O timeout');
         childProcess.kill(constants.signals.SIGTERM);
       }, maxTimeout);
 

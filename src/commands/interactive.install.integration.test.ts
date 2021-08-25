@@ -111,11 +111,11 @@ describe('Interactive install CLI command', () => {
             { value: DOWN, timeout: 10000 },
             { value: ENTER, timeout: 500 },
             //exit
-            { value: UP, timeout: 6000 },
+            { value: UP, timeout: 10000 },
             //Confirm selection
             { value: ENTER, timeout: 500 },
             //None
-            { value: ENTER, timeout: 3000 },
+            { value: ENTER, timeout: 6000 },
             //Sendgrid token
             { value: 'sendgridToken', timeout: 3000 },
             { value: ENTER, timeout: 500 },
@@ -226,7 +226,7 @@ describe('Interactive install CLI command', () => {
       expect(
         (parsed as { dependencies: Record<string, string> }).dependencies
       ).not.toBeUndefined();
-    }, 100000);
+    }, 60000);
 
     it('installs the profile, overrides existing super.json and updates .env', async () => {
       //Existing env
@@ -507,6 +507,6 @@ describe('Interactive install CLI command', () => {
       expect(
         (parsed as { dependencies: Record<string, string> }).dependencies
       ).not.toBeUndefined();
-    }, 100000);
+    }, 60000);
   });
 });
