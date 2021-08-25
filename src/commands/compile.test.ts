@@ -3,9 +3,8 @@ import { MapDocumentNode, ProfileDocumentNode } from '@superfaceai/ast';
 import { err, ok, SuperJson } from '@superfaceai/one-sdk';
 import { mocked } from 'ts-jest/utils';
 
-import { exists, readFile } from '../common/io';
+import { detectSuperJson, exists, readFile } from '../common/io';
 import { Parser } from '../common/parser';
-import { detectSuperJson } from '../logic/install';
 import Compile from './compile';
 
 //Mock install logic

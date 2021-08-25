@@ -8,9 +8,8 @@ import { join as joinPath } from 'path';
 import { Command } from '../common/command.abstract';
 import { META_FILE } from '../common/document';
 import { userError } from '../common/error';
-import { exists, readFile } from '../common/io';
+import { detectSuperJson, exists, readFile } from '../common/io';
 import { Parser } from '../common/parser';
-import { detectSuperJson } from '../logic/install';
 
 export default class Compile extends Command {
   static description = 'Compiles profile or map locally linked in super.json.';

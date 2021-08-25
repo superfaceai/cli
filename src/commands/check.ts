@@ -7,8 +7,8 @@ import { join as joinPath } from 'path';
 import { META_FILE } from '../common';
 import { Command } from '../common/command.abstract';
 import { userError } from '../common/error';
+import { detectSuperJson } from '../common/io';
 import { check, formatHuman, formatJson } from '../logic/check';
-import { detectSuperJson } from '../logic/install';
 
 export default class Check extends Command {
   static strict = false;

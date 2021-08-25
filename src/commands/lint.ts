@@ -7,10 +7,10 @@ import { Command } from '../common/command.abstract';
 import { developerError, userError } from '../common/error';
 import { DocumentTypeFlag, documentTypeFlag } from '../common/flags';
 import { formatWordPlurality } from '../common/format';
+import { detectSuperJson } from '../common/io';
 import { ListWriter } from '../common/list-writer';
 import { OutputStream } from '../common/output-stream';
 import { ReportFormat } from '../common/report.interfaces';
-import { detectSuperJson } from '../logic/install';
 import {
   formatHuman,
   formatJson,

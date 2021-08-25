@@ -2,8 +2,8 @@ import { CLIError } from '@oclif/errors';
 import { err, ok, SuperJson } from '@superfaceai/one-sdk';
 import { mocked } from 'ts-jest/utils';
 
+import { detectSuperJson } from '../common/io';
 import { OutputStream } from '../common/output-stream';
-import { detectSuperJson } from '../logic/install';
 import { lintFiles, lintMapsToProfile } from '../logic/lint';
 import Lint from './lint';
 
