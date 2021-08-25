@@ -18,7 +18,6 @@ import {
 } from '@superfaceai/parser';
 import { basename, join as joinPath } from 'path';
 
-import { CreateMode } from './document.interfaces';
 import { userError } from './error';
 import { DocumentTypeFlag } from './flags';
 import { readdir, readFile } from './io';
@@ -64,14 +63,6 @@ export const DOCUMENT_PARSE_FUNCTION = {
   [DocumentType.MAP]: parseMap,
   [DocumentType.PROFILE]: parseProfile,
 };
-
-export function inferCreateMode(value: string): CreateMode {
-  return value === 'profile'
-    ? CreateMode.PROFILE
-    : value === 'map'
-    ? CreateMode.MAP
-    : CreateMode.UNKNOWN;
-}
 
 export function composeVersion(
   version: DocumentVersion,

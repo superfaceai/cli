@@ -5,13 +5,16 @@ import { join as joinPath } from 'path';
 
 import { Command } from '../common/command.abstract';
 import { META_FILE, SUPERFACE_DIR } from '../common/document';
+import { userError } from '../common/error';
+import { exists } from '../common/io';
+import { ProfileId } from '../common/profile';
 import { installProvider } from '../logic/configure';
 import { initSuperface } from '../logic/init';
 import { detectSuperJson } from '../logic/install';
 
 export default class Configure extends Command {
   static description =
-    'Automatically initializes superface directory in current working directory if needed, communicates with Superface Store API, stores provider configuration in super.json';
+    'Configures new provider and map for already installed profile. Provider configuration is dowloaded from a Superface registry or from local file.';
 
   static args = [
     {
@@ -28,17 +31,22 @@ export default class Configure extends Command {
       description: 'Specifies profile to associate with provider',
       required: true,
     }),
+    ['no-env']: oclifFlags.boolean({
+      description:
+        'When set to true command does not prepare security varibles in .env file',
+      default: false,
+    }),
     force: oclifFlags.boolean({
       char: 'f',
       description:
         'When set to true and when provider exists in super.json, overwrites them.',
       default: false,
     }),
-    local: oclifFlags.boolean({
-      char: 'l',
-      description:
-        'When set to true, provider name argument is used as a filepath to provider.json file',
-      default: false,
+    localProvider: oclifFlags.string({
+      description: 'Optional filepath to provider.json file',
+    }),
+    localMap: oclifFlags.string({
+      description: 'Optional filepath to .suma map file',
     }),
   };
 
@@ -46,7 +54,8 @@ export default class Configure extends Command {
     '$ superface configure twilio -p send-sms',
     '$ superface configure twilio -p send-sms -q',
     '$ superface configure twilio -p send-sms -f',
-    '$ superface configure providers/twilio.provider.json -p send-sms -l',
+    '$ superface configure twilio -p send-sms --local-provider providers/twilio.provider.json',
+    '$ superface configure twilio -p send-sms --local-map maps/send-sms.twilio.suma',
   ];
 
   private warnCallback? = (message: string) => this.log(yellow(message));
@@ -60,10 +69,16 @@ export default class Configure extends Command {
       this.logCallback = undefined;
     }
 
-    if (!isValidProviderName(args.providerName) && !flags.local) {
-      this.warnCallback?.('Invalid provider name');
+    if (!isValidProviderName(args.providerName)) {
+      throw userError('Invalid provider name', 1);
+    }
 
-      return;
+    if (flags.localMap && !(await exists(flags.localMap))) {
+      throw userError(`Local path: "${flags.localMap}" does not exist`, 1);
+    }
+
+    if (flags.localProvider && !(await exists(flags.localProvider))) {
+      throw userError(`Local path: "${flags.localProvider}" does not exist`, 1);
     }
 
     let superPath = await detectSuperJson(process.cwd());
@@ -89,13 +104,15 @@ export default class Configure extends Command {
     await installProvider({
       superPath,
       provider: args.providerName as string,
-      profileId: flags.profile.trim(),
+      profileId: ProfileId.fromId(flags.profile.trim()),
       defaults: undefined,
       options: {
         logCb: this.logCallback,
         warnCb: this.warnCallback,
         force: flags.force,
-        local: flags.local,
+        localMap: flags.localMap,
+        localProvider: flags.localProvider,
+        updateEnv: !flags['no-env'],
       },
     });
   }

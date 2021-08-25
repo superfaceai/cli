@@ -163,9 +163,6 @@ describe('Init CLI command', () => {
       expect(promptSpy).toHaveBeenCalledTimes(0);
 
       expect(writeOnceSpy).toHaveBeenCalledTimes(0);
-      expect(stdout.output).toEqual(
-        'You are using a hidden command. This command is not intended for public consumption yet. It might be broken, hard to use or simply redundant. Tread with care.\n'
-      );
     });
   });
 });

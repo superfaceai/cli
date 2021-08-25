@@ -7,6 +7,7 @@ import { Mockttp } from 'mockttp';
 import { constants } from 'os';
 import { join as joinPath, relative } from 'path';
 
+import { DEFAULT_PROFILE_VERSION_STR } from '../common/document';
 import { ContentType } from '../common/http';
 import { mkdir, readFile } from '../common/io';
 
@@ -30,13 +31,13 @@ export async function mockResponsesForProfile(
 ): Promise<void> {
   const basePath = joinPath(path, profile);
   const profileInfo = JSON.parse(
-    (await readFile(basePath + '.json')).toString()
+    await readFile(basePath + '.json', { encoding: 'utf-8' })
   );
-  const profileSource = (
-    await readFile(basePath + EXTENSIONS.profile.source)
-  ).toString();
+  const profileSource = await readFile(basePath + EXTENSIONS.profile.source, {
+    encoding: 'utf-8',
+  });
   const profileAST = JSON.parse(
-    (await readFile(basePath + EXTENSIONS.profile.build)).toString()
+    await readFile(basePath + EXTENSIONS.profile.build, { encoding: 'utf-8' })
   );
   await server
     .get('/' + profile)
@@ -44,12 +45,69 @@ export async function mockResponsesForProfile(
     .thenJson(200, profileInfo);
   await server
     .get('/' + profile)
-    .withHeaders({ Accept: ContentType.PROFILE })
-    .thenReply(200, profileSource, { ContentType: ContentType.PROFILE });
+    .withHeaders({ Accept: ContentType.PROFILE_SOURCE })
+    .thenReply(200, profileSource, {
+      'Content-Type': ContentType.PROFILE_SOURCE,
+    });
   await server
     .get('/' + profile)
-    .withHeaders({ Accept: ContentType.AST })
-    .thenJson(200, profileAST, { 'Content-Type': ContentType.AST });
+    .withHeaders({ Accept: ContentType.PROFILE_AST })
+    .thenJson(200, profileAST, { 'Content-Type': ContentType.PROFILE_AST });
+}
+
+/**
+ * Mocks HTTP responses for a map
+ *
+ * expects following files in specified path (default fixtures/profiles)
+ *   [profileScope]/maps/[provider].[profileName].suma             - map source
+ *   [profileScope]/maps/[provider].[profileName].suma.ast.json    - compiled map source
+ */
+export async function mockResponsesForMap(
+  server: Mockttp,
+  profile: {
+    scope?: string;
+    name: string;
+    version?: string;
+  },
+  provider: string,
+  mapVariant?: string,
+  path = joinPath('fixtures', 'profiles')
+): Promise<void> {
+  const url = `${profile.scope ? `${profile.scope}/` : ''}${
+    profile.name
+  }.${provider}${mapVariant ? `.${mapVariant}` : ''}@${
+    profile.version ? profile.version : DEFAULT_PROFILE_VERSION_STR
+  }`;
+
+  const basePath = profile.scope
+    ? joinPath(path, profile.scope, 'maps', `${provider}.${profile.name}`)
+    : joinPath(path, profile.name, 'maps', `${provider}.${profile.name}`);
+
+  const mapInfo = JSON.parse(
+    await readFile(basePath + '.json', { encoding: 'utf-8' })
+  );
+
+  const mapSource = await readFile(basePath + EXTENSIONS.map.source, {
+    encoding: 'utf-8',
+  });
+  const mapAST = await readFile(basePath + EXTENSIONS.map.build, {
+    encoding: 'utf-8',
+  });
+
+  await server
+    .get('/' + url)
+    .withHeaders({ Accept: ContentType.JSON })
+    .thenReply(200, mapInfo);
+
+  await server
+    .get('/' + url)
+    .withHeaders({ Accept: ContentType.MAP_SOURCE })
+    .thenReply(200, mapSource, { 'Content-Type': ContentType.MAP_SOURCE });
+
+  await server
+    .get('/' + url)
+    .withHeaders({ Accept: ContentType.MAP_AST })
+    .thenReply(200, mapAST, { 'Content-Type': ContentType.MAP_AST });
 }
 
 /**
@@ -65,7 +123,7 @@ export async function mockResponsesForProvider(
 ): Promise<void> {
   const basePath = joinPath(path, provider);
   const providerInfo = JSON.parse(
-    (await readFile(basePath + '.json')).toString()
+    await readFile(basePath + '.json', { encoding: 'utf-8' })
   );
 
   await server
@@ -90,7 +148,7 @@ export async function mockResponsesForProfileProviders(
   for (const p of providers) {
     const basePath = joinPath(path, p);
     providersInfo.push(
-      JSON.parse((await readFile(basePath + '.json')).toString())
+      JSON.parse(await readFile(basePath + '.json', { encoding: 'utf-8' }))
     );
   }
   await server

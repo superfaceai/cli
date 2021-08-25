@@ -55,12 +55,45 @@ npx @superfaceai/cli install [profileId eg. communication/send-email] -i
 ## Usage
 
   <!-- commands -->
+* [`superface check`](#superface-check)
 * [`superface configure PROVIDERNAME`](#superface-configure-providername)
+* [`superface create`](#superface-create)
+* [`superface init [NAME]`](#superface-init-name)
 * [`superface install [PROFILEID]`](#superface-install-profileid)
+* [`superface lint [FILE]`](#superface-lint-file)
+
+## `superface check`
+
+Checks if specified capability is correctly set up in super.json, has profile and map with corresponding version, scope, name, use case definitions and provider
+
+```
+USAGE
+  $ superface check
+
+OPTIONS
+  -h, --help                   show CLI help
+  -j, --json                   Formats result to JSON
+  -q, --quiet                  When set to true, disables the shell echo output of action.
+
+  -s, --scan=scan              When number provided, scan for super.json outside cwd within range represented by this
+                               number.
+
+  --profileId=profileId        (required) Profile Id in format [scope/](optional)[name]
+
+  --providerName=providerName  (required) Name of provider.
+
+EXAMPLES
+  $ superface check --profileId starwars/character-information --providerName swapi
+  $ superface check --profileId starwars/character-information --providerName swapi -j
+  $ superface check --profileId starwars/character-information --providerName swapi -s 3
+  $ superface check --profileId starwars/character-information --providerName swapi -q
+```
+
+_See code: [src/commands/check.ts](https://github.com/superfaceai/cli/tree/main/src/commands/check.ts)_
 
 ## `superface configure PROVIDERNAME`
 
-Automatically initializes superface directory in current working directory if needed, communicates with Superface Store API, stores provider configuration in super.json
+Configures new provider and map for already installed profile. Provider configuration is dowloaded from a Superface registry or from local file.
 
 ```
 USAGE
@@ -70,20 +103,102 @@ ARGUMENTS
   PROVIDERNAME  Provider name.
 
 OPTIONS
-  -f, --force            When set to true and when provider exists in super.json, overwrites them.
-  -h, --help             show CLI help
-  -l, --local            When set to true, provider name argument is used as a filepath to provider.json file
-  -p, --profile=profile  (required) Specifies profile to associate with provider
-  -q, --quiet            When set to true, disables the shell echo output of init actions.
+  -f, --force                    When set to true and when provider exists in super.json, overwrites them.
+  -h, --help                     show CLI help
+  -p, --profile=profile          (required) Specifies profile to associate with provider
+  -q, --quiet                    When set to true, disables the shell echo output of action.
+  --localMap=localMap            Optional filepath to .suma map file
+  --localProvider=localProvider  Optional filepath to provider.json file
+  --no-env                       When set to true command does not prepare security varibles in .env file
 
 EXAMPLES
   $ superface configure twilio -p send-sms
   $ superface configure twilio -p send-sms -q
   $ superface configure twilio -p send-sms -f
-  $ superface configure providers/twilio.provider.json -p send-sms -l
+  $ superface configure twilio -p send-sms --local-provider providers/twilio.provider.json
+  $ superface configure twilio -p send-sms --local-map maps/send-sms.twilio.suma
 ```
 
 _See code: [src/commands/configure.ts](https://github.com/superfaceai/cli/tree/main/src/commands/configure.ts)_
+
+## `superface create`
+
+Creates empty map, profile or/and provider on a local filesystem.
+
+```
+USAGE
+  $ superface create
+
+OPTIONS
+  -h, --help                   show CLI help
+  -i, --interactive            When set to true, command is used in interactive mode.
+  -p, --path=path              Base path where files will be created
+  -q, --quiet                  When set to true, disables the shell echo output of action.
+
+  -s, --scan=scan              When number provided, scan for super.json outside cwd within range represented by this
+                               number.
+
+  -t, --variant=variant        Variant of a map
+
+  -u, --usecase=usecase        Usecases that profile or map contains
+
+  -v, --version=version        [default: 1.0.0] Version of a profile
+
+  --init                       When set to true, command will initialize Superface
+
+  --map                        Create a map
+
+  --no-init                    When set to true, command won't initialize Superface
+
+  --no-super-json              When set to true, command won't change SuperJson file
+
+  --profile                    Create a profile
+
+  --profileId=profileId        Profile Id in format [scope](optional)/[name]
+
+  --provider                   Create a provider
+
+  --providerName=providerName  Names of providers. This argument is used to create maps and/or providers
+
+EXAMPLES
+  $ superface create --profileId sms/service --profile
+  $ superface create --profileId sms/service --profile -v 1.1-rev133 -u SendSMS ReceiveSMS
+  $ superface create --profileId sms/service --providerName twilio --map
+  $ superface create --profileId sms/service --providerName twilio --map -t bugfix
+  $ superface create --providerName twilio tyntec --provider
+  $ superface create --profileId sms/service --providerName twilio --provider --map --profile -t bugfix -v 1.1-rev133 -u 
+  SendSMS ReceiveSMS
+  $ superface create -i
+```
+
+_See code: [src/commands/create/profile.ts](https://github.com/superfaceai/cli/tree/main/src/commands/create/profile.ts)_
+
+## `superface init [NAME]`
+
+Initializes superface local folder structure.
+
+```
+USAGE
+  $ superface init [NAME]
+
+ARGUMENTS
+  NAME  Name of parent directory.
+
+OPTIONS
+  -h, --help             show CLI help
+  -p, --prompt           When set to true, prompt will be executed.
+  -q, --quiet            When set to true, disables the shell echo output of action.
+  --profiles=profiles    Profile identifiers.
+  --providers=providers  Provider names.
+
+EXAMPLES
+  superface init
+  superface init foo
+  superface init foo --providers bar twilio
+  superface init foo --profiles my-profile@1.1.0 another-profile@2.0 --providers osm gmaps
+```
+
+_See code: [src/commands/create/provider.ts](https://github.com/superfaceai/cli/tree/main/src/commands/create/provider.ts)_
 
 ## `superface install [PROFILEID]`
 
@@ -108,7 +223,7 @@ OPTIONS
 
   -p, --providers=providers  Provider name.
 
-  -q, --quiet                When set to true, disables the shell echo output of init actions.
+  -q, --quiet                When set to true, disables the shell echo output of action.
 
   -s, --scan=scan            When number provided, scan for super.json outside cwd within range represented by this
                              number.
@@ -124,6 +239,47 @@ EXAMPLES
 ```
 
 _See code: [src/commands/install.ts](https://github.com/superfaceai/cli/tree/main/src/commands/install.ts)_
+
+## `superface lint [FILE]`
+
+Lints maps and profiles locally linked in super.json. Path to single file can be provided. Outputs the linter issues to STDOUT by default.
+
+```
+USAGE
+  $ superface lint [FILE]
+
+OPTIONS
+  -f, --outputFormat=long|short|json   [default: long] Output format to use to display errors and warnings.
+  -h, --help                           show CLI help
+
+  -o, --output=output                  [default: -] Filename where the output will be written. `-` is stdout, `-2` is
+                                       stderr.
+
+  -q, --quiet                          When set to true, disables the shell echo output of action.
+
+  -s, --scan=scan                      When number provided, scan for super.json outside cwd within range represented by
+                                       this number.
+
+  -t, --documentType=auto|map|profile  [default: auto] Document type to parse. `auto` attempts to infer from file
+                                       extension.
+
+  -v, --validate                       Validate maps to specific profile.
+
+  --append                             Open output file in append mode instead of truncating it if it exists. Has no
+                                       effect with stdout and stderr streams.
+
+DESCRIPTION
+  Linter ends with non zero exit code if errors are found.
+
+EXAMPLES
+  $ superface lint
+  $ superface lint -o -2
+  $ superface lint -f json
+  $ superface lint my/path/to/sms/service@1.0
+  $ superface lint -s
+```
+
+_See code: [src/commands/lint.ts](https://github.com/superfaceai/cli/tree/main/src/commands/lint.ts)_
 <!-- commandsstop -->
 
 ## Interactive install

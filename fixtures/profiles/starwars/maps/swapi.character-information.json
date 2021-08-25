@@ -1,0 +1,15 @@
+{
+  "map_id": "starwars/character-information.swapi@1.0-rev2",
+  "map_provider": "swapi",
+  "map_provider_url": "https://superface.ai/providers/swapi",
+  "map_revision": "rev2",
+  "map_variant": null,
+  "url": "https://superface.ai/starwars/character-information.swapi@1.0-rev2",
+  "owner": "superface",
+  "owner_url": "",
+  "profile_name": "starwars/character-information",
+  "profile_url": "https://superface.ai/starwars/character-information",
+  "profile_version": "1.0",
+  "published_at": "2021-06-23T08:56:55.479Z",
+  "published_by": "Superface <hello@superface.ai>"
+}

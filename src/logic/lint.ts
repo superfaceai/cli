@@ -165,7 +165,6 @@ export const createFileReport = (
   errors,
   warnings,
 });
-
 export async function lintMapsToProfile(
   files: string[],
   writer: ListWriter,
