@@ -70,9 +70,9 @@ export default class Publish extends Command {
     '$ superface publish profile --profileId starwars/characeter-information --providerName swapi --dry-run',
   ];
 
-  private logCallback?= (message: string) => this.log(grey(message));
-  private warnCallback?= (message: string) => this.log(yellow(message));
-  private successCallback?= (message: string) => this.log(green(message));
+  private logCallback? = (message: string) => this.log(grey(message));
+  private warnCallback? = (message: string) => this.log(yellow(message));
+  private successCallback? = (message: string) => this.log(green(message));
 
   async run(): Promise<void> {
     const { argv, flags } = this.parse(Publish);
@@ -204,9 +204,7 @@ export default class Publish extends Command {
     }
 
     const version =
-      'version' in profileSettings
-        ? profileSettings.version
-        : undefined;
+      'version' in profileSettings ? profileSettings.version : undefined;
 
     const map = {
       variant:
@@ -259,7 +257,7 @@ export default class Publish extends Command {
             flags.providerName,
             '-p',
             flags.profileId,
-            '--local-provider',
+            '--localProvider',
             superJson.resolvePath(providerSettings.file),
             '-f',
           ]);
@@ -278,7 +276,7 @@ export default class Publish extends Command {
             flags.providerName,
             '-p',
             flags.profileId,
-            '--local-map',
+            '--localMap',
             superJson.resolvePath(profileProviderSettings.file),
             '-f',
           ]);

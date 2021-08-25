@@ -865,7 +865,7 @@ describe('Publish CLI command', () => {
         provider,
         '-p',
         profileId,
-        '--local-provider',
+        '--localProvider',
         mockSuperJson.resolvePath(mockPath),
         '-f',
       ]);
@@ -1001,7 +1001,7 @@ describe('Publish CLI command', () => {
         provider,
         '-p',
         profileId,
-        '--local-map',
+        '--localMap',
         mockSuperJson.resolvePath(mockPath),
         '-f',
       ]);

@@ -127,7 +127,7 @@ export async function publish(
   const client = SuperfaceClient.getClient();
 
   if (publishing === 'provider') {
-    options?.logCb?.(`Publishing provider ${provider}`);
+    options?.logCb?.(`Publishing provider "${provider}"`);
     if (!options?.dryRun) {
       await client.createProvider(JSON.stringify(providerJson));
     }

@@ -6,7 +6,6 @@ import {
 } from '@superfaceai/ast';
 import {
   MapDocumentId,
-  MatchAttempts,
   parseMap,
   parseMapId,
   parseProfile,
@@ -16,6 +15,7 @@ import {
   ValidationResult,
 } from '@superfaceai/parser';
 import { SyntaxErrorCategory } from '@superfaceai/parser/dist/language/error';
+import { MatchAttempts } from '@superfaceai/parser/dist/language/syntax/rule';
 import { mocked } from 'ts-jest/utils';
 
 import { readFile } from '../common/io';

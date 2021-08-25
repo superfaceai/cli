@@ -2,7 +2,7 @@ import { SuperJson } from '@superfaceai/one-sdk';
 import { getLocal } from 'mockttp';
 import { join as joinPath } from 'path';
 
-import { mkdir, rimraf } from '../common/io';
+import { mkdir } from '../common/io';
 import { OutputStream } from '../common/output-stream';
 import { ProfileId } from '../common/profile';
 import {
@@ -84,7 +84,7 @@ describe('Publish CLI command', () => {
   });
 
   afterEach(async () => {
-    await rimraf(tempDir);
+    // await rimraf(tempDir);
   });
 
   afterAll(async () => {
@@ -171,6 +171,501 @@ describe('Publish CLI command', () => {
         providers: {
           [provider]: {
             file: `../../../../${sourceFixture.provider}`,
+          },
+        },
+      });
+    }, 30000);
+
+    it('publishes profile with remote map and provider', async () => {
+      const mockSuperJson = new SuperJson({
+        profiles: {
+          [profileId.id]: {
+            file: `../../../../${sourceFixture.profile}`,
+            providers: {
+              [provider]: {},
+            },
+          },
+        },
+        providers: {
+          [provider]: {},
+        },
+      });
+
+      await mkdir(joinPath(tempDir, 'superface'));
+      await OutputStream.writeOnce(
+        joinPath(tempDir, 'superface', 'super.json'),
+        mockSuperJson.stringified
+      );
+
+      const result = await execCLI(
+        tempDir,
+        [
+          'publish',
+          'profile',
+          '--profileId',
+          profileId.id,
+          '--providerName',
+          provider,
+        ],
+        mockServer.url,
+        {
+          inputs: [
+            //Confirm publish
+            { value: 'y', timeout: 4000 },
+            { value: ENTER, timeout: 500 },
+            //Confirm transition
+            { value: 'y', timeout: 4000 },
+            { value: ENTER, timeout: 500 },
+          ],
+        }
+      );
+      expect(result.stdout).toContain(
+        `Profile: "${profileId.id}" found on local file system`
+      );
+      expect(result.stdout).toContain(
+        `Loading map for profile: "${profileId.id}" and provider: "${provider}" from Superface store`
+      );
+      expect(result.stdout).toContain(
+        `Loading provider: "${provider}" from Superface store`
+      );
+      expect(result.stdout).toContain(`Publishing profile "${profileId.name}"`);
+      expect(result.stdout).toContain(
+        `🆗 profile has been published successfully.`
+      );
+
+      //Check super.json
+      const superJson = (
+        await SuperJson.load(joinPath(tempDir, 'superface', 'super.json'))
+      ).unwrap();
+
+      expect(superJson.document).toEqual({
+        profiles: {
+          [profileId.id]: {
+            version: '1.0.1',
+            providers: {
+              [provider]: {},
+            },
+          },
+        },
+        providers: {
+          [provider]: {},
+        },
+      });
+    }, 30000);
+
+    it('publishes map with local profile and provider', async () => {
+      const mockSuperJson = new SuperJson({
+        profiles: {
+          [profileId.id]: {
+            file: `../../../../${sourceFixture.profile}`,
+            providers: {
+              [provider]: {
+                file: `../../../../${sourceFixture.map}`,
+              },
+            },
+          },
+        },
+        providers: {
+          [provider]: {
+            file: `../../../../${sourceFixture.provider}`,
+          },
+        },
+      });
+
+      await mkdir(joinPath(tempDir, 'superface'));
+      await OutputStream.writeOnce(
+        joinPath(tempDir, 'superface', 'super.json'),
+        mockSuperJson.stringified
+      );
+
+      const result = await execCLI(
+        tempDir,
+        [
+          'publish',
+          'map',
+          '--profileId',
+          profileId.id,
+          '--providerName',
+          provider,
+        ],
+        mockServer.url,
+        {
+          inputs: [
+            //Confirm publish
+            { value: 'y', timeout: 4000 },
+            { value: ENTER, timeout: 500 },
+            //Confirm transition
+            { value: 'y', timeout: 4000 },
+            { value: ENTER, timeout: 500 },
+          ],
+        }
+      );
+      expect(result.stdout).toContain(
+        `Profile: "${profileId.id}" found on local file system`
+      );
+      expect(result.stdout).toContain(
+        `Map for profile: "${profileId.id}" and provider: "${provider}" found on local filesystem`
+      );
+      expect(result.stdout).toContain(
+        `Provider: "${provider}" found on local file system`
+      );
+      expect(result.stdout).toContain(
+        `Publishing map for profile "${profileId.name}" and provider "${provider}"`
+      );
+      expect(result.stdout).toContain(
+        `🆗 map has been published successfully.`
+      );
+
+      //Check super.json
+      const superJson = (
+        await SuperJson.load(joinPath(tempDir, 'superface', 'super.json'))
+      ).unwrap();
+
+      expect(superJson.document).toEqual({
+        profiles: {
+          [profileId.id]: {
+            file: `../../../../${sourceFixture.profile}`,
+            providers: {
+              [provider]: {
+                //FIX: this should be removed
+                file: `../../../../${sourceFixture.map}`,
+              },
+            },
+          },
+        },
+        providers: {
+          [provider]: {
+            file: `../../../../${sourceFixture.provider}`,
+            security: [
+              {
+                apikey: '$SWAPI_API_KEY',
+                id: 'api',
+              },
+              {
+                id: 'bearer',
+                token: '$SWAPI_TOKEN',
+              },
+              {
+                id: 'basic',
+                password: '$SWAPI_PASSWORD',
+                username: '$SWAPI_USERNAME',
+              },
+              {
+                digest: '$SWAPI_DIGEST',
+                id: 'digest',
+              },
+            ],
+          },
+        },
+      });
+    }, 30000);
+
+    it('publishes map with remote profile and provider', async () => {
+      const mockSuperJson = new SuperJson({
+        profiles: {
+          [profileId.id]: {
+            version: profileVersion,
+            providers: {
+              [provider]: {
+                file: `../../../../${sourceFixture.map}`,
+              },
+            },
+          },
+        },
+        providers: {
+          [provider]: {},
+        },
+      });
+
+      await mkdir(joinPath(tempDir, 'superface'));
+      await OutputStream.writeOnce(
+        joinPath(tempDir, 'superface', 'super.json'),
+        mockSuperJson.stringified
+      );
+
+      const result = await execCLI(
+        tempDir,
+        [
+          'publish',
+          'map',
+          '--profileId',
+          profileId.id,
+          '--providerName',
+          provider,
+        ],
+        mockServer.url,
+        {
+          inputs: [
+            //Confirm publish
+            { value: 'y', timeout: 4000 },
+            { value: ENTER, timeout: 500 },
+            //Confirm transition
+            { value: 'y', timeout: 4000 },
+            { value: ENTER, timeout: 500 },
+          ],
+        }
+      );
+      expect(result.stdout).toContain(
+        `Loading profile: "${profileId.id}@${profileVersion}" from Superface store`
+      );
+      expect(result.stdout).toContain(
+        `Map for profile: "${profileId.id}@${profileVersion}" and provider: "${provider}" found on local filesystem`
+      );
+      expect(result.stdout).toContain(
+        `Loading provider: "${provider}" from Superface store`
+      );
+      expect(result.stdout).toContain(
+        `Publishing map for profile "${profileId.name}" and provider "${provider}"`
+      );
+      expect(result.stdout).toContain(
+        `🆗 map has been published successfully.`
+      );
+
+      //Check super.json
+      const superJson = (
+        await SuperJson.load(joinPath(tempDir, 'superface', 'super.json'))
+      ).unwrap();
+
+      expect(superJson.document).toEqual({
+        profiles: {
+          [profileId.id]: {
+            version: profileVersion,
+            providers: {
+              [provider]: {
+                //FIX: this should be removed
+                file: `../../../../${sourceFixture.map}`,
+              },
+            },
+          },
+        },
+        providers: {
+          [provider]: {
+            security: [
+              {
+                apikey: '$SWAPI_API_KEY',
+                id: 'api',
+              },
+              {
+                id: 'bearer',
+                token: '$SWAPI_TOKEN',
+              },
+              {
+                id: 'basic',
+                password: '$SWAPI_PASSWORD',
+                username: '$SWAPI_USERNAME',
+              },
+              {
+                digest: '$SWAPI_DIGEST',
+                id: 'digest',
+              },
+            ],
+          },
+        },
+      });
+    }, 30000);
+
+    it('publishes provider with local profile and map', async () => {
+      const mockSuperJson = new SuperJson({
+        profiles: {
+          [profileId.id]: {
+            file: `../../../../${sourceFixture.profile}`,
+            providers: {
+              [provider]: {
+                file: `../../../../${sourceFixture.map}`,
+              },
+            },
+          },
+        },
+        providers: {
+          [provider]: {
+            file: `../../../../${sourceFixture.provider}`,
+          },
+        },
+      });
+
+      await mkdir(joinPath(tempDir, 'superface'));
+      await OutputStream.writeOnce(
+        joinPath(tempDir, 'superface', 'super.json'),
+        mockSuperJson.stringified
+      );
+
+      const result = await execCLI(
+        tempDir,
+        [
+          'publish',
+          'provider',
+          '--profileId',
+          profileId.id,
+          '--providerName',
+          provider,
+        ],
+        mockServer.url,
+        {
+          inputs: [
+            //Confirm publish
+            { value: 'y', timeout: 4000 },
+            { value: ENTER, timeout: 500 },
+            //Confirm transition
+            { value: 'y', timeout: 4000 },
+            { value: ENTER, timeout: 500 },
+          ],
+        }
+      );
+      expect(result.stdout).toContain(
+        `Profile: "${profileId.id}" found on local file system`
+      );
+      expect(result.stdout).toContain(
+        `Map for profile: "${profileId.id}" and provider: "${provider}" found on local filesystem`
+      );
+      expect(result.stdout).toContain(
+        `Provider: "${provider}" found on local file system`
+      );
+      expect(result.stdout).toContain(`Publishing provider "${provider}"`);
+      expect(result.stdout).toContain(
+        `🆗 provider has been published successfully.`
+      );
+
+      //Check super.json
+      const superJson = (
+        await SuperJson.load(joinPath(tempDir, 'superface', 'super.json'))
+      ).unwrap();
+
+      expect(superJson.document).toEqual({
+        profiles: {
+          [profileId.id]: {
+            priority: [provider],
+            file: `../../../../${sourceFixture.profile}`,
+            providers: {
+              [provider]: {
+                file: `../../../../${sourceFixture.map}`,
+              },
+            },
+          },
+        },
+        providers: {
+          [provider]: {
+            //FIX: this should be removed
+            file: `../../../../${sourceFixture.provider}`,
+            security: [
+              {
+                apikey: '$SWAPI_API_KEY',
+                id: 'api',
+              },
+              {
+                id: 'bearer',
+                token: '$SWAPI_TOKEN',
+              },
+              {
+                id: 'basic',
+                password: '$SWAPI_PASSWORD',
+                username: '$SWAPI_USERNAME',
+              },
+              {
+                digest: '$SWAPI_DIGEST',
+                id: 'digest',
+              },
+            ],
+          },
+        },
+      });
+    }, 30000);
+
+    it('publishes provider with remote profile and map', async () => {
+      const mockSuperJson = new SuperJson({
+        profiles: {
+          [profileId.id]: {
+            version: profileVersion,
+            providers: {
+              [provider]: {},
+            },
+          },
+        },
+        providers: {
+          [provider]: {
+            file: `../../../../${sourceFixture.provider}`,
+          },
+        },
+      });
+
+      await mkdir(joinPath(tempDir, 'superface'));
+      await OutputStream.writeOnce(
+        joinPath(tempDir, 'superface', 'super.json'),
+        mockSuperJson.stringified
+      );
+
+      const result = await execCLI(
+        tempDir,
+        [
+          'publish',
+          'provider',
+          '--profileId',
+          profileId.id,
+          '--providerName',
+          provider,
+        ],
+        mockServer.url,
+        {
+          inputs: [
+            //Confirm publish
+            { value: 'y', timeout: 4000 },
+            { value: ENTER, timeout: 500 },
+            //Confirm transition
+            { value: 'y', timeout: 4000 },
+            { value: ENTER, timeout: 500 },
+          ],
+        }
+      );
+      expect(result.stdout).toContain(
+        `Loading profile: "${profileId.id}@${profileVersion}" from Superface store`
+      );
+      expect(result.stdout).toContain(
+        `Loading map for profile: "${profileId.id}@${profileVersion}" and provider: "${provider}" from Superface store`
+      );
+      expect(result.stdout).toContain(
+        `Provider: "${provider}" found on local file system`
+      );
+      expect(result.stdout).toContain(`Publishing provider "${provider}"`);
+      expect(result.stdout).toContain(
+        `🆗 provider has been published successfully.`
+      );
+
+      //Check super.json
+      const superJson = (
+        await SuperJson.load(joinPath(tempDir, 'superface', 'super.json'))
+      ).unwrap();
+
+      expect(superJson.document).toEqual({
+        profiles: {
+          [profileId.id]: {
+            version: profileVersion,
+            providers: {
+              [provider]: {},
+            },
+          },
+        },
+        providers: {
+          [provider]: {
+            //FIX: this should be removed
+            file: `../../../../${sourceFixture.provider}`,
+            security: [
+              {
+                apikey: '$SWAPI_API_KEY',
+                id: 'api',
+              },
+              {
+                id: 'bearer',
+                token: '$SWAPI_TOKEN',
+              },
+              {
+                id: 'basic',
+                password: '$SWAPI_PASSWORD',
+                username: '$SWAPI_USERNAME',
+              },
+              {
+                digest: '$SWAPI_DIGEST',
+                id: 'digest',
+              },
+            ],
           },
         },
       });
