@@ -1,10 +1,9 @@
-import { ProfileDocumentNode } from '@superfaceai/ast';
+import { EXTENSIONS, ProfileDocumentNode } from '@superfaceai/ast';
 import { SuperJson } from '@superfaceai/one-sdk';
 import { join as joinPath, normalize, relative as relativePath } from 'path';
 
 import {
   composeVersion,
-  EXTENSIONS,
   META_FILE,
   parseProfileDocument,
   SUPER_PATH,

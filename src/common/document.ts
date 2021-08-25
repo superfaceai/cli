@@ -1,4 +1,9 @@
-import { ProfileDocumentNode } from '@superfaceai/ast';
+import {
+  DocumentType,
+  EXTENSIONS,
+  inferDocumentType,
+  ProfileDocumentNode,
+} from '@superfaceai/ast';
 import {
   ProfileEntry,
   ProfileProviderEntry,
@@ -13,7 +18,7 @@ import {
 } from '@superfaceai/parser';
 import { basename, join as joinPath } from 'path';
 
-import { CreateMode, DocumentType } from './document.interfaces';
+import { CreateMode } from './document.interfaces';
 import { userError } from './error';
 import { DocumentTypeFlag } from './flags';
 import { readdir, readFile } from './io';
@@ -25,21 +30,6 @@ export const DEFAULT_PROFILE_VERSION = {
 };
 export const DEFAULT_PROFILE_VERSION_STR = '1.0.0';
 
-export const EXTENSIONS = {
-  profile: {
-    source: '.supr',
-    build: '.supr.ast.json',
-  },
-  map: {
-    source: '.suma',
-    build: '.suma.ast.json',
-  },
-  play: {
-    source: '.play.ts',
-    build: '.play.js',
-  },
-};
-
 export const SUPERFACE_DIR = 'superface';
 export const META_FILE = 'super.json';
 export const UNCOMPILED_SDK_FILE = 'sdk.ts';
@@ -47,27 +37,6 @@ export const SUPER_PATH = joinPath(SUPERFACE_DIR, META_FILE);
 export const GRID_DIR = joinPath(SUPERFACE_DIR, 'grid');
 export const TYPES_DIR = joinPath(SUPERFACE_DIR, 'types');
 export const BUILD_DIR = joinPath(SUPERFACE_DIR, 'build');
-
-/**
- * Detects whether the file on path is Superface Map or Superface Profile based on the extension.
- */
-export function inferDocumentType(path: string): DocumentType {
-  const normalizedPath = path.toLowerCase().trim();
-  if (normalizedPath.endsWith(EXTENSIONS.map.source)) {
-    return DocumentType.MAP;
-  }
-  if (normalizedPath.endsWith(EXTENSIONS.profile.source)) {
-    return DocumentType.PROFILE;
-  }
-  if (normalizedPath.endsWith(EXTENSIONS.map.build)) {
-    return DocumentType.MAP_AST;
-  }
-  if (normalizedPath.endsWith(EXTENSIONS.profile.build)) {
-    return DocumentType.PROFILE_AST;
-  }
-
-  return DocumentType.UNKNOWN;
-}
 
 /**
  * If flag is `DocumentTypeFlag.UNKNOWN` and `path` is defined, then calls `inferDocumentType(path)`
@@ -95,18 +64,6 @@ export const DOCUMENT_PARSE_FUNCTION = {
   [DocumentType.MAP]: parseMap,
   [DocumentType.PROFILE]: parseProfile,
 };
-
-export function isProfileFile(file: string): boolean {
-  return inferDocumentType(file) === DocumentType.PROFILE;
-}
-
-export function isMapFile(file: string): boolean {
-  return inferDocumentType(file) === DocumentType.MAP;
-}
-
-export function isUnknownFile(file: string): boolean {
-  return inferDocumentType(file) === DocumentType.UNKNOWN;
-}
 
 export function inferCreateMode(value: string): CreateMode {
   return value === 'profile'

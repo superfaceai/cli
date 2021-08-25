@@ -1,4 +1,5 @@
 import { flags as oclifFlags } from '@oclif/command';
+import { DocumentType } from '@superfaceai/ast';
 import { Source } from '@superfaceai/parser';
 import { yellow } from 'chalk';
 import { basename, join as joinPath } from 'path';
@@ -8,7 +9,6 @@ import {
   DOCUMENT_PARSE_FUNCTION,
   inferDocumentTypeWithFlag,
 } from '../common/document';
-import { DocumentType } from '../common/document.interfaces';
 import { userError } from '../common/error';
 import { DocumentTypeFlag, documentTypeFlag } from '../common/flags';
 import { isDirectoryQuiet, readFile } from '../common/io';

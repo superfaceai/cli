@@ -1,7 +1,7 @@
+import { EXTENSIONS } from '@superfaceai/ast';
 import { join as joinPath } from 'path';
 
 import {
-  EXTENSIONS,
   GRID_DIR,
   SUPER_PATH,
   SUPERFACE_DIR,

@@ -1,8 +1,11 @@
-import { isProfileDocumentNode, ProfileDocumentNode } from '@superfaceai/ast';
+import {
+  EXTENSIONS,
+  isProfileDocumentNode,
+  ProfileDocumentNode,
+} from '@superfaceai/ast';
 import { SuperJson } from '@superfaceai/one-sdk';
 import { join as joinPath } from 'path';
 
-import { EXTENSIONS } from '..';
 import { userError } from '../common/error';
 import { exists, readdir, readFile } from '../common/io';
 

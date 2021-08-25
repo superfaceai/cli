@@ -1,5 +1,5 @@
 import { flags as oclifFlags } from '@oclif/command';
-import { isValidDocumentName, isValidProviderName } from '@superfaceai/ast';
+import { isValidDocumentName } from '@superfaceai/ast';
 import { bold, green, grey, yellow } from 'chalk';
 import { join as joinPath } from 'path';
 
@@ -33,7 +33,7 @@ const parseProviders = (
       if (p === '') {
         return false;
       }
-      if (!isValidProviderName(p)) {
+      if (!isValidDocumentName(p)) {
         options?.warnCb?.(`Invalid provider name: ${p}`);
 
         return false;

@@ -1,9 +1,8 @@
-import { ProfileDocumentNode } from '@superfaceai/ast';
+import { EXTENSIONS, ProfileDocumentNode } from '@superfaceai/ast';
 import { SuperJson } from '@superfaceai/one-sdk';
 import * as fs from 'fs';
 import { mocked } from 'ts-jest/utils';
 
-import { EXTENSIONS } from '../common';
 import { userError } from '../common/error';
 import { exists, readdir, readFile } from '../common/io';
 import {
