@@ -9,7 +9,6 @@ import {
   fetchProfileAST,
   fetchProfileInfo,
 } from '../common/http';
-
 import { exists, readFile } from '../common/io';
 import { OutputStream } from '../common/output-stream';
 import { Parser } from '../common/parser';
