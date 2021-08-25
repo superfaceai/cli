@@ -107,7 +107,6 @@ describe('Interactive install CLI command', () => {
         mockServer.url,
         {
           inputs: [
-            //Select providers priority
             //Select sendgrid provider
             { value: DOWN, timeout: 10000 },
             { value: ENTER, timeout: 500 },
@@ -115,18 +114,11 @@ describe('Interactive install CLI command', () => {
             { value: UP, timeout: 6000 },
             //Confirm selection
             { value: ENTER, timeout: 500 },
-            //______OK______
             //None
             { value: ENTER, timeout: 3000 },
             //Sendgrid token
             { value: 'sendgridToken', timeout: 3000 },
             { value: ENTER, timeout: 500 },
-            // //Mailgun username
-            // { value: 'username', timeout: 4000 },
-            // { value: ENTER, timeout: 500 },
-            // //Mailgun password
-            // { value: 'password', timeout: 4000 },
-            // { value: ENTER, timeout: 500 },
             //Confirm dotenv installation
             { value: 'y', timeout: 4000 },
             { value: ENTER, timeout: 500 },
@@ -196,11 +188,6 @@ describe('Interactive install CLI command', () => {
           [`${profile.scope}/${profile.name}`]: {
             version: profile.version,
             priority: ['sendgrid'],
-            // defaults: {
-            // SendEmail: {
-            //   providerFailover: true,
-            // },
-            // },
             providers: {
               sendgrid: {
                 defaults: {
@@ -228,8 +215,6 @@ describe('Interactive install CLI command', () => {
       //Check .env
       const env = (await readFile(joinPath(tempDir, '.env'))).toString();
       expect(env).toMatch('SENDGRID_TOKEN=sendgridToken\n');
-      // expect(env).toMatch('MAILGUN_USERNAME=username\n');
-      // expect(env).toMatch('MAILGUN_PASSWORD=password\n');
       expect(env).toMatch(
         'SUPERFACE_SDK_TOKEN=sfs_bb064dd57c302911602dd097bc29bedaea6a021c25a66992d475ed959aa526c7_37bce8b5\n'
       );
