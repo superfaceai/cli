@@ -2,7 +2,7 @@ import { SuperJson } from '@superfaceai/one-sdk';
 import { getLocal } from 'mockttp';
 import { join as joinPath } from 'path';
 
-import { mkdir } from '../common/io';
+import { mkdir, rimraf } from '../common/io';
 import { OutputStream } from '../common/output-stream';
 import { ProfileId } from '../common/profile';
 import {
@@ -84,7 +84,7 @@ describe('Publish CLI command', () => {
   });
 
   afterEach(async () => {
-    // await rimraf(tempDir);
+    await rimraf(tempDir);
   });
 
   afterAll(async () => {

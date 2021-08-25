@@ -145,7 +145,7 @@ describe('Configure CLI command', () => {
         priority: [emptyProvider],
         providers: { [emptyProvider]: {} },
       });
-    }, 20000);
+    }, 30000);
 
     it('configures provider without security schemes correctly', async () => {
       const providerWithoutSecurity = 'provider-without-security';
