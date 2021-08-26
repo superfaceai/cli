@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { EXTENSIONS } from '@superfaceai/ast';
 import { ProviderJson } from '@superfaceai/one-sdk';
-import { AuthToken, CLISuccessfulLogin } from '@superfaceai/service-client';
+import { AuthToken, CLILoginResponse } from '@superfaceai/service-client';
 import { execFile } from 'child_process';
 import concat from 'concat-stream';
 import { Headers, Response } from 'cross-fetch';
@@ -167,20 +167,39 @@ export async function mockResponsesForProfileProviders(
  */
 export async function mockResponsesForLogin(
   server: Mockttp,
-  mockInitLoginResponse: CLISuccessfulLogin,
-  mockAuthToken: AuthToken
+  mockInitLoginResponse: CLILoginResponse,
+  mockVerifyResponse:
+    | {
+        authToken: AuthToken;
+      }
+    | {
+        statusCode: number;
+        errStatus: string;
+      }
 ): Promise<void> {
-  await server.post('/auth/cli').thenJson(201, {
-    verify_url: mockInitLoginResponse.verifyUrl,
-    browser_url: mockInitLoginResponse.browserUrl,
-    expires_at: mockInitLoginResponse.expiresAt.toDateString(),
-  });
+  if (mockInitLoginResponse.success) {
+    await server.post('/auth/cli').thenJson(201, {
+      verify_url: mockInitLoginResponse.verifyUrl,
+      browser_url: mockInitLoginResponse.browserUrl,
+      expires_at: mockInitLoginResponse.expiresAt.toDateString(),
+    });
+  } else {
+    await server.post('/auth/cli').thenJson(200, mockInitLoginResponse);
+  }
 
-  // jest.spyOn(ServiceClient.prototype, 'verifyCliLogin').mockResolvedValue()
-  await server
-    .get('/auth/cli/verify')
-    .withQuery({ token: 'stub' })
-    .thenJson(200, mockAuthToken);
+  if ('authToken' in mockVerifyResponse) {
+    await server
+      .get('/auth/cli/verify')
+      .withQuery({ token: 'stub' })
+      .thenJson(200, mockVerifyResponse.authToken);
+  } else {
+    await server
+      .get('/auth/cli/verify')
+      .withQuery({ token: 'stub' })
+      .thenJson(mockVerifyResponse.statusCode, {
+        status: mockVerifyResponse.errStatus,
+      });
+  }
 }
 
 /**

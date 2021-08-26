@@ -44,12 +44,12 @@ export default class Login extends Command {
       }
     }, 1000 * 60 * 10).unref();
 
-    const storeUrl = getStoreUrl();
     if (process.env.SUPERFACE_REFRESH_TOKEN) {
       this.warnCallback?.(
         `Using value from SUPERFACE_REFRESH_TOKEN environment variable`
       );
     } else {
+      const storeUrl = getStoreUrl();
       const netrc = new Netrc();
       await netrc.load();
       const previousEntry = netrc.machines[storeUrl];
