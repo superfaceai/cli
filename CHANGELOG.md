@@ -12,6 +12,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Compile command scoped for single file
 - Lint command loading file paths from super.json 
 
+### Fixed
+- Improve passing of interactive install tests
+
 ## [0.0.22] - 2021-08-04
 ### Added
 - Create command interactive mode

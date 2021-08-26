@@ -723,7 +723,7 @@ describe('Configure CLI logic', () => {
         })
       ).rejects.toEqual(
         new CLIError(
-          `❌ profile ${mockProfileId.id} not found in some/path. Forgot to install?`
+          `❌ profile ${mockProfileId.id} not found in "some/path/super.json".`
         )
       );
 

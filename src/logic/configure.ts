@@ -182,9 +182,8 @@ export async function installProvider(parameters: {
     updateEnv?: boolean;
   };
 }): Promise<void> {
-  const loadedResult = await SuperJson.load(
-    joinPath(parameters.superPath, META_FILE)
-  );
+  const superJsonPath = joinPath(parameters.superPath, META_FILE);
+  const loadedResult = await SuperJson.load(superJsonPath);
   const superJson = loadedResult.match(
     v => v,
     err => {
@@ -197,7 +196,7 @@ export async function installProvider(parameters: {
   //Check profile existance
   if (!superJson.normalized.profiles[parameters.profileId.id]) {
     throw userError(
-      `❌ profile ${parameters.profileId.id} not found in ${parameters.superPath}. Forgot to install?`,
+      `❌ profile ${parameters.profileId.id} not found in "${superJsonPath}".`,
       1
     );
   }
@@ -225,7 +224,7 @@ export async function installProvider(parameters: {
     superJson.normalized.providers[providerInfo.name]
   ) {
     parameters.options?.warnCb?.(
-      `⚠️  Provider already exists: "${providerInfo.name}"(Use flag \`--force/-f\` for overwriting profiles)`
+      `⚠️  Provider already exists: "${providerInfo.name}" (Use flag \`--force/-f\` for overwriting profiles)`
     );
 
     return;
