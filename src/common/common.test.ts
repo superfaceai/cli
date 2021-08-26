@@ -1,5 +1,6 @@
-import { inferDocumentType, inferDocumentTypeWithFlag } from './document';
-import { DocumentType } from './document.interfaces';
+import { DocumentType, inferDocumentType } from '@superfaceai/ast';
+
+import { inferDocumentTypeWithFlag } from './document';
 
 describe('inferDocumentType()', () => {
   it('infers map type', () => {

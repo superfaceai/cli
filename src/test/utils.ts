@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
+import { EXTENSIONS } from '@superfaceai/ast';
 import { ProviderJson } from '@superfaceai/one-sdk';
 import { execFile } from 'child_process';
 import concat from 'concat-stream';
@@ -7,7 +8,7 @@ import { Mockttp } from 'mockttp';
 import { constants } from 'os';
 import { join as joinPath, relative } from 'path';
 
-import { DEFAULT_PROFILE_VERSION_STR, EXTENSIONS } from '../common/document';
+import { DEFAULT_PROFILE_VERSION_STR } from '../common/document';
 import { ContentType } from '../common/http';
 import { mkdir, readFile } from '../common/io';
 

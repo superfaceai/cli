@@ -1,7 +1,7 @@
+import { EXTENSIONS } from '@superfaceai/ast';
 import { ProviderJson, SuperJson } from '@superfaceai/one-sdk';
 import { join as joinPath } from 'path';
 
-import { EXTENSIONS } from '../common';
 import { exists, readdir, readFile } from '../common/io';
 
 export async function findLocalProfileSource(

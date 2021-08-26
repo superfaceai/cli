@@ -1,11 +1,12 @@
 import { flags } from '@oclif/command';
+import { EXTENSIONS } from '@superfaceai/ast';
 import { isValidProviderName, SuperJson } from '@superfaceai/one-sdk';
 import { parseDocumentId } from '@superfaceai/parser';
 import { green, grey, yellow } from 'chalk';
 import inquirer from 'inquirer';
 import { join as joinPath } from 'path';
 
-import { EXTENSIONS, META_FILE } from '../common';
+import { META_FILE } from '../common';
 import { Command } from '../common/command.abstract';
 import { userError } from '../common/error';
 import { getStoreUrl } from '../common/http';
@@ -190,9 +191,9 @@ export default class Publish extends Command {
           1
         );
       }
-      if (!providerSettings.file.endsWith(EXTENSIONS.provider)) {
+      if (!providerSettings.file.endsWith('.json')) {
         throw userError(
-          `Provider path: "${providerSettings.file}" must leads to "${EXTENSIONS.provider}" file`,
+          `Provider path: "${providerSettings.file}" must leads to ".json" file`,
           1
         );
       }

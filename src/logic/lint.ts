@@ -1,4 +1,11 @@
-import { MapHeaderNode } from '@superfaceai/ast';
+import {
+  DocumentType,
+  EXTENSIONS,
+  isMapFile,
+  isProfileFile,
+  isUnknownFile,
+  MapHeaderNode,
+} from '@superfaceai/ast';
 import {
   formatIssues,
   getProfileOutput,
@@ -17,13 +24,8 @@ import { basename } from 'path';
 import {
   composeVersion,
   DOCUMENT_PARSE_FUNCTION,
-  EXTENSIONS,
   inferDocumentTypeWithFlag,
-  isMapFile,
-  isProfileFile,
-  isUnknownFile,
 } from '../common/document';
-import { DocumentType } from '../common/document.interfaces';
 import { userError } from '../common/error';
 import { DocumentTypeFlag } from '../common/flags';
 import { readFile } from '../common/io';

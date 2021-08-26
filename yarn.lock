@@ -877,11 +877,6 @@
   resolved "https://registry.yarnpkg.com/@superfaceai/ast/-/ast-0.0.23.tgz#0e58a76b45c0a2dadc72499001d32d0c37cf4128"
   integrity sha512-9SKqJmC/g8caDZ9T4RcWm43D4f/UFCX57nX8a1J9dM0/GRtMq1fsPt+qcEmCTyys2Gt9JGzH8MDCBym2F92MBg==
 
-"@superfaceai/ast@^0.0.25":
-  version "0.0.25"
-  resolved "https://registry.yarnpkg.com/@superfaceai/ast/-/ast-0.0.25.tgz#f8bb0d6d7e74932600c8326cd6c445540e42a952"
-  integrity sha512-5zSC2X+gqPiEvjKHcGLEjUsKJ4RNyXM8AmKhNSNw3CoahmSwftCFIL4YRHzeI+nnvh82qd5RbxNFeRt0Tn4adA==
-
 "@superfaceai/ast@^0.0.28":
   version "0.0.28"
   resolved "https://registry.yarnpkg.com/@superfaceai/ast/-/ast-0.0.28.tgz#8953bda490515bdffdb18209360be44e8a9fa543"

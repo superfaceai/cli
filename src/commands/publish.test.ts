@@ -1,9 +1,10 @@
 import { CLIError } from '@oclif/errors';
+import { EXTENSIONS } from '@superfaceai/ast';
 import { err, ok, SuperJson } from '@superfaceai/one-sdk';
 import inquirer from 'inquirer';
 import { mocked } from 'ts-jest/utils';
 
-import { DEFAULT_PROFILE_VERSION_STR, EXTENSIONS } from '../common';
+import { DEFAULT_PROFILE_VERSION_STR } from '../common';
 import { ProfileId } from '../common/profile';
 import { detectSuperJson } from '../logic/install';
 import { publish } from '../logic/publish';
@@ -32,7 +33,7 @@ describe('Publish CLI command', () => {
 
     const mockProfilePath = `../path/to/profile${EXTENSIONS.profile.source}`;
     const mockMapPath = `../path/to/profile${EXTENSIONS.map.source}`;
-    const mockProviderPath = `../path/to/profile${EXTENSIONS.provider}`;
+    const mockProviderPath = `../path/to/profile.json`;
 
     it('exits when user declines prompt', async () => {
       const promptSpy = jest
@@ -424,9 +425,7 @@ describe('Publish CLI command', () => {
           '3',
         ])
       ).rejects.toEqual(
-        new CLIError(
-          `Provider path: "${mockPath}" must leads to "${EXTENSIONS.provider}" file`
-        )
+        new CLIError(`Provider path: "${mockPath}" must leads to ".json" file`)
       );
       expect(detectSuperJson).toHaveBeenCalled();
       expect(loadSpy).toHaveBeenCalled();
