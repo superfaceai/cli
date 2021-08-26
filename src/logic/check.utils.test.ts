@@ -1,3 +1,4 @@
+import { EXTENSIONS } from '@superfaceai/ast';
 import {
   ApiKeyPlacement,
   HttpScheme,
@@ -8,7 +9,7 @@ import {
 import * as fs from 'fs';
 import { mocked } from 'ts-jest/utils';
 
-import { DEFAULT_PROFILE_VERSION_STR, EXTENSIONS } from '../common';
+import { DEFAULT_PROFILE_VERSION_STR } from '../common';
 import { exists, readdir, readFile } from '../common/io';
 import {
   findLocalMapSource,

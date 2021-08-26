@@ -1,7 +1,7 @@
+import { EXTENSIONS } from '@superfaceai/ast';
 import { SuperJson } from '@superfaceai/one-sdk';
 import { join as joinPath } from 'path';
 
-import { EXTENSIONS } from '..';
 import { exists, readdir } from '../common/io';
 import { ProfileId } from '../common/profile';
 
