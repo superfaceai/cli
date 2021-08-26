@@ -215,9 +215,6 @@ describe('Interactive install CLI command', () => {
       //Check .env
       const env = (await readFile(joinPath(tempDir, '.env'))).toString();
       expect(env).toMatch('SENDGRID_TOKEN=sendgridToken\n');
-      expect(env).toMatch(
-        'SUPERFACE_SDK_TOKEN=sfs_bb064dd57c302911602dd097bc29bedaea6a021c25a66992d475ed959aa526c7_37bce8b5\n'
-      );
       //Check package.json
       const packageFile = (
         await readFile(joinPath(tempDir, 'package.json'))
