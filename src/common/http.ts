@@ -5,12 +5,7 @@ import {
   VERSION as SDK_VERSION,
 } from '@superfaceai/one-sdk';
 import { VERSION as PARSER_VERSION } from '@superfaceai/parser';
-import {
-  AuthToken,
-  ServiceApiError,
-  ServiceApiErrorResponse,
-  ServiceClient,
-} from '@superfaceai/service-client';
+import { ServiceClient } from '@superfaceai/service-client';
 import superagent, { Response } from 'superagent';
 
 import { VERSION } from '..';
@@ -37,12 +32,6 @@ export interface GetProfileResponse {
   response: ProfileInfo | string;
 }
 
-export interface InitLoginResponse {
-  verify_url: string; //'https://superface.ai/auth/cli/verify?token=stub',
-  browser_url: string; //'https://superface.ai/auth/cli/browser?code=stub'
-  expires_at: string; //'2022-01-01T00:00:00.000Z'
-}
-
 export enum ContentType {
   JSON = 'application/json',
   PROFILE_SOURCE = 'application/vnd.superface.profile',
@@ -56,7 +45,7 @@ export class SuperfaceClient {
 
   public static getClient(): ServiceClient {
     if (!SuperfaceClient.serviceClient) {
-      //Use refresh token form env if found
+      //Use refresh token from env if found
       if (process.env.SUPERFACE_REFRESH_TOKEN) {
         SuperfaceClient.serviceClient = new ServiceClient({
           refreshToken: process.env.SUPERFACE_REFRESH_TOKEN,
@@ -70,7 +59,7 @@ export class SuperfaceClient {
           refreshTokenUpdatedHandler: saveNetrc,
         });
       }
-      //TODO: check refresh token validity or left it to actual fetch call
+      //TODO: check refresh token validity or left it to actual fetch call?
     }
 
     return SuperfaceClient.serviceClient;
@@ -162,51 +151,6 @@ export async function fetchProviderInfo(
   const response = await fetch(query, ContentType.JSON);
 
   return parseProviderJson(response.body);
-}
-//TODO: use service-client function
-export async function initLogin(): Promise<InitLoginResponse> {
-  const initLoginResponse = await SuperfaceClient.getClient().fetch(
-    '/auth/cli',
-    {
-      method: 'POST',
-      headers: { 'Content-Type': ContentType.JSON },
-    }
-  );
-  if (!initLoginResponse.ok) {
-    const errorResponse = (await initLoginResponse.json()) as ServiceApiErrorResponse;
-    throw new ServiceApiError(errorResponse);
-  }
-
-  //TODO: where check expiresAt?
-  return (await initLoginResponse.json()) as InitLoginResponse;
-}
-//TODO: use service-client function
-export async function fetchVerificationUrl(url: string): Promise<AuthToken> {
-  const fetchAuth = async (retries = 3): Promise<AuthToken> => {
-    try {
-      //FIX: url resolution, verify_url has its own baseUrl so we cant use ours - update service client?
-      const authResponse = await SuperfaceClient.getClient().fetch(url, {
-        method: 'GET',
-        headers: { 'Content-Type': ContentType.JSON },
-      });
-
-      if (!authResponse.ok) {
-        //TODO: use userError
-        const errorResponse = (await authResponse.json()) as ServiceApiErrorResponse;
-        throw new ServiceApiError(errorResponse);
-      }
-
-      //TODO: Call service client login?
-      return (await authResponse.json()) as AuthToken;
-    } catch (err) {
-      //TODO: err resolution
-      if (retries > 0 && err instanceof ServiceApiError && err.status > 500)
-        return fetchAuth(retries - 1);
-      throw err;
-    }
-  };
-
-  return fetchAuth();
 }
 //HACK: we don' have service client in this branch so we are making request directly. Use service-client in the future
 export async function fetchMapAST(

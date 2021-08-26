@@ -5,7 +5,6 @@ import {
   ProviderJson,
   SecurityType,
 } from '@superfaceai/one-sdk';
-import { ServiceApiError, ServiceClient } from '@superfaceai/service-client';
 import superagent from 'superagent';
 
 import {
@@ -17,11 +16,8 @@ import {
   fetchProfiles,
   fetchProviderInfo,
   fetchProviders,
-  fetchVerificationUrl,
   getStoreUrl,
-  initLogin,
 } from '../common/http';
-import { mockResponse } from '../test/utils';
 import { userError } from './error';
 
 //Mock superagent
@@ -398,178 +394,6 @@ describe('HTTP functions', () => {
       );
       expect(jest.spyOn(superagent, 'get')).toHaveBeenCalledTimes(1);
       expect(jest.spyOn(superagent, 'get')).toHaveBeenCalledWith(mockUrl);
-    }, 10000);
-  });
-
-  describe('when initializing login', () => {
-    const mockInitResponse = {
-      verify_url: 'https://superface.ai/auth/cli/verify?token=stub',
-      browser_url: 'https://superface.ai/auth/cli/browser?code=stub',
-      expires_at: '2022-01-01T00:00:00.000Z',
-    };
-
-    it('calls superface client correctly', async () => {
-      const fetchSpy = jest
-        .spyOn(ServiceClient.prototype, 'fetch')
-        .mockResolvedValue(
-          mockResponse(200, 'OK', undefined, mockInitResponse)
-        );
-
-      await expect(initLogin()).resolves.toEqual(mockInitResponse);
-
-      expect(fetchSpy).toHaveBeenCalledTimes(1);
-      expect(fetchSpy).toHaveBeenCalledWith(`/auth/cli`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': ContentType.JSON,
-        },
-      });
-    }, 10000);
-
-    it('throws error when request fails', async () => {
-      const mockErrResponse = {
-        detail: 'Not Found',
-        title: 'test-title',
-        status: 404,
-        instance: 'test',
-      };
-
-      const fetchSpy = jest
-        .spyOn(ServiceClient.prototype, 'fetch')
-        .mockResolvedValue(
-          mockResponse(404, 'Not Found', undefined, mockErrResponse)
-        );
-
-      await expect(initLogin()).rejects.toEqual(
-        new ServiceApiError(mockErrResponse)
-      );
-
-      expect(fetchSpy).toHaveBeenCalledTimes(1);
-      expect(fetchSpy).toHaveBeenCalledWith(`/auth/cli`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': ContentType.JSON,
-        },
-      });
-    }, 10000);
-  });
-
-  describe('when fetching login verification url', () => {
-    const mockVerifyResponse = {
-      access_token: 'stub',
-      refresh_token: 'stub',
-      expires_at: '2022-01-01T00:00:00.000Z',
-    };
-    const mockUrl = 'https://superface.ai/auth/cli/verify?token=stub';
-
-    it('calls superface client correctly, success of the first try', async () => {
-      const fetchSpy = jest
-        .spyOn(ServiceClient.prototype, 'fetch')
-        .mockResolvedValueOnce(
-          mockResponse(200, 'OK', undefined, mockVerifyResponse)
-        );
-
-      await expect(fetchVerificationUrl(mockUrl)).resolves.toEqual(
-        mockVerifyResponse
-      );
-
-      expect(fetchSpy).toHaveBeenCalledTimes(1);
-      expect(fetchSpy).toHaveBeenCalledWith(mockUrl, {
-        method: 'GET',
-        headers: {
-          'Content-Type': ContentType.JSON,
-        },
-      });
-    }, 10000);
-
-    it('calls superface client correctly, success of the second try', async () => {
-      const mockErrResponse = {
-        detail: 'Service Unavailable',
-        title: 'test-title',
-        status: 503,
-        instance: 'test',
-      };
-
-      const fetchSpy = jest
-        .spyOn(ServiceClient.prototype, 'fetch')
-        .mockResolvedValueOnce(
-          mockResponse(503, 'Service Unavailable', undefined, mockErrResponse)
-        )
-        .mockResolvedValueOnce(
-          mockResponse(200, 'OK', undefined, mockVerifyResponse)
-        );
-
-      await expect(fetchVerificationUrl(mockUrl)).resolves.toEqual(
-        mockVerifyResponse
-      );
-
-      expect(fetchSpy).toHaveBeenCalledTimes(2);
-      expect(fetchSpy).toHaveBeenCalledWith(mockUrl, {
-        method: 'GET',
-        headers: {
-          'Content-Type': ContentType.JSON,
-        },
-      });
-    }, 10000);
-
-    it('calls superface client correctly, success of the third try', async () => {
-      const mockErrResponse = {
-        detail: 'Service Unavailable',
-        title: 'test-title',
-        status: 503,
-        instance: 'test',
-      };
-
-      const fetchSpy = jest
-        .spyOn(ServiceClient.prototype, 'fetch')
-        .mockResolvedValueOnce(
-          mockResponse(503, 'Service Unavailable', undefined, mockErrResponse)
-        )
-        .mockResolvedValueOnce(
-          mockResponse(503, 'Service Unavailable', undefined, mockErrResponse)
-        )
-        .mockResolvedValueOnce(
-          mockResponse(200, 'OK', undefined, mockVerifyResponse)
-        );
-
-      await expect(fetchVerificationUrl(mockUrl)).resolves.toEqual(
-        mockVerifyResponse
-      );
-
-      expect(fetchSpy).toHaveBeenCalledTimes(3);
-      expect(fetchSpy).toHaveBeenCalledWith(mockUrl, {
-        method: 'GET',
-        headers: {
-          'Content-Type': ContentType.JSON,
-        },
-      });
-    }, 10000);
-
-    it('throws error when request fails', async () => {
-      const mockErrResponse = {
-        detail: 'Not Found',
-        title: 'test-title',
-        status: 404,
-        instance: 'test',
-      };
-
-      const fetchSpy = jest
-        .spyOn(ServiceClient.prototype, 'fetch')
-        .mockResolvedValue(
-          mockResponse(404, 'Not Found', undefined, mockErrResponse)
-        );
-
-      await expect(fetchVerificationUrl(mockUrl)).rejects.toEqual(
-        new ServiceApiError(mockErrResponse)
-      );
-
-      expect(fetchSpy).toHaveBeenCalledTimes(1);
-      expect(fetchSpy).toHaveBeenCalledWith(mockUrl, {
-        method: 'GET',
-        headers: {
-          'Content-Type': ContentType.JSON,
-        },
-      });
     }, 10000);
   });
 });

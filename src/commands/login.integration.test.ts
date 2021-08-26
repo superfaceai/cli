@@ -1,11 +1,15 @@
-import { AuthToken } from '@superfaceai/service-client';
+import { AuthToken, CLILoginResponse } from '@superfaceai/service-client';
 import { getLocal } from 'mockttp';
 import { Netrc } from 'netrc-parser';
 import { join as joinPath } from 'path';
 
-import { ContentType, InitLoginResponse } from '../common/http';
 import { mkdir, rimraf } from '../common/io';
-import { ENTER, execCLI, setUpTempDir } from '../test/utils';
+import {
+  ENTER,
+  execCLI,
+  mockResponsesForLogin,
+  setUpTempDir,
+} from '../test/utils';
 
 const mockServer = getLocal();
 
@@ -50,10 +54,11 @@ describe('Login CLI command', () => {
     it('logs in when netrc is empty', async () => {
       netRc.machines[mockServer.url] = {};
 
-      const mockInitLoginResponse: InitLoginResponse = {
-        verify_url: '/auth/cli/verify?token=stub',
-        browser_url: 'https://superface.ai/auth/cli/browser?code=stub',
-        expires_at: '2022-01-01T00:00:00.000Z',
+      const mockInitLoginResponse: CLILoginResponse = {
+        success: true,
+        verifyUrl: `${mockServer.url}/auth/cli/verify?token=stub`,
+        browserUrl: 'https://superface.ai/auth/cli/browser?code=stub',
+        expiresAt: new Date(),
       };
 
       const mockAuthToken: AuthToken = {
@@ -64,16 +69,11 @@ describe('Login CLI command', () => {
         expires_in: 0,
       };
 
-      await mockServer
-        .post('/auth/cli')
-        .withHeaders({ 'Content-Type': ContentType.JSON })
-        .thenJson(200, mockInitLoginResponse);
-
-      await mockServer
-        .get('/auth/cli/verify')
-        .withQuery({ token: 'stub' })
-        .withHeaders({ 'Content-Type': ContentType.JSON })
-        .thenJson(200, mockAuthToken);
+      await mockResponsesForLogin(
+        mockServer,
+        mockInitLoginResponse,
+        mockAuthToken
+      );
 
       const result = await execCLI(tempDir, ['login'], mockServer.url, {
         inputs: [
@@ -87,7 +87,7 @@ describe('Login CLI command', () => {
         `Do you want to open browser with superface login page?`
       );
       expect(result.stdout).toContain(
-        `Please open url: ${mockInitLoginResponse.browser_url} in your browser to continue with login.`
+        `Please open url: ${mockInitLoginResponse.browserUrl} in your browser to continue with login.`
       );
       expect(result.stdout).toContain('Logged in');
 
@@ -106,10 +106,11 @@ describe('Login CLI command', () => {
       const oldRefreshToken = 'oldRT';
       netRc.machines[mockServer.url] = { password: oldRefreshToken };
 
-      const mockInitLoginResponse: InitLoginResponse = {
-        verify_url: '/auth/cli/verify?token=stub',
-        browser_url: 'https://superface.ai/auth/cli/browser?code=stub',
-        expires_at: '2022-01-01T00:00:00.000Z',
+      const mockInitLoginResponse: CLILoginResponse = {
+        success: true,
+        verifyUrl: `${mockServer.url}/auth/cli/verify?token=stub`,
+        browserUrl: 'https://superface.ai/auth/cli/browser?code=stub',
+        expiresAt: new Date(),
       };
 
       const mockAuthToken: AuthToken = {
@@ -120,16 +121,11 @@ describe('Login CLI command', () => {
         expires_in: 0,
       };
 
-      await mockServer
-        .post('/auth/cli')
-        .withHeaders({ 'Content-Type': ContentType.JSON })
-        .thenJson(200, mockInitLoginResponse);
-
-      await mockServer
-        .get('/auth/cli/verify')
-        .withQuery({ token: 'stub' })
-        .withHeaders({ 'Content-Type': ContentType.JSON })
-        .thenJson(200, mockAuthToken);
+      await mockResponsesForLogin(
+        mockServer,
+        mockInitLoginResponse,
+        mockAuthToken
+      );
 
       const result = await execCLI(tempDir, ['login'], mockServer.url, {
         inputs: [
@@ -143,7 +139,7 @@ describe('Login CLI command', () => {
         `Do you want to open browser with superface login page?`
       );
       expect(result.stdout).toContain(
-        `Please open url: ${mockInitLoginResponse.browser_url} in your browser to continue with login.`
+        `Please open url: ${mockInitLoginResponse.browserUrl} in your browser to continue with login.`
       );
       expect(result.stdout).toContain('Logged in');
 

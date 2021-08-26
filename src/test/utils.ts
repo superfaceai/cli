@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { ProviderJson } from '@superfaceai/one-sdk';
+import { AuthToken, CLISuccessfulLogin } from '@superfaceai/service-client';
 import { execFile } from 'child_process';
 import concat from 'concat-stream';
 import { Headers, Response } from 'cross-fetch';
@@ -156,6 +157,29 @@ export async function mockResponsesForProfileProviders(
     .withQuery({ profile: profile })
     .withHeaders({ Accept: ContentType.JSON })
     .thenJson(200, { data: providersInfo });
+}
+
+/**
+ * Mocks HTTP responses for login
+ *
+ * mocks /auth/cli and /auth/cli/verify paths
+ */
+export async function mockResponsesForLogin(
+  server: Mockttp,
+  mockInitLoginResponse: CLISuccessfulLogin,
+  mockAuthToken: AuthToken
+): Promise<void> {
+  await server.post('/auth/cli').thenJson(201, {
+    verify_url: mockInitLoginResponse.verifyUrl,
+    browser_url: mockInitLoginResponse.browserUrl,
+    expires_at: mockInitLoginResponse.expiresAt.toDateString(),
+  });
+
+  // jest.spyOn(ServiceClient.prototype, 'verifyCliLogin').mockResolvedValue()
+  await server
+    .get('/auth/cli/verify')
+    .withQuery({ token: 'stub' })
+    .thenJson(200, mockAuthToken);
 }
 
 /**
