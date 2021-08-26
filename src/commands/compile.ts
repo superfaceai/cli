@@ -1,5 +1,5 @@
 import { flags as oclifFlags } from '@oclif/command';
-import { isValidProviderName } from '@superfaceai/ast';
+import { isValidIdentifier } from '@superfaceai/ast';
 import { SuperJson } from '@superfaceai/one-sdk';
 import { parseDocumentId } from '@superfaceai/parser';
 import { bold, green, grey } from 'chalk';
@@ -127,7 +127,7 @@ export default class Compile extends Command {
         `Compiling map for profile: "${flags.profileId}" and provider: "${flags.providerName}".`
       );
 
-      if (!isValidProviderName(flags.providerName)) {
+      if (!isValidIdentifier(flags.providerName)) {
         throw userError(`Invalid provider name: "${flags.providerName}"`, 1);
       }
 

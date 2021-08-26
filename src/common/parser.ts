@@ -1,4 +1,5 @@
 import {
+  EXTENSIONS,
   isMapDocumentNode,
   isProfileDocumentNode,
   MapDocumentNode,
@@ -9,7 +10,6 @@ import { createHash } from 'crypto';
 import { promises as fsp } from 'fs';
 import { join as joinPath } from 'path';
 
-import { EXTENSIONS } from './document';
 import { userError } from './error';
 
 const DEFAULT_CACHE_PATH = joinPath(process.cwd(), 'superface', '.cache');
