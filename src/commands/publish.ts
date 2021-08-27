@@ -20,7 +20,7 @@ export default class Publish extends Command {
   static strict = false;
 
   static description =
-    'Uploads map/profile/provider to Store. Published file must be locally linked in super.json';
+    'Uploads map/profile/provider to Store. Published file must be locally linked in super.json. This command runs Check and Lint internaly to ensure quality';
 
   static args = [
     {
@@ -101,16 +101,16 @@ export default class Publish extends Command {
     // Check inputs
     const parsedProfileId = parseDocumentId(flags.profileId);
     if (parsedProfileId.kind == 'error') {
-      throw userError(`Invalid profile id: ${parsedProfileId.message}`, 1);
+      throw userError(`❌ Invalid profile id: ${parsedProfileId.message}`, 1);
     }
 
     if (!isValidProviderName(flags.providerName)) {
-      throw userError(`Invalid provider name: "${flags.providerName}"`, 1);
+      throw userError(`❌ Invalid provider name: "${flags.providerName}"`, 1);
     }
 
     if (flags.scan && (typeof flags.scan !== 'number' || flags.scan > 5)) {
       throw userError(
-        '--scan/-s : Number of levels to scan cannot be higher than 5',
+        '❌ --scan/-s : Number of levels to scan cannot be higher than 5',
         1
       );
     }
@@ -118,13 +118,13 @@ export default class Publish extends Command {
     //Load super json
     const superPath = await detectSuperJson(process.cwd(), flags.scan);
     if (!superPath) {
-      throw userError('Unable to publish, super.json not found', 1);
+      throw userError('❌ Unable to publish, super.json not found', 1);
     }
     const loadedResult = await SuperJson.load(joinPath(superPath, META_FILE));
     const superJson = loadedResult.match(
       v => v,
       err => {
-        throw userError(`Unable to load super.json: ${err}`, 1);
+        throw userError(`❌ Unable to load super.json: ${err}`, 1);
       }
     );
 
@@ -132,7 +132,7 @@ export default class Publish extends Command {
     const profileSettings = superJson.normalized.profiles[flags.profileId];
     if (!profileSettings) {
       throw userError(
-        `Unable to publish, profile: "${flags.profileId}" not found in super.json`,
+        `❌ Unable to publish, profile: "${flags.profileId}" not found in super.json`,
         1
       );
     }
@@ -140,7 +140,7 @@ export default class Publish extends Command {
       profileSettings.providers[flags.providerName];
     if (!profileProviderSettings) {
       throw userError(
-        `Unable to publish, provider: "${flags.providerName}" not found in profile: "${flags.profileId}" in super.json`,
+        `❌ Unable to publish, provider: "${flags.providerName}" not found in profile: "${flags.profileId}" in super.json`,
         1
       );
     }
@@ -148,7 +148,7 @@ export default class Publish extends Command {
     const providerSettings = superJson.normalized.providers[flags.providerName];
     if (!providerSettings) {
       throw userError(
-        `Unable to publish, provider: "${flags.providerName}" not found in super.json`,
+        `❌ Unable to publish, provider: "${flags.providerName}" not found in super.json`,
         1
       );
     }
@@ -157,13 +157,13 @@ export default class Publish extends Command {
     if (documentType === 'profile') {
       if (!('file' in profileSettings)) {
         throw userError(
-          `When publishing profile, profile must be locally linked in super.json`,
+          `❌ When publishing profile, profile must be locally linked in super.json`,
           1
         );
       }
       if (!profileSettings.file.endsWith(EXTENSIONS.profile.source)) {
         throw userError(
-          `Profile path: "${profileSettings.file}" must leads to "${EXTENSIONS.profile.source}" file`,
+          `❌ Profile path: "${profileSettings.file}" must leads to "${EXTENSIONS.profile.source}" file`,
           1
         );
       }
@@ -172,13 +172,13 @@ export default class Publish extends Command {
     } else if (documentType === 'map') {
       if (!('file' in profileProviderSettings)) {
         throw userError(
-          `When publishing map, map must be locally linked in super.json`,
+          `❌ When publishing map, map must be locally linked in super.json`,
           1
         );
       }
       if (!profileProviderSettings.file.endsWith(EXTENSIONS.map.source)) {
         throw userError(
-          `Map path: "${profileProviderSettings.file}" must leads to "${EXTENSIONS.map.source}" file`,
+          `❌ Map path: "${profileProviderSettings.file}" must leads to "${EXTENSIONS.map.source}" file`,
           1
         );
       }
@@ -187,19 +187,19 @@ export default class Publish extends Command {
     } else if (documentType === 'provider') {
       if (!('file' in providerSettings) || !providerSettings.file) {
         throw userError(
-          `When publishing provider, provider must be locally linked in super.json`,
+          `❌ When publishing provider, provider must be locally linked in super.json`,
           1
         );
       }
       if (!providerSettings.file.endsWith('.json')) {
         throw userError(
-          `Provider path: "${providerSettings.file}" must leads to ".json" file`,
+          `❌ Provider path: "${providerSettings.file}" must leads to ".json" file`,
           1
         );
       }
     } else {
       throw userError(
-        'Document type must be one of "map", "profile", "provider"',
+        '❌ Document type must be one of "map", "profile", "provider"',
         1
       );
     }
@@ -229,7 +229,7 @@ export default class Publish extends Command {
       }
     );
     if (result) {
-      this.warnCallback?.('Publishing command ended up with errors:\n');
+      this.warnCallback?.('❌ Publishing command ended up with errors:\n');
       this.log(result);
 
       return;

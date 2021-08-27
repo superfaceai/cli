@@ -116,8 +116,8 @@ EXAMPLES
   $ superface configure twilio -p send-sms
   $ superface configure twilio -p send-sms -q
   $ superface configure twilio -p send-sms -f
-  $ superface configure twilio -p send-sms --local-provider providers/twilio.provider.json
-  $ superface configure twilio -p send-sms --local-map maps/send-sms.twilio.suma
+  $ superface configure twilio -p send-sms --localProvider providers/twilio.provider.json
+  $ superface configure twilio -p send-sms --localMap maps/send-sms.twilio.suma
 ```
 
 _See code: [src/commands/configure.ts](https://github.com/superfaceai/cli/tree/main/src/commands/configure.ts)_
@@ -284,7 +284,7 @@ _See code: [src/commands/lint.ts](https://github.com/superfaceai/cli/tree/main/s
 
 ## `superface publish PATH`
 
-Uploads map/profile/provider to Store. Published file must be locally linked in super.json
+Uploads map/profile/provider to Store. Published file must be locally linked in super.json. This command runs Check and Lint internaly to ensure quality
 
 ```
 USAGE
@@ -296,6 +296,7 @@ ARGUMENTS
 OPTIONS
   -f, --force                  Publishes without asking any confirmation.
   -h, --help                   show CLI help
+  -j, --json                   Formats result to JSON
   -q, --quiet                  When set to true, disables the shell echo output of action.
 
   -s, --scan=scan              When number provided, scan for super.json outside cwd within range represented by this

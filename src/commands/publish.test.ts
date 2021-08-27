@@ -81,7 +81,7 @@ describe('Publish CLI command', () => {
         ])
       ).rejects.toEqual(
         new CLIError(
-          'Invalid profile id: "U!0_" is not a valid lowercase identifier'
+          '❌ Invalid profile id: "U!0_" is not a valid lowercase identifier'
         )
       );
       expect(detectSuperJson).not.toHaveBeenCalled();
@@ -108,7 +108,7 @@ describe('Publish CLI command', () => {
           '-s',
           '3',
         ])
-      ).rejects.toEqual(new CLIError('Invalid provider name: "U!0_"'));
+      ).rejects.toEqual(new CLIError('❌ Invalid provider name: "U!0_"'));
       expect(detectSuperJson).not.toHaveBeenCalled();
       expect(loadSpy).not.toHaveBeenCalled();
       expect(promptSpy).toHaveBeenCalled();
@@ -128,7 +128,7 @@ describe('Publish CLI command', () => {
           provider,
         ])
       ).rejects.toEqual(
-        new CLIError('Unable to publish, super.json not found')
+        new CLIError('❌ Unable to publish, super.json not found')
       );
       expect(promptSpy).toHaveBeenCalled();
     });
@@ -147,7 +147,9 @@ describe('Publish CLI command', () => {
           '--providerName',
           provider,
         ])
-      ).rejects.toEqual(new CLIError('Unable to load super.json: test error'));
+      ).rejects.toEqual(
+        new CLIError('❌ Unable to load super.json: test error')
+      );
       expect(promptSpy).toHaveBeenCalled();
     });
 
@@ -191,7 +193,7 @@ describe('Publish CLI command', () => {
         ])
       ).rejects.toEqual(
         new CLIError(
-          '--scan/-s : Number of levels to scan cannot be higher than 5'
+          '❌ --scan/-s : Number of levels to scan cannot be higher than 5'
         )
       );
       expect(promptSpy).toHaveBeenCalled();
@@ -219,7 +221,7 @@ describe('Publish CLI command', () => {
         ])
       ).rejects.toEqual(
         new CLIError(
-          `Unable to publish, profile: "${profileId}" not found in super.json`
+          `❌ Unable to publish, profile: "${profileId}" not found in super.json`
         )
       );
       expect(detectSuperJson).toHaveBeenCalled();
@@ -260,7 +262,7 @@ describe('Publish CLI command', () => {
         ])
       ).rejects.toEqual(
         new CLIError(
-          `Profile path: "${mockPath}" must leads to "${EXTENSIONS.profile.source}" file`
+          `❌ Profile path: "${mockPath}" must leads to "${EXTENSIONS.profile.source}" file`
         )
       );
       expect(detectSuperJson).toHaveBeenCalled();
@@ -296,7 +298,7 @@ describe('Publish CLI command', () => {
         ])
       ).rejects.toEqual(
         new CLIError(
-          `Unable to publish, provider: "${provider}" not found in profile: "${profileId}" in super.json`
+          `❌ Unable to publish, provider: "${provider}" not found in profile: "${profileId}" in super.json`
         )
       );
       expect(detectSuperJson).toHaveBeenCalled();
@@ -341,7 +343,7 @@ describe('Publish CLI command', () => {
         ])
       ).rejects.toEqual(
         new CLIError(
-          `Map path: "${mockPath}" must leads to "${EXTENSIONS.map.source}" file`
+          `❌ Map path: "${mockPath}" must leads to "${EXTENSIONS.map.source}" file`
         )
       );
       expect(detectSuperJson).toHaveBeenCalled();
@@ -380,7 +382,7 @@ describe('Publish CLI command', () => {
         ])
       ).rejects.toEqual(
         new CLIError(
-          `Unable to publish, provider: "${provider}" not found in super.json`
+          `❌ Unable to publish, provider: "${provider}" not found in super.json`
         )
       );
       expect(detectSuperJson).toHaveBeenCalled();
@@ -425,7 +427,9 @@ describe('Publish CLI command', () => {
           '3',
         ])
       ).rejects.toEqual(
-        new CLIError(`Provider path: "${mockPath}" must leads to ".json" file`)
+        new CLIError(
+          `❌ Provider path: "${mockPath}" must leads to ".json" file`
+        )
       );
       expect(detectSuperJson).toHaveBeenCalled();
       expect(loadSpy).toHaveBeenCalled();
@@ -466,7 +470,7 @@ describe('Publish CLI command', () => {
         ])
       ).rejects.toEqual(
         new CLIError(
-          `When publishing profile, profile must be locally linked in super.json`
+          `❌ When publishing profile, profile must be locally linked in super.json`
         )
       );
       expect(detectSuperJson).toHaveBeenCalled();
@@ -508,7 +512,7 @@ describe('Publish CLI command', () => {
         ])
       ).rejects.toEqual(
         new CLIError(
-          `When publishing map, map must be locally linked in super.json`
+          `❌ When publishing map, map must be locally linked in super.json`
         )
       );
       expect(detectSuperJson).toHaveBeenCalled();
@@ -550,7 +554,7 @@ describe('Publish CLI command', () => {
         ])
       ).rejects.toEqual(
         new CLIError(
-          `When publishing provider, provider must be locally linked in super.json`
+          `❌ When publishing provider, provider must be locally linked in super.json`
         )
       );
       expect(detectSuperJson).toHaveBeenCalled();
