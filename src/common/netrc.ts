@@ -1,13 +1,13 @@
 import { Netrc } from 'netrc-parser';
 
-import { getStoreUrl } from './http';
+import { getServicesUrl } from './http';
 
 export function loadNetrc(): {
   baseUrl: string;
   refreshToken?: string;
 } {
   const netrc = new Netrc();
-  const baseUrl = getStoreUrl();
+  const baseUrl = getServicesUrl();
   netrc.loadSync();
   const superfaceEntry = netrc.machines[baseUrl] ?? {};
 

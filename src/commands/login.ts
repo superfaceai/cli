@@ -3,7 +3,7 @@ import { bold, green, grey, yellow } from 'chalk';
 import { Netrc } from 'netrc-parser';
 
 import { Command } from '../common/command.abstract';
-import { getStoreUrl, SuperfaceClient } from '../common/http';
+import { getServicesUrl, SuperfaceClient } from '../common/http';
 import { login } from '../logic/login';
 
 export default class Login extends Command {
@@ -42,7 +42,7 @@ export default class Login extends Command {
         `Using value from SUPERFACE_REFRESH_TOKEN environment variable`
       );
     } else {
-      const storeUrl = getStoreUrl();
+      const storeUrl = getServicesUrl();
       const netrc = new Netrc();
       await netrc.load();
       const previousEntry = netrc.machines[storeUrl];

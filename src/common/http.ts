@@ -39,7 +39,6 @@ export enum ContentType {
   MAP_SOURCE = 'application/vnd.superface.map',
   MAP_AST = 'application/vnd.superface.map+json',
 }
-//TODO: not sure about this approach
 export class SuperfaceClient {
   private static serviceClient: ServiceClient;
 
@@ -49,8 +48,8 @@ export class SuperfaceClient {
       //Use refresh token from env if found
       if (process.env.SUPERFACE_REFRESH_TOKEN) {
         SuperfaceClient.serviceClient = new ServiceClient({
-          //TODO: maybe still use getStoreUrl function to cover cases when user sets baseUrl and refresh token thru env
-          // baseUrl: getStoreUrl(),
+          //still use getStoreUrl function to cover cases when user sets baseUrl and refresh token thru env
+          baseUrl: getServicesUrl(),
           refreshToken: process.env.SUPERFACE_REFRESH_TOKEN,
           commonHeaders: { 'User-Agent': userAgent },
           refreshTokenUpdatedHandler: saveNetrc,
@@ -64,13 +63,12 @@ export class SuperfaceClient {
           refreshTokenUpdatedHandler: saveNetrc,
         });
       }
-      //TODO: check refresh token validity or left it to actual fetch call?
     }
 
     return SuperfaceClient.serviceClient;
   }
 }
-export function getStoreUrl(): string {
+export function getServicesUrl(): string {
   const envUrl = process.env[SF_API_URL_VARIABLE];
 
   if (envUrl) {
@@ -114,7 +112,7 @@ export async function fetchProfiles(): Promise<
 }
 
 export async function fetchProviders(profile: string): Promise<ProviderJson[]> {
-  const query = new URL('/providers', getStoreUrl()).href;
+  const query = new URL('/providers', getServicesUrl()).href;
 
   const response = await fetch(query, ContentType.JSON, { profile });
 
@@ -124,7 +122,7 @@ export async function fetchProviders(profile: string): Promise<ProviderJson[]> {
 export async function fetchProfileInfo(
   profileId: string
 ): Promise<ProfileInfo> {
-  const query = new URL(profileId, getStoreUrl()).href;
+  const query = new URL(profileId, getServicesUrl()).href;
 
   const response = await fetch(query, ContentType.JSON);
 
@@ -132,7 +130,7 @@ export async function fetchProfileInfo(
 }
 
 export async function fetchProfile(profileId: string): Promise<string> {
-  const query = new URL(profileId, getStoreUrl()).href;
+  const query = new URL(profileId, getServicesUrl()).href;
 
   const response = await fetch(query, ContentType.PROFILE_SOURCE);
 
@@ -142,7 +140,7 @@ export async function fetchProfile(profileId: string): Promise<string> {
 export async function fetchProfileAST(
   profileId: string
 ): Promise<ProfileDocumentNode> {
-  const query = new URL(profileId, getStoreUrl()).href;
+  const query = new URL(profileId, getServicesUrl()).href;
 
   const response = await fetch(query, ContentType.PROFILE_AST);
 
@@ -152,7 +150,7 @@ export async function fetchProfileAST(
 export async function fetchProviderInfo(
   providerName: string
 ): Promise<ProviderJson> {
-  const query = new URL(providerName, `${getStoreUrl()}/providers/`).href;
+  const query = new URL(providerName, `${getServicesUrl()}/providers/`).href;
   const response = await fetch(query, ContentType.JSON);
 
   return parseProviderJson(response.body);
@@ -166,11 +164,13 @@ export async function fetchMapAST(
   variant?: string
 ): Promise<MapDocumentNode> {
   const path = variant
-    ? `/${scope ? `${scope}/` : ''}${profile}.${provider}.${variant}@${version ? version : DEFAULT_PROFILE_VERSION_STR
-    }`
-    : `/${scope ? `${scope}/` : ''}${profile}.${provider}@${version ? version : DEFAULT_PROFILE_VERSION_STR
-    }`;
-  const url = new URL(path, getStoreUrl()).href;
+    ? `/${scope ? `${scope}/` : ''}${profile}.${provider}.${variant}@${
+        version ? version : DEFAULT_PROFILE_VERSION_STR
+      }`
+    : `/${scope ? `${scope}/` : ''}${profile}.${provider}@${
+        version ? version : DEFAULT_PROFILE_VERSION_STR
+      }`;
+  const url = new URL(path, getServicesUrl()).href;
 
   const response = await fetch(url, ContentType.MAP_AST);
 

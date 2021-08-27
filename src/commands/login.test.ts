@@ -1,7 +1,7 @@
 import { ServiceClient } from '@superfaceai/service-client';
 import { mocked } from 'ts-jest/utils';
 
-import { getStoreUrl } from '../common/http';
+import { getServicesUrl } from '../common/http';
 import { login } from '../logic/login';
 import { MockStd, mockStd } from '../test/mock-std';
 import Login from './login';
@@ -13,7 +13,7 @@ const mockBaseUrlWithEmptyRecord = 'empty';
 jest.mock('../logic/login');
 jest.mock('../common/http', () => ({
   ...jest.requireActual<Record<string, unknown>>('../common/http'),
-  getStoreUrl: jest.fn(),
+  getServicesUrl: jest.fn(),
 }));
 
 const mockLoadSync = jest.fn();
@@ -70,7 +70,7 @@ describe('Login CLI command', () => {
 
   describe('when running login command', () => {
     it('calls login correctly - non existing record in netrc', async () => {
-      mocked(getStoreUrl).mockReturnValue(mockBaseUrlWithEmptyRecord);
+      mocked(getServicesUrl).mockReturnValue(mockBaseUrlWithEmptyRecord);
 
       await expect(Login.run([])).resolves.toBeUndefined();
       expect(login).toHaveBeenCalledWith({
@@ -84,7 +84,7 @@ describe('Login CLI command', () => {
     });
 
     it('calls login correctly - non existing record in netrc and quiet flag', async () => {
-      mocked(getStoreUrl).mockReturnValue(mockBaseUrlWithEmptyRecord);
+      mocked(getServicesUrl).mockReturnValue(mockBaseUrlWithEmptyRecord);
       const logoutSpy = jest.spyOn(ServiceClient.prototype, 'logout');
 
       await expect(Login.run(['-q'])).resolves.toBeUndefined();
@@ -98,7 +98,7 @@ describe('Login CLI command', () => {
       expect(stdout.output).toEqual('');
     });
     it('calls login correctly - existing record in netrc and force flag', async () => {
-      mocked(getStoreUrl).mockReturnValue(mockBaseUrlWithExistingRecord);
+      mocked(getServicesUrl).mockReturnValue(mockBaseUrlWithExistingRecord);
       const logoutSpy = jest
         .spyOn(ServiceClient.prototype, 'logout')
         .mockResolvedValue(undefined);
@@ -118,7 +118,7 @@ describe('Login CLI command', () => {
 
     it('calls login correctly - refresh token in env', async () => {
       process.env.SUPERFACE_REFRESH_TOKEN = mockRefreshToken;
-      mocked(getStoreUrl).mockReturnValue(mockBaseUrlWithExistingRecord);
+      mocked(getServicesUrl).mockReturnValue(mockBaseUrlWithExistingRecord);
       const logoutSpy = jest.spyOn(ServiceClient.prototype, 'logout');
 
       await expect(Login.run([])).resolves.toBeUndefined();

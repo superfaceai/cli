@@ -29,7 +29,7 @@ export async function login(options?: {
   if (!options?.force) {
     const prompt: { open: boolean } = await inquirer.prompt({
       name: 'open',
-      message: `Do you want to open browser with superface login page?`,
+      message: `Do you want to open browser with Superface login page?`,
       type: 'confirm',
       default: true,
     });
@@ -58,7 +58,9 @@ export async function login(options?: {
   }
 
   //poll verification url
-  const verifyResponse = await client.verifyCliLogin(initResponse.verifyUrl);
+  const verifyResponse = await client.verifyCliLogin(initResponse.verifyUrl, {
+    pollingTimeoutSeconds: 3600,
+  });
   if (verifyResponse.verificationStatus !== VerificationStatus.CONFIRMED) {
     throw userError(
       `Unable to get auth token, request ended with status: ${verifyResponse.verificationStatus}`,
@@ -71,6 +73,4 @@ export async function login(options?: {
       1
     );
   }
-  //Save credentials to client instance and netrc
-  await SuperfaceClient.getClient().login(verifyResponse.authToken);
 }

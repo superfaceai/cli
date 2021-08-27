@@ -90,7 +90,7 @@ describe('Login CLI command', () => {
       });
 
       expect(result.stdout).toContain(
-        `Do you want to open browser with superface login page?`
+        `Do you want to open browser with Superface login page?`
       );
       expect(result.stdout).toContain(
         `Please open url: ${mockInitLoginResponse.browserUrl} in your browser to continue with login.`
@@ -140,7 +140,7 @@ describe('Login CLI command', () => {
       });
       expect(result.stdout).toContain('Already logged in, logging out');
       expect(result.stdout).toContain(
-        `Do you want to open browser with superface login page?`
+        `Do you want to open browser with Superface login page?`
       );
       expect(result.stdout).toContain(
         `Please open url: ${mockInitLoginResponse.browserUrl} in your browser to continue with login.`

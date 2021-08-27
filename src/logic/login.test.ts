@@ -49,7 +49,7 @@ describe('Login logic', () => {
   });
 
   describe('calling login', () => {
-    it('signs up user using prompt and browser', async () => {
+    it('signs in user using prompt and browser', async () => {
       const mockVerifyResponse: VerifyResponse = {
         verificationStatus: VerificationStatus.CONFIRMED,
         authToken: {
@@ -82,22 +82,21 @@ describe('Login logic', () => {
         .spyOn(open, 'default')
         .mockResolvedValue(new MockChildProcess() as ChildProcess);
 
-      const loginSpy = jest.spyOn(ServiceClient.prototype, 'login');
-
       await expect(
         login({ logCb: stdout, warnCb: stderr })
       ).resolves.toBeUndefined();
 
       expect(initSpy).toHaveBeenCalledTimes(1);
       expect(verifySpy).toHaveBeenCalledTimes(1);
-      expect(verifySpy).toHaveBeenCalledWith(mockInitResponse.verifyUrl);
-      expect(loginSpy).toHaveBeenCalledWith(mockVerifyResponse.authToken);
+      expect(verifySpy).toHaveBeenCalledWith(mockInitResponse.verifyUrl, {
+        pollingTimeoutSeconds: 3600,
+      });
 
       expect(stderr).not.toHaveBeenCalled();
       expect(stdout).not.toHaveBeenCalled();
     });
 
-    it('signs up user using prompt and browser - show url on child process error', async () => {
+    it('signs in user using prompt and browser - show url on child process error', async () => {
       const childProcess = new MockChildProcess();
       const mockErrorMessage = 'mock error';
 
@@ -133,8 +132,6 @@ describe('Login logic', () => {
         .spyOn(open, 'default')
         .mockResolvedValue(childProcess as ChildProcess);
 
-      const loginSpy = jest.spyOn(ServiceClient.prototype, 'login');
-
       await expect(
         login({ logCb: stdout, warnCb: stderr })
       ).resolves.toBeUndefined();
@@ -144,8 +141,9 @@ describe('Login logic', () => {
 
       expect(initSpy).toHaveBeenCalledTimes(1);
       expect(verifySpy).toHaveBeenCalledTimes(1);
-      expect(verifySpy).toHaveBeenCalledWith(mockInitResponse.verifyUrl);
-      expect(loginSpy).toHaveBeenCalledWith(mockVerifyResponse.authToken);
+      expect(verifySpy).toHaveBeenCalledWith(mockInitResponse.verifyUrl, {
+        pollingTimeoutSeconds: 3600,
+      });
 
       expect(stderr).toHaveBeenCalledWith(mockErrorMessage);
       expect(stderr).toHaveBeenCalledWith(
@@ -154,7 +152,7 @@ describe('Login logic', () => {
       expect(stdout).not.toHaveBeenCalled();
     });
 
-    it('signs up user using prompt and browser - show url on child process close', async () => {
+    it('signs in user using prompt and browser - show url on child process close', async () => {
       const childProcess = new MockChildProcess();
 
       const mockVerifyResponse: VerifyResponse = {
@@ -189,8 +187,6 @@ describe('Login logic', () => {
         .spyOn(open, 'default')
         .mockResolvedValue(childProcess as ChildProcess);
 
-      const loginSpy = jest.spyOn(ServiceClient.prototype, 'login');
-
       await expect(
         login({ logCb: stdout, warnCb: stderr })
       ).resolves.toBeUndefined();
@@ -200,8 +196,9 @@ describe('Login logic', () => {
 
       expect(initSpy).toHaveBeenCalledTimes(1);
       expect(verifySpy).toHaveBeenCalledTimes(1);
-      expect(verifySpy).toHaveBeenCalledWith(mockInitResponse.verifyUrl);
-      expect(loginSpy).toHaveBeenCalledWith(mockVerifyResponse.authToken);
+      expect(verifySpy).toHaveBeenCalledWith(mockInitResponse.verifyUrl, {
+        pollingTimeoutSeconds: 3600,
+      });
 
       expect(stderr).toHaveBeenCalledWith(
         `Please open url: ${mockInitResponse.browserUrl} in your browser to continue with login.`
@@ -209,7 +206,7 @@ describe('Login logic', () => {
       expect(stdout).not.toHaveBeenCalled();
     });
 
-    it('signs up user using prompt without browser', async () => {
+    it('signs in user using prompt without browser', async () => {
       const mockVerifyResponse: VerifyResponse = {
         verificationStatus: VerificationStatus.CONFIRMED,
         authToken: {
@@ -242,23 +239,22 @@ describe('Login logic', () => {
         .spyOn(open, 'default')
         .mockResolvedValue(new MockChildProcess() as ChildProcess);
 
-      const loginSpy = jest.spyOn(ServiceClient.prototype, 'login');
-
       await expect(
         login({ logCb: stdout, warnCb: stderr })
       ).resolves.toBeUndefined();
 
       expect(initSpy).toHaveBeenCalledTimes(1);
       expect(verifySpy).toHaveBeenCalledTimes(1);
-      expect(verifySpy).toHaveBeenCalledWith(mockInitResponse.verifyUrl);
-      expect(loginSpy).toHaveBeenCalledWith(mockVerifyResponse.authToken);
+      expect(verifySpy).toHaveBeenCalledWith(mockInitResponse.verifyUrl, {
+        pollingTimeoutSeconds: 3600,
+      });
       expect(stdout).not.toHaveBeenCalled();
       expect(stderr).toHaveBeenCalledWith(
         `Please open url: ${mockInitResponse.browserUrl} in your browser to continue with login.`
       );
     });
 
-    it('signs up user with force flag', async () => {
+    it('signs in user with force flag', async () => {
       const mockVerifyResponse: VerifyResponse = {
         verificationStatus: VerificationStatus.CONFIRMED,
         authToken: {
@@ -289,16 +285,15 @@ describe('Login logic', () => {
 
       const openSpy = jest.spyOn(open, 'default');
 
-      const loginSpy = jest.spyOn(ServiceClient.prototype, 'login');
-
       await expect(
         login({ logCb: stdout, warnCb: stderr, force: true })
       ).resolves.toBeUndefined();
 
       expect(initSpy).toHaveBeenCalledTimes(1);
       expect(verifySpy).toHaveBeenCalledTimes(1);
-      expect(verifySpy).toHaveBeenCalledWith(mockInitResponse.verifyUrl);
-      expect(loginSpy).toHaveBeenCalledWith(mockVerifyResponse.authToken);
+      expect(verifySpy).toHaveBeenCalledWith(mockInitResponse.verifyUrl, {
+        pollingTimeoutSeconds: 3600,
+      });
       expect(stdout).not.toHaveBeenCalled();
       expect(stderr).toHaveBeenCalledWith(
         `Please open url: ${mockInitResponse.browserUrl} in your browser to continue with login.`
@@ -344,7 +339,9 @@ describe('Login logic', () => {
 
       expect(initSpy).toHaveBeenCalledTimes(1);
       expect(verifySpy).toHaveBeenCalledTimes(1);
-      expect(verifySpy).toHaveBeenCalledWith(mockInitResponse.verifyUrl);
+      expect(verifySpy).toHaveBeenCalledWith(mockInitResponse.verifyUrl, {
+        pollingTimeoutSeconds: 3600,
+      });
       expect(loginSpy).not.toHaveBeenCalled();
       expect(stdout).not.toHaveBeenCalled();
       expect(stderr).toHaveBeenCalledWith(
@@ -389,7 +386,9 @@ describe('Login logic', () => {
 
       expect(initSpy).toHaveBeenCalledTimes(1);
       expect(verifySpy).toHaveBeenCalledTimes(1);
-      expect(verifySpy).toHaveBeenCalledWith(mockInitResponse.verifyUrl);
+      expect(verifySpy).toHaveBeenCalledWith(mockInitResponse.verifyUrl, {
+        pollingTimeoutSeconds: 3600,
+      });
       expect(loginSpy).not.toHaveBeenCalled();
       expect(stdout).not.toHaveBeenCalled();
       expect(stderr).toHaveBeenCalledWith(
