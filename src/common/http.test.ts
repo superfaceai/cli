@@ -34,7 +34,7 @@ describe('HTTP functions', () => {
     jest.resetAllMocks();
   });
 
-  describe('when getting store url', () => {
+  describe('when getting services url', () => {
     const originalValue = process.env.SUPERFACE_API_URL;
 
     afterAll(() => {

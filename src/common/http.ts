@@ -52,7 +52,7 @@ export class SuperfaceClient {
           baseUrl: getServicesUrl(),
           refreshToken: process.env.SUPERFACE_REFRESH_TOKEN,
           commonHeaders: { 'User-Agent': userAgent },
-          refreshTokenUpdatedHandler: saveNetrc,
+          //Do not use seveNetrc - refresh token from enviroment should not be saved
         });
       } else {
         const netrcRecord = loadNetrc();
