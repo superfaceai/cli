@@ -35,10 +35,6 @@ class MockChildProcess extends EventEmitter {
   constructor() {
     super();
   }
-
-  // public emitErr(message: string) {
-  //   console.log(message)
-  // }
 }
 describe('Login logic', () => {
   const stderr = jest.fn();
@@ -49,180 +45,113 @@ describe('Login logic', () => {
   });
 
   describe('calling login', () => {
-    it('signs in user using prompt and browser', async () => {
-      const mockVerifyResponse: VerifyResponse = {
-        verificationStatus: VerificationStatus.CONFIRMED,
-        authToken: {
-          access_token: 'stub',
-          token_type: '',
-          refresh_token: 'stub',
-          expires_in: 1,
-        },
-      };
+    const mockVerifyResponse: VerifyResponse = {
+      verificationStatus: VerificationStatus.CONFIRMED,
+      authToken: {
+        access_token: 'stub',
+        token_type: '',
+        refresh_token: 'stub',
+        expires_in: 1,
+      },
+    };
 
-      const mockInitResponse: CLILoginResponse = {
-        success: true,
-        verifyUrl: 'https://superface.ai/auth/cli/verify?token=stub',
-        browserUrl: 'https://superface.ai/auth/cli/browser?code=stub',
-        expiresAt: new Date(),
-      };
-      jest
-        .spyOn(SuperfaceClient, 'getClient')
-        .mockImplementation(() => new ServiceClient());
-      const initSpy = jest
-        .spyOn(ServiceClient.prototype, 'cliLogin')
-        .mockResolvedValue(mockInitResponse);
-      const verifySpy = jest
-        .spyOn(ServiceClient.prototype, 'verifyCliLogin')
-        .mockResolvedValue(mockVerifyResponse);
+    const mockInitResponse: CLILoginResponse = {
+      success: true,
+      verifyUrl: 'https://superface.ai/auth/cli/verify?token=stub',
+      browserUrl: 'https://superface.ai/auth/cli/browser?code=stub',
+      expiresAt: new Date(),
+    };
 
-      jest.spyOn(inquirer, 'prompt').mockResolvedValueOnce({ open: true });
+    describe('signing in using browser', () => {
+      const initSpy = jest.spyOn(ServiceClient.prototype, 'cliLogin');
 
-      jest
-        .spyOn(open, 'default')
-        .mockResolvedValue(new MockChildProcess() as ChildProcess);
+      const verifySpy = jest.spyOn(ServiceClient.prototype, 'verifyCliLogin');
 
-      await expect(
-        login({ logCb: stdout, warnCb: stderr })
-      ).resolves.toBeUndefined();
+      beforeEach(() => {
+        jest
+          .spyOn(SuperfaceClient, 'getClient')
+          .mockImplementation(() => new ServiceClient());
+        jest.spyOn(inquirer, 'prompt').mockResolvedValueOnce({ open: true });
+        initSpy.mockResolvedValue(mockInitResponse);
 
-      expect(initSpy).toHaveBeenCalledTimes(1);
-      expect(verifySpy).toHaveBeenCalledTimes(1);
-      expect(verifySpy).toHaveBeenCalledWith(mockInitResponse.verifyUrl, {
-        pollingTimeoutSeconds: 3600,
+        verifySpy.mockResolvedValue(mockVerifyResponse);
       });
 
-      expect(stderr).not.toHaveBeenCalled();
-      expect(stdout).not.toHaveBeenCalled();
-    });
+      it('signs in user using prompt and browser', async () => {
+        jest
+          .spyOn(open, 'default')
+          .mockResolvedValue(new MockChildProcess() as ChildProcess);
 
-    it('signs in user using prompt and browser - show url on child process error', async () => {
-      const childProcess = new MockChildProcess();
-      const mockErrorMessage = 'mock error';
+        await expect(
+          login({ logCb: stdout, warnCb: stderr })
+        ).resolves.toBeUndefined();
 
-      const mockVerifyResponse: VerifyResponse = {
-        verificationStatus: VerificationStatus.CONFIRMED,
-        authToken: {
-          access_token: 'stub',
-          token_type: '',
-          refresh_token: 'stub',
-          expires_in: 1,
-        },
-      };
+        expect(initSpy).toHaveBeenCalledTimes(1);
+        expect(verifySpy).toHaveBeenCalledTimes(1);
+        expect(verifySpy).toHaveBeenCalledWith(mockInitResponse.verifyUrl, {
+          pollingTimeoutSeconds: 3600,
+        });
 
-      const mockInitResponse: CLILoginResponse = {
-        success: true,
-        verifyUrl: 'https://superface.ai/auth/cli/verify?token=stub',
-        browserUrl: 'https://superface.ai/auth/cli/browser?code=stub',
-        expiresAt: new Date(),
-      };
-      jest
-        .spyOn(SuperfaceClient, 'getClient')
-        .mockImplementation(() => new ServiceClient());
-      const initSpy = jest
-        .spyOn(ServiceClient.prototype, 'cliLogin')
-        .mockResolvedValue(mockInitResponse);
-      const verifySpy = jest
-        .spyOn(ServiceClient.prototype, 'verifyCliLogin')
-        .mockResolvedValue(mockVerifyResponse);
-
-      jest.spyOn(inquirer, 'prompt').mockResolvedValueOnce({ open: true });
-
-      jest
-        .spyOn(open, 'default')
-        .mockResolvedValue(childProcess as ChildProcess);
-
-      await expect(
-        login({ logCb: stdout, warnCb: stderr })
-      ).resolves.toBeUndefined();
-
-      //Browser emits error
-      childProcess.emit('error', { message: mockErrorMessage });
-
-      expect(initSpy).toHaveBeenCalledTimes(1);
-      expect(verifySpy).toHaveBeenCalledTimes(1);
-      expect(verifySpy).toHaveBeenCalledWith(mockInitResponse.verifyUrl, {
-        pollingTimeoutSeconds: 3600,
+        expect(stderr).not.toHaveBeenCalled();
+        expect(stdout).not.toHaveBeenCalled();
       });
 
-      expect(stderr).toHaveBeenCalledWith(mockErrorMessage);
-      expect(stderr).toHaveBeenCalledWith(
-        `Please open url: ${mockInitResponse.browserUrl} in your browser to continue with login.`
-      );
-      expect(stdout).not.toHaveBeenCalled();
-    });
+      it('signs in user using prompt and browser - shows url on open browser error', async () => {
+        const childProcess = new MockChildProcess();
+        const mockErrorMessage = 'mock error';
 
-    it('signs in user using prompt and browser - show url on child process close', async () => {
-      const childProcess = new MockChildProcess();
+        jest
+          .spyOn(open, 'default')
+          .mockResolvedValue(childProcess as ChildProcess);
 
-      const mockVerifyResponse: VerifyResponse = {
-        verificationStatus: VerificationStatus.CONFIRMED,
-        authToken: {
-          access_token: 'stub',
-          token_type: '',
-          refresh_token: 'stub',
-          expires_in: 1,
-        },
-      };
+        await expect(
+          login({ logCb: stdout, warnCb: stderr })
+        ).resolves.toBeUndefined();
 
-      const mockInitResponse: CLILoginResponse = {
-        success: true,
-        verifyUrl: 'https://superface.ai/auth/cli/verify?token=stub',
-        browserUrl: 'https://superface.ai/auth/cli/browser?code=stub',
-        expiresAt: new Date(),
-      };
-      jest
-        .spyOn(SuperfaceClient, 'getClient')
-        .mockImplementation(() => new ServiceClient());
-      const initSpy = jest
-        .spyOn(ServiceClient.prototype, 'cliLogin')
-        .mockResolvedValue(mockInitResponse);
-      const verifySpy = jest
-        .spyOn(ServiceClient.prototype, 'verifyCliLogin')
-        .mockResolvedValue(mockVerifyResponse);
+        //Browser emits error
+        childProcess.emit('error', { message: mockErrorMessage });
 
-      jest.spyOn(inquirer, 'prompt').mockResolvedValueOnce({ open: true });
+        expect(initSpy).toHaveBeenCalledTimes(1);
+        expect(verifySpy).toHaveBeenCalledTimes(1);
+        expect(verifySpy).toHaveBeenCalledWith(mockInitResponse.verifyUrl, {
+          pollingTimeoutSeconds: 3600,
+        });
 
-      jest
-        .spyOn(open, 'default')
-        .mockResolvedValue(childProcess as ChildProcess);
-
-      await expect(
-        login({ logCb: stdout, warnCb: stderr })
-      ).resolves.toBeUndefined();
-
-      //Browser emits error
-      childProcess.emit('close');
-
-      expect(initSpy).toHaveBeenCalledTimes(1);
-      expect(verifySpy).toHaveBeenCalledTimes(1);
-      expect(verifySpy).toHaveBeenCalledWith(mockInitResponse.verifyUrl, {
-        pollingTimeoutSeconds: 3600,
+        expect(stderr).toHaveBeenCalledWith(mockErrorMessage);
+        expect(stderr).toHaveBeenCalledWith(
+          `Please open url: ${mockInitResponse.browserUrl} in your browser to continue with login.`
+        );
+        expect(stdout).not.toHaveBeenCalled();
       });
 
-      expect(stderr).toHaveBeenCalledWith(
-        `Please open url: ${mockInitResponse.browserUrl} in your browser to continue with login.`
-      );
-      expect(stdout).not.toHaveBeenCalled();
+      it('signs in user using prompt and browser - show url when browser is closed', async () => {
+        const childProcess = new MockChildProcess();
+
+        jest
+          .spyOn(open, 'default')
+          .mockResolvedValue(childProcess as ChildProcess);
+
+        await expect(
+          login({ logCb: stdout, warnCb: stderr })
+        ).resolves.toBeUndefined();
+
+        //Browser emits error
+        childProcess.emit('close');
+
+        expect(initSpy).toHaveBeenCalledTimes(1);
+        expect(verifySpy).toHaveBeenCalledTimes(1);
+        expect(verifySpy).toHaveBeenCalledWith(mockInitResponse.verifyUrl, {
+          pollingTimeoutSeconds: 3600,
+        });
+
+        expect(stderr).toHaveBeenCalledWith(
+          `Please open url: ${mockInitResponse.browserUrl} in your browser to continue with login.`
+        );
+        expect(stdout).not.toHaveBeenCalled();
+      });
     });
 
     it('signs in user using prompt without browser', async () => {
-      const mockVerifyResponse: VerifyResponse = {
-        verificationStatus: VerificationStatus.CONFIRMED,
-        authToken: {
-          access_token: 'stub',
-          token_type: '',
-          refresh_token: 'stub',
-          expires_in: 1,
-        },
-      };
-
-      const mockInitResponse: CLILoginResponse = {
-        success: true,
-        verifyUrl: 'https://superface.ai/auth/cli/verify?token=stub',
-        browserUrl: 'https://superface.ai/auth/cli/browser?code=stub',
-        expiresAt: new Date(),
-      };
       jest
         .spyOn(SuperfaceClient, 'getClient')
         .mockImplementation(() => new ServiceClient());
@@ -255,22 +184,6 @@ describe('Login logic', () => {
     });
 
     it('signs in user with force flag', async () => {
-      const mockVerifyResponse: VerifyResponse = {
-        verificationStatus: VerificationStatus.CONFIRMED,
-        authToken: {
-          access_token: 'stub',
-          token_type: '',
-          refresh_token: 'stub',
-          expires_in: 1,
-        },
-      };
-
-      const mockInitResponse: CLILoginResponse = {
-        success: true,
-        verifyUrl: 'https://superface.ai/auth/cli/verify?token=stub',
-        browserUrl: 'https://superface.ai/auth/cli/browser?code=stub',
-        expiresAt: new Date(),
-      };
       jest
         .spyOn(SuperfaceClient, 'getClient')
         .mockImplementation(() => new ServiceClient());
@@ -305,13 +218,6 @@ describe('Login logic', () => {
     it('throws error on unsuccessful verify - wrong status', async () => {
       const mockVerifyResponse: VerifyResponse = {
         verificationStatus: VerificationStatus.EXPIRED,
-      };
-
-      const mockInitResponse: CLILoginResponse = {
-        success: true,
-        verifyUrl: 'https://superface.ai/auth/cli/verify?token=stub',
-        browserUrl: 'https://superface.ai/auth/cli/browser?code=stub',
-        expiresAt: new Date(),
       };
       jest
         .spyOn(SuperfaceClient, 'getClient')
@@ -354,12 +260,6 @@ describe('Login logic', () => {
         verificationStatus: VerificationStatus.CONFIRMED,
       };
 
-      const mockInitResponse: CLILoginResponse = {
-        success: true,
-        verifyUrl: 'https://superface.ai/auth/cli/verify?token=stub',
-        browserUrl: 'https://superface.ai/auth/cli/browser?code=stub',
-        expiresAt: new Date(),
-      };
       jest
         .spyOn(SuperfaceClient, 'getClient')
         .mockImplementation(() => new ServiceClient());
