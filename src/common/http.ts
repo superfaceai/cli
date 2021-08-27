@@ -49,6 +49,8 @@ export class SuperfaceClient {
       //Use refresh token from env if found
       if (process.env.SUPERFACE_REFRESH_TOKEN) {
         SuperfaceClient.serviceClient = new ServiceClient({
+          //TODO: maybe still use getStoreUrl function to cover cases when user sets baseUrl and refresh token thru env
+          // baseUrl: getStoreUrl(),
           refreshToken: process.env.SUPERFACE_REFRESH_TOKEN,
           commonHeaders: { 'User-Agent': userAgent },
           refreshTokenUpdatedHandler: saveNetrc,
@@ -164,12 +166,10 @@ export async function fetchMapAST(
   variant?: string
 ): Promise<MapDocumentNode> {
   const path = variant
-    ? `/${scope ? `${scope}/` : ''}${profile}.${provider}.${variant}@${
-        version ? version : DEFAULT_PROFILE_VERSION_STR
-      }`
-    : `/${scope ? `${scope}/` : ''}${profile}.${provider}@${
-        version ? version : DEFAULT_PROFILE_VERSION_STR
-      }`;
+    ? `/${scope ? `${scope}/` : ''}${profile}.${provider}.${variant}@${version ? version : DEFAULT_PROFILE_VERSION_STR
+    }`
+    : `/${scope ? `${scope}/` : ''}${profile}.${provider}@${version ? version : DEFAULT_PROFILE_VERSION_STR
+    }`;
   const url = new URL(path, getStoreUrl()).href;
 
   const response = await fetch(url, ContentType.MAP_AST);
