@@ -362,10 +362,6 @@ describe('Configure CLI command', () => {
 
       expect(superJson.normalized.providers[simpleProvider].security).toEqual([
         {
-          id: 'apiKey',
-          apikey: '$SIMPLE_PROVIDER_API_KEY',
-        },
-        {
           id: 'swapidev',
           token: '$SIMPLE_PROVIDER_TOKEN',
         },
