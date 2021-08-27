@@ -71,12 +71,14 @@ describe('Check CLI command', () => {
 
     it('throws when super.json not loaded correctly', async () => {
       mocked(detectSuperJson).mockResolvedValue('.');
-      jest.spyOn(SuperJson, 'load').mockResolvedValue(
-        err(new SDKExecutionError('test error', [], []))
-      );
+      jest
+        .spyOn(SuperJson, 'load')
+        .mockResolvedValue(err(new SDKExecutionError('test error', [], [])));
       await expect(
         Check.run(['--profileId', profileId, '--providerName', provider])
-      ).rejects.toEqual(new CLIError('Unable to load super.json: test error\n'));
+      ).rejects.toEqual(
+        new CLIError('Unable to load super.json: test error\n')
+      );
     });
 
     it('throws error on invalid scan flag', async () => {

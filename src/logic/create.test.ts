@@ -363,9 +363,7 @@ describe('Create logic', () => {
     it('creates profile correctly - uses new super json instance', async () => {
       const loadSpy = jest
         .spyOn(SuperJson, 'load')
-        .mockResolvedValue(
-          err(new SDKExecutionError('mock err', [], []))
-        );
+        .mockResolvedValue(err(new SDKExecutionError('mock err', [], [])));
       const writeIfAbsentSpy = jest
         .spyOn(OutputStream, 'writeIfAbsent')
         .mockResolvedValue(true);

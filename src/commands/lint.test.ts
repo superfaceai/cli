@@ -37,9 +37,9 @@ describe('lint CLI command', () => {
 
     it('throws when super.json not loaded correctly', async () => {
       mocked(detectSuperJson).mockResolvedValue('.');
-      jest.spyOn(SuperJson, 'load').mockResolvedValue(
-        err(new SDKExecutionError('test error', [], []))
-      );
+      jest
+        .spyOn(SuperJson, 'load')
+        .mockResolvedValue(err(new SDKExecutionError('test error', [], [])));
       await expect(Lint.run([])).rejects.toEqual(
         new CLIError('Unable to load super.json: test error\n')
       );

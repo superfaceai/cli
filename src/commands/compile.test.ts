@@ -88,9 +88,7 @@ describe('Compile CLI command', () => {
       mocked(detectSuperJson).mockResolvedValue('.');
       const loadSpy = jest
         .spyOn(SuperJson, 'load')
-        .mockResolvedValue(
-          err(new SDKExecutionError('test', [], []))
-        );
+        .mockResolvedValue(err(new SDKExecutionError('test', [], [])));
       await expect(
         Compile.run([
           '--profileId',

@@ -119,7 +119,7 @@ export function handleProviderResponse(
     security,
     file: options?.localProvider
       ? superJson.relativePath(options.localProvider)
-      : undefined
+      : undefined,
   });
 
   //constructProfileProviderSettings returns Record<string, ProfileProviderEntry>
@@ -278,40 +278,35 @@ export async function installProvider(parameters: {
 
 /**
  * Reconfigure provider from local to remote or from remote to local.
-*/
+ */
 export async function reconfigureProvider(
   superJson: SuperJson,
   providerName: string,
-  target: { kind: 'local', file: string } | { kind: 'remote' },
+  target: { kind: 'local'; file: string } | { kind: 'remote' },
   _options?: {
-    logCb?: LogCallback
-    warnCb?: LogCallback
+    logCb?: LogCallback;
+    warnCb?: LogCallback;
   }
 ): Promise<void> {
   // TODO: Possibly do checks whether the remote file exists?
-  superJson.swapProviderVariant(
-    providerName,
-    target
-  )
+  superJson.swapProviderVariant(providerName, target);
 }
 
 /**
  * Reconfigure profile provider from local to remote or from remote to local.
-*/
+ */
 export async function reconfigureProfileProvider(
   superJson: SuperJson,
   profileId: ProfileId,
   providerName: string,
-  target: { kind: 'local', file: string } | { kind: 'remote', mapVariant?: string, mapRevision?: string },
+  target:
+    | { kind: 'local'; file: string }
+    | { kind: 'remote'; mapVariant?: string; mapRevision?: string },
   _options?: {
-    logCb?: LogCallback
-    warnCb?: LogCallback
+    logCb?: LogCallback;
+    warnCb?: LogCallback;
   }
 ): Promise<void> {
   // TODO: Possibly do checks whether the remote file exists?
-  superJson.swapProfileProviderVariant(
-    profileId.id,
-    providerName,
-    target
-  )
+  superJson.swapProfileProviderVariant(profileId.id, providerName, target);
 }
