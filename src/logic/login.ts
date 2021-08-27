@@ -17,7 +17,8 @@ export async function login(options?: {
 
   if (!initResponse.success) {
     throw userError(
-      `Attempt to login ended with: ${initResponse.title}${initResponse.detail ? `: ${initResponse.detail}` : ''
+      `Attempt to login ended with: ${initResponse.title}${
+        initResponse.detail ? `: ${initResponse.detail}` : ''
       }`,
       1
     );

@@ -19,17 +19,14 @@ export default class Login extends Command {
     }),
   };
 
-  private warnCallback?= (message: string) =>
+  private warnCallback? = (message: string) =>
     this.log('⚠️  ' + yellow(message));
 
-  private logCallback?= (message: string) => this.log(grey(message));
-  private successCallback?= (message: string) =>
+  private logCallback? = (message: string) => this.log(grey(message));
+  private successCallback? = (message: string) =>
     this.log(bold(green(message)));
 
-  static examples = [
-    '$ superface login',
-    '$ superface login -f',
-  ];
+  static examples = ['$ superface login', '$ superface login -f'];
 
   async run(): Promise<void> {
     const { flags } = this.parse(Login);

@@ -45,10 +45,12 @@ export class SuperfaceClient {
 
   public static getClient(): ServiceClient {
     if (!SuperfaceClient.serviceClient) {
+      const userAgent = `superface cli/${VERSION} (${process.platform}-${process.arch}) ${process.release.name}-${process.version} (with @superfaceai/one-sdk@${SDK_VERSION}, @superfaceai/parser@${PARSER_VERSION})`;
       //Use refresh token from env if found
       if (process.env.SUPERFACE_REFRESH_TOKEN) {
         SuperfaceClient.serviceClient = new ServiceClient({
           refreshToken: process.env.SUPERFACE_REFRESH_TOKEN,
+          commonHeaders: { 'User-Agent': userAgent },
           refreshTokenUpdatedHandler: saveNetrc,
         });
       } else {
@@ -56,6 +58,7 @@ export class SuperfaceClient {
         SuperfaceClient.serviceClient = new ServiceClient({
           baseUrl: netrcRecord.baseUrl,
           refreshToken: netrcRecord.refreshToken,
+          commonHeaders: { 'User-Agent': userAgent },
           refreshTokenUpdatedHandler: saveNetrc,
         });
       }
