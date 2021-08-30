@@ -18,7 +18,7 @@ import inquirer from 'inquirer';
 import { join as joinPath } from 'path';
 
 import { developerError, userError } from '../common/error';
-import { fetchProviders, getStoreUrl } from '../common/http';
+import { fetchProviders, getServicesUrl } from '../common/http';
 import { exists, readFile } from '../common/io';
 import { LogCallback } from '../common/log';
 import { OutputStream } from '../common/output-stream';
@@ -415,7 +415,7 @@ export async function interactiveInstall(
   //Lead to docs page
   options?.successCb?.(
     `\nNow you can follow our documentation to use installed capability: "${
-      new URL(profileId.id, getStoreUrl()).href
+      new URL(profileId.id, getServicesUrl()).href
     }"`
   );
 }

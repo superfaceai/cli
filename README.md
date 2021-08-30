@@ -61,6 +61,7 @@ npx @superfaceai/cli install [profileId eg. communication/send-email] -i
 * [`superface init [NAME]`](#superface-init-name)
 * [`superface install [PROFILEID]`](#superface-install-profileid)
 * [`superface lint [FILE]`](#superface-lint-file)
+* [`superface login`](#superface-login)
 
 ## `superface check`
 
@@ -280,6 +281,26 @@ EXAMPLES
 ```
 
 _See code: [src/commands/lint.ts](https://github.com/superfaceai/cli/tree/main/src/commands/lint.ts)_
+
+## `superface login`
+
+Login to superface server
+
+```
+USAGE
+  $ superface login
+
+OPTIONS
+  -f, --force  When set to true user won't be asked to confirm browser opening
+  -h, --help   show CLI help
+  -q, --quiet  When set to true, disables the shell echo output of action.
+
+EXAMPLES
+  $ superface login
+  $ superface login -f
+```
+
+_See code: [src/commands/login.ts](https://github.com/superfaceai/cli/tree/main/src/commands/login.ts)_
 <!-- commandsstop -->
 
 ## Interactive install
