@@ -68,7 +68,7 @@ export default class Compile extends Command {
     const superJson = loadedResult.match(
       v => v,
       err => {
-        throw userError(`Unable to load super.json: ${err}`, 1);
+        throw userError(`Unable to load super.json: ${err.formatShort()}`, 1);
       }
     );
     //Check flags

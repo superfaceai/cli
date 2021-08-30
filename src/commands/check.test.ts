@@ -1,5 +1,6 @@
 import { CLIError } from '@oclif/errors';
 import { err, ok, SuperJson } from '@superfaceai/one-sdk';
+import { SDKExecutionError } from '@superfaceai/one-sdk/dist/internal/errors';
 import { mocked } from 'ts-jest/utils';
 
 import { check, CheckResult, formatHuman, formatJson } from '../logic/check';
@@ -70,7 +71,9 @@ describe('Check CLI command', () => {
 
     it('throws when super.json not loaded correctly', async () => {
       mocked(detectSuperJson).mockResolvedValue('.');
-      jest.spyOn(SuperJson, 'load').mockResolvedValue(err('test error'));
+      jest
+        .spyOn(SuperJson, 'load')
+        .mockResolvedValue(err(new SDKExecutionError('test error', [], [])));
       await expect(
         Check.run(['--profileId', profileId, '--providerName', provider])
       ).rejects.toEqual(new CLIError('Unable to load super.json: test error'));
