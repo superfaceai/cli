@@ -10,9 +10,14 @@ import {
   ServiceClient,
 } from '@superfaceai/service-client';
 
-import { SF_API_URL_VARIABLE, VERSION } from '..';
-import { DEFAULT_PROFILE_VERSION_STR, SF_PRODUCTION } from './document';
+import { VERSION } from '..';
+import {
+  DEFAULT_PROFILE_VERSION_STR,
+  SF_API_URL_VARIABLE,
+  SF_PRODUCTION,
+} from './document';
 import { userError } from './error';
+import { loadNetrc, saveNetrc } from './netrc';
 
 export interface ProfileInfo {
   owner: string;
@@ -37,22 +42,36 @@ export enum ContentType {
   MAP_SOURCE = 'application/vnd.superface.map',
   MAP_AST = 'application/vnd.superface.map+json',
 }
-
 export class SuperfaceClient {
   private static serviceClient: ServiceClient;
 
   public static getClient(): ServiceClient {
     if (!SuperfaceClient.serviceClient) {
-      SuperfaceClient.serviceClient = new ServiceClient({
-        baseUrl: getStoreUrl(),
-      });
+      const userAgent = `superface cli/${VERSION} (${process.platform}-${process.arch}) ${process.release.name}-${process.version} (with @superfaceai/one-sdk@${SDK_VERSION}, @superfaceai/parser@${PARSER_VERSION})`;
+      //Use refresh token from env if found
+      if (process.env.SUPERFACE_REFRESH_TOKEN) {
+        SuperfaceClient.serviceClient = new ServiceClient({
+          //still use getStoreUrl function to cover cases when user sets baseUrl and refresh token thru env
+          baseUrl: getServicesUrl(),
+          refreshToken: process.env.SUPERFACE_REFRESH_TOKEN,
+          commonHeaders: { 'User-Agent': userAgent },
+          //Do not use seveNetrc - refresh token from enviroment should not be saved
+        });
+      } else {
+        const netrcRecord = loadNetrc();
+        SuperfaceClient.serviceClient = new ServiceClient({
+          baseUrl: netrcRecord.baseUrl,
+          refreshToken: netrcRecord.refreshToken,
+          commonHeaders: { 'User-Agent': userAgent },
+          refreshTokenUpdatedHandler: saveNetrc,
+        });
+      }
     }
 
     return SuperfaceClient.serviceClient;
   }
 }
-
-export function getStoreUrl(): string {
+export function getServicesUrl(): string {
   const envUrl = process.env[SF_API_URL_VARIABLE];
 
   if (envUrl) {
@@ -146,9 +165,7 @@ export async function fetchProviderInfo(
   providerName: string
 ): Promise<ProviderJson> {
   //TODO: user agent?
-  const response = await SuperfaceClient.getClient().findOneProvider(
-    providerName
-  );
+  const response = await SuperfaceClient.getClient().getProvider(providerName);
 
   return parseProviderJson(response);
 }
@@ -167,8 +184,6 @@ function commonHeaders(): Record<string, string> {
     'User-Agent': `superface cli/${VERSION} (${process.platform}-${process.arch}) ${process.release.name}-${process.version} (with @superfaceai/one-sdk@${SDK_VERSION}, @superfaceai/parser@${PARSER_VERSION})`,
   };
 }
-
-//HACK: we don' have service client in this branch so we are making request directly. Use service-client in the future
 export async function fetchMapAST(
   profile: string,
   provider: string,

@@ -61,6 +61,7 @@ npx @superfaceai/cli install [profileId eg. communication/send-email] -i
 * [`superface init [NAME]`](#superface-init-name)
 * [`superface install [PROFILEID]`](#superface-install-profileid)
 * [`superface lint [FILE]`](#superface-lint-file)
+* [`superface login`](#superface-login)
 * [`superface publish PATH`](#superface-publish-path)
 
 ## `superface check`
@@ -282,6 +283,26 @@ EXAMPLES
 
 _See code: [src/commands/lint.ts](https://github.com/superfaceai/cli/tree/main/src/commands/lint.ts)_
 
+## `superface login`
+
+Login to superface server
+
+```
+USAGE
+  $ superface login
+
+OPTIONS
+  -f, --force  When set to true user won't be asked to confirm browser opening
+  -h, --help   show CLI help
+  -q, --quiet  When set to true, disables the shell echo output of action.
+
+EXAMPLES
+  $ superface login
+  $ superface login -f
+```
+
+_See code: [src/commands/login.ts](https://github.com/superfaceai/cli/tree/main/src/commands/login.ts)_
+
 ## `superface publish PATH`
 
 Uploads map/profile/provider to Store. Published file must be locally linked in super.json. This command runs Check and Lint internaly to ensure quality
@@ -316,6 +337,27 @@ EXAMPLES
 ```
 
 _See code: [src/commands/publish.ts](https://github.com/superfaceai/cli/tree/main/src/commands/publish.ts)_
+=======
+## `superface login`
+
+Login to superface server
+
+```
+USAGE
+  $ superface login
+
+OPTIONS
+  -f, --force  When set to true user won't be asked to confirm browser opening
+  -h, --help   show CLI help
+  -q, --quiet  When set to true, disables the shell echo output of action.
+
+EXAMPLES
+  $ superface login
+  $ superface login -f
+```
+
+_See code: [src/commands/login.ts](https://github.com/superfaceai/cli/tree/main/src/commands/login.ts)_
+>>>>>>> 9edfdec59f72275fc9c8ba66b21ab276ca3c6a88
 <!-- commandsstop -->
 
 ## Interactive install

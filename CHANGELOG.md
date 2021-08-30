@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Document type inference was moved to ast-js
 
 ### Added
+- Login command
 - Compile command compiles to cache
 - Compile command scoped for single file
 - Lint command loading file paths from super.json 

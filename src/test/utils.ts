@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { EXTENSIONS } from '@superfaceai/ast';
 import { ProviderJson } from '@superfaceai/one-sdk';
+import { AuthToken, CLILoginResponse } from '@superfaceai/service-client';
 import { execFile } from 'child_process';
 import concat from 'concat-stream';
 import { Headers, Response } from 'cross-fetch';
@@ -178,6 +179,48 @@ export async function mockResponsesForPublish(server: Mockttp): Promise<void> {
     .withHeaders({ 'Content-Type': ContentType.TEXT })
     .thenJson(200, {});
 }
+/**
+
+* Mocks HTTP responses for login
+*
+* mocks /auth/cli and /auth/cli/verify paths
+*/
+export async function mockResponsesForLogin(
+  server: Mockttp,
+  mockInitLoginResponse: CLILoginResponse,
+  mockVerifyResponse:
+    | {
+        authToken: AuthToken;
+      }
+    | {
+        statusCode: number;
+        errStatus: string;
+      }
+): Promise<void> {
+  if (mockInitLoginResponse.success) {
+    await server.post('/auth/cli').thenJson(201, {
+      verify_url: mockInitLoginResponse.verifyUrl,
+      browser_url: mockInitLoginResponse.browserUrl,
+      expires_at: mockInitLoginResponse.expiresAt.toDateString(),
+    });
+  } else {
+    await server.post('/auth/cli').thenJson(200, mockInitLoginResponse);
+  }
+
+  if ('authToken' in mockVerifyResponse) {
+    await server
+      .get('/auth/cli/verify')
+      .withQuery({ token: 'stub' })
+      .thenJson(200, mockVerifyResponse.authToken);
+  } else {
+    await server
+      .get('/auth/cli/verify')
+      .withQuery({ token: 'stub' })
+      .thenJson(mockVerifyResponse.statusCode, {
+        status: mockVerifyResponse.errStatus,
+      });
+  }
+}
 
 /**
  * Executes the Superface CLI binary
@@ -316,7 +359,6 @@ export function mockResponse(
 
   return new Response(data ? JSON.stringify(data) : undefined, ResponseInit);
 }
-
 /**
  * Creates a random directory in `path` and returns the path
  */

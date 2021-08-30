@@ -9,7 +9,7 @@ import { join as joinPath } from 'path';
 import { META_FILE } from '../common';
 import { Command } from '../common/command.abstract';
 import { userError } from '../common/error';
-import { getStoreUrl } from '../common/http';
+import { getServicesUrl } from '../common/http';
 import { ProfileId } from '../common/profile';
 import { detectSuperJson } from '../logic/install';
 import { publish } from '../logic/publish';
@@ -83,7 +83,7 @@ export default class Publish extends Command {
     if (!flags.force) {
       const response: { upload: boolean } = await inquirer.prompt({
         name: 'upload',
-        message: `Are you sure that you want to publish data to ${getStoreUrl()} registry?`,
+        message: `Are you sure that you want to publish data to ${getServicesUrl()} registry?`,
         type: 'confirm',
       });
 

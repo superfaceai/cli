@@ -6,7 +6,7 @@ import { yellow } from 'chalk';
 import { mocked } from 'ts-jest/utils';
 
 import { DEFAULT_PROFILE_VERSION_STR } from '../common';
-import { fetchProviderInfo } from '../common/http';
+import { fetchProviderInfo, getServicesUrl } from '../common/http';
 import { ProfileId } from '../common/profile';
 import { ProfileMapReport } from '../common/report.interfaces';
 import {
@@ -34,6 +34,7 @@ jest.mock('@superfaceai/service-client');
 jest.mock('../common/http', () => ({
   ...jest.requireActual<Record<string, unknown>>('../common/http'),
   fetchProviderInfo: jest.fn(),
+  getServicesUrl: jest.fn(),
 }));
 
 //Mock check utils
@@ -170,6 +171,7 @@ describe('Publish logic', () => {
         },
       });
 
+      mocked(getServicesUrl).mockReturnValue('')
       mocked(loadProfile).mockResolvedValue({
         ast: mockProfileDocument,
         source: mockProfileSource,
@@ -1114,9 +1116,9 @@ describe('Publish logic', () => {
         )
       ).resolves.toEqual(
         yellow('Check results:\n') +
-          checkFormatHuman(checkResult) +
-          yellow('\n\nLint results:\n') +
-          lintFormatHuman(emptyLintResult, false)
+        checkFormatHuman(checkResult) +
+        yellow('\n\nLint results:\n') +
+        lintFormatHuman(emptyLintResult, false)
       );
 
       expect(createSpy).not.toHaveBeenCalled();
@@ -1213,9 +1215,9 @@ describe('Publish logic', () => {
         )
       ).resolves.toEqual(
         yellow('Check results:\n') +
-          checkFormatHuman(checkResult) +
-          yellow('\n\nLint results:\n') +
-          lintFormatHuman(lintResult, false)
+        checkFormatHuman(checkResult) +
+        yellow('\n\nLint results:\n') +
+        lintFormatHuman(lintResult, false)
       );
 
       expect(createSpy).not.toHaveBeenCalled();

@@ -15,8 +15,7 @@ import {
   fetchProfileInfo,
   fetchProviderInfo,
   fetchProviders,
-  getStoreUrl,
-  // getStoreUrl,
+  getServicesUrl,
 } from '../common/http';
 import { mockResponse } from '../test/utils';
 import { DEFAULT_PROFILE_VERSION_STR } from './document';
@@ -28,7 +27,7 @@ describe('HTTP functions', () => {
     jest.resetAllMocks();
   });
 
-  describe('when getting store url', () => {
+  describe('when getting services url', () => {
     const originalValue = process.env.SUPERFACE_API_URL;
 
     afterAll(() => {
@@ -38,16 +37,16 @@ describe('HTTP functions', () => {
     });
     it('returns url from env with backslash', async () => {
       process.env.SUPERFACE_API_URL = 'https://test/url.ai/';
-      expect(getStoreUrl()).toEqual('https://test/url.ai');
+      expect(getServicesUrl()).toEqual('https://test/url.ai');
     });
     it('returns url from env without backslash', async () => {
       process.env.SUPERFACE_API_URL = 'https://test/url.ai';
-      expect(getStoreUrl()).toEqual('https://test/url.ai');
+      expect(getServicesUrl()).toEqual('https://test/url.ai');
     });
 
     it('returns default url', async () => {
       delete process.env.SUPERFACE_API_URL;
-      expect(getStoreUrl()).toEqual('https://superface.ai');
+      expect(getServicesUrl()).toEqual('https://superface.ai');
     });
   });
   describe('when fetching providers', () => {
