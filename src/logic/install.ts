@@ -1,4 +1,4 @@
-import { ProfileDocumentNode } from '@superfaceai/ast';
+import { EXTENSIONS, ProfileDocumentNode } from '@superfaceai/ast';
 import { SuperJson } from '@superfaceai/one-sdk';
 import createDebug from 'debug';
 import {
@@ -10,7 +10,6 @@ import {
 
 import {
   composeVersion,
-  EXTENSIONS,
   META_FILE,
   parseProfileDocument,
   SUPER_PATH,

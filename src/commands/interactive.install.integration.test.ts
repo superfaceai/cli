@@ -1,8 +1,8 @@
+import { EXTENSIONS } from '@superfaceai/ast';
 import { OnFail, SuperJson } from '@superfaceai/one-sdk';
 import { getLocal } from 'mockttp';
 import { join as joinPath } from 'path';
 
-import { EXTENSIONS } from '../common';
 import {
   execFile,
   exists,
@@ -107,51 +107,30 @@ describe('Interactive install CLI command', () => {
         mockServer.url,
         {
           inputs: [
-            //Select providers priority
-            //Sendgrid
+            //Select sendgrid provider
             { value: DOWN, timeout: 10000 },
-            //Confirm slection
             { value: ENTER, timeout: 500 },
-            //Mailgun
-            { value: DOWN, timeout: 6000 },
-            //Confirm slection
+            //exit
+            { value: UP, timeout: 10000 },
+            //Confirm selection
             { value: ENTER, timeout: 500 },
-            //Exit
-            { value: UP, timeout: 6000 },
-            //Confirm slection
-            { value: ENTER, timeout: 2000 },
-            //Select usecase
-            { value: ENTER, timeout: 2000 },
-            //Confirm provider failover
-            { value: ENTER, timeout: 2000 },
             //None
-            { value: ENTER, timeout: 2000 },
+            { value: ENTER, timeout: 6000 },
             //Sendgrid token
-            { value: 'sendgridToken', timeout: 8000 },
-            { value: ENTER, timeout: 500 },
-            //Mailgun username
-            { value: 'username', timeout: 4000 },
-            { value: ENTER, timeout: 500 },
-            //Mailgun password
-            { value: 'password', timeout: 4000 },
+            { value: 'sendgridToken', timeout: 3000 },
             { value: ENTER, timeout: 500 },
             //Confirm dotenv installation
-            { value: ENTER, timeout: 4000 },
-            //Incorrect SDK token
-            {
-              value:
-                'XXX_bb064dd57c302911602dd097bc29bedaea6a021c25a66992d475ed959aa526c7_37bce8b5',
-              timeout: 4000,
-            },
-            { value: ENTER, timeout: 1000 },
+            { value: 'y', timeout: 4000 },
+            { value: ENTER, timeout: 500 },
             //Correct SDK token
             {
               value:
                 'sfs_bb064dd57c302911602dd097bc29bedaea6a021c25a66992d475ed959aa526c7_37bce8b5',
               timeout: 4000,
             },
-            { value: ENTER, timeout: 1000 },
+            { value: ENTER, timeout: 500 },
           ],
+          // debug: true,
         }
       );
 
@@ -208,23 +187,9 @@ describe('Interactive install CLI command', () => {
         profiles: {
           [`${profile.scope}/${profile.name}`]: {
             version: profile.version,
-            priority: ['sendgrid', 'mailgun'],
-            defaults: {
-              SendEmail: {
-                providerFailover: true,
-              },
-            },
+            priority: ['sendgrid'],
             providers: {
               sendgrid: {
-                defaults: {
-                  SendEmail: {
-                    retryPolicy: {
-                      kind: OnFail.NONE,
-                    },
-                  },
-                },
-              },
-              mailgun: {
                 defaults: {
                   SendEmail: {
                     retryPolicy: {
@@ -245,22 +210,11 @@ describe('Interactive install CLI command', () => {
               },
             ],
           },
-          mailgun: {
-            security: [
-              {
-                id: 'basic',
-                username: '$MAILGUN_USERNAME',
-                password: '$MAILGUN_PASSWORD',
-              },
-            ],
-          },
         },
       });
       //Check .env
       const env = (await readFile(joinPath(tempDir, '.env'))).toString();
       expect(env).toMatch('SENDGRID_TOKEN=sendgridToken\n');
-      expect(env).toMatch('MAILGUN_USERNAME=username\n');
-      expect(env).toMatch('MAILGUN_PASSWORD=password\n');
       expect(env).toMatch(
         'SUPERFACE_SDK_TOKEN=sfs_bb064dd57c302911602dd097bc29bedaea6a021c25a66992d475ed959aa526c7_37bce8b5\n'
       );
@@ -272,7 +226,7 @@ describe('Interactive install CLI command', () => {
       expect(
         (parsed as { dependencies: Record<string, string> }).dependencies
       ).not.toBeUndefined();
-    }, 70000);
+    }, 60000);
 
     it('installs the profile, overrides existing super.json and updates .env', async () => {
       //Existing env

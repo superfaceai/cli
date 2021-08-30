@@ -1,8 +1,9 @@
+import { EXTENSIONS } from '@superfaceai/ast';
 import { SuperJson } from '@superfaceai/one-sdk';
 import { DocumentVersion } from '@superfaceai/parser';
 import { dirname, join as joinPath, relative as relativePath } from 'path';
 
-import { composeVersion, EXTENSIONS, META_FILE } from '../common/document';
+import { composeVersion, META_FILE } from '../common/document';
 import { userError } from '../common/error';
 import { formatShellLog, LogCallback } from '../common/log';
 import { OutputStream } from '../common/output-stream';

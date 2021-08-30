@@ -97,7 +97,7 @@ jobs:
 
       # Install and run license checker
       - name: Install dependencies
-        run:  yarn install
+        run: yarn install
       - name: Install License checker
         run: |
           yarn global add license-checker

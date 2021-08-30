@@ -76,9 +76,7 @@ describe('Check CLI command', () => {
         .mockResolvedValue(err(new SDKExecutionError('test error', [], [])));
       await expect(
         Check.run(['--profileId', profileId, '--providerName', provider])
-      ).rejects.toEqual(
-        new CLIError('Unable to load super.json: test error')
-      );
+      ).rejects.toEqual(new CLIError('Unable to load super.json: test error'));
     });
 
     it('throws error on invalid scan flag', async () => {
