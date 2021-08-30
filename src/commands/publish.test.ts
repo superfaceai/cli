@@ -7,11 +7,20 @@ import { mocked } from 'ts-jest/utils';
 
 import { DEFAULT_PROFILE_VERSION_STR } from '../common';
 import { ProfileId } from '../common/profile';
+import {
+  reconfigureProfileProvider,
+  reconfigureProvider,
+} from '../logic/configure';
 import { detectSuperJson } from '../logic/install';
 import { publish } from '../logic/publish';
-import Configure from './configure';
 import Install from './install';
 import Publish from './publish';
+
+//Mock configure logic
+jest.mock('../logic/configure', () => ({
+  reconfigureProvider: jest.fn(),
+  reconfigureProfileProvider: jest.fn(),
+}));
 
 //Mock publish logic
 jest.mock('../logic/publish', () => ({
@@ -623,9 +632,7 @@ describe('Publish CLI command', () => {
     });
 
     it('calls publish correctly when publishing map', async () => {
-      const configureSpy = jest
-        .spyOn(Configure, 'run')
-        .mockResolvedValue(undefined);
+      mocked(reconfigureProfileProvider).mockResolvedValue(undefined);
       const promptSpy = jest
         .spyOn(inquirer, 'prompt')
         .mockResolvedValueOnce({ upload: true })
@@ -681,18 +688,16 @@ describe('Publish CLI command', () => {
           quiet: false,
         }
       );
-      expect(configureSpy).toHaveBeenCalledWith([
+      expect(reconfigureProfileProvider).toHaveBeenCalledWith(
+        mockSuperJson,
+        ProfileId.fromId(profileId),
         provider,
-        '-p',
-        profileId,
-        '-f',
-      ]);
+        { kind: 'remote' }
+      );
     });
 
     it('calls publish correctly when publishing provider', async () => {
-      const configureSpy = jest
-        .spyOn(Configure, 'run')
-        .mockResolvedValue(undefined);
+      mocked(reconfigureProvider).mockResolvedValue(undefined);
       const promptSpy = jest
         .spyOn(inquirer, 'prompt')
         .mockResolvedValueOnce({ upload: true })
@@ -749,12 +754,11 @@ describe('Publish CLI command', () => {
         }
       );
       expect(detectSuperJson).toHaveBeenCalledWith(process.cwd(), 3);
-      expect(configureSpy).toHaveBeenCalledWith([
+      expect(reconfigureProvider).toHaveBeenCalledWith(
+        mockSuperJson,
         provider,
-        '-p',
-        profileId,
-        '-f',
-      ]);
+        { kind: 'remote' }
+      );
     });
 
     it('calls publish correctly when publishing map with force flag', async () => {
@@ -809,9 +813,7 @@ describe('Publish CLI command', () => {
     });
 
     it('calls publish correctly when publishing map with locally linked provider', async () => {
-      const configureSpy = jest
-        .spyOn(Configure, 'run')
-        .mockResolvedValue(undefined);
+      mocked(reconfigureProfileProvider).mockResolvedValue(undefined);
       const promptSpy = jest
         .spyOn(inquirer, 'prompt')
         .mockResolvedValueOnce({ upload: true })
@@ -865,20 +867,16 @@ describe('Publish CLI command', () => {
           quiet: false,
         }
       );
-      expect(configureSpy).toHaveBeenCalledWith([
+      expect(reconfigureProfileProvider).toHaveBeenCalledWith(
+        mockSuperJson,
+        ProfileId.fromId(profileId),
         provider,
-        '-p',
-        profileId,
-        '--localProvider',
-        mockSuperJson.resolvePath(mockPath),
-        '-f',
-      ]);
+        { kind: 'remote' }
+      );
     });
 
     it('calls publish correctly when publishing provider with --dry-run flag', async () => {
-      const configureSpy = jest
-        .spyOn(Configure, 'run')
-        .mockResolvedValue(undefined);
+      mocked(reconfigureProvider).mockResolvedValue(undefined);
       const promptSpy = jest
         .spyOn(inquirer, 'prompt')
         .mockResolvedValueOnce({ upload: true })
@@ -933,18 +931,15 @@ describe('Publish CLI command', () => {
         }
       );
 
-      expect(configureSpy).toHaveBeenCalledWith([
+      expect(reconfigureProvider).toHaveBeenCalledWith(
+        mockSuperJson,
         provider,
-        '-p',
-        profileId,
-        '-f',
-      ]);
+        { kind: 'remote' }
+      );
     });
 
     it('calls publish correctly when publishing provider with locally linked map', async () => {
-      const configureSpy = jest
-        .spyOn(Configure, 'run')
-        .mockResolvedValue(undefined);
+      mocked(reconfigureProvider).mockResolvedValue(undefined);
       const mockPath = '../path/to/map';
       const promptSpy = jest
         .spyOn(inquirer, 'prompt')
@@ -1001,14 +996,11 @@ describe('Publish CLI command', () => {
         }
       );
 
-      expect(configureSpy).toHaveBeenCalledWith([
+      expect(reconfigureProvider).toHaveBeenCalledWith(
+        mockSuperJson,
         provider,
-        '-p',
-        profileId,
-        '--localMap',
-        mockSuperJson.resolvePath(mockPath),
-        '-f',
-      ]);
+        { kind: 'remote' }
+      );
     });
 
     it('calls publish correctly when publishing profile with --quiet flag', async () => {

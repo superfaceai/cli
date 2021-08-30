@@ -11,9 +11,12 @@ import { Command } from '../common/command.abstract';
 import { userError } from '../common/error';
 import { getServicesUrl } from '../common/http';
 import { ProfileId } from '../common/profile';
+import {
+  reconfigureProfileProvider,
+  reconfigureProvider,
+} from '../logic/configure';
 import { detectSuperJson } from '../logic/install';
 import { publish } from '../logic/publish';
-import Configure from './configure';
 import Install from './install';
 
 export default class Publish extends Command {
@@ -256,42 +259,19 @@ export default class Publish extends Command {
         await Install.run([flags.profileId, '-f']);
       }
       if (documentType === 'map') {
-        if (providerSettings.file) {
-          await Configure.run([
-            flags.providerName,
-            '-p',
-            flags.profileId,
-            '--localProvider',
-            superJson.resolvePath(providerSettings.file),
-            '-f',
-          ]);
-        } else {
-          await Configure.run([
-            flags.providerName,
-            '-p',
-            flags.profileId,
-            '-f',
-          ]);
-        }
+        await reconfigureProfileProvider(
+          superJson,
+          ProfileId.fromId(flags.profileId),
+          flags.providerName,
+          {
+            kind: 'remote',
+          }
+        );
       }
       if (documentType === 'provider') {
-        if ('file' in profileProviderSettings) {
-          await Configure.run([
-            flags.providerName,
-            '-p',
-            flags.profileId,
-            '--localMap',
-            superJson.resolvePath(profileProviderSettings.file),
-            '-f',
-          ]);
-        } else {
-          await Configure.run([
-            flags.providerName,
-            '-p',
-            flags.profileId,
-            '-f',
-          ]);
-        }
+        await reconfigureProvider(superJson, flags.providerName, {
+          kind: 'remote',
+        });
       }
     }
   }

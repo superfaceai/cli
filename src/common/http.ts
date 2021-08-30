@@ -43,7 +43,7 @@ export enum ContentType {
   MAP_AST = 'application/vnd.superface.map+json',
 }
 export class SuperfaceClient {
-  private static serviceClient: ServiceClient;
+  private static serviceClient: ServiceClient | undefined;
 
   public static getClient(): ServiceClient {
     if (!SuperfaceClient.serviceClient) {
