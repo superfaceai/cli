@@ -4,6 +4,7 @@ import { yellow } from 'chalk';
 import { userError } from '../common/error';
 import { fetchProviderInfo, SuperfaceClient } from '../common/http';
 import { LogCallback } from '../common/log';
+import { loadNetrc } from '../common/netrc';
 import { ProfileId } from '../common/profile';
 import {
   formatHuman as checkFormatHuman,
@@ -123,7 +124,11 @@ export async function publish(
     }
   }
 
-  //TODO: check if user is logged in
+  //check if user is logged in
+  const netRc = loadNetrc()
+  if (!netRc.refreshToken && !process.env.SUPERFACE_REFRESH_TOKEN) {
+    throw userError(`You have to be logged in to publish ${publishing}. Please run: "sf login"`, 1)
+  }
   const client = SuperfaceClient.getClient();
 
   if (publishing === 'provider') {
