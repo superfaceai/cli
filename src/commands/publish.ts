@@ -17,7 +17,7 @@ import Configure from './configure';
 import Install from './install';
 
 export default class Publish extends Command {
-  static strict = false;
+  static strict = true;
 
   static description =
     'Uploads map/profile/provider to Store. Published file must be locally linked in super.json. This command runs Check and Lint internaly to ensure quality';
