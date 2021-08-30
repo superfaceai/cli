@@ -346,10 +346,9 @@ describe('Publish CLI command', () => {
         profiles: {
           [profileId.id]: {
             file: `../../../../${sourceFixture.profile}`,
+            priority: [provider],
             providers: {
               [provider]: {
-                //FIX: this should be removed
-                file: `../../../../${sourceFixture.map}`,
               },
             },
           },
@@ -450,11 +449,10 @@ describe('Publish CLI command', () => {
       expect(superJson.document).toEqual({
         profiles: {
           [profileId.id]: {
+            priority: [provider],
             version: profileVersion,
             providers: {
               [provider]: {
-                //FIX: this should be removed
-                file: `../../../../${sourceFixture.map}`,
               },
             },
           },
@@ -565,8 +563,6 @@ describe('Publish CLI command', () => {
         },
         providers: {
           [provider]: {
-            //FIX: this should be removed
-            file: `../../../../${sourceFixture.provider}`,
             security: [
               {
                 apikey: '$SWAPI_API_KEY',
@@ -596,6 +592,7 @@ describe('Publish CLI command', () => {
         profiles: {
           [profileId.id]: {
             version: profileVersion,
+            priority: [provider],
             providers: {
               [provider]: {},
             },
@@ -659,6 +656,7 @@ describe('Publish CLI command', () => {
         profiles: {
           [profileId.id]: {
             version: profileVersion,
+            priority: [provider],
             providers: {
               [provider]: {},
             },
@@ -666,8 +664,6 @@ describe('Publish CLI command', () => {
         },
         providers: {
           [provider]: {
-            //FIX: this should be removed
-            file: `../../../../${sourceFixture.provider}`,
             security: [
               {
                 apikey: '$SWAPI_API_KEY',

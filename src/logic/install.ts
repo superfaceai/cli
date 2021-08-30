@@ -193,11 +193,11 @@ export async function resolveInstallationRequests(
   for (const entry of phase3) {
     installDebug('Install phase 4:', entry);
     if (entry.kind === 'local') {
-      superJson.addProfile(entry.profileId.id, {
+      superJson.mergeProfile(entry.profileId.id, {
         file: superJson.relativePath(entry.path),
       });
     } else {
-      superJson.addProfile(entry.profileId.id, {
+      superJson.mergeProfile(entry.profileId.id, {
         version: entry.info.profile_version,
       });
     }
@@ -558,7 +558,7 @@ export async function installProfiles(parameters: {
   const superJson = loadedResult.match(
     v => v,
     err => {
-      parameters.options?.warnCb?.(err);
+      parameters.options?.warnCb?.(err.formatLong());
 
       return new SuperJson({});
     }

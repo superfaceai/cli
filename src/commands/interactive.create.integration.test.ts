@@ -224,13 +224,14 @@ describe('Interactive create CLI command', () => {
       const superJson = (
         await SuperJson.load(joinPath(tempDir, 'superface', 'super.json'))
       ).unwrap();
-      expect(superJson.document).toEqual({
+      expect(superJson.normalized).toEqual({
         profiles: {
           [documentName]: {
             defaults: {},
             priority: [provider],
             providers: {
               [provider]: {
+                defaults: {},
                 file: `../${documentName}.${provider}.suma`,
               },
             },
@@ -285,13 +286,14 @@ describe('Interactive create CLI command', () => {
         await SuperJson.load(joinPath(tempDir, 'superface', 'super.json'))
       ).unwrap();
 
-      expect(superJson.document).toEqual({
+      expect(superJson.normalized).toEqual({
         profiles: {
           [documentName]: {
             defaults: {},
             priority: [provider],
             providers: {
               [provider]: {
+                defaults: {},
                 file: `../${documentName}.${provider}.suma`,
               },
             },
@@ -354,13 +356,14 @@ describe('Interactive create CLI command', () => {
         await SuperJson.load(joinPath(tempDir, 'superface', 'super.json'))
       ).unwrap();
 
-      expect(superJson.document).toEqual({
+      expect(superJson.normalized).toEqual({
         profiles: {
           [documentName]: {
             defaults: {},
             priority: [provider],
             providers: {
               [provider]: {
+                defaults: {},
                 file: `../${documentName}.${provider}.suma`,
               },
             },
@@ -423,7 +426,7 @@ describe('Interactive create CLI command', () => {
         await SuperJson.load(joinPath(tempDir, 'superface', 'super.json'))
       ).unwrap();
 
-      expect(superJson.document).toEqual({
+      expect(superJson.normalized).toEqual({
         profiles: {
           [documentName]: {
             file: `../${documentName}.supr`,
@@ -431,6 +434,7 @@ describe('Interactive create CLI command', () => {
             priority: [provider],
             providers: {
               [provider]: {
+                defaults: {},
                 file: `../${documentName}.${provider}.suma`,
               },
             },
@@ -496,7 +500,7 @@ describe('Interactive create CLI command', () => {
         await SuperJson.load(joinPath(tempDir, 'superface', 'super.json'))
       ).unwrap();
 
-      expect(superJson.document).toEqual({
+      expect(superJson.normalized).toEqual({
         profiles: {
           [documentName]: {
             file: `../${documentName}.supr`,
@@ -504,6 +508,7 @@ describe('Interactive create CLI command', () => {
             priority: [provider],
             providers: {
               [provider]: {
+                defaults: {},
                 file: `../${documentName}.${provider}.suma`,
               },
             },
@@ -568,7 +573,7 @@ describe('Interactive create CLI command', () => {
         await SuperJson.load(joinPath(tempDir, 'superface', 'super.json'))
       ).unwrap();
 
-      expect(superJson.document).toEqual({
+      expect(superJson.normalized).toEqual({
         profiles: {
           [documentName]: {
             file: `../${documentName}.supr`,
@@ -576,6 +581,7 @@ describe('Interactive create CLI command', () => {
             priority: [provider],
             providers: {
               [provider]: {
+                defaults: {},
                 file: `../${documentName}.${provider}.suma`,
               },
             },

@@ -243,7 +243,7 @@ export async function interactiveInstall(
       )
     ) {
       //Add provider failover
-      superJson.addProfileDefaults(profileId.id, {
+      superJson.mergeProfileDefaults(profileId.id, {
         [selectedUseCase]: { providerFailover: true },
       });
       await OutputStream.writeOnce(superJson.path, superJson.stringified, {

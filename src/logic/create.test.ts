@@ -1,5 +1,6 @@
 import { CLIError } from '@oclif/errors';
 import { err, ok, SuperJson } from '@superfaceai/one-sdk';
+import { SDKExecutionError } from '@superfaceai/one-sdk/dist/internal/errors';
 
 import { OutputStream } from '../common/output-stream';
 import { empty as emptyMap } from '../templates/map';
@@ -362,7 +363,7 @@ describe('Create logic', () => {
     it('creates profile correctly - uses new super json instance', async () => {
       const loadSpy = jest
         .spyOn(SuperJson, 'load')
-        .mockResolvedValue(err('mock err'));
+        .mockResolvedValue(err(new SDKExecutionError('mock err', [], [])));
       const writeIfAbsentSpy = jest
         .spyOn(OutputStream, 'writeIfAbsent')
         .mockResolvedValue(true);
