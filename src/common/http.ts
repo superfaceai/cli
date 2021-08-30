@@ -1,4 +1,9 @@
-import { MapDocumentNode, ProfileDocumentNode } from '@superfaceai/ast';
+import {
+  assertMapDocumentNode,
+  assertProfileDocumentNode,
+  MapDocumentNode,
+  ProfileDocumentNode,
+} from '@superfaceai/ast';
 import {
   parseProviderJson,
   ProviderJson,
@@ -158,7 +163,7 @@ export async function fetchProfileAST(
 
   await checkSuperfaceResponse(response);
 
-  return (await response.json()) as ProfileDocumentNode;
+  return assertProfileDocumentNode(await response.json());
 }
 
 export async function fetchProviderInfo(
@@ -210,5 +215,5 @@ export async function fetchMapAST(
 
   await checkSuperfaceResponse(response);
 
-  return (await response.json()) as MapDocumentNode;
+  return assertMapDocumentNode(await response.json());
 }

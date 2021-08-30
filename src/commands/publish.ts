@@ -29,7 +29,7 @@ export default class Publish extends Command {
 
   static args = [
     {
-      name: 'path',
+      name: 'documentType',
       description: 'Document type of publeshed file',
       options: ['map', 'profile', 'provider'],
       required: true,

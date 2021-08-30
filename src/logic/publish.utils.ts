@@ -94,9 +94,7 @@ export async function loadProfile(
     version,
   });
 
-  const profileId = `${profile.scope ? `${profile.scope}/` : ''}${
-    profile.name
-  }${version ? `@${version}` : ''}`;
+  const profileId = `${profile.id}${version ? `@${version}` : ''}`;
 
   if (source) {
     ast = await Parser.parseProfile(source, profileId, {
@@ -128,9 +126,7 @@ export async function loadMap(
   }
 ): Promise<{ ast: MapDocumentNode; source?: string }> {
   let ast: MapDocumentNode;
-  const profileId = `${profile.scope ? `${profile.scope}/` : ''}${
-    profile.name
-  }${version ? `@${version}` : ''}`;
+  const profileId = `${profile.id}${version ? `@${version}` : ''}`;
 
   const source = await findLocalMapSource(superJson, profile, provider);
   if (source) {

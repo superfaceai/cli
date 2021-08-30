@@ -62,7 +62,7 @@ npx @superfaceai/cli install [profileId eg. communication/send-email] -i
 * [`superface install [PROFILEID]`](#superface-install-profileid)
 * [`superface lint [FILE]`](#superface-lint-file)
 * [`superface login`](#superface-login)
-* [`superface publish PATH`](#superface-publish-path)
+* [`superface publish DOCUMENTTYPE`](#superface-publish-documenttype)
 
 ## `superface check`
 
@@ -303,16 +303,16 @@ EXAMPLES
 
 _See code: [src/commands/login.ts](https://github.com/superfaceai/cli/tree/main/src/commands/login.ts)_
 
-## `superface publish PATH`
+## `superface publish DOCUMENTTYPE`
 
 Uploads map/profile/provider to Store. Published file must be locally linked in super.json. This command runs Check and Lint internaly to ensure quality
 
 ```
 USAGE
-  $ superface publish PATH
+  $ superface publish DOCUMENTTYPE
 
 ARGUMENTS
-  PATH  (map|profile|provider) Document type of publeshed file
+  DOCUMENTTYPE  (map|profile|provider) Document type of publeshed file
 
 OPTIONS
   -f, --force                  Publishes without asking for any confirmation.
