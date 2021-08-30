@@ -1,6 +1,6 @@
 import {
-  isMapDocumentNode,
-  isProfileDocumentNode,
+  assertMapDocumentNode,
+  assertProfileDocumentNode,
   MapDocumentNode,
   ProfileDocumentNode,
 } from '@superfaceai/ast';
@@ -11,8 +11,8 @@ import {
   SuperJson,
 } from '@superfaceai/one-sdk';
 import { getProfileOutput, validateMap } from '@superfaceai/parser';
-
 import { userError } from '../common/error';
+
 import { fetchMapAST, fetchProfileAST } from '../common/http';
 import { LogCallback } from '../common/log';
 import { ProfileId } from '../common/profile';
@@ -27,13 +27,17 @@ export function prePublishCheck(
   providerJson: ProviderJson,
   options?: { logCb?: LogCallback; warnCb?: LogCallback }
 ): CheckResult[] {
-  //TODO: use assert
-  if (!isProfileDocumentNode(profileAst)) {
-    throw userError(`Profile file has unknown structure`, 1);
+  try {
+    options?.logCb?.('Asserting profile document')
+    assertProfileDocumentNode(profileAst)
+  } catch (error) {
+    throw userError(error, 1)
   }
-  //TODO: use assert
-  if (!isMapDocumentNode(mapAst)) {
-    throw userError(`Map file has unknown structure`, 1);
+  try {
+    options?.logCb?.('Asserting map document')
+    assertMapDocumentNode(mapAst)
+  } catch (error) {
+    throw userError(error, 1)
   }
 
   //Check map and profile

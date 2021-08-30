@@ -141,7 +141,7 @@ describe('Publish logic utils', () => {
           validMapDocument,
           validProviderSource
         )
-      ).toThrow(new CLIError(`Profile file has unknown structure`));
+      ).toThrow(new CLIError(`validation failed at $: expected 'kind' in object, found: {}`));
     });
 
     it('throws error on invalid map document structure', async () => {
@@ -151,7 +151,7 @@ describe('Publish logic utils', () => {
           {} as MapDocumentNode,
           validProviderSource
         )
-      ).toThrow(new CLIError(`Map file has unknown structure`));
+      ).toThrow(new CLIError(`validation failed at $: expected 'kind' in object, found: {}`));
     });
 
     it('returns empty array on valid documents', async () => {
