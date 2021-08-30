@@ -43,7 +43,7 @@ export default class Publish extends Command {
         'Name of provider. This argument is used to publish map or provider',
       required: true,
     }),
-    'dry-run': flags.boolean({
+    dryRun: flags.boolean({
       default: false,
       description: 'Runs without sending actual request.',
     }),
@@ -68,7 +68,7 @@ export default class Publish extends Command {
     '$ superface publish map --profileId starwars/characeter-information --providerName swapi -s 4',
     '$ superface publish profile --profileId starwars/characeter-information --providerName swapi -f',
     '$ superface publish provider --profileId starwars/characeter-information --providerName swapi -q',
-    '$ superface publish profile --profileId starwars/characeter-information --providerName swapi --dry-run',
+    '$ superface publish profile --profileId starwars/characeter-information --providerName swapi --dryRun',
   ];
 
   private logCallback? = (message: string) => this.log(grey(message));
@@ -223,7 +223,7 @@ export default class Publish extends Command {
       version,
       {
         logCb: this.logCallback,
-        dryRun: flags['dry-run'],
+        dryRun: flags.dryRun,
         json: flags.json,
         quiet: flags.quiet,
       }

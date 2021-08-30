@@ -910,7 +910,7 @@ describe('Publish CLI command', () => {
           profileId,
           '--providerName',
           provider,
-          '--dry-run',
+          '--dryRun',
         ])
       ).resolves.toBeUndefined();
 

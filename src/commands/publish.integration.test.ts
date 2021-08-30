@@ -1,5 +1,6 @@
 import { SuperJson } from '@superfaceai/one-sdk';
 import { getLocal } from 'mockttp';
+import { Netrc } from 'netrc-parser';
 import { join as joinPath } from 'path';
 
 import { mkdir, rimraf } from '../common/io';
@@ -25,6 +26,10 @@ describe('Publish CLI command', () => {
   const provider = 'swapi';
   const profileId = ProfileId.fromId('starwars/character-information');
   const profileVersion = '1.0.2';
+
+  const netRc = new Netrc();
+  let originalNetrcRecord: { baseUrl?: string; password?: string };
+  const mockRefreshToken = 'RT';
 
   const sourceFixture = {
     profile: joinPath(
@@ -78,6 +83,14 @@ describe('Publish CLI command', () => {
       provider
     );
     await mockResponsesForPublish(mockServer);
+
+    //Load existing netrc and prepare mock
+    await netRc.load();
+    if (netRc.machines[mockServer.url]) {
+      originalNetrcRecord = netRc.machines[mockServer.url];
+    }
+    netRc.machines[mockServer.url] = { password: mockRefreshToken };
+    await netRc.save();
   });
   beforeEach(async () => {
     tempDir = await setUpTempDir(TEMP_PATH);
@@ -88,6 +101,14 @@ describe('Publish CLI command', () => {
   });
 
   afterAll(async () => {
+    //If there was a value keep it
+    if (originalNetrcRecord) {
+      netRc.machines[mockServer.url] = originalNetrcRecord;
+    } else {
+      delete netRc.machines[mockServer.url];
+    }
+    await netRc.save();
+
     await mockServer.stop();
   });
   describe('when publishing profile', () => {
