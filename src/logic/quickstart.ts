@@ -7,6 +7,7 @@ import {
   isDigestSecurityValues,
   META_FILE,
   OnFail,
+  Parser,
   RetryPolicy,
   SecurityValues,
   SUPERFACE_DIR,
@@ -23,7 +24,6 @@ import { exists, readFile } from '../common/io';
 import { LogCallback } from '../common/log';
 import { OutputStream } from '../common/output-stream';
 import { PackageManager } from '../common/package-manager';
-import { Parser } from '../common/parser';
 import { NORMALIZED_CWD_PATH } from '../common/path';
 import { ProfileId } from '../common/profile';
 import { envVariable } from '../templates/env';
@@ -152,9 +152,8 @@ export async function interactiveInstall(
       name: 'provider',
       message:
         priority === 1
-          ? `Select providers you would like to use. You can end selection by choosing "<<done>>".\nSelect ${
-              priorityToString.get(priority) || priority
-            } provider:`
+          ? `Select providers you would like to use. You can end selection by choosing "<<done>>".\nSelect ${priorityToString.get(priority) || priority
+          } provider:`
           : `Select ${priorityToString.get(priority) || priority} provider:`,
       type: 'list',
       choices,
@@ -414,8 +413,7 @@ export async function interactiveInstall(
 
   //Lead to docs page
   options?.successCb?.(
-    `\nNow you can follow our documentation to use installed capability: "${
-      new URL(profileId.id, getServicesUrl()).href
+    `\nNow you can follow our documentation to use installed capability: "${new URL(profileId.id, getServicesUrl()).href
     }"`
   );
 }

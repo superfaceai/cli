@@ -1,12 +1,11 @@
 import { ProfileDocumentNode } from '@superfaceai/ast';
-import { ok, OnFail, SuperJson } from '@superfaceai/one-sdk';
+import { ok, OnFail, Parser, SuperJson } from '@superfaceai/one-sdk';
 import inquirer from 'inquirer';
 import { mocked } from 'ts-jest/utils';
 
 import { fetchProviders, getServicesUrl } from '../common/http';
 import { exists, readFile } from '../common/io';
 import { OutputStream } from '../common/output-stream';
-import { Parser } from '../common/parser';
 import { findLocalProfileSource } from './check.utils';
 import { initSuperface } from './init';
 import { detectSuperJson } from './install';

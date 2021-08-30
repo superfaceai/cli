@@ -1,11 +1,10 @@
 import { CLIError } from '@oclif/errors';
 import { MapDocumentNode, ProfileDocumentNode } from '@superfaceai/ast';
-import { err, ok, SuperJson } from '@superfaceai/one-sdk';
+import { err, ok, Parser, SuperJson } from '@superfaceai/one-sdk';
 import { SDKExecutionError } from '@superfaceai/one-sdk/dist/internal/errors';
 import { mocked } from 'ts-jest/utils';
 
 import { exists, readFile } from '../common/io';
-import { Parser } from '../common/parser';
 import { detectSuperJson } from '../logic/install';
 import Compile from './compile';
 
@@ -24,8 +23,8 @@ jest.mock('../common/io', () => ({
 //Mock output stream
 jest.mock('../common/output-stream');
 
-jest.mock('@superfaceai/parser', () => ({
-  ...jest.requireActual<Record<string, unknown>>('@superfaceai/parser'),
+jest.mock('@superfaceai/one-sdk/dist/internal/parser', () => ({
+  ...jest.requireActual<Record<string, unknown>>('@superfaceai/one-sdk/dist/internal/parser'),
   parseMap: jest.fn(),
   parseProfile: jest.fn(),
 }));
@@ -217,7 +216,6 @@ describe('Compile CLI command', () => {
           scope: 'starwars',
           profileName: 'character-information',
         },
-        true
       );
     });
 
@@ -285,7 +283,6 @@ describe('Compile CLI command', () => {
           scope: 'starwars',
           profileName: 'character-information',
         },
-        true
       );
     });
 
@@ -335,7 +332,6 @@ describe('Compile CLI command', () => {
           scope: 'starwars',
           profileName: 'character-information',
         },
-        true
       );
     });
 
@@ -388,7 +384,6 @@ describe('Compile CLI command', () => {
           scope: 'starwars',
           profileName: 'character-information',
         },
-        true
       );
     });
 
@@ -445,7 +440,6 @@ describe('Compile CLI command', () => {
           scope: 'starwars',
           profileName: 'character-information',
         },
-        true
       );
     });
 
@@ -501,7 +495,6 @@ describe('Compile CLI command', () => {
           scope: 'starwars',
           profileName: 'character-information',
         },
-        true
       );
 
       expect(parseMapSpy).toHaveBeenCalledTimes(1);
@@ -513,7 +506,6 @@ describe('Compile CLI command', () => {
           providerName: mockProvider,
           profileName: 'character-information',
         },
-        true
       );
     });
   });

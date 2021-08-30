@@ -884,15 +884,16 @@
   dependencies:
     typescript-is "^0.18.3"
 
-"@superfaceai/one-sdk@^0.0.31":
-  version "0.0.31"
-  resolved "https://registry.yarnpkg.com/@superfaceai/one-sdk/-/one-sdk-0.0.31.tgz#132cf5cc0b63030d91ef924a061dc7cc7ba692c5"
-  integrity sha512-Dzuep+RDIQOKKhOUhu0O6aYcWXszAbtakwROtpDIEP3vh9sgY6a8b8CAzXRHyUO9zu5P660xEPz04GKJNKlr2g==
+"@superfaceai/one-sdk@^v0.0.33-beta.0":
+  version "0.0.33-beta.0"
+  resolved "https://registry.yarnpkg.com/@superfaceai/one-sdk/-/one-sdk-0.0.33-beta.0.tgz#e5e966d135bfc9e4422441204ec2cd0c149da64a"
+  integrity sha512-Z0FuvmIz7OE3ka+l6Hf20q/FRKPvxnPu14L4KkmcypUp0y83IHoTLBnbA8qTbIJImnZpaU/VjhYDkO2LEYRXVw==
   dependencies:
-    "@superfaceai/ast" "0.0.23"
+    "@superfaceai/ast" "^0.0.28"
+    "@superfaceai/parser" "^0.0.19"
     abort-controller "^3.0.0"
     cross-fetch "^3.0.5"
-    debug "^4.3.1"
+    debug "^4.3.2"
     isomorphic-form-data "^2.0.0"
     vm2 "^3.9.2"
     zod "^2.0.0-beta.30"
@@ -906,6 +907,16 @@
     "@types/debug" "^4.1.5"
     debug "^4.3.1"
     typescript "^4"
+
+"@superfaceai/parser@^0.0.19":
+  version "0.0.19"
+  resolved "https://registry.yarnpkg.com/@superfaceai/parser/-/parser-0.0.19.tgz#d5c1be386a37d9fda4db2993a10936291abdc259"
+  integrity sha512-XkVe2V5FFfbItz7mZ0Dr/pymTNpcM7ZDuRa91gotIpWBUGBuXM7zWyDEkMPp7quUeKA2qZ3SA7UAmU7yF1XKEA==
+  dependencies:
+    "@superfaceai/ast" "0.0.23"
+    "@types/debug" "^4.1.5"
+    debug "^4.3.1"
+    typescript "~4.1"
 
 "@superfaceai/service-client@0.0.21":
   version "0.0.21"
@@ -1932,7 +1943,7 @@ debug@2.6.9, debug@^2.6.9:
   dependencies:
     ms "2.0.0"
 
-debug@4:
+debug@4, debug@^4.3.2:
   version "4.3.2"
   resolved "https://registry.yarnpkg.com/debug/-/debug-4.3.2.tgz#f0a49c18ac8779e31d4a0c6029dfb76873c7428b"
   integrity sha512-mOp8wKcvj7XxC78zLgw/ZA+6TSgkoE2C/ienthhRD298T7UNwAg9diBpLRxC0mOezLl4B0xV7M0cCO6P/O0Xhw==
@@ -5323,6 +5334,11 @@ typescript@^4.0.5:
   version "4.2.2"
   resolved "https://registry.yarnpkg.com/typescript/-/typescript-4.2.2.tgz#1450f020618f872db0ea17317d16d8da8ddb8c4c"
   integrity sha512-tbb+NVrLfnsJy3M59lsDgrzWIflR4d4TIUjz+heUnHZwdF7YsrMTKoRERiIvI2lvBG95dfpLxB21WZhys1bgaQ==
+
+typescript@~4.1:
+  version "4.1.6"
+  resolved "https://registry.yarnpkg.com/typescript/-/typescript-4.1.6.tgz#1becd85d77567c3c741172339e93ce2e69932138"
+  integrity sha512-pxnwLxeb/Z5SP80JDRzVjh58KsM6jZHRAOtTpS7sXLS4ogXNKC9ANxHHZqLLeVHZN35jCtI4JdmLLbLiC1kBow==
 
 ultron@~1.1.0:
   version "1.1.1"

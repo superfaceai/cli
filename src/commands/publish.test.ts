@@ -1,9 +1,9 @@
 import { CLIError } from '@oclif/errors';
 import { EXTENSIONS } from '@superfaceai/ast';
 import { err, ok, SuperJson } from '@superfaceai/one-sdk';
+import { SDKExecutionError } from '@superfaceai/one-sdk/dist/internal/errors';
 import inquirer from 'inquirer';
 import { mocked } from 'ts-jest/utils';
-import { SDKExecutionError } from '@superfaceai/one-sdk/dist/internal/errors';
 
 import { DEFAULT_PROFILE_VERSION_STR } from '../common';
 import { ProfileId } from '../common/profile';
@@ -139,7 +139,9 @@ describe('Publish CLI command', () => {
         .spyOn(inquirer, 'prompt')
         .mockResolvedValueOnce({ upload: true });
       mocked(detectSuperJson).mockResolvedValue('.');
-      jest.spyOn(SuperJson, 'load').mockResolvedValue(err(new SDKExecutionError('test', [], [])));
+      jest
+        .spyOn(SuperJson, 'load')
+        .mockResolvedValue(err(new SDKExecutionError('test', [], [])));
       await expect(
         Publish.run([
           'map',
@@ -148,9 +150,7 @@ describe('Publish CLI command', () => {
           '--providerName',
           provider,
         ])
-      ).rejects.toEqual(
-        new CLIError('❌ Unable to load super.json: test')
-      );
+      ).rejects.toEqual(new CLIError('❌ Unable to load super.json: test'));
       expect(promptSpy).toHaveBeenCalled();
     });
 

@@ -348,8 +348,7 @@ describe('Publish CLI command', () => {
             file: `../../../../${sourceFixture.profile}`,
             priority: [provider],
             providers: {
-              [provider]: {
-              },
+              [provider]: {},
             },
           },
         },
@@ -452,8 +451,7 @@ describe('Publish CLI command', () => {
             priority: [provider],
             version: profileVersion,
             providers: {
-              [provider]: {
-              },
+              [provider]: {},
             },
           },
         },

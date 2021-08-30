@@ -3,6 +3,7 @@ import { MapDocumentNode, ProfileDocumentNode } from '@superfaceai/ast';
 import {
   ApiKeyPlacement,
   HttpScheme,
+  Parser,
   ProviderJson,
   SecurityType,
   SuperJson,
@@ -15,7 +16,6 @@ import {
   fetchProfileAST,
   fetchProviderInfo,
 } from '../common/http';
-import { Parser } from '../common/parser';
 import {
   check,
   checkMapAndProfile,

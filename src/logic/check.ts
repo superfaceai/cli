@@ -8,6 +8,7 @@ import {
 } from '@superfaceai/ast';
 import {
   parseProviderJson,
+  Parser,
   ProviderJson,
   SuperJson,
 } from '@superfaceai/one-sdk';
@@ -20,7 +21,6 @@ import {
   fetchProviderInfo,
 } from '../common/http';
 import { LogCallback } from '../common/log';
-import { Parser } from '../common/parser';
 import {
   findLocalMapSource,
   findLocalProfileSource,
@@ -48,18 +48,15 @@ export async function check(
   let numberOfRemoteFilesUsed = 0;
 
   //Load profile AST
-  const profileId = `${profile.scope ? `${profile.scope}/` : ''}${
-    profile.name
-  }${profile.version ? `@${profile.version}` : ''}`;
+  const profileId = `${profile.scope ? `${profile.scope}/` : ''}${profile.name
+    }${profile.version ? `@${profile.version}` : ''}`;
   const profileSource = await findLocalProfileSource(superJson, profile);
   if (profileSource) {
     //Enforce parsing
-    profileAst = await Parser.parseProfile(
-      profileSource,
-      profileId,
-      { profileName: profile.name, scope: profile.scope },
-      true
-    );
+    profileAst = await Parser.parseProfile(profileSource, profileId, {
+      profileName: profile.name,
+      scope: profile.scope,
+    });
     options?.logCb?.(`Profile: "${profileId}" found on local file system`);
   } else {
     //Load from store
@@ -75,16 +72,11 @@ export async function check(
   const mapSource = await findLocalMapSource(superJson, profile, provider);
   if (mapSource) {
     //Enforce parsing
-    mapAst = await Parser.parseMap(
-      mapSource,
-      `${profile.name}.${provider}`,
-      {
-        profileName: profile.name,
-        scope: profile.scope,
-        providerName: provider,
-      },
-      true
-    );
+    mapAst = await Parser.parseMap(mapSource, `${profile.name}.${provider}`, {
+      profileName: profile.name,
+      scope: profile.scope,
+      providerName: provider,
+    });
     options?.logCb?.(
       `Map for profile: "${profileId}" and provider: "${provider}" found on local filesystem`
     );
@@ -140,9 +132,8 @@ export async function check(
         if ('path' in issue && 'message' in issue) {
           result.push({
             kind: 'error',
-            message: `Provider check error: ${
-              (issue as { message: string }).message
-            } on path ${(issue as { path: string }).path}`,
+            message: `Provider check error: ${(issue as { message: string }).message
+              } on path ${(issue as { path: string }).path}`,
           });
         }
       }

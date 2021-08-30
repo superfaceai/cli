@@ -1,6 +1,6 @@
 import { flags as oclifFlags } from '@oclif/command';
 import { isValidIdentifier } from '@superfaceai/ast';
-import { SuperJson } from '@superfaceai/one-sdk';
+import { Parser, SuperJson } from '@superfaceai/one-sdk';
 import { parseDocumentId } from '@superfaceai/parser';
 import { bold, green, grey } from 'chalk';
 import { join as joinPath } from 'path';
@@ -9,7 +9,6 @@ import { Command } from '../common/command.abstract';
 import { META_FILE } from '../common/document';
 import { userError } from '../common/error';
 import { exists, readFile } from '../common/io';
-import { Parser } from '../common/parser';
 import { detectSuperJson } from '../logic/install';
 
 export default class Compile extends Command {
@@ -47,8 +46,8 @@ export default class Compile extends Command {
     '$ superface compile --profileId starwars/character-information --providerName swapi --map --profile',
   ];
 
-  private logCallback? = (message: string) => this.log(grey(message));
-  private successCallback? = (message: string) =>
+  private logCallback?= (message: string) => this.log(grey(message));
+  private successCallback?= (message: string) =>
     this.log(bold(green(message)));
 
   async run(): Promise<void> {
@@ -101,15 +100,10 @@ export default class Compile extends Command {
       }
 
       const source = await readFile(path, { encoding: 'utf-8' });
-      await Parser.parseProfile(
-        source,
-        path,
-        {
-          profileName: parsedProfileId.value.middle[0],
-          scope: parsedProfileId.value.scope,
-        },
-        true
-      );
+      await Parser.parseProfile(source, path, {
+        profileName: parsedProfileId.value.middle[0],
+        scope: parsedProfileId.value.scope,
+      });
 
       this.successCallback?.(
         `🆗 profile: "${flags.profileId}" compiled successfully.`
@@ -133,7 +127,7 @@ export default class Compile extends Command {
 
       const profileProviderSettings =
         superJson.normalized.profiles[flags.profileId].providers[
-          flags.providerName
+        flags.providerName
         ];
 
       if (!profileProviderSettings) {
@@ -157,16 +151,11 @@ export default class Compile extends Command {
 
       const source = await readFile(path, { encoding: 'utf-8' });
 
-      await Parser.parseMap(
-        source,
-        path,
-        {
-          profileName: parsedProfileId.value.middle[0],
-          scope: parsedProfileId.value.scope,
-          providerName: flags.providerName,
-        },
-        true
-      );
+      await Parser.parseMap(source, path, {
+        profileName: parsedProfileId.value.middle[0],
+        scope: parsedProfileId.value.scope,
+        providerName: flags.providerName,
+      });
 
       this.successCallback?.(
         `🆗 map for profile: "${flags.profileId}" and provider: "${flags.providerName}" compiled successfully.`
