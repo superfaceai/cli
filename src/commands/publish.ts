@@ -10,6 +10,8 @@ import { META_FILE } from '../common';
 import { Command } from '../common/command.abstract';
 import { userError } from '../common/error';
 import { getServicesUrl } from '../common/http';
+import { formatShellLog } from '../common/log';
+import { OutputStream } from '../common/output-stream';
 import { ProfileId } from '../common/profile';
 import {
   reconfigureProfileProvider,
@@ -257,6 +259,8 @@ export default class Publish extends Command {
     if (transition) {
       if (documentType === 'profile') {
         await Install.run([flags.profileId, '-f']);
+
+        return;
       }
       if (documentType === 'map') {
         await reconfigureProfileProvider(
@@ -273,6 +277,13 @@ export default class Publish extends Command {
           kind: 'remote',
         });
       }
+      await OutputStream.writeOnce(superJson.path, superJson.stringified, {
+        force: flags.force,
+      });
+
+      this.logCallback?.(
+        formatShellLog("echo '<updated super.json>' >", [superJson.path])
+      );
     }
   }
 }

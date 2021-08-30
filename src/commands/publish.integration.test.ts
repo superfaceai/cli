@@ -346,7 +346,6 @@ describe('Publish CLI command', () => {
         profiles: {
           [profileId.id]: {
             file: `../../../../${sourceFixture.profile}`,
-            priority: [provider],
             providers: {
               [provider]: {},
             },
@@ -355,25 +354,6 @@ describe('Publish CLI command', () => {
         providers: {
           [provider]: {
             file: `../../../../${sourceFixture.provider}`,
-            security: [
-              {
-                apikey: '$SWAPI_API_KEY',
-                id: 'api',
-              },
-              {
-                id: 'bearer',
-                token: '$SWAPI_TOKEN',
-              },
-              {
-                id: 'basic',
-                password: '$SWAPI_PASSWORD',
-                username: '$SWAPI_USERNAME',
-              },
-              {
-                digest: '$SWAPI_DIGEST',
-                id: 'digest',
-              },
-            ],
           },
         },
       });
@@ -384,6 +364,7 @@ describe('Publish CLI command', () => {
         profiles: {
           [profileId.id]: {
             version: profileVersion,
+            priority: [provider],
             providers: {
               [provider]: {
                 file: `../../../../${sourceFixture.map}`,
@@ -448,35 +429,15 @@ describe('Publish CLI command', () => {
       expect(superJson.document).toEqual({
         profiles: {
           [profileId.id]: {
-            priority: [provider],
             version: profileVersion,
+            priority: [provider],
             providers: {
               [provider]: {},
             },
           },
         },
         providers: {
-          [provider]: {
-            security: [
-              {
-                apikey: '$SWAPI_API_KEY',
-                id: 'api',
-              },
-              {
-                id: 'bearer',
-                token: '$SWAPI_TOKEN',
-              },
-              {
-                id: 'basic',
-                password: '$SWAPI_PASSWORD',
-                username: '$SWAPI_USERNAME',
-              },
-              {
-                digest: '$SWAPI_DIGEST',
-                id: 'digest',
-              },
-            ],
-          },
+          [provider]: {},
         },
       });
     }, 30000);
@@ -550,7 +511,6 @@ describe('Publish CLI command', () => {
       expect(superJson.document).toEqual({
         profiles: {
           [profileId.id]: {
-            priority: [provider],
             file: `../../../../${sourceFixture.profile}`,
             providers: {
               [provider]: {
@@ -560,27 +520,7 @@ describe('Publish CLI command', () => {
           },
         },
         providers: {
-          [provider]: {
-            security: [
-              {
-                apikey: '$SWAPI_API_KEY',
-                id: 'api',
-              },
-              {
-                id: 'bearer',
-                token: '$SWAPI_TOKEN',
-              },
-              {
-                id: 'basic',
-                password: '$SWAPI_PASSWORD',
-                username: '$SWAPI_USERNAME',
-              },
-              {
-                digest: '$SWAPI_DIGEST',
-                id: 'digest',
-              },
-            ],
-          },
+          [provider]: {},
         },
       });
     }, 30000);
@@ -661,27 +601,7 @@ describe('Publish CLI command', () => {
           },
         },
         providers: {
-          [provider]: {
-            security: [
-              {
-                apikey: '$SWAPI_API_KEY',
-                id: 'api',
-              },
-              {
-                id: 'bearer',
-                token: '$SWAPI_TOKEN',
-              },
-              {
-                id: 'basic',
-                password: '$SWAPI_PASSWORD',
-                username: '$SWAPI_USERNAME',
-              },
-              {
-                digest: '$SWAPI_DIGEST',
-                id: 'digest',
-              },
-            ],
-          },
+          [provider]: {},
         },
       });
     }, 30000);

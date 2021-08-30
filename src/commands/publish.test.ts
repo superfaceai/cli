@@ -6,6 +6,7 @@ import inquirer from 'inquirer';
 import { mocked } from 'ts-jest/utils';
 
 import { DEFAULT_PROFILE_VERSION_STR } from '../common';
+import { OutputStream } from '../common/output-stream';
 import { ProfileId } from '../common/profile';
 import {
   reconfigureProfileProvider,
@@ -598,6 +599,9 @@ describe('Publish CLI command', () => {
         .spyOn(SuperJson, 'load')
         .mockResolvedValue(ok(mockSuperJson));
       mocked(publish).mockResolvedValue(undefined);
+      const writeOnceSpy = jest
+        .spyOn(OutputStream, 'writeOnce')
+        .mockResolvedValue(undefined);
 
       await expect(
         Publish.run([
@@ -629,6 +633,7 @@ describe('Publish CLI command', () => {
         }
       );
       expect(installSpy).toHaveBeenCalledWith([profileId, '-f']);
+      expect(writeOnceSpy).not.toHaveBeenCalled();
     });
 
     it('calls publish correctly when publishing map', async () => {
@@ -658,6 +663,9 @@ describe('Publish CLI command', () => {
         .spyOn(SuperJson, 'load')
         .mockResolvedValue(ok(mockSuperJson));
       mocked(publish).mockResolvedValue(undefined);
+      const writeOnceSpy = jest
+        .spyOn(OutputStream, 'writeOnce')
+        .mockResolvedValue(undefined);
 
       await expect(
         Publish.run([
@@ -694,6 +702,11 @@ describe('Publish CLI command', () => {
         provider,
         { kind: 'remote' }
       );
+      expect(writeOnceSpy).toHaveBeenCalledWith(
+        mockSuperJson.path,
+        expect.any(String),
+        { force: false }
+      );
     });
 
     it('calls publish correctly when publishing provider', async () => {
@@ -723,6 +736,9 @@ describe('Publish CLI command', () => {
         .spyOn(SuperJson, 'load')
         .mockResolvedValue(ok(mockSuperJson));
       mocked(publish).mockResolvedValue(undefined);
+      const writeOnceSpy = jest
+        .spyOn(OutputStream, 'writeOnce')
+        .mockResolvedValue(undefined);
 
       await expect(
         Publish.run([
@@ -759,6 +775,11 @@ describe('Publish CLI command', () => {
         provider,
         { kind: 'remote' }
       );
+      expect(writeOnceSpy).toHaveBeenCalledWith(
+        mockSuperJson.path,
+        expect.any(String),
+        { force: false }
+      );
     });
 
     it('calls publish correctly when publishing map with force flag', async () => {
@@ -783,6 +804,9 @@ describe('Publish CLI command', () => {
         .spyOn(SuperJson, 'load')
         .mockResolvedValue(ok(mockSuperJson));
       mocked(publish).mockResolvedValue(undefined);
+      const writeOnceSpy = jest
+        .spyOn(OutputStream, 'writeOnce')
+        .mockResolvedValue(undefined);
 
       await expect(
         Publish.run([
@@ -809,6 +833,11 @@ describe('Publish CLI command', () => {
           dryRun: false,
           quiet: false,
         }
+      );
+      expect(writeOnceSpy).toHaveBeenCalledWith(
+        mockSuperJson.path,
+        expect.any(String),
+        { force: true }
       );
     });
 
@@ -841,6 +870,9 @@ describe('Publish CLI command', () => {
         .spyOn(SuperJson, 'load')
         .mockResolvedValue(ok(mockSuperJson));
       mocked(publish).mockResolvedValue(undefined);
+      const writeOnceSpy = jest
+        .spyOn(OutputStream, 'writeOnce')
+        .mockResolvedValue(undefined);
 
       await expect(
         Publish.run([
@@ -873,6 +905,11 @@ describe('Publish CLI command', () => {
         provider,
         { kind: 'remote' }
       );
+      expect(writeOnceSpy).toHaveBeenCalledWith(
+        mockSuperJson.path,
+        expect.any(String),
+        { force: false }
+      );
     });
 
     it('calls publish correctly when publishing provider with --dry-run flag', async () => {
@@ -901,6 +938,9 @@ describe('Publish CLI command', () => {
         .spyOn(SuperJson, 'load')
         .mockResolvedValue(ok(mockSuperJson));
       mocked(publish).mockResolvedValue(undefined);
+      const writeOnceSpy = jest
+        .spyOn(OutputStream, 'writeOnce')
+        .mockResolvedValue(undefined);
 
       await expect(
         Publish.run([
@@ -936,6 +976,11 @@ describe('Publish CLI command', () => {
         provider,
         { kind: 'remote' }
       );
+      expect(writeOnceSpy).toHaveBeenCalledWith(
+        mockSuperJson.path,
+        expect.any(String),
+        { force: false }
+      );
     });
 
     it('calls publish correctly when publishing provider with locally linked map', async () => {
@@ -967,6 +1012,9 @@ describe('Publish CLI command', () => {
         .spyOn(SuperJson, 'load')
         .mockResolvedValue(ok(mockSuperJson));
       mocked(publish).mockResolvedValue(undefined);
+      const writeOnceSpy = jest
+        .spyOn(OutputStream, 'writeOnce')
+        .mockResolvedValue(undefined);
 
       await expect(
         Publish.run([
@@ -1001,6 +1049,11 @@ describe('Publish CLI command', () => {
         provider,
         { kind: 'remote' }
       );
+      expect(writeOnceSpy).toHaveBeenCalledWith(
+        mockSuperJson.path,
+        expect.any(String),
+        { force: false }
+      );
     });
 
     it('calls publish correctly when publishing profile with --quiet flag', async () => {
@@ -1031,6 +1084,9 @@ describe('Publish CLI command', () => {
         .spyOn(SuperJson, 'load')
         .mockResolvedValue(ok(mockSuperJson));
       mocked(publish).mockResolvedValue(undefined);
+      const writeOnceSpy = jest
+        .spyOn(OutputStream, 'writeOnce')
+        .mockResolvedValue(undefined);
 
       await expect(
         Publish.run([
@@ -1061,6 +1117,7 @@ describe('Publish CLI command', () => {
         }
       );
       expect(installSpy).toHaveBeenCalledWith([profileId, '-f']);
+      expect(writeOnceSpy).not.toHaveBeenCalled();
     });
 
     it('prints report when publish returns report', async () => {
@@ -1089,6 +1146,9 @@ describe('Publish CLI command', () => {
         .spyOn(SuperJson, 'load')
         .mockResolvedValue(ok(mockSuperJson));
       mocked(publish).mockResolvedValue(mockReportStr);
+      const writeOnceSpy = jest
+        .spyOn(OutputStream, 'writeOnce')
+        .mockResolvedValue(undefined);
 
       await expect(
         Publish.run([
@@ -1119,6 +1179,7 @@ describe('Publish CLI command', () => {
         }
       );
       expect(installSpy).not.toHaveBeenCalled();
+      expect(writeOnceSpy).not.toHaveBeenCalled();
     });
   });
 });
