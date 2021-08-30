@@ -40,22 +40,22 @@ export default class Publish extends Command {
     }),
     providerName: flags.string({
       description:
-        'Name of provider. This argument is used to publish map or provider',
+        'Name of the provider. This argument is used to publish a map or a provider.',
       required: true,
     }),
     dryRun: flags.boolean({
       default: false,
-      description: 'Runs without sending actual request.',
+      description: 'Runs without sending the actual request.',
     }),
     force: flags.boolean({
       char: 'f',
       default: false,
-      description: 'Publishes without asking any confirmation.',
+      description: 'Publishes without asking for any confirmation.',
     }),
     scan: flags.integer({
       char: 's',
       description:
-        'When number provided, scan for super.json outside cwd within range represented by this number.',
+        'When a number is provided, scan for super.json outside cwd within the range represented by this number.',
       required: false,
     }),
     json: flags.boolean({
@@ -71,9 +71,9 @@ export default class Publish extends Command {
     '$ superface publish profile --profileId starwars/characeter-information --providerName swapi --dryRun',
   ];
 
-  private logCallback? = (message: string) => this.log(grey(message));
-  private warnCallback? = (message: string) => this.log(yellow(message));
-  private successCallback? = (message: string) => this.log(green(message));
+  private logCallback?= (message: string) => this.log(grey(message));
+  private warnCallback?= (message: string) => this.log(yellow(message));
+  private successCallback?= (message: string) => this.log(green(message));
 
   async run(): Promise<void> {
     const { argv, flags } = this.parse(Publish);
@@ -245,7 +245,7 @@ export default class Publish extends Command {
     if (!flags.force) {
       const prompt: { continue: boolean } = await inquirer.prompt({
         name: 'continue',
-        message: `Do you want to switch to remote ${documentType} instead of locally linked one?:`,
+        message: `Do you want to switch to remote ${documentType} instead of a locally linked one?:`,
         type: 'confirm',
         default: true,
       });

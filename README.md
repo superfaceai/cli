@@ -315,49 +315,28 @@ ARGUMENTS
   PATH  (map|profile|provider) Document type of publeshed file
 
 OPTIONS
-  -f, --force                  Publishes without asking any confirmation.
+  -f, --force                  Publishes without asking for any confirmation.
   -h, --help                   show CLI help
   -j, --json                   Formats result to JSON
   -q, --quiet                  When set to true, disables the shell echo output of action.
 
-  -s, --scan=scan              When number provided, scan for super.json outside cwd within range represented by this
-                               number.
+  -s, --scan=scan              When a number is provided, scan for super.json outside cwd within the range represented
+                               by this number.
 
-  --dry-run                    Runs without sending actual request.
+  --dryRun                     Runs without sending the actual request.
 
   --profileId=profileId        (required) Profile Id in format [scope/](optional)[name]
 
-  --providerName=providerName  (required) Name of provider. This argument is used to publish map or provider
+  --providerName=providerName  (required) Name of the provider. This argument is used to publish a map or a provider.
 
 EXAMPLES
   $ superface publish map --profileId starwars/characeter-information --providerName swapi -s 4
   $ superface publish profile --profileId starwars/characeter-information --providerName swapi -f
   $ superface publish provider --profileId starwars/characeter-information --providerName swapi -q
-  $ superface publish profile --profileId starwars/characeter-information --providerName swapi --dry-run
+  $ superface publish profile --profileId starwars/characeter-information --providerName swapi --dryRun
 ```
 
 _See code: [src/commands/publish.ts](https://github.com/superfaceai/cli/tree/main/src/commands/publish.ts)_
-=======
-## `superface login`
-
-Login to superface server
-
-```
-USAGE
-  $ superface login
-
-OPTIONS
-  -f, --force  When set to true user won't be asked to confirm browser opening
-  -h, --help   show CLI help
-  -q, --quiet  When set to true, disables the shell echo output of action.
-
-EXAMPLES
-  $ superface login
-  $ superface login -f
-```
-
-_See code: [src/commands/login.ts](https://github.com/superfaceai/cli/tree/main/src/commands/login.ts)_
->>>>>>> 9edfdec59f72275fc9c8ba66b21ab276ca3c6a88
 <!-- commandsstop -->
 
 ## Interactive install
