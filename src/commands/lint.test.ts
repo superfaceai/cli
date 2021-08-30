@@ -41,7 +41,7 @@ describe('lint CLI command', () => {
         .spyOn(SuperJson, 'load')
         .mockResolvedValue(err(new SDKExecutionError('test error', [], [])));
       await expect(Lint.run([])).rejects.toEqual(
-        new CLIError('Unable to load super.json: test error\n')
+        new CLIError('Unable to load super.json: test error')
       );
     });
 

@@ -95,7 +95,7 @@ describe('Compile CLI command', () => {
           'starwars/character-information',
           '--profile',
         ])
-      ).rejects.toEqual(new CLIError('Unable to load super.json: test\n'));
+      ).rejects.toEqual(new CLIError('Unable to load super.json: test'));
       expect(loadSpy).toHaveBeenCalledTimes(1);
     });
 

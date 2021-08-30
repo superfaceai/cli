@@ -77,7 +77,7 @@ describe('Check CLI command', () => {
       await expect(
         Check.run(['--profileId', profileId, '--providerName', provider])
       ).rejects.toEqual(
-        new CLIError('Unable to load super.json: test error\n')
+        new CLIError('Unable to load super.json: test error')
       );
     });
 

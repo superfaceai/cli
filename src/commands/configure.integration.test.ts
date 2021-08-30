@@ -369,6 +369,7 @@ describe('Configure CLI command', () => {
 
       expect(superJson.document.profiles![profileId]).toEqual({
         version: profileVersion,
+        priority: [simpleProvider],
         providers: { [simpleProvider]: {} },
       });
     }, 20000);
