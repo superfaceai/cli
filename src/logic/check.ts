@@ -48,8 +48,9 @@ export async function check(
   let numberOfRemoteFilesUsed = 0;
 
   //Load profile AST
-  const profileId = `${profile.scope ? `${profile.scope}/` : ''}${profile.name
-    }${profile.version ? `@${profile.version}` : ''}`;
+  const profileId = `${profile.scope ? `${profile.scope}/` : ''}${
+    profile.name
+  }${profile.version ? `@${profile.version}` : ''}`;
   const profileSource = await findLocalProfileSource(superJson, profile);
   if (profileSource) {
     //Enforce parsing
@@ -132,8 +133,9 @@ export async function check(
         if ('path' in issue && 'message' in issue) {
           result.push({
             kind: 'error',
-            message: `Provider check error: ${(issue as { message: string }).message
-              } on path ${(issue as { path: string }).path}`,
+            message: `Provider check error: ${
+              (issue as { message: string }).message
+            } on path ${(issue as { path: string }).path}`,
           });
         }
       }

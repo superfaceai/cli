@@ -71,9 +71,9 @@ export default class Publish extends Command {
     '$ superface publish profile --profileId starwars/characeter-information --providerName swapi --dryRun',
   ];
 
-  private logCallback?= (message: string) => this.log(grey(message));
-  private warnCallback?= (message: string) => this.log(yellow(message));
-  private successCallback?= (message: string) => this.log(green(message));
+  private logCallback? = (message: string) => this.log(grey(message));
+  private warnCallback? = (message: string) => this.log(yellow(message));
+  private successCallback? = (message: string) => this.log(green(message));
 
   async run(): Promise<void> {
     const { argv, flags } = this.parse(Publish);

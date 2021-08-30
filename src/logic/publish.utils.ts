@@ -11,8 +11,8 @@ import {
   SuperJson,
 } from '@superfaceai/one-sdk';
 import { getProfileOutput, validateMap } from '@superfaceai/parser';
-import { userError } from '../common/error';
 
+import { userError } from '../common/error';
 import { fetchMapAST, fetchProfileAST } from '../common/http';
 import { LogCallback } from '../common/log';
 import { ProfileId } from '../common/profile';
@@ -28,16 +28,16 @@ export function prePublishCheck(
   options?: { logCb?: LogCallback; warnCb?: LogCallback }
 ): CheckResult[] {
   try {
-    options?.logCb?.('Asserting profile document')
-    assertProfileDocumentNode(profileAst)
+    options?.logCb?.('Asserting profile document');
+    assertProfileDocumentNode(profileAst);
   } catch (error) {
-    throw userError(error, 1)
+    throw userError(error, 1);
   }
   try {
-    options?.logCb?.('Asserting map document')
-    assertMapDocumentNode(mapAst)
+    options?.logCb?.('Asserting map document');
+    assertMapDocumentNode(mapAst);
   } catch (error) {
-    throw userError(error, 1)
+    throw userError(error, 1);
   }
 
   //Check map and profile
@@ -52,8 +52,9 @@ export function prePublishCheck(
         if ('path' in issue && 'message' in issue) {
           result.push({
             kind: 'error',
-            message: `Provider check error: ${(issue as { message: string }).message
-              } on path ${(issue as { path: string }).path}`,
+            message: `Provider check error: ${
+              (issue as { message: string }).message
+            } on path ${(issue as { path: string }).path}`,
           });
         }
       }
@@ -93,8 +94,9 @@ export async function loadProfile(
     version,
   });
 
-  const profileId = `${profile.scope ? `${profile.scope}/` : ''}${profile.name
-    }${version ? `@${version}` : ''}`;
+  const profileId = `${profile.scope ? `${profile.scope}/` : ''}${
+    profile.name
+  }${version ? `@${version}` : ''}`;
 
   if (source) {
     ast = await Parser.parseProfile(source, profileId, {
@@ -126,8 +128,9 @@ export async function loadMap(
   }
 ): Promise<{ ast: MapDocumentNode; source?: string }> {
   let ast: MapDocumentNode;
-  const profileId = `${profile.scope ? `${profile.scope}/` : ''}${profile.name
-    }${version ? `@${version}` : ''}`;
+  const profileId = `${profile.scope ? `${profile.scope}/` : ''}${
+    profile.name
+  }${version ? `@${version}` : ''}`;
 
   const source = await findLocalMapSource(superJson, profile, provider);
   if (source) {

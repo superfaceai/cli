@@ -46,8 +46,8 @@ export default class Compile extends Command {
     '$ superface compile --profileId starwars/character-information --providerName swapi --map --profile',
   ];
 
-  private logCallback?= (message: string) => this.log(grey(message));
-  private successCallback?= (message: string) =>
+  private logCallback? = (message: string) => this.log(grey(message));
+  private successCallback? = (message: string) =>
     this.log(bold(green(message)));
 
   async run(): Promise<void> {
@@ -127,7 +127,7 @@ export default class Compile extends Command {
 
       const profileProviderSettings =
         superJson.normalized.profiles[flags.profileId].providers[
-        flags.providerName
+          flags.providerName
         ];
 
       if (!profileProviderSettings) {

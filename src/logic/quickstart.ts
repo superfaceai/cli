@@ -152,8 +152,9 @@ export async function interactiveInstall(
       name: 'provider',
       message:
         priority === 1
-          ? `Select providers you would like to use. You can end selection by choosing "<<done>>".\nSelect ${priorityToString.get(priority) || priority
-          } provider:`
+          ? `Select providers you would like to use. You can end selection by choosing "<<done>>".\nSelect ${
+              priorityToString.get(priority) || priority
+            } provider:`
           : `Select ${priorityToString.get(priority) || priority} provider:`,
       type: 'list',
       choices,
@@ -413,7 +414,8 @@ export async function interactiveInstall(
 
   //Lead to docs page
   options?.successCb?.(
-    `\nNow you can follow our documentation to use installed capability: "${new URL(profileId.id, getServicesUrl()).href
+    `\nNow you can follow our documentation to use installed capability: "${
+      new URL(profileId.id, getServicesUrl()).href
     }"`
   );
 }

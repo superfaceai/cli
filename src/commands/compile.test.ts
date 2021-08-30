@@ -24,7 +24,9 @@ jest.mock('../common/io', () => ({
 jest.mock('../common/output-stream');
 
 jest.mock('@superfaceai/one-sdk/dist/internal/parser', () => ({
-  ...jest.requireActual<Record<string, unknown>>('@superfaceai/one-sdk/dist/internal/parser'),
+  ...jest.requireActual<Record<string, unknown>>(
+    '@superfaceai/one-sdk/dist/internal/parser'
+  ),
   parseMap: jest.fn(),
   parseProfile: jest.fn(),
 }));
@@ -215,7 +217,7 @@ describe('Compile CLI command', () => {
         {
           scope: 'starwars',
           profileName: 'character-information',
-        },
+        }
       );
     });
 
@@ -282,7 +284,7 @@ describe('Compile CLI command', () => {
         {
           scope: 'starwars',
           profileName: 'character-information',
-        },
+        }
       );
     });
 
@@ -331,7 +333,7 @@ describe('Compile CLI command', () => {
         {
           scope: 'starwars',
           profileName: 'character-information',
-        },
+        }
       );
     });
 
@@ -383,7 +385,7 @@ describe('Compile CLI command', () => {
         {
           scope: 'starwars',
           profileName: 'character-information',
-        },
+        }
       );
     });
 
@@ -439,7 +441,7 @@ describe('Compile CLI command', () => {
         {
           scope: 'starwars',
           profileName: 'character-information',
-        },
+        }
       );
     });
 
@@ -494,7 +496,7 @@ describe('Compile CLI command', () => {
         {
           scope: 'starwars',
           profileName: 'character-information',
-        },
+        }
       );
 
       expect(parseMapSpy).toHaveBeenCalledTimes(1);
@@ -505,7 +507,7 @@ describe('Compile CLI command', () => {
           scope: 'starwars',
           providerName: mockProvider,
           profileName: 'character-information',
-        },
+        }
       );
     });
   });
