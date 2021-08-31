@@ -1,7 +1,9 @@
-import { green } from 'chalk';
+import { green, yellow } from 'chalk';
 
 import { Command } from '../common/command.abstract';
 import { SuperfaceClient } from '../common/http';
+import { ServiceClientError } from '@superfaceai/service-client';
+import { userError } from '../common/error';
 
 export default class Logout extends Command {
   static strict = false;
@@ -12,23 +14,20 @@ export default class Logout extends Command {
 
   static examples = ['$ superface logout'];
 
-  // private logCallback = (message: string) => this.log(gray(message));
+  private warnCallback = (message: string) => this.log(yellow(message));
   private successCallback = (message: string) => this.log(green(message));
 
   async run(): Promise<void> {
-
     try {
-      const info = await SuperfaceClient.getClient().getUserInfo()
-      console.log('info', info)
-      await SuperfaceClient.getClient().signOut()
+      await SuperfaceClient.getClient().signOut();
       this.successCallback(`🆗 You have been logged out`);
-
     } catch (error) {
+      if (error instanceof ServiceClientError) {
+        this.warnCallback(`Superface server responded with: ${error.message}`);
 
-      console.log('error', error)
-
+        return;
+      }
+      throw userError(error, 1);
     }
-
-
   }
 }
