@@ -83,7 +83,7 @@ export function handleProviderResponse(
           response.securitySchemes.length
         } security schemes`
       );
-      //Char - is not allowed in env variables so replace it with _
+      // Char "-" is not allowed in env variables so replace it with "_"
       const envProviderName = response.name.replace('-', '_').toUpperCase();
       if (isApiKeySecurityScheme(scheme)) {
         security.push({
@@ -113,8 +113,9 @@ export function handleProviderResponse(
       }
     }
   }
+
   // update super.json
-  superJson.addProvider(response.name, {
+  superJson.setProvider(response.name, {
     security,
     file: options?.localProvider
       ? superJson.relativePath(options.localProvider)
@@ -136,7 +137,7 @@ export function handleProviderResponse(
       };
     }
   }
-  superJson.addProfileProvider(profileId.id, response.name, settings);
+  superJson.setProfileProvider(profileId.id, response.name, settings);
 
   return security.length;
 }
@@ -187,7 +188,7 @@ export async function installProvider(parameters: {
   const superJson = loadedResult.match(
     v => v,
     err => {
-      parameters.options?.warnCb?.(err);
+      parameters.options?.warnCb?.(err.formatLong());
 
       return new SuperJson({});
     }
@@ -273,4 +274,39 @@ export async function installProvider(parameters: {
   } else {
     parameters.options?.logCb?.(`No security schemes found to configure.`);
   }
+}
+
+/**
+ * Reconfigure provider from local to remote or from remote to local.
+ */
+export async function reconfigureProvider(
+  superJson: SuperJson,
+  providerName: string,
+  target: { kind: 'local'; file: string } | { kind: 'remote' },
+  _options?: {
+    logCb?: LogCallback;
+    warnCb?: LogCallback;
+  }
+): Promise<void> {
+  // TODO: Possibly do checks whether the remote file exists?
+  superJson.swapProviderVariant(providerName, target);
+}
+
+/**
+ * Reconfigure profile provider from local to remote or from remote to local.
+ */
+export async function reconfigureProfileProvider(
+  superJson: SuperJson,
+  profileId: ProfileId,
+  providerName: string,
+  target:
+    | { kind: 'local'; file: string }
+    | { kind: 'remote'; mapVariant?: string; mapRevision?: string },
+  _options?: {
+    logCb?: LogCallback;
+    warnCb?: LogCallback;
+  }
+): Promise<void> {
+  // TODO: Possibly do checks whether the remote file exists?
+  superJson.swapProfileProviderVariant(profileId.id, providerName, target);
 }

@@ -16,7 +16,7 @@ import {
   fetchProfiles,
   fetchProviderInfo,
   fetchProviders,
-  getStoreUrl,
+  getServicesUrl,
 } from '../common/http';
 import { userError } from './error';
 
@@ -34,6 +34,29 @@ describe('HTTP functions', () => {
     jest.resetAllMocks();
   });
 
+  describe('when getting services url', () => {
+    const originalValue = process.env.SUPERFACE_API_URL;
+
+    afterAll(() => {
+      if (originalValue) {
+        process.env.SUPERFACE_API_URL = originalValue;
+      }
+    });
+    it('returns url from env with backslash', async () => {
+      process.env.SUPERFACE_API_URL = 'https://test/url.ai/';
+      expect(getServicesUrl()).toEqual('https://test/url.ai');
+    });
+    it('returns url from env without backslash', async () => {
+      process.env.SUPERFACE_API_URL = 'https://test/url.ai';
+      expect(getServicesUrl()).toEqual('https://test/url.ai');
+    });
+
+    it('returns default url', async () => {
+      delete process.env.SUPERFACE_API_URL;
+      expect(getServicesUrl()).toEqual('https://superface.ai');
+    });
+  });
+
   describe('when fetching data', () => {
     it('calls superagent correctly', async () => {
       mockInnerSet.mockResolvedValue({ body: 'test' });
@@ -42,7 +65,7 @@ describe('HTTP functions', () => {
         set: mockSet,
       });
 
-      const mockUrl = new URL(profileId, getStoreUrl()).href;
+      const mockUrl = new URL(profileId, getServicesUrl()).href;
 
       await expect(fetch(mockUrl, ContentType.JSON)).resolves.toEqual({
         body: 'test',
@@ -67,7 +90,7 @@ describe('HTTP functions', () => {
         query: mockQuery,
       });
 
-      const mockUrl = new URL(profileId, getStoreUrl()).href;
+      const mockUrl = new URL(profileId, getServicesUrl()).href;
 
       await expect(
         fetch(mockUrl, ContentType.JSON, { test: 'value' })
@@ -95,7 +118,7 @@ describe('HTTP functions', () => {
         query: mockQuery,
       });
 
-      const mockUrl = new URL(profileId, getStoreUrl()).href;
+      const mockUrl = new URL(profileId, getServicesUrl()).href;
 
       await expect(
         fetch(mockUrl, ContentType.JSON, { test: 'value' })
@@ -121,7 +144,7 @@ describe('HTTP functions', () => {
         set: mockSet,
       });
 
-      const mockUrl = new URL(profileId, getStoreUrl()).href;
+      const mockUrl = new URL(profileId, getServicesUrl()).href;
 
       await expect(fetch(mockUrl, ContentType.JSON)).rejects.toEqual(
         new CLIError('Not found')
@@ -185,7 +208,7 @@ describe('HTTP functions', () => {
       (jest.spyOn(superagent, 'get') as jest.Mock).mockReturnValue({
         query: mockQuery,
       });
-      const mockUrl = new URL('providers', getStoreUrl()).href;
+      const mockUrl = new URL('providers', getServicesUrl()).href;
 
       await expect(fetchProviders(profileId)).resolves.toEqual([
         mockProviderJson,
@@ -223,7 +246,7 @@ describe('HTTP functions', () => {
         set: mockSet,
       });
 
-      const mockUrl = new URL(profileId, getStoreUrl()).href;
+      const mockUrl = new URL(profileId, getServicesUrl()).href;
 
       await expect(fetchProfileInfo(profileId)).resolves.toEqual(
         mockProfileInfo
@@ -251,7 +274,7 @@ describe('HTTP functions', () => {
         set: mockSet,
       });
 
-      const mockUrl = new URL(profileId, getStoreUrl()).href;
+      const mockUrl = new URL(profileId, getServicesUrl()).href;
 
       await expect(fetchProfile(profileId)).resolves.toEqual(mockProfile);
 
@@ -305,7 +328,7 @@ describe('HTTP functions', () => {
         set: mockSet,
       });
 
-      const mockUrl = new URL(profileId, getStoreUrl()).href;
+      const mockUrl = new URL(profileId, getServicesUrl()).href;
 
       await expect(fetchProfileAST(profileId)).resolves.toEqual(mockProfileAst);
 
@@ -357,7 +380,8 @@ describe('HTTP functions', () => {
       (jest.spyOn(superagent, 'get') as jest.Mock).mockReturnValue({
         set: mockSet,
       });
-      const mockUrl = new URL('mailchimp', `${getStoreUrl()}providers/`).href;
+      const mockUrl = new URL('mailchimp', `${getServicesUrl()}/providers/`)
+        .href;
 
       await expect(fetchProviderInfo('mailchimp')).resolves.toEqual(
         mockProviderJson

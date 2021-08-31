@@ -1,8 +1,10 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { EXTENSIONS } from '@superfaceai/ast';
 import { ProviderJson } from '@superfaceai/one-sdk';
+import { AuthToken, CLILoginResponse } from '@superfaceai/service-client';
 import { execFile } from 'child_process';
 import concat from 'concat-stream';
+import { Headers, Response } from 'cross-fetch';
 import { Mockttp } from 'mockttp';
 import { constants } from 'os';
 import { join as joinPath, relative } from 'path';
@@ -159,6 +161,48 @@ export async function mockResponsesForProfileProviders(
 }
 
 /**
+ * Mocks HTTP responses for login
+ *
+ * mocks /auth/cli and /auth/cli/verify paths
+ */
+export async function mockResponsesForLogin(
+  server: Mockttp,
+  mockInitLoginResponse: CLILoginResponse,
+  mockVerifyResponse:
+    | {
+        authToken: AuthToken;
+      }
+    | {
+        statusCode: number;
+        errStatus: string;
+      }
+): Promise<void> {
+  if (mockInitLoginResponse.success) {
+    await server.post('/auth/cli').thenJson(201, {
+      verify_url: mockInitLoginResponse.verifyUrl,
+      browser_url: mockInitLoginResponse.browserUrl,
+      expires_at: mockInitLoginResponse.expiresAt.toDateString(),
+    });
+  } else {
+    await server.post('/auth/cli').thenJson(200, mockInitLoginResponse);
+  }
+
+  if ('authToken' in mockVerifyResponse) {
+    await server
+      .get('/auth/cli/verify')
+      .withQuery({ token: 'stub' })
+      .thenJson(200, mockVerifyResponse.authToken);
+  } else {
+    await server
+      .get('/auth/cli/verify')
+      .withQuery({ token: 'stub' })
+      .thenJson(mockVerifyResponse.statusCode, {
+        status: mockVerifyResponse.errStatus,
+      });
+  }
+}
+
+/**
  * Executes the Superface CLI binary
  *
  * @export
@@ -278,6 +322,23 @@ export async function execCLI(
   });
 }
 
+/**
+ * Retruns mock Response with passed data
+ */
+export function mockResponse(
+  status: number,
+  statusText: string,
+  headers?: Record<string, string>,
+  data?: Record<string, unknown> | Buffer | string
+): Response {
+  const ResponseInit = {
+    status,
+    statusText,
+    headers: new Headers(headers),
+  };
+
+  return new Response(data ? JSON.stringify(data) : undefined, ResponseInit);
+}
 /**
  * Creates a random directory in `path` and returns the path
  */

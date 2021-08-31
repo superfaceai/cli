@@ -1,5 +1,6 @@
 import { CLIError } from '@oclif/errors';
 import { err, ok, SuperJson } from '@superfaceai/one-sdk';
+import { SDKExecutionError } from '@superfaceai/one-sdk/dist/internal/errors';
 import { mocked } from 'ts-jest/utils';
 
 import { OutputStream } from '../common/output-stream';
@@ -36,7 +37,9 @@ describe('lint CLI command', () => {
 
     it('throws when super.json not loaded correctly', async () => {
       mocked(detectSuperJson).mockResolvedValue('.');
-      jest.spyOn(SuperJson, 'load').mockResolvedValue(err('test error'));
+      jest
+        .spyOn(SuperJson, 'load')
+        .mockResolvedValue(err(new SDKExecutionError('test error', [], [])));
       await expect(Lint.run([])).rejects.toEqual(
         new CLIError('Unable to load super.json: test error')
       );
