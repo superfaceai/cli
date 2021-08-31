@@ -275,6 +275,7 @@ DESCRIPTION
 
 EXAMPLES
   $ superface lint
+  $ superface lint --validate
   $ superface lint -o -2
   $ superface lint -f json
   $ superface lint my/path/to/sms/service@1.0
