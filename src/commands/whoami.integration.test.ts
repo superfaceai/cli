@@ -1,12 +1,11 @@
-import { join as joinPath } from 'path';
-import { getLocal } from 'mockttp';
 import { ServiceApiError } from '@superfaceai/service-client';
+import { bold, gray, green, yellow } from 'chalk';
+import { getLocal } from 'mockttp';
+import { join as joinPath } from 'path';
 
-// import { Netrc } from 'netrc-parser';
+import { ContentType } from '../common/http';
 import { mkdir, rimraf } from '../common/io';
 import { execCLI, setUpTempDir } from '../test/utils';
-import { ContentType } from '../common/http';
-import { bold, gray, green, yellow } from 'chalk';
 
 const mockServer = getLocal();
 

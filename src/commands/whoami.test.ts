@@ -1,5 +1,6 @@
 import { CLIError } from '@oclif/errors';
-import { ServiceClient, ServiceApiError } from '@superfaceai/service-client';
+import { ServiceApiError, ServiceClient } from '@superfaceai/service-client';
+
 import { MockStd, mockStd } from '../test/mock-std';
 import Whoami from './whoami';
 
@@ -62,25 +63,6 @@ describe('Login CLI command', () => {
       expect(stderr.output).toEqual('');
       expect(stdout.output).toEqual(
         '❌ You are not logged in. Please try running "sf login"\n'
-      );
-    });
-
-    it('calls getUserInfo correctly, unknown Superface response', async () => {
-      const mockServerResponse = new ServiceApiError({
-        status: 403,
-        instance: '',
-        title: 'Forbiden',
-        detail: 'forbiden access',
-      });
-      const getInfoSpy = jest
-        .spyOn(ServiceClient.prototype, 'getUserInfo')
-        .mockRejectedValue(mockServerResponse);
-
-      await expect(Whoami.run([])).resolves.toBeUndefined();
-      expect(getInfoSpy).toHaveBeenCalled();
-      expect(stderr.output).toEqual('');
-      expect(stdout.output).toEqual(
-        `⚠️ Superface server responded with error: ${mockServerResponse.name}: ${mockServerResponse.message}\n`
       );
     });
 
