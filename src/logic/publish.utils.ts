@@ -11,6 +11,7 @@ import {
   SuperJson,
 } from '@superfaceai/one-sdk';
 import { getProfileOutput, validateMap } from '@superfaceai/parser';
+import { ZodError } from 'zod';
 
 import { userError } from '../common/error';
 import { fetchMapAST, fetchProfileAST } from '../common/http';
@@ -46,19 +47,17 @@ export function prePublishCheck(
   try {
     parseProviderJson(providerJson);
   } catch (error) {
-    //TODO: better way of formating?
-    if ('issues' in error) {
-      for (const issue of (error as { issues: [] }).issues) {
-        if ('path' in issue && 'message' in issue) {
-          result.push({
-            kind: 'error',
-            message: `Provider check error: ${
-              (issue as { message: string }).message
-            } on path ${(issue as { path: string }).path}`,
-          });
-        }
+    if (error instanceof ZodError)
+      for (const issue of error.issues) {
+        result.push({
+          kind: 'error',
+          message: `Provider check error: ${issue.message} on path ${issue.path
+            .map(value => {
+              return typeof value === 'string' ? value : value.toString();
+            })
+            .join(', ')}`,
+        });
       }
-    }
   }
 
   return result;
@@ -126,8 +125,6 @@ export async function loadMap(
   }
 ): Promise<{ ast: MapDocumentNode; source?: string }> {
   let ast: MapDocumentNode;
-  const profileId = `${profile.id}${version ? `@${version}` : ''}`;
-
   const source = await findLocalMapSource(superJson, profile, provider);
   if (source) {
     ast = await Parser.parseMap(source, `${profile.name}.${provider}`, {
@@ -136,12 +133,16 @@ export async function loadMap(
       providerName: provider,
     });
     options?.logCb?.(
-      `Map for profile: "${profileId}" and provider: "${provider}" found on local filesystem`
+      `Map for profile: "${profile.withVersion(
+        version
+      )}" and provider: "${provider}" found on local filesystem`
     );
   } else {
     //Load from store
     options?.logCb?.(
-      `Loading map for profile: "${profileId}" and provider: "${provider}" from Superface store`
+      `Loading map for profile: "${profile.withVersion(
+        version
+      )}" and provider: "${provider}" from Superface store`
     );
     ast = await fetchMapAST(
       profile.name,
