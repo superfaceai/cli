@@ -51,7 +51,7 @@
     "@oclif/config": "^1.17.0",
     "@superfaceai/ast": "0.0.28",
     "@superfaceai/parser": "0.0.21",
-    "@superfaceai/one-sdk": "v0.0.33-beta.0",
+    "@superfaceai/one-sdk": "0.0.33",
     "@superfaceai/service-client": "0.0.21",
     "chalk": "^4.1.0",
     "cross-fetch": "^3.1.4",
