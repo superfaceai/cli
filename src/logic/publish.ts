@@ -88,7 +88,6 @@ export async function publish(
   //Lint
   const lintReport = prePublishLint(profileFiles.ast, mapFiles.ast);
 
-  //TODO: do we want to be this strict?
   if (
     checkReport.length !== 0 ||
     lintReport.errors.length !== 0 ||
@@ -125,7 +124,6 @@ export async function publish(
   }
 
   //check if user is logged in
-  //TODO: we could also react on 401 from crateXXX request
   const netRc = loadNetrc();
   if (!netRc.refreshToken && !process.env.SUPERFACE_REFRESH_TOKEN) {
     throw userError(

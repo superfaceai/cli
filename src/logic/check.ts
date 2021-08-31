@@ -127,7 +127,6 @@ export async function check(
   try {
     parseProviderJson(providerJson);
   } catch (error) {
-    //TODO: better way of formating?
     if ('issues' in error) {
       for (const issue of (error as { issues: [] }).issues) {
         if ('path' in issue && 'message' in issue) {
