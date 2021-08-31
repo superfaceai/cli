@@ -50,7 +50,7 @@ describe('Whoami CLI command', () => {
       );
     });
 
-    it('returns wrning if user is not logged in', async () => {
+    it('returns warning if user is not logged in', async () => {
       const mockServerResponse = new ServiceApiError({
         status: 401,
         instance: '',

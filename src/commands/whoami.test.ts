@@ -4,12 +4,7 @@ import { ServiceApiError, ServiceClient } from '@superfaceai/service-client';
 import { MockStd, mockStd } from '../test/mock-std';
 import Whoami from './whoami';
 
-jest.mock('../common/http', () => ({
-  ...jest.requireActual<Record<string, unknown>>('../common/http'),
-  getServicesUrl: jest.fn(),
-}));
-
-describe('Login CLI command', () => {
+describe('Whoami CLI command', () => {
   let stdout: MockStd;
   let stderr: MockStd;
 
