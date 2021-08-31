@@ -5,11 +5,17 @@ import {
   VERSION as SDK_VERSION,
 } from '@superfaceai/one-sdk';
 import { VERSION as PARSER_VERSION } from '@superfaceai/parser';
+import { ServiceClient } from '@superfaceai/service-client';
 import superagent, { Response } from 'superagent';
 
 import { VERSION } from '..';
-import { DEFAULT_PROFILE_VERSION_STR } from './document';
+import {
+  DEFAULT_PROFILE_VERSION_STR,
+  SF_API_URL_VARIABLE,
+  SF_PRODUCTION,
+} from './document';
 import { userError } from './error';
+import { loadNetrc, saveNetrc } from './netrc';
 
 export interface ProfileInfo {
   owner: string;
@@ -33,13 +39,51 @@ export enum ContentType {
   MAP_SOURCE = 'application/vnd.superface.map',
   MAP_AST = 'application/vnd.superface.map+json',
 }
+export class SuperfaceClient {
+  private static serviceClient: ServiceClient;
 
-export function getStoreUrl(): string {
-  const envUrl = process.env.SUPERFACE_API_URL;
+  public static getClient(): ServiceClient {
+    if (!SuperfaceClient.serviceClient) {
+      const userAgent = `superface cli/${VERSION} (${process.platform}-${process.arch}) ${process.release.name}-${process.version} (with @superfaceai/one-sdk@${SDK_VERSION}, @superfaceai/parser@${PARSER_VERSION})`;
+      //Use refresh token from env if found
+      if (process.env.SUPERFACE_REFRESH_TOKEN) {
+        SuperfaceClient.serviceClient = new ServiceClient({
+          //still use getStoreUrl function to cover cases when user sets baseUrl and refresh token thru env
+          baseUrl: getServicesUrl(),
+          refreshToken: process.env.SUPERFACE_REFRESH_TOKEN,
+          commonHeaders: { 'User-Agent': userAgent },
+          //Do not use seveNetrc - refresh token from enviroment should not be saved
+        });
+      } else {
+        const netrcRecord = loadNetrc();
+        SuperfaceClient.serviceClient = new ServiceClient({
+          baseUrl: netrcRecord.baseUrl,
+          refreshToken: netrcRecord.refreshToken,
+          commonHeaders: { 'User-Agent': userAgent },
+          refreshTokenUpdatedHandler: saveNetrc,
+        });
+      }
+    }
 
-  return envUrl ? new URL(envUrl).href : new URL('https://superface.ai/').href;
+    return SuperfaceClient.serviceClient;
+  }
 }
+export function getServicesUrl(): string {
+  const envUrl = process.env[SF_API_URL_VARIABLE];
 
+  if (envUrl) {
+    const passedValue = new URL(envUrl).href;
+    //remove ending /
+    if (passedValue.endsWith('/')) {
+      return passedValue.substring(0, passedValue.length - 1);
+    }
+
+    return passedValue;
+  }
+
+  return SF_PRODUCTION;
+}
+//TODO: use service client
 export async function fetch(
   url: string,
   type: ContentType,
@@ -68,7 +112,7 @@ export async function fetchProfiles(): Promise<
 }
 
 export async function fetchProviders(profile: string): Promise<ProviderJson[]> {
-  const query = new URL('providers', getStoreUrl()).href;
+  const query = new URL('/providers', getServicesUrl()).href;
 
   const response = await fetch(query, ContentType.JSON, { profile });
 
@@ -78,7 +122,7 @@ export async function fetchProviders(profile: string): Promise<ProviderJson[]> {
 export async function fetchProfileInfo(
   profileId: string
 ): Promise<ProfileInfo> {
-  const query = new URL(profileId, getStoreUrl()).href;
+  const query = new URL(profileId, getServicesUrl()).href;
 
   const response = await fetch(query, ContentType.JSON);
 
@@ -86,7 +130,7 @@ export async function fetchProfileInfo(
 }
 
 export async function fetchProfile(profileId: string): Promise<string> {
-  const query = new URL(profileId, getStoreUrl()).href;
+  const query = new URL(profileId, getServicesUrl()).href;
 
   const response = await fetch(query, ContentType.PROFILE_SOURCE);
 
@@ -96,7 +140,7 @@ export async function fetchProfile(profileId: string): Promise<string> {
 export async function fetchProfileAST(
   profileId: string
 ): Promise<ProfileDocumentNode> {
-  const query = new URL(profileId, getStoreUrl()).href;
+  const query = new URL(profileId, getServicesUrl()).href;
 
   const response = await fetch(query, ContentType.PROFILE_AST);
 
@@ -106,12 +150,11 @@ export async function fetchProfileAST(
 export async function fetchProviderInfo(
   providerName: string
 ): Promise<ProviderJson> {
-  const query = new URL(providerName, `${getStoreUrl()}providers/`).href;
+  const query = new URL(providerName, `${getServicesUrl()}/providers/`).href;
   const response = await fetch(query, ContentType.JSON);
 
   return parseProviderJson(response.body);
 }
-
 //HACK: we don' have service client in this branch so we are making request directly. Use service-client in the future
 export async function fetchMapAST(
   profile: string,
@@ -127,7 +170,7 @@ export async function fetchMapAST(
     : `/${scope ? `${scope}/` : ''}${profile}.${provider}@${
         version ? version : DEFAULT_PROFILE_VERSION_STR
       }`;
-  const url = new URL(path, getStoreUrl()).href;
+  const url = new URL(path, getServicesUrl()).href;
 
   const response = await fetch(url, ContentType.MAP_AST);
 

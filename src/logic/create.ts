@@ -52,7 +52,7 @@ export async function createProfile(
       `-> Created ${filePath} (name = "${profileName}", version = "${version}")`
     );
     if (superJson) {
-      superJson.addProfile(profileName, {
+      superJson.mergeProfile(profileName, {
         file: relativePath(dirname(superJson.path), filePath),
       });
     }
@@ -104,7 +104,7 @@ export async function createMap(
       `-> Created ${filePath} (profile = "${profileName}@${version}", provider = "${id.provider}")`
     );
     if (superJson) {
-      superJson.addProfileProvider(profileName, id.provider, {
+      superJson.mergeProfileProvider(profileName, id.provider, {
         file: relativePath(dirname(superJson.path), filePath),
       });
     }
@@ -132,7 +132,7 @@ export async function createProviderJson(
   if (created) {
     options?.logCb?.(`-> Created ${name}.provider.json`);
     if (superJson) {
-      superJson.addProvider(name, {
+      superJson.mergeProvider(name, {
         file: relativePath(dirname(superJson.path), filePath),
       });
     }
@@ -170,7 +170,7 @@ export async function create(
     superJson = loadedResult.match(
       v => v,
       err => {
-        options?.warnCb?.(err);
+        options?.warnCb?.(err.formatLong());
 
         return new SuperJson({});
       }

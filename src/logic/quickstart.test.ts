@@ -3,7 +3,7 @@ import { ok, OnFail, SuperJson } from '@superfaceai/one-sdk';
 import inquirer from 'inquirer';
 import { mocked } from 'ts-jest/utils';
 
-import { fetchProfiles, fetchProviders, getStoreUrl } from '../common/http';
+import { fetchProfiles, fetchProviders, getServicesUrl } from '../common/http';
 import { exists, readFile } from '../common/io';
 import { OutputStream } from '../common/output-stream';
 import { Parser } from '../common/parser';
@@ -158,7 +158,7 @@ describe('Quickstart logic', () => {
       mocked(initSuperface).mockResolvedValue(new SuperJson({}));
       mocked(findLocalProfileSource).mockResolvedValue(mockProfileSource);
       jest.spyOn(Parser, 'parseProfile').mockResolvedValue(mockProfileAst);
-      mocked(getStoreUrl).mockReturnValue('https://superface.ai/');
+      mocked(getServicesUrl).mockReturnValue('https://superface.ai/');
       //We re-load superjson after initial install (profile and providers)
       mockLoad.mockResolvedValue(
         ok(
@@ -320,7 +320,7 @@ describe('Quickstart logic', () => {
       mocked(initSuperface).mockResolvedValue(new SuperJson({}));
       mocked(findLocalProfileSource).mockResolvedValue(mockProfileSource);
       jest.spyOn(Parser, 'parseProfile').mockResolvedValue(mockProfileAst);
-      mocked(getStoreUrl).mockReturnValue('https://superface.ai/');
+      mocked(getServicesUrl).mockReturnValue('https://superface.ai/');
       mockLoad.mockResolvedValue(
         ok(
           new SuperJson({
@@ -528,7 +528,7 @@ describe('Quickstart logic', () => {
       mocked(initSuperface).mockResolvedValue(new SuperJson({}));
       mocked(findLocalProfileSource).mockResolvedValue(mockProfileSource);
       jest.spyOn(Parser, 'parseProfile').mockResolvedValue(mockProfileAst);
-      mocked(getStoreUrl).mockReturnValue('https://superface.ai/');
+      mocked(getServicesUrl).mockReturnValue('https://superface.ai/');
       mockLoad.mockResolvedValue(ok(mockMisconfiguredSuperJson));
       mocked(fetchProfiles).mockResolvedValue([profile]);
       mocked(fetchProviders).mockResolvedValue([
@@ -680,7 +680,7 @@ describe('Quickstart logic', () => {
       mocked(fetchProfiles).mockResolvedValue([profile]);
       mocked(findLocalProfileSource).mockResolvedValue(mockProfileSource);
       jest.spyOn(Parser, 'parseProfile').mockResolvedValue(mockProfileAst);
-      mocked(getStoreUrl).mockReturnValue('https://superface.ai/');
+      mocked(getServicesUrl).mockReturnValue('https://superface.ai/');
       mocked(fetchProviders).mockResolvedValue([
         { name: 'sendgrid', services: [], defaultService: '' },
         { name: 'mailgun', services: [], defaultService: '' },
