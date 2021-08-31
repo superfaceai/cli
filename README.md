@@ -62,6 +62,7 @@ npx @superfaceai/cli install [profileId eg. communication/send-email] -i
 * [`superface install [PROFILEID]`](#superface-install-profileid)
 * [`superface lint [FILE]`](#superface-lint-file)
 * [`superface login`](#superface-login)
+* [`superface whoami`](#superface-whoami)
 
 ## `superface check`
 
@@ -301,6 +302,25 @@ EXAMPLES
 ```
 
 _See code: [src/commands/login.ts](https://github.com/superfaceai/cli/tree/main/src/commands/login.ts)_
+
+## `superface whoami`
+
+Prints info about logged in user
+
+```
+USAGE
+  $ superface whoami
+
+OPTIONS
+  -h, --help   show CLI help
+  -q, --quiet  When set to true, disables the shell echo output of action.
+
+EXAMPLES
+  $ superface whoami
+  $ sf whoami
+```
+
+_See code: [src/commands/whoami.ts](https://github.com/superfaceai/cli/tree/main/src/commands/whoami.ts)_
 <!-- commandsstop -->
 
 ## Interactive install

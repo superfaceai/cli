@@ -1,71 +1,41 @@
+import { ServiceApiError } from '@superfaceai/service-client';
 import { bold, gray, green, yellow } from 'chalk';
 
 import { Command } from '../common/command.abstract';
+import { userError } from '../common/error';
+import { SuperfaceClient } from '../common/http';
 
 export default class Whoami extends Command {
-  static strict = false;
+  static strict = true;
 
   static description = 'Prints info about logged in user';
 
-  static args = [];
-
-  static examples = ['$ superface whoami'];
+  static examples = ['$ superface whoami', '$ sf whoami'];
 
   private logCallback = (message: string) => this.log(gray(message));
   private warnCallback = (message: string) => this.log(yellow(message));
 
   async run(): Promise<void> {
-    //TODO: err handling?
-    const userInfo = this.getUserInfo();
-    const accounts = userInfo.accounts
-      .map(account => {
-        let typeStr: string;
-        if (account.type === UserAccountType.PERSONAL) {
-          typeStr = 'personal';
-        } else {
-          this.warnCallback(`⚠️ Unknown user account type`);
-          typeStr = 'unknown';
-        }
-
-        return `${bold(green(account.handle))}: ${bold(
-          green(typeStr)
-        )} account`;
-      })
-      .join('\n');
-    this.logCallback(
-      `🆗 You are logged in as:\n${bold(
-        green(userInfo.name)
-      )}\nwith email:\n${bold(green(userInfo.email))}\nacounts:\n${accounts}`
-    );
+    try {
+      const userInfo = await SuperfaceClient.getClient().getUserInfo();
+      this.logCallback(
+        `🆗 You are logged in as: ${bold(green(userInfo.name))} (${bold(
+          green(userInfo.email)
+        )})`
+      );
+    } catch (error) {
+      if (!(error instanceof ServiceApiError)) {
+        throw userError(error, 1);
+      }
+      if (error.status === 401) {
+        this.warnCallback(
+          `❌ You are not logged in. Please try running "sf login"`
+        );
+      } else {
+        this.warnCallback(
+          `⚠️ Superface server responded with error: ${error.name}: ${error.message}`
+        );
+      }
+    }
   }
-
-  //TODO: use service client
-  private getUserInfo(): UserResponse {
-    return {
-      name: 'jakub vacek',
-      email: 'jakub.vacek@something.com',
-      accounts: [
-        {
-          handle: 'jakub.vacek',
-          type: UserAccountType.PERSONAL,
-        },
-      ],
-    };
-  }
-}
-
-//HACK: use interfaces from service client
-export interface UserResponse {
-  name: string;
-  email: string;
-  accounts: UserAccountResponse[];
-}
-
-export interface UserAccountResponse {
-  handle: string;
-  type: UserAccountType;
-}
-
-export enum UserAccountType {
-  PERSONAL = 'PERSONAL',
 }
