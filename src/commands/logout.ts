@@ -1,7 +1,7 @@
-import { gray, green } from 'chalk';
+import { green } from 'chalk';
 
 import { Command } from '../common/command.abstract';
-import { logout } from '../logic/logout';
+import { SuperfaceClient } from '../common/http';
 
 export default class Logout extends Command {
   static strict = false;
@@ -12,13 +12,23 @@ export default class Logout extends Command {
 
   static examples = ['$ superface logout'];
 
-  private logCallback = (message: string) => this.log(gray(message));
+  // private logCallback = (message: string) => this.log(gray(message));
   private successCallback = (message: string) => this.log(green(message));
 
   async run(): Promise<void> {
-    //TODO: err handling?
-    await logout({ logCb: this.logCallback });
 
-    this.successCallback(`🆗 You have been logged out`);
+    try {
+      const info = await SuperfaceClient.getClient().getUserInfo()
+      console.log('info', info)
+      await SuperfaceClient.getClient().signOut()
+      this.successCallback(`🆗 You have been logged out`);
+
+    } catch (error) {
+
+      console.log('error', error)
+
+    }
+
+
   }
 }
