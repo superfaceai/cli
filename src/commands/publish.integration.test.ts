@@ -23,12 +23,13 @@ describe('Publish CLI command', () => {
   //File specific path
   const TEMP_PATH = joinPath('test', 'tmp');
   let tempDir: string;
+  let NETRC_FILENAME: string;
   const provider = 'swapi';
   const profileId = ProfileId.fromId('starwars/character-information');
   const profileVersion = '1.0.2';
 
-  const netRc = new Netrc();
-  let originalNetrcRecord: { baseUrl?: string; password?: string };
+  // const netRc = new Netrc();
+  // let originalNetrcRecord: { baseUrl?: string; password?: string };
   const mockRefreshToken = 'RT';
 
   const sourceFixture = {
@@ -83,17 +84,17 @@ describe('Publish CLI command', () => {
       provider
     );
     await mockResponsesForPublish(mockServer);
-
-    //Load existing netrc and prepare mock
-    await netRc.load();
-    if (netRc.machines[mockServer.url]) {
-      originalNetrcRecord = netRc.machines[mockServer.url];
-    }
-    netRc.machines[mockServer.url] = { password: mockRefreshToken };
-    await netRc.save();
   });
   beforeEach(async () => {
-    tempDir = await setUpTempDir(TEMP_PATH);
+    //Test specific netrc
+    tempDir = await setUpTempDir(TEMP_PATH, true);
+    NETRC_FILENAME = '.netrc';
+
+    //Set mock refresh token in netrc
+    const netRc = new Netrc(joinPath(tempDir, NETRC_FILENAME));
+    await netRc.load();
+    netRc.machines[mockServer.url] = { password: mockRefreshToken };
+    await netRc.save();
   });
 
   afterEach(async () => {
@@ -101,14 +102,6 @@ describe('Publish CLI command', () => {
   });
 
   afterAll(async () => {
-    //If there was a value keep it
-    if (originalNetrcRecord) {
-      netRc.machines[mockServer.url] = originalNetrcRecord;
-    } else {
-      delete netRc.machines[mockServer.url];
-    }
-    await netRc.save();
-
     await mockServer.stop();
   });
   describe('when publishing profile', () => {
@@ -157,6 +150,7 @@ describe('Publish CLI command', () => {
             { value: 'y', timeout: 4000 },
             { value: ENTER, timeout: 500 },
           ],
+          env: { NETRC_FILEPATH: NETRC_FILENAME },
         }
       );
       expect(result.stdout).toContain(
@@ -238,6 +232,7 @@ describe('Publish CLI command', () => {
             { value: 'y', timeout: 4000 },
             { value: ENTER, timeout: 500 },
           ],
+          env: { NETRC_FILEPATH: NETRC_FILENAME },
         }
       );
       expect(result.stdout).toContain(
@@ -319,6 +314,7 @@ describe('Publish CLI command', () => {
             { value: 'y', timeout: 4000 },
             { value: ENTER, timeout: 500 },
           ],
+          env: { NETRC_FILEPATH: NETRC_FILENAME },
         }
       );
       expect(result.stdout).toContain(
@@ -403,6 +399,7 @@ describe('Publish CLI command', () => {
             { value: 'y', timeout: 4000 },
             { value: ENTER, timeout: 500 },
           ],
+          env: { NETRC_FILEPATH: NETRC_FILENAME },
         }
       );
       expect(result.stdout).toContain(
@@ -487,6 +484,7 @@ describe('Publish CLI command', () => {
             { value: 'y', timeout: 4000 },
             { value: ENTER, timeout: 500 },
           ],
+          env: { NETRC_FILEPATH: NETRC_FILENAME },
         }
       );
       expect(result.stdout).toContain(
@@ -569,6 +567,7 @@ describe('Publish CLI command', () => {
             { value: 'y', timeout: 4000 },
             { value: ENTER, timeout: 500 },
           ],
+          env: { NETRC_FILEPATH: NETRC_FILENAME },
         }
       );
       expect(result.stdout).toContain(
