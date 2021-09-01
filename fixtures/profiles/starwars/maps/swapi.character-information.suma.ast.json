@@ -265,34 +265,6 @@
                           "start": 510,
                           "end": 600
                         }
-                      },
-                      {
-                        "kind": "Assignment",
-                        "key": [
-                          "characters"
-                        ],
-                        "value": {
-                          "kind": "JessieExpression",
-                          "expression": "body.results.map(function (result) { return result.name; })",
-                          "source": "body.results.map(result => result.name)",
-                          "sourceMap": "AAAA,IAAI,aAAa,GAAG,IAAI,CAAC,OAAO,CAAC,GAAG,CAAC,UAAA,MAAM,IAAI,OAAA,MAAM,CAAC,IAAI,EAAX,CAAW,CAAC,CAAC",
-                          "location": {
-                            "line": 21,
-                            "column": 22
-                          },
-                          "span": {
-                            "start": 622,
-                            "end": 661
-                          }
-                        },
-                        "location": {
-                          "line": 21,
-                          "column": 9
-                        },
-                        "span": {
-                          "start": 609,
-                          "end": 661
-                        }
                       }
                     ],
                     "location": {
@@ -301,7 +273,7 @@
                     },
                     "span": {
                       "start": 500,
-                      "end": 669
+                      "end": 608
                     }
                   },
                   "location": {
@@ -310,7 +282,7 @@
                   },
                   "span": {
                     "start": 457,
-                    "end": 669
+                    "end": 608
                   }
                 },
                 {
@@ -327,31 +299,31 @@
                         "source": "entries[0]",
                         "sourceMap": "AAAA,IAAI,aAAa,GAAG,OAAO,CAAC,CAAC,CAAC,CAAC",
                         "location": {
-                          "line": 24,
+                          "line": 23,
                           "column": 19
                         },
                         "span": {
-                          "start": 695,
-                          "end": 705
+                          "start": 634,
+                          "end": 644
                         }
                       },
                       "location": {
-                        "line": 24,
+                        "line": 23,
                         "column": 7
                       },
                       "span": {
-                        "start": 683,
-                        "end": 705
+                        "start": 622,
+                        "end": 644
                       }
                     }
                   ],
                   "location": {
-                    "line": 24,
+                    "line": 23,
                     "column": 7
                   },
                   "span": {
-                    "start": 683,
-                    "end": 705
+                    "start": 622,
+                    "end": 644
                   }
                 },
                 {
@@ -372,21 +344,21 @@
                           "source": "character.height",
                           "sourceMap": "AAAA,IAAI,aAAa,GAAG,SAAS,CAAC,MAAM,CAAC",
                           "location": {
-                            "line": 27,
+                            "line": 26,
                             "column": 18
                           },
                           "span": {
-                            "start": 743,
-                            "end": 759
+                            "start": 682,
+                            "end": 698
                           }
                         },
                         "location": {
-                          "line": 27,
+                          "line": 26,
                           "column": 9
                         },
                         "span": {
-                          "start": 734,
-                          "end": 759
+                          "start": 673,
+                          "end": 698
                         }
                       },
                       {
@@ -400,21 +372,21 @@
                           "source": "character.mass",
                           "sourceMap": "AAAA,IAAI,aAAa,GAAG,SAAS,CAAC,IAAI,CAAC",
                           "location": {
-                            "line": 28,
+                            "line": 27,
                             "column": 18
                           },
                           "span": {
-                            "start": 777,
-                            "end": 791
+                            "start": 716,
+                            "end": 730
                           }
                         },
                         "location": {
-                          "line": 28,
+                          "line": 27,
                           "column": 9
                         },
                         "span": {
-                          "start": 768,
-                          "end": 791
+                          "start": 707,
+                          "end": 730
                         }
                       },
                       {
@@ -428,40 +400,40 @@
                           "source": "character.birth_year",
                           "sourceMap": "AAAA,IAAI,aAAa,GAAG,SAAS,CAAC,UAAU,CAAC",
                           "location": {
-                            "line": 29,
+                            "line": 28,
                             "column": 23
                           },
                           "span": {
-                            "start": 814,
-                            "end": 834
+                            "start": 753,
+                            "end": 773
                           }
                         },
                         "location": {
-                          "line": 29,
+                          "line": 28,
                           "column": 9
                         },
                         "span": {
-                          "start": 800,
-                          "end": 834
+                          "start": 739,
+                          "end": 773
                         }
                       }
                     ],
                     "location": {
-                      "line": 26,
+                      "line": 25,
                       "column": 18
                     },
                     "span": {
-                      "start": 724,
-                      "end": 842
+                      "start": 663,
+                      "end": 781
                     }
                   },
                   "location": {
-                    "line": 26,
+                    "line": 25,
                     "column": 7
                   },
                   "span": {
-                    "start": 713,
-                    "end": 842
+                    "start": 652,
+                    "end": 781
                   }
                 }
               ],
@@ -471,7 +443,7 @@
               },
               "span": {
                 "start": 210,
-                "end": 848
+                "end": 787
               }
             }
           ],
@@ -481,7 +453,7 @@
           },
           "span": {
             "start": 104,
-            "end": 852
+            "end": 791
           }
         }
       ],
@@ -491,7 +463,7 @@
       },
       "span": {
         "start": 67,
-        "end": 854
+        "end": 793
       }
     }
   ],
@@ -501,6 +473,6 @@
   },
   "span": {
     "start": 0,
-    "end": 854
+    "end": 793
   }
 }

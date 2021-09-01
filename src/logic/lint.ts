@@ -71,7 +71,7 @@ export async function lintFile(
   }
 
   const parse = DOCUMENT_PARSE_FUNCTION[documentType];
-  const content = await readFile(path).then(f => f.toString());
+  const content = await readFile(path, { encoding: 'utf-8' });
   const source = new Source(content, path);
 
   const result: FileReport = {
@@ -334,7 +334,7 @@ export async function getProfileDocument(
   path: string
 ): Promise<ProfileDocument> {
   const parseFunction = DOCUMENT_PARSE_FUNCTION[DocumentType.PROFILE];
-  const content = (await readFile(path)).toString();
+  const content = await readFile(path, { encoding: 'utf-8' });
   const source = new Source(content, path);
 
   return parseFunction(source);
@@ -342,7 +342,7 @@ export async function getProfileDocument(
 
 export async function getMapDocument(path: string): Promise<MapDocument> {
   const parseFunction = DOCUMENT_PARSE_FUNCTION[DocumentType.MAP];
-  const content = (await readFile(path)).toString();
+  const content = await readFile(path, { encoding: 'utf-8' });
   const source = new Source(content, path);
 
   return parseFunction(source);

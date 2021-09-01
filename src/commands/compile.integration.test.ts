@@ -5,7 +5,6 @@ import { join as joinPath, resolve } from 'path';
 
 import { exists, mkdir, readFile, rimraf, stat } from '../common/io';
 import { OutputStream } from '../common/output-stream';
-// import { MockStd, mockStd } from '../test/mock-std';
 import { execCLI, setUpTempDir } from '../test/utils';
 
 describe('Compile CLI command', () => {
