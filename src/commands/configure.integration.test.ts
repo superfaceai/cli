@@ -120,7 +120,7 @@ describe('Configure CLI command', () => {
       };
       await mockServer
         .get('/providers/' + emptyProvider)
-        .withHeaders({ Accept: ContentType.JSON })
+        .withHeaders({ 'Content-Type': ContentType.JSON })
         .thenJson(200, mockProviderInfo);
 
       result = await execCLI(
@@ -145,7 +145,7 @@ describe('Configure CLI command', () => {
         priority: [emptyProvider],
         providers: { [emptyProvider]: {} },
       });
-    }, 20000);
+    }, 30000);
 
     it('configures provider without security schemes correctly', async () => {
       const providerWithoutSecurity = 'provider-without-security';
@@ -170,7 +170,7 @@ describe('Configure CLI command', () => {
       };
       await mockServer
         .get('/providers/' + providerWithoutSecurity)
-        .withHeaders({ Accept: ContentType.JSON })
+        .withHeaders({ 'Content-Type': ContentType.JSON })
         .thenJson(200, mockProviderInfo);
 
       result = await execCLI(
@@ -195,7 +195,7 @@ describe('Configure CLI command', () => {
         priority: [providerWithoutSecurity],
         providers: { [providerWithoutSecurity]: {} },
       });
-    }, 20000);
+    }, 30000);
 
     it('does not log to stdout with --quiet', async () => {
       let result = await execCLI(
@@ -248,7 +248,7 @@ describe('Configure CLI command', () => {
         priority: [provider],
         providers: { [provider]: {} },
       });
-    }, 20000);
+    }, 30000);
   });
 
   describe('when providers are present in super.json', () => {
@@ -293,7 +293,7 @@ describe('Configure CLI command', () => {
       ).unwrap();
 
       expect(superJson.document).toEqual(localSuperJson);
-    }, 20000);
+    }, 30000);
 
     it('overrides existing super.json with a force flag', async () => {
       const simpleProvider = 'simple-provider';
@@ -343,7 +343,7 @@ describe('Configure CLI command', () => {
 
       await mockServer
         .get('/providers/' + simpleProvider)
-        .withHeaders({ Accept: ContentType.JSON })
+        .withHeaders({ 'Content-Type': ContentType.JSON })
         .thenJson(200, mockProviderInfo);
 
       const result = await execCLI(
@@ -372,7 +372,7 @@ describe('Configure CLI command', () => {
         priority: [simpleProvider],
         providers: { [simpleProvider]: {} },
       });
-    }, 20000);
+    }, 30000);
   });
 
   describe('when there is a localProvider flag', () => {
@@ -434,7 +434,7 @@ describe('Configure CLI command', () => {
         priority: [provider],
         providers: { [provider]: {} },
       });
-    }, 20000);
+    }, 30000);
 
     it('does not load provider data from nonexistent file', async () => {
       //set existing super.json

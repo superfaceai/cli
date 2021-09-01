@@ -1,5 +1,5 @@
 import { EXTENSIONS, ProfileDocumentNode } from '@superfaceai/ast';
-import { SuperJson } from '@superfaceai/one-sdk';
+import { Parser, SuperJson } from '@superfaceai/one-sdk';
 import createDebug from 'debug';
 import {
   basename,
@@ -26,7 +26,6 @@ import {
 import { exists, isAccessible, readFile } from '../common/io';
 import { formatShellLog, LogCallback } from '../common/log';
 import { OutputStream } from '../common/output-stream';
-import { Parser } from '../common/parser';
 import { ProfileId } from '../common/profile';
 import { arrayFilterUndefined } from '../common/util';
 import {

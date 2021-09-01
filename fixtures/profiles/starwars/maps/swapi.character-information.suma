@@ -18,7 +18,6 @@ map RetrieveCharacterInformation {
 
       return map error if (entries.length === 0) {
         message = "Specified character name is incorrect, did you mean to enter one of following?"
-        characters = body.results.map(result => result.name)
       }
       
       character = entries[0]

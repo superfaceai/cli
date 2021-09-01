@@ -63,6 +63,7 @@ npx @superfaceai/cli install [profileId eg. communication/send-email] -i
 * [`superface lint [FILE]`](#superface-lint-file)
 * [`superface login`](#superface-login)
 * [`superface whoami`](#superface-whoami)
+* [`superface publish DOCUMENTTYPE`](#superface-publish-documenttype)
 
 ## `superface check`
 
@@ -117,8 +118,8 @@ EXAMPLES
   $ superface configure twilio -p send-sms
   $ superface configure twilio -p send-sms -q
   $ superface configure twilio -p send-sms -f
-  $ superface configure twilio -p send-sms --local-provider providers/twilio.provider.json
-  $ superface configure twilio -p send-sms --local-map maps/send-sms.twilio.suma
+  $ superface configure twilio -p send-sms --localProvider providers/twilio.provider.json
+  $ superface configure twilio -p send-sms --localMap maps/send-sms.twilio.suma
 ```
 
 _See code: [src/commands/configure.ts](https://github.com/superfaceai/cli/tree/main/src/commands/configure.ts)_
@@ -173,7 +174,7 @@ EXAMPLES
   $ superface create -i
 ```
 
-_See code: [src/commands/create/profile.ts](https://github.com/superfaceai/cli/tree/main/src/commands/create/profile.ts)_
+_See code: [src/commands/create.ts](https://github.com/superfaceai/cli/tree/main/src/commands/create.ts)_
 
 ## `superface init [NAME]`
 
@@ -200,7 +201,7 @@ EXAMPLES
   superface init foo --profiles my-profile@1.1.0 another-profile@2.0 --providers osm gmaps
 ```
 
-_See code: [src/commands/create/provider.ts](https://github.com/superfaceai/cli/tree/main/src/commands/create/provider.ts)_
+_See code: [src/commands/init.ts](https://github.com/superfaceai/cli/tree/main/src/commands/init.ts)_
 
 ## `superface install [PROFILEID]`
 
@@ -275,6 +276,7 @@ DESCRIPTION
 
 EXAMPLES
   $ superface lint
+  $ superface lint --validate
   $ superface lint -o -2
   $ superface lint -f json
   $ superface lint my/path/to/sms/service@1.0
@@ -321,6 +323,41 @@ EXAMPLES
 ```
 
 _See code: [src/commands/whoami.ts](https://github.com/superfaceai/cli/tree/main/src/commands/whoami.ts)_
+
+## `superface publish DOCUMENTTYPE`
+
+Uploads map/profile/provider to Store. Published file must be locally linked in super.json. This command runs Check and Lint internaly to ensure quality
+
+```
+USAGE
+  $ superface publish DOCUMENTTYPE
+
+ARGUMENTS
+  DOCUMENTTYPE  (map|profile|provider) Document type of publeshed file
+
+OPTIONS
+  -f, --force                  Publishes without asking for any confirmation.
+  -h, --help                   show CLI help
+  -j, --json                   Formats result to JSON
+  -q, --quiet                  When set to true, disables the shell echo output of action.
+
+  -s, --scan=scan              When a number is provided, scan for super.json outside cwd within the range represented
+                               by this number.
+
+  --dryRun                     Runs without sending the actual request.
+
+  --profileId=profileId        (required) Profile Id in format [scope/](optional)[name]
+
+  --providerName=providerName  (required) Name of the provider. This argument is used to publish a map or a provider.
+
+EXAMPLES
+  $ superface publish map --profileId starwars/characeter-information --providerName swapi -s 4
+  $ superface publish profile --profileId starwars/characeter-information --providerName swapi -f
+  $ superface publish provider --profileId starwars/characeter-information --providerName swapi -q
+  $ superface publish profile --profileId starwars/characeter-information --providerName swapi --dryRun
+```
+
+_See code: [src/commands/publish.ts](https://github.com/superfaceai/cli/tree/main/src/commands/publish.ts)_
 <!-- commandsstop -->
 
 ## Interactive install

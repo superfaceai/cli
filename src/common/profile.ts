@@ -29,6 +29,10 @@ export class ProfileId {
     this.id = scope ? `${scope}/${name}` : name;
   }
 
+  withVersion(version?: string): string {
+    return `${this.id}${version ? `@${version}` : ''}`;
+  }
+
   toString(): string {
     return this.id;
   }
