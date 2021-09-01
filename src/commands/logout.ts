@@ -1,9 +1,9 @@
+import { ServiceClientError } from '@superfaceai/service-client';
 import { green, yellow } from 'chalk';
 
 import { Command } from '../common/command.abstract';
-import { SuperfaceClient } from '../common/http';
-import { ServiceClientError } from '@superfaceai/service-client';
 import { userError } from '../common/error';
+import { SuperfaceClient } from '../common/http';
 
 export default class Logout extends Command {
   static strict = false;

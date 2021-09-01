@@ -12,6 +12,7 @@ import { join as joinPath, relative } from 'path';
 import { DEFAULT_PROFILE_VERSION_STR } from '../common/document';
 import { ContentType } from '../common/http';
 import { mkdir, readFile } from '../common/io';
+import { OutputStream } from '../common/output-stream';
 
 export const ENTER = '\x0D';
 export const SPACE = '\x20';
@@ -342,10 +343,17 @@ export function mockResponse(
 /**
  * Creates a random directory in `path` and returns the path
  */
-export async function setUpTempDir(path: string): Promise<string> {
+export async function setUpTempDir(
+  path: string,
+  withNetrc = false
+): Promise<string> {
   const randomDigits = Math.floor(Math.random() * 100000).toString();
   const directory = joinPath(path, `test-${randomDigits}`);
   await mkdir(directory, { recursive: true });
+  //set mock .netrc
+  if (withNetrc) {
+    await OutputStream.writeOnce(joinPath(directory, '.netrc'), '');
+  }
 
   return directory;
 }
