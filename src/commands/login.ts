@@ -42,7 +42,8 @@ export default class Login extends Command {
       );
     } else {
       const storeUrl = getServicesUrl();
-      const netrc = new Netrc();
+      //environment variable for specific netrc file
+      const netrc = new Netrc(process.env.NETRC_FILEPATH);
       await netrc.load();
       const previousEntry = netrc.machines[storeUrl];
       try {

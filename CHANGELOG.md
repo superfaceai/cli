@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - Whoami command
+- Logout command
 - Login command
 - Compile command compiles to cache
 - Compile command scoped for single file

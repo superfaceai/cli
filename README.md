@@ -62,8 +62,9 @@ npx @superfaceai/cli install [profileId eg. communication/send-email] -i
 * [`superface install [PROFILEID]`](#superface-install-profileid)
 * [`superface lint [FILE]`](#superface-lint-file)
 * [`superface login`](#superface-login)
-* [`superface whoami`](#superface-whoami)
+* [`superface logout`](#superface-logout)
 * [`superface publish DOCUMENTTYPE`](#superface-publish-documenttype)
+* [`superface whoami`](#superface-whoami)
 
 ## `superface check`
 
@@ -305,24 +306,23 @@ EXAMPLES
 
 _See code: [src/commands/login.ts](https://github.com/superfaceai/cli/tree/main/src/commands/login.ts)_
 
-## `superface whoami`
+## `superface logout`
 
-Prints info about logged in user
+Logs out logged in user
 
 ```
 USAGE
-  $ superface whoami
+  $ superface logout
 
 OPTIONS
   -h, --help   show CLI help
   -q, --quiet  When set to true, disables the shell echo output of action.
 
-EXAMPLES
-  $ superface whoami
-  $ sf whoami
+EXAMPLE
+  $ superface logout
 ```
 
-_See code: [src/commands/whoami.ts](https://github.com/superfaceai/cli/tree/main/src/commands/whoami.ts)_
+_See code: [src/commands/logout.ts](https://github.com/superfaceai/cli/tree/main/src/commands/logout.ts)_
 
 ## `superface publish DOCUMENTTYPE`
 
@@ -358,6 +358,25 @@ EXAMPLES
 ```
 
 _See code: [src/commands/publish.ts](https://github.com/superfaceai/cli/tree/main/src/commands/publish.ts)_
+
+## `superface whoami`
+
+Prints info about logged in user
+
+```
+USAGE
+  $ superface whoami
+
+OPTIONS
+  -h, --help   show CLI help
+  -q, --quiet  When set to true, disables the shell echo output of action.
+
+EXAMPLES
+  $ superface whoami
+  $ sf whoami
+```
+
+_See code: [src/commands/whoami.ts](https://github.com/superfaceai/cli/tree/main/src/commands/whoami.ts)_
 <!-- commandsstop -->
 
 ## Interactive install
