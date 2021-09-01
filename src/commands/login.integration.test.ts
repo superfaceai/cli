@@ -8,7 +8,6 @@ import { Netrc } from 'netrc-parser';
 import { join as joinPath } from 'path';
 
 import { mkdir, rimraf } from '../common/io';
-import { saveNetrc } from '../common/netrc';
 import {
   ENTER,
   execCLI,
@@ -22,44 +21,24 @@ describe('Login CLI command', () => {
   //File specific path
   const TEMP_PATH = joinPath('test', 'tmp');
   let tempDir: string;
-
-  const netRc = new Netrc();
-  let originalNetrcRecord: { baseUrl?: string; password?: string };
   const mockRefreshToken = 'RT';
+  let NETRC_FILENAME: string;
 
   beforeAll(async () => {
     await mkdir(TEMP_PATH, { recursive: true });
-    await mockServer.start();
   });
   beforeEach(async () => {
-    tempDir = await setUpTempDir(TEMP_PATH);
-    //Load existing netrc
-    await netRc.load();
-    if (netRc.machines[mockServer.url]) {
-      originalNetrcRecord = netRc.machines[mockServer.url];
-    }
+    await mockServer.start();
+    //Test specific netrc
+    tempDir = await setUpTempDir(TEMP_PATH, true);
+    NETRC_FILENAME = '.netrc';
   });
 
   afterEach(async () => {
     await rimraf(tempDir);
-
-    delete netRc.machines[mockServer.url];
-    await netRc.save();
-
-    mockServer.reset();
-  });
-
-  afterAll(async () => {
-    //If there was a value keep it
-    if (originalNetrcRecord) {
-      netRc.machines[mockServer.url] = originalNetrcRecord;
-    } else {
-      delete netRc.machines[mockServer.url];
-    }
-    await netRc.save();
-
     await mockServer.stop();
   });
+
   describe('when logging in', () => {
     it('logs in when netrc is empty', async () => {
       const mockInitLoginResponse: CLILoginResponse = {
@@ -82,6 +61,7 @@ describe('Login CLI command', () => {
       });
 
       const result = await execCLI(tempDir, ['login'], mockServer.url, {
+        env: { NETRC_FILEPATH: NETRC_FILENAME },
         inputs: [
           //Do not open browser
           { value: 'n', timeout: 3000 },
@@ -97,7 +77,7 @@ describe('Login CLI command', () => {
       );
       expect(result.stdout).toContain('Logged in');
 
-      const savedNetRc = new Netrc();
+      const savedNetRc = new Netrc(joinPath(tempDir, NETRC_FILENAME));
       await savedNetRc.load();
       expect(savedNetRc.machines[mockServer.url]).not.toBeUndefined();
       expect(savedNetRc.machines[mockServer.url].password).toEqual(
@@ -109,8 +89,11 @@ describe('Login CLI command', () => {
     });
 
     it('logs in when netrc is not empty', async () => {
-      const oldRefreshToken = 'oldRT';
-      await saveNetrc(mockServer.url, oldRefreshToken);
+      //Set mock refresh token in netrc
+      const netRc = new Netrc(joinPath(tempDir, NETRC_FILENAME));
+      await netRc.load();
+      netRc.machines[mockServer.url] = { password: 'oldRT' };
+      await netRc.save();
 
       const mockInitLoginResponse: CLILoginResponse = {
         success: true,
@@ -132,6 +115,7 @@ describe('Login CLI command', () => {
       });
 
       const result = await execCLI(tempDir, ['login'], mockServer.url, {
+        env: { NETRC_FILEPATH: NETRC_FILENAME },
         inputs: [
           //Do not open browser
           { value: 'n', timeout: 3000 },
@@ -147,7 +131,7 @@ describe('Login CLI command', () => {
       );
       expect(result.stdout).toContain('Logged in');
 
-      const savedNetRc = new Netrc();
+      const savedNetRc = new Netrc(joinPath(tempDir, NETRC_FILENAME));
       await savedNetRc.load();
       expect(savedNetRc.machines[mockServer.url]).not.toBeUndefined();
       expect(savedNetRc.machines[mockServer.url].password).toEqual(
@@ -178,6 +162,7 @@ describe('Login CLI command', () => {
 
       await expect(
         execCLI(tempDir, ['login'], mockServer.url, {
+          env: { NETRC_FILEPATH: NETRC_FILENAME },
           inputs: [
             //Do not open browser
             { value: 'n', timeout: 3000 },
@@ -188,7 +173,7 @@ describe('Login CLI command', () => {
         expect.stringContaining(`Attempt to login ended with: Mock error`)
       );
 
-      const savedNetRc = new Netrc();
+      const savedNetRc = new Netrc(joinPath(tempDir, NETRC_FILENAME));
       await savedNetRc.load();
       expect(savedNetRc.machines[mockServer.url]).toBeUndefined();
     });
@@ -214,6 +199,7 @@ describe('Login CLI command', () => {
 
       await expect(
         execCLI(tempDir, ['login'], mockServer.url, {
+          env: { NETRC_FILEPATH: NETRC_FILENAME },
           inputs: [
             //Do not open browser
             { value: 'n', timeout: 3000 },
@@ -226,7 +212,7 @@ describe('Login CLI command', () => {
         )
       );
 
-      const savedNetRc = new Netrc();
+      const savedNetRc = new Netrc(joinPath(tempDir, NETRC_FILENAME));
       await savedNetRc.load();
       expect(savedNetRc.machines[mockServer.url]).toBeUndefined();
     });
@@ -246,6 +232,7 @@ describe('Login CLI command', () => {
 
       await expect(
         execCLI(tempDir, ['login'], mockServer.url, {
+          env: { NETRC_FILEPATH: NETRC_FILENAME },
           inputs: [
             //Do not open browser
             { value: 'n', timeout: 3000 },
@@ -258,7 +245,7 @@ describe('Login CLI command', () => {
         )
       );
 
-      const savedNetRc = new Netrc();
+      const savedNetRc = new Netrc(joinPath(tempDir, NETRC_FILENAME));
       await savedNetRc.load();
       expect(savedNetRc.machines[mockServer.url]).toBeUndefined();
     });

@@ -62,6 +62,7 @@ npx @superfaceai/cli install [profileId eg. communication/send-email] -i
 * [`superface install [PROFILEID]`](#superface-install-profileid)
 * [`superface lint [FILE]`](#superface-lint-file)
 * [`superface login`](#superface-login)
+* [`superface logout`](#superface-logout)
 * [`superface publish DOCUMENTTYPE`](#superface-publish-documenttype)
 
 ## `superface check`
@@ -173,7 +174,7 @@ EXAMPLES
   $ superface create -i
 ```
 
-_See code: [src/commands/create.ts](https://github.com/superfaceai/cli/tree/main/src/commands/create.ts)_
+_See code: [src/commands/create/profile.ts](https://github.com/superfaceai/cli/tree/main/src/commands/create/profile.ts)_
 
 ## `superface init [NAME]`
 
@@ -200,7 +201,7 @@ EXAMPLES
   superface init foo --profiles my-profile@1.1.0 another-profile@2.0 --providers osm gmaps
 ```
 
-_See code: [src/commands/init.ts](https://github.com/superfaceai/cli/tree/main/src/commands/init.ts)_
+_See code: [src/commands/create/provider.ts](https://github.com/superfaceai/cli/tree/main/src/commands/create/provider.ts)_
 
 ## `superface install [PROFILEID]`
 
@@ -303,6 +304,24 @@ EXAMPLES
 ```
 
 _See code: [src/commands/login.ts](https://github.com/superfaceai/cli/tree/main/src/commands/login.ts)_
+
+## `superface logout`
+
+Logs out logged in user
+
+```
+USAGE
+  $ superface logout
+
+OPTIONS
+  -h, --help   show CLI help
+  -q, --quiet  When set to true, disables the shell echo output of action.
+
+EXAMPLE
+  $ superface logout
+```
+
+_See code: [src/commands/logout.ts](https://github.com/superfaceai/cli/tree/main/src/commands/logout.ts)_
 
 ## `superface publish DOCUMENTTYPE`
 

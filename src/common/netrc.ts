@@ -6,7 +6,8 @@ export function loadNetrc(): {
   baseUrl: string;
   refreshToken?: string;
 } {
-  const netrc = new Netrc();
+  //environment variable for specific netrc file
+  const netrc = new Netrc(process.env.NETRC_FILEPATH);
   const baseUrl = getServicesUrl();
   netrc.loadSync();
   const superfaceEntry = netrc.machines[baseUrl] ?? {};
@@ -21,7 +22,8 @@ export async function saveNetrc(
   baseUrl: string,
   refreshToken: string | null
 ): Promise<void> {
-  const netrc = new Netrc();
+  //environment variable for specific netrc file
+  const netrc = new Netrc(process.env.NETRC_FILEPATH);
   await netrc.load();
 
   //Remove old record
