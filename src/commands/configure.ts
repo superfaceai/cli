@@ -54,8 +54,8 @@ export default class Configure extends Command {
     '$ superface configure twilio -p send-sms',
     '$ superface configure twilio -p send-sms -q',
     '$ superface configure twilio -p send-sms -f',
-    '$ superface configure twilio -p send-sms --local-provider providers/twilio.provider.json',
-    '$ superface configure twilio -p send-sms --local-map maps/send-sms.twilio.suma',
+    '$ superface configure twilio -p send-sms --localProvider providers/twilio.provider.json',
+    '$ superface configure twilio -p send-sms --localMap maps/send-sms.twilio.suma',
   ];
 
   private warnCallback? = (message: string) => this.log(yellow(message));

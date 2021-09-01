@@ -131,7 +131,7 @@ export async function mockResponsesForProvider(
 
   await server
     .get('/providers/' + provider)
-    .withHeaders({ Accept: ContentType.JSON })
+    .withHeaders({ 'Content-Type': ContentType.JSON })
     .thenJson(200, providerInfo);
 }
 
@@ -157,15 +157,35 @@ export async function mockResponsesForProfileProviders(
   await server
     .get('/providers')
     .withQuery({ profile: profile })
-    .withHeaders({ Accept: ContentType.JSON })
+    .withHeaders({ 'Content-Type': ContentType.JSON })
     .thenJson(200, { data: providersInfo });
 }
 
 /**
- * Mocks HTTP responses for login
- *
- * mocks /auth/cli and /auth/cli/verify paths
+ * Mocks HTTP responses for a publishing endpoint
  */
+export async function mockResponsesForPublish(server: Mockttp): Promise<void> {
+  await server
+    .post('/providers')
+    .withHeaders({ 'Content-Type': ContentType.JSON })
+    .thenJson(200, {});
+
+  await server
+    .post('/profiles')
+    .withHeaders({ 'Content-Type': ContentType.TEXT })
+    .thenJson(200, {});
+
+  await server
+    .post('/maps')
+    .withHeaders({ 'Content-Type': ContentType.TEXT })
+    .thenJson(200, {});
+}
+/**
+
+* Mocks HTTP responses for login
+*
+* mocks /auth/cli and /auth/cli/verify paths
+*/
 export async function mockResponsesForLogin(
   server: Mockttp,
   mockInitLoginResponse: CLILoginResponse,

@@ -1,6 +1,6 @@
 import { CLIError } from '@oclif/errors';
 import { ProfileDocumentNode } from '@superfaceai/ast';
-import { ok, SuperJson } from '@superfaceai/one-sdk';
+import { ok, Parser, SuperJson } from '@superfaceai/one-sdk';
 import { join } from 'path';
 import { mocked } from 'ts-jest/utils';
 
@@ -12,7 +12,6 @@ import {
 } from '../common/http';
 import { exists, mkdirQuiet, readFile, rimraf } from '../common/io';
 import { OutputStream } from '../common/output-stream';
-import { Parser } from '../common/parser';
 import { ProfileId } from '../common/profile';
 import { transpileFiles } from '../logic/generate';
 import {

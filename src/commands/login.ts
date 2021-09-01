@@ -9,7 +9,6 @@ import { login } from '../logic/login';
 export default class Login extends Command {
   static description = 'Login to superface server';
 
-  //TODO: some flags?
   static flags = {
     ...Command.flags,
     force: oclifFlags.boolean({
@@ -50,7 +49,6 @@ export default class Login extends Command {
       try {
         //check if already logged in and logout
         if (previousEntry && previousEntry.password) {
-          //TODO: do not log out if logged in?
           this.logCallback?.('⚠️ Already logged in, logging out');
           //logout from service client
           await SuperfaceClient.getClient().logout();

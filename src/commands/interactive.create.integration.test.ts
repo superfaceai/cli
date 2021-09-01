@@ -96,16 +96,16 @@ describe('Interactive create CLI command', () => {
             //Create profile
             { value: ENTER, timeout: 2000 },
             //Create map
-            { value: 'n', timeout: 1200 },
-            { value: ENTER, timeout: 200 },
+            { value: 'n', timeout: 2000 },
+            { value: ENTER, timeout: 100 },
             //Create provider
             { value: 'n', timeout: 2000 },
-            { value: ENTER, timeout: 200 },
+            { value: ENTER, timeout: 100 },
             //Profile
             { value: documentName, timeout: 2000 },
             { value: ENTER, timeout: 200 },
             //Init superface
-            { value: ENTER, timeout: 200 },
+            { value: ENTER, timeout: 500 },
           ],
         }
       );
@@ -181,7 +181,7 @@ describe('Interactive create CLI command', () => {
         },
         providers: {},
       });
-    }, 20000);
+    }, 30000);
 
     it('creates map with one usecase (with usecase name from cli)', async () => {
       documentName = 'sms/service';
@@ -240,7 +240,7 @@ describe('Interactive create CLI command', () => {
         },
         providers: {},
       });
-    }, 20000);
+    }, 30000);
 
     it('creates map with one usecase and with provider', async () => {
       documentName = 'sms/service';
@@ -307,7 +307,7 @@ describe('Interactive create CLI command', () => {
           },
         },
       });
-    }, 20000);
+    }, 30000);
 
     it('creates map with mutiple usecases', async () => {
       documentName = 'sms/service';
@@ -372,7 +372,7 @@ describe('Interactive create CLI command', () => {
         },
         providers: {},
       });
-    }, 20000);
+    }, 30000);
 
     it('creates profile & map with one usecase (with usecase name from cli)', async () => {
       documentName = 'sms/service';
@@ -442,7 +442,7 @@ describe('Interactive create CLI command', () => {
         },
         providers: {},
       });
-    }, 20000);
+    }, 30000);
 
     it('creates profile & map with one usecase', async () => {
       documentName = 'sms/service';
@@ -516,7 +516,7 @@ describe('Interactive create CLI command', () => {
         },
         providers: {},
       });
-    }, 20000);
+    }, 30000);
 
     it('creates profile & map with multiple usecases', async () => {
       documentName = 'sms/service';
@@ -589,6 +589,6 @@ describe('Interactive create CLI command', () => {
         },
         providers: {},
       });
-    }, 20000);
+    }, 30000);
   });
 });

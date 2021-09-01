@@ -7,6 +7,7 @@ import {
   isDigestSecurityValues,
   META_FILE,
   OnFail,
+  Parser,
   RetryPolicy,
   SecurityValues,
   SUPERFACE_DIR,
@@ -23,7 +24,6 @@ import { exists, readFile } from '../common/io';
 import { LogCallback } from '../common/log';
 import { OutputStream } from '../common/output-stream';
 import { PackageManager } from '../common/package-manager';
-import { Parser } from '../common/parser';
 import { NORMALIZED_CWD_PATH } from '../common/path';
 import { ProfileId } from '../common/profile';
 import { envVariable } from '../templates/env';
@@ -281,7 +281,7 @@ export async function interactiveInstall(
 
   //Get .env file
   if (await exists('.env')) {
-    envContent = (await readFile('.env')).toString();
+    envContent = await readFile('.env', { encoding: 'utf-8' });
   }
   let selectedSchema: SecurityValues;
   for (const provider of Object.keys(installedProviders)) {

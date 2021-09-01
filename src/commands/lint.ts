@@ -19,7 +19,6 @@ import {
 } from '../logic/lint';
 
 type OutputFormatFlag = 'long' | 'short' | 'json';
-//TODO: decide if we want to merge check and lint. If we dont we need to refactor this to scope to one capability and to compile
 
 export default class Lint extends Command {
   static description =
@@ -61,7 +60,7 @@ export default class Lint extends Command {
     })({ default: 'long' }),
 
     color: oclifFlags.boolean({
-      // TODO: Hidden because it doesn't do anything right now
+      //Hidden because it doesn't do anything right now
       hidden: true,
       allowNo: true,
       description:
@@ -85,6 +84,7 @@ export default class Lint extends Command {
 
   static examples = [
     '$ superface lint',
+    '$ superface lint --validate',
     '$ superface lint -o -2',
     '$ superface lint -f json',
     '$ superface lint my/path/to/sms/service@1.0',
