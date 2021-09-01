@@ -64,6 +64,7 @@ npx @superfaceai/cli install [profileId eg. communication/send-email] -i
 * [`superface login`](#superface-login)
 * [`superface logout`](#superface-logout)
 * [`superface publish DOCUMENTTYPE`](#superface-publish-documenttype)
+* [`superface whoami`](#superface-whoami)
 
 ## `superface check`
 
@@ -174,7 +175,7 @@ EXAMPLES
   $ superface create -i
 ```
 
-_See code: [src/commands/create/profile.ts](https://github.com/superfaceai/cli/tree/main/src/commands/create/profile.ts)_
+_See code: [src/commands/create.ts](https://github.com/superfaceai/cli/tree/main/src/commands/create.ts)_
 
 ## `superface init [NAME]`
 
@@ -201,7 +202,7 @@ EXAMPLES
   superface init foo --profiles my-profile@1.1.0 another-profile@2.0 --providers osm gmaps
 ```
 
-_See code: [src/commands/create/provider.ts](https://github.com/superfaceai/cli/tree/main/src/commands/create/provider.ts)_
+_See code: [src/commands/init.ts](https://github.com/superfaceai/cli/tree/main/src/commands/init.ts)_
 
 ## `superface install [PROFILEID]`
 
@@ -357,6 +358,25 @@ EXAMPLES
 ```
 
 _See code: [src/commands/publish.ts](https://github.com/superfaceai/cli/tree/main/src/commands/publish.ts)_
+
+## `superface whoami`
+
+Prints info about logged in user
+
+```
+USAGE
+  $ superface whoami
+
+OPTIONS
+  -h, --help   show CLI help
+  -q, --quiet  When set to true, disables the shell echo output of action.
+
+EXAMPLES
+  $ superface whoami
+  $ sf whoami
+```
+
+_See code: [src/commands/whoami.ts](https://github.com/superfaceai/cli/tree/main/src/commands/whoami.ts)_
 <!-- commandsstop -->
 
 ## Interactive install

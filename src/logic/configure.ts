@@ -289,8 +289,7 @@ export async function reconfigureProvider(
   }
 ): Promise<void> {
   // TODO: Possibly do checks whether the remote file exists?
-  const r = superJson.swapProviderVariant(providerName, target);
-  console.log('r', r);
+  superJson.swapProviderVariant(providerName, target);
 }
 
 /**
