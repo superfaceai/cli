@@ -62,6 +62,7 @@ npx @superfaceai/cli install [profileId eg. communication/send-email] -i
 * [`superface install [PROFILEID]`](#superface-install-profileid)
 * [`superface lint [FILE]`](#superface-lint-file)
 * [`superface login`](#superface-login)
+* [`superface logout`](#superface-logout)
 
 ## `superface check`
 
@@ -300,7 +301,25 @@ EXAMPLES
   $ superface login -f
 ```
 
-_See code: [src/commands/login.ts](https://github.com/superfaceai/cli/tree/main/src/commands/login.ts)_
+_See code: [dist/commands/login.ts](https://github.com/superfaceai/cli/tree/main/src/commands/login.ts)_
+
+## `superface logout`
+
+Logs out logged in user
+
+```
+USAGE
+  $ superface logout
+
+OPTIONS
+  -h, --help   show CLI help
+  -q, --quiet  When set to true, disables the shell echo output of action.
+
+EXAMPLE
+  $ superface logout
+```
+
+_See code: [src/commands/logout.ts](https://github.com/superfaceai/cli/tree/main/src/commands/logout.ts)_
 <!-- commandsstop -->
 
 ## Interactive install

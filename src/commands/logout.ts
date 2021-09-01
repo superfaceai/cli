@@ -8,7 +8,7 @@ import { SuperfaceClient } from '../common/http';
 export default class Logout extends Command {
   static strict = false;
 
-  static description = 'Logout logged in user';
+  static description = 'Logs out logged in user';
 
   static args = [];
 
