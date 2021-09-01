@@ -79,8 +79,7 @@ export function handleProviderResponse(
   if (response.securitySchemes) {
     for (const scheme of response.securitySchemes) {
       options?.logCb?.(
-        `Configuring ${security.length + 1}/${
-          response.securitySchemes.length
+        `Configuring ${security.length + 1}/${response.securitySchemes.length
         } security schemes`
       );
       // Char "-" is not allowed in env variables so replace it with "_"
@@ -289,8 +288,7 @@ export async function reconfigureProvider(
   }
 ): Promise<void> {
   // TODO: Possibly do checks whether the remote file exists?
-  const r = superJson.swapProviderVariant(providerName, target);
-  console.log('r', r);
+  superJson.swapProviderVariant(providerName, target);
 }
 
 /**
