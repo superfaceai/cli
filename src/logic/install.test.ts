@@ -13,7 +13,6 @@ import {
 import { exists, mkdirQuiet, readFile, rimraf } from '../common/io';
 import { OutputStream } from '../common/output-stream';
 import { ProfileId } from '../common/profile';
-import { transpileFiles } from '../logic/generate';
 import {
   detectSuperJson,
   getExistingProfileIds,
@@ -40,8 +39,6 @@ jest.mock('../common/io', () => ({
   exists: jest.fn(),
   readFile: jest.fn(),
 }));
-
-jest.mock('../logic/generate');
 
 describe('Install CLI logic', () => {
   afterEach(() => {
@@ -294,8 +291,6 @@ describe('Install CLI logic', () => {
           },
         },
       });
-
-      expect(transpileFiles).toHaveBeenCalled();
     }, 10000);
 
     it('checks and fetched store requests', async () => {

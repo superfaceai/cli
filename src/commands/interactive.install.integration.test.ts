@@ -74,29 +74,6 @@ describe('Interactive install CLI command', () => {
 
   describe('when installing non existing profile', () => {
     it('installs the profile', async () => {
-      const paths = [
-        joinPath(
-          tempDir,
-          'superface',
-          'types',
-          profile.scope,
-          profile.name + '.js'
-        ),
-        joinPath(
-          tempDir,
-          'superface',
-          'types',
-          profile.scope,
-          profile.name + '.d.ts'
-        ),
-        joinPath(tempDir, 'superface', 'sdk.js'),
-        joinPath(tempDir, 'superface', 'sdk.d.ts'),
-      ];
-      await expect(exists(paths[0])).resolves.toBe(false);
-      await expect(exists(paths[1])).resolves.toBe(false);
-      await expect(exists(paths[2])).resolves.toBe(false);
-      await expect(exists(paths[3])).resolves.toBe(false);
-
       const result = await execCLI(
         tempDir,
         [
@@ -166,10 +143,6 @@ describe('Interactive install CLI command', () => {
         )
       ).resolves.toBe(true);
 
-      await expect(exists(paths[0])).resolves.toBe(true);
-      await expect(exists(paths[1])).resolves.toBe(true);
-      await expect(exists(paths[2])).resolves.toBe(true);
-      await expect(exists(paths[3])).resolves.toBe(true);
       await expect(exists(joinPath(tempDir, '.env'))).resolves.toBe(true);
       await expect(exists(joinPath(tempDir, 'package.json'))).resolves.toBe(
         true
@@ -299,29 +272,6 @@ describe('Interactive install CLI command', () => {
         ''
       );
 
-      const paths = [
-        joinPath(
-          tempDir,
-          'superface',
-          'types',
-          profile.scope,
-          profile.name + '.js'
-        ),
-        joinPath(
-          tempDir,
-          'superface',
-          'types',
-          profile.scope,
-          profile.name + '.d.ts'
-        ),
-        joinPath(tempDir, 'superface', 'sdk.js'),
-        joinPath(tempDir, 'superface', 'sdk.d.ts'),
-      ];
-      await expect(exists(paths[0])).resolves.toBe(false);
-      await expect(exists(paths[1])).resolves.toBe(false);
-      await expect(exists(paths[2])).resolves.toBe(false);
-      await expect(exists(paths[3])).resolves.toBe(false);
-
       const result = await execCLI(
         tempDir,
         [
@@ -411,10 +361,6 @@ describe('Interactive install CLI command', () => {
         )
       ).resolves.toBe(true);
 
-      await expect(exists(paths[0])).resolves.toBe(true);
-      await expect(exists(paths[1])).resolves.toBe(true);
-      await expect(exists(paths[2])).resolves.toBe(true);
-      await expect(exists(paths[3])).resolves.toBe(true);
       await expect(exists(joinPath(tempDir, '.env'))).resolves.toBe(true);
       await expect(exists(joinPath(tempDir, 'package.json'))).resolves.toBe(
         true
