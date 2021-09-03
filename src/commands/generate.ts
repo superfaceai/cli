@@ -17,7 +17,6 @@ export default class Generate extends Command {
 
   static flags = {
     ...Command.flags,
-    //Inputs
     profileId: oclifFlags.string({
       description: 'Profile Id in format [scope/](optional)[name]',
       required: false,

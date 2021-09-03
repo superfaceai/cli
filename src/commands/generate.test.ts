@@ -19,7 +19,7 @@ jest.mock('../logic/generate', () => ({
   generate: jest.fn(),
 }));
 
-describe('Check CLI command', () => {
+describe('Generate CLI command', () => {
   const profileId = 'starwars/character-information';
 
   let stderr: MockStd;
