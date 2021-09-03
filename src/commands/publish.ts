@@ -76,26 +76,14 @@ export default class Publish extends Command {
     '$ superface publish profile --profileId starwars/characeter-information --providerName swapi --dryRun',
   ];
 
-  private logCallback? = (message: string) => this.log(grey(message));
-  private warnCallback? = (message: string) => this.log(yellow(message));
-  private successCallback? = (message: string) => this.log(green(message));
+  private logCallback?= (message: string) => this.log(grey(message));
+  private warnCallback?= (message: string) => this.log(yellow(message));
+  private successCallback?= (message: string) => this.log(green(message));
 
   async run(): Promise<void> {
     const { argv, flags } = this.parse(Publish);
 
     const documentType = argv[0];
-
-    if (!flags.force) {
-      const response: { upload: boolean } = await inquirer.prompt({
-        name: 'upload',
-        message: `Are you sure that you want to publish data to ${getServicesUrl()} registry?`,
-        type: 'confirm',
-      });
-
-      if (!response.upload) {
-        this.exit(0);
-      }
-    }
 
     if (flags.quiet) {
       this.logCallback = undefined;
@@ -193,6 +181,12 @@ export default class Publish extends Command {
 
       //Publishing provider
     } else if (documentType === 'provider') {
+      if (!flags.providerName.startsWith('unverified-')) {
+        throw userError(
+          `❌ When publishing provider, provider must have prefix "unverified-"`,
+          1
+        );
+      }
       if (!('file' in providerSettings) || !providerSettings.file) {
         throw userError(
           `❌ When publishing provider, provider must be locally linked in super.json`,
@@ -210,6 +204,18 @@ export default class Publish extends Command {
         '❌ Document type must be one of "map", "profile", "provider"',
         1
       );
+    }
+
+    if (!flags.force) {
+      const response: { upload: boolean } = await inquirer.prompt({
+        name: 'upload',
+        message: `Are you sure that you want to publish data to ${getServicesUrl()} registry?`,
+        type: 'confirm',
+      });
+
+      if (!response.upload) {
+        this.exit(0);
+      }
     }
 
     const version =

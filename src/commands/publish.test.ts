@@ -40,7 +40,7 @@ describe('Publish CLI command', () => {
 
   describe('running publish command', () => {
     const profileId = 'starwars/character-information';
-    const provider = 'swapi';
+    const provider = 'unverified-swapi';
 
     const mockProfilePath = `../path/to/profile${EXTENSIONS.profile.source}`;
     const mockMapPath = `../path/to/profile${EXTENSIONS.map.source}`;
@@ -51,23 +51,38 @@ describe('Publish CLI command', () => {
         .spyOn(inquirer, 'prompt')
         .mockResolvedValueOnce({ upload: false });
       mocked(detectSuperJson).mockResolvedValue('.');
+      const mockSuperJson = new SuperJson({
+        profiles: {
+          [profileId]: {
+            file: mockProfilePath,
+            providers: {
+              [provider]: {
+                file: 'some/path/to/map.suma'
+              },
+            },
+          },
+        },
+        providers: {
+          [provider]: {},
+        },
+      });
       const loadSpy = jest
         .spyOn(SuperJson, 'load')
-        .mockResolvedValue(ok(new SuperJson()));
+        .mockResolvedValue(ok(mockSuperJson));
 
       await expect(
         Publish.run([
           'map',
           '--profileId',
-          'U!0_',
+          profileId,
           '--providerName',
           provider,
           '-s',
           '3',
         ])
       ).rejects.toEqual(new CLIError('EEXIT: 0'));
-      expect(detectSuperJson).not.toHaveBeenCalled();
-      expect(loadSpy).not.toHaveBeenCalled();
+      expect(detectSuperJson).toHaveBeenCalled();
+      expect(loadSpy).toHaveBeenCalled();
       expect(promptSpy).toHaveBeenCalledTimes(1);
     }, 10000);
 
@@ -97,7 +112,7 @@ describe('Publish CLI command', () => {
       );
       expect(detectSuperJson).not.toHaveBeenCalled();
       expect(loadSpy).not.toHaveBeenCalled();
-      expect(promptSpy).toHaveBeenCalledTimes(1);
+      expect(promptSpy).not.toHaveBeenCalled();
     }, 10000);
 
     it('throws error on invalid provider name', async () => {
@@ -122,7 +137,7 @@ describe('Publish CLI command', () => {
       ).rejects.toEqual(new CLIError('❌ Invalid provider name: "U!0_"'));
       expect(detectSuperJson).not.toHaveBeenCalled();
       expect(loadSpy).not.toHaveBeenCalled();
-      expect(promptSpy).toHaveBeenCalled();
+      expect(promptSpy).not.toHaveBeenCalled();
     }, 10000);
 
     it('throws when super.json not found', async () => {
@@ -141,7 +156,7 @@ describe('Publish CLI command', () => {
       ).rejects.toEqual(
         new CLIError('❌ Unable to publish, super.json not found')
       );
-      expect(promptSpy).toHaveBeenCalled();
+      expect(promptSpy).not.toHaveBeenCalled();
     });
 
     it('throws when super.json not loaded correctly', async () => {
@@ -161,7 +176,7 @@ describe('Publish CLI command', () => {
           provider,
         ])
       ).rejects.toEqual(new CLIError('❌ Unable to load super.json: test'));
-      expect(promptSpy).toHaveBeenCalled();
+      expect(promptSpy).not.toHaveBeenCalled();
     });
 
     it('throws error on invalid scan flag', async () => {
@@ -207,7 +222,7 @@ describe('Publish CLI command', () => {
           '❌ --scan/-s : Number of levels to scan cannot be higher than 5'
         )
       );
-      expect(promptSpy).toHaveBeenCalled();
+      expect(promptSpy).not.toHaveBeenCalled();
       expect(detectSuperJson).not.toHaveBeenCalled();
     }, 10000);
 
@@ -237,7 +252,7 @@ describe('Publish CLI command', () => {
       );
       expect(detectSuperJson).toHaveBeenCalled();
       expect(loadSpy).toHaveBeenCalled();
-      expect(promptSpy).toHaveBeenCalled();
+      expect(promptSpy).not.toHaveBeenCalled();
     }, 10000);
 
     it('throws error when profile path has wrong extension', async () => {
@@ -278,7 +293,7 @@ describe('Publish CLI command', () => {
       );
       expect(detectSuperJson).toHaveBeenCalled();
       expect(loadSpy).toHaveBeenCalled();
-      expect(promptSpy).toHaveBeenCalled();
+      expect(promptSpy).not.toHaveBeenCalled();
     }, 10000);
 
     it('throws error when profile provider not found in super.json', async () => {
@@ -314,7 +329,7 @@ describe('Publish CLI command', () => {
       );
       expect(detectSuperJson).toHaveBeenCalled();
       expect(loadSpy).toHaveBeenCalled();
-      expect(promptSpy).toHaveBeenCalled();
+      expect(promptSpy).not.toHaveBeenCalled();
     }, 10000);
 
     it('throws error when map path has wrong extension', async () => {
@@ -359,7 +374,7 @@ describe('Publish CLI command', () => {
       );
       expect(detectSuperJson).toHaveBeenCalled();
       expect(loadSpy).toHaveBeenCalled();
-      expect(promptSpy).toHaveBeenCalled();
+      expect(promptSpy).not.toHaveBeenCalled();
     }, 10000);
 
     it('throws error when provider not found in super.json', async () => {
@@ -398,7 +413,7 @@ describe('Publish CLI command', () => {
       );
       expect(detectSuperJson).toHaveBeenCalled();
       expect(loadSpy).toHaveBeenCalled();
-      expect(promptSpy).toHaveBeenCalled();
+      expect(promptSpy).not.toHaveBeenCalled();
     });
 
     it('throws error when provider path has wrong extension', async () => {
@@ -444,7 +459,7 @@ describe('Publish CLI command', () => {
       );
       expect(detectSuperJson).toHaveBeenCalled();
       expect(loadSpy).toHaveBeenCalled();
-      expect(promptSpy).toHaveBeenCalled();
+      expect(promptSpy).not.toHaveBeenCalled();
     });
 
     it('throws error when publishing profile and profile not locally linked in super.json', async () => {
@@ -486,7 +501,7 @@ describe('Publish CLI command', () => {
       );
       expect(detectSuperJson).toHaveBeenCalled();
       expect(loadSpy).toHaveBeenCalled();
-      expect(promptSpy).toHaveBeenCalled();
+      expect(promptSpy).not.toHaveBeenCalled();
     });
 
     it('throws error when publishing map and map not locally linked in super.json', async () => {
@@ -528,7 +543,51 @@ describe('Publish CLI command', () => {
       );
       expect(detectSuperJson).toHaveBeenCalled();
       expect(loadSpy).toHaveBeenCalled();
-      expect(promptSpy).toHaveBeenCalled();
+      expect(promptSpy).not.toHaveBeenCalled();
+    });
+
+    it('throws error when publishing provider and provider has not unverified prefix', async () => {
+      const promptSpy = jest
+        .spyOn(inquirer, 'prompt')
+        .mockResolvedValueOnce({ upload: true });
+      mocked(detectSuperJson).mockResolvedValue('.');
+      const mockSuperJson = new SuperJson({
+        profiles: {
+          [profileId]: {
+            version: DEFAULT_PROFILE_VERSION_STR,
+            providers: {
+              test: {},
+            },
+          },
+        },
+        providers: {
+          test: {
+            file: 'path/to/provider.json'
+          },
+        },
+      });
+      const loadSpy = jest
+        .spyOn(SuperJson, 'load')
+        .mockResolvedValue(ok(mockSuperJson));
+
+      await expect(
+        Publish.run([
+          'provider',
+          '--profileId',
+          profileId,
+          '--providerName',
+          'test',
+          '-s',
+          '3',
+        ])
+      ).rejects.toEqual(
+        new CLIError(
+          `❌ When publishing provider, provider must have prefix "unverified-"`
+        )
+      );
+      expect(detectSuperJson).toHaveBeenCalled();
+      expect(loadSpy).toHaveBeenCalled();
+      expect(promptSpy).not.toHaveBeenCalled();
     });
 
     it('throws error when publishing provider and provider not locally linked in super.json', async () => {
@@ -570,7 +629,7 @@ describe('Publish CLI command', () => {
       );
       expect(detectSuperJson).toHaveBeenCalled();
       expect(loadSpy).toHaveBeenCalled();
-      expect(promptSpy).toHaveBeenCalled();
+      expect(promptSpy).not.toHaveBeenCalled();
     });
 
     it('calls publish correctly when publishing profile', async () => {
