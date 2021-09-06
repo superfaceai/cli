@@ -58,7 +58,6 @@ npx @superfaceai/cli install [profileId eg. communication/send-email] -i
 * [`superface check`](#superface-check)
 * [`superface configure PROVIDERNAME`](#superface-configure-providername)
 * [`superface create`](#superface-create)
-* [`superface generate`](#superface-generate)
 * [`superface init [NAME]`](#superface-init-name)
 * [`superface install [PROFILEID]`](#superface-install-profileid)
 * [`superface lint [FILE]`](#superface-lint-file)
@@ -177,30 +176,6 @@ EXAMPLES
 ```
 
 _See code: [src/commands/create.ts](https://github.com/superfaceai/cli/tree/main/src/commands/create.ts)_
-
-## `superface generate`
-
-Generates types for specified profile or for all profiles in super.json.
-
-```
-USAGE
-  $ superface generate
-
-OPTIONS
-  -h, --help             show CLI help
-  -q, --quiet            When set to true, disables the shell echo output of action.
-  -s, --scan=scan        When number provided, scan for super.json outside cwd within range represented by this number.
-  --profileId=profileId  Profile Id in format [scope/](optional)[name]
-
-EXAMPLES
-  $ superface generate --profileId starwars/character-information
-  $ superface generate --profileId starwars/character-information -s 3
-  $ superface generate
-  $ superface generate -h
-  $ superface generate -q
-```
-
-_See code: [src/commands/generate.ts](https://github.com/superfaceai/cli/tree/main/src/commands/generate.ts)_
 
 ## `superface init [NAME]`
 

@@ -12,6 +12,8 @@ import { generate } from '../logic/generate';
 import { detectSuperJson } from '../logic/install';
 
 export default class Generate extends Command {
+  static hidden = true;
+
   static description =
     'Generates types for specified profile or for all profiles in super.json.';
 
