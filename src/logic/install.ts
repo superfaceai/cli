@@ -15,7 +15,6 @@ import {
   SUPER_PATH,
   SUPERFACE_DIR,
   trimExtension,
-  UNCOMPILED_SDK_FILE,
 } from '../common/document';
 import {
   fetchProfile,
@@ -28,11 +27,6 @@ import { formatShellLog, LogCallback } from '../common/log';
 import { OutputStream } from '../common/output-stream';
 import { ProfileId } from '../common/profile';
 import { arrayFilterUndefined } from '../common/util';
-import {
-  generateTypesFile,
-  generateTypingsForProfile,
-  transpileFiles,
-} from './generate';
 
 const installDebug = createDebug('superface:install');
 
@@ -202,27 +196,7 @@ export async function resolveInstallationRequests(
     }
   }
 
-  // phase 5 - generate types
-  await generateTypes(phase3, superJson);
-
   return phase3.length;
-}
-
-/**
- * Generates types from Profile requests and writes them in superface directory
- */
-async function generateTypes(
-  requests: (LocalRequestRead | StoreRequestFetched)[],
-  superJson: SuperJson
-) {
-  const sources: Record<string, string> = {};
-  for (const request of requests) {
-    const typing = generateTypingsForProfile(request.profileAst);
-    sources[joinPath('types', request.profileId.id + '.ts')] = typing;
-  }
-  const sdkFile = generateTypesFile(Object.keys(superJson.normalized.profiles));
-  sources[UNCOMPILED_SDK_FILE] = sdkFile;
-  await transpileFiles(sources, superJson);
 }
 
 /**

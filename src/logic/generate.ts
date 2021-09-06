@@ -1,6 +1,7 @@
 import { ProfileDocumentNode } from '@superfaceai/ast';
 import { SuperJson } from '@superfaceai/one-sdk';
 import { getProfileOutput } from '@superfaceai/parser';
+import { join as joinPath } from 'path';
 import {
   CompilerOptions,
   // createCompilerHost,
@@ -12,7 +13,9 @@ import {
 
 import { UNCOMPILED_SDK_FILE } from '../common/document';
 import { rimraf } from '../common/io';
+import { LogCallback } from '../common/log';
 import { OutputStream } from '../common/output-stream';
+import { ProfileId } from '../common/profile';
 import {
   camelize,
   createProfileType,
@@ -24,7 +27,29 @@ import {
   typedClientStatement,
   typeDefinitions,
 } from './generate.utils';
+import { loadProfile } from './publish.utils';
 
+export async function generate(
+  profiles: { id: ProfileId; version?: string }[],
+  superJson: SuperJson,
+  options?: { logCb?: LogCallback; warnCb?: LogCallback }
+): Promise<void> {
+  const sources: Record<string, string> = {};
+  for (const profile of profiles) {
+    const loadedProfile = await loadProfile(
+      superJson,
+      profile.id,
+      profile.version,
+      options
+    );
+    const typing = generateTypingsForProfile(loadedProfile.ast);
+    sources[joinPath('types', profile.id.id + '.ts')] = typing;
+  }
+
+  const sdkFile = generateTypesFile(profiles.map(profile => profile.id.id));
+  sources[UNCOMPILED_SDK_FILE] = sdkFile;
+  await transpileFiles(sources, superJson);
+}
 /**
  * Generates sdk.ts file from supplied profiles
  * If typesFile is already present, it is updated
