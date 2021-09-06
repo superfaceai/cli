@@ -156,7 +156,7 @@ export function checkMapAndProvider(
     }
   }
 
-  //Check unverified provider prefix
+  //Check provider name
   if (map.header.provider !== provider.name) {
     result.push({
       kind: 'error',
