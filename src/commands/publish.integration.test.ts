@@ -3,6 +3,7 @@ import { getLocal } from 'mockttp';
 import { Netrc } from 'netrc-parser';
 import { join as joinPath } from 'path';
 
+import { UNVERIFIED_PROVIDER_PREFIX } from '../common';
 import { mkdir, rimraf } from '../common/io';
 import { OutputStream } from '../common/output-stream';
 import { ProfileId } from '../common/profile';
@@ -25,6 +26,7 @@ describe('Publish CLI command', () => {
   let tempDir: string;
   let NETRC_FILENAME: string;
   const provider = 'swapi';
+  const unverifiedProvider = `${UNVERIFIED_PROVIDER_PREFIX}swapi`;
   const profileId = ProfileId.fromId('starwars/character-information');
   const profileVersion = '1.0.2';
 
@@ -52,7 +54,19 @@ describe('Publish CLI command', () => {
       'maps',
       'swapi.character-information.suma'
     ),
+    mapWithUnverifiedProvider: joinPath(
+      'fixtures',
+      'profiles',
+      'starwars',
+      'maps',
+      'unverified-swapi.character-information.suma'
+    ),
     provider: joinPath('fixtures', 'providers', 'swapi.json'),
+    unverifiedProvider: joinPath(
+      'fixtures',
+      'providers',
+      'unverified-swapi.json'
+    ),
   };
 
   beforeAll(async () => {
@@ -65,10 +79,11 @@ describe('Publish CLI command', () => {
     );
     await mockResponsesForProfileProviders(
       mockServer,
-      [provider],
+      [provider, unverifiedProvider],
       profileId.id
     );
-    await mockResponsesForProvider(mockServer, 'swapi');
+    await mockResponsesForProvider(mockServer, provider);
+    await mockResponsesForProvider(mockServer, unverifiedProvider);
     await mockResponsesForMap(
       mockServer,
       { name: 'character-information', scope: 'starwars' },
@@ -82,6 +97,20 @@ describe('Publish CLI command', () => {
         version: profileVersion,
       },
       provider
+    );
+    await mockResponsesForMap(
+      mockServer,
+      { name: 'character-information', scope: 'starwars' },
+      unverifiedProvider
+    );
+    await mockResponsesForMap(
+      mockServer,
+      {
+        name: 'character-information',
+        scope: 'starwars',
+        version: profileVersion,
+      },
+      unverifiedProvider
     );
     await mockResponsesForPublish(mockServer);
   });
@@ -111,15 +140,15 @@ describe('Publish CLI command', () => {
           [profileId.id]: {
             file: `../../../../${sourceFixture.profile}`,
             providers: {
-              [provider]: {
-                file: `../../../../${sourceFixture.map}`,
+              [unverifiedProvider]: {
+                file: `../../../../${sourceFixture.mapWithUnverifiedProvider}`,
               },
             },
           },
         },
         providers: {
-          [provider]: {
-            file: `../../../../${sourceFixture.provider}`,
+          [unverifiedProvider]: {
+            file: `../../../../${sourceFixture.unverifiedProvider}`,
           },
         },
       });
@@ -138,7 +167,7 @@ describe('Publish CLI command', () => {
           '--profileId',
           profileId.id,
           '--providerName',
-          provider,
+          unverifiedProvider,
         ],
         mockServer.url,
         {
@@ -157,10 +186,10 @@ describe('Publish CLI command', () => {
         `Profile: "${profileId.id}" found on local file system`
       );
       expect(result.stdout).toContain(
-        `Map for profile: "${profileId.id}" and provider: "${provider}" found on local filesystem`
+        `Map for profile: "${profileId.id}" and provider: "${unverifiedProvider}" found on local filesystem`
       );
       expect(result.stdout).toContain(
-        `Provider: "${provider}" found on local file system`
+        `Provider: "${unverifiedProvider}" found on local file system`
       );
       expect(result.stdout).toContain(`Publishing profile "${profileId.name}"`);
       expect(result.stdout).toContain(
@@ -177,15 +206,15 @@ describe('Publish CLI command', () => {
           [profileId.id]: {
             version: '1.0.1',
             providers: {
-              [provider]: {
-                file: `../../../../${sourceFixture.map}`,
+              [unverifiedProvider]: {
+                file: `../../../../${sourceFixture.mapWithUnverifiedProvider}`,
               },
             },
           },
         },
         providers: {
-          [provider]: {
-            file: `../../../../${sourceFixture.provider}`,
+          [unverifiedProvider]: {
+            file: `../../../../${sourceFixture.unverifiedProvider}`,
           },
         },
       });
@@ -197,12 +226,12 @@ describe('Publish CLI command', () => {
           [profileId.id]: {
             file: `../../../../${sourceFixture.profile}`,
             providers: {
-              [provider]: {},
+              [unverifiedProvider]: {},
             },
           },
         },
         providers: {
-          [provider]: {},
+          [unverifiedProvider]: {},
         },
       });
 
@@ -220,7 +249,7 @@ describe('Publish CLI command', () => {
           '--profileId',
           profileId.id,
           '--providerName',
-          provider,
+          unverifiedProvider,
         ],
         mockServer.url,
         {
@@ -239,10 +268,10 @@ describe('Publish CLI command', () => {
         `Profile: "${profileId.id}" found on local file system`
       );
       expect(result.stdout).toContain(
-        `Loading map for profile: "${profileId.id}" and provider: "${provider}" from Superface store`
+        `Loading map for profile: "${profileId.id}" and provider: "${unverifiedProvider}" from Superface store`
       );
       expect(result.stdout).toContain(
-        `Loading provider: "${provider}" from Superface store`
+        `Loading provider: "${unverifiedProvider}" from Superface store`
       );
       expect(result.stdout).toContain(`Publishing profile "${profileId.name}"`);
       expect(result.stdout).toContain(
@@ -259,12 +288,12 @@ describe('Publish CLI command', () => {
           [profileId.id]: {
             version: '1.0.1',
             providers: {
-              [provider]: {},
+              [unverifiedProvider]: {},
             },
           },
         },
         providers: {
-          [provider]: {},
+          [unverifiedProvider]: {},
         },
       });
     }, 30000);
@@ -275,15 +304,15 @@ describe('Publish CLI command', () => {
           [profileId.id]: {
             file: `../../../../${sourceFixture.profile}`,
             providers: {
-              [provider]: {
-                file: `../../../../${sourceFixture.map}`,
+              [unverifiedProvider]: {
+                file: `../../../../${sourceFixture.mapWithUnverifiedProvider}`,
               },
             },
           },
         },
         providers: {
-          [provider]: {
-            file: `../../../../${sourceFixture.provider}`,
+          [unverifiedProvider]: {
+            file: `../../../../${sourceFixture.unverifiedProvider}`,
           },
         },
       });
@@ -302,7 +331,7 @@ describe('Publish CLI command', () => {
           '--profileId',
           profileId.id,
           '--providerName',
-          provider,
+          unverifiedProvider,
         ],
         mockServer.url,
         {
@@ -321,13 +350,13 @@ describe('Publish CLI command', () => {
         `Profile: "${profileId.id}" found on local file system`
       );
       expect(result.stdout).toContain(
-        `Map for profile: "${profileId.id}" and provider: "${provider}" found on local filesystem`
+        `Map for profile: "${profileId.id}" and provider: "${unverifiedProvider}" found on local filesystem`
       );
       expect(result.stdout).toContain(
-        `Provider: "${provider}" found on local file system`
+        `Provider: "${unverifiedProvider}" found on local file system`
       );
       expect(result.stdout).toContain(
-        `Publishing map for profile "${profileId.name}" and provider "${provider}"`
+        `Publishing map for profile "${profileId.name}" and provider "${unverifiedProvider}"`
       );
       expect(result.stdout).toContain(
         `🆗 map has been published successfully.`
@@ -343,13 +372,13 @@ describe('Publish CLI command', () => {
           [profileId.id]: {
             file: `../../../../${sourceFixture.profile}`,
             providers: {
-              [provider]: {},
+              [unverifiedProvider]: {},
             },
           },
         },
         providers: {
-          [provider]: {
-            file: `../../../../${sourceFixture.provider}`,
+          [unverifiedProvider]: {
+            file: `../../../../${sourceFixture.unverifiedProvider}`,
           },
         },
       });
@@ -362,14 +391,14 @@ describe('Publish CLI command', () => {
             version: profileVersion,
             priority: [provider],
             providers: {
-              [provider]: {
-                file: `../../../../${sourceFixture.map}`,
+              [unverifiedProvider]: {
+                file: `../../../../${sourceFixture.mapWithUnverifiedProvider}`,
               },
             },
           },
         },
         providers: {
-          [provider]: {},
+          [unverifiedProvider]: {},
         },
       });
 
@@ -387,7 +416,7 @@ describe('Publish CLI command', () => {
           '--profileId',
           profileId.id,
           '--providerName',
-          provider,
+          unverifiedProvider,
         ],
         mockServer.url,
         {
@@ -406,13 +435,13 @@ describe('Publish CLI command', () => {
         `Loading profile: "${profileId.id}@${profileVersion}" from Superface store`
       );
       expect(result.stdout).toContain(
-        `Map for profile: "${profileId.id}@${profileVersion}" and provider: "${provider}" found on local filesystem`
+        `Map for profile: "${profileId.id}@${profileVersion}" and provider: "${unverifiedProvider}" found on local filesystem`
       );
       expect(result.stdout).toContain(
-        `Loading provider: "${provider}" from Superface store`
+        `Loading provider: "${unverifiedProvider}" from Superface store`
       );
       expect(result.stdout).toContain(
-        `Publishing map for profile "${profileId.name}" and provider "${provider}"`
+        `Publishing map for profile "${profileId.name}" and provider "${unverifiedProvider}"`
       );
       expect(result.stdout).toContain(
         `🆗 map has been published successfully.`
@@ -429,12 +458,12 @@ describe('Publish CLI command', () => {
             version: profileVersion,
             priority: [provider],
             providers: {
-              [provider]: {},
+              [unverifiedProvider]: {},
             },
           },
         },
         providers: {
-          [provider]: {},
+          [unverifiedProvider]: {},
         },
       });
     }, 30000);
@@ -445,15 +474,15 @@ describe('Publish CLI command', () => {
           [profileId.id]: {
             file: `../../../../${sourceFixture.profile}`,
             providers: {
-              [provider]: {
-                file: `../../../../${sourceFixture.map}`,
+              [unverifiedProvider]: {
+                file: `../../../../${sourceFixture.mapWithUnverifiedProvider}`,
               },
             },
           },
         },
         providers: {
-          [provider]: {
-            file: `../../../../${sourceFixture.provider}`,
+          [unverifiedProvider]: {
+            file: `../../../../${sourceFixture.unverifiedProvider}`,
           },
         },
       });
@@ -472,7 +501,7 @@ describe('Publish CLI command', () => {
           '--profileId',
           profileId.id,
           '--providerName',
-          provider,
+          unverifiedProvider,
         ],
         mockServer.url,
         {
@@ -491,12 +520,14 @@ describe('Publish CLI command', () => {
         `Profile: "${profileId.id}" found on local file system`
       );
       expect(result.stdout).toContain(
-        `Map for profile: "${profileId.id}" and provider: "${provider}" found on local filesystem`
+        `Map for profile: "${profileId.id}" and provider: "${unverifiedProvider}" found on local filesystem`
       );
       expect(result.stdout).toContain(
-        `Provider: "${provider}" found on local file system`
+        `Provider: "${unverifiedProvider}" found on local file system`
       );
-      expect(result.stdout).toContain(`Publishing provider "${provider}"`);
+      expect(result.stdout).toContain(
+        `Publishing provider "${unverifiedProvider}"`
+      );
       expect(result.stdout).toContain(
         `🆗 provider has been published successfully.`
       );
@@ -511,14 +542,14 @@ describe('Publish CLI command', () => {
           [profileId.id]: {
             file: `../../../../${sourceFixture.profile}`,
             providers: {
-              [provider]: {
-                file: `../../../../${sourceFixture.map}`,
+              [unverifiedProvider]: {
+                file: `../../../../${sourceFixture.mapWithUnverifiedProvider}`,
               },
             },
           },
         },
         providers: {
-          [provider]: {},
+          [unverifiedProvider]: {},
         },
       });
     }, 30000);
@@ -528,15 +559,15 @@ describe('Publish CLI command', () => {
         profiles: {
           [profileId.id]: {
             version: profileVersion,
-            priority: [provider],
+            priority: [unverifiedProvider],
             providers: {
-              [provider]: {},
+              [unverifiedProvider]: {},
             },
           },
         },
         providers: {
-          [provider]: {
-            file: `../../../../${sourceFixture.provider}`,
+          [unverifiedProvider]: {
+            file: `../../../../${sourceFixture.unverifiedProvider}`,
           },
         },
       });
@@ -555,7 +586,7 @@ describe('Publish CLI command', () => {
           '--profileId',
           profileId.id,
           '--providerName',
-          provider,
+          unverifiedProvider,
         ],
         mockServer.url,
         {
@@ -574,12 +605,14 @@ describe('Publish CLI command', () => {
         `Loading profile: "${profileId.id}@${profileVersion}" from Superface store`
       );
       expect(result.stdout).toContain(
-        `Loading map for profile: "${profileId.id}@${profileVersion}" and provider: "${provider}" from Superface store`
+        `Loading map for profile: "${profileId.id}@${profileVersion}" and provider: "${unverifiedProvider}" from Superface store`
       );
       expect(result.stdout).toContain(
-        `Provider: "${provider}" found on local file system`
+        `Provider: "${unverifiedProvider}" found on local file system`
       );
-      expect(result.stdout).toContain(`Publishing provider "${provider}"`);
+      expect(result.stdout).toContain(
+        `Publishing provider "${unverifiedProvider}"`
+      );
       expect(result.stdout).toContain(
         `🆗 provider has been published successfully.`
       );
@@ -593,14 +626,14 @@ describe('Publish CLI command', () => {
         profiles: {
           [profileId.id]: {
             version: profileVersion,
-            priority: [provider],
+            priority: [unverifiedProvider],
             providers: {
-              [provider]: {},
+              [unverifiedProvider]: {},
             },
           },
         },
         providers: {
-          [provider]: {},
+          [unverifiedProvider]: {},
         },
       });
     }, 30000);

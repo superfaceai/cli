@@ -13,6 +13,7 @@ import {
   DEFAULT_PROFILE_VERSION,
   DEFAULT_PROFILE_VERSION_STR,
   SUPERFACE_DIR,
+  UNVERIFIED_PROVIDER_PREFIX,
 } from '../common';
 import { Command } from '../common/command.abstract';
 import { developerError, userError } from '../common/error';
@@ -222,6 +223,12 @@ export default class Create extends Command {
         }
         if (!isValidDocumentIdentifier(provider)) {
           throw userError(`Invalid provider name: ${provider}`, 1);
+        }
+        if (!provider.startsWith(UNVERIFIED_PROVIDER_PREFIX)) {
+          if (flags.map || flags.provider)
+            this.warnCallback?.(
+              `Published provider name must have prefix "${UNVERIFIED_PROVIDER_PREFIX}".\nIf you are planning to publish this map or provider consider renaming it to eg: "${UNVERIFIED_PROVIDER_PREFIX}${provider}"`
+            );
         }
       }
     }

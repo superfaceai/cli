@@ -2,6 +2,7 @@ import { SuperJson } from '@superfaceai/one-sdk';
 import { getLocal } from 'mockttp';
 import { join as joinPath } from 'path';
 
+import { UNVERIFIED_PROVIDER_PREFIX } from '../common';
 import { mkdir, rimraf } from '../common/io';
 import { OutputStream } from '../common/output-stream';
 import {
@@ -19,7 +20,7 @@ describe('Create CLI command', () => {
   //File specific path
   const TEMP_PATH = joinPath('test', 'tmp');
   let tempDir: string;
-  const provider = 'swapi';
+  const unverifiedProvider = `${UNVERIFIED_PROVIDER_PREFIX}swapi`;
   const profileId = 'starwars/character-information';
   const profileVersion = '1.0.2';
 
@@ -43,7 +44,19 @@ describe('Create CLI command', () => {
       'maps',
       'swapi.character-information.suma'
     ),
+    mapWithUnverifiedProvider: joinPath(
+      'fixtures',
+      'profiles',
+      'starwars',
+      'maps',
+      'unverified-swapi.character-information.suma'
+    ),
     provider: joinPath('fixtures', 'providers', 'swapi.json'),
+    unverifiedProvider: joinPath(
+      'fixtures',
+      'providers',
+      'unverified-swapi.json'
+    ),
   };
 
   beforeAll(async () => {
@@ -54,12 +67,17 @@ describe('Create CLI command', () => {
       mockServer,
       'starwars/character-information@1.0.2'
     );
-    await mockResponsesForProfileProviders(mockServer, [provider], profileId);
-    await mockResponsesForProvider(mockServer, 'swapi');
+    await mockResponsesForProfileProviders(
+      mockServer,
+      [unverifiedProvider],
+      profileId
+    );
+    await mockResponsesForProvider(mockServer, unverifiedProvider);
+
     await mockResponsesForMap(
       mockServer,
       { name: 'character-information', scope: 'starwars' },
-      provider
+      unverifiedProvider
     );
     await mockResponsesForMap(
       mockServer,
@@ -68,7 +86,7 @@ describe('Create CLI command', () => {
         scope: 'starwars',
         version: profileVersion,
       },
-      provider
+      unverifiedProvider
     );
   });
   beforeEach(async () => {
@@ -89,15 +107,15 @@ describe('Create CLI command', () => {
           [profileId]: {
             file: `../../../../${sourceFixture.profile}`,
             providers: {
-              [provider]: {
-                file: `../../../../${sourceFixture.map}`,
+              [unverifiedProvider]: {
+                file: `../../../../${sourceFixture.mapWithUnverifiedProvider}`,
               },
             },
           },
         },
         providers: {
-          [provider]: {
-            file: `../../../../${sourceFixture.provider}`,
+          [unverifiedProvider]: {
+            file: `../../../../${sourceFixture.unverifiedProvider}`,
           },
         },
       });
@@ -110,17 +128,23 @@ describe('Create CLI command', () => {
 
       const result = await execCLI(
         tempDir,
-        ['check', '--profileId', profileId, '--providerName', provider],
+        [
+          'check',
+          '--profileId',
+          profileId,
+          '--providerName',
+          unverifiedProvider,
+        ],
         mockServer.url
       );
       expect(result.stdout).toContain(
         `Profile: "${profileId}" found on local file system`
       );
       expect(result.stdout).toContain(
-        `Map for profile: "${profileId}" and provider: "${provider}" found on local filesystem`
+        `Map for profile: "${profileId}" and provider: "${unverifiedProvider}" found on local filesystem`
       );
       expect(result.stdout).toContain(
-        `Provider: "${provider}" found on local file system`
+        `Provider: "${unverifiedProvider}" found on local file system`
       );
       expect(result.stdout).toContain('🆗 check without errors.');
     });
@@ -131,14 +155,14 @@ describe('Create CLI command', () => {
           [profileId]: {
             version: profileVersion,
             providers: {
-              [provider]: {
-                file: `../../../../${sourceFixture.map}`,
+              [unverifiedProvider]: {
+                file: `../../../../${sourceFixture.mapWithUnverifiedProvider}`,
               },
             },
           },
         },
         providers: {
-          [provider]: {},
+          [unverifiedProvider]: {},
         },
       });
 
@@ -150,17 +174,23 @@ describe('Create CLI command', () => {
 
       const result = await execCLI(
         tempDir,
-        ['check', '--profileId', profileId, '--providerName', provider],
+        [
+          'check',
+          '--profileId',
+          profileId,
+          '--providerName',
+          unverifiedProvider,
+        ],
         mockServer.url
       );
       expect(result.stdout).toContain(
         `Loading profile: "${profileId}@${profileVersion}" from Superface store`
       );
       expect(result.stdout).toContain(
-        `Map for profile: "${profileId}@${profileVersion}" and provider: "${provider}" found on local filesystem`
+        `Map for profile: "${profileId}@${profileVersion}" and provider: "${unverifiedProvider}" found on local filesystem`
       );
       expect(result.stdout).toContain(
-        `Loading provider: "${provider}" from Superface store`
+        `Loading provider: "${unverifiedProvider}" from Superface store`
       );
       expect(result.stdout).toContain('🆗 check without errors.');
     });
@@ -171,12 +201,12 @@ describe('Create CLI command', () => {
           [profileId]: {
             file: `../../../../${sourceFixture.profile}`,
             providers: {
-              [provider]: {},
+              [unverifiedProvider]: {},
             },
           },
         },
         providers: {
-          [provider]: {},
+          [unverifiedProvider]: {},
         },
       });
 
@@ -188,17 +218,23 @@ describe('Create CLI command', () => {
 
       const result = await execCLI(
         tempDir,
-        ['check', '--profileId', profileId, '--providerName', provider],
+        [
+          'check',
+          '--profileId',
+          profileId,
+          '--providerName',
+          unverifiedProvider,
+        ],
         mockServer.url
       );
       expect(result.stdout).toContain(
         `Profile: "${profileId}" found on local file system`
       );
       expect(result.stdout).toContain(
-        `Loading map for profile: "${profileId}" and provider: "${provider}" from Superface store`
+        `Loading map for profile: "${profileId}" and provider: "${unverifiedProvider}" from Superface store`
       );
       expect(result.stdout).toContain(
-        `Loading provider: "${provider}" from Superface store`
+        `Loading provider: "${unverifiedProvider}" from Superface store`
       );
       expect(result.stdout).toContain('🆗 check without errors.');
     });
@@ -209,13 +245,13 @@ describe('Create CLI command', () => {
           [profileId]: {
             version: profileVersion,
             providers: {
-              [provider]: {},
+              [unverifiedProvider]: {},
             },
           },
         },
         providers: {
-          [provider]: {
-            file: `../../../../${sourceFixture.provider}`,
+          [unverifiedProvider]: {
+            file: `../../../../${sourceFixture.unverifiedProvider}`,
           },
         },
       });
@@ -228,17 +264,23 @@ describe('Create CLI command', () => {
 
       const result = await execCLI(
         tempDir,
-        ['check', '--profileId', profileId, '--providerName', provider],
+        [
+          'check',
+          '--profileId',
+          profileId,
+          '--providerName',
+          unverifiedProvider,
+        ],
         mockServer.url
       );
       expect(result.stdout).toContain(
         `Loading profile: "${profileId}@${profileVersion}" from Superface store`
       );
       expect(result.stdout).toContain(
-        `Loading map for profile: "${profileId}@${profileVersion}" and provider: "${provider}" from Superface store`
+        `Loading map for profile: "${profileId}@${profileVersion}" and provider: "${unverifiedProvider}" from Superface store`
       );
       expect(result.stdout).toContain(
-        `Provider: "${provider}" found on local file system`
+        `Provider: "${unverifiedProvider}" found on local file system`
       );
       expect(result.stdout).toContain('🆗 check without errors.');
     });
@@ -249,15 +291,15 @@ describe('Create CLI command', () => {
           [profileId]: {
             file: `../../../../${sourceFixture.profile}`,
             providers: {
-              [provider]: {
-                file: `../../../../${sourceFixture.map}`,
+              [unverifiedProvider]: {
+                file: `../../../../${sourceFixture.mapWithUnverifiedProvider}`,
               },
             },
           },
         },
         providers: {
-          [provider]: {
-            file: `../../../../${sourceFixture.provider}`,
+          [unverifiedProvider]: {
+            file: `../../../../${sourceFixture.unverifiedProvider}`,
           },
         },
       });
@@ -270,17 +312,24 @@ describe('Create CLI command', () => {
 
       const result = await execCLI(
         tempDir,
-        ['check', '--profileId', profileId, '--providerName', provider, '-j '],
+        [
+          'check',
+          '--profileId',
+          profileId,
+          '--providerName',
+          unverifiedProvider,
+          '-j ',
+        ],
         mockServer.url
       );
       expect(result.stdout).toContain(
         `Profile: "${profileId}" found on local file system`
       );
       expect(result.stdout).toContain(
-        `Map for profile: "${profileId}" and provider: "${provider}" found on local filesystem`
+        `Map for profile: "${profileId}" and provider: "${unverifiedProvider}" found on local filesystem`
       );
       expect(result.stdout).toContain(
-        `Provider: "${provider}" found on local file system`
+        `Provider: "${unverifiedProvider}" found on local file system`
       );
       expect(result.stdout).toContain(JSON.stringify([]));
     });

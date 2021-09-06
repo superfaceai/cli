@@ -6,7 +6,7 @@ import { green, grey, yellow } from 'chalk';
 import inquirer from 'inquirer';
 import { join as joinPath } from 'path';
 
-import { META_FILE } from '../common';
+import { META_FILE, UNVERIFIED_PROVIDER_PREFIX } from '../common';
 import { Command } from '../common/command.abstract';
 import { userError } from '../common/error';
 import { getServicesUrl } from '../common/http';
@@ -76,9 +76,9 @@ export default class Publish extends Command {
     '$ superface publish profile --profileId starwars/characeter-information --providerName swapi --dryRun',
   ];
 
-  private logCallback?= (message: string) => this.log(grey(message));
-  private warnCallback?= (message: string) => this.log(yellow(message));
-  private successCallback?= (message: string) => this.log(green(message));
+  private logCallback? = (message: string) => this.log(grey(message));
+  private warnCallback? = (message: string) => this.log(yellow(message));
+  private successCallback? = (message: string) => this.log(green(message));
 
   async run(): Promise<void> {
     const { argv, flags } = this.parse(Publish);
@@ -178,12 +178,17 @@ export default class Publish extends Command {
           1
         );
       }
-
+      if (!flags.providerName.startsWith(UNVERIFIED_PROVIDER_PREFIX)) {
+        throw userError(
+          `❌ When publishing map, provider must have prefix "${UNVERIFIED_PROVIDER_PREFIX}"`,
+          1
+        );
+      }
       //Publishing provider
     } else if (documentType === 'provider') {
-      if (!flags.providerName.startsWith('unverified-')) {
+      if (!flags.providerName.startsWith(UNVERIFIED_PROVIDER_PREFIX)) {
         throw userError(
-          `❌ When publishing provider, provider must have prefix "unverified-"`,
+          `❌ When publishing provider, provider must have prefix "${UNVERIFIED_PROVIDER_PREFIX}"`,
           1
         );
       }

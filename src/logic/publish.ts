@@ -81,6 +81,7 @@ export async function publish(
 
   //Check
   const checkReport = prePublishCheck(
+    publishing,
     profileFiles.ast,
     mapFiles.ast,
     providerJson

@@ -223,6 +223,7 @@ describe('Publish logic', () => {
       );
       expect(fetchProviderInfo).not.toHaveBeenCalled();
       expect(prePublishCheck).toHaveBeenCalledWith(
+        'profile',
         mockProfileDocument,
         mockMapDocument,
         mockProviderSource
@@ -298,6 +299,7 @@ describe('Publish logic', () => {
       );
       expect(fetchProviderInfo).not.toHaveBeenCalled();
       expect(prePublishCheck).toHaveBeenCalledWith(
+        'profile',
         mockProfileDocument,
         mockMapDocument,
         mockProviderSource
@@ -371,6 +373,7 @@ describe('Publish logic', () => {
       );
       expect(fetchProviderInfo).toHaveBeenCalledWith(mockProviderName);
       expect(prePublishCheck).toHaveBeenCalledWith(
+        'profile',
         mockProfileDocument,
         mockMapDocument,
         mockProviderSource
@@ -445,6 +448,7 @@ describe('Publish logic', () => {
       );
       expect(fetchProviderInfo).not.toHaveBeenCalled();
       expect(prePublishCheck).toHaveBeenCalledWith(
+        'profile',
         mockProfileDocument,
         mockMapDocument,
         mockProviderSource
@@ -563,6 +567,7 @@ describe('Publish logic', () => {
       );
       expect(fetchProviderInfo).not.toHaveBeenCalled();
       expect(prePublishCheck).toHaveBeenCalledWith(
+        'map',
         mockProfileDocument,
         mockMapDocument,
         mockProviderSource
@@ -639,6 +644,7 @@ describe('Publish logic', () => {
       );
       expect(fetchProviderInfo).not.toHaveBeenCalled();
       expect(prePublishCheck).toHaveBeenCalledWith(
+        'map',
         mockProfileDocument,
         mockMapDocument,
         mockProviderSource
@@ -715,6 +721,7 @@ describe('Publish logic', () => {
       );
       expect(fetchProviderInfo).toHaveBeenCalledWith(mockProviderName);
       expect(prePublishCheck).toHaveBeenCalledWith(
+        'map',
         mockProfileDocument,
         mockMapDocument,
         mockProviderSource
@@ -791,6 +798,7 @@ describe('Publish logic', () => {
       );
       expect(fetchProviderInfo).not.toHaveBeenCalled();
       expect(prePublishCheck).toHaveBeenCalledWith(
+        'map',
         mockProfileDocument,
         mockMapDocument,
         mockProviderSource
@@ -909,6 +917,7 @@ describe('Publish logic', () => {
       );
       expect(fetchProviderInfo).not.toHaveBeenCalled();
       expect(prePublishCheck).toHaveBeenCalledWith(
+        'provider',
         mockProfileDocument,
         mockMapDocument,
         mockProviderSource
@@ -986,6 +995,7 @@ describe('Publish logic', () => {
       );
       expect(fetchProviderInfo).not.toHaveBeenCalled();
       expect(prePublishCheck).toHaveBeenCalledWith(
+        'provider',
         mockProfileDocument,
         mockMapDocument,
         mockProviderSource
@@ -1059,6 +1069,7 @@ describe('Publish logic', () => {
       );
       expect(fetchProviderInfo).not.toHaveBeenCalled();
       expect(prePublishCheck).toHaveBeenCalledWith(
+        'provider',
         mockProfileDocument,
         mockMapDocument,
         mockProviderSource
@@ -1179,6 +1190,7 @@ describe('Publish logic', () => {
       );
       expect(fetchProviderInfo).not.toHaveBeenCalled();
       expect(prePublishCheck).toHaveBeenCalledWith(
+        'provider',
         mockProfileDocument,
         mockMapDocument,
         mockProviderSource
@@ -1278,6 +1290,7 @@ describe('Publish logic', () => {
       );
       expect(fetchProviderInfo).not.toHaveBeenCalled();
       expect(prePublishCheck).toHaveBeenCalledWith(
+        'provider',
         mockProfileDocument,
         mockMapDocument,
         mockProviderSource
@@ -1365,6 +1378,7 @@ describe('Publish logic', () => {
       );
       expect(fetchProviderInfo).not.toHaveBeenCalled();
       expect(prePublishCheck).toHaveBeenCalledWith(
+        'provider',
         mockProfileDocument,
         mockMapDocument,
         mockProviderSource

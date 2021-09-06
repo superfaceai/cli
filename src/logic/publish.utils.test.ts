@@ -16,6 +16,7 @@ import {
 
 //Mock check util
 jest.mock('./check.utils', () => ({
+  ...jest.requireActual<Record<string, unknown>>('./check.utils'),
   findLocalProfileSource: jest.fn(),
   findLocalMapSource: jest.fn(),
 }));
@@ -29,7 +30,7 @@ jest.mock('../common/http', () => ({
 describe('Publish logic utils', () => {
   const mockProfileId = 'starwars/character-information';
   const mockProfile = ProfileId.fromId(mockProfileId);
-  const mockProviderName = 'swapi';
+  const mockProviderName = 'unverified-swapi';
   const validProfileDocument: ProfileDocumentNode = {
     kind: 'ProfileDocument',
     header: {
@@ -137,6 +138,7 @@ describe('Publish logic utils', () => {
     it('throws error on invalid profile document structure', async () => {
       expect(() =>
         prePublishCheck(
+          'profile',
           {} as ProfileDocumentNode,
           validMapDocument,
           validProviderSource
@@ -151,6 +153,7 @@ describe('Publish logic utils', () => {
     it('throws error on invalid map document structure', async () => {
       expect(() =>
         prePublishCheck(
+          'profile',
           validProfileDocument,
           {} as MapDocumentNode,
           validProviderSource
@@ -165,6 +168,7 @@ describe('Publish logic utils', () => {
     it('returns empty array on valid documents', async () => {
       expect(
         prePublishCheck(
+          'profile',
           validProfileDocument,
           validMapDocument,
           validProviderSource
@@ -172,33 +176,89 @@ describe('Publish logic utils', () => {
       ).toEqual([]);
     });
 
-    it('returns not empty array on invalid profile', async () => {
+    it('returns array with errors on invalid profile', async () => {
       expect(
         prePublishCheck(
+          'profile',
           invalidProfileDocument,
           validMapDocument,
           validProviderSource
-        ).length
+        ).filter(err => err.kind === 'error').length
       ).toBeGreaterThan(0);
     });
 
-    it('returns not empty array on invalid map', async () => {
+    it('returns array with warnings on invalid profile', async () => {
       expect(
         prePublishCheck(
+          'provider',
+          invalidProfileDocument,
+          {
+            ...validMapDocument,
+            definitions: [
+              {
+                kind: 'MapDefinition',
+                name: 'RetrieveCharacterInformation',
+                usecaseName: 'RetrieveCharacterInformation',
+                statements: [],
+              },
+            ],
+          },
+          validProviderSource
+        ).filter(err => err.kind === 'warn').length
+      ).toBeGreaterThan(0);
+    });
+
+    it('returns array with errors on invalid map', async () => {
+      expect(
+        prePublishCheck(
+          'map',
           invalidProfileDocument,
           invalidMapDocument,
           validProviderSource
-        ).length
+        ).filter(err => err.kind === 'error').length
       ).toBeGreaterThan(0);
     });
 
-    it('returns not empty array on invalid provider', async () => {
+    it('returns array with warnings on invalid map', async () => {
       expect(
         prePublishCheck(
+          'provider',
+          invalidProfileDocument,
+          {
+            ...invalidMapDocument,
+            definitions: [
+              {
+                kind: 'MapDefinition',
+                name: 'RetrieveCharacterInformation',
+                usecaseName: 'RetrieveCharacterInformation',
+                statements: [],
+              },
+            ],
+          },
+          validProviderSource
+        ).filter(err => err.kind === 'warn').length
+      ).toBeGreaterThan(0);
+    });
+
+    it('returns array with errors on invalid provider', async () => {
+      expect(
+        prePublishCheck(
+          'provider',
           validProfileDocument,
           validMapDocument,
           invalidProviderSource
-        ).length
+        ).filter(err => err.kind === 'error').length
+      ).toBeGreaterThan(0);
+    });
+
+    it('returns array with warnings on invalid provider', async () => {
+      expect(
+        prePublishCheck(
+          'profile',
+          validProfileDocument,
+          validMapDocument,
+          invalidProviderSource
+        ).filter(err => err.kind === 'warn').length
       ).toBeGreaterThan(0);
     });
   });

@@ -108,3 +108,32 @@ export async function findLocalProviderSource(
 
   return;
 }
+
+export function isProviderParseError(
+  input: Record<string, unknown>
+): input is {
+  issues: { path: (string | number)[]; message: string; code: string }[];
+} {
+  if ('issues' in input && Array.isArray(input.issues)) {
+    return input.issues.every((issue: Record<string, unknown>) => {
+      if (!('message' in issue) || !('path' in issue) || !('code' in issue)) {
+        return false;
+      }
+      if (typeof issue.message !== 'string' || typeof issue.code !== 'string') {
+        return false;
+      }
+      if (!Array.isArray(issue.path)) {
+        return false;
+      }
+      for (const p of issue.path) {
+        if (typeof p !== 'string' && typeof p !== 'number') {
+          return false;
+        }
+      }
+
+      return true;
+    });
+  }
+
+  return false;
+}

@@ -5,7 +5,10 @@ import { SDKExecutionError } from '@superfaceai/one-sdk/dist/internal/errors';
 import inquirer from 'inquirer';
 import { mocked } from 'ts-jest/utils';
 
-import { DEFAULT_PROFILE_VERSION_STR } from '../common';
+import {
+  DEFAULT_PROFILE_VERSION_STR,
+  UNVERIFIED_PROVIDER_PREFIX,
+} from '../common';
 import { OutputStream } from '../common/output-stream';
 import { ProfileId } from '../common/profile';
 import {
@@ -40,7 +43,7 @@ describe('Publish CLI command', () => {
 
   describe('running publish command', () => {
     const profileId = 'starwars/character-information';
-    const provider = 'unverified-swapi';
+    const provider = `${UNVERIFIED_PROVIDER_PREFIX}swapi`;
 
     const mockProfilePath = `../path/to/profile${EXTENSIONS.profile.source}`;
     const mockMapPath = `../path/to/profile${EXTENSIONS.map.source}`;
@@ -57,7 +60,7 @@ describe('Publish CLI command', () => {
             file: mockProfilePath,
             providers: {
               [provider]: {
-                file: 'some/path/to/map.suma'
+                file: 'some/path/to/map.suma',
               },
             },
           },
@@ -546,6 +549,50 @@ describe('Publish CLI command', () => {
       expect(promptSpy).not.toHaveBeenCalled();
     });
 
+    it('throws error when publishing map and map and provider has not unverified prefix', async () => {
+      const promptSpy = jest
+        .spyOn(inquirer, 'prompt')
+        .mockResolvedValueOnce({ upload: true });
+      mocked(detectSuperJson).mockResolvedValue('.');
+      const mockSuperJson = new SuperJson({
+        profiles: {
+          [profileId]: {
+            version: DEFAULT_PROFILE_VERSION_STR,
+            providers: {
+              ['swapi']: {
+                file: 'path/to/map.suma',
+              },
+            },
+          },
+        },
+        providers: {
+          ['swapi']: {},
+        },
+      });
+      const loadSpy = jest
+        .spyOn(SuperJson, 'load')
+        .mockResolvedValue(ok(mockSuperJson));
+
+      await expect(
+        Publish.run([
+          'map',
+          '--profileId',
+          profileId,
+          '--providerName',
+          'swapi',
+          '-s',
+          '3',
+        ])
+      ).rejects.toEqual(
+        new CLIError(
+          `❌ When publishing map, provider must have prefix "${UNVERIFIED_PROVIDER_PREFIX}"`
+        )
+      );
+      expect(detectSuperJson).toHaveBeenCalled();
+      expect(loadSpy).toHaveBeenCalled();
+      expect(promptSpy).not.toHaveBeenCalled();
+    });
+
     it('throws error when publishing provider and provider has not unverified prefix', async () => {
       const promptSpy = jest
         .spyOn(inquirer, 'prompt')
@@ -562,7 +609,7 @@ describe('Publish CLI command', () => {
         },
         providers: {
           test: {
-            file: 'path/to/provider.json'
+            file: 'path/to/provider.json',
           },
         },
       });
@@ -582,7 +629,7 @@ describe('Publish CLI command', () => {
         ])
       ).rejects.toEqual(
         new CLIError(
-          `❌ When publishing provider, provider must have prefix "unverified-"`
+          `❌ When publishing provider, provider must have prefix "${UNVERIFIED_PROVIDER_PREFIX}"`
         )
       );
       expect(detectSuperJson).toHaveBeenCalled();
