@@ -144,8 +144,12 @@ export async function publish(
     ) {
       try {
         await fetchProviderInfo(mapFiles.ast.header.provider);
+        //Log if provider exists in SF and user is using local one
+        options?.logCb?.(
+          `Provider: "${mapFiles.ast.header.provider}" found localy linked in super.json and also in Superface server. Consider using provider from Superface store.`
+        );
       } catch (error) {
-        //If provider does not exists in SF register (is not verified)
+        //If provider does not exists in SF register (is not verified) it must start with unverified
         if (error instanceof ServiceApiError && error.status === 404) {
           throw userError(
             `Provider: "${mapFiles.ast.header.provider}" does not exist in Superface store and it does not start with: "${UNVERIFIED_PROVIDER_PREFIX}" prefix.\nPlease, rename provider: "${mapFiles.ast.header.provider}" or use existing provider.`,
