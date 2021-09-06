@@ -44,13 +44,7 @@ export function prePublishCheck(
   });
 
   //Check map and provider
-  result.push(
-    ...checkMapAndProvider(providerJson, mapAst, {
-      //strict when we are publishing provider or map
-      strict: publishing !== 'profile',
-      logCb: options?.logCb,
-    })
-  );
+  result.push(...checkMapAndProvider(providerJson, mapAst));
 
   return result;
 }

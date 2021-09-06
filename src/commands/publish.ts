@@ -178,12 +178,6 @@ export default class Publish extends Command {
           1
         );
       }
-      if (!flags.providerName.startsWith(UNVERIFIED_PROVIDER_PREFIX)) {
-        throw userError(
-          `❌ When publishing map, provider must have prefix "${UNVERIFIED_PROVIDER_PREFIX}"`,
-          1
-        );
-      }
       //Publishing provider
     } else if (documentType === 'provider') {
       if (!flags.providerName.startsWith(UNVERIFIED_PROVIDER_PREFIX)) {

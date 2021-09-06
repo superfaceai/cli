@@ -250,17 +250,6 @@ describe('Publish logic utils', () => {
         ).filter(err => err.kind === 'error').length
       ).toBeGreaterThan(0);
     });
-
-    it('returns array with warnings on invalid provider', async () => {
-      expect(
-        prePublishCheck(
-          'profile',
-          validProfileDocument,
-          validMapDocument,
-          invalidProviderSource
-        ).filter(err => err.kind === 'warn').length
-      ).toBeGreaterThan(0);
-    });
   });
 
   describe('when running pre publish lint', () => {

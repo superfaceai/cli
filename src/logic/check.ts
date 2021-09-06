@@ -14,7 +14,6 @@ import {
 } from '@superfaceai/one-sdk';
 import { green, red, yellow } from 'chalk';
 
-import { UNVERIFIED_PROVIDER_PREFIX } from '../common';
 import { userError } from '../common/error';
 import {
   fetchMapAST,
@@ -126,18 +125,14 @@ export async function check(
   const result = checkMapAndProfile(profileAst, mapAst, options);
 
   options?.logCb?.(`Checking provider: "${provider}"`);
-  result.push(...checkMapAndProvider(providerJson, mapAst, options));
+  result.push(...checkMapAndProvider(providerJson, mapAst));
 
   return result;
 }
 
 export function checkMapAndProvider(
   provider: ProviderJson,
-  map: MapDocumentNode,
-  options?: {
-    strict?: boolean;
-    logCb?: LogCallback;
-  }
+  map: MapDocumentNode
 ): CheckResult[] {
   const result: CheckResult[] = [];
   try {
@@ -162,21 +157,9 @@ export function checkMapAndProvider(
   }
 
   //Check unverified provider prefix
-  if (!map.header.provider.startsWith(UNVERIFIED_PROVIDER_PREFIX)) {
-    result.push({
-      kind: options?.strict ? 'error' : 'warn',
-      message: `Map contains provider: "${map.header.provider}" without "${UNVERIFIED_PROVIDER_PREFIX}" prefix`,
-    });
-  }
-  if (!provider.name.startsWith(UNVERIFIED_PROVIDER_PREFIX)) {
-    result.push({
-      kind: options?.strict ? 'error' : 'warn',
-      message: `Provider.json contains provider: "${provider.name}" without "${UNVERIFIED_PROVIDER_PREFIX}" prefix`,
-    });
-  }
   if (map.header.provider !== provider.name) {
     result.push({
-      kind: options?.strict ? 'error' : 'warn',
+      kind: 'error',
       message: `Map contains provider with name: "${map.header.provider}" but provider.json contains provider with name: "${provider.name}"`,
     });
   }
