@@ -30,7 +30,15 @@ export default class Lint extends Command {
 
   static flags = {
     ...Command.flags,
-    documentType: documentTypeFlag,
+    profileName: oclifFlags.string({
+      description: 'Provider name',
+      required: false,
+    }),
+    profileId: oclifFlags.string({
+      description: 'Profile Id in format [scope/](optional)[name]',
+      required: false,
+    }),
+    // documentType: documentTypeFlag,
 
     output: oclifFlags.string({
       char: 'o',
@@ -67,12 +75,12 @@ export default class Lint extends Command {
         'Output colorized report. Only works for `human` output format. Set by default for stdout and stderr output.',
     }),
 
-    validate: oclifFlags.boolean({
-      // TODO: extend or modify this
-      char: 'v',
-      default: false,
-      description: 'Validate maps to specific profile.',
-    }),
+    // validate: oclifFlags.boolean({
+    //   // TODO: extend or modify this
+    //   char: 'v',
+    //   default: false,
+    //   description: 'Validate maps to specific profile.',
+    // }),
 
     scan: oclifFlags.integer({
       char: 's',
@@ -84,15 +92,21 @@ export default class Lint extends Command {
 
   static examples = [
     '$ superface lint',
-    '$ superface lint --validate',
+    '$ superface lint --profileId starwars/character-information',
+    '$ superface lint --profileId starwars/character-information --providerName swapi',
+    '$ superface lint --providerName swapi',
     '$ superface lint -o -2',
     '$ superface lint -f json',
-    '$ superface lint my/path/to/sms/service@1.0',
-    '$ superface lint -s',
+    '$ superface lint -s 3',
   ];
 
   async run(): Promise<void> {
     const { argv, flags } = this.parse(Lint);
+
+    if (flags.quiet) {
+      this.logCallback = undefined;
+      this.warnCallback = undefined;
+    }
 
     if (flags.scan && (typeof flags.scan !== 'number' || flags.scan > 5)) {
       throw userError(
@@ -101,19 +115,20 @@ export default class Lint extends Command {
       );
     }
     let files: string[] = [];
-    if (!argv || argv.length === 0) {
-      const superPath = await detectSuperJson(process.cwd(), flags.scan);
-      if (!superPath) {
-        throw userError('Unable to lint, super.json not found', 1);
+    const superPath = await detectSuperJson(process.cwd(), flags.scan);
+    if (!superPath) {
+      throw userError('Unable to lint, super.json not found', 1);
+    }
+    //Load super json
+    const loadedResult = await SuperJson.load(joinPath(superPath, META_FILE));
+    const superJson = loadedResult.match(
+      v => v,
+      err => {
+        throw userError(`Unable to load super.json: ${err.formatShort()}`, 1);
       }
-      //Load super json
-      const loadedResult = await SuperJson.load(joinPath(superPath, META_FILE));
-      const superJson = loadedResult.match(
-        v => v,
-        err => {
-          throw userError(`Unable to load super.json: ${err.formatShort()}`, 1);
-        }
-      );
+    );
+    //Lint whole super.json
+    if (!flags.profileId && !flags.profileName) {
       for (const profile of Object.values(superJson.normalized.profiles)) {
         if ('file' in profile) {
           files.push(superJson.resolvePath(profile.file));
@@ -123,8 +138,6 @@ export default class Lint extends Command {
             files.push(superJson.resolvePath(profileProvider.file));
           }
       }
-    } else {
-      files = argv;
     }
 
     const outputStream = new OutputStream(flags.output, {
