@@ -15,6 +15,7 @@ import {
   findLocalMapSource,
   findLocalProfileSource,
   findLocalProviderSource,
+  isProviderParseError,
 } from './check.utils';
 
 jest.mock('../common/io');
@@ -61,6 +62,47 @@ describe('Check utils', () => {
     ],
     defaultService: 'test-service',
   };
+
+  describe('when checking provider parse error', () => {
+    it('returns false when error object has unexpected structure', async () => {
+      expect(isProviderParseError({})).toEqual(false);
+      expect(isProviderParseError({ issues: 'test' })).toEqual(false);
+      expect(
+        isProviderParseError({ issues: [{ message: '', code: '' }] })
+      ).toEqual(false);
+      expect(
+        isProviderParseError({ issues: [{ path: '', code: '' }] })
+      ).toEqual(false);
+      expect(
+        isProviderParseError({ issues: [{ path: '', message: '' }] })
+      ).toEqual(false);
+      expect(
+        isProviderParseError({ issues: [{ path: '', message: '', code: 2 }] })
+      ).toEqual(false);
+      expect(
+        isProviderParseError({ issues: [{ path: '', message: 2, code: '' }] })
+      ).toEqual(false);
+      expect(
+        isProviderParseError({ issues: [{ path: '', message: '', code: '' }] })
+      ).toEqual(false);
+      expect(
+        isProviderParseError({
+          issues: [{ path: [{ test: 'test' }], message: '', code: '' }],
+        })
+      ).toEqual(false);
+    });
+    it('returns true when error object has expected structure', async () => {
+      expect(isProviderParseError({ issues: [] })).toEqual(true);
+      expect(
+        isProviderParseError({ issues: [{ path: [], message: '', code: '' }] })
+      ).toEqual(true);
+      expect(
+        isProviderParseError({
+          issues: [{ path: ['test', 2], message: '', code: '' }],
+        })
+      ).toEqual(true);
+    });
+  });
 
   describe('when looking for local profile source', () => {
     it('returns source if profile with scope and version exists', async () => {

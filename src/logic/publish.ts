@@ -1,6 +1,8 @@
 import { SuperJson } from '@superfaceai/one-sdk';
+import { ServiceApiError } from '@superfaceai/service-client';
 import { yellow } from 'chalk';
 
+import { UNVERIFIED_PROVIDER_PREFIX } from '../common';
 import { userError } from '../common/error';
 import { fetchProviderInfo, SuperfaceClient } from '../common/http';
 import { LogCallback } from '../common/log';
@@ -81,6 +83,7 @@ export async function publish(
 
   //Check
   const checkReport = prePublishCheck(
+    publishing,
     profileFiles.ast,
     mapFiles.ast,
     providerJson
@@ -131,6 +134,42 @@ export async function publish(
       1
     );
   }
+
+  //Check provider name
+  if (publishing === 'map') {
+    //If we are working with local provider and name does not start with unverified we check existance of provider in SF register
+    if (
+      !mapFiles.ast.header.provider.startsWith(UNVERIFIED_PROVIDER_PREFIX) &&
+      localProviderJson
+    ) {
+      try {
+        await fetchProviderInfo(mapFiles.ast.header.provider);
+        //Log if provider exists in SF and user is using local one
+        options?.logCb?.(
+          `Provider: "${mapFiles.ast.header.provider}" found localy linked in super.json and also in Superface server. Consider using provider from Superface store.`
+        );
+      } catch (error) {
+        //If provider does not exists in SF register (is not verified) it must start with unverified
+        if (error instanceof ServiceApiError && error.status === 404) {
+          throw userError(
+            `Provider: "${mapFiles.ast.header.provider}" does not exist in Superface store and it does not start with: "${UNVERIFIED_PROVIDER_PREFIX}" prefix.\nPlease, rename provider: "${mapFiles.ast.header.provider}" or use existing provider.`,
+            1
+          );
+        } else {
+          throw error;
+        }
+      }
+    }
+  }
+  if (publishing === 'provider') {
+    if (!providerJson.name.startsWith(UNVERIFIED_PROVIDER_PREFIX)) {
+      throw userError(
+        `❌ When publishing provider, provider name: "${providerJson.name}" in provider.json must have prefix "${UNVERIFIED_PROVIDER_PREFIX}"`,
+        1
+      );
+    }
+  }
+
   const client = SuperfaceClient.getClient();
 
   if (publishing === 'provider') {

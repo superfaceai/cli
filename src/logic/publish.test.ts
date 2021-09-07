@@ -1,11 +1,15 @@
 import { CLIError } from '@oclif/errors';
 import { MapDocumentNode, ProfileDocumentNode } from '@superfaceai/ast';
 import { SuperJson } from '@superfaceai/one-sdk';
-import { ServiceClient } from '@superfaceai/service-client';
+import { ServiceApiError } from '@superfaceai/service-client';
+import { ServiceClient } from '@superfaceai/service-client/dist/client';
 import { yellow } from 'chalk';
 import { mocked } from 'ts-jest/utils';
 
-import { DEFAULT_PROFILE_VERSION_STR } from '../common';
+import {
+  DEFAULT_PROFILE_VERSION_STR,
+  UNVERIFIED_PROVIDER_PREFIX,
+} from '../common';
 import { fetchProviderInfo, getServicesUrl } from '../common/http';
 import { loadNetrc } from '../common/netrc';
 import { ProfileId } from '../common/profile';
@@ -31,8 +35,8 @@ import {
 //Mock netrc
 jest.mock('../common/netrc');
 
-//Mock service client
-jest.mock('@superfaceai/service-client');
+//Mock only service client
+jest.mock('@superfaceai/service-client/dist/client');
 
 //Mock http
 jest.mock('../common/http', () => ({
@@ -223,6 +227,7 @@ describe('Publish logic', () => {
       );
       expect(fetchProviderInfo).not.toHaveBeenCalled();
       expect(prePublishCheck).toHaveBeenCalledWith(
+        'profile',
         mockProfileDocument,
         mockMapDocument,
         mockProviderSource
@@ -298,6 +303,7 @@ describe('Publish logic', () => {
       );
       expect(fetchProviderInfo).not.toHaveBeenCalled();
       expect(prePublishCheck).toHaveBeenCalledWith(
+        'profile',
         mockProfileDocument,
         mockMapDocument,
         mockProviderSource
@@ -371,6 +377,7 @@ describe('Publish logic', () => {
       );
       expect(fetchProviderInfo).toHaveBeenCalledWith(mockProviderName);
       expect(prePublishCheck).toHaveBeenCalledWith(
+        'profile',
         mockProfileDocument,
         mockMapDocument,
         mockProviderSource
@@ -445,6 +452,7 @@ describe('Publish logic', () => {
       );
       expect(fetchProviderInfo).not.toHaveBeenCalled();
       expect(prePublishCheck).toHaveBeenCalledWith(
+        'profile',
         mockProfileDocument,
         mockMapDocument,
         mockProviderSource
@@ -524,7 +532,8 @@ describe('Publish logic', () => {
         ast: mockMapDocument,
         source: mockMapSource,
       });
-      mocked(findLocalProviderSource).mockResolvedValue(mockProviderSource);
+      mocked(findLocalProviderSource).mockResolvedValue(undefined);
+      mocked(fetchProviderInfo).mockResolvedValue(mockProviderSource);
       mocked(prePublishCheck).mockReturnValue([]);
       mocked(prePublishLint).mockReturnValue(emptyLintResult);
 
@@ -561,8 +570,9 @@ describe('Publish logic', () => {
         mockSuperJson,
         mockProviderName
       );
-      expect(fetchProviderInfo).not.toHaveBeenCalled();
+      expect(fetchProviderInfo).toHaveBeenCalled();
       expect(prePublishCheck).toHaveBeenCalledWith(
+        'map',
         mockProfileDocument,
         mockMapDocument,
         mockProviderSource
@@ -599,7 +609,8 @@ describe('Publish logic', () => {
         ast: mockMapDocument,
         source: mockMapSource,
       });
-      mocked(findLocalProviderSource).mockResolvedValue(mockProviderSource);
+      mocked(findLocalProviderSource).mockResolvedValue(undefined);
+      mocked(fetchProviderInfo).mockResolvedValue(mockProviderSource);
       mocked(prePublishCheck).mockReturnValue([]);
       mocked(prePublishLint).mockReturnValue(emptyLintResult);
 
@@ -637,8 +648,9 @@ describe('Publish logic', () => {
         mockSuperJson,
         mockProviderName
       );
-      expect(fetchProviderInfo).not.toHaveBeenCalled();
+      expect(fetchProviderInfo).toHaveBeenCalled();
       expect(prePublishCheck).toHaveBeenCalledWith(
+        'map',
         mockProfileDocument,
         mockMapDocument,
         mockProviderSource
@@ -715,6 +727,7 @@ describe('Publish logic', () => {
       );
       expect(fetchProviderInfo).toHaveBeenCalledWith(mockProviderName);
       expect(prePublishCheck).toHaveBeenCalledWith(
+        'map',
         mockProfileDocument,
         mockMapDocument,
         mockProviderSource
@@ -751,6 +764,7 @@ describe('Publish logic', () => {
         source: mockMapSource,
       });
       mocked(findLocalProviderSource).mockResolvedValue(mockProviderSource);
+      mocked(fetchProviderInfo).mockResolvedValue(mockProviderSource);
       mocked(prePublishCheck).mockReturnValue([]);
       mocked(prePublishLint).mockReturnValue(emptyLintResult);
 
@@ -789,8 +803,97 @@ describe('Publish logic', () => {
         mockSuperJson,
         mockProviderName
       );
-      expect(fetchProviderInfo).not.toHaveBeenCalled();
+      expect(fetchProviderInfo).toHaveBeenCalled();
       expect(prePublishCheck).toHaveBeenCalledWith(
+        'map',
+        mockProfileDocument,
+        mockMapDocument,
+        mockProviderSource
+      );
+      expect(prePublishLint).toHaveBeenCalledWith(
+        mockProfileDocument,
+        mockMapDocument
+      );
+    });
+
+    it('throws when publishin map and provider without unverified prefix does not exist in superface store', async () => {
+      const mockSuperJson = new SuperJson({
+        profiles: {
+          [mockProfileId]: {
+            version: DEFAULT_PROFILE_VERSION_STR,
+            providers: {
+              [mockProviderName]: {
+                file: mockPath,
+              },
+            },
+          },
+        },
+        providers: {
+          [mockProviderName]: {},
+        },
+      });
+      mocked(loadNetrc).mockReturnValue({
+        refreshToken: 'RT',
+        baseUrl: 'https://superface.ai',
+      });
+      mocked(loadProfile).mockResolvedValue({ ast: mockProfileDocument });
+      mocked(loadMap).mockResolvedValue({
+        ast: mockMapDocument,
+        source: mockMapSource,
+      });
+      mocked(findLocalProviderSource).mockResolvedValue(mockProviderSource);
+      mocked(fetchProviderInfo).mockRejectedValue(
+        new ServiceApiError({
+          status: 404,
+          instance: 'test',
+          detail: 'test',
+          title: 'test',
+        })
+      );
+      mocked(prePublishCheck).mockReturnValue([]);
+      mocked(prePublishLint).mockReturnValue(emptyLintResult);
+
+      const createSpy = jest
+        .spyOn(ServiceClient.prototype, 'createMap')
+        .mockResolvedValue(undefined);
+
+      await expect(
+        publish(
+          'map',
+          mockSuperJson,
+          ProfileId.fromId(mockProfileId),
+          mockProviderName,
+          {},
+          DEFAULT_PROFILE_VERSION_STR
+        )
+      ).rejects.toEqual(
+        new CLIError(
+          `Provider: "${mockMapDocument.header.provider}" does not exist in Superface store and it does not start with: "${UNVERIFIED_PROVIDER_PREFIX}" prefix.\nPlease, rename provider: "${mockMapDocument.header.provider}" or use existing provider.`
+        )
+      );
+
+      expect(createSpy).not.toHaveBeenCalled();
+      expect(loadProfile).toHaveBeenCalledWith(
+        mockSuperJson,
+        ProfileId.fromId(mockProfileId),
+        DEFAULT_PROFILE_VERSION_STR,
+        undefined
+      );
+      expect(loadMap).toHaveBeenCalledWith(
+        mockSuperJson,
+        ProfileId.fromId(mockProfileId),
+        mockProviderName,
+        {},
+        DEFAULT_PROFILE_VERSION_STR,
+        undefined
+      );
+      expect(findLocalProviderSource).toHaveBeenCalledWith(
+        mockSuperJson,
+        mockProviderName
+      );
+      expect(fetchProviderInfo).toHaveBeenCalled();
+      expect(prePublishCheck).toHaveBeenCalledWith(
+        'map',
         mockProfileDocument,
         mockMapDocument,
         mockProviderSource
@@ -846,17 +949,28 @@ describe('Publish logic', () => {
     });
 
     it('publishes provider', async () => {
+      const provider = 'unverified-swapi';
+      const mockProviderSource = {
+        name: provider,
+        services: [
+          {
+            id: 'default',
+            baseUrl: 'https://swapi.dev/api',
+          },
+        ],
+        defaultService: 'default',
+      };
       const mockSuperJson = new SuperJson({
         profiles: {
           [mockProfileId]: {
             version: DEFAULT_PROFILE_VERSION_STR,
             providers: {
-              [mockProviderName]: {},
+              [provider]: {},
             },
           },
         },
         providers: {
-          [mockProviderName]: {
+          [provider]: {
             file: mockPath,
           },
         },
@@ -868,6 +982,7 @@ describe('Publish logic', () => {
       mocked(loadProfile).mockResolvedValue({ ast: mockProfileDocument });
       mocked(loadMap).mockResolvedValue({ ast: mockMapDocument });
       mocked(findLocalProviderSource).mockResolvedValue(mockProviderSource);
+      mocked(fetchProviderInfo).mockResolvedValue(mockProviderSource);
       mocked(prePublishCheck).mockReturnValue([]);
       mocked(prePublishLint).mockReturnValue(emptyLintResult);
 
@@ -880,7 +995,7 @@ describe('Publish logic', () => {
           'provider',
           mockSuperJson,
           ProfileId.fromId(mockProfileId),
-          mockProviderName,
+          provider,
           {},
           DEFAULT_PROFILE_VERSION_STR
         )
@@ -898,17 +1013,18 @@ describe('Publish logic', () => {
       expect(loadMap).toHaveBeenCalledWith(
         mockSuperJson,
         ProfileId.fromId(mockProfileId),
-        mockProviderName,
+        provider,
         {},
         DEFAULT_PROFILE_VERSION_STR,
         undefined
       );
       expect(findLocalProviderSource).toHaveBeenCalledWith(
         mockSuperJson,
-        mockProviderName
+        provider
       );
       expect(fetchProviderInfo).not.toHaveBeenCalled();
       expect(prePublishCheck).toHaveBeenCalledWith(
+        'provider',
         mockProfileDocument,
         mockMapDocument,
         mockProviderSource
@@ -920,20 +1036,31 @@ describe('Publish logic', () => {
     });
 
     it('publishes provider with map varinat', async () => {
+      const provider = 'unverified-swapi';
+      const mockProviderSource = {
+        name: provider,
+        services: [
+          {
+            id: 'default',
+            baseUrl: 'https://swapi.dev/api',
+          },
+        ],
+        defaultService: 'default',
+      };
       const variant = 'test';
       const mockSuperJson = new SuperJson({
         profiles: {
           [mockProfileId]: {
             version: DEFAULT_PROFILE_VERSION_STR,
             providers: {
-              [mockProviderName]: {
+              [provider]: {
                 mapVariant: variant,
               },
             },
           },
         },
         providers: {
-          [mockProviderName]: {
+          [provider]: {
             file: mockPath,
           },
         },
@@ -957,7 +1084,7 @@ describe('Publish logic', () => {
           'provider',
           mockSuperJson,
           ProfileId.fromId(mockProfileId),
-          mockProviderName,
+          provider,
           { variant },
           DEFAULT_PROFILE_VERSION_STR
         )
@@ -975,17 +1102,18 @@ describe('Publish logic', () => {
       expect(loadMap).toHaveBeenCalledWith(
         mockSuperJson,
         ProfileId.fromId(mockProfileId),
-        mockProviderName,
+        provider,
         { variant },
         DEFAULT_PROFILE_VERSION_STR,
         undefined
       );
       expect(findLocalProviderSource).toHaveBeenCalledWith(
         mockSuperJson,
-        mockProviderName
+        provider
       );
       expect(fetchProviderInfo).not.toHaveBeenCalled();
       expect(prePublishCheck).toHaveBeenCalledWith(
+        'provider',
         mockProfileDocument,
         mockMapDocument,
         mockProviderSource
@@ -996,7 +1124,7 @@ describe('Publish logic', () => {
       );
     });
 
-    it('does not publish provider with --dry-run', async () => {
+    it('throws when publishing provider withou unverified prefix', async () => {
       const mockSuperJson = new SuperJson({
         profiles: {
           [mockProfileId]: {
@@ -1036,7 +1164,11 @@ describe('Publish logic', () => {
           DEFAULT_PROFILE_VERSION_STR,
           { dryRun: true }
         )
-      ).resolves.toBeUndefined();
+      ).rejects.toEqual(
+        new CLIError(
+          `❌ When publishing provider, provider name: "${mockProviderName}" in provider.json must have prefix "${UNVERIFIED_PROVIDER_PREFIX}"`
+        )
+      );
 
       expect(createSpy).not.toHaveBeenCalled();
       expect(loadProfile).toHaveBeenCalledWith(
@@ -1059,6 +1191,92 @@ describe('Publish logic', () => {
       );
       expect(fetchProviderInfo).not.toHaveBeenCalled();
       expect(prePublishCheck).toHaveBeenCalledWith(
+        'provider',
+        mockProfileDocument,
+        mockMapDocument,
+        mockProviderSource
+      );
+      expect(prePublishLint).toHaveBeenCalledWith(
+        mockProfileDocument,
+        mockMapDocument
+      );
+    });
+
+    it('does not publish provider with --dry-run', async () => {
+      const provider = 'unverified-swapi';
+      const mockProviderSource = {
+        name: provider,
+        services: [
+          {
+            id: 'default',
+            baseUrl: 'https://swapi.dev/api',
+          },
+        ],
+        defaultService: 'default',
+      };
+      const mockSuperJson = new SuperJson({
+        profiles: {
+          [mockProfileId]: {
+            version: DEFAULT_PROFILE_VERSION_STR,
+            providers: {
+              [provider]: {},
+            },
+          },
+        },
+        providers: {
+          [provider]: {
+            file: mockPath,
+          },
+        },
+      });
+      mocked(loadNetrc).mockReturnValue({
+        refreshToken: 'RT',
+        baseUrl: 'https://superface.ai',
+      });
+      mocked(loadProfile).mockResolvedValue({ ast: mockProfileDocument });
+      mocked(loadMap).mockResolvedValue({ ast: mockMapDocument });
+      mocked(findLocalProviderSource).mockResolvedValue(mockProviderSource);
+      mocked(prePublishCheck).mockReturnValue([]);
+      mocked(prePublishLint).mockReturnValue(emptyLintResult);
+
+      const createSpy = jest
+        .spyOn(ServiceClient.prototype, 'createProvider')
+        .mockResolvedValue(undefined);
+
+      await expect(
+        publish(
+          'provider',
+          mockSuperJson,
+          ProfileId.fromId(mockProfileId),
+          provider,
+          {},
+          DEFAULT_PROFILE_VERSION_STR,
+          { dryRun: true }
+        )
+      ).resolves.toBeUndefined();
+
+      expect(createSpy).not.toHaveBeenCalled();
+      expect(loadProfile).toHaveBeenCalledWith(
+        mockSuperJson,
+        ProfileId.fromId(mockProfileId),
+        DEFAULT_PROFILE_VERSION_STR,
+        { dryRun: true }
+      );
+      expect(loadMap).toHaveBeenCalledWith(
+        mockSuperJson,
+        ProfileId.fromId(mockProfileId),
+        provider,
+        {},
+        DEFAULT_PROFILE_VERSION_STR,
+        { dryRun: true }
+      );
+      expect(findLocalProviderSource).toHaveBeenCalledWith(
+        mockSuperJson,
+        provider
+      );
+      expect(fetchProviderInfo).not.toHaveBeenCalled();
+      expect(prePublishCheck).toHaveBeenCalledWith(
+        'provider',
         mockProfileDocument,
         mockMapDocument,
         mockProviderSource
@@ -1179,6 +1397,7 @@ describe('Publish logic', () => {
       );
       expect(fetchProviderInfo).not.toHaveBeenCalled();
       expect(prePublishCheck).toHaveBeenCalledWith(
+        'provider',
         mockProfileDocument,
         mockMapDocument,
         mockProviderSource
@@ -1278,6 +1497,7 @@ describe('Publish logic', () => {
       );
       expect(fetchProviderInfo).not.toHaveBeenCalled();
       expect(prePublishCheck).toHaveBeenCalledWith(
+        'provider',
         mockProfileDocument,
         mockMapDocument,
         mockProviderSource
@@ -1365,6 +1585,7 @@ describe('Publish logic', () => {
       );
       expect(fetchProviderInfo).not.toHaveBeenCalled();
       expect(prePublishCheck).toHaveBeenCalledWith(
+        'provider',
         mockProfileDocument,
         mockMapDocument,
         mockProviderSource
