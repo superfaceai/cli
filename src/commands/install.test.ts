@@ -6,7 +6,6 @@ import { ProfileId } from '../common/profile';
 import { installProvider } from '../logic/configure';
 import { initSuperface } from '../logic/init';
 import { detectSuperJson, installProfiles } from '../logic/install';
-import { interactiveInstall } from '../logic/quickstart';
 import { MockStd, mockStd } from '../test/mock-std';
 import Install from './install';
 
@@ -19,11 +18,6 @@ jest.mock('../logic/install', () => ({
 //Mock configure logic
 jest.mock('../logic/configure', () => ({
   installProvider: jest.fn(),
-}));
-
-//Mock interactive install logic
-jest.mock('../logic/quickstart', () => ({
-  interactiveInstall: jest.fn(),
 }));
 
 //Mock init logic
@@ -332,38 +326,6 @@ describe('Install CLI command', () => {
           force: false,
         },
       });
-    }, 10000);
-
-    it('calls interactive install correctly', async () => {
-      await expect(
-        Install.run(['scope/profile', '-i'])
-      ).resolves.toBeUndefined();
-      expect(interactiveInstall).toHaveBeenCalledTimes(1);
-    }, 10000);
-
-    it('does not call interactive install when profile id argument is not set', async () => {
-      await expect(Install.run(['-i'])).rejects.toThrow('EEXIT: 0');
-      expect(interactiveInstall).not.toHaveBeenCalled();
-    }, 10000);
-
-    it('does not call interactive install when other flags are set', async () => {
-      await expect(Install.run(['-i', '-q'])).rejects.toThrow(
-        '--quiet= cannot also be provided when using --interactive='
-      );
-      await expect(Install.run(['-i', '-f'])).rejects.toThrow(
-        '--force= cannot also be provided when using --interactive='
-      );
-      await expect(Install.run(['-i', '-p', 'mailchimp'])).rejects.toThrow(
-        '--providers= cannot also be provided when using --interactive='
-      );
-      await expect(Install.run(['-i', '-l'])).rejects.toThrow(
-        '--local= cannot also be provided when using --interactive='
-      );
-      await expect(Install.run(['-i', '-s', '2'])).rejects.toThrow(
-        '--scan= cannot also be provided when using --interactive='
-      );
-
-      expect(interactiveInstall).not.toHaveBeenCalled();
     }, 10000);
   });
 });
