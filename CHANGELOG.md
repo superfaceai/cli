@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Removed
+- Interactive install command
+
 ## [0.0.23] - 2021-09-07
 ### Added
 - Generate command
