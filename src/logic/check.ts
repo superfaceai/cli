@@ -25,6 +25,7 @@ import {
   findLocalMapSource,
   findLocalProfileSource,
   findLocalProviderSource,
+  isProviderParseError,
 } from './check.utils';
 
 export type CheckResult = { kind: 'error' | 'warn'; message: string };
@@ -124,21 +125,43 @@ export async function check(
   const result = checkMapAndProfile(profileAst, mapAst, options);
 
   options?.logCb?.(`Checking provider: "${provider}"`);
+  result.push(...checkMapAndProvider(providerJson, mapAst));
+
+  return result;
+}
+
+export function checkMapAndProvider(
+  provider: ProviderJson,
+  map: MapDocumentNode
+): CheckResult[] {
+  const result: CheckResult[] = [];
   try {
-    parseProviderJson(providerJson);
+    parseProviderJson(provider);
   } catch (error) {
-    if ('issues' in error) {
-      for (const issue of (error as { issues: [] }).issues) {
-        if ('path' in issue && 'message' in issue) {
-          result.push({
-            kind: 'error',
-            message: `Provider check error: ${
-              (issue as { message: string }).message
-            } on path ${(issue as { path: string }).path}`,
-          });
-        }
+    if (isProviderParseError(error)) {
+      for (const issue of error.issues) {
+        result.push({
+          kind: 'error',
+          message: `Provider check error: ${issue.code}: ${
+            issue.message
+          } on path ${issue.path
+            .map(value => {
+              return typeof value === 'string' ? value : value.toString();
+            })
+            .join(', ')}`,
+        });
       }
+    } else {
+      throw error;
     }
+  }
+
+  //Check provider name
+  if (map.header.provider !== provider.name) {
+    result.push({
+      kind: 'error',
+      message: `Map contains provider with name: "${map.header.provider}" but provider.json contains provider with name: "${provider.name}"`,
+    });
   }
 
   return result;

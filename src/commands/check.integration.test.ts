@@ -2,6 +2,7 @@ import { SuperJson } from '@superfaceai/one-sdk';
 import { getLocal } from 'mockttp';
 import { join as joinPath } from 'path';
 
+import { UNVERIFIED_PROVIDER_PREFIX } from '../common';
 import { mkdir, rimraf } from '../common/io';
 import { OutputStream } from '../common/output-stream';
 import {
@@ -19,7 +20,7 @@ describe('Create CLI command', () => {
   //File specific path
   const TEMP_PATH = joinPath('test', 'tmp');
   let tempDir: string;
-  const provider = 'swapi';
+  const provider = `${UNVERIFIED_PROVIDER_PREFIX}swapi`;
   const profileId = 'starwars/character-information';
   const profileVersion = '1.0.2';
 
@@ -41,9 +42,9 @@ describe('Create CLI command', () => {
       'profiles',
       'starwars',
       'maps',
-      'swapi.character-information.suma'
+      'unverified-swapi.character-information.suma'
     ),
-    provider: joinPath('fixtures', 'providers', 'swapi.json'),
+    provider: joinPath('fixtures', 'providers', 'unverified-swapi.json'),
   };
 
   beforeAll(async () => {
@@ -55,7 +56,8 @@ describe('Create CLI command', () => {
       'starwars/character-information@1.0.2'
     );
     await mockResponsesForProfileProviders(mockServer, [provider], profileId);
-    await mockResponsesForProvider(mockServer, 'swapi');
+    await mockResponsesForProvider(mockServer, provider);
+
     await mockResponsesForMap(
       mockServer,
       { name: 'character-information', scope: 'starwars' },

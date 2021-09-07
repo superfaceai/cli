@@ -6,7 +6,7 @@ import { green, grey, yellow } from 'chalk';
 import inquirer from 'inquirer';
 import { join as joinPath } from 'path';
 
-import { META_FILE } from '../common';
+import { META_FILE, UNVERIFIED_PROVIDER_PREFIX } from '../common';
 import { Command } from '../common/command.abstract';
 import { userError } from '../common/error';
 import { getServicesUrl } from '../common/http';
@@ -84,18 +84,6 @@ export default class Publish extends Command {
     const { argv, flags } = this.parse(Publish);
 
     const documentType = argv[0];
-
-    if (!flags.force) {
-      const response: { upload: boolean } = await inquirer.prompt({
-        name: 'upload',
-        message: `Are you sure that you want to publish data to ${getServicesUrl()} registry?`,
-        type: 'confirm',
-      });
-
-      if (!response.upload) {
-        this.exit(0);
-      }
-    }
 
     if (flags.quiet) {
       this.logCallback = undefined;
@@ -190,9 +178,14 @@ export default class Publish extends Command {
           1
         );
       }
-
       //Publishing provider
     } else if (documentType === 'provider') {
+      if (!flags.providerName.startsWith(UNVERIFIED_PROVIDER_PREFIX)) {
+        throw userError(
+          `❌ When publishing provider, provider must have prefix "${UNVERIFIED_PROVIDER_PREFIX}"`,
+          1
+        );
+      }
       if (!('file' in providerSettings) || !providerSettings.file) {
         throw userError(
           `❌ When publishing provider, provider must be locally linked in super.json`,
@@ -210,6 +203,18 @@ export default class Publish extends Command {
         '❌ Document type must be one of "map", "profile", "provider"',
         1
       );
+    }
+
+    if (!flags.force) {
+      const response: { upload: boolean } = await inquirer.prompt({
+        name: 'upload',
+        message: `Are you sure that you want to publish data to ${getServicesUrl()} registry?`,
+        type: 'confirm',
+      });
+
+      if (!response.upload) {
+        this.exit(0);
+      }
     }
 
     const version =
