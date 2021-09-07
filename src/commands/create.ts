@@ -300,8 +300,8 @@ export default class Create extends Command {
       }
     }
 
-    // create scope directory if it already doesn't exist
-    if (scope) {
+    // create scope directory if it already doesn't exist and we don't have specific path
+    if (scope && !flags.path) {
       await mkdirQuiet(scope);
     }
 
