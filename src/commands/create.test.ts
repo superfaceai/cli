@@ -3,7 +3,7 @@ import { SuperJson } from '@superfaceai/one-sdk';
 import inquirer from 'inquirer';
 import { mocked } from 'ts-jest/utils';
 
-import { exists } from '../common/io';
+import { exists, mkdirQuiet } from '../common/io';
 import { create } from '../logic/create';
 import { initSuperface } from '../logic/init';
 import Create from './create';
@@ -12,6 +12,7 @@ import Create from './create';
 jest.mock('../common/io', () => ({
   ...jest.requireActual<Record<string, unknown>>('../common/io'),
   exists: jest.fn(),
+  mkdirQuiet: jest.fn(),
 }));
 
 //Mock create logic
@@ -826,6 +827,46 @@ describe('Create CLI command', () => {
         undefined,
         { logCb: expect.anything(), warnCb: expect.anything() }
       );
+    });
+
+    it('does not create scope folder in root with path flag', async () => {
+      mocked(initSuperface).mockResolvedValue(new SuperJson({}));
+      mocked(exists).mockResolvedValue(true);
+      jest.spyOn(inquirer, 'prompt').mockResolvedValueOnce({ init: true });
+
+      documentName = 'sms/service';
+      provider = 'twilio';
+      const path = 'some';
+      await expect(
+        Create.run([
+          '--profileId',
+          documentName,
+          '--providerName',
+          provider,
+          '--map',
+          '--profile',
+          '--provider',
+          '--path',
+          path,
+        ])
+      ).resolves.toBeUndefined();
+
+      expect(create).toHaveBeenCalledTimes(1);
+      expect(create).toHaveBeenCalledWith(
+        { createProfile: true, createMap: true, createProvider: true },
+        ['Service'],
+        {
+          name: 'service',
+          providerNames: ['twilio'],
+          scope: 'sms',
+          version: { label: undefined, major: 1, minor: 0, patch: 0 },
+        },
+        'superface',
+        //Pass the base path
+        path,
+        { logCb: expect.anything(), warnCb: expect.anything() }
+      );
+      expect(mkdirQuiet).not.toHaveBeenCalled();
     });
 
     it('throws error on invalid document name', async () => {
