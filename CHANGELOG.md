@@ -6,9 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
-### Removed
-- Document type inference was moved to ast-js
 
+## [0.0.23] - 2021-09-07
 ### Added
 - Generate command
 - Whoami command
@@ -16,7 +15,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Login command
 - Compile command compiles to cache
 - Compile command scoped for single file
-- Lint command loading file paths from super.json 
+- Lint command loading file paths from super.json
+
+### Removed
+- Document type inference was moved to ast-js
 
 ### Fixed
 - Improve passing of interactive install tests
@@ -141,7 +143,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Transpile command
 - CI github flow
 
-[Unreleased]: https://github.com/superfaceai/cli/compare/v0.0.22...HEAD
+[Unreleased]: https://github.com/superfaceai/cli/compare/v0.0.23...HEAD
+[0.0.23]: https://github.com/superfaceai/cli/compare/v0.0.22...v0.0.23
 [0.0.22]: https://github.com/superfaceai/cli/compare/v0.0.20...v0.0.22
 [0.0.20]: https://github.com/superfaceai/cli/compare/v0.0.19...v0.0.20
 [0.0.19]: https://github.com/superfaceai/cli/compare/v0.0.18...v0.0.19
