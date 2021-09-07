@@ -11,7 +11,6 @@ import {
 import {
   composeVersion,
   META_FILE,
-  parseProfileDocument,
   SUPER_PATH,
   SUPERFACE_DIR,
   trimExtension,
@@ -486,10 +485,12 @@ export async function getExistingProfileIds(
 
         if ('file' in profileSettings) {
           try {
-            //TODO: we could get ast here
-            const { header } = await parseProfileDocument(
-              superJson.resolvePath(profileSettings.file)
-            );
+            const filePath = superJson.resolvePath(profileSettings.file);
+            const content = await readFile(filePath, { encoding: 'utf-8' });
+            const { header } = await Parser.parseProfile(content, filePath, {
+              profileName: profileId.name,
+              scope: profileId.scope,
+            });
 
             return {
               profileId: ProfileId.fromScopeName(header.scope, header.name),
