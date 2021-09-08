@@ -48,8 +48,8 @@ Or you can use NPX directly with Superface CLI commands:
 
 ```shell
 npx @superfaceai/cli [command]
-# eg. you can quickly start with Superface CLI and our curated capabilities 
-npx @superfaceai/cli install [profileId eg. communication/send-email] -i
+# eg.
+npx @superfaceai/cli install [profileId eg. communication/send-email]
 ```
 
 ## Usage
