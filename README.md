@@ -111,9 +111,9 @@ OPTIONS
   -h, --help                     show CLI help
   -p, --profile=profile          (required) Specifies profile to associate with provider
   -q, --quiet                    When set to true, disables the shell echo output of action.
+  --env                          When set to true command prepares security varibles in .env file
   --localMap=localMap            Optional filepath to .suma map file
   --localProvider=localProvider  Optional filepath to provider.json file
-  --no-env                       When set to true command does not prepare security varibles in .env file
 
 EXAMPLES
   $ superface configure twilio -p send-sms
