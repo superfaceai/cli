@@ -109,7 +109,7 @@ describe('Configure CLI command', () => {
       mocked(detectSuperJson).mockResolvedValue(superPath);
 
       await expect(
-        Configure.run([provider, '-p', profileId.id, '--env'])
+        Configure.run([provider, '-p', profileId.id, '--write-env'])
       ).resolves.toBeUndefined();
 
       expect(detectSuperJson).toHaveBeenCalledTimes(1);

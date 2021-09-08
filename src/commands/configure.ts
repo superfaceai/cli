@@ -31,7 +31,7 @@ export default class Configure extends Command {
       description: 'Specifies profile to associate with provider',
       required: true,
     }),
-    env: oclifFlags.boolean({
+    ['write-env']: oclifFlags.boolean({
       description:
         'When set to true command writes security variables to .env file',
       default: false,
@@ -112,7 +112,7 @@ export default class Configure extends Command {
         force: flags.force,
         localMap: flags.localMap,
         localProvider: flags.localProvider,
-        updateEnv: flags.env,
+        updateEnv: flags['write-env'],
       },
     });
   }
