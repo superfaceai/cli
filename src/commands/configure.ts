@@ -33,7 +33,7 @@ export default class Configure extends Command {
     }),
     env: oclifFlags.boolean({
       description:
-        'When set to true command prepares security varibles in .env file',
+        'When set to true command writes security variables to .env file',
       default: false,
     }),
     force: oclifFlags.boolean({
