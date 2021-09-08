@@ -113,7 +113,7 @@ OPTIONS
   -q, --quiet                    When set to true, disables the shell echo output of action.
   --localMap=localMap            Optional filepath to .suma map file
   --localProvider=localProvider  Optional filepath to provider.json file
-  --no-env                       When set to true command does not prepare security varibles in .env file
+  --write-env                    When set to true command writes security variables to .env file
 
 EXAMPLES
   $ superface configure twilio -p send-sms
