@@ -5,27 +5,20 @@ import {
   ProviderJson,
   SecurityType,
 } from '@superfaceai/one-sdk';
-import superagent from 'superagent';
+import { ServiceApiError, ServiceClient } from '@superfaceai/service-client';
 
 import {
   ContentType,
-  fetch,
+  fetchMapAST,
   fetchProfile,
   fetchProfileAST,
   fetchProfileInfo,
-  fetchProfiles,
   fetchProviderInfo,
   fetchProviders,
-  getStoreUrl,
+  getServicesUrl,
 } from '../common/http';
-import { userError } from './error';
-
-//Mock superagent
-const mockInnerSet = jest.fn();
-const mockSet = jest.fn().mockReturnValue({ set: mockInnerSet });
-const mockQuery = jest.fn().mockReturnValue({ set: mockSet });
-
-jest.mock('superagent');
+import { mockResponse } from '../test/utils';
+import { DEFAULT_PROFILE_VERSION_STR } from './document';
 
 describe('HTTP functions', () => {
   const profileId = 'starwars/character-information';
@@ -34,141 +27,48 @@ describe('HTTP functions', () => {
     jest.resetAllMocks();
   });
 
-  describe('when fetching data', () => {
-    it('calls superagent correctly', async () => {
-      mockInnerSet.mockResolvedValue({ body: 'test' });
-      mockSet.mockImplementation(() => ({ set: mockInnerSet }));
-      (jest.spyOn(superagent, 'get') as jest.Mock).mockReturnValue({
-        set: mockSet,
-      });
+  describe('when getting services url', () => {
+    const originalValue = process.env.SUPERFACE_API_URL;
 
-      const mockUrl = new URL(profileId, getStoreUrl()).href;
+    afterAll(() => {
+      if (originalValue) {
+        process.env.SUPERFACE_API_URL = originalValue;
+      }
+    });
+    it('returns url from env with backslash', async () => {
+      process.env.SUPERFACE_API_URL = 'https://test/url.ai/';
+      expect(getServicesUrl()).toEqual('https://test/url.ai');
+    });
+    it('returns url from env without backslash', async () => {
+      process.env.SUPERFACE_API_URL = 'https://test/url.ai';
+      expect(getServicesUrl()).toEqual('https://test/url.ai');
+    });
 
-      await expect(fetch(mockUrl, ContentType.JSON)).resolves.toEqual({
-        body: 'test',
-      });
-
-      expect(mockSet).toHaveBeenCalledTimes(1);
-      expect(mockSet).toHaveBeenCalledWith('Accept', ContentType.JSON);
-      expect(mockInnerSet).toHaveBeenCalledTimes(1);
-      expect(mockInnerSet).toHaveBeenCalledWith(
-        'User-Agent',
-        expect.any(String)
-      );
-      expect(jest.spyOn(superagent, 'get')).toHaveBeenCalledTimes(1);
-      expect(jest.spyOn(superagent, 'get')).toHaveBeenCalledWith(mockUrl);
-    }, 10000);
-
-    it('calls superagent with query params correctly', async () => {
-      mockInnerSet.mockResolvedValue({ body: 'test' });
-      mockSet.mockImplementation(() => ({ set: mockInnerSet }));
-      mockQuery.mockImplementation(() => ({ set: mockSet }));
-      (jest.spyOn(superagent, 'get') as jest.Mock).mockReturnValue({
-        query: mockQuery,
-      });
-
-      const mockUrl = new URL(profileId, getStoreUrl()).href;
-
-      await expect(
-        fetch(mockUrl, ContentType.JSON, { test: 'value' })
-      ).resolves.toEqual({
-        body: 'test',
-      });
-      expect(mockQuery).toHaveBeenCalledTimes(1);
-      expect(mockQuery).toHaveBeenCalledWith({ test: 'value' });
-      expect(mockSet).toHaveBeenCalledTimes(1);
-      expect(mockSet).toHaveBeenCalledWith('Accept', ContentType.JSON);
-      expect(mockInnerSet).toHaveBeenCalledTimes(1);
-      expect(mockInnerSet).toHaveBeenCalledWith(
-        'User-Agent',
-        expect.any(String)
-      );
-      expect(jest.spyOn(superagent, 'get')).toHaveBeenCalledTimes(1);
-      expect(jest.spyOn(superagent, 'get')).toHaveBeenCalledWith(mockUrl);
-    }, 10000);
-
-    it('catches error during superagent call', async () => {
-      mockInnerSet.mockRejectedValue(new Error('Not found'));
-      mockSet.mockImplementation(() => ({ set: mockInnerSet }));
-      mockQuery.mockImplementation(() => ({ set: mockSet }));
-      (jest.spyOn(superagent, 'get') as jest.Mock).mockReturnValue({
-        query: mockQuery,
-      });
-
-      const mockUrl = new URL(profileId, getStoreUrl()).href;
-
-      await expect(
-        fetch(mockUrl, ContentType.JSON, { test: 'value' })
-      ).rejects.toThrow(userError('Not found', 1));
-
-      expect(mockQuery).toHaveBeenCalledTimes(1);
-      expect(mockQuery).toHaveBeenCalledWith({ test: 'value' });
-      expect(mockSet).toHaveBeenCalledTimes(1);
-      expect(mockSet).toHaveBeenCalledWith('Accept', ContentType.JSON);
-      expect(mockInnerSet).toHaveBeenCalledTimes(1);
-      expect(mockInnerSet).toHaveBeenCalledWith(
-        'User-Agent',
-        expect.any(String)
-      );
-      expect(jest.spyOn(superagent, 'get')).toHaveBeenCalledTimes(1);
-      expect(jest.spyOn(superagent, 'get')).toHaveBeenCalledWith(mockUrl);
-    }, 10000);
-
-    it('catches error during superagent call with query params', async () => {
-      mockInnerSet.mockRejectedValue(new Error('Not found'));
-      mockSet.mockImplementation(() => ({ set: mockInnerSet }));
-      (jest.spyOn(superagent, 'get') as jest.Mock).mockReturnValue({
-        set: mockSet,
-      });
-
-      const mockUrl = new URL(profileId, getStoreUrl()).href;
-
-      await expect(fetch(mockUrl, ContentType.JSON)).rejects.toEqual(
-        new CLIError('Not found')
-      );
-
-      expect(mockSet).toHaveBeenCalledTimes(1);
-      expect(mockSet).toHaveBeenCalledWith('Accept', ContentType.JSON);
-      expect(mockInnerSet).toHaveBeenCalledTimes(1);
-      expect(mockInnerSet).toHaveBeenCalledWith(
-        'User-Agent',
-        expect.any(String)
-      );
-      expect(jest.spyOn(superagent, 'get')).toHaveBeenCalledTimes(1);
-      expect(jest.spyOn(superagent, 'get')).toHaveBeenCalledWith(mockUrl);
-    }, 10000);
+    it('returns default url', async () => {
+      delete process.env.SUPERFACE_API_URL;
+      expect(getServicesUrl()).toEqual('https://superface.ai');
+    });
   });
-
-  describe('when fetching profiles', () => {
-    it('calls superagent correctly', async () => {
-      //mock profiles info
-      await expect(fetchProfiles()).resolves.toEqual([
-        { scope: 'communication', profile: 'send-email', version: '1.0.1' },
-      ]);
-    }, 10000);
-  });
-
   describe('when fetching providers', () => {
     const mockProviderJson: ProviderJson = {
-      name: 'test',
-      services: [{ id: 'test-service', baseUrl: 'service/base/url' }],
+      name: 'swapi',
+      services: [{ id: 'swapi', baseUrl: 'https://swapi.dev/api' }],
       securitySchemes: [
-        {
-          type: SecurityType.HTTP,
-          id: 'basic',
-          scheme: HttpScheme.BASIC,
-        },
         {
           id: 'api',
           type: SecurityType.APIKEY,
           in: ApiKeyPlacement.HEADER,
-          name: 'Authorization',
+          name: 'X-API-Key',
         },
         {
-          id: 'bearer',
           type: SecurityType.HTTP,
           scheme: HttpScheme.BEARER,
-          bearerFormat: 'some',
+          id: 'bearer',
+        },
+        {
+          type: SecurityType.HTTP,
+          id: 'basic',
+          scheme: HttpScheme.BASIC,
         },
         {
           id: 'digest',
@@ -176,36 +76,62 @@ describe('HTTP functions', () => {
           scheme: HttpScheme.DIGEST,
         },
       ],
-      defaultService: 'test-service',
+      defaultService: 'test',
     };
-    it('calls superagent correctly', async () => {
-      mockInnerSet.mockResolvedValue({ body: { data: [mockProviderJson] } });
-      mockSet.mockImplementation(() => ({ set: mockInnerSet }));
-      mockQuery.mockImplementation(() => ({ set: mockSet }));
-      (jest.spyOn(superagent, 'get') as jest.Mock).mockReturnValue({
-        query: mockQuery,
-      });
-      const mockUrl = new URL('providers', getStoreUrl()).href;
+
+    it('calls superface client correctly', async () => {
+      const fetchSpy = jest
+        .spyOn(ServiceClient.prototype, 'fetch')
+        .mockResolvedValue(
+          mockResponse(200, 'OK', undefined, { data: [mockProviderJson] })
+        );
 
       await expect(fetchProviders(profileId)).resolves.toEqual([
         mockProviderJson,
       ]);
-      expect(mockQuery).toHaveBeenCalledTimes(1);
-      expect(mockQuery).toHaveBeenCalledWith({ profile: profileId });
-      expect(mockSet).toHaveBeenCalledTimes(1);
-      expect(mockSet).toHaveBeenCalledWith('Accept', ContentType.JSON);
-      expect(mockInnerSet).toHaveBeenCalledTimes(1);
-      expect(mockInnerSet).toHaveBeenCalledWith(
-        'User-Agent',
-        expect.any(String)
+
+      expect(fetchSpy).toHaveBeenCalledTimes(1);
+      expect(fetchSpy).toHaveBeenCalledWith(
+        `/providers?profile=${encodeURIComponent(profileId)}`,
+        {
+          authenticate: false,
+          method: 'GET',
+          headers: {
+            'Content-Type': ContentType.JSON,
+            'User-Agent': expect.any(String),
+          },
+        }
       );
-      expect(jest.spyOn(superagent, 'get')).toHaveBeenCalledTimes(1);
-      expect(jest.spyOn(superagent, 'get')).toHaveBeenCalledWith(mockUrl);
+    }, 10000);
+
+    it('throws error when request fails', async () => {
+      const fetchSpy = jest
+        .spyOn(ServiceClient.prototype, 'fetch')
+        .mockResolvedValue(
+          mockResponse(404, 'Not Found', undefined, { detail: 'Not Found' })
+        );
+
+      await expect(fetchProviders(profileId)).rejects.toEqual(
+        new CLIError('Not Found')
+      );
+
+      expect(fetchSpy).toHaveBeenCalledTimes(1);
+      expect(fetchSpy).toHaveBeenCalledWith(
+        `/providers?profile=${encodeURIComponent(profileId)}`,
+        {
+          authenticate: false,
+          method: 'GET',
+          headers: {
+            'Content-Type': ContentType.JSON,
+            'User-Agent': expect.any(String),
+          },
+        }
+      );
     }, 10000);
   });
 
   describe('when fetching profile info', () => {
-    it('calls superagent correctly', async () => {
+    it('calls superface client correctly', async () => {
       //mock profile info
       const mockProfileInfo = {
         profile_id: 'starwars/character-information@1.0.1',
@@ -217,58 +143,93 @@ describe('HTTP functions', () => {
         published_at: '2021-01-29T08:10:50.925Z',
         published_by: 'Ondrej Musil <mail@ondrejmusil.cz>',
       };
-      mockInnerSet.mockResolvedValue({ body: mockProfileInfo });
-      mockSet.mockImplementation(() => ({ set: mockInnerSet }));
-      (jest.spyOn(superagent, 'get') as jest.Mock).mockReturnValue({
-        set: mockSet,
-      });
 
-      const mockUrl = new URL(profileId, getStoreUrl()).href;
+      const fetchSpy = jest
+        .spyOn(ServiceClient.prototype, 'fetch')
+        .mockResolvedValue(mockResponse(200, 'OK', undefined, mockProfileInfo));
 
       await expect(fetchProfileInfo(profileId)).resolves.toEqual(
         mockProfileInfo
       );
 
-      expect(mockSet).toHaveBeenCalledTimes(1);
-      expect(mockSet).toHaveBeenCalledWith('Accept', ContentType.JSON);
-      expect(mockInnerSet).toHaveBeenCalledTimes(1);
-      expect(mockInnerSet).toHaveBeenCalledWith(
-        'User-Agent',
-        expect.any(String)
+      expect(fetchSpy).toHaveBeenCalledTimes(1);
+      expect(fetchSpy).toHaveBeenCalledWith(`/${profileId}`, {
+        authenticate: false,
+        method: 'GET',
+        headers: {
+          Accept: ContentType.JSON,
+          'User-Agent': expect.any(String),
+        },
+      });
+    }, 10000);
+
+    it('throws error when request fails', async () => {
+      const fetchSpy = jest
+        .spyOn(ServiceClient.prototype, 'fetch')
+        .mockResolvedValue(
+          mockResponse(404, 'Not Found', undefined, { detail: 'Not Found' })
+        );
+
+      await expect(fetchProfileInfo(profileId)).rejects.toEqual(
+        new CLIError('Not Found')
       );
-      expect(jest.spyOn(superagent, 'get')).toHaveBeenCalledTimes(1);
-      expect(jest.spyOn(superagent, 'get')).toHaveBeenCalledWith(mockUrl);
+
+      expect(fetchSpy).toHaveBeenCalledTimes(1);
+      expect(fetchSpy).toHaveBeenCalledWith(`/${profileId}`, {
+        authenticate: false,
+        method: 'GET',
+        headers: {
+          Accept: ContentType.JSON,
+          'User-Agent': expect.any(String),
+        },
+      });
     }, 10000);
   });
 
   describe('when fetching profile', () => {
-    it('calls superagent correctly', async () => {
-      const mockProfile = 'mock profile';
+    it('calls superface client correctly', async () => {
+      const fetchSpy = jest
+        .spyOn(ServiceClient.prototype, 'fetch')
+        .mockResolvedValue(mockResponse(200, 'OK', undefined, 'mock profile'));
 
-      mockInnerSet.mockResolvedValue({ body: mockProfile });
-      mockSet.mockImplementation(() => ({ set: mockInnerSet }));
-      (jest.spyOn(superagent, 'get') as jest.Mock).mockReturnValue({
-        set: mockSet,
+      await expect(fetchProfile(profileId)).resolves.toEqual(`"mock profile"`);
+
+      expect(fetchSpy).toHaveBeenCalledTimes(1);
+      expect(fetchSpy).toHaveBeenCalledWith(`/${profileId}`, {
+        authenticate: false,
+        method: 'GET',
+        headers: {
+          Accept: ContentType.PROFILE_SOURCE,
+          'User-Agent': expect.any(String),
+        },
       });
+    }, 10000);
 
-      const mockUrl = new URL(profileId, getStoreUrl()).href;
+    it('throws error when request fails', async () => {
+      const fetchSpy = jest
+        .spyOn(ServiceClient.prototype, 'fetch')
+        .mockResolvedValue(
+          mockResponse(404, 'Not Found', undefined, { detail: 'Not Found' })
+        );
 
-      await expect(fetchProfile(profileId)).resolves.toEqual(mockProfile);
-
-      expect(mockSet).toHaveBeenCalledTimes(1);
-      expect(mockSet).toHaveBeenCalledWith('Accept', ContentType.PROFILE);
-      expect(mockInnerSet).toHaveBeenCalledTimes(1);
-      expect(mockInnerSet).toHaveBeenCalledWith(
-        'User-Agent',
-        expect.any(String)
+      await expect(fetchProfile(profileId)).rejects.toEqual(
+        new CLIError('Not Found')
       );
-      expect(jest.spyOn(superagent, 'get')).toHaveBeenCalledTimes(1);
-      expect(jest.spyOn(superagent, 'get')).toHaveBeenCalledWith(mockUrl);
+
+      expect(fetchSpy).toHaveBeenCalledTimes(1);
+      expect(fetchSpy).toHaveBeenCalledWith(`/${profileId}`, {
+        authenticate: false,
+        method: 'GET',
+        headers: {
+          Accept: ContentType.PROFILE_SOURCE,
+          'User-Agent': expect.any(String),
+        },
+      });
     }, 10000);
   });
 
   describe('when fetching profile ast', () => {
-    it('calls superagent correctly', async () => {
+    it('calls superface client correctly', async () => {
       //mock profile ast
       const mockProfileAst = {
         kind: 'ProfileDocument',
@@ -285,36 +246,48 @@ describe('HTTP functions', () => {
             kind: 'UseCaseDefinition',
             useCaseName: 'RetrieveCharacterInformation',
             safety: 'safe',
-            input: [],
-            result: [],
-            error: [],
-            location: [],
-            span: [],
             title: 'Starwars',
           },
         ],
         location: { line: 1, column: 1 },
         span: { start: 0, end: 228 },
       };
-      mockInnerSet.mockResolvedValue({ body: mockProfileAst });
-      mockSet.mockImplementation(() => ({ set: mockInnerSet }));
-      (jest.spyOn(superagent, 'get') as jest.Mock).mockReturnValue({
-        set: mockSet,
-      });
-
-      const mockUrl = new URL(profileId, getStoreUrl()).href;
+      const fetchSpy = jest
+        .spyOn(ServiceClient.prototype, 'fetch')
+        .mockResolvedValue(mockResponse(200, 'OK', undefined, mockProfileAst));
 
       await expect(fetchProfileAST(profileId)).resolves.toEqual(mockProfileAst);
+      expect(fetchSpy).toHaveBeenCalledTimes(1);
+      expect(fetchSpy).toHaveBeenCalledWith(`/${profileId}`, {
+        authenticate: false,
+        method: 'GET',
+        headers: {
+          Accept: ContentType.PROFILE_AST,
+          'User-Agent': expect.any(String),
+        },
+      });
+    }, 10000);
 
-      expect(mockSet).toHaveBeenCalledTimes(1);
-      expect(mockSet).toHaveBeenCalledWith('Accept', ContentType.AST);
-      expect(mockInnerSet).toHaveBeenCalledTimes(1);
-      expect(mockInnerSet).toHaveBeenCalledWith(
-        'User-Agent',
-        expect.any(String)
+    it('throws error when request fails', async () => {
+      const fetchSpy = jest
+        .spyOn(ServiceClient.prototype, 'fetch')
+        .mockResolvedValue(
+          mockResponse(404, 'Not Found', undefined, { detail: 'Not Found' })
+        );
+
+      await expect(fetchProfileAST(profileId)).rejects.toEqual(
+        new CLIError('Not Found')
       );
-      expect(jest.spyOn(superagent, 'get')).toHaveBeenCalledTimes(1);
-      expect(jest.spyOn(superagent, 'get')).toHaveBeenCalledWith(mockUrl);
+
+      expect(fetchSpy).toHaveBeenCalledTimes(1);
+      expect(fetchSpy).toHaveBeenCalledWith(`/${profileId}`, {
+        authenticate: false,
+        method: 'GET',
+        headers: {
+          Accept: ContentType.PROFILE_AST,
+          'User-Agent': expect.any(String),
+        },
+      });
     }, 10000);
   });
 
@@ -348,26 +321,166 @@ describe('HTTP functions', () => {
       ],
       defaultService: 'test-service',
     };
-    it('calls superagent correctly', async () => {
-      mockInnerSet.mockResolvedValue({ body: mockProviderJson });
-      mockSet.mockImplementation(() => ({ set: mockInnerSet }));
-      (jest.spyOn(superagent, 'get') as jest.Mock).mockReturnValue({
-        set: mockSet,
-      });
-      const mockUrl = new URL('mailchimp', `${getStoreUrl()}providers/`).href;
+    it('calls superface client correctly', async () => {
+      const provider = 'mailchimp';
+      const fetchSpy = jest
+        .spyOn(ServiceClient.prototype, 'fetch')
+        .mockResolvedValue(
+          mockResponse(200, 'OK', undefined, mockProviderJson)
+        );
 
-      await expect(fetchProviderInfo('mailchimp')).resolves.toEqual(
+      await expect(fetchProviderInfo(provider)).resolves.toEqual(
         mockProviderJson
       );
-      expect(mockSet).toHaveBeenCalledTimes(1);
-      expect(mockSet).toHaveBeenCalledWith('Accept', ContentType.JSON);
-      expect(mockInnerSet).toHaveBeenCalledTimes(1);
-      expect(mockInnerSet).toHaveBeenCalledWith(
-        'User-Agent',
-        expect.any(String)
+      expect(fetchSpy).toHaveBeenCalledTimes(1);
+      expect(fetchSpy).toHaveBeenCalledWith(`/providers/${provider}`, {
+        authenticate: false,
+        method: 'GET',
+        headers: {
+          'Content-Type': ContentType.JSON,
+        },
+      });
+    }, 10000);
+
+    it('throws error when request fails', async () => {
+      const provider = 'mailchimp';
+      const mockErrResponse = {
+        detail: 'Not Found',
+        title: 'test-title',
+        status: 404,
+        instance: 'test',
+      };
+      const fetchSpy = jest
+        .spyOn(ServiceClient.prototype, 'fetch')
+        .mockResolvedValue(
+          mockResponse(404, 'Not Found', undefined, mockErrResponse)
+        );
+
+      await expect(fetchProviderInfo(provider)).rejects.toEqual(
+        new ServiceApiError(mockErrResponse)
       );
-      expect(jest.spyOn(superagent, 'get')).toHaveBeenCalledTimes(1);
-      expect(jest.spyOn(superagent, 'get')).toHaveBeenCalledWith(mockUrl);
+
+      expect(fetchSpy).toHaveBeenCalledTimes(1);
+      expect(fetchSpy).toHaveBeenCalledWith(`/providers/${provider}`, {
+        authenticate: false,
+        method: 'GET',
+        headers: {
+          'Content-Type': ContentType.JSON,
+        },
+      });
+    }, 10000);
+  });
+
+  describe('when fetching map ast', () => {
+    const profileName = 'character-information';
+    const scope = 'starwars';
+    const provider = 'swapi';
+    const version = '1.0.2';
+    const variant = 'test';
+
+    //mock map ast
+    const mockMapDocument = {
+      kind: 'MapDocument',
+      header: {
+        kind: 'MapHeader',
+        profile: {
+          name: 'different-test-profile',
+          scope: 'some-map-scope',
+          version: {
+            major: 1,
+            minor: 0,
+            patch: 0,
+          },
+        },
+        provider: 'test-profile',
+      },
+      definitions: [],
+    };
+
+    it('calls superface client correctly', async () => {
+      const fetchSpy = jest
+        .spyOn(ServiceClient.prototype, 'fetch')
+        .mockResolvedValue(mockResponse(200, 'OK', undefined, mockMapDocument));
+
+      await expect(fetchMapAST(profileName, provider)).resolves.toEqual(
+        mockMapDocument
+      );
+      expect(fetchSpy).toHaveBeenCalledTimes(1);
+      expect(fetchSpy).toHaveBeenCalledWith(
+        `/${profileName}.${provider}@${DEFAULT_PROFILE_VERSION_STR}`,
+        {
+          authenticate: false,
+          method: 'GET',
+          headers: {
+            Accept: ContentType.MAP_AST,
+            'User-Agent': expect.any(String),
+          },
+        }
+      );
+    }, 10000);
+
+    it('calls superface client correctly with scope,version and variant', async () => {
+      const mockMapDocument = {
+        kind: 'MapDocument',
+        header: {
+          kind: 'MapHeader',
+          profile: {
+            name: 'different-test-profile',
+            scope: 'some-map-scope',
+            version: {
+              major: 1,
+              minor: 0,
+              patch: 0,
+            },
+          },
+          provider: 'test-profile',
+        },
+        definitions: [],
+      };
+      const fetchSpy = jest
+        .spyOn(ServiceClient.prototype, 'fetch')
+        .mockResolvedValue(mockResponse(200, 'OK', undefined, mockMapDocument));
+
+      await expect(
+        fetchMapAST(profileName, provider, scope, version, variant)
+      ).resolves.toEqual(mockMapDocument);
+      expect(fetchSpy).toHaveBeenCalledTimes(1);
+      expect(fetchSpy).toHaveBeenCalledWith(
+        `/${scope}/${profileName}.${provider}.${variant}@${version}`,
+        {
+          authenticate: false,
+          method: 'GET',
+          headers: {
+            Accept: ContentType.MAP_AST,
+            'User-Agent': expect.any(String),
+          },
+        }
+      );
+    }, 10000);
+
+    it('throws error when request fails', async () => {
+      const fetchSpy = jest
+        .spyOn(ServiceClient.prototype, 'fetch')
+        .mockResolvedValue(
+          mockResponse(404, 'Not Found', undefined, { detail: 'Not Found' })
+        );
+
+      await expect(
+        fetchMapAST(profileName, provider, scope, version)
+      ).rejects.toEqual(new CLIError('Not Found'));
+
+      expect(fetchSpy).toHaveBeenCalledTimes(1);
+      expect(fetchSpy).toHaveBeenCalledWith(
+        `/${scope}/${profileName}.${provider}@${version}`,
+        {
+          authenticate: false,
+          method: 'GET',
+          headers: {
+            Accept: ContentType.MAP_AST,
+            'User-Agent': expect.any(String),
+          },
+        }
+      );
     }, 10000);
   });
 });

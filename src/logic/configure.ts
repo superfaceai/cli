@@ -6,6 +6,7 @@ import {
   parseProviderJson,
   ProfileProviderDefaults,
   ProviderJson,
+  SecurityScheme,
   SecurityValues,
   SuperJson,
 } from '@superfaceai/one-sdk';
@@ -17,10 +18,43 @@ import {
 } from '../common/document';
 import { userError } from '../common/error';
 import { fetchProviderInfo } from '../common/http';
-import { readFile } from '../common/io';
+import { readFile, readFileQuiet } from '../common/io';
 import { formatShellLog, LogCallback } from '../common/log';
 import { OutputStream } from '../common/output-stream';
+import { ProfileId } from '../common/profile';
+import { prepareEnvVariables } from '../templates/env';
 
+export async function updateEnv(
+  provider: string,
+  securitySchemes: SecurityScheme[],
+  options?: { warnCb?: LogCallback }
+): Promise<void> {
+  //Get .env file
+  let envContent = (await readFileQuiet('.env')) || '';
+  //Prepare env values from security schemes
+  const values = prepareEnvVariables(securitySchemes, provider);
+
+  envContent += values
+    .filter((value: string | undefined) => {
+      if (!value) {
+        options?.warnCb?.(
+          `⚠️  Provider: "${provider}" contains unknown security scheme`
+        );
+
+        return false;
+      }
+      //Do not overide existing values
+      if (envContent.includes(value.trim())) {
+        return false;
+      }
+
+      return true;
+    })
+    .join('');
+
+  //Write .env file
+  await OutputStream.writeOnce('.env', envContent);
+}
 /**
  * Handle responses from superface registry.
  * It saves new information about provider into super.json.
@@ -28,10 +62,15 @@ import { OutputStream } from '../common/output-stream';
  */
 export function handleProviderResponse(
   superJson: SuperJson,
-  profileId: string,
+  profileId: ProfileId,
   response: ProviderJson,
   defaults?: ProfileProviderDefaults,
-  options?: { logCb?: LogCallback; warnCb?: LogCallback }
+  options?: {
+    logCb?: LogCallback;
+    warnCb?: LogCallback;
+    localMap?: string;
+    localProvider?: string;
+  }
 ): number {
   options?.logCb?.(`Installing provider: "${response.name}"`);
 
@@ -44,7 +83,7 @@ export function handleProviderResponse(
           response.securitySchemes.length
         } security schemes`
       );
-      //Char - is not allowed in env variables so replace it with _
+      // Char "-" is not allowed in env variables so replace it with "_"
       const envProviderName = response.name.replace('-', '_').toUpperCase();
       if (isApiKeySecurityScheme(scheme)) {
         security.push({
@@ -74,15 +113,31 @@ export function handleProviderResponse(
       }
     }
   }
+
   // update super.json
-  superJson.addProvider(response.name, { security });
+  superJson.setProvider(response.name, {
+    security,
+    file: options?.localProvider
+      ? superJson.relativePath(options.localProvider)
+      : undefined,
+  });
 
   //constructProfileProviderSettings returns Record<string, ProfileProviderEntry>
-  superJson.addProfileProvider(
-    profileId,
-    response.name,
-    defaults || constructProfileProviderSettings([response.name])[response.name]
-  );
+  let settings = defaults
+    ? { defaults }
+    : constructProfileProviderSettings([response.name])[response.name];
+
+  if (options?.localMap) {
+    if (typeof settings === 'string') {
+      settings = { file: superJson.relativePath(options.localMap) };
+    } else {
+      settings = {
+        ...settings,
+        file: superJson.relativePath(options.localMap),
+      };
+    }
+  }
+  superJson.setProfileProvider(profileId.id, response.name, settings);
 
   return security.length;
 }
@@ -117,33 +172,32 @@ export async function getProviderFromStore(
 export async function installProvider(parameters: {
   superPath: string;
   provider: string;
-  profileId: string;
+  profileId: ProfileId;
   defaults?: ProfileProviderDefaults;
   options?: {
     logCb?: LogCallback;
     warnCb?: LogCallback;
     force?: boolean;
-    local: boolean;
+    localMap?: string;
+    localProvider?: string;
+    updateEnv?: boolean;
   };
 }): Promise<void> {
-  const loadedResult = await SuperJson.load(
-    joinPath(parameters.superPath, META_FILE)
-  );
+  const superJsonPath = joinPath(parameters.superPath, META_FILE);
+  const loadedResult = await SuperJson.load(superJsonPath);
   const superJson = loadedResult.match(
     v => v,
     err => {
-      parameters.options?.warnCb?.(err);
+      parameters.options?.warnCb?.(err.formatLong());
 
       return new SuperJson({});
     }
   );
-  //Check if there is a version inside profile id
-  parameters.profileId = parameters.profileId.split('@')[0];
 
   //Check profile existance
-  if (!superJson.normalized.profiles[parameters.profileId]) {
+  if (!superJson.normalized.profiles[parameters.profileId.id]) {
     throw userError(
-      `❌ profile ${parameters.profileId} not found in ${parameters.superPath}. Forgot to install?`,
+      `❌ profile ${parameters.profileId.id} not found in "${superJsonPath}".`,
       1
     );
   }
@@ -151,9 +205,11 @@ export async function installProvider(parameters: {
   //Load provider info
   let providerInfo: ProviderJson;
   //Load from file
-  if (parameters.options?.local) {
+  if (parameters.options?.localProvider) {
     try {
-      const file = await readFile(parameters.provider, { encoding: 'utf-8' });
+      const file = await readFile(parameters.options.localProvider, {
+        encoding: 'utf-8',
+      });
       providerInfo = parseProviderJson(JSON.parse(file));
     } catch (error) {
       throw userError(error, 1);
@@ -169,7 +225,7 @@ export async function installProvider(parameters: {
     superJson.normalized.providers[providerInfo.name]
   ) {
     parameters.options?.warnCb?.(
-      `⚠️  Provider already exists: "${providerInfo.name}"(Use flag \`--force/-f\` for overwriting profiles)`
+      `⚠️  Provider already exists: "${providerInfo.name}" (Use flag \`--force/-f\` for overwriting profiles)`
     );
 
     return;
@@ -193,6 +249,13 @@ export async function installProvider(parameters: {
   parameters.options?.logCb?.(
     formatShellLog("echo '<updated super.json>' >", [superJson.path])
   );
+
+  // update .env
+  if (parameters.options?.updateEnv && providerInfo.securitySchemes) {
+    await updateEnv(providerInfo.name, providerInfo.securitySchemes, {
+      warnCb: parameters.options.warnCb,
+    });
+  }
   if (providerInfo.securitySchemes && providerInfo.securitySchemes.length > 0) {
     // inform user about instlaled security schemes
     if (numOfConfigured === 0) {
@@ -211,4 +274,39 @@ export async function installProvider(parameters: {
   } else {
     parameters.options?.logCb?.(`No security schemes found to configure.`);
   }
+}
+
+/**
+ * Reconfigure provider from local to remote or from remote to local.
+ */
+export async function reconfigureProvider(
+  superJson: SuperJson,
+  providerName: string,
+  target: { kind: 'local'; file: string } | { kind: 'remote' },
+  _options?: {
+    logCb?: LogCallback;
+    warnCb?: LogCallback;
+  }
+): Promise<void> {
+  // TODO: Possibly do checks whether the remote file exists?
+  superJson.swapProviderVariant(providerName, target);
+}
+
+/**
+ * Reconfigure profile provider from local to remote or from remote to local.
+ */
+export async function reconfigureProfileProvider(
+  superJson: SuperJson,
+  profileId: ProfileId,
+  providerName: string,
+  target:
+    | { kind: 'local'; file: string }
+    | { kind: 'remote'; mapVariant?: string; mapRevision?: string },
+  _options?: {
+    logCb?: LogCallback;
+    warnCb?: LogCallback;
+  }
+): Promise<void> {
+  // TODO: Possibly do checks whether the remote file exists?
+  superJson.swapProfileProviderVariant(profileId.id, providerName, target);
 }

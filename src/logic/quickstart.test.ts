@@ -1,19 +1,16 @@
 import { ProfileDocumentNode } from '@superfaceai/ast';
-import { ok, OnFail, SuperJson } from '@superfaceai/one-sdk';
+import { ok, OnFail, Parser, SuperJson } from '@superfaceai/one-sdk';
 import inquirer from 'inquirer';
 import { mocked } from 'ts-jest/utils';
 
-import { fetchProfiles, fetchProviders, getStoreUrl } from '../common/http';
+import { fetchProviders, getServicesUrl } from '../common/http';
 import { exists, readFile } from '../common/io';
 import { OutputStream } from '../common/output-stream';
+import { findLocalProfileSource } from './check.utils';
 import { initSuperface } from './init';
 import { detectSuperJson } from './install';
 import { interactiveInstall } from './quickstart';
-import {
-  loadProfileAst,
-  profileExists,
-  providerExists,
-} from './quickstart.utils';
+import { profileExists, providerExists } from './quickstart.utils';
 
 //Mock package manager
 jest.mock('../common/package-manager');
@@ -26,6 +23,9 @@ jest.mock('./configure');
 
 //Mock init logic
 jest.mock('./init');
+
+//Mock check.utils logic
+jest.mock('./check.utils');
 
 //Mock quickstart logic
 jest.mock('./quickstart.utils');
@@ -102,6 +102,8 @@ describe('Quickstart logic', () => {
       profile: 'send-email',
       version: '1.0.1',
     };
+
+    const mockProfileSource = 'mock source';
     const mockSuperJson = new SuperJson({
       profiles: {
         [`${profile.scope}/${profile.profile}`]: {
@@ -153,8 +155,9 @@ describe('Quickstart logic', () => {
     it('sets up sf correctly - non existing super.json and .env', async () => {
       mocked(detectSuperJson).mockResolvedValue(undefined);
       mocked(initSuperface).mockResolvedValue(new SuperJson({}));
-      mocked(loadProfileAst).mockResolvedValue(mockProfileAst);
-      mocked(getStoreUrl).mockReturnValue('https://superface.ai/');
+      mocked(findLocalProfileSource).mockResolvedValue(mockProfileSource);
+      jest.spyOn(Parser, 'parseProfile').mockResolvedValue(mockProfileAst);
+      mocked(getServicesUrl).mockReturnValue('https://superface.ai/');
       //We re-load superjson after initial install (profile and providers)
       mockLoad.mockResolvedValue(
         ok(
@@ -204,7 +207,6 @@ describe('Quickstart logic', () => {
         )
       );
 
-      mocked(fetchProfiles).mockResolvedValue([profile]);
       mocked(fetchProviders).mockResolvedValue([
         { name: 'sendgrid', services: [], defaultService: '' },
         { name: 'mailgun', services: [], defaultService: '' },
@@ -281,7 +283,6 @@ describe('Quickstart logic', () => {
 
       expect(detectSuperJson).toHaveBeenCalled();
       expect(initSuperface).toHaveBeenCalled();
-      expect(fetchProfiles).not.toHaveBeenCalled();
       expect(fetchProviders).toHaveBeenCalled();
       expect(exists).toHaveBeenCalled();
 
@@ -314,8 +315,9 @@ describe('Quickstart logic', () => {
     it('sets up sf correctly - non existing super.json and existing .env', async () => {
       mocked(detectSuperJson).mockResolvedValue(undefined);
       mocked(initSuperface).mockResolvedValue(new SuperJson({}));
-      mocked(loadProfileAst).mockResolvedValue(mockProfileAst);
-      mocked(getStoreUrl).mockReturnValue('https://superface.ai/');
+      mocked(findLocalProfileSource).mockResolvedValue(mockProfileSource);
+      jest.spyOn(Parser, 'parseProfile').mockResolvedValue(mockProfileAst);
+      mocked(getServicesUrl).mockReturnValue('https://superface.ai/');
       mockLoad.mockResolvedValue(
         ok(
           new SuperJson({
@@ -363,7 +365,6 @@ describe('Quickstart logic', () => {
           })
         )
       );
-      mocked(fetchProfiles).mockResolvedValue([profile]);
       mocked(fetchProviders).mockResolvedValue([
         { name: 'sendgrid', services: [], defaultService: '' },
         { name: 'mailgun', services: [], defaultService: '' },
@@ -440,7 +441,6 @@ describe('Quickstart logic', () => {
 
       expect(detectSuperJson).toHaveBeenCalled();
       expect(initSuperface).toHaveBeenCalled();
-      expect(fetchProfiles).not.toHaveBeenCalled();
       expect(fetchProviders).toHaveBeenCalled();
       expect(exists).toHaveBeenCalled();
       expect(writeOnceSpy).toHaveBeenCalledWith(
@@ -521,10 +521,10 @@ describe('Quickstart logic', () => {
 
       mocked(detectSuperJson).mockResolvedValue(undefined);
       mocked(initSuperface).mockResolvedValue(new SuperJson({}));
-      mocked(loadProfileAst).mockResolvedValue(mockProfileAst);
-      mocked(getStoreUrl).mockReturnValue('https://superface.ai/');
+      mocked(findLocalProfileSource).mockResolvedValue(mockProfileSource);
+      jest.spyOn(Parser, 'parseProfile').mockResolvedValue(mockProfileAst);
+      mocked(getServicesUrl).mockReturnValue('https://superface.ai/');
       mockLoad.mockResolvedValue(ok(mockMisconfiguredSuperJson));
-      mocked(fetchProfiles).mockResolvedValue([profile]);
       mocked(fetchProviders).mockResolvedValue([
         { name: 'sendgrid', services: [], defaultService: '' },
         { name: 'mailgun', services: [], defaultService: '' },
@@ -583,7 +583,6 @@ describe('Quickstart logic', () => {
 
       expect(detectSuperJson).toHaveBeenCalled();
       expect(initSuperface).toHaveBeenCalled();
-      expect(fetchProfiles).not.toHaveBeenCalled();
       expect(fetchProviders).toHaveBeenCalled();
       expect(exists).toHaveBeenCalled();
       expect(writeOnceSpy).toHaveBeenCalledWith(
@@ -671,9 +670,9 @@ describe('Quickstart logic', () => {
       mockLoad.mockResolvedValue(ok(mockSuperJson));
       mocked(profileExists).mockResolvedValueOnce(true);
       mocked(providerExists).mockReturnValue(true);
-      mocked(fetchProfiles).mockResolvedValue([profile]);
-      mocked(loadProfileAst).mockResolvedValue(mockProfileAst);
-      mocked(getStoreUrl).mockReturnValue('https://superface.ai/');
+      mocked(findLocalProfileSource).mockResolvedValue(mockProfileSource);
+      jest.spyOn(Parser, 'parseProfile').mockResolvedValue(mockProfileAst);
+      mocked(getServicesUrl).mockReturnValue('https://superface.ai/');
       mocked(fetchProviders).mockResolvedValue([
         { name: 'sendgrid', services: [], defaultService: '' },
         { name: 'mailgun', services: [], defaultService: '' },
@@ -754,7 +753,6 @@ describe('Quickstart logic', () => {
 
       expect(detectSuperJson).toHaveBeenCalled();
       expect(initSuperface).not.toHaveBeenCalled();
-      expect(fetchProfiles).not.toHaveBeenCalled();
       expect(fetchProviders).toHaveBeenCalled();
       expect(exists).toHaveBeenCalled();
 

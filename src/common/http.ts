@@ -1,14 +1,28 @@
-import { ProfileDocumentNode } from '@superfaceai/ast';
+import {
+  assertMapDocumentNode,
+  assertProfileDocumentNode,
+  MapDocumentNode,
+  ProfileDocumentNode,
+} from '@superfaceai/ast';
 import {
   parseProviderJson,
   ProviderJson,
   VERSION as SDK_VERSION,
 } from '@superfaceai/one-sdk';
 import { VERSION as PARSER_VERSION } from '@superfaceai/parser';
-import superagent, { Response } from 'superagent';
+import {
+  ServiceApiErrorResponse,
+  ServiceClient,
+} from '@superfaceai/service-client';
 
 import { VERSION } from '..';
+import {
+  DEFAULT_PROFILE_VERSION_STR,
+  SF_API_URL_VARIABLE,
+  SF_PRODUCTION,
+} from './document';
 import { userError } from './error';
+import { loadNetrc, saveNetrc } from './netrc';
 
 export interface ProfileInfo {
   owner: string;
@@ -27,84 +41,179 @@ export interface GetProfileResponse {
 
 export enum ContentType {
   JSON = 'application/json',
-  PROFILE = 'application/vnd.superface.profile',
-  AST = 'application/vnd.superface.profile+json',
+  TEXT = 'text/plain',
+  PROFILE_SOURCE = 'application/vnd.superface.profile',
+  PROFILE_AST = 'application/vnd.superface.profile+json',
+  MAP_SOURCE = 'application/vnd.superface.map',
+  MAP_AST = 'application/vnd.superface.map+json',
 }
+export class SuperfaceClient {
+  private static serviceClient: ServiceClient | undefined;
 
-export function getStoreUrl(): string {
-  const envUrl = process.env.SUPERFACE_API_URL;
-
-  return envUrl ? new URL(envUrl).href : new URL('https://superface.ai/').href;
-}
-
-export async function fetch(
-  url: string,
-  type: ContentType,
-  query?: Record<string, string | number>
-): Promise<Response> {
-  const userAgent = `superface cli/${VERSION} (${process.platform}-${process.arch}) ${process.release.name}-${process.version} (with @superfaceai/one-sdk@${SDK_VERSION}, @superfaceai/parser@${PARSER_VERSION})`;
-  try {
-    if (query) {
-      return superagent
-        .get(url)
-        .query(query)
-        .set('Accept', type)
-        .set('User-Agent', userAgent);
+  public static getClient(): ServiceClient {
+    if (!SuperfaceClient.serviceClient) {
+      const userAgent = `superface cli/${VERSION} (${process.platform}-${process.arch}) ${process.release.name}-${process.version} (with @superfaceai/one-sdk@${SDK_VERSION}, @superfaceai/parser@${PARSER_VERSION})`;
+      //Use refresh token from env if found
+      if (process.env.SUPERFACE_REFRESH_TOKEN) {
+        SuperfaceClient.serviceClient = new ServiceClient({
+          //still use getStoreUrl function to cover cases when user sets baseUrl and refresh token thru env
+          baseUrl: getServicesUrl(),
+          refreshToken: process.env.SUPERFACE_REFRESH_TOKEN,
+          commonHeaders: { 'User-Agent': userAgent },
+          //Do not use seveNetrc - refresh token from enviroment should not be saved
+        });
+      } else {
+        const netrcRecord = loadNetrc();
+        SuperfaceClient.serviceClient = new ServiceClient({
+          baseUrl: netrcRecord.baseUrl,
+          refreshToken: netrcRecord.refreshToken,
+          commonHeaders: { 'User-Agent': userAgent },
+          refreshTokenUpdatedHandler: saveNetrc,
+        });
+      }
     }
 
-    return superagent.get(url).set('Accept', type).set('User-Agent', userAgent);
-  } catch (err) {
-    throw userError(err, 1);
+    return SuperfaceClient.serviceClient;
   }
 }
-export async function fetchProfiles(): Promise<
-  { scope: string; profile: string; version: string }[]
-> {
-  //Mock response for now
-  return [{ scope: 'communication', profile: 'send-email', version: '1.0.1' }];
+export function getServicesUrl(): string {
+  const envUrl = process.env[SF_API_URL_VARIABLE];
+
+  if (envUrl) {
+    const passedValue = new URL(envUrl).href;
+    //remove ending /
+    if (passedValue.endsWith('/')) {
+      return passedValue.substring(0, passedValue.length - 1);
+    }
+
+    return passedValue;
+  }
+
+  return SF_PRODUCTION;
 }
 
 export async function fetchProviders(profile: string): Promise<ProviderJson[]> {
-  const query = new URL('providers', getStoreUrl()).href;
+  const userAgent = `superface cli/${VERSION} (${process.platform}-${process.arch}) ${process.release.name}-${process.version} (with @superfaceai/one-sdk@${SDK_VERSION}, @superfaceai/parser@${PARSER_VERSION})`;
 
-  const response = await fetch(query, ContentType.JSON, { profile });
+  const response = await SuperfaceClient.getClient().fetch(
+    `/providers?profile=${encodeURIComponent(profile)}`,
+    {
+      //TODO: enable auth
+      authenticate: false,
+      method: 'GET',
+      headers: {
+        'Content-Type': ContentType.JSON,
+        'User-Agent': userAgent,
+      },
+    }
+  );
 
-  return (response.body as { data: ProviderJson[] }).data;
+  await checkSuperfaceResponse(response);
+
+  return ((await response.json()) as { data: ProviderJson[] }).data;
 }
 
+//Unable to reuse service client getProfile due to profile ID resolution - version is always defined in service client
 export async function fetchProfileInfo(
   profileId: string
 ): Promise<ProfileInfo> {
-  const query = new URL(profileId, getStoreUrl()).href;
+  const response = await SuperfaceClient.getClient().fetch(`/${profileId}`, {
+    //TODO: enable auth
+    authenticate: false,
+    method: 'GET',
+    headers: {
+      ...commonHeaders(),
+      Accept: ContentType.JSON,
+    },
+  });
 
-  const response = await fetch(query, ContentType.JSON);
+  await checkSuperfaceResponse(response);
 
-  return response.body as ProfileInfo;
+  return (await response.json()) as ProfileInfo;
 }
 
 export async function fetchProfile(profileId: string): Promise<string> {
-  const query = new URL(profileId, getStoreUrl()).href;
+  const response = await SuperfaceClient.getClient().fetch(`/${profileId}`, {
+    //TODO: enable auth
+    authenticate: false,
+    method: 'GET',
+    headers: {
+      ...commonHeaders(),
+      Accept: ContentType.PROFILE_SOURCE,
+    },
+  });
 
-  const response = await fetch(query, ContentType.PROFILE);
+  await checkSuperfaceResponse(response);
 
-  return (response.body as Buffer).toString();
+  return response.text();
 }
 
 export async function fetchProfileAST(
   profileId: string
 ): Promise<ProfileDocumentNode> {
-  const query = new URL(profileId, getStoreUrl()).href;
+  const response = await SuperfaceClient.getClient().fetch(`/${profileId}`, {
+    //TODO: enable auth
+    authenticate: false,
+    method: 'GET',
+    headers: {
+      ...commonHeaders(),
+      Accept: ContentType.PROFILE_AST,
+    },
+  });
 
-  const response = await fetch(query, ContentType.AST);
+  await checkSuperfaceResponse(response);
 
-  return response.body as ProfileDocumentNode;
+  return assertProfileDocumentNode(await response.json());
 }
 
 export async function fetchProviderInfo(
   providerName: string
 ): Promise<ProviderJson> {
-  const query = new URL(providerName, `${getStoreUrl()}providers/`).href;
-  const response = await fetch(query, ContentType.JSON);
+  //TODO: user agent?
+  const response = await SuperfaceClient.getClient().getProvider(providerName);
 
-  return parseProviderJson(response.body);
+  return parseProviderJson(response);
+}
+
+async function checkSuperfaceResponse(response: Response): Promise<Response> {
+  if (!response.ok) {
+    const errorResponse = (await response.json()) as ServiceApiErrorResponse;
+    throw userError(errorResponse.detail, 1);
+  }
+
+  return response;
+}
+
+function commonHeaders(): Record<string, string> {
+  return {
+    'User-Agent': `superface cli/${VERSION} (${process.platform}-${process.arch}) ${process.release.name}-${process.version} (with @superfaceai/one-sdk@${SDK_VERSION}, @superfaceai/parser@${PARSER_VERSION})`,
+  };
+}
+export async function fetchMapAST(
+  profile: string,
+  provider: string,
+  scope?: string,
+  version?: string,
+  variant?: string
+): Promise<MapDocumentNode> {
+  const path = variant
+    ? `/${scope ? `${scope}/` : ''}${profile}.${provider}.${variant}@${
+        version ? version : DEFAULT_PROFILE_VERSION_STR
+      }`
+    : `/${scope ? `${scope}/` : ''}${profile}.${provider}@${
+        version ? version : DEFAULT_PROFILE_VERSION_STR
+      }`;
+  const response = await SuperfaceClient.getClient().fetch(path, {
+    //TODO: enable auth
+    authenticate: false,
+    method: 'GET',
+    headers: {
+      ...commonHeaders(),
+      Accept: ContentType.MAP_AST,
+    },
+  });
+
+  await checkSuperfaceResponse(response);
+
+  return assertMapDocumentNode(await response.json());
 }

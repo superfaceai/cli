@@ -1,7 +1,7 @@
+import { EXTENSIONS } from '@superfaceai/ast';
 import { join as joinPath } from 'path';
 
 import {
-  EXTENSIONS,
   GRID_DIR,
   SUPER_PATH,
   SUPERFACE_DIR,
@@ -37,8 +37,7 @@ describe('Init CLI command', () => {
     const expectedDirectories = [SUPERFACE_DIR, TYPES_DIR, GRID_DIR];
 
     expect(stdout.output).toContain(
-      `$ echo '<README.md template>' > 'fixtures/playgrounds/test/README.md'
-$ mkdir 'fixtures/playgrounds/test/superface'
+      `$ mkdir 'fixtures/playgrounds/test/superface'
 $ echo '<initial super.json>' > 'fixtures/playgrounds/test/superface/super.json'
 $ mkdir 'fixtures/playgrounds/test/superface/grid'
 $ mkdir 'fixtures/playgrounds/test/superface/types'

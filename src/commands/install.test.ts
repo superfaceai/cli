@@ -2,6 +2,7 @@ import { CLIError } from '@oclif/errors';
 import { SuperJson } from '@superfaceai/one-sdk';
 import { mocked } from 'ts-jest/utils';
 
+import { ProfileId } from '../common/profile';
 import { installProvider } from '../logic/configure';
 import { initSuperface } from '../logic/init';
 import { detectSuperJson, installProfiles } from '../logic/install';
@@ -60,7 +61,15 @@ describe('Install CLI command', () => {
       expect(installProfiles).toHaveBeenCalledTimes(1);
       expect(installProfiles).toHaveBeenCalledWith({
         superPath: 'superface',
-        requests: [{ kind: 'store', profileId: profileName }],
+        requests: [
+          {
+            kind: 'store',
+            profileId: ProfileId.fromScopeName(
+              'starwars',
+              'character-information'
+            ),
+          },
+        ],
         options: {
           logCb: expect.anything(),
           warnCb: expect.anything(),
@@ -77,7 +86,15 @@ describe('Install CLI command', () => {
       expect(installProfiles).toHaveBeenCalledTimes(1);
       expect(installProfiles).toHaveBeenCalledWith({
         superPath: '.',
-        requests: [{ kind: 'store', profileId: profileName }],
+        requests: [
+          {
+            kind: 'store',
+            profileId: ProfileId.fromScopeName(
+              'starwars',
+              'character-information'
+            ),
+          },
+        ],
         options: {
           logCb: expect.anything(),
           warnCb: expect.anything(),
@@ -94,7 +111,15 @@ describe('Install CLI command', () => {
       expect(installProfiles).toHaveBeenCalledTimes(1);
       expect(installProfiles).toHaveBeenCalledWith({
         superPath: '.',
-        requests: [{ kind: 'store', profileId: profileName }],
+        requests: [
+          {
+            kind: 'store',
+            profileId: ProfileId.fromScopeName(
+              'starwars',
+              'character-information'
+            ),
+          },
+        ],
         options: {
           logCb: undefined,
           warnCb: undefined,
@@ -132,9 +157,7 @@ describe('Install CLI command', () => {
       mocked(detectSuperJson).mockResolvedValue('.');
       const profileName = 'characterInformation';
 
-      await expect(Install.run([profileName])).rejects.toEqual(
-        new CLIError('EEXIT: 0')
-      );
+      await expect(Install.run([profileName])).rejects.toThrow();
       expect(installProfiles).not.toHaveBeenCalled();
     }, 10000);
 
@@ -142,9 +165,7 @@ describe('Install CLI command', () => {
       mocked(detectSuperJson).mockResolvedValue('.');
       const profileName = 'starwars/characterInformation';
 
-      await expect(Install.run([profileName])).rejects.toEqual(
-        new CLIError('EEXIT: 0')
-      );
+      await expect(Install.run([profileName])).rejects.toThrow();
       expect(installProfiles).not.toHaveBeenCalled();
     }, 10000);
 
@@ -184,17 +205,25 @@ describe('Install CLI command', () => {
       mocked(detectSuperJson).mockResolvedValue('.');
       mocked(installProvider).mockResolvedValue(undefined);
       const mockProviders = ['tyntec', 'twilio', 'made.up'];
-      const profileName = 'starwars/character-information';
+      const profileId = ProfileId.fromId('starwars/character-information');
 
       await expect(
-        Install.run([profileName, '-p', ...mockProviders])
+        Install.run([profileId.id, '-p', ...mockProviders])
       ).resolves.toBeUndefined();
 
       expect(stdout.output).toContain('Invalid provider name: made.up');
       expect(installProfiles).toHaveBeenCalledTimes(1);
       expect(installProfiles).toHaveBeenCalledWith({
         superPath: '.',
-        requests: [{ kind: 'store', profileId: profileName }],
+        requests: [
+          {
+            kind: 'store',
+            profileId: ProfileId.fromScopeName(
+              'starwars',
+              'character-information'
+            ),
+          },
+        ],
         options: {
           logCb: expect.anything(),
           warnCb: expect.anything(),
@@ -205,25 +234,23 @@ describe('Install CLI command', () => {
       expect(installProvider).toHaveBeenNthCalledWith(1, {
         superPath: '.',
         provider: 'tyntec',
-        profileId: profileName,
+        profileId,
         defaults: undefined,
         options: {
           logCb: expect.anything(),
           warnCb: expect.anything(),
           force: false,
-          local: false,
         },
       });
       expect(installProvider).toHaveBeenNthCalledWith(2, {
         superPath: '.',
         provider: 'twilio',
-        profileId: profileName,
+        profileId,
         defaults: undefined,
         options: {
           logCb: expect.anything(),
           warnCb: expect.anything(),
           force: false,
-          local: false,
         },
       });
     }, 10000);
@@ -231,11 +258,11 @@ describe('Install CLI command', () => {
     it('calls install profiles correctly - providers separated by coma and space', async () => {
       mocked(detectSuperJson).mockResolvedValue('.');
       mocked(installProvider).mockResolvedValue(undefined);
-      const profileName = 'starwars/character-information';
+      const profileId = ProfileId.fromId('starwars/character-information');
 
       await expect(
         Install.run([
-          profileName,
+          profileId.id,
           '-p',
           ',tyntec, twilio, , dhl-unified ,,github,made.up,',
         ])
@@ -245,7 +272,15 @@ describe('Install CLI command', () => {
       expect(installProfiles).toHaveBeenCalledTimes(1);
       expect(installProfiles).toHaveBeenCalledWith({
         superPath: '.',
-        requests: [{ kind: 'store', profileId: profileName }],
+        requests: [
+          {
+            kind: 'store',
+            profileId: ProfileId.fromScopeName(
+              'starwars',
+              'character-information'
+            ),
+          },
+        ],
         options: {
           logCb: expect.anything(),
           warnCb: expect.anything(),
@@ -256,49 +291,45 @@ describe('Install CLI command', () => {
       expect(installProvider).toHaveBeenNthCalledWith(1, {
         superPath: '.',
         provider: 'tyntec',
-        profileId: profileName,
+        profileId,
         defaults: undefined,
         options: {
           logCb: expect.anything(),
           warnCb: expect.anything(),
           force: false,
-          local: false,
         },
       });
       expect(installProvider).toHaveBeenNthCalledWith(2, {
         superPath: '.',
         provider: 'twilio',
-        profileId: profileName,
+        profileId,
         defaults: undefined,
         options: {
           logCb: expect.anything(),
           warnCb: expect.anything(),
           force: false,
-          local: false,
         },
       });
       expect(installProvider).toHaveBeenNthCalledWith(3, {
         superPath: '.',
         provider: 'dhl-unified',
-        profileId: profileName,
+        profileId,
         defaults: undefined,
         options: {
           logCb: expect.anything(),
           warnCb: expect.anything(),
           force: false,
-          local: false,
         },
       });
       expect(installProvider).toHaveBeenNthCalledWith(4, {
         superPath: '.',
         provider: 'github',
-        profileId: profileName,
+        profileId,
         defaults: undefined,
         options: {
           logCb: expect.anything(),
           warnCb: expect.anything(),
           force: false,
-          local: false,
         },
       });
     }, 10000);

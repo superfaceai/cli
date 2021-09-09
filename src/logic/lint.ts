@@ -1,4 +1,11 @@
-import { MapHeaderNode } from '@superfaceai/ast';
+import {
+  DocumentType,
+  EXTENSIONS,
+  isMapFile,
+  isProfileFile,
+  isUnknownFile,
+  MapHeaderNode,
+} from '@superfaceai/ast';
 import {
   formatIssues,
   getProfileOutput,
@@ -17,13 +24,8 @@ import { basename } from 'path';
 import {
   composeVersion,
   DOCUMENT_PARSE_FUNCTION,
-  EXTENSIONS,
   inferDocumentTypeWithFlag,
-  isMapFile,
-  isProfileFile,
-  isUnknownFile,
 } from '../common/document';
-import { DocumentType } from '../common/document.interfaces';
 import { userError } from '../common/error';
 import { DocumentTypeFlag } from '../common/flags';
 import { readFile } from '../common/io';
@@ -69,7 +71,7 @@ export async function lintFile(
   }
 
   const parse = DOCUMENT_PARSE_FUNCTION[documentType];
-  const content = await readFile(path).then(f => f.toString());
+  const content = await readFile(path, { encoding: 'utf-8' });
   const source = new Source(content, path);
 
   const result: FileReport = {
@@ -163,7 +165,6 @@ export const createFileReport = (
   errors,
   warnings,
 });
-
 export async function lintMapsToProfile(
   files: string[],
   writer: ListWriter,
@@ -333,7 +334,7 @@ export async function getProfileDocument(
   path: string
 ): Promise<ProfileDocument> {
   const parseFunction = DOCUMENT_PARSE_FUNCTION[DocumentType.PROFILE];
-  const content = (await readFile(path)).toString();
+  const content = await readFile(path, { encoding: 'utf-8' });
   const source = new Source(content, path);
 
   return parseFunction(source);
@@ -341,7 +342,7 @@ export async function getProfileDocument(
 
 export async function getMapDocument(path: string): Promise<MapDocument> {
   const parseFunction = DOCUMENT_PARSE_FUNCTION[DocumentType.MAP];
-  const content = (await readFile(path)).toString();
+  const content = await readFile(path, { encoding: 'utf-8' });
   const source = new Source(content, path);
 
   return parseFunction(source);

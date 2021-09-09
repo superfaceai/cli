@@ -1,14 +1,18 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
+import { EXTENSIONS } from '@superfaceai/ast';
 import { ProviderJson } from '@superfaceai/one-sdk';
+import { AuthToken, CLILoginResponse } from '@superfaceai/service-client';
 import { execFile } from 'child_process';
 import concat from 'concat-stream';
+import { Headers, Response } from 'cross-fetch';
 import { Mockttp } from 'mockttp';
 import { constants } from 'os';
 import { join as joinPath, relative } from 'path';
 
-import { EXTENSIONS } from '../common/document';
+import { DEFAULT_PROFILE_VERSION_STR } from '../common/document';
 import { ContentType } from '../common/http';
 import { mkdir, readFile } from '../common/io';
+import { OutputStream } from '../common/output-stream';
 
 export const ENTER = '\x0D';
 export const SPACE = '\x20';
@@ -30,13 +34,13 @@ export async function mockResponsesForProfile(
 ): Promise<void> {
   const basePath = joinPath(path, profile);
   const profileInfo = JSON.parse(
-    (await readFile(basePath + '.json')).toString()
+    await readFile(basePath + '.json', { encoding: 'utf-8' })
   );
-  const profileSource = (
-    await readFile(basePath + EXTENSIONS.profile.source)
-  ).toString();
+  const profileSource = await readFile(basePath + EXTENSIONS.profile.source, {
+    encoding: 'utf-8',
+  });
   const profileAST = JSON.parse(
-    (await readFile(basePath + EXTENSIONS.profile.build)).toString()
+    await readFile(basePath + EXTENSIONS.profile.build, { encoding: 'utf-8' })
   );
   await server
     .get('/' + profile)
@@ -44,12 +48,69 @@ export async function mockResponsesForProfile(
     .thenJson(200, profileInfo);
   await server
     .get('/' + profile)
-    .withHeaders({ Accept: ContentType.PROFILE })
-    .thenReply(200, profileSource, { ContentType: ContentType.PROFILE });
+    .withHeaders({ Accept: ContentType.PROFILE_SOURCE })
+    .thenReply(200, profileSource, {
+      'Content-Type': ContentType.PROFILE_SOURCE,
+    });
   await server
     .get('/' + profile)
-    .withHeaders({ Accept: ContentType.AST })
-    .thenJson(200, profileAST, { 'Content-Type': ContentType.AST });
+    .withHeaders({ Accept: ContentType.PROFILE_AST })
+    .thenJson(200, profileAST, { 'Content-Type': ContentType.PROFILE_AST });
+}
+
+/**
+ * Mocks HTTP responses for a map
+ *
+ * expects following files in specified path (default fixtures/profiles)
+ *   [profileScope]/maps/[provider].[profileName].suma             - map source
+ *   [profileScope]/maps/[provider].[profileName].suma.ast.json    - compiled map source
+ */
+export async function mockResponsesForMap(
+  server: Mockttp,
+  profile: {
+    scope?: string;
+    name: string;
+    version?: string;
+  },
+  provider: string,
+  mapVariant?: string,
+  path = joinPath('fixtures', 'profiles')
+): Promise<void> {
+  const url = `${profile.scope ? `${profile.scope}/` : ''}${
+    profile.name
+  }.${provider}${mapVariant ? `.${mapVariant}` : ''}@${
+    profile.version ? profile.version : DEFAULT_PROFILE_VERSION_STR
+  }`;
+
+  const basePath = profile.scope
+    ? joinPath(path, profile.scope, 'maps', `${provider}.${profile.name}`)
+    : joinPath(path, profile.name, 'maps', `${provider}.${profile.name}`);
+
+  const mapInfo = JSON.parse(
+    await readFile(basePath + '.json', { encoding: 'utf-8' })
+  );
+
+  const mapSource = await readFile(basePath + EXTENSIONS.map.source, {
+    encoding: 'utf-8',
+  });
+  const mapAST = await readFile(basePath + EXTENSIONS.map.build, {
+    encoding: 'utf-8',
+  });
+
+  await server
+    .get('/' + url)
+    .withHeaders({ Accept: ContentType.JSON })
+    .thenReply(200, mapInfo);
+
+  await server
+    .get('/' + url)
+    .withHeaders({ Accept: ContentType.MAP_SOURCE })
+    .thenReply(200, mapSource, { 'Content-Type': ContentType.MAP_SOURCE });
+
+  await server
+    .get('/' + url)
+    .withHeaders({ Accept: ContentType.MAP_AST })
+    .thenReply(200, mapAST, { 'Content-Type': ContentType.MAP_AST });
 }
 
 /**
@@ -65,12 +126,12 @@ export async function mockResponsesForProvider(
 ): Promise<void> {
   const basePath = joinPath(path, provider);
   const providerInfo = JSON.parse(
-    (await readFile(basePath + '.json')).toString()
+    await readFile(basePath + '.json', { encoding: 'utf-8' })
   );
 
   await server
     .get('/providers/' + provider)
-    .withHeaders({ Accept: ContentType.JSON })
+    .withHeaders({ 'Content-Type': ContentType.JSON })
     .thenJson(200, providerInfo);
 }
 
@@ -90,14 +151,76 @@ export async function mockResponsesForProfileProviders(
   for (const p of providers) {
     const basePath = joinPath(path, p);
     providersInfo.push(
-      JSON.parse((await readFile(basePath + '.json')).toString())
+      JSON.parse(await readFile(basePath + '.json', { encoding: 'utf-8' }))
     );
   }
   await server
     .get('/providers')
     .withQuery({ profile: profile })
-    .withHeaders({ Accept: ContentType.JSON })
+    .withHeaders({ 'Content-Type': ContentType.JSON })
     .thenJson(200, { data: providersInfo });
+}
+
+/**
+ * Mocks HTTP responses for a publishing endpoint
+ */
+export async function mockResponsesForPublish(server: Mockttp): Promise<void> {
+  await server
+    .post('/providers')
+    .withHeaders({ 'Content-Type': ContentType.JSON })
+    .thenJson(200, {});
+
+  await server
+    .post('/profiles')
+    .withHeaders({ 'Content-Type': ContentType.TEXT })
+    .thenJson(200, {});
+
+  await server
+    .post('/maps')
+    .withHeaders({ 'Content-Type': ContentType.TEXT })
+    .thenJson(200, {});
+}
+/**
+
+* Mocks HTTP responses for login
+*
+* mocks /auth/cli and /auth/cli/verify paths
+*/
+export async function mockResponsesForLogin(
+  server: Mockttp,
+  mockInitLoginResponse: CLILoginResponse,
+  mockVerifyResponse:
+    | {
+        authToken: AuthToken;
+      }
+    | {
+        statusCode: number;
+        errStatus: string;
+      }
+): Promise<void> {
+  if (mockInitLoginResponse.success) {
+    await server.post('/auth/cli').thenJson(201, {
+      verify_url: mockInitLoginResponse.verifyUrl,
+      browser_url: mockInitLoginResponse.browserUrl,
+      expires_at: mockInitLoginResponse.expiresAt.toDateString(),
+    });
+  } else {
+    await server.post('/auth/cli').thenJson(200, mockInitLoginResponse);
+  }
+
+  if ('authToken' in mockVerifyResponse) {
+    await server
+      .get('/auth/cli/verify')
+      .withQuery({ token: 'stub' })
+      .thenJson(200, mockVerifyResponse.authToken);
+  } else {
+    await server
+      .get('/auth/cli/verify')
+      .withQuery({ token: 'stub' })
+      .thenJson(mockVerifyResponse.statusCode, {
+        status: mockVerifyResponse.errStatus,
+      });
+  }
 }
 
 /**
@@ -221,12 +344,36 @@ export async function execCLI(
 }
 
 /**
+ * Retruns mock Response with passed data
+ */
+export function mockResponse(
+  status: number,
+  statusText: string,
+  headers?: Record<string, string>,
+  data?: Record<string, unknown> | Buffer | string
+): Response {
+  const ResponseInit = {
+    status,
+    statusText,
+    headers: new Headers(headers),
+  };
+
+  return new Response(data ? JSON.stringify(data) : undefined, ResponseInit);
+}
+/**
  * Creates a random directory in `path` and returns the path
  */
-export async function setUpTempDir(path: string): Promise<string> {
+export async function setUpTempDir(
+  path: string,
+  withNetrc = false
+): Promise<string> {
   const randomDigits = Math.floor(Math.random() * 100000).toString();
   const directory = joinPath(path, `test-${randomDigits}`);
   await mkdir(directory, { recursive: true });
+  //set mock .netrc
+  if (withNetrc) {
+    await OutputStream.writeOnce(joinPath(directory, '.netrc'), '');
+  }
 
   return directory;
 }

@@ -2,7 +2,7 @@ import { SuperJson } from '@superfaceai/one-sdk';
 import { getLocal } from 'mockttp';
 import { join as joinPath } from 'path';
 
-import { exists, mkdir, mkdirQuiet, readFile, rimraf } from '../common/io';
+import { exists, mkdir, mkdirQuiet, rimraf } from '../common/io';
 import { OutputStream } from '../common/output-stream';
 import { execCLI, mockResponsesForProfile, setUpTempDir } from '../test/utils';
 
@@ -37,29 +37,6 @@ describe('Install CLI command', () => {
 
   describe('when installing new profile', () => {
     it('installs the newest profile', async () => {
-      const paths = [
-        joinPath(
-          tempDir,
-          'superface',
-          'types',
-          'starwars',
-          'character-information' + '.js'
-        ),
-        joinPath(
-          tempDir,
-          'superface',
-          'types',
-          'starwars',
-          'character-information' + '.d.ts'
-        ),
-        joinPath(tempDir, 'superface', 'sdk.js'),
-        joinPath(tempDir, 'superface', 'sdk.d.ts'),
-      ];
-      await expect(exists(paths[0])).resolves.toBe(false);
-      await expect(exists(paths[1])).resolves.toBe(false);
-      await expect(exists(paths[2])).resolves.toBe(false);
-      await expect(exists(paths[3])).resolves.toBe(false);
-
       const result = await execCLI(
         tempDir,
         ['install', 'starwars/character-information'],
@@ -82,11 +59,6 @@ describe('Install CLI command', () => {
           )
         )
       ).resolves.toBe(true);
-
-      await expect(exists(paths[0])).resolves.toBe(true);
-      await expect(exists(paths[1])).resolves.toBe(true);
-      await expect(exists(paths[2])).resolves.toBe(true);
-      await expect(exists(paths[3])).resolves.toBe(true);
     }, 30000);
 
     it('installs the specified profile version with default provider configuration', async () => {
@@ -141,65 +113,6 @@ describe('Install CLI command', () => {
       });
     }, 20000);
 
-    it('adds new typings to previously generated', async () => {
-      const profileId = 'starwars/character-information';
-      const anotherProfileId = 'starwars/spaceship-information';
-      const profileIdRequest =
-        '../../../fixtures/profiles/starwars/spaceship-information.supr';
-
-      const paths = [
-        joinPath(tempDir, 'superface', 'types', profileId + '.js'),
-        joinPath(tempDir, 'superface', 'types', profileId + '.d.ts'),
-        joinPath(tempDir, 'superface', 'sdk.js'),
-        joinPath(tempDir, 'superface', 'sdk.d.ts'),
-        joinPath(tempDir, 'superface', 'types', anotherProfileId + '.js'),
-        joinPath(tempDir, 'superface', 'types', anotherProfileId + '.d.ts'),
-      ];
-      await expect(exists(paths[0])).resolves.toBe(false);
-      await expect(exists(paths[1])).resolves.toBe(false);
-      await expect(exists(paths[2])).resolves.toBe(false);
-      await expect(exists(paths[3])).resolves.toBe(false);
-      await expect(exists(paths[4])).resolves.toBe(false);
-      await expect(exists(paths[5])).resolves.toBe(false);
-
-      let result = await execCLI(
-        tempDir,
-        ['install', 'starwars/character-information'],
-        mockServer.url
-      );
-      expect(result.stdout).toMatch(
-        'All profiles (1) have been installed successfully.'
-      );
-
-      await expect(exists(paths[0])).resolves.toBe(true);
-      await expect(exists(paths[1])).resolves.toBe(true);
-      await expect(exists(paths[2])).resolves.toBe(true);
-      await expect(exists(paths[3])).resolves.toBe(true);
-      await expect(exists(paths[4])).resolves.toBe(false);
-      await expect(exists(paths[5])).resolves.toBe(false);
-
-      result = await execCLI(
-        tempDir,
-        ['install', profileIdRequest, '--local'],
-        mockServer.url
-      );
-      expect(result.stdout).toMatch(
-        'All profiles (1) have been installed successfully.'
-      );
-
-      await expect(exists(paths[0])).resolves.toBe(true);
-      await expect(exists(paths[1])).resolves.toBe(true);
-      await expect(exists(paths[2])).resolves.toBe(true);
-      await expect(exists(paths[3])).resolves.toBe(true);
-      await expect(exists(paths[4])).resolves.toBe(true);
-      await expect(exists(paths[5])).resolves.toBe(true);
-
-      const sdk = (await readFile(paths[2])).toString();
-
-      expect(sdk).toMatch(/starwarsCharacterInformation/);
-      expect(sdk).toMatch(/starwarsSpaceshipInformation/);
-    }, 50000);
-
     it('error when installing non-existent local profile', async () => {
       const profileIdRequest = 'none.supr';
 
@@ -246,7 +159,7 @@ describe('Install CLI command', () => {
         mockServer.url
       );
 
-      expect(result.stdout).toMatch('File already exists:');
+      expect(result.stdout).toMatch('already installed from a path:');
 
       expect(result.stdout).toMatch('❌ No profiles have been installed');
     }, 20000);

@@ -1,13 +1,15 @@
 import { flags as oclifFlags } from '@oclif/command';
-import { isValidDocumentName, isValidProviderName } from '@superfaceai/ast';
+import { isValidDocumentName } from '@superfaceai/ast';
+import { isValidProviderName } from '@superfaceai/one-sdk';
 import { bold, green, grey, yellow } from 'chalk';
 import { join as joinPath } from 'path';
 
 import { Command } from '../common/command.abstract';
-import { META_FILE, SUPERFACE_DIR, trimExtension } from '../common/document';
+import { META_FILE, SUPERFACE_DIR } from '../common/document';
 import { userError } from '../common/error';
 import { LogCallback } from '../common/log';
 import { NORMALIZED_CWD_PATH } from '../common/path';
+import { ProfileId } from '../common/profile';
 import { installProvider } from '../logic/configure';
 import { initSuperface } from '../logic/init';
 import {
@@ -82,6 +84,7 @@ export default class Install extends Command {
       description: `When set to true, command is used in interactive mode. It leads users through profile installation, provider selection, provider security and retry policy setup. Result of this command is ready to use superface configuration.`,
       default: false,
       exclusive: ['providers', 'force', 'local', 'scan', 'quiet'],
+      hidden: true,
     }),
     scan: oclifFlags.integer({
       char: 's',
@@ -94,8 +97,6 @@ export default class Install extends Command {
 
   static examples = [
     '$ superface install',
-    '$ superface install sms/service -i',
-    '$ superface install sms/service@1.0 -i',
     '$ superface install sms/service@1.0',
     '$ superface install sms/service@1.0 --providers twilio tyntec',
     '$ superface install sms/service@1.0 -p twilio',
@@ -106,11 +107,24 @@ export default class Install extends Command {
     this.log('⚠️  ' + yellow(message));
 
   private logCallback? = (message: string) => this.log(grey(message));
+
   private successCallback? = (message: string) =>
     this.log(bold(green(message)));
 
   async run(): Promise<void> {
     const { args, flags } = this.parse(Install);
+
+    if (flags.quiet) {
+      this.logCallback = undefined;
+      this.warnCallback = undefined;
+    }
+
+    if (flags.scan && (typeof flags.scan !== 'number' || flags.scan > 5)) {
+      throw userError(
+        '--scan/-s : Number of levels to scan cannot be higher than 5',
+        1
+      );
+    }
 
     if (flags.interactive) {
       if (!args.profileId) {
@@ -127,18 +141,6 @@ export default class Install extends Command {
       });
 
       return;
-    }
-
-    if (flags.quiet) {
-      this.logCallback = undefined;
-      this.warnCallback = undefined;
-    }
-
-    if (flags.scan && (typeof flags.scan !== 'number' || flags.scan > 5)) {
-      throw userError(
-        '--scan/-s : Number of levels to scan cannot be higher than 5',
-        1
-      );
     }
 
     let superPath = await detectSuperJson(process.cwd(), flags.scan);
@@ -168,39 +170,31 @@ export default class Install extends Command {
     const requests: (LocalInstallRequest | StoreInstallRequest)[] = [];
     const profileArg = args.profileId as string | undefined;
     if (profileArg !== undefined) {
-      const [profileId, version] = profileArg.split('@');
-
-      //Prepare profile name
-      const profilePathParts = profileId.split('/');
-      let profileName: string;
-
       if (flags.local) {
         requests.push({
           kind: 'local',
           path: profileArg,
         });
-
-        profileName = trimExtension(
-          profilePathParts[profilePathParts.length - 1]
-        );
       } else {
+        const [id, version] = profileArg.split('@');
+        const profileId = ProfileId.fromId(id);
+
+        if (!isValidDocumentName(profileId.name)) {
+          this.warnCallback?.(`Invalid profile name: ${profileId.name}`);
+          this.exit();
+        }
+
         requests.push({
           kind: 'store',
           profileId,
           version,
         });
-        profileName = profilePathParts[profilePathParts.length - 1];
-      }
-
-      if (!isValidDocumentName(profileName)) {
-        this.warnCallback?.(`Invalid profile name: ${profileName}`);
-        this.exit();
       }
     } else {
       //Do not install providers without profile
       if (providers.length > 0) {
         this.warnCallback?.(
-          'Unable to install providers without profile. Please, specify profile'
+          'Unable to install providers without a profile. Please, specify a profile id.'
         );
         this.exit();
       }
@@ -221,13 +215,12 @@ export default class Install extends Command {
       await installProvider({
         superPath,
         provider,
-        profileId: args.profileId as string,
+        profileId: ProfileId.fromId(profileArg as string),
         defaults: undefined,
         options: {
           logCb: this.logCallback,
           warnCb: this.warnCallback,
           force: flags.force,
-          local: false,
         },
       });
     }
