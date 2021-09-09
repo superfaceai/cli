@@ -8,9 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Fixed
 - Do not touch .env by default
-
-### Removed
-- Interactive install command
+- Hide interactive install command
 
 ## [0.0.23] - 2021-09-07
 ### Added
