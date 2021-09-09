@@ -1,7 +1,7 @@
 import { flags as oclifFlags } from '@oclif/command';
 import { isValidDocumentName } from '@superfaceai/ast';
 import { isValidProviderName } from '@superfaceai/one-sdk';
-import { grey, yellow } from 'chalk';
+import { bold, green, grey, yellow } from 'chalk';
 import { join as joinPath } from 'path';
 
 import { Command } from '../common/command.abstract';
@@ -18,6 +18,7 @@ import {
   LocalRequest as LocalInstallRequest,
   StoreRequest as StoreInstallRequest,
 } from '../logic/install';
+import { interactiveInstall } from '../logic/quickstart';
 
 const parseProviders = (
   providers?: string[],
@@ -78,6 +79,13 @@ export default class Install extends Command {
         'When set to true, profile id argument is used as a filepath to profile.supr file.',
       default: false,
     }),
+    interactive: oclifFlags.boolean({
+      char: 'i',
+      description: `When set to true, command is used in interactive mode. It leads users through profile installation, provider selection, provider security and retry policy setup. Result of this command is ready to use superface configuration.`,
+      default: false,
+      exclusive: ['providers', 'force', 'local', 'scan', 'quiet'],
+      hidden: true,
+    }),
     scan: oclifFlags.integer({
       char: 's',
       description:
@@ -100,6 +108,9 @@ export default class Install extends Command {
 
   private logCallback? = (message: string) => this.log(grey(message));
 
+  private successCallback? = (message: string) =>
+    this.log(bold(green(message)));
+
   async run(): Promise<void> {
     const { args, flags } = this.parse(Install);
 
@@ -113,6 +124,23 @@ export default class Install extends Command {
         '--scan/-s : Number of levels to scan cannot be higher than 5',
         1
       );
+    }
+
+    if (flags.interactive) {
+      if (!args.profileId) {
+        this.warnCallback?.(
+          `Profile ID argument must be used with interactive flag`
+        );
+        this.exit(0);
+      }
+
+      await interactiveInstall(args.profileId, {
+        logCb: this.logCallback,
+        warnCb: this.warnCallback,
+        successCb: this.successCallback,
+      });
+
+      return;
     }
 
     let superPath = await detectSuperJson(process.cwd(), flags.scan);
