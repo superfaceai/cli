@@ -1,15 +1,13 @@
 import {
   DocumentType,
   EXTENSIONS,
-  isMapFile,
-  isProfileFile,
-  isUnknownFile,
+  MapDocumentNode,
   MapHeaderNode,
 } from '@superfaceai/ast';
+import { SuperJson } from '@superfaceai/one-sdk';
 import {
   formatIssues,
   getProfileOutput,
-  parseMap,
   parseMapId,
   parseProfile,
   ProfileHeaderStructure,
@@ -30,14 +28,14 @@ import { userError } from '../common/error';
 import { DocumentTypeFlag } from '../common/flags';
 import { readFile } from '../common/io';
 import { ListWriter } from '../common/list-writer';
+import { LogCallback } from '../common/log';
+import { ProfileId } from '../common/profile';
 import {
   FileReport,
   ProfileMapReport,
   ReportFormat,
 } from '../common/report.interfaces';
-
-type ProfileDocument = ReturnType<typeof parseProfile>;
-type MapDocument = ReturnType<typeof parseMap>;
+import { loadMap, loadProfile } from './publish.utils';
 
 export async function lintFiles(
   files: string[],
@@ -165,99 +163,99 @@ export const createFileReport = (
   errors,
   warnings,
 });
-export async function lintMapsToProfile(
-  files: string[],
-  writer: ListWriter,
-  fn: (report: ReportFormat) => string
-): Promise<[number, number][]> {
-  const counts: [number, number][] = [];
-  const profiles = files.filter(isProfileFile);
-  const maps = files.filter(isMapFile);
-  const unknown = files.filter(isUnknownFile);
+// export async function lintMapsToProfile(
+//   files: string[],
+//   writer: ListWriter,
+//   fn: (report: ReportFormat) => string
+// ): Promise<[number, number][]> {
+//   const counts: [number, number][] = [];
+//   const profiles = files.filter(isProfileFile);
+//   const maps = files.filter(isMapFile);
+//   const unknown = files.filter(isUnknownFile);
 
-  if (profiles.length === 0) {
-    throw userError('Cannot validate without profile', 1);
-  }
-  if (maps.length === 0) {
-    throw userError('Cannot validate without map', 1);
-  }
+//   if (profiles.length === 0) {
+//     throw userError('Cannot validate without profile', 1);
+//   }
+//   if (maps.length === 0) {
+//     throw userError('Cannot validate without map', 1);
+//   }
 
-  if (unknown.length > 0) {
-    for (const file of unknown) {
-      const report = createFileReport(
-        file,
-        [],
-        ['Could not infer document type']
-      );
+//   if (unknown.length > 0) {
+//     for (const file of unknown) {
+//       const report = createFileReport(
+//         file,
+//         [],
+//         ['Could not infer document type']
+//       );
 
-      await writer.writeElement(fn(report));
-    }
+//       await writer.writeElement(fn(report));
+//     }
 
-    counts.push([0, unknown.length]);
-  }
+//     counts.push([0, unknown.length]);
+//   }
 
-  const profileOutputs: Array<ProfileOutput & { path: string }> = [];
-  const mapDocuments: Array<
-    MapDocument & { path: string; matched: boolean }
-  > = [];
+//   const profileOutputs: Array<ProfileOutput & { path: string }> = [];
+//   const mapDocuments: Array<
+//     MapDocument & { path: string; matched: boolean }
+//   > = [];
 
-  for (const profilePath of profiles) {
-    profileOutputs.push({
-      ...getProfileOutput(await getProfileDocument(profilePath)),
-      path: profilePath,
-    });
-  }
+//   for (const profilePath of profiles) {
+//     profileOutputs.push({
+//       ...getProfileOutput(await getProfileDocument(profilePath)),
+//       path: profilePath,
+//     });
+//   }
 
-  for (const mapPath of maps) {
-    mapDocuments.push({
-      ...(await getMapDocument(mapPath)),
-      path: mapPath,
-      matched: false,
-    });
-  }
+//   for (const mapPath of maps) {
+//     mapDocuments.push({
+//       ...(await getMapDocument(mapPath)),
+//       path: mapPath,
+//       matched: false,
+//     });
+//   }
 
-  // loop over profiles and validate only maps that have valid header
-  for (const profile of profileOutputs) {
-    for (const map of mapDocuments) {
-      if (isValidHeader(profile.header, map.header)) {
-        const result = validateMap(profile, map);
-        const report = createProfileMapReport(result, profile.path, map.path);
+//   // loop over profiles and validate only maps that have valid header
+//   for (const profile of profileOutputs) {
+//     for (const map of mapDocuments) {
+//       if (isValidHeader(profile.header, map.header)) {
+//         const result = validateMap(profile, map);
+//         const report = createProfileMapReport(result, profile.path, map.path);
 
-        await writer.writeElement(fn(report));
+//         await writer.writeElement(fn(report));
 
-        counts.push([
-          result.pass ? 0 : result.errors.length,
-          result.warnings?.length ?? 0,
-        ]);
+//         counts.push([
+//           result.pass ? 0 : result.errors.length,
+//           result.warnings?.length ?? 0,
+//         ]);
 
-        map.matched = true;
-      }
-    }
-  }
+//         map.matched = true;
+//       }
+//     }
+//   }
 
-  // loop over profiles and try to validate maps that did not match any profile
-  for (const profile of profileOutputs) {
-    for (const map of mapDocuments.filter(m => !m.matched)) {
-      if (isValidMapId(profile.header, map.header, map.path)) {
-        await writer.writeElement(
-          `⚠️ map ${map.path} assumed to belong to profile ${profile.path} based on file name`
-        );
+//   // loop over profiles and try to validate maps that did not match any profile
+//   for (const profile of profileOutputs) {
+//     for (const map of mapDocuments.filter(m => !m.matched)) {
+//       if (isValidMapId(profile.header, map.header, map.path)) {
+//         await writer.writeElement(
+//           `⚠️ map ${map.path} assumed to belong to profile ${profile.path} based on file name`
+//         );
 
-        const result = validateMap(profile, map);
-        const report = createProfileMapReport(result, profile.path, map.path);
+//         const result = validateMap(profile, map);
+//         const report = createProfileMapReport(result, profile.path, map.path);
 
-        await writer.writeElement(fn(report));
+//         await writer.writeElement(fn(report));
 
-        counts.push([
-          result.pass ? 0 : result.errors.length,
-          result.warnings?.length ?? 0,
-        ]);
-      }
-    }
-  }
+//         counts.push([
+//           result.pass ? 0 : result.errors.length,
+//           result.warnings?.length ?? 0,
+//         ]);
+//       }
+//     }
+//   }
 
-  return counts;
-}
+//   return counts;
+// }
 
 export function formatHuman(
   report: ReportFormat,
@@ -330,20 +328,117 @@ export function formatJson(report: ReportFormat): string {
   });
 }
 
-export async function getProfileDocument(
-  path: string
-): Promise<ProfileDocument> {
-  const parseFunction = DOCUMENT_PARSE_FUNCTION[DocumentType.PROFILE];
-  const content = await readFile(path, { encoding: 'utf-8' });
-  const source = new Source(content, path);
+// export async function getProfileDocument(
+//   path: string
+// ): Promise<ProfileDocument> {
+//   const parseFunction = DOCUMENT_PARSE_FUNCTION[DocumentType.PROFILE];
+//   const content = await readFile(path, { encoding: 'utf-8' });
+//   const source = new Source(content, path);
 
-  return parseFunction(source);
-}
+//   return parseFunction(source);
+// }
 
-export async function getMapDocument(path: string): Promise<MapDocument> {
-  const parseFunction = DOCUMENT_PARSE_FUNCTION[DocumentType.MAP];
-  const content = await readFile(path, { encoding: 'utf-8' });
-  const source = new Source(content, path);
+// export async function getMapDocument(path: string): Promise<MapDocument> {
+//   const parseFunction = DOCUMENT_PARSE_FUNCTION[DocumentType.MAP];
+//   const content = await readFile(path, { encoding: 'utf-8' });
+//   const source = new Source(content, path);
 
-  return parseFunction(source);
+//   return parseFunction(source);
+// }
+export type MapToLint = { provider: string; variant?: string; path?: string };
+export type ProfileToLint = {
+  id: ProfileId;
+  maps: MapToLint[];
+  version?: string;
+  path?: string;
+};
+
+export async function lint(
+  superJson: SuperJson,
+  profiles: ProfileToLint[],
+  writer: ListWriter,
+  fn: (report: ReportFormat) => string,
+  options?: {
+    logCb?: LogCallback;
+  }
+): Promise<[number, number][]> {
+  const counts: [number, number][] = [];
+  type MapToLintWithOutput = MapToLint & { ast: MapDocumentNode; path: string };
+  type ProfileToLintWithOutput = ProfileToLint & {
+    output: ProfileOutput;
+    source?: string;
+    maps: MapToLintWithOutput[];
+    path: string;
+  };
+
+  const profilesWithOutputs: ProfileToLintWithOutput[] = [];
+
+  for (const profile of profiles) {
+    const profileFiles = await loadProfile(
+      superJson,
+      profile.id,
+      profile.version,
+      options
+    );
+    const maps = [];
+
+    for (const map of profile.maps) {
+      maps.push({
+        ...map,
+        ast: (
+          await loadMap(
+            superJson,
+            profile.id,
+            map.provider,
+            { variant: map.variant },
+            profile.version,
+            options
+          )
+        ).ast,
+        //FIX: format of map id
+        path: map.path ? map.path : ``,
+      });
+    }
+    profilesWithOutputs.push({
+      id: profile.id,
+      output: getProfileOutput(profileFiles.ast),
+      path: profile.path || profile.id.withVersion(profile.version),
+      maps,
+    });
+  }
+
+  // loop over profiles and validate maps
+  for (const profile of profilesWithOutputs) {
+    if (profile.maps.length === 0) {
+      if (profile.source) {
+        const result: FileReport = {
+          kind: 'file',
+          path: profile.path,
+          errors: [],
+          warnings: [],
+        };
+
+        try {
+          parseProfile(new Source(profile.source, profile.path));
+        } catch (e) {
+          result.errors.push(e);
+        }
+      }
+    } else {
+      for (const map of profile.maps) {
+        // if (isValidHeader(profile.output.header, map.ast.header)) {
+        const result = validateMap(profile.output, map.ast);
+        const report = createProfileMapReport(result, profile.path, map.path);
+
+        await writer.writeElement(fn(report));
+
+        counts.push([
+          result.pass ? 0 : result.errors.length,
+          result.warnings?.length ?? 0,
+        ]);
+      }
+    }
+  }
+
+  return counts;
 }

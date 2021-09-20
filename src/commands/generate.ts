@@ -41,10 +41,10 @@ export default class Generate extends Command {
     '$ superface generate -q',
   ];
 
-  private logCallback?= (message: string) => this.log(grey(message));
-  private warnCallback?= (message: string) => this.log(yellow(message));
+  private logCallback? = (message: string) => this.log(grey(message));
+  private warnCallback? = (message: string) => this.log(yellow(message));
 
-  private successCallback?= (message: string) =>
+  private successCallback? = (message: string) =>
     this.log(bold(green(message)));
 
   async run(): Promise<void> {
