@@ -29,8 +29,7 @@ export default class Lint extends Command {
     'Lints maps and profiles locally linked in super.json. Path to single file can be provided. Outputs the linter issues to STDOUT by default.\nLinter ends with non zero exit code if errors are found.';
 
   // Allow multiple files
-  static args = [{ name: 'file' }];
-  static strict = false;
+  static strict = true;
 
   static flags = {
     ...Command.flags,
@@ -42,7 +41,6 @@ export default class Lint extends Command {
       description: 'Profile Id in format [scope/](optional)[name]',
       required: false,
     }),
-    // documentType: documentTypeFlag,
 
     output: oclifFlags.string({
       char: 'o',
@@ -70,14 +68,6 @@ export default class Lint extends Command {
         return input;
       },
     })({ default: 'long' }),
-
-    color: oclifFlags.boolean({
-      //Hidden because it doesn't do anything right now
-      hidden: true,
-      allowNo: true,
-      description:
-        'Output colorized report. Only works for `human` output format. Set by default for stdout and stderr output.',
-    }),
 
     scan: oclifFlags.integer({
       char: 's',
@@ -118,26 +108,56 @@ export default class Lint extends Command {
       if (!isValidProviderName(flags.providerName)) {
         throw userError(`❌ Invalid provider name: "${flags.providerName}"`, 1);
       }
+      if (!flags.profileId) {
+        throw userError(
+          `❌ --profileId must be specified when using --providerName`,
+          1
+        );
+      }
     }
 
     if (flags.scan && (typeof flags.scan !== 'number' || flags.scan > 5)) {
       throw userError(
-        '--scan/-s : Number of levels to scan cannot be higher than 5',
+        '❌ --scan/-s : Number of levels to scan cannot be higher than 5',
         1
       );
     }
     const superPath = await detectSuperJson(process.cwd(), flags.scan);
     if (!superPath) {
-      throw userError('Unable to lint, super.json not found', 1);
+      throw userError('❌ Unable to lint, super.json not found', 1);
     }
     //Load super json
     const loadedResult = await SuperJson.load(joinPath(superPath, META_FILE));
     const superJson = loadedResult.match(
       v => v,
       err => {
-        throw userError(`Unable to load super.json: ${err.formatShort()}`, 1);
+        throw userError(
+          `❌ Unable to load super.json: ${err.formatShort()}`,
+          1
+        );
       }
     );
+    //Check super.json
+    if (flags.profileId) {
+      if (!superJson.normalized.profiles[flags.profileId]) {
+        throw userError(
+          `❌ Unable to lint, profile: "${flags.profileId}" not found in super.json`,
+          1
+        );
+      }
+      if (flags.providerName) {
+        if (
+          !superJson.normalized.profiles[flags.profileId].providers[
+            flags.providerName
+          ]
+        ) {
+          throw userError(
+            `❌ Unable to lint, provider: "${flags.providerName}" not found in profile: "${flags.profileId}" in super.json`,
+            1
+          );
+        }
+      }
+    }
     const profiles: ProfileToLint[] = [];
 
     //Lint every local map/profile in super.json
@@ -165,12 +185,6 @@ export default class Lint extends Command {
     //Lint single profile and its maps
     if (flags.profileId && !flags.providerName) {
       const profileSettings = superJson.normalized.profiles[flags.profileId];
-      if (!profileSettings) {
-        throw userError(
-          `❌ Unable to lint, profile: "${flags.profileId}" not found in super.json`,
-          1
-        );
-      }
       const maps: MapToLint[] = [];
       for (const [provider, profileProviderSettings] of Object.entries(
         profileSettings.providers
@@ -198,20 +212,8 @@ export default class Lint extends Command {
     //Lint single profile and single map
     if (flags.profileId && flags.providerName) {
       const profileSettings = superJson.normalized.profiles[flags.profileId];
-      if (!profileSettings) {
-        throw userError(
-          `❌ Unable to lint, profile: "${flags.profileId}" not found in super.json`,
-          1
-        );
-      }
       const profileProviderSettings =
         profileSettings.providers[flags.providerName];
-      if (!profileProviderSettings) {
-        throw userError(
-          `❌ Unable to lint, provider: "${flags.providerName}" not found in profile: "${flags.profileId}" in super.json`,
-          1
-        );
-      }
       const maps: MapToLint[] = [];
       if ('file' in profileProviderSettings) {
         maps.push({
@@ -257,7 +259,7 @@ export default class Lint extends Command {
                 report,
                 flags.quiet,
                 flags.outputFormat === 'short',
-                flags.color ?? outputStream.isTTY
+                outputStream.isTTY
               ),
             { logCb: this.logCallback }
           );
@@ -290,9 +292,9 @@ export default class Lint extends Command {
     await outputStream.cleanup();
 
     if (totals[0] > 0) {
-      throw userError('Errors were found', 1);
+      throw userError('❌ Errors were found', 1);
     } else if (totals[1] > 0) {
-      throw userError('Warnings were found', 2);
+      throw userError('❌ Warnings were found', 2);
     }
   }
 

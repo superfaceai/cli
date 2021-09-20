@@ -1,9 +1,4 @@
-import {
-  DocumentType,
-  EXTENSIONS,
-  MapDocumentNode,
-  MapHeaderNode,
-} from '@superfaceai/ast';
+import { EXTENSIONS, MapDocumentNode, MapHeaderNode } from '@superfaceai/ast';
 import { SuperJson } from '@superfaceai/one-sdk';
 import {
   formatIssues,
@@ -19,14 +14,8 @@ import {
 } from '@superfaceai/parser';
 import { basename } from 'path';
 
-import {
-  composeVersion,
-  DOCUMENT_PARSE_FUNCTION,
-  inferDocumentTypeWithFlag,
-} from '../common/document';
+import { composeVersion } from '../common/document';
 import { userError } from '../common/error';
-import { DocumentTypeFlag } from '../common/flags';
-import { readFile } from '../common/io';
 import { ListWriter } from '../common/list-writer';
 import { LogCallback } from '../common/log';
 import { ProfileId } from '../common/profile';
@@ -37,57 +26,57 @@ import {
 } from '../common/report.interfaces';
 import { loadMap, loadProfile } from './publish.utils';
 
-export async function lintFiles(
-  files: string[],
-  writer: ListWriter,
-  documentTypeFlag: DocumentTypeFlag,
-  fn: (report: ReportFormat) => string
-): Promise<[number, number][]> {
-  return await Promise.all(
-    files.map(
-      async (file): Promise<[number, number]> => {
-        const report = await lintFile(file, documentTypeFlag);
+// export async function lintFiles(
+//   files: string[],
+//   writer: ListWriter,
+//   documentTypeFlag: DocumentTypeFlag,
+//   fn: (report: ReportFormat) => string
+// ): Promise<[number, number][]> {
+//   return await Promise.all(
+//     files.map(
+//       async (file): Promise<[number, number]> => {
+//         const report = await lintFile(file, documentTypeFlag);
 
-        await writer.writeElement(fn(report));
+//         await writer.writeElement(fn(report));
 
-        return [report.errors.length, report.warnings.length];
-      }
-    )
-  );
-}
+//         return [report.errors.length, report.warnings.length];
+//       }
+//     )
+//   );
+// }
 
-export async function lintFile(
-  path: string,
-  documentTypeFlag: DocumentTypeFlag
-): Promise<FileReport> {
-  const documentType = inferDocumentTypeWithFlag(documentTypeFlag, path);
-  if (
-    documentType !== DocumentType.MAP &&
-    documentType !== DocumentType.PROFILE
-  ) {
-    throw userError('Could not infer document type', 3);
-  }
+// export async function lintFile(
+//   path: string,
+//   documentTypeFlag: DocumentTypeFlag
+// ): Promise<FileReport> {
+//   const documentType = inferDocumentTypeWithFlag(documentTypeFlag, path);
+//   if (
+//     documentType !== DocumentType.MAP &&
+//     documentType !== DocumentType.PROFILE
+//   ) {
+//     throw userError('Could not infer document type', 3);
+//   }
 
-  const parse = DOCUMENT_PARSE_FUNCTION[documentType];
-  const content = await readFile(path, { encoding: 'utf-8' });
-  const source = new Source(content, path);
+//   const parse = DOCUMENT_PARSE_FUNCTION[documentType];
+//   const content = await readFile(path, { encoding: 'utf-8' });
+//   const source = new Source(content, path);
 
-  const result: FileReport = {
-    kind: 'file',
-    path,
-    errors: [],
-    warnings: [],
-  };
+//   const result: FileReport = {
+//     kind: 'file',
+//     path,
+//     errors: [],
+//     warnings: [],
+//   };
 
-  try {
-    parse(source);
-  } catch (e) {
-    result.errors.push(e);
-  }
+//   try {
+//     parse(source);
+//   } catch (e) {
+//     result.errors.push(e);
+//   }
 
-  return result;
-}
-
+//   return result;
+// }
+//TODO: rewrite to return validation issue?
 export function isValidHeader(
   profileHeader: ProfileHeaderStructure,
   mapHeader: MapHeaderNode
@@ -103,7 +92,7 @@ export function isValidHeader(
 
   return true;
 }
-
+//TODO: rewrite to return validation issue?
 export function isValidMapId(
   profileHeader: ProfileHeaderStructure,
   mapHeader: MapHeaderNode,
@@ -163,99 +152,6 @@ export const createFileReport = (
   errors,
   warnings,
 });
-// export async function lintMapsToProfile(
-//   files: string[],
-//   writer: ListWriter,
-//   fn: (report: ReportFormat) => string
-// ): Promise<[number, number][]> {
-//   const counts: [number, number][] = [];
-//   const profiles = files.filter(isProfileFile);
-//   const maps = files.filter(isMapFile);
-//   const unknown = files.filter(isUnknownFile);
-
-//   if (profiles.length === 0) {
-//     throw userError('Cannot validate without profile', 1);
-//   }
-//   if (maps.length === 0) {
-//     throw userError('Cannot validate without map', 1);
-//   }
-
-//   if (unknown.length > 0) {
-//     for (const file of unknown) {
-//       const report = createFileReport(
-//         file,
-//         [],
-//         ['Could not infer document type']
-//       );
-
-//       await writer.writeElement(fn(report));
-//     }
-
-//     counts.push([0, unknown.length]);
-//   }
-
-//   const profileOutputs: Array<ProfileOutput & { path: string }> = [];
-//   const mapDocuments: Array<
-//     MapDocument & { path: string; matched: boolean }
-//   > = [];
-
-//   for (const profilePath of profiles) {
-//     profileOutputs.push({
-//       ...getProfileOutput(await getProfileDocument(profilePath)),
-//       path: profilePath,
-//     });
-//   }
-
-//   for (const mapPath of maps) {
-//     mapDocuments.push({
-//       ...(await getMapDocument(mapPath)),
-//       path: mapPath,
-//       matched: false,
-//     });
-//   }
-
-//   // loop over profiles and validate only maps that have valid header
-//   for (const profile of profileOutputs) {
-//     for (const map of mapDocuments) {
-//       if (isValidHeader(profile.header, map.header)) {
-//         const result = validateMap(profile, map);
-//         const report = createProfileMapReport(result, profile.path, map.path);
-
-//         await writer.writeElement(fn(report));
-
-//         counts.push([
-//           result.pass ? 0 : result.errors.length,
-//           result.warnings?.length ?? 0,
-//         ]);
-
-//         map.matched = true;
-//       }
-//     }
-//   }
-
-//   // loop over profiles and try to validate maps that did not match any profile
-//   for (const profile of profileOutputs) {
-//     for (const map of mapDocuments.filter(m => !m.matched)) {
-//       if (isValidMapId(profile.header, map.header, map.path)) {
-//         await writer.writeElement(
-//           `⚠️ map ${map.path} assumed to belong to profile ${profile.path} based on file name`
-//         );
-
-//         const result = validateMap(profile, map);
-//         const report = createProfileMapReport(result, profile.path, map.path);
-
-//         await writer.writeElement(fn(report));
-
-//         counts.push([
-//           result.pass ? 0 : result.errors.length,
-//           result.warnings?.length ?? 0,
-//         ]);
-//       }
-//     }
-//   }
-
-//   return counts;
-// }
 
 export function formatHuman(
   report: ReportFormat,
@@ -328,23 +224,6 @@ export function formatJson(report: ReportFormat): string {
   });
 }
 
-// export async function getProfileDocument(
-//   path: string
-// ): Promise<ProfileDocument> {
-//   const parseFunction = DOCUMENT_PARSE_FUNCTION[DocumentType.PROFILE];
-//   const content = await readFile(path, { encoding: 'utf-8' });
-//   const source = new Source(content, path);
-
-//   return parseFunction(source);
-// }
-
-// export async function getMapDocument(path: string): Promise<MapDocument> {
-//   const parseFunction = DOCUMENT_PARSE_FUNCTION[DocumentType.MAP];
-//   const content = await readFile(path, { encoding: 'utf-8' });
-//   const source = new Source(content, path);
-
-//   return parseFunction(source);
-// }
 export type MapToLint = { provider: string; variant?: string; path?: string };
 export type ProfileToLint = {
   id: ProfileId;
@@ -409,6 +288,7 @@ export async function lint(
 
   // loop over profiles and validate maps
   for (const profile of profilesWithOutputs) {
+    //TODO: what to do when there is a profile without maps?
     if (profile.maps.length === 0) {
       if (profile.source) {
         const result: FileReport = {
