@@ -10,6 +10,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Do not touch .env by default
 - Hide interactive install command
 
+### Added
+- Create command file names flags
+
 ## [0.0.23] - 2021-09-07
 ### Added
 - Generate command
