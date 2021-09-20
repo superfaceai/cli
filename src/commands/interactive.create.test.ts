@@ -59,9 +59,8 @@ describe('Interactive create CLI command', () => {
           scope: undefined,
           version: { label: undefined, major: 1, minor: 0, patch: 0 },
         },
-        'superface',
-        //Pass the base path
-        'test',
+        { basePath: 'test', superPath: 'superface' },
+        { map: undefined, profile: undefined, provider: undefined },
         { logCb: expect.anything(), warnCb: expect.anything() }
       );
     });
@@ -95,9 +94,8 @@ describe('Interactive create CLI command', () => {
           scope: 'sms',
           version: { label: undefined, major: 1, minor: 0, patch: 0 },
         },
-        'superface',
-        //Do not pass the base path
-        undefined,
+        { basePath: undefined, superPath: 'superface' },
+        { map: undefined, profile: undefined, provider: undefined },
         { logCb: expect.anything(), warnCb: expect.anything() }
       );
     });
@@ -132,9 +130,8 @@ describe('Interactive create CLI command', () => {
           scope: 'sms',
           version: { label: undefined, major: 1, minor: 0, patch: 0 },
         },
-        'superface',
-        //Do not pass the base path
-        undefined,
+        { basePath: undefined, superPath: 'superface' },
+        { map: undefined, profile: undefined, provider: undefined },
         { logCb: expect.anything(), warnCb: expect.anything() }
       );
     });
@@ -173,9 +170,8 @@ describe('Interactive create CLI command', () => {
           scope: 'sms',
           version: { label: undefined, major: 1, minor: 0, patch: 0 },
         },
-        'superface',
-        //Do not pass the base path
-        undefined,
+        { basePath: undefined, superPath: 'superface' },
+        { map: undefined, profile: undefined, provider: undefined },
         { logCb: expect.anything(), warnCb: expect.anything() }
       );
     });
@@ -214,9 +210,8 @@ describe('Interactive create CLI command', () => {
           scope: 'sms',
           version: { label: undefined, major: 1, minor: 0, patch: 0 },
         },
-        'superface',
-        //Do not pass the base path
-        undefined,
+        { basePath: undefined, superPath: 'superface' },
+        { map: undefined, profile: undefined, provider: undefined },
         { logCb: expect.anything(), warnCb: expect.anything() }
       );
     });
@@ -256,9 +251,8 @@ describe('Interactive create CLI command', () => {
           scope: 'sms',
           version: { label: undefined, major: 1, minor: 0, patch: 0 },
         },
-        'superface',
-        //Do not pass the base path
-        undefined,
+        { basePath: undefined, superPath: 'superface' },
+        { map: undefined, profile: undefined, provider: undefined },
         { logCb: expect.anything(), warnCb: expect.anything() }
       );
     });
@@ -297,9 +291,8 @@ describe('Interactive create CLI command', () => {
           scope: 'sms',
           version: { label: undefined, major: 1, minor: 0, patch: 0 },
         },
-        'superface',
-        //Do not pass the base path
-        undefined,
+        { basePath: undefined, superPath: 'superface' },
+        { map: undefined, profile: undefined, provider: undefined },
         { logCb: expect.anything(), warnCb: expect.anything() }
       );
     });
@@ -337,9 +330,8 @@ describe('Interactive create CLI command', () => {
           scope: 'sms',
           version: { label: undefined, major: 1, minor: 0, patch: 0 },
         },
-        'superface',
-        //Do not pass the base path
-        undefined,
+        { basePath: undefined, superPath: 'superface' },
+        { map: undefined, profile: undefined, provider: undefined },
         { logCb: expect.anything(), warnCb: expect.anything() }
       );
     });
@@ -379,9 +371,8 @@ describe('Interactive create CLI command', () => {
           scope: 'sms',
           version: { label: undefined, major: 1, minor: 0, patch: 0 },
         },
-        'superface',
-        //Do not pass the base path
-        undefined,
+        { basePath: undefined, superPath: 'superface' },
+        { map: undefined, profile: undefined, provider: undefined },
         { logCb: expect.anything(), warnCb: expect.anything() }
       );
     });
@@ -420,15 +411,14 @@ describe('Interactive create CLI command', () => {
           scope: 'sms',
           version: { label: undefined, major: 1, minor: 0, patch: 0 },
         },
-        'superface',
-        //Do not pass the base path
-        undefined,
+        { basePath: undefined, superPath: 'superface' },
+        { map: undefined, profile: undefined, provider: undefined },
         { logCb: expect.anything(), warnCb: expect.anything() }
       );
     });
 
     it('throws error on invalid command', async () => {
-      await expect(Create.run(['profile'])).rejects.toEqual(
+      await expect(Create.run([])).rejects.toEqual(
         new CLIError('Invalid command! Specify profileId or providerName')
       );
     });

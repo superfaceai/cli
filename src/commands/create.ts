@@ -24,7 +24,7 @@ import { initSuperface } from '../logic/init';
 import { detectSuperJson } from '../logic/install';
 
 export default class Create extends Command {
-  static strict = false;
+  static strict = true;
 
   static description =
     'Creates empty map, profile or/and provider on a local filesystem.';
@@ -90,6 +90,18 @@ export default class Create extends Command {
       default: undefined,
       description: 'Base path where files will be created',
     }),
+    mapFileName: oclifFlags.string({
+      default: undefined,
+      description: 'Name of map file without extension',
+    }),
+    profileFileName: oclifFlags.string({
+      default: undefined,
+      description: 'Name of profile file without extension',
+    }),
+    providerFileName: oclifFlags.string({
+      default: undefined,
+      description: 'Name of provider file without extension',
+    }),
     scan: oclifFlags.integer({
       char: 's',
       description:
@@ -108,8 +120,8 @@ export default class Create extends Command {
     '$ superface create -i',
   ];
 
-  private warnCallback? = (message: string) => this.log(yellow(message));
-  private logCallback? = (message: string) => this.log(grey(message));
+  private warnCallback?= (message: string) => this.log(yellow(message));
+  private logCallback?= (message: string) => this.log(grey(message));
 
   async run(): Promise<void> {
     const { flags } = this.parse(Create);
@@ -166,8 +178,7 @@ export default class Create extends Command {
         ]);
         while (!exit) {
           const providerInput = await this.inputPrompt(
-            `Enter provider name of ${
-              priorityToString.get(priority) || priority
+            `Enter provider name of ${priorityToString.get(priority) || priority
             } provider.\nExit loop by pressing enter without any input.`
           );
           if (!providerInput) {
@@ -195,16 +206,13 @@ export default class Create extends Command {
     let providerNames: string[] = [];
 
     //Check inputs
-    if (flags.profile && !flags.profileId) {
-      throw userError('--profileId= must be provided when creating profile', 1);
-    }
     if (flags.map && !flags.profileId) {
       throw userError('--profileId= must be provided when creating map', 1);
     }
     if (flags.map && !flags.providerName) {
       throw userError('--providerName= must be provided when creating map', 1);
     }
-    if (flags.providerName && !flags.providerName) {
+    if (flags.provider && !flags.providerName) {
       throw userError(
         '--providerName= must be provided when creating provider',
         1
@@ -236,6 +244,19 @@ export default class Create extends Command {
     }
     providerNames = flags.providerName;
 
+    if (flags.providerFileName && providerNames.length > 1) {
+      throw userError(
+        `Unable to create mutiple providers with same file name: "${flags.providerFileName}"`,
+        1
+      );
+    }
+
+    if (flags.mapFileName && providerNames.length > 1) {
+      throw userError(
+        `Unable to create mutiple maps with same file name: "${flags.mapFileName}"`,
+        1
+      );
+    }
     // output a warning when generating profile only and provider is specified
     if (flags.profile && !flags.map && !flags.provider && flags.providerName) {
       this.warn(
@@ -363,8 +384,15 @@ export default class Create extends Command {
         name,
         variant: flags.variant,
       },
-      superPath,
-      flags.path,
+      {
+        superPath,
+        basePath: flags.path,
+      },
+      {
+        map: flags.mapFileName,
+        profile: flags.profileFileName,
+        provider: flags.providerFileName,
+      },
       {
         logCb: this.logCallback,
         warnCb: this.warnCallback,

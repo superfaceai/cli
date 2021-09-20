@@ -6,6 +6,7 @@ import { mocked } from 'ts-jest/utils';
 import { composeUsecaseName } from '../common/document';
 import { mkdir, mkdirQuiet } from '../common/io';
 import { OutputStream } from '../common/output-stream';
+import { ProfileId } from '../common/profile';
 import { createProfile } from './create';
 import { generateSpecifiedProfiles, initSuperface } from './init';
 
@@ -102,17 +103,19 @@ describe('Init logic', () => {
       expect(createProfile).toHaveBeenNthCalledWith(
         1,
         'test/superface/grid',
-        { scope: undefined, name: 'first-test-name', version: { major: 1 } },
+        ProfileId.fromScopeName(undefined, 'first-test-name'), { major: 1 },
         [composeUsecaseName('first-test-name')],
         mockSuperJson,
+        undefined,
         { logCb: undefined }
       );
       expect(createProfile).toHaveBeenNthCalledWith(
         2,
         'test/superface/grid',
-        { scope: undefined, name: 'second-test-name', version: { major: 2 } },
+        ProfileId.fromScopeName(undefined, 'second-test-name'), { major: 2 },
         [composeUsecaseName('second-test-name')],
         mockSuperJson,
+        undefined,
         { logCb: undefined }
       );
     });
