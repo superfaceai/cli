@@ -120,8 +120,8 @@ export default class Create extends Command {
     '$ superface create -i',
   ];
 
-  private warnCallback?= (message: string) => this.log(yellow(message));
-  private logCallback?= (message: string) => this.log(grey(message));
+  private warnCallback? = (message: string) => this.log(yellow(message));
+  private logCallback? = (message: string) => this.log(grey(message));
 
   async run(): Promise<void> {
     const { flags } = this.parse(Create);
@@ -178,7 +178,8 @@ export default class Create extends Command {
         ]);
         while (!exit) {
           const providerInput = await this.inputPrompt(
-            `Enter provider name of ${priorityToString.get(priority) || priority
+            `Enter provider name of ${
+              priorityToString.get(priority) || priority
             } provider.\nExit loop by pressing enter without any input.`
           );
           if (!providerInput) {

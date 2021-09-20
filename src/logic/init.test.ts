@@ -103,7 +103,8 @@ describe('Init logic', () => {
       expect(createProfile).toHaveBeenNthCalledWith(
         1,
         'test/superface/grid',
-        ProfileId.fromScopeName(undefined, 'first-test-name'), { major: 1 },
+        ProfileId.fromScopeName(undefined, 'first-test-name'),
+        { major: 1 },
         [composeUsecaseName('first-test-name')],
         mockSuperJson,
         undefined,
@@ -112,7 +113,8 @@ describe('Init logic', () => {
       expect(createProfile).toHaveBeenNthCalledWith(
         2,
         'test/superface/grid',
-        ProfileId.fromScopeName(undefined, 'second-test-name'), { major: 2 },
+        ProfileId.fromScopeName(undefined, 'second-test-name'),
+        { major: 2 },
         [composeUsecaseName('second-test-name')],
         mockSuperJson,
         undefined,

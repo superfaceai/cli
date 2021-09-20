@@ -126,7 +126,7 @@ export async function createProviderJson(
   );
 
   if (created) {
-    options?.logCb?.(`-> Created ${provider}.provider.json`);
+    options?.logCb?.(`-> Created ${filePath}`);
     if (superJson) {
       superJson.mergeProvider(provider, {
         file: relativePath(dirname(superJson.path), filePath),

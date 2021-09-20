@@ -805,9 +805,9 @@ describe('Create CLI command', () => {
     });
 
     it('creates profile & map with one provider and file names flags', async () => {
-      const mockProfileFileName = 'test-profile'
-      const mockProviderFileName = 'test-provider'
-      const mockMapFileName = 'test-map'
+      const mockProfileFileName = 'test-profile';
+      const mockProviderFileName = 'test-provider';
+      const mockMapFileName = 'test-map';
 
       mocked(initSuperface).mockResolvedValue(new SuperJson({}));
       jest.spyOn(inquirer, 'prompt').mockResolvedValueOnce({ init: true });
@@ -828,7 +828,7 @@ describe('Create CLI command', () => {
           '--profileFileName',
           mockProfileFileName,
           '--providerFileName',
-          mockProviderFileName
+          mockProviderFileName,
         ])
       ).resolves.toBeUndefined();
 
@@ -843,7 +843,11 @@ describe('Create CLI command', () => {
           version: { label: undefined, major: 1, minor: 0, patch: 0 },
         },
         { basePath: undefined, superPath: 'superface' },
-        { map: mockMapFileName, profile: mockProfileFileName, provider: mockProviderFileName },
+        {
+          map: mockMapFileName,
+          profile: mockProfileFileName,
+          provider: mockProviderFileName,
+        },
         { logCb: expect.anything(), warnCb: expect.anything() }
       );
     });
@@ -884,6 +888,68 @@ describe('Create CLI command', () => {
         { map: undefined, profile: undefined, provider: undefined },
         { logCb: expect.anything(), warnCb: expect.anything() }
       );
+      expect(mkdirQuiet).not.toHaveBeenCalled();
+    });
+
+    it('throws error on mutiple provider names and single provider file name', async () => {
+      mocked(initSuperface).mockResolvedValue(new SuperJson({}));
+      mocked(exists).mockResolvedValue(true);
+      jest.spyOn(inquirer, 'prompt').mockResolvedValueOnce({ init: true });
+
+      documentName = 'sms/service';
+      const path = 'some';
+      await expect(
+        Create.run([
+          '--profileId',
+          documentName,
+          '--providerName',
+          'first',
+          'second',
+          '--provider',
+          '--path',
+          path,
+          '--providerFileName',
+          'test',
+        ])
+      ).rejects.toEqual(
+        new CLIError(
+          'Unable to create mutiple providers with same file name: "test"'
+        )
+      );
+
+      expect(create).not.toHaveBeenCalled();
+      expect(mkdirQuiet).not.toHaveBeenCalled();
+    });
+
+    it('throws error on mutiple provider names and single map file name', async () => {
+      mocked(initSuperface).mockResolvedValue(new SuperJson({}));
+      mocked(exists).mockResolvedValue(true);
+      jest.spyOn(inquirer, 'prompt').mockResolvedValueOnce({ init: true });
+
+      documentName = 'sms/service';
+      const path = 'some';
+      await expect(
+        Create.run([
+          '--profileId',
+          documentName,
+          '--providerName',
+          'first',
+          'second',
+          '--map',
+          '--profile',
+          '--provider',
+          '--path',
+          path,
+          '--mapFileName',
+          'test',
+        ])
+      ).rejects.toEqual(
+        new CLIError(
+          'Unable to create mutiple maps with same file name: "test"'
+        )
+      );
+
+      expect(create).not.toHaveBeenCalled();
       expect(mkdirQuiet).not.toHaveBeenCalled();
     });
 
