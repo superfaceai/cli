@@ -57,7 +57,7 @@ describe('Create CLI command', () => {
 
       result = await execCLI(
         tempDir,
-        ['lint', `${documentName}.supr`],
+        ['lint', '--profileId', documentName],
         mockServer.url
       );
       expect(result.stdout).toMatch('Detected 0 problems\n');
@@ -92,7 +92,7 @@ describe('Create CLI command', () => {
       );
       result = await execCLI(
         tempDir,
-        ['lint', `${documentName}.supr`],
+        ['lint', '--profileId', documentName],
         mockServer.url
       );
       expect(result.stdout).toMatch('Detected 0 problems\n');
@@ -136,7 +136,7 @@ describe('Create CLI command', () => {
 
       result = await execCLI(
         tempDir,
-        ['lint', `${documentName}.supr`],
+        ['lint', '--profileId', documentName],
         mockServer.url
       );
       expect(result.stdout).toMatch('Detected 0 problems\n');
@@ -182,7 +182,7 @@ describe('Create CLI command', () => {
       );
       result = await execCLI(
         tempDir,
-        ['lint', `${documentName}.${provider}.suma`],
+        ['lint', '--profileId', documentName, '--providerName', provider],
         mockServer.url
       );
       expect(result.stdout).toMatch('Detected 0 problems\n');
@@ -245,14 +245,14 @@ describe('Create CLI command', () => {
       );
       result = await execCLI(
         tempDir,
-        ['lint', `${documentName}.${provider}.bugfix.suma`],
+        ['lint', '--profileId', documentName, '--providerName', provider],
         mockServer.url
       );
       expect(result.stdout).toMatch('Detected 0 problems\n');
 
       result = await execCLI(
         tempDir,
-        ['lint', `${documentName}.${secondProvider}.bugfix.suma`],
+        ['lint', '--profileId', documentName, '--providerName', secondProvider],
         mockServer.url
       );
       expect(result.stdout).toMatch('Detected 0 problems\n');

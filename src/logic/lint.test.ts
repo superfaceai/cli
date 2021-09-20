@@ -4,11 +4,10 @@ import {
   MapHeaderNode,
   ProfileDocumentNode,
 } from '@superfaceai/ast';
+import { SuperJson } from '@superfaceai/one-sdk';
 import {
   MapDocumentId,
-  parseMap,
   parseMapId,
-  parseProfile,
   ProfileHeaderStructure,
   Source,
   SyntaxError,
@@ -18,42 +17,38 @@ import { SyntaxErrorCategory } from '@superfaceai/parser/dist/language/error';
 import { MatchAttempts } from '@superfaceai/parser/dist/language/syntax/rule';
 import { mocked } from 'ts-jest/utils';
 
-import { readFile } from '../common/io';
 import { ListWriter } from '../common/list-writer';
 import { OutputStream } from '../common/output-stream';
+import { ProfileId } from '../common/profile';
 import { ReportFormat } from '../common/report.interfaces';
 import {
   createFileReport,
   createProfileMapReport,
   formatHuman,
   formatJson,
-  getMapDocument,
-  getProfileDocument,
   isValidHeader,
   isValidMapId,
-  lintFile,
-  lintFiles,
-  lintMapsToProfile,
+  lint,
+  ProfileToLint,
 } from './lint';
+import { loadMap, loadProfile } from './publish.utils';
 //Mock io
 jest.mock('../common/io', () => ({
   readFile: jest.fn(),
 }));
 
-// //Mock parser
-jest.mock('@superfaceai/parser', () => ({
-  parseProfileId: jest.fn(),
-}));
-
 //Mock output stream
 jest.mock('../common/output-stream');
-//Mock ast
+
+jest.mock('./publish.utils', () => ({
+  loadMap: jest.fn(),
+  loadProfile: jest.fn(),
+}));
 
 jest.mock('@superfaceai/parser', () => ({
   ...jest.requireActual<Record<string, unknown>>('@superfaceai/parser'),
-  parseMap: jest.fn(),
-  parseMapId: jest.fn(),
   parseProfile: jest.fn(),
+  parseMapId: jest.fn(),
 }));
 
 describe('Lint logic', () => {
@@ -76,246 +71,6 @@ describe('Lint logic', () => {
     format: () => 'detail',
     message: 'message',
   };
-
-  describe('when linting multiple files', () => {
-    const mockContent = 'file-content';
-    const mockMapDocument: MapDocumentNode = {
-      kind: 'MapDocument',
-      header: {
-        kind: 'MapHeader',
-        profile: {
-          name: 'test-profile',
-          version: {
-            major: 1,
-            minor: 0,
-            patch: 0,
-          },
-        },
-        provider: 'test-profile',
-      },
-      definitions: [],
-    };
-    const mockProfileDocument: ProfileDocumentNode = {
-      kind: 'ProfileDocument',
-      header: {
-        kind: 'ProfileHeader',
-        name: 'test-profile',
-        version: {
-          major: 1,
-          minor: 0,
-          patch: 0,
-        },
-      },
-      definitions: [],
-    };
-    const mockReportFn: (report: ReportFormat) => string = (
-      report: ReportFormat
-    ) => JSON.stringify(report);
-    const mockListWriter = new ListWriter(new OutputStream('test'), '');
-
-    it('lints map files', async () => {
-      mocked(readFile).mockResolvedValue('file-content');
-      const mockPath = 'test';
-      mocked(readFile).mockResolvedValue(mockContent);
-      mocked(parseMap).mockReturnValueOnce(mockMapDocument);
-      const writeElementSpy = jest
-        .spyOn(mockListWriter, 'writeElement')
-        .mockResolvedValue(undefined);
-
-      await expect(
-        lintFiles([mockPath], mockListWriter, 'map', mockReportFn)
-      ).resolves.toEqual([[0, 0]]);
-
-      expect(parseMap).toHaveBeenCalledTimes(1);
-      expect(parseProfile).not.toHaveBeenCalled();
-
-      expect(parseMap).toHaveBeenCalledWith(new Source(mockContent, mockPath));
-
-      expect(readFile).toHaveBeenCalledTimes(1);
-      expect(readFile).toHaveBeenCalledWith(mockPath, { encoding: 'utf-8' });
-
-      expect(writeElementSpy).toHaveBeenCalledTimes(1);
-      expect(writeElementSpy).toHaveBeenCalledWith(
-        mockReportFn({
-          kind: 'file',
-          path: mockPath,
-          errors: [],
-          warnings: [],
-        })
-      );
-    });
-
-    it('lints profile files', async () => {
-      const mockPath = 'test';
-      mocked(readFile).mockResolvedValue(mockContent);
-      mocked(parseProfile).mockReturnValue(mockProfileDocument);
-      const writeElementSpy = jest
-        .spyOn(mockListWriter, 'writeElement')
-        .mockResolvedValue(undefined);
-
-      await expect(
-        lintFiles([mockPath], mockListWriter, 'profile', mockReportFn)
-      ).resolves.toEqual([[0, 0]]);
-
-      expect(parseProfile).toHaveBeenCalledTimes(1);
-      expect(parseMap).not.toHaveBeenCalled();
-
-      expect(parseProfile).toHaveBeenCalledWith(
-        new Source(mockContent, mockPath)
-      );
-
-      expect(readFile).toHaveBeenCalledTimes(1);
-      expect(readFile).toHaveBeenCalledWith(mockPath, { encoding: 'utf-8' });
-
-      expect(writeElementSpy).toHaveBeenCalledTimes(1);
-      expect(writeElementSpy).toHaveBeenCalledWith(
-        mockReportFn({
-          kind: 'file',
-          path: mockPath,
-          errors: [],
-          warnings: [],
-        })
-      );
-    });
-  });
-
-  describe('when linting single file', () => {
-    it('throw error on unkonown file type', async () => {
-      mocked(readFile).mockResolvedValue('file-content');
-      const mockPath = 'test';
-      await expect(lintFile(mockPath, 'auto')).rejects.toEqual(
-        new CLIError('Could not infer document type')
-      );
-
-      expect(readFile).not.toHaveBeenCalled();
-    });
-
-    it('lints map type file without errors', async () => {
-      const mockContent = 'file-content';
-      const mockDocument: MapDocumentNode = {
-        kind: 'MapDocument',
-        header: {
-          kind: 'MapHeader',
-          profile: {
-            name: 'test-profile',
-            version: {
-              major: 1,
-              minor: 0,
-              patch: 0,
-            },
-          },
-          provider: 'test-profile',
-        },
-        definitions: [],
-      };
-      mocked(readFile).mockResolvedValue(mockContent);
-      mocked(parseMap).mockReturnValue(mockDocument);
-      const mockPath = 'test';
-
-      await expect(lintFile(mockPath, 'map')).resolves.toEqual({
-        kind: 'file',
-        path: mockPath,
-        errors: [],
-        warnings: [],
-      });
-
-      expect(parseMap).toHaveBeenCalledTimes(1);
-      expect(parseProfile).not.toHaveBeenCalled();
-
-      expect(parseMap).toHaveBeenCalledWith(new Source(mockContent, mockPath));
-
-      expect(readFile).toHaveBeenCalledTimes(1);
-      expect(readFile).toHaveBeenCalledWith(mockPath, { encoding: 'utf-8' });
-    });
-
-    it('lints profile type file without errors', async () => {
-      const mockContent = 'file-content';
-      const mockDocument: ProfileDocumentNode = {
-        kind: 'ProfileDocument',
-        header: {
-          kind: 'ProfileHeader',
-          name: 'test-profile',
-          version: {
-            major: 1,
-            minor: 0,
-            patch: 0,
-          },
-        },
-        definitions: [],
-      };
-      mocked(readFile).mockResolvedValue(mockContent);
-      mocked(parseProfile).mockReturnValue(mockDocument);
-      const mockPath = 'test';
-
-      await expect(lintFile(mockPath, 'profile')).resolves.toEqual({
-        kind: 'file',
-        path: mockPath,
-        errors: [],
-        warnings: [],
-      });
-
-      expect(parseProfile).toHaveBeenCalledTimes(1);
-      expect(parseMap).not.toHaveBeenCalled();
-      expect(parseProfile).toHaveBeenCalledWith(
-        new Source(mockContent, mockPath)
-      );
-
-      expect(readFile).toHaveBeenCalledTimes(1);
-      expect(readFile).toHaveBeenCalledWith(mockPath, { encoding: 'utf-8' });
-    });
-
-    it('lints profile type file with errors', async () => {
-      const mockContent = 'file-content';
-      const mockPath = 'test';
-      const mockErr = new Error('mockSyntaxError');
-
-      mocked(readFile).mockResolvedValue(mockContent);
-      mocked(parseProfile).mockImplementation(() => {
-        throw mockErr;
-      });
-
-      await expect(lintFile(mockPath, 'profile')).resolves.toEqual({
-        kind: 'file',
-        path: mockPath,
-        errors: [mockErr],
-        warnings: [],
-      });
-
-      expect(parseProfile).toHaveBeenCalledTimes(1);
-      expect(parseMap).not.toHaveBeenCalled();
-      expect(parseProfile).toHaveBeenCalledWith(
-        new Source(mockContent, mockPath)
-      );
-
-      expect(readFile).toHaveBeenCalledTimes(1);
-      expect(readFile).toHaveBeenCalledWith(mockPath, { encoding: 'utf-8' });
-    });
-
-    it('lints map type file with errors', async () => {
-      const mockContent = 'file-content';
-      const mockPath = 'test';
-      const mockErr = new Error('mockSyntaxError');
-
-      mocked(readFile).mockResolvedValue(mockContent);
-      mocked(parseMap).mockImplementation(() => {
-        throw mockErr;
-      });
-
-      await expect(lintFile(mockPath, 'map')).resolves.toEqual({
-        kind: 'file',
-        path: mockPath,
-        errors: [mockErr],
-        warnings: [],
-      });
-
-      expect(parseMap).toHaveBeenCalledTimes(1);
-      expect(parseProfile).not.toHaveBeenCalled();
-      expect(parseMap).toHaveBeenCalledWith(new Source(mockContent, mockPath));
-
-      expect(readFile).toHaveBeenCalledTimes(1);
-      expect(readFile).toHaveBeenCalledWith(mockPath, { encoding: 'utf-8' });
-    });
-  });
 
   describe('when validating header', () => {
     let mockValidProfileHeader: ProfileHeaderStructure;
@@ -613,18 +368,12 @@ describe('Lint logic', () => {
   });
 
   describe('when linting maps to profile', () => {
-    const mockFiles = [
-      'profile.supr',
-      'map.suma',
-      'unknown.unknown',
-      'second-map.suma',
-    ];
     const mockListWriter = new ListWriter(new OutputStream('test'), '');
     const mockReportFn: (report: ReportFormat) => string = (
       report: ReportFormat
     ) => JSON.stringify(report);
     const mockContent = 'file-content';
-    const mocProfileDocument: ProfileDocumentNode = {
+    const mockProfileDocument: ProfileDocumentNode = {
       kind: 'ProfileDocument',
       header: {
         kind: 'ProfileHeader',
@@ -672,85 +421,56 @@ describe('Lint logic', () => {
       },
       definitions: [],
     };
-    it('throws error without profile', async () => {
-      await expect(
-        lintMapsToProfile(
-          ['map.suma', 'unknown.unknown', 'second-map.suma'],
-          mockListWriter,
-          mockReportFn
-        )
-      ).rejects.toEqual(new CLIError('Cannot validate without profile'));
-    });
-    it('throws error without map', async () => {
-      await expect(
-        lintMapsToProfile(
-          ['map.supr', 'unknown.unknown'],
-          mockListWriter,
-          mockReportFn
-        )
-      ).rejects.toEqual(new CLIError('Cannot validate without map'));
-    });
 
-    it('returns correct counts', async () => {
-      mocked(readFile).mockResolvedValue(mockContent);
-      mocked(parseProfile).mockReturnValue(mocProfileDocument);
-      mocked(parseMap)
-        .mockReturnValueOnce(mockMapDocumentMatching)
-        .mockReturnValueOnce(mockMapDocument);
-      mocked(parseMapId).mockReturnValue({
-        kind: 'parsed',
-        value: {
-          name: 'test-profile',
-          provider: 'test-profile',
-          version: {
-            major: 1,
-            minor: 0,
-          },
+    it('returns correct counts, remote profile and map', async () => {
+      const profile = ProfileId.fromScopeName(
+        'starwars',
+        'character-information'
+      );
+      const mockSuperJson = new SuperJson();
+      const mockProfiles: ProfileToLint[] = [
+        {
+          id: profile,
+          maps: [
+            {
+              provider: 'swapi',
+              variant: 'test',
+            },
+            {
+              provider: 'starwars',
+              variant: 'test',
+            },
+          ],
+          version: '1.0.0',
         },
+      ];
+      mocked(loadProfile).mockResolvedValue({
+        ast: mockProfileDocument,
+        source: mockContent,
       });
+      mocked(loadMap)
+        .mockResolvedValueOnce({ ast: mockMapDocument })
+        .mockResolvedValueOnce({ ast: mockMapDocumentMatching });
 
       const writeElementSpy = jest
         .spyOn(mockListWriter, 'writeElement')
         .mockResolvedValue(undefined);
 
       await expect(
-        lintMapsToProfile(mockFiles, mockListWriter, mockReportFn)
+        lint(mockSuperJson, mockProfiles, mockListWriter, mockReportFn)
       ).resolves.toEqual([
-        [0, 1],
-        [0, 0],
         [1, 0],
+        [0, 0],
       ]);
 
-      expect(writeElementSpy).toHaveBeenCalledTimes(4);
+      expect(writeElementSpy).toHaveBeenCalledTimes(2);
+
       expect(writeElementSpy).toHaveBeenNthCalledWith(
         1,
         mockReportFn({
-          kind: 'file',
-          path: 'unknown.unknown',
-          errors: [],
-          warnings: ['Could not infer document type'],
-        })
-      );
-      expect(writeElementSpy).toHaveBeenNthCalledWith(
-        2,
-        mockReportFn({
           kind: 'compatibility',
-          profile: 'profile.supr',
-          path: 'map.suma',
-          errors: [],
-          warnings: [],
-        })
-      );
-      expect(writeElementSpy).toHaveBeenNthCalledWith(
-        3,
-        '⚠️ map second-map.suma assumed to belong to profile profile.supr based on file name'
-      );
-      expect(writeElementSpy).toHaveBeenNthCalledWith(
-        4,
-        mockReportFn({
-          kind: 'compatibility',
-          profile: 'profile.supr',
-          path: 'second-map.suma',
+          profile: profile.withVersion('1.0.0'),
+          path: '',
           errors: [
             {
               kind: 'wrongProfileName',
@@ -761,6 +481,16 @@ describe('Lint logic', () => {
               },
             },
           ],
+          warnings: [],
+        })
+      );
+      expect(writeElementSpy).toHaveBeenNthCalledWith(
+        2,
+        mockReportFn({
+          kind: 'compatibility',
+          profile: profile.withVersion('1.0.0'),
+          path: '',
+          errors: [],
           warnings: [],
         })
       );
@@ -911,77 +641,6 @@ describe('Lint logic', () => {
       expect(formatJson(mockFileReport)).toEqual(
         '{"path":"some/path","kind":"file","errors":[{"location":{"line":0,"column":0},"span":{"start":0,"end":0},"category":"Parser","detail":"","message":"message"}],"warnings":[]}'
       );
-    });
-  });
-
-  describe('when geting profile document', () => {
-    const mockContent = 'file-content';
-    const mocProfileDocument: ProfileDocumentNode = {
-      kind: 'ProfileDocument',
-      header: {
-        kind: 'ProfileHeader',
-        name: 'test-profile',
-        scope: 'some-map-scope',
-        version: {
-          major: 1,
-          minor: 0,
-          patch: 0,
-        },
-      },
-      definitions: [],
-    };
-
-    it('returns correct source', async () => {
-      const mockPath = 'test';
-      mocked(readFile).mockResolvedValue(mockContent);
-      mocked(parseProfile).mockReturnValue(mocProfileDocument);
-
-      await expect(getProfileDocument(mockPath)).resolves.toEqual(
-        mocProfileDocument
-      );
-
-      expect(parseProfile).toHaveBeenCalledTimes(1);
-      expect(parseProfile).toHaveBeenCalledWith(
-        new Source(mockContent, mockPath)
-      );
-
-      expect(readFile).toHaveBeenCalledTimes(1);
-      expect(readFile).toHaveBeenCalledWith(mockPath, { encoding: 'utf-8' });
-    });
-  });
-
-  describe('when geting map document', () => {
-    const mockContent = 'file-content';
-    const mockMapDocument: MapDocumentNode = {
-      kind: 'MapDocument',
-      header: {
-        kind: 'MapHeader',
-        profile: {
-          name: 'different-test-profile',
-          scope: 'some-map-scope',
-          version: {
-            major: 1,
-            minor: 0,
-            patch: 0,
-          },
-        },
-        provider: 'test-profile',
-      },
-      definitions: [],
-    };
-
-    it('returns correct source', async () => {
-      const mockPath = 'test';
-      mocked(readFile).mockResolvedValue(mockContent);
-      mocked(parseMap).mockReturnValue(mockMapDocument);
-
-      await expect(getMapDocument(mockPath)).resolves.toEqual(mockMapDocument);
-
-      expect(parseMap).toHaveBeenCalledTimes(1);
-      expect(parseMap).toHaveBeenCalledWith(new Source(mockContent, mockPath));
-
-      expect(readFile).toHaveBeenCalledTimes(1);
-      expect(readFile).toHaveBeenCalledWith(mockPath, { encoding: 'utf-8' });
     });
   });
 });

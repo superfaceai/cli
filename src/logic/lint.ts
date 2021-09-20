@@ -26,56 +26,6 @@ import {
 } from '../common/report.interfaces';
 import { loadMap, loadProfile } from './publish.utils';
 
-// export async function lintFiles(
-//   files: string[],
-//   writer: ListWriter,
-//   documentTypeFlag: DocumentTypeFlag,
-//   fn: (report: ReportFormat) => string
-// ): Promise<[number, number][]> {
-//   return await Promise.all(
-//     files.map(
-//       async (file): Promise<[number, number]> => {
-//         const report = await lintFile(file, documentTypeFlag);
-
-//         await writer.writeElement(fn(report));
-
-//         return [report.errors.length, report.warnings.length];
-//       }
-//     )
-//   );
-// }
-
-// export async function lintFile(
-//   path: string,
-//   documentTypeFlag: DocumentTypeFlag
-// ): Promise<FileReport> {
-//   const documentType = inferDocumentTypeWithFlag(documentTypeFlag, path);
-//   if (
-//     documentType !== DocumentType.MAP &&
-//     documentType !== DocumentType.PROFILE
-//   ) {
-//     throw userError('Could not infer document type', 3);
-//   }
-
-//   const parse = DOCUMENT_PARSE_FUNCTION[documentType];
-//   const content = await readFile(path, { encoding: 'utf-8' });
-//   const source = new Source(content, path);
-
-//   const result: FileReport = {
-//     kind: 'file',
-//     path,
-//     errors: [],
-//     warnings: [],
-//   };
-
-//   try {
-//     parse(source);
-//   } catch (e) {
-//     result.errors.push(e);
-//   }
-
-//   return result;
-// }
 //TODO: rewrite to return validation issue?
 export function isValidHeader(
   profileHeader: ProfileHeaderStructure,

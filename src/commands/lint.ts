@@ -87,7 +87,7 @@ export default class Lint extends Command {
     '$ superface lint -s 3',
   ];
 
-  private logCallback? = (message: string) => this.log(grey(message));
+  private logCallback?= (message: string) => this.log(grey(message));
 
   async run(): Promise<void> {
     const { flags } = this.parse(Lint);
@@ -148,7 +148,7 @@ export default class Lint extends Command {
       if (flags.providerName) {
         if (
           !superJson.normalized.profiles[flags.profileId].providers[
-            flags.providerName
+          flags.providerName
           ]
         ) {
           throw userError(
@@ -315,6 +315,6 @@ export default class Lint extends Command {
       options
     );
 
-    return counts.reduce((acc, curr) => [acc[0] + curr[0], acc[1] + curr[1]]);
+    return counts.reduce((acc, curr) => [acc[0] + curr[0], acc[1] + curr[1]], [0, 0]);
   }
 }
