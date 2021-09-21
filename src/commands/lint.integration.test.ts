@@ -1,9 +1,19 @@
+import { SuperJson } from '@superfaceai/one-sdk';
 import { join as joinPath } from 'path';
+import { mkdir, rimraf } from '../common/io';
+import { OutputStream } from '../common/output-stream';
 
 import { MockStd, mockStd } from '../test/mock-std';
+import { execCLI, setUpTempDir } from '../test/utils';
 import Lint from './lint';
 
 describe('lint CLI command', () => {
+  //File specific path
+  const TEMP_PATH = joinPath('test', 'tmp');
+
+  const profileId = 'starwars/character-information';
+  // const profileVersion = '1.0.1';
+  const provider = 'swapi';
   const fixture = {
     strictProfile: joinPath('fixtures', 'strict.supr'),
     strictMap: joinPath('fixtures', 'strict.suma'),
@@ -21,11 +31,17 @@ describe('lint CLI command', () => {
       },
     },
   };
+  let tempDir: string;
+
 
   let stderr: MockStd;
   let stdout: MockStd;
 
-  beforeEach(() => {
+  beforeAll(async () => {
+    await mkdir(TEMP_PATH, { recursive: true });
+  });
+
+  beforeEach(async () => {
     stdout = mockStd();
     stderr = mockStd();
 
@@ -35,18 +51,41 @@ describe('lint CLI command', () => {
     jest
       .spyOn(process['stderr'], 'write')
       .mockImplementation(stderr.implementation);
+    tempDir = await setUpTempDir(TEMP_PATH);
   });
 
-  afterEach(() => {
+  afterEach(async () => {
     jest.resetAllMocks();
+
+    await rimraf(tempDir);
   });
+
 
   it('lints one profile and one map file with autodetect', async () => {
-    await Lint.run([fixture.strictMap, fixture.strictProfile]);
+    const mockSuperJson = new SuperJson({
+      profiles: {
+        [profileId]: {
+          file: `../../../../${fixture.strictProfile}`,
+          providers: {
+            [provider]: {
+              file: `../../../../${fixture.strictMap}`,
+            },
+          },
+        },
+      },
+    });
 
-    expect(stdout.output).toContain(`🆗 ${fixture.strictMap}\n` + '\n');
-    expect(stdout.output).toContain(`🆗 ${fixture.strictProfile}\n` + '\n');
-    expect(stdout.output).toContain('Detected 0 problems\n');
+    await mkdir(joinPath(tempDir, 'superface'));
+    await OutputStream.writeOnce(
+      joinPath(tempDir, 'superface', 'super.json'),
+      mockSuperJson.stringified
+    );
+
+    const result = await execCLI(tempDir, ['lint', '--profileId', profileId], '')
+
+    expect(result.stdout).toContain(`🆗 ${fixture.strictMap}\n` + '\n');
+    expect(result.stdout).toContain(`🆗 ${fixture.strictProfile}\n` + '\n');
+    expect(result.stdout).toContain('Detected 0 problems\n');
   });
 
   it('lints a valid and an invalid map', async () => {
@@ -57,12 +96,12 @@ describe('lint CLI command', () => {
     expect(stdout.output).toContain(`🆗 ${fixture.strictMap}\n` + '\n');
     expect(stdout.output).toContain(
       `❌ ${fixture.invalidParsedMap}\n` +
-        'SyntaxError: Expected `provider` but found `map`\n' +
-        ` --> ${fixture.invalidParsedMap}:3:1\n` +
-        '2 | \n' +
-        '3 | map Foo {\n' +
-        '  | ^^^      \n' +
-        '4 | 	\n'
+      'SyntaxError: Expected `provider` but found `map`\n' +
+      ` --> ${fixture.invalidParsedMap}:3:1\n` +
+      '2 | \n' +
+      '3 | map Foo {\n' +
+      '  | ^^^      \n' +
+      '4 | 	\n'
     );
     expect(stdout.output).toContain('Detected 1 problem\n');
   });
@@ -80,7 +119,7 @@ describe('lint CLI command', () => {
     expect(stdout.output).toContain(`🆗 ${fixture.strictMap}\n` + '\n');
     expect(stdout.output).toContain(
       `❌ ${fixture.invalidParsedMap}\n` +
-        '\t3:1 Expected `provider` but found `map`\n'
+      '\t3:1 Expected `provider` but found `map`\n'
     );
     expect(stdout.output).toContain('Detected 1 problem\n');
   });

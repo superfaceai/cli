@@ -1,4 +1,4 @@
-import { EXTENSIONS, MapDocumentNode, MapHeaderNode } from '@superfaceai/ast';
+import { EXTENSIONS, MapDocumentNode, MapHeaderNode, ProfileDocumentNode } from '@superfaceai/ast';
 import { SuperJson } from '@superfaceai/one-sdk';
 import {
   formatIssues,
@@ -6,7 +6,6 @@ import {
   parseMapId,
   parseProfile,
   ProfileHeaderStructure,
-  ProfileOutput,
   Source,
   SyntaxError,
   validateMap,
@@ -78,19 +77,19 @@ export const createProfileMapReport = (
 ): ProfileMapReport =>
   result.pass
     ? {
-        kind: 'compatibility',
-        profile: profilePath,
-        path: mapPath,
-        errors: [],
-        warnings: result.warnings ?? [],
-      }
+      kind: 'compatibility',
+      profile: profilePath,
+      path: mapPath,
+      errors: [],
+      warnings: result.warnings ?? [],
+    }
     : {
-        kind: 'compatibility',
-        profile: profilePath,
-        path: mapPath,
-        errors: result.errors,
-        warnings: result.warnings ?? [],
-      };
+      kind: 'compatibility',
+      profile: profilePath,
+      path: mapPath,
+      errors: result.errors,
+      warnings: result.warnings ?? [],
+    };
 
 export const createFileReport = (
   path: string,
@@ -192,73 +191,48 @@ export async function lint(
   }
 ): Promise<[number, number][]> {
   const counts: [number, number][] = [];
-  type MapToLintWithOutput = MapToLint & { ast: MapDocumentNode; path: string };
-  type ProfileToLintWithOutput = ProfileToLint & {
-    output: ProfileOutput;
+  type MapToLintWithAst = MapToLint & { ast: MapDocumentNode; source?: string; path: string };
+  type ProfileToLintWithAst = ProfileToLint & {
+    ast: ProfileDocumentNode;
     source?: string;
-    maps: MapToLintWithOutput[];
     path: string;
   };
 
-  const profilesWithOutputs: ProfileToLintWithOutput[] = [];
-
+  // loop over profiles and validate maps
   for (const profile of profiles) {
     const profileFiles = await loadProfile(
       superJson,
       profile.id,
       profile.version,
       options
-    );
-    const maps = [];
-
-    for (const map of profile.maps) {
-      maps.push({
-        ...map,
-        ast: (
-          await loadMap(
-            superJson,
-            profile.id,
-            map.provider,
-            { variant: map.variant },
-            profile.version,
-            options
-          )
-        ).ast,
-        //FIX: format of map id
-        path: map.path ? map.path : ``,
-      });
-    }
-    profilesWithOutputs.push({
+    )
+    const profileWithAst: ProfileToLintWithAst = {
+      ...profile,
+      ...profileFiles,
       id: profile.id,
-      output: getProfileOutput(profileFiles.ast),
       path: profile.path || profile.id.withVersion(profile.version),
-      maps,
-    });
-  }
+    };
 
-  // loop over profiles and validate maps
-  for (const profile of profilesWithOutputs) {
-    //TODO: what to do when there is a profile without maps?
-    if (profile.maps.length === 0) {
-      if (profile.source) {
-        const result: FileReport = {
-          kind: 'file',
-          path: profile.path,
-          errors: [],
-          warnings: [],
-        };
-
-        try {
-          parseProfile(new Source(profile.source, profile.path));
-        } catch (e) {
-          result.errors.push(e);
-        }
-      }
-    } else {
+    //We have both profile and maps - validate
+    if (profile.maps.length > 0) {
       for (const map of profile.maps) {
-        // if (isValidHeader(profile.output.header, map.ast.header)) {
-        const result = validateMap(profile.output, map.ast);
-        const report = createProfileMapReport(result, profile.path, map.path);
+        const mapFiles = await loadMap(
+          superJson,
+          profile.id,
+          map.provider,
+          { variant: map.variant },
+          profile.version,
+          options
+        )
+
+        const mapWithAst: MapToLintWithAst = {
+          ...map,
+          ...mapFiles,
+          //FIX: format of map id
+          path: map.path ? map.path : ``,
+        }
+        const result = validateMap(getProfileOutput(profileWithAst.ast), mapWithAst.ast);
+        const report = createProfileMapReport(result, profileWithAst.path, mapWithAst.path);
 
         await writer.writeElement(fn(report));
 
@@ -266,6 +240,27 @@ export async function lint(
           result.pass ? 0 : result.errors.length,
           result.warnings?.length ?? 0,
         ]);
+      }
+      //We have profile without maps - parse profile
+    } {
+      if (profileWithAst.source) {
+        const report: FileReport = {
+          kind: 'file',
+          path: profileWithAst.path,
+          errors: [],
+          warnings: [],
+        };
+
+        try {
+          parseProfile(new Source(profileWithAst.source, profile.path));
+        } catch (e) {
+          report.errors.push(e);
+        }
+        await writer.writeElement(fn(report));
+
+        counts.push([report.errors.length, report.warnings.length])
+      } else {
+        throw userError(`Unable to lint profile: "${profile.id.id}" - profile source not found`, 1)
       }
     }
   }
