@@ -176,6 +176,7 @@ EXAMPLES
   $ superface create --profileId sms/service --providerName twilio --map
   $ superface create --profileId sms/service --providerName twilio --map -t bugfix
   $ superface create --providerName twilio tyntec --provider
+  $ superface create --providerName twilio --provider --providerFileName my-provider -p my/path
   $ superface create --profileId sms/service --providerName twilio --provider --map --profile -t bugfix -v 1.1-rev133 -u 
   SendSMS ReceiveSMS
   $ superface create -i
