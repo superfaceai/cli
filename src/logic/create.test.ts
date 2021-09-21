@@ -1,4 +1,5 @@
 import { CLIError } from '@oclif/errors';
+import { EXTENSIONS } from '@superfaceai/ast';
 import { err, ok, SuperJson } from '@superfaceai/one-sdk';
 import { SDKExecutionError } from '@superfaceai/one-sdk/dist/internal/errors';
 
@@ -48,9 +49,44 @@ describe('Create logic', () => {
       );
     });
 
-    it('creates empty profile with scope and fileName', async () => {
+    it('creates empty profile with scope and file name', async () => {
       const mockBasePath = 'test-path';
       const mockFilename = 'mock-filename';
+      const mockProfile = ProfileId.fromId(`test-scope/test-name`);
+      const mockVersion = { major: 1 };
+      const mockSuperJson = new SuperJson({});
+      const mockUsecaseNames = ['test-usecase'];
+      const writeIfAbsentSpy = jest
+        .spyOn(OutputStream, 'writeIfAbsent')
+        .mockResolvedValue(true);
+
+      await expect(
+        createProfile(
+          mockBasePath,
+          mockProfile,
+          mockVersion,
+          mockUsecaseNames,
+          mockSuperJson,
+          mockFilename
+        )
+      ).resolves.toBeUndefined();
+
+      expect(writeIfAbsentSpy).toHaveBeenCalledTimes(1);
+      expect(
+        writeIfAbsentSpy
+      ).toHaveBeenCalledWith(
+        'test-path/mock-filename.supr',
+        [
+          `name = "${mockProfile.id}"\nversion = "1.0.0"\n`,
+          emptyProfile(mockUsecaseNames[0]),
+        ].join(''),
+        { dirs: true, force: undefined }
+      );
+    });
+
+    it('creates empty profile with scope and file name with extension', async () => {
+      const mockBasePath = 'test-path';
+      const mockFilename = `mock-filename${EXTENSIONS.profile.source}`;
       const mockProfile = ProfileId.fromId(`test-scope/test-name`);
       const mockVersion = { major: 1 };
       const mockSuperJson = new SuperJson({});
@@ -244,6 +280,44 @@ describe('Create logic', () => {
         { dirs: true, force: undefined }
       );
     });
+
+    it('creates empty map without scope, with variant and file name with extension', async () => {
+      const mockBasePath = 'test-path';
+      const mockFilename = `test-map${EXTENSIONS.map.source}`;
+      const mockId = {
+        profile: ProfileId.fromScopeName(undefined, 'test-name'),
+        provider: 'twilio',
+        version: { major: 1 },
+        variant: 'bugfix',
+      };
+      const mockSuperJson = new SuperJson({});
+      const mockUsecaseNames = ['test-usecase'];
+      const writeIfAbsentSpy = jest
+        .spyOn(OutputStream, 'writeIfAbsent')
+        .mockResolvedValue(true);
+
+      await expect(
+        createMap(
+          mockBasePath,
+          mockId,
+          mockUsecaseNames,
+          mockSuperJson,
+          mockFilename
+        )
+      ).resolves.toBeUndefined();
+
+      expect(writeIfAbsentSpy).toHaveBeenCalledTimes(1);
+      expect(
+        writeIfAbsentSpy
+      ).toHaveBeenCalledWith(
+        `${mockBasePath}/${mockFilename}`,
+        [
+          `profile = "${mockId.profile.name}@1.0"\nprovider = "${mockId.provider}"\nvariant = "bugfix"\n`,
+          emptyMap(mockUsecaseNames[0]),
+        ].join(''),
+        { dirs: true, force: undefined }
+      );
+    });
   });
   describe('when creating provider json', () => {
     it('creates empty provider', async () => {
@@ -286,6 +360,29 @@ describe('Create logic', () => {
         writeIfAbsentSpy
       ).toHaveBeenCalledWith(
         `${mockBasePath}/${mockFilename}.json`,
+        emptyProvider(mockName),
+        { force: undefined }
+      );
+    });
+
+    it('creates empty provider with file name with extension', async () => {
+      const mockBasePath = 'test-path';
+      const mockFilename = 'test-provider.json';
+      const mockName = 'twilio';
+      const mockSuperJson = new SuperJson({});
+      const writeIfAbsentSpy = jest
+        .spyOn(OutputStream, 'writeIfAbsent')
+        .mockResolvedValue(true);
+
+      await expect(
+        createProviderJson(mockBasePath, mockName, mockSuperJson, mockFilename)
+      ).resolves.toBeUndefined();
+
+      expect(writeIfAbsentSpy).toHaveBeenCalledTimes(1);
+      expect(
+        writeIfAbsentSpy
+      ).toHaveBeenCalledWith(
+        `${mockBasePath}/${mockFilename}`,
         emptyProvider(mockName),
         { force: undefined }
       );

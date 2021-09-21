@@ -27,7 +27,12 @@ export async function createProfile(
     logCb?: LogCallback;
   }
 ): Promise<void> {
-  let filePath = `${fileName || profile.id}${EXTENSIONS.profile.source}`;
+  //Add extension if missing
+  if (fileName && !fileName.endsWith(EXTENSIONS.profile.source)) {
+    fileName = fileName + EXTENSIONS.profile.source;
+  }
+  let filePath = fileName || `${profile.id}${EXTENSIONS.profile.source}`;
+
   const versionStr = composeVersion(version);
   filePath = joinPath(basePath, filePath);
 
@@ -72,10 +77,15 @@ export async function createMap(
   }
 ): Promise<void> {
   const variantName = id.variant ? `.${id.variant}` : '';
+  //Add extension if missing
+  if (fileName && !fileName.endsWith(EXTENSIONS.map.source)) {
+    fileName = fileName + EXTENSIONS.map.source;
+  }
 
-  let filePath = `${
-    fileName || `${id.profile.id}.${id.provider}${variantName}`
-  }${EXTENSIONS.map.source}`;
+  let filePath =
+    fileName ||
+    `${id.profile.id}.${id.provider}${variantName}${EXTENSIONS.map.source}`;
+
   const version = composeVersion(id.version, true);
 
   filePath = joinPath(basePath, filePath);
@@ -115,10 +125,12 @@ export async function createProviderJson(
     logCb?: LogCallback;
   }
 ): Promise<void> {
-  const filePath = joinPath(
-    basePath,
-    fileName ? `${fileName}.json` : `${provider}.provider.json`
-  );
+  //Add extension if missing
+  if (fileName && !fileName.endsWith('.json')) {
+    fileName = `${fileName}.json`;
+  }
+
+  const filePath = joinPath(basePath, fileName || `${provider}.provider.json`);
   const created = await OutputStream.writeIfAbsent(
     filePath,
     providerTemplate.empty(provider),

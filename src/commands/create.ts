@@ -92,15 +92,15 @@ export default class Create extends Command {
     }),
     mapFileName: oclifFlags.string({
       default: undefined,
-      description: 'Name of map file without extension',
+      description: 'Name of map file',
     }),
     profileFileName: oclifFlags.string({
       default: undefined,
-      description: 'Name of profile file without extension',
+      description: 'Name of profile file',
     }),
     providerFileName: oclifFlags.string({
       default: undefined,
-      description: 'Name of provider file without extension',
+      description: 'Name of provider file',
     }),
     scan: oclifFlags.integer({
       char: 's',

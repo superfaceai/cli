@@ -152,7 +152,7 @@ OPTIONS
 
   --map                                Create a map
 
-  --mapFileName=mapFileName            Name of map file without extension
+  --mapFileName=mapFileName            Name of map file
 
   --no-init                            When set to true, command won't initialize Superface
 
@@ -160,13 +160,13 @@ OPTIONS
 
   --profile                            Create a profile
 
-  --profileFileName=profileFileName    Name of profile file without extension
+  --profileFileName=profileFileName    Name of profile file
 
   --profileId=profileId                Profile Id in format [scope](optional)/[name]
 
   --provider                           Create a provider
 
-  --providerFileName=providerFileName  Name of provider file without extension
+  --providerFileName=providerFileName  Name of provider file
 
   --providerName=providerName          Names of providers. This argument is used to create maps and/or providers
 
