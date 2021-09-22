@@ -775,4 +775,91 @@ describe('Create CLI command', () => {
       });
     }, 20000);
   });
+
+  //Profile & map & provider
+  it('creates profile with version, map with multiple usecases and variant, provider and file names', async () => {
+    documentName = 'sms/service';
+    provider = 'twilio';
+    const mockProfileFileName = 'mockProfile';
+    const mockMapFileName = 'mockMap';
+    const mockProviderFileName = 'mockProvider';
+
+    let result = await execCLI(
+      tempDir,
+      [
+        'create',
+        '--profileId',
+        documentName,
+        '-v',
+        '1.1-rev133',
+        '-t',
+        'bugfix',
+        '-u',
+        'SendSMS',
+        'ReceiveSMS',
+        '--providerName',
+        provider,
+        '--profile',
+        '--map',
+        '--provider',
+        '--mapFileName',
+        mockMapFileName,
+        '--profileFileName',
+        mockProfileFileName,
+        '--providerFileName',
+        mockProviderFileName,
+      ],
+      mockServer.url,
+      {
+        inputs: [{ value: ENTER, timeout: 1000 }],
+      }
+    );
+    expect(result.stdout).toMatch(
+      `-> Created ${mockProfileFileName}.supr (name = "${documentName}", version = "1.1.0-rev133")`
+    );
+    expect(result.stdout).toMatch(
+      `-> Created ${mockMapFileName}.suma (profile = "${documentName}@1.1-rev133", provider = "${provider}")`
+    );
+    expect(result.stdout).toMatch(`-> Created ${mockProviderFileName}.json`);
+
+    result = await execCLI(
+      tempDir,
+      ['lint', `${mockProfileFileName}.supr`],
+      mockServer.url
+    );
+    expect(result.stdout).toMatch('Detected 0 problems\n');
+
+    result = await execCLI(
+      tempDir,
+      ['lint', `${mockMapFileName}.suma`],
+      mockServer.url
+    );
+    expect(result.stdout).toMatch('Detected 0 problems\n');
+
+    const superJson = (
+      await SuperJson.load(joinPath(tempDir, 'superface', 'super.json'))
+    ).unwrap();
+
+    expect(superJson.normalized).toEqual({
+      profiles: {
+        [documentName]: {
+          file: `../${mockProfileFileName}.supr`,
+          defaults: {},
+          priority: [provider],
+          providers: {
+            [provider]: {
+              defaults: {},
+              file: `../${mockMapFileName}.suma`,
+            },
+          },
+        },
+      },
+      providers: {
+        [provider]: {
+          file: `../${mockProviderFileName}.json`,
+          security: [],
+        },
+      },
+    });
+  }, 20000);
 });

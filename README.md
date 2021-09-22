@@ -134,35 +134,41 @@ USAGE
   $ superface create
 
 OPTIONS
-  -h, --help                   show CLI help
-  -i, --interactive            When set to true, command is used in interactive mode.
-  -p, --path=path              Base path where files will be created
-  -q, --quiet                  When set to true, disables the shell echo output of action.
+  -h, --help                           show CLI help
+  -i, --interactive                    When set to true, command is used in interactive mode.
+  -p, --path=path                      Base path where files will be created
+  -q, --quiet                          When set to true, disables the shell echo output of action.
 
-  -s, --scan=scan              When number provided, scan for super.json outside cwd within range represented by this
-                               number.
+  -s, --scan=scan                      When number provided, scan for super.json outside cwd within range represented by
+                                       this number.
 
-  -t, --variant=variant        Variant of a map
+  -t, --variant=variant                Variant of a map
 
-  -u, --usecase=usecase        Usecases that profile or map contains
+  -u, --usecase=usecase                Usecases that profile or map contains
 
-  -v, --version=version        [default: 1.0.0] Version of a profile
+  -v, --version=version                [default: 1.0.0] Version of a profile
 
-  --init                       When set to true, command will initialize Superface
+  --init                               When set to true, command will initialize Superface
 
-  --map                        Create a map
+  --map                                Create a map
 
-  --no-init                    When set to true, command won't initialize Superface
+  --mapFileName=mapFileName            Name of map file
 
-  --no-super-json              When set to true, command won't change SuperJson file
+  --no-init                            When set to true, command won't initialize Superface
 
-  --profile                    Create a profile
+  --no-super-json                      When set to true, command won't change SuperJson file
 
-  --profileId=profileId        Profile Id in format [scope](optional)/[name]
+  --profile                            Create a profile
 
-  --provider                   Create a provider
+  --profileFileName=profileFileName    Name of profile file
 
-  --providerName=providerName  Names of providers. This argument is used to create maps and/or providers
+  --profileId=profileId                Profile Id in format [scope](optional)/[name]
+
+  --provider                           Create a provider
+
+  --providerFileName=providerFileName  Name of provider file
+
+  --providerName=providerName          Names of providers. This argument is used to create maps and/or providers
 
 EXAMPLES
   $ superface create --profileId sms/service --profile
@@ -170,6 +176,7 @@ EXAMPLES
   $ superface create --profileId sms/service --providerName twilio --map
   $ superface create --profileId sms/service --providerName twilio --map -t bugfix
   $ superface create --providerName twilio tyntec --provider
+  $ superface create --providerName twilio --provider --providerFileName my-provider -p my/path
   $ superface create --profileId sms/service --providerName twilio --provider --map --profile -t bugfix -v 1.1-rev133 -u 
   SendSMS ReceiveSMS
   $ superface create -i
