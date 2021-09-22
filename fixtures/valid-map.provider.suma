@@ -50,20 +50,12 @@ map Foo {
 		// https://sfspec.surge.sh/map#SetMapOutcome
 
 		// https://sfspec.surge.sh/map#MapResult
-		map result if (cond) {
-			foo = 1
-		}
-		return map result if (cond) {
-			"foo" = 1
-		}
+		map result if (cond) 1
+		return map result if (cond) 1
 
 		// https://sfspec.surge.sh/map#sec-Map-Error
-		map error if (cond) {
-			"foo.bar" = 1
-		}
-		return map error if (cond) {
-			foo.bar = 1
-		}
+		map error if (cond) 400
+		return map error if (cond) 400
 	}
 
 	// https://sfspec.surge.sh/map#HTTPCall

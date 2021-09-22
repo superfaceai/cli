@@ -2,6 +2,7 @@ import { flags as oclifFlags } from '@oclif/command';
 import { isValidProviderName, SuperJson } from '@superfaceai/one-sdk';
 import { parseDocumentId } from '@superfaceai/parser';
 import { grey } from 'chalk';
+// import { grey } from 'chalk';
 import { join as joinPath } from 'path';
 
 import { META_FILE } from '../common';
@@ -87,7 +88,7 @@ export default class Lint extends Command {
     '$ superface lint -s 3',
   ];
 
-  private logCallback?= (message: string) => this.log(grey(message));
+  private logCallback? = (message: string) => this.log(grey(message));
 
   async run(): Promise<void> {
     const { flags } = this.parse(Lint);
@@ -148,7 +149,7 @@ export default class Lint extends Command {
       if (flags.providerName) {
         if (
           !superJson.normalized.profiles[flags.profileId].providers[
-          flags.providerName
+            flags.providerName
           ]
         ) {
           throw userError(
@@ -255,12 +256,7 @@ export default class Lint extends Command {
             superJson,
             profiles,
             report =>
-              formatHuman(
-                report,
-                flags.quiet,
-                flags.outputFormat === 'short',
-                outputStream.isTTY
-              ),
+              formatHuman(report, flags.quiet, flags.outputFormat === 'short'),
             { logCb: this.logCallback }
           );
           await outputStream.write(
@@ -315,6 +311,9 @@ export default class Lint extends Command {
       options
     );
 
-    return counts.reduce((acc, curr) => [acc[0] + curr[0], acc[1] + curr[1]], [0, 0]);
+    return counts.reduce((acc, curr) => [acc[0] + curr[0], acc[1] + curr[1]], [
+      0,
+      0,
+    ]);
   }
 }

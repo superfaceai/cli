@@ -241,7 +241,8 @@ export async function execCLI(
     inputs?: { value: string; timeout: number }[];
     env?: NodeJS.ProcessEnv;
     debug?: boolean;
-  }
+  },
+  rejectOnErr = true
 ): Promise<{ stdout: string }> {
   const maxTimeout = 30000;
   const CLI = joinPath('.', 'bin', 'superface');
@@ -323,10 +324,14 @@ export async function execCLI(
       if (currentInputTimeout) {
         clearTimeout(currentInputTimeout);
       }
-      reject(err.toString());
+      if (rejectOnErr) {
+        reject(err.toString());
+      }
     });
 
-    childProcess.on('error', (err: Error) => reject(err));
+    childProcess.on('error', (err: Error) => {
+      if (rejectOnErr) reject(err);
+    });
 
     // Kick off the process
     loop(options?.inputs ?? []);

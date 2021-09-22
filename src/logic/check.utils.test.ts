@@ -11,6 +11,7 @@ import { mocked } from 'ts-jest/utils';
 
 import { DEFAULT_PROFILE_VERSION_STR } from '../common';
 import { exists, readdir, readFile } from '../common/io';
+import { ProfileId } from '../common/profile';
 import {
   findLocalMapSource,
   findLocalProfileSource,
@@ -23,12 +24,8 @@ describe('Check utils', () => {
   afterEach(() => {
     jest.resetAllMocks();
   });
-  const profile = {
-    name: 'character-information',
-    scope: 'starwars',
-    version: '1.0.0',
-  };
-
+  const profile = ProfileId.fromScopeName('starwars', 'character-information');
+  const version = '1.0.0';
   const provider = 'swapi';
   const mockProfileSource = 'mock profile source';
   const mockMapSource = 'mock map source';
@@ -111,13 +108,11 @@ describe('Check utils', () => {
       mocked(readFile).mockResolvedValue(mockProfileSource);
 
       await expect(
-        findLocalProfileSource(mockSuperJson, profile)
+        findLocalProfileSource(mockSuperJson, profile, version)
       ).resolves.toEqual(mockProfileSource);
 
       expect(exists).toHaveBeenCalledWith(
-        expect.stringContaining(
-          `grid/${profile.scope}/${profile.name}@${profile.version}`
-        )
+        expect.stringContaining(`grid/${profile.id}@${version}`)
       );
     });
     it('returns undefinde if profile with scope and version does nit exist in grid', async () => {
@@ -126,13 +121,11 @@ describe('Check utils', () => {
       mocked(readFile).mockResolvedValue(mockProfileSource);
 
       await expect(
-        findLocalProfileSource(mockSuperJson, profile)
+        findLocalProfileSource(mockSuperJson, profile, version)
       ).resolves.toBeUndefined();
 
       expect(exists).toHaveBeenCalledWith(
-        expect.stringContaining(
-          `grid/${profile.scope}/${profile.name}@${profile.version}`
-        )
+        expect.stringContaining(`grid/${profile.id}@${version}`)
       );
     });
 
@@ -142,14 +135,15 @@ describe('Check utils', () => {
       mocked(readFile).mockResolvedValue(mockProfileSource);
 
       await expect(
-        findLocalProfileSource(mockSuperJson, {
-          name: profile.name,
-          version: profile.version,
-        })
+        findLocalProfileSource(
+          mockSuperJson,
+          ProfileId.fromScopeName(undefined, profile.name),
+          version
+        )
       ).resolves.toEqual(mockProfileSource);
 
       expect(exists).toHaveBeenCalledWith(
-        expect.stringContaining(`grid/${profile.name}@${profile.version}`)
+        expect.stringContaining(`grid/${profile.name}@${version}`)
       );
     });
 
@@ -182,10 +176,7 @@ describe('Check utils', () => {
       mocked(readdir).mockResolvedValue(mockFiles);
 
       await expect(
-        findLocalProfileSource(mockSuperJson, {
-          name: profile.name,
-          scope: profile.scope,
-        })
+        findLocalProfileSource(mockSuperJson, profile)
       ).resolves.toEqual(mockProfileSource);
 
       expect(exists).toHaveBeenCalledWith(
@@ -193,7 +184,7 @@ describe('Check utils', () => {
       );
       expect(exists).toHaveBeenCalledWith(
         expect.stringContaining(
-          `grid/${profile.scope}/${profile.name}@${DEFAULT_PROFILE_VERSION_STR}${EXTENSIONS.profile.source}`
+          `grid/${profile.id}@${DEFAULT_PROFILE_VERSION_STR}${EXTENSIONS.profile.source}`
         )
       );
     });
@@ -227,10 +218,7 @@ describe('Check utils', () => {
       mocked(readdir).mockResolvedValue(mockFiles);
 
       await expect(
-        findLocalProfileSource(mockSuperJson, {
-          name: profile.name,
-          scope: profile.scope,
-        })
+        findLocalProfileSource(mockSuperJson, profile)
       ).resolves.toEqual(mockProfileSource);
 
       expect(exists).toHaveBeenCalledWith(
@@ -238,7 +226,7 @@ describe('Check utils', () => {
       );
       expect(exists).toHaveBeenCalledWith(
         expect.stringContaining(
-          `grid/${profile.scope}/${profile.name}@${DEFAULT_PROFILE_VERSION_STR}${EXTENSIONS.profile.source}`
+          `grid/${profile.id}@${DEFAULT_PROFILE_VERSION_STR}${EXTENSIONS.profile.source}`
         )
       );
     });
@@ -272,10 +260,7 @@ describe('Check utils', () => {
       mocked(readdir).mockResolvedValue(mockFiles);
 
       await expect(
-        findLocalProfileSource(mockSuperJson, {
-          name: profile.name,
-          scope: profile.scope,
-        })
+        findLocalProfileSource(mockSuperJson, profile)
       ).resolves.toBeUndefined();
 
       expect(exists).toHaveBeenCalledWith(
@@ -312,10 +297,7 @@ describe('Check utils', () => {
       mocked(readdir).mockResolvedValue(mockFiles);
 
       await expect(
-        findLocalProfileSource(mockSuperJson, {
-          name: profile.name,
-          scope: profile.scope,
-        })
+        findLocalProfileSource(mockSuperJson, profile)
       ).resolves.toBeUndefined();
 
       expect(exists).toHaveBeenCalledWith(
@@ -323,15 +305,15 @@ describe('Check utils', () => {
       );
       expect(exists).toHaveBeenCalledWith(
         expect.stringContaining(
-          `grid/${profile.scope}/${profile.name}@${DEFAULT_PROFILE_VERSION_STR}${EXTENSIONS.profile.source}`
+          `grid/${profile.id}@${DEFAULT_PROFILE_VERSION_STR}${EXTENSIONS.profile.source}`
         )
       );
     });
     it('returns source if profile with scope and version exists in super json file property', async () => {
-      const testPath = `my/beloved/test/path/to/${profile.scope}/${profile.name}@${profile.version}`;
+      const testPath = `my/beloved/test/path/to/${profile.id}@${version}`;
       const mockSuperJson = new SuperJson({
         profiles: {
-          [`${profile.scope}/${profile.name}`]: {
+          [`${profile.id}`]: {
             file: testPath,
           },
         },
@@ -347,10 +329,10 @@ describe('Check utils', () => {
     });
 
     it('returns undefined if profile with scope does not exists in super json file property', async () => {
-      const testPath = `my/beloved/test/path/to/${profile.scope}/${profile.name}`;
+      const testPath = `my/beloved/test/path/to/${profile.id}`;
       const mockSuperJson = new SuperJson({
         profiles: {
-          [`${profile.scope}/${profile.name}`]: {
+          [`${profile.id}`]: {
             file: testPath,
           },
         },
@@ -359,10 +341,7 @@ describe('Check utils', () => {
       mocked(readFile).mockResolvedValue(`"mockProfileSource"`);
 
       await expect(
-        findLocalProfileSource(mockSuperJson, {
-          name: profile.name,
-          scope: profile.scope,
-        })
+        findLocalProfileSource(mockSuperJson, profile)
       ).resolves.toBeUndefined();
 
       expect(exists).toHaveBeenCalledWith(expect.stringContaining(testPath));
@@ -371,11 +350,11 @@ describe('Check utils', () => {
 
   describe('when looking for local map source', () => {
     it('returns source if file in super.json exists', async () => {
-      const testPath = `my/beloved/test/path/to/${provider}.${profile.scope}/${profile.name}`;
+      const testPath = `my/beloved/test/path/to/${provider}.${profile.id}`;
       const mockSuperJson = new SuperJson({
         profiles: {
-          [`${profile.scope}/${profile.name}`]: {
-            version: profile.version,
+          [`${profile.id}`]: {
+            version,
             providers: {
               [provider]: {
                 file: testPath,
@@ -392,16 +371,16 @@ describe('Check utils', () => {
       ).resolves.toEqual(mockMapSource);
 
       expect(exists).toHaveBeenCalledWith(
-        expect.stringContaining(`${provider}.${profile.scope}/${profile.name}`)
+        expect.stringContaining(`${provider}.${profile.id}`)
       );
     });
 
     it('returns source if file in super.json exists - profile without scope', async () => {
-      const testPath = `my/beloved/test/path/to/${provider}.${profile.scope}/${profile.name}`;
+      const testPath = `my/beloved/test/path/to/${provider}.${profile.id}`;
       const mockSuperJson = new SuperJson({
         profiles: {
           [`${profile.name}`]: {
-            version: profile.version,
+            version,
             providers: {
               [provider]: {
                 file: testPath,
@@ -414,20 +393,24 @@ describe('Check utils', () => {
       mocked(readFile).mockResolvedValue(mockMapSource);
 
       await expect(
-        findLocalMapSource(mockSuperJson, { name: profile.name }, provider)
+        findLocalMapSource(
+          mockSuperJson,
+          ProfileId.fromScopeName(undefined, profile.name),
+          provider
+        )
       ).resolves.toEqual(mockMapSource);
 
       expect(exists).toHaveBeenCalledWith(
-        expect.stringContaining(`${provider}.${profile.scope}/${profile.name}`)
+        expect.stringContaining(`${provider}.${profile.id}`)
       );
     });
 
     it('returns undefined if file in super.json does not exist', async () => {
-      const testPath = `my/beloved/test/path/to/${provider}.${profile.scope}/${profile.name}`;
+      const testPath = `my/beloved/test/path/to/${provider}.${profile.id}`;
       const mockSuperJson = new SuperJson({
         profiles: {
-          [`${profile.scope}/${profile.name}`]: {
-            version: profile.version,
+          [`${profile.id}`]: {
+            version,
             providers: {
               [provider]: {
                 file: testPath,
@@ -443,7 +426,7 @@ describe('Check utils', () => {
       ).resolves.toBeUndefined();
 
       expect(exists).toHaveBeenCalledWith(
-        expect.stringContaining(`${provider}.${profile.scope}/${profile.name}`)
+        expect.stringContaining(`${provider}.${profile.id}`)
       );
     });
 
@@ -463,8 +446,8 @@ describe('Check utils', () => {
     it('returns undefined if profileProvider does not exist in super.json', async () => {
       const mockSuperJson = new SuperJson({
         profiles: {
-          [`${profile.scope}/${profile.name}`]: {
-            version: profile.version,
+          [`${profile.id}`]: {
+            version,
             providers: {},
           },
         },
@@ -481,8 +464,8 @@ describe('Check utils', () => {
     it('returns undefined if file property  does not exist in profileProvider', async () => {
       const mockSuperJson = new SuperJson({
         profiles: {
-          [`${profile.scope}/${profile.name}`]: {
-            version: profile.version,
+          [`${profile.id}`]: {
+            version,
             providers: {
               [provider]: {
                 defaults: {},

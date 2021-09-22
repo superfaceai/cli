@@ -7,6 +7,7 @@ import { join as joinPath } from 'path';
 import { META_FILE } from '../common';
 import { Command } from '../common/command.abstract';
 import { userError } from '../common/error';
+import { ProfileId } from '../common/profile';
 import { check, formatHuman, formatJson } from '../logic/check';
 import { detectSuperJson } from '../logic/install';
 
@@ -141,10 +142,19 @@ export default class Check extends Command {
       );
     }
 
-    const result = await check(superJson, profile, flags.providerName, map, {
-      logCb: this.logCallback,
-      warnCb: this.warnCallback,
-    });
+    const result = await check(
+      superJson,
+      {
+        id: ProfileId.fromScopeName(profile.scope, profile.name),
+        version: profile.version,
+      },
+      flags.providerName,
+      map,
+      {
+        logCb: this.logCallback,
+        warnCb: this.warnCallback,
+      }
+    );
     if (flags.json) {
       this.log(formatJson(result));
     } else {

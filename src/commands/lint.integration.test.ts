@@ -1,11 +1,12 @@
+// import { CLIError } from '@oclif/errors';
 import { SuperJson } from '@superfaceai/one-sdk';
 import { join as joinPath } from 'path';
+
 import { mkdir, rimraf } from '../common/io';
 import { OutputStream } from '../common/output-stream';
-
 import { MockStd, mockStd } from '../test/mock-std';
 import { execCLI, setUpTempDir } from '../test/utils';
-import Lint from './lint';
+// import Lint from './lint';
 
 describe('lint CLI command', () => {
   //File specific path
@@ -14,6 +15,7 @@ describe('lint CLI command', () => {
   const profileId = 'starwars/character-information';
   // const profileVersion = '1.0.1';
   const provider = 'swapi';
+  const secondProvider = 'starwars';
   const fixture = {
     strictProfile: joinPath('fixtures', 'strict.supr'),
     strictMap: joinPath('fixtures', 'strict.suma'),
@@ -32,7 +34,6 @@ describe('lint CLI command', () => {
     },
   };
   let tempDir: string;
-
 
   let stderr: MockStd;
   let stdout: MockStd;
@@ -60,15 +61,14 @@ describe('lint CLI command', () => {
     await rimraf(tempDir);
   });
 
-
-  it('lints one profile and one map file with autodetect', async () => {
+  it('lints one profile and one map file', async () => {
     const mockSuperJson = new SuperJson({
       profiles: {
         [profileId]: {
           file: `../../../../${fixture.strictProfile}`,
           providers: {
             [provider]: {
-              file: `../../../../${fixture.strictMap}`,
+              file: `../../../../${fixture.validMap}`,
             },
           },
         },
@@ -81,208 +81,249 @@ describe('lint CLI command', () => {
       mockSuperJson.stringified
     );
 
-    const result = await execCLI(tempDir, ['lint', '--profileId', profileId], '')
+    const result = await execCLI(
+      tempDir,
+      ['lint', '--profileId', profileId, '--providerName', provider],
+      '',
+      { debug: true }
+    );
 
-    expect(result.stdout).toContain(`🆗 ${fixture.strictMap}\n` + '\n');
-    expect(result.stdout).toContain(`🆗 ${fixture.strictProfile}\n` + '\n');
+    expect(result.stdout).toContain(
+      `🆗 ../../../../${fixture.strictProfile}` + '\n'
+    );
+    expect(result.stdout).toContain(
+      `🆗 ../../../../${fixture.validMap}` + '\n'
+    );
+
     expect(result.stdout).toContain('Detected 0 problems\n');
   });
 
-  it('lints a valid and an invalid map', async () => {
-    await expect(
-      Lint.run([fixture.strictMap, fixture.invalidParsedMap])
-    ).rejects.toHaveProperty(['oclif', 'exit'], 1);
-
-    expect(stdout.output).toContain(`🆗 ${fixture.strictMap}\n` + '\n');
-    expect(stdout.output).toContain(
-      `❌ ${fixture.invalidParsedMap}\n` +
-      'SyntaxError: Expected `provider` but found `map`\n' +
-      ` --> ${fixture.invalidParsedMap}:3:1\n` +
-      '2 | \n' +
-      '3 | map Foo {\n' +
-      '  | ^^^      \n' +
-      '4 | 	\n'
-    );
-    expect(stdout.output).toContain('Detected 1 problem\n');
-  });
-
-  it('lints a valid and an invalid map - short format', async () => {
-    await expect(
-      Lint.run([
-        '--outputFormat',
-        'short',
-        fixture.strictMap,
-        fixture.invalidParsedMap,
-      ])
-    ).rejects.toHaveProperty(['oclif', 'exit'], 1);
-
-    expect(stdout.output).toContain(`🆗 ${fixture.strictMap}\n` + '\n');
-    expect(stdout.output).toContain(
-      `❌ ${fixture.invalidParsedMap}\n` +
-      '\t3:1 Expected `provider` but found `map`\n'
-    );
-    expect(stdout.output).toContain('Detected 1 problem\n');
-  });
-
-  it('lints a valid and an invalid map - json format', async () => {
-    await expect(
-      Lint.run([
-        '--outputFormat',
-        'json',
-        fixture.strictMap,
-        fixture.invalidParsedMap,
-      ])
-    ).rejects.toHaveProperty(['oclif', 'exit'], 1);
-
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const result: Record<string, unknown> = JSON.parse(stdout.output);
-    expect(result).toMatchObject({
-      total: {
-        errors: 1,
-        warnings: 0,
-      },
-    });
-    expect(result.reports).toBeDefined();
-
-    expect(result.reports).toContainEqual({
-      kind: 'file',
-      path: fixture.strictMap,
-      errors: [],
-      warnings: [],
-    });
-    expect(result.reports).toContainEqual({
-      kind: 'file',
-      path: fixture.invalidParsedMap,
-      errors: [
-        {
-          category: 'Parser',
-          detail: 'Expected `provider` but found `map`',
-          location: {
-            line: 3,
-            column: 1,
-          },
-          span: {
-            start: 31,
-            end: 34,
+  it.only('lints a valid and an invalid map', async () => {
+    const mockSuperJson = new SuperJson({
+      profiles: {
+        [profileId]: {
+          file: `../../../../${fixture.strictProfile}`,
+          providers: {
+            [provider]: {
+              file: `../../../../${fixture.validMap}`,
+            },
+            [secondProvider]: {
+              file: `../../../../${fixture.invalidParsedMap}`,
+            },
           },
         },
-      ],
-      warnings: [],
+      },
     });
-  });
 
-  it('lints a valid file and outputs it to stderr', async () => {
-    await Lint.run(['--output', '-2', fixture.strictProfile]);
-
-    expect(stderr.output).toContain(`🆗 ${fixture.strictProfile}\n` + '\n');
-    expect(stderr.output).toContain('Detected 0 problems\n');
-  });
-
-  it('lints multiple maps to specific profile', async () => {
-    await expect(
-      Lint.run([
-        '-v',
-        fixture.strictProfile,
-        fixture.invalidMap,
-        fixture.validMap,
-      ])
-    ).rejects.toHaveProperty(['oclif', 'exit'], 1);
-
-    expect(stdout.output).toContain('❌ fixtures/invalid-map.twilio.suma');
-    expect(stdout.output).toContain('⚠️ fixtures/valid-map.provider.suma');
-    expect(stdout.output).toContain(
-      '5:13 PrimitiveLiteral - Wrong Structure: expected number, but got "true"'
+    await mkdir(joinPath(tempDir, 'superface'));
+    await OutputStream.writeOnce(
+      joinPath(tempDir, 'superface', 'super.json'),
+      mockSuperJson.stringified
     );
-    expect(stdout.output).toContain(
-      '11:15 ObjectLiteral - Wrong Structure: expected 404 or 400, but got "ObjectLiteral"'
+    let r;
+    try {
+      r = await execCLI(
+        tempDir,
+        ['lint', '--profileId', profileId],
+        '',
+        {}
+        // false
+      );
+    } catch (error) {
+      expect(error).toContain('Expected `provider` but found `map`');
+    }
+
+    expect(r).not.toBeUndefined();
+    // expect(stdout.output).toContain(`🆗 ../../../../${fixture.validMap}\n` + '\n');
+    expect(r?.stdout).toContain(
+      `❌ ${fixture.invalidParsedMap}\n` +
+        'SyntaxError: Expected `provider` but found `map`\n' +
+        ` --> ${fixture.invalidParsedMap}:3:1\n` +
+        '2 | \n' +
+        '3 | map Foo {\n' +
+        '  | ^^^      \n' +
+        '4 | 	\n'
     );
-    expect(stdout.output).toContain('Detected 9 problems');
+    expect(stdout.output).toContain('Detected 1 problem\n');
   });
 
-  it('lints multiple maps with unknown files to profile', async () => {
-    await expect(
-      Lint.run([
-        '-v',
-        fixture.strictProfile,
-        fixture.validMap,
-        './fixtures/strict.unknown',
-        './fixtures/some.unknown',
-      ])
-    ).rejects.toHaveProperty(['oclif', 'exit'], 2);
+  // it('lints a valid and an invalid map - short format', async () => {
+  //   await expect(
+  //     Lint.run([
+  //       '--outputFormat',
+  //       'short',
+  //       fixture.strictMap,
+  //       fixture.invalidParsedMap,
+  //     ])
+  //   ).rejects.toHaveProperty(['oclif', 'exit'], 1);
 
-    expect(stdout.output).toContain('⚠️ ./fixtures/strict.unknown');
-    expect(stdout.output).toContain('⚠️ ./fixtures/some.unknown');
-    expect(stdout.output).toContain('⚠️ fixtures/valid-map.provider.suma');
-    expect(stdout.output).toContain('Detected 6 problems');
-  });
+  //   expect(stdout.output).toContain(`🆗 ${fixture.strictMap}\n` + '\n');
+  //   expect(stdout.output).toContain(
+  //     `❌ ${fixture.invalidParsedMap}\n` +
+  //     '\t3:1 Expected `provider` but found `map`\n'
+  //   );
+  //   expect(stdout.output).toContain('Detected 1 problem\n');
+  // });
 
-  it('lints multiple maps with unknown and invalid files to profile', async () => {
-    await expect(
-      Lint.run([
-        '-v',
-        fixture.strictProfile,
-        fixture.invalidMap,
-        fixture.validMap,
-        './fixtures/strict.unknown',
-      ])
-    ).rejects.toHaveProperty(['oclif', 'exit'], 1);
+  // it('lints a valid and an invalid map - json format', async () => {
+  //   await expect(
+  //     Lint.run([
+  //       '--outputFormat',
+  //       'json',
+  //       fixture.strictMap,
+  //       fixture.invalidParsedMap,
+  //     ])
+  //   ).rejects.toHaveProperty(['oclif', 'exit'], 1);
 
-    expect(stdout.output).toContain('❌ fixtures/invalid-map.twilio.suma');
-    expect(stdout.output).toContain('⚠️ fixtures/valid-map.provider.suma');
-    expect(stdout.output).toContain('⚠️ ./fixtures/strict.unknown');
-    expect(stdout.output).toContain('Detected 10 problems');
-  });
+  //   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+  //   const result: Record<string, unknown> = JSON.parse(stdout.output);
+  //   expect(result).toMatchObject({
+  //     total: {
+  //       errors: 1,
+  //       warnings: 0,
+  //     },
+  //   });
+  //   expect(result.reports).toBeDefined();
 
-  it('lints only maps that meets conditions', async () => {
-    await expect(
-      Lint.run([
-        '-v',
-        fixture.lint.profile.foo,
-        fixture.lint.profile.bar,
-        fixture.lint.map.foo,
-      ])
-    ).rejects.toHaveProperty(['oclif', 'exit'], 1);
+  //   expect(result.reports).toContainEqual({
+  //     kind: 'file',
+  //     path: fixture.strictMap,
+  //     errors: [],
+  //     warnings: [],
+  //   });
+  //   expect(result.reports).toContainEqual({
+  //     kind: 'file',
+  //     path: fixture.invalidParsedMap,
+  //     errors: [
+  //       {
+  //         category: 'Parser',
+  //         detail: 'Expected `provider` but found `map`',
+  //         location: {
+  //           line: 3,
+  //           column: 1,
+  //         },
+  //         span: {
+  //           start: 31,
+  //           end: 34,
+  //         },
+  //       },
+  //     ],
+  //     warnings: [],
+  //   });
+  // });
 
-    expect(stdout.output).toContain(
-      `⚠️ map ${fixture.lint.map.foo} assumed to belong to profile ${fixture.lint.profile.foo} based on file name`
-    );
-    expect(stdout.output).toContain(`➡️ Profile:\t${fixture.lint.profile.foo}`);
-    expect(stdout.output).not.toContain(
-      `➡️ Profile:\t${fixture.lint.profile.bar}`
-    );
-    expect(stdout.output).toContain('Detected 1 problem');
-  });
+  // it('lints a valid file and outputs it to stderr', async () => {
+  //   await Lint.run(['--output', '-2', fixture.strictProfile]);
 
-  it('does not show warnings when linting with flag --quiet', async () => {
-    await expect(
-      Lint.run([
-        '-v',
-        '-q',
-        fixture.strictProfile,
-        fixture.validMap,
-        './fixtures/strict.unknown',
-        './fixtures/some.unknown',
-      ])
-    ).rejects.toHaveProperty(['oclif', 'exit'], 2);
+  //   expect(stderr.output).toContain(`🆗 ${fixture.strictProfile}\n` + '\n');
+  //   expect(stderr.output).toContain('Detected 0 problems\n');
+  // });
 
-    expect(stdout.output).toContain('⚠️ ./fixtures/strict.unknown');
-    expect(stdout.output).toContain('⚠️ ./fixtures/some.unknown');
-    expect(stdout.output).toContain('Detected 0 problems');
+  // it('lints multiple maps to specific profile', async () => {
+  //   await expect(
+  //     Lint.run([
+  //       '-v',
+  //       fixture.strictProfile,
+  //       fixture.invalidMap,
+  //       fixture.validMap,
+  //     ])
+  //   ).rejects.toHaveProperty(['oclif', 'exit'], 1);
 
-    await expect(
-      Lint.run([
-        '-v',
-        '-q',
-        fixture.strictProfile,
-        fixture.invalidMap,
-        fixture.validMap,
-        './fixtures/strict.unknown',
-      ])
-    ).rejects.toHaveProperty(['oclif', 'exit'], 1);
+  //   expect(stdout.output).toContain('❌ fixtures/invalid-map.twilio.suma');
+  //   expect(stdout.output).toContain('⚠️ fixtures/valid-map.provider.suma');
+  //   expect(stdout.output).toContain(
+  //     '5:13 PrimitiveLiteral - Wrong Structure: expected number, but got "true"'
+  //   );
+  //   expect(stdout.output).toContain(
+  //     '11:15 ObjectLiteral - Wrong Structure: expected 404 or 400, but got "ObjectLiteral"'
+  //   );
+  //   expect(stdout.output).toContain('Detected 9 problems');
+  // });
 
-    expect(stdout.output).toContain('⚠️ ./fixtures/strict.unknown');
-    expect(stdout.output).toContain('⚠️ fixtures/valid-map.provider.suma');
-    expect(stdout.output).toContain('❌ fixtures/invalid-map.twilio.suma');
-    expect(stdout.output).toContain('Detected 5 problems');
-  });
+  // it('lints multiple maps with unknown files to profile', async () => {
+  //   await expect(
+  //     Lint.run([
+  //       '-v',
+  //       fixture.strictProfile,
+  //       fixture.validMap,
+  //       './fixtures/strict.unknown',
+  //       './fixtures/some.unknown',
+  //     ])
+  //   ).rejects.toHaveProperty(['oclif', 'exit'], 2);
+
+  //   expect(stdout.output).toContain('⚠️ ./fixtures/strict.unknown');
+  //   expect(stdout.output).toContain('⚠️ ./fixtures/some.unknown');
+  //   expect(stdout.output).toContain('⚠️ fixtures/valid-map.provider.suma');
+  //   expect(stdout.output).toContain('Detected 6 problems');
+  // });
+
+  // it('lints multiple maps with unknown and invalid files to profile', async () => {
+  //   await expect(
+  //     Lint.run([
+  //       '-v',
+  //       fixture.strictProfile,
+  //       fixture.invalidMap,
+  //       fixture.validMap,
+  //       './fixtures/strict.unknown',
+  //     ])
+  //   ).rejects.toHaveProperty(['oclif', 'exit'], 1);
+
+  //   expect(stdout.output).toContain('❌ fixtures/invalid-map.twilio.suma');
+  //   expect(stdout.output).toContain('⚠️ fixtures/valid-map.provider.suma');
+  //   expect(stdout.output).toContain('⚠️ ./fixtures/strict.unknown');
+  //   expect(stdout.output).toContain('Detected 10 problems');
+  // });
+
+  // it('lints only maps that meets conditions', async () => {
+  //   await expect(
+  //     Lint.run([
+  //       '-v',
+  //       fixture.lint.profile.foo,
+  //       fixture.lint.profile.bar,
+  //       fixture.lint.map.foo,
+  //     ])
+  //   ).rejects.toHaveProperty(['oclif', 'exit'], 1);
+
+  //   expect(stdout.output).toContain(
+  //     `⚠️ map ${fixture.lint.map.foo} assumed to belong to profile ${fixture.lint.profile.foo} based on file name`
+  //   );
+  //   expect(stdout.output).toContain(`➡️ Profile:\t${fixture.lint.profile.foo}`);
+  //   expect(stdout.output).not.toContain(
+  //     `➡️ Profile:\t${fixture.lint.profile.bar}`
+  //   );
+  //   expect(stdout.output).toContain('Detected 1 problem');
+  // });
+
+  // it('does not show warnings when linting with flag --quiet', async () => {
+  //   await expect(
+  //     Lint.run([
+  //       '-v',
+  //       '-q',
+  //       fixture.strictProfile,
+  //       fixture.validMap,
+  //       './fixtures/strict.unknown',
+  //       './fixtures/some.unknown',
+  //     ])
+  //   ).rejects.toHaveProperty(['oclif', 'exit'], 2);
+
+  //   expect(stdout.output).toContain('⚠️ ./fixtures/strict.unknown');
+  //   expect(stdout.output).toContain('⚠️ ./fixtures/some.unknown');
+  //   expect(stdout.output).toContain('Detected 0 problems');
+
+  //   await expect(
+  //     Lint.run([
+  //       '-v',
+  //       '-q',
+  //       fixture.strictProfile,
+  //       fixture.invalidMap,
+  //       fixture.validMap,
+  //       './fixtures/strict.unknown',
+  //     ])
+  //   ).rejects.toHaveProperty(['oclif', 'exit'], 1);
+
+  //   expect(stdout.output).toContain('⚠️ ./fixtures/strict.unknown');
+  //   expect(stdout.output).toContain('⚠️ fixtures/valid-map.provider.suma');
+  //   expect(stdout.output).toContain('❌ fixtures/invalid-map.twilio.suma');
+  //   expect(stdout.output).toContain('Detected 5 problems');
+  // });
 });

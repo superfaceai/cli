@@ -21,6 +21,7 @@ import {
   fetchProviderInfo,
 } from '../common/http';
 import { LogCallback } from '../common/log';
+import { ProfileId } from '../common/profile';
 import {
   findLocalMapSource,
   findLocalProfileSource,
@@ -33,8 +34,7 @@ export type CheckResult = { kind: 'error' | 'warn'; message: string };
 export async function check(
   superJson: SuperJson,
   profile: {
-    name: string;
-    scope?: string;
+    id: ProfileId;
     version?: string;
   },
   provider: string,
@@ -49,15 +49,19 @@ export async function check(
   let numberOfRemoteFilesUsed = 0;
 
   //Load profile AST
-  const profileId = `${profile.scope ? `${profile.scope}/` : ''}${
-    profile.name
-  }${profile.version ? `@${profile.version}` : ''}`;
-  const profileSource = await findLocalProfileSource(superJson, profile);
+  const profileId = `${profile.id.id}${
+    profile.version ? `@${profile.version}` : ''
+  }`;
+  const profileSource = await findLocalProfileSource(
+    superJson,
+    profile.id,
+    profile.version
+  );
   if (profileSource) {
     //Enforce parsing
     profileAst = await Parser.parseProfile(profileSource, profileId, {
-      profileName: profile.name,
-      scope: profile.scope,
+      profileName: profile.id.name,
+      scope: profile.id.scope,
     });
     options?.logCb?.(`Profile: "${profileId}" found on local file system`);
   } else {
@@ -71,14 +75,18 @@ export async function check(
   }
 
   //Load map AST
-  const mapSource = await findLocalMapSource(superJson, profile, provider);
+  const mapSource = await findLocalMapSource(superJson, profile.id, provider);
   if (mapSource) {
     //Enforce parsing
-    mapAst = await Parser.parseMap(mapSource, `${profile.name}.${provider}`, {
-      profileName: profile.name,
-      scope: profile.scope,
-      providerName: provider,
-    });
+    mapAst = await Parser.parseMap(
+      mapSource,
+      `${profile.id.name}.${provider}`,
+      {
+        profileName: profile.id.name,
+        scope: profile.id.scope,
+        providerName: provider,
+      }
+    );
     options?.logCb?.(
       `Map for profile: "${profileId}" and provider: "${provider}" found on local filesystem`
     );
@@ -88,9 +96,9 @@ export async function check(
       `Loading map for profile: "${profileId}" and provider: "${provider}" from Superface store`
     );
     mapAst = await fetchMapAST(
-      profile.name,
+      profile.id.name,
       provider,
-      profile.scope,
+      profile.id.scope,
       profile.version,
       map.variant
     );
@@ -119,7 +127,7 @@ export async function check(
   }
 
   options?.logCb?.(
-    `Checking profile: "${profile.name}" and map for provider: "${provider}"`
+    `Checking profile: "${profile.id.name}" and map for provider: "${provider}"`
   );
   //Check map and profile
   const result = checkMapAndProfile(profileAst, mapAst, options);
