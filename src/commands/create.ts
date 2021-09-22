@@ -121,8 +121,8 @@ export default class Create extends Command {
     '$ superface create -i',
   ];
 
-  private warnCallback?= (message: string) => this.log(yellow(message));
-  private logCallback?= (message: string) => this.log(grey(message));
+  private warnCallback? = (message: string) => this.log(yellow(message));
+  private logCallback? = (message: string) => this.log(grey(message));
 
   async run(): Promise<void> {
     const { flags } = this.parse(Create);
@@ -179,7 +179,8 @@ export default class Create extends Command {
         ]);
         while (!exit) {
           const providerInput = await this.inputPrompt(
-            `Enter provider name of ${priorityToString.get(priority) || priority
+            `Enter provider name of ${
+              priorityToString.get(priority) || priority
             } provider.\nExit loop by pressing enter without any input.`
           );
           if (!providerInput) {
@@ -373,26 +374,26 @@ export default class Create extends Command {
 
     await create(
       {
-        createProvider: !!flags.provider,
-        createMap: !!flags.map,
-        createProfile: !!flags.profile,
-      },
-      usecases,
-      {
-        scope,
-        version,
-        providerNames,
-        name,
-        variant: flags.variant,
-      },
-      {
-        superPath,
-        basePath: flags.path,
-      },
-      {
-        map: flags.mapFileName,
-        profile: flags.profileFileName,
-        provider: flags.providerFileName,
+        provider: !!flags.provider,
+        map: !!flags.map,
+        profile: !!flags.profile,
+        fileNames: {
+          map: flags.mapFileName,
+          profile: flags.profileFileName,
+          provider: flags.providerFileName,
+        },
+        paths: {
+          superPath,
+          basePath: flags.path,
+        },
+        document: {
+          scope,
+          version,
+          providerNames,
+          usecases,
+          name,
+          variant: flags.variant,
+        },
       },
       {
         logCb: this.logCallback,

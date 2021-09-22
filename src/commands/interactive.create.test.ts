@@ -52,15 +52,23 @@ describe('Interactive create CLI command', () => {
       await expect(Create.run(['-i', '-p', 'test'])).resolves.toBeUndefined();
       expect(create).toHaveBeenCalledTimes(1);
       expect(create).toHaveBeenCalledWith(
-        { createProfile: true, createMap: false, createProvider: false },
-        ['Sendsms'],
         {
-          name: 'sendsms',
-          scope: undefined,
-          version: { label: undefined, major: 1, minor: 0, patch: 0 },
+          profile: true,
+          map: false,
+          provider: false,
+          document: {
+            name: 'sendsms',
+            usecases: ['Sendsms'],
+            scope: undefined,
+            version: { label: undefined, major: 1, minor: 0, patch: 0 },
+          },
+          paths: { basePath: 'test', superPath: 'superface' },
+          fileNames: {
+            map: undefined,
+            profile: undefined,
+            provider: undefined,
+          },
         },
-        { basePath: 'test', superPath: 'superface' },
-        { map: undefined, profile: undefined, provider: undefined },
         { logCb: expect.anything(), warnCb: expect.anything() }
       );
     });
@@ -87,15 +95,23 @@ describe('Interactive create CLI command', () => {
 
       expect(create).toHaveBeenCalledTimes(1);
       expect(create).toHaveBeenCalledWith(
-        { createProfile: true, createMap: false, createProvider: false },
-        ['SendSMS'],
         {
-          name: 'service',
-          scope: 'sms',
-          version: { label: undefined, major: 1, minor: 0, patch: 0 },
+          profile: true,
+          map: false,
+          provider: false,
+          document: {
+            name: 'service',
+            usecases: ['SendSMS'],
+            scope: 'sms',
+            version: { label: undefined, major: 1, minor: 0, patch: 0 },
+          },
+          paths: { basePath: undefined, superPath: 'superface' },
+          fileNames: {
+            map: undefined,
+            profile: undefined,
+            provider: undefined,
+          },
         },
-        { basePath: undefined, superPath: 'superface' },
-        { map: undefined, profile: undefined, provider: undefined },
         { logCb: expect.anything(), warnCb: expect.anything() }
       );
     });
@@ -123,15 +139,23 @@ describe('Interactive create CLI command', () => {
 
       expect(create).toHaveBeenCalledTimes(1);
       expect(create).toHaveBeenCalledWith(
-        { createProfile: true, createMap: false, createProvider: false },
-        ['ReceiveSMS', 'SendSMS'],
         {
-          name: 'service',
-          scope: 'sms',
-          version: { label: undefined, major: 1, minor: 0, patch: 0 },
+          profile: true,
+          map: false,
+          provider: false,
+          document: {
+            name: 'service',
+            usecases: ['ReceiveSMS', 'SendSMS'],
+            scope: 'sms',
+            version: { label: undefined, major: 1, minor: 0, patch: 0 },
+          },
+          paths: { basePath: undefined, superPath: 'superface' },
+          fileNames: {
+            map: undefined,
+            profile: undefined,
+            provider: undefined,
+          },
         },
-        { basePath: undefined, superPath: 'superface' },
-        { map: undefined, profile: undefined, provider: undefined },
         { logCb: expect.anything(), warnCb: expect.anything() }
       );
     });
@@ -161,17 +185,25 @@ describe('Interactive create CLI command', () => {
 
       expect(create).toHaveBeenCalledTimes(1);
       expect(create).toHaveBeenCalledWith(
-        { createProfile: false, createMap: true, createProvider: false },
-        ['Service'],
         {
-          name: 'service',
-          providerNames: ['twilio'],
-          variant: 'bugfix',
-          scope: 'sms',
-          version: { label: undefined, major: 1, minor: 0, patch: 0 },
+          profile: false,
+          map: true,
+          provider: false,
+          document: {
+            name: 'service',
+            providerNames: ['twilio'],
+            usecases: ['Service'],
+            variant: 'bugfix',
+            scope: 'sms',
+            version: { label: undefined, major: 1, minor: 0, patch: 0 },
+          },
+          paths: { basePath: undefined, superPath: 'superface' },
+          fileNames: {
+            map: undefined,
+            profile: undefined,
+            provider: undefined,
+          },
         },
-        { basePath: undefined, superPath: 'superface' },
-        { map: undefined, profile: undefined, provider: undefined },
         { logCb: expect.anything(), warnCb: expect.anything() }
       );
     });
@@ -201,17 +233,25 @@ describe('Interactive create CLI command', () => {
 
       expect(create).toHaveBeenCalledTimes(1);
       expect(create).toHaveBeenCalledWith(
-        { createProfile: false, createMap: true, createProvider: false },
-        ['Service'],
         {
-          name: 'service',
-          providerNames: ['twilio', 'tyntec'],
-          variant: 'bugfix',
-          scope: 'sms',
-          version: { label: undefined, major: 1, minor: 0, patch: 0 },
+          profile: false,
+          map: true,
+          provider: false,
+          document: {
+            name: 'service',
+            providerNames: ['twilio', 'tyntec'],
+            usecases: ['Service'],
+            variant: 'bugfix',
+            scope: 'sms',
+            version: { label: undefined, major: 1, minor: 0, patch: 0 },
+          },
+          paths: { basePath: undefined, superPath: 'superface' },
+          fileNames: {
+            map: undefined,
+            profile: undefined,
+            provider: undefined,
+          },
         },
-        { basePath: undefined, superPath: 'superface' },
-        { map: undefined, profile: undefined, provider: undefined },
         { logCb: expect.anything(), warnCb: expect.anything() }
       );
     });
@@ -243,16 +283,24 @@ describe('Interactive create CLI command', () => {
 
       expect(create).toHaveBeenCalledTimes(1);
       expect(create).toHaveBeenCalledWith(
-        { createProfile: false, createMap: true, createProvider: true },
-        ['SendSMS'],
         {
-          name: 'service',
-          providerNames: ['twilio'],
-          scope: 'sms',
-          version: { label: undefined, major: 1, minor: 0, patch: 0 },
+          profile: false,
+          map: true,
+          provider: true,
+          document: {
+            name: 'service',
+            providerNames: ['twilio'],
+            usecases: ['SendSMS'],
+            scope: 'sms',
+            version: { label: undefined, major: 1, minor: 0, patch: 0 },
+          },
+          paths: { basePath: undefined, superPath: 'superface' },
+          fileNames: {
+            map: undefined,
+            profile: undefined,
+            provider: undefined,
+          },
         },
-        { basePath: undefined, superPath: 'superface' },
-        { map: undefined, profile: undefined, provider: undefined },
         { logCb: expect.anything(), warnCb: expect.anything() }
       );
     });
@@ -283,16 +331,24 @@ describe('Interactive create CLI command', () => {
       ).resolves.toBeUndefined();
       expect(create).toHaveBeenCalledTimes(1);
       expect(create).toHaveBeenCalledWith(
-        { createProfile: false, createMap: true, createProvider: true },
-        ['ReceiveSMS', 'SendSMS'],
         {
-          name: 'service',
-          providerNames: ['twilio'],
-          scope: 'sms',
-          version: { label: undefined, major: 1, minor: 0, patch: 0 },
+          profile: false,
+          map: true,
+          provider: true,
+          document: {
+            name: 'service',
+            providerNames: ['twilio'],
+            usecases: ['ReceiveSMS', 'SendSMS'],
+            scope: 'sms',
+            version: { label: undefined, major: 1, minor: 0, patch: 0 },
+          },
+          paths: { basePath: undefined, superPath: 'superface' },
+          fileNames: {
+            map: undefined,
+            profile: undefined,
+            provider: undefined,
+          },
         },
-        { basePath: undefined, superPath: 'superface' },
-        { map: undefined, profile: undefined, provider: undefined },
         { logCb: expect.anything(), warnCb: expect.anything() }
       );
     });
@@ -322,16 +378,24 @@ describe('Interactive create CLI command', () => {
 
       expect(create).toHaveBeenCalledTimes(1);
       expect(create).toHaveBeenCalledWith(
-        { createProfile: true, createMap: true, createProvider: true },
-        ['Service'],
         {
-          name: 'service',
-          providerNames: ['twilio'],
-          scope: 'sms',
-          version: { label: undefined, major: 1, minor: 0, patch: 0 },
+          profile: true,
+          map: true,
+          provider: true,
+          document: {
+            name: 'service',
+            providerNames: ['twilio'],
+            usecases: ['Service'],
+            scope: 'sms',
+            version: { label: undefined, major: 1, minor: 0, patch: 0 },
+          },
+          paths: { basePath: undefined, superPath: 'superface' },
+          fileNames: {
+            map: undefined,
+            profile: undefined,
+            provider: undefined,
+          },
         },
-        { basePath: undefined, superPath: 'superface' },
-        { map: undefined, profile: undefined, provider: undefined },
         { logCb: expect.anything(), warnCb: expect.anything() }
       );
     });
@@ -363,16 +427,24 @@ describe('Interactive create CLI command', () => {
 
       expect(create).toHaveBeenCalledTimes(1);
       expect(create).toHaveBeenCalledWith(
-        { createProfile: true, createMap: true, createProvider: false },
-        ['SendSMS'],
         {
-          name: 'service',
-          providerNames: ['twilio'],
-          scope: 'sms',
-          version: { label: undefined, major: 1, minor: 0, patch: 0 },
+          profile: true,
+          map: true,
+          provider: false,
+          document: {
+            name: 'service',
+            providerNames: ['twilio'],
+            usecases: ['SendSMS'],
+            scope: 'sms',
+            version: { label: undefined, major: 1, minor: 0, patch: 0 },
+          },
+          paths: { basePath: undefined, superPath: 'superface' },
+          fileNames: {
+            map: undefined,
+            profile: undefined,
+            provider: undefined,
+          },
         },
-        { basePath: undefined, superPath: 'superface' },
-        { map: undefined, profile: undefined, provider: undefined },
         { logCb: expect.anything(), warnCb: expect.anything() }
       );
     });
@@ -403,16 +475,24 @@ describe('Interactive create CLI command', () => {
       ).resolves.toBeUndefined();
       expect(create).toHaveBeenCalledTimes(1);
       expect(create).toHaveBeenCalledWith(
-        { createProfile: true, createMap: true, createProvider: false },
-        ['SendSMS', 'ReceiveSMS'],
         {
-          name: 'service',
-          providerNames: ['twilio'],
-          scope: 'sms',
-          version: { label: undefined, major: 1, minor: 0, patch: 0 },
+          profile: true,
+          map: true,
+          provider: false,
+          document: {
+            name: 'service',
+            providerNames: ['twilio'],
+            usecases: ['SendSMS', 'ReceiveSMS'],
+            scope: 'sms',
+            version: { label: undefined, major: 1, minor: 0, patch: 0 },
+          },
+          paths: { basePath: undefined, superPath: 'superface' },
+          fileNames: {
+            map: undefined,
+            profile: undefined,
+            provider: undefined,
+          },
         },
-        { basePath: undefined, superPath: 'superface' },
-        { map: undefined, profile: undefined, provider: undefined },
         { logCb: expect.anything(), warnCb: expect.anything() }
       );
     });

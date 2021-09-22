@@ -397,10 +397,11 @@ describe('Create logic', () => {
     const mockSuperPath = 'test-super-path';
     const mockUsecases = ['usecase'];
     const mockFilename = 'test-filename';
-    let mockDocumentStructure: {
+    let document: {
       scope?: string;
       name?: string;
       providerNames: string[];
+      usecases: string[];
       version: {
         major: number;
         minor: number;
@@ -412,10 +413,11 @@ describe('Create logic', () => {
 
     beforeEach(() => {
       mockSuperJson = new SuperJson({});
-      mockDocumentStructure = {
+      document = {
         scope: mockScope,
         name: mockName,
         providerNames: [mockProvider],
+        usecases: mockUsecases,
         version: {
           major: 1,
           minor: 0,
@@ -435,14 +437,15 @@ describe('Create logic', () => {
         .mockResolvedValue(undefined);
 
       await expect(
-        create(
-          { createProfile: false, createMap: false, createProvider: true },
-          mockUsecases,
-          mockDocumentStructure,
-          {
+        create({
+          profile: false,
+          map: false,
+          provider: true,
+          document: document,
+          paths: {
             superPath: mockSuperPath,
-          }
-        )
+          },
+        })
       ).resolves.toBeUndefined();
 
       expect(loadSpy).toHaveBeenCalledTimes(1);
@@ -476,17 +479,18 @@ describe('Create logic', () => {
         .mockResolvedValue(undefined);
 
       await expect(
-        create(
-          { createProfile: false, createMap: false, createProvider: true },
-          mockUsecases,
-          mockDocumentStructure,
-          {
+        create({
+          profile: false,
+          map: false,
+          provider: true,
+          document: document,
+          paths: {
             superPath: mockSuperPath,
           },
-          {
+          fileNames: {
             provider: mockFilename,
-          }
-        )
+          },
+        })
       ).resolves.toBeUndefined();
 
       expect(loadSpy).toHaveBeenCalledTimes(1);
@@ -519,17 +523,18 @@ describe('Create logic', () => {
         .spyOn(OutputStream, 'writeOnce')
         .mockResolvedValue(undefined);
 
-      mockDocumentStructure.providerNames = [mockProvider, secondMockProvider];
+      document.providerNames = [mockProvider, secondMockProvider];
 
       await expect(
-        create(
-          { createProfile: false, createMap: false, createProvider: true },
-          mockUsecases,
-          mockDocumentStructure,
-          {
+        create({
+          profile: false,
+          map: false,
+          provider: true,
+          document,
+          paths: {
             superPath: mockSuperPath,
-          }
-        )
+          },
+        })
       ).resolves.toBeUndefined();
 
       expect(loadSpy).toHaveBeenCalledTimes(1);
@@ -574,14 +579,15 @@ describe('Create logic', () => {
         .mockResolvedValue(undefined);
 
       await expect(
-        create(
-          { createProfile: true, createMap: false, createProvider: false },
-          mockUsecases,
-          mockDocumentStructure,
-          {
+        create({
+          profile: true,
+          map: false,
+          provider: false,
+          document,
+          paths: {
             superPath: mockSuperPath,
-          }
-        )
+          },
+        })
       ).resolves.toBeUndefined();
 
       expect(loadSpy).toHaveBeenCalledTimes(1);
@@ -623,17 +629,18 @@ describe('Create logic', () => {
         .mockResolvedValue(undefined);
 
       await expect(
-        create(
-          { createProfile: true, createMap: false, createProvider: false },
-          mockUsecases,
-          mockDocumentStructure,
-          {
+        create({
+          profile: true,
+          map: false,
+          provider: false,
+          document,
+          paths: {
             superPath: mockSuperPath,
           },
-          {
+          fileNames: {
             profile: mockFilename,
-          }
-        )
+          },
+        })
       ).resolves.toBeUndefined();
 
       expect(loadSpy).toHaveBeenCalledTimes(1);
@@ -675,14 +682,15 @@ describe('Create logic', () => {
         .mockResolvedValue(undefined);
 
       await expect(
-        create(
-          { createProfile: true, createMap: false, createProvider: false },
-          mockUsecases,
-          mockDocumentStructure,
-          {
+        create({
+          profile: true,
+          map: false,
+          provider: false,
+          document,
+          paths: {
             superPath: mockSuperPath,
-          }
-        )
+          },
+        })
       ).resolves.toBeUndefined();
 
       expect(loadSpy).toHaveBeenCalledTimes(1);
@@ -717,14 +725,15 @@ describe('Create logic', () => {
         .mockResolvedValue(undefined);
 
       await expect(
-        create(
-          { createProfile: false, createMap: true, createProvider: true },
-          mockUsecases,
-          mockDocumentStructure,
-          {
+        create({
+          profile: false,
+          map: true,
+          provider: true,
+          document,
+          paths: {
             superPath: mockSuperPath,
-          }
-        )
+          },
+        })
       ).resolves.toBeUndefined();
 
       expect(loadSpy).toHaveBeenCalledTimes(1);
@@ -781,14 +790,15 @@ describe('Create logic', () => {
         .mockResolvedValue(undefined);
 
       await expect(
-        create(
-          { createProfile: false, createMap: true, createProvider: false },
-          mockUsecases,
-          mockDocumentStructure,
-          {
+        create({
+          profile: false,
+          map: true,
+          provider: false,
+          document,
+          paths: {
             superPath: mockSuperPath,
-          }
-        )
+          },
+        })
       ).resolves.toBeUndefined();
 
       expect(loadSpy).toHaveBeenCalledTimes(1);
@@ -837,17 +847,18 @@ describe('Create logic', () => {
         .mockResolvedValue(undefined);
 
       await expect(
-        create(
-          { createProfile: false, createMap: true, createProvider: false },
-          mockUsecases,
-          mockDocumentStructure,
-          {
+        create({
+          profile: false,
+          map: true,
+          provider: false,
+          document,
+          paths: {
             superPath: mockSuperPath,
           },
-          {
+          fileNames: {
             map: mockFilename,
-          }
-        )
+          },
+        })
       ).resolves.toBeUndefined();
 
       expect(loadSpy).toHaveBeenCalledTimes(1);
@@ -894,14 +905,15 @@ describe('Create logic', () => {
         .mockResolvedValue(undefined);
 
       await expect(
-        create(
-          { createProfile: true, createMap: true, createProvider: false },
-          mockUsecases,
-          mockDocumentStructure,
-          {
+        create({
+          profile: true,
+          map: true,
+          provider: false,
+          document,
+          paths: {
             superPath: mockSuperPath,
-          }
-        )
+          },
+        })
       ).resolves.toBeUndefined();
 
       expect(loadSpy).toHaveBeenCalledTimes(1);
@@ -947,9 +959,10 @@ describe('Create logic', () => {
     });
 
     it('throws error when provider is missing - creating map', async () => {
-      mockDocumentStructure = {
+      document = {
         scope: mockScope,
         providerNames: [],
+        usecases: mockUsecases,
         name: mockName,
         version: {
           major: 1,
@@ -969,14 +982,15 @@ describe('Create logic', () => {
         .mockResolvedValue(undefined);
 
       await expect(
-        create(
-          { createProfile: false, createMap: true, createProvider: false },
-          mockUsecases,
-          mockDocumentStructure,
-          {
+        create({
+          profile: false,
+          map: true,
+          provider: false,
+          document,
+          paths: {
             superPath: mockSuperPath,
-          }
-        )
+          },
+        })
       ).rejects.toEqual(
         new CLIError('Provider name must be provided when generating a map.')
       );
@@ -994,9 +1008,10 @@ describe('Create logic', () => {
     });
 
     it('throws error when provider is missing - creating provider', async () => {
-      mockDocumentStructure = {
+      document = {
         scope: mockScope,
         providerNames: [],
+        usecases: mockUsecases,
         name: mockName,
         version: {
           major: 1,
@@ -1016,14 +1031,15 @@ describe('Create logic', () => {
         .mockResolvedValue(undefined);
 
       await expect(
-        create(
-          { createProfile: false, createMap: false, createProvider: true },
-          mockUsecases,
-          mockDocumentStructure,
-          {
+        create({
+          profile: false,
+          map: false,
+          provider: true,
+          document,
+          paths: {
             superPath: mockSuperPath,
-          }
-        )
+          },
+        })
       ).rejects.toEqual(
         new CLIError(
           'Provider name must be provided when generating a provider.'
@@ -1043,9 +1059,10 @@ describe('Create logic', () => {
     });
 
     it('throws error when profile name is missing - creating map', async () => {
-      mockDocumentStructure = {
+      document = {
         scope: mockScope,
         providerNames: [mockProvider],
+        usecases: mockUsecases,
         version: {
           major: 1,
           minor: 0,
@@ -1064,14 +1081,15 @@ describe('Create logic', () => {
         .mockResolvedValue(undefined);
 
       await expect(
-        create(
-          { createProfile: false, createMap: true, createProvider: false },
-          mockUsecases,
-          mockDocumentStructure,
-          {
+        create({
+          profile: false,
+          map: true,
+          provider: false,
+          document,
+          paths: {
             superPath: mockSuperPath,
-          }
-        )
+          },
+        })
       ).rejects.toEqual(
         new CLIError('Profile name must be provided when generating a map.')
       );
@@ -1089,9 +1107,10 @@ describe('Create logic', () => {
     });
 
     it('throws error when profile name is missing - creating profile', async () => {
-      mockDocumentStructure = {
+      document = {
         scope: mockScope,
         providerNames: [mockProvider],
+        usecases: mockUsecases,
         version: {
           major: 1,
           minor: 0,
@@ -1110,14 +1129,15 @@ describe('Create logic', () => {
         .mockResolvedValue(undefined);
 
       await expect(
-        create(
-          { createProfile: true, createMap: false, createProvider: false },
-          mockUsecases,
-          mockDocumentStructure,
-          {
+        create({
+          profile: true,
+          map: false,
+          provider: false,
+          document,
+          paths: {
             superPath: mockSuperPath,
-          }
-        )
+          },
+        })
       ).rejects.toEqual(
         new CLIError('Profile name must be provided when generating a profile.')
       );
@@ -1135,9 +1155,10 @@ describe('Create logic', () => {
     });
 
     it('throws error when provider is missing - creating map and profile', async () => {
-      mockDocumentStructure = {
+      document = {
         scope: mockScope,
         providerNames: [],
+        usecases: mockUsecases,
         name: mockName,
         version: {
           major: 1,
@@ -1157,14 +1178,15 @@ describe('Create logic', () => {
         .mockResolvedValue(undefined);
 
       await expect(
-        create(
-          { createProfile: true, createMap: true, createProvider: false },
-          mockUsecases,
-          mockDocumentStructure,
-          {
+        create({
+          profile: true,
+          map: true,
+          provider: false,
+          document,
+          paths: {
             superPath: mockSuperPath,
-          }
-        )
+          },
+        })
       ).rejects.toEqual(
         new CLIError('Provider name must be provided when generating a map.')
       );
