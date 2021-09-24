@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Exported function for security values preparation
+
 ## [0.0.24] - 2021-09-23
 ### Added
 - Create command file names flags

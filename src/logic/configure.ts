@@ -1,8 +1,4 @@
 import {
-  isApiKeySecurityScheme,
-  isBasicAuthSecurityScheme,
-  isBearerTokenSecurityScheme,
-  isDigestSecurityScheme,
   parseProviderJson,
   ProfileProviderDefaults,
   ProviderJson,
@@ -23,6 +19,7 @@ import { formatShellLog, LogCallback } from '../common/log';
 import { OutputStream } from '../common/output-stream';
 import { ProfileId } from '../common/profile';
 import { prepareEnvVariables } from '../templates/env';
+import { prepareSecurityValues } from './configure.utils';
 
 export async function updateEnv(
   provider: string,
@@ -77,41 +74,9 @@ export function handleProviderResponse(
   const security: SecurityValues[] = [];
 
   if (response.securitySchemes) {
-    for (const scheme of response.securitySchemes) {
-      options?.logCb?.(
-        `Configuring ${security.length + 1}/${
-          response.securitySchemes.length
-        } security schemes`
-      );
-      // Char "-" is not allowed in env variables so replace it with "_"
-      const envProviderName = response.name.replace('-', '_').toUpperCase();
-      if (isApiKeySecurityScheme(scheme)) {
-        security.push({
-          id: scheme.id,
-          apikey: `$${envProviderName}_API_KEY`,
-        });
-      } else if (isBasicAuthSecurityScheme(scheme)) {
-        security.push({
-          id: scheme.id,
-          username: `$${envProviderName}_USERNAME`,
-          password: `$${envProviderName}_PASSWORD`,
-        });
-      } else if (isBearerTokenSecurityScheme(scheme)) {
-        security.push({
-          id: scheme.id,
-          token: `$${envProviderName}_TOKEN`,
-        });
-      } else if (isDigestSecurityScheme(scheme)) {
-        security.push({
-          id: scheme.id,
-          digest: `$${envProviderName}_DIGEST`,
-        });
-      } else {
-        options?.warnCb?.(
-          `⚠️  Provider: "${response.name}" contains unknown security scheme`
-        );
-      }
-    }
+    security.push(
+      ...prepareSecurityValues(response.name, response.securitySchemes, options)
+    );
   }
 
   // update super.json
