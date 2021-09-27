@@ -3,7 +3,6 @@ import {
   ProfileProviderDefaults,
   ProviderJson,
   SecurityScheme,
-  SecurityValues,
   SuperJson,
 } from '@superfaceai/one-sdk';
 import { join as joinPath } from 'path';
@@ -71,14 +70,9 @@ export function handleProviderResponse(
 ): number {
   options?.logCb?.(`Installing provider: "${response.name}"`);
 
-  const security: SecurityValues[] = [];
-
-  if (response.securitySchemes) {
-    security.push(
-      ...prepareSecurityValues(response.name, response.securitySchemes, options)
-    );
-  }
-
+  const security = response.securitySchemes
+    ? prepareSecurityValues(response.name, response.securitySchemes, options)
+    : [];
   // update super.json
   superJson.setProvider(response.name, {
     security,
