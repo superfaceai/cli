@@ -349,7 +349,9 @@ export async function lint(
         options
       );
       //Return if we have errors or warnings
-      if (preparedMap.counts.every(count => count[0] === 0 && count[1] === 0)) {
+      if (
+        !preparedMap.counts.every(count => count[0] === 0 && count[1] === 0)
+      ) {
         return preparedMap.counts;
       }
 
