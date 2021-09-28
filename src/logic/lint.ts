@@ -154,7 +154,6 @@ export function formatHuman(
   } else {
     buffer += formatIssues(report.errors);
 
-    console.log('buf', buffer);
     if (!quiet && report.errors.length > 0 && report.warnings.length > 0) {
       buffer += '\n';
     }
