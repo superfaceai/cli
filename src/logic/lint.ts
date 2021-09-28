@@ -187,12 +187,12 @@ export type ProfileToLint = {
   path?: string;
 };
 type MapToLintWithAst = MapToLint & {
-  ast: MapDocumentNode;
+  ast?: MapDocumentNode;
   path: string;
   counts: [number, number][];
 };
 type ProfileToLintWithAst = ProfileToLint & {
-  ast: ProfileDocumentNode;
+  ast?: ProfileDocumentNode;
   path: string;
   counts: [number, number][];
 };
@@ -232,8 +232,7 @@ async function prepareLintedProfile(
     await writer.writeElement(fn(report));
 
     counts.push([report.errors.length, report.warnings.length]);
-  }
-  if (!profileAst) {
+  } else {
     options?.logCb?.(
       `Loading profile: "${profile.id.id}" from Superface store`
     );
@@ -287,8 +286,7 @@ async function prepareLintedMap(
     await writer.writeElement(fn(report));
 
     counts.push([report.errors.length, report.warnings.length]);
-  }
-  if (!mapAst) {
+  } else {
     options?.logCb?.(
       `Loading map for profile: "${profile.id.withVersion(
         profile.version
@@ -319,6 +317,7 @@ export async function lint(
   fn: (report: ReportFormat) => string,
   options?: {
     logCb?: LogCallback;
+    ['no-validation']?: boolean;
   }
 ): Promise<[number, number][]> {
   const counts: [number, number][] = [];
@@ -332,9 +331,7 @@ export async function lint(
       options
     );
     //Return if we have errors or warnings
-    if (
-      !profileWithAst.counts.every(count => count[0] === 0 && count[1] === 0)
-    ) {
+    if (!profileWithAst.ast) {
       return profileWithAst.counts;
     }
 
@@ -348,10 +345,12 @@ export async function lint(
         options
       );
       //Return if we have errors or warnings
-      if (
-        !preparedMap.counts.every(count => count[0] === 0 && count[1] === 0)
-      ) {
+      if (!preparedMap.ast) {
         return preparedMap.counts;
+      }
+
+      if (options?.['no-validation']) {
+        return counts;
       }
 
       const result = validateMap(

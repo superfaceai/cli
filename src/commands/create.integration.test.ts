@@ -23,6 +23,7 @@ describe('Create CLI command', () => {
     await mkdir(TEMP_PATH, { recursive: true });
     await mockServer.start();
     await mockResponsesForProfile(mockServer, 'starwars/character-information');
+    await mockResponsesForProfile(mockServer, 'communication/send-email');
     await mockResponsesForProvider(mockServer, 'swapi');
   });
   beforeEach(async () => {
@@ -156,7 +157,7 @@ describe('Create CLI command', () => {
     }, 20000);
     //Map
     it('creates map with one usecase (with usecase name from cli)', async () => {
-      documentName = 'sms/service';
+      documentName = 'communication/send-email';
       provider = 'twilio';
 
       let result = await execCLI(
@@ -182,7 +183,14 @@ describe('Create CLI command', () => {
       );
       result = await execCLI(
         tempDir,
-        ['lint', '--profileId', documentName, '--providerName', provider],
+        [
+          'lint',
+          '--profileId',
+          documentName,
+          '--providerName',
+          provider,
+          '--no-validation',
+        ],
         mockServer.url
       );
       expect(result.stdout).toMatch('Detected 0 problems\n');
@@ -209,7 +217,7 @@ describe('Create CLI command', () => {
     }, 20000);
 
     it('creates two maps with multiple usecases and variant', async () => {
-      documentName = 'sms/service';
+      documentName = 'communication/send-email';
       provider = 'twilio';
       const secondProvider = 'tyntec';
 
@@ -245,14 +253,28 @@ describe('Create CLI command', () => {
       );
       result = await execCLI(
         tempDir,
-        ['lint', '--profileId', documentName, '--providerName', provider],
+        [
+          'lint',
+          '--profileId',
+          documentName,
+          '--providerName',
+          provider,
+          '--no-validation',
+        ],
         mockServer.url
       );
       expect(result.stdout).toMatch('Detected 0 problems\n');
 
       result = await execCLI(
         tempDir,
-        ['lint', '--profileId', documentName, '--providerName', secondProvider],
+        [
+          'lint',
+          '--profileId',
+          documentName,
+          '--providerName',
+          secondProvider,
+          '--no-validation',
+        ],
         mockServer.url
       );
       expect(result.stdout).toMatch('Detected 0 problems\n');
@@ -360,7 +382,7 @@ describe('Create CLI command', () => {
     }, 20000);
     //Map and provider
     it('creates map with one usecase and with provider', async () => {
-      documentName = 'sms/service';
+      documentName = 'communication/send-email';
       provider = 'twilio';
 
       let result = await execCLI(
@@ -387,7 +409,14 @@ describe('Create CLI command', () => {
       expect(result.stdout).toContain(`-> Created ${provider}.provider.json`);
       result = await execCLI(
         tempDir,
-        ['lint', '--profileId', documentName, '--providerName', provider],
+        [
+          'lint',
+          '--profileId',
+          documentName,
+          '--providerName',
+          provider,
+          '--no-validation',
+        ],
         mockServer.url
       );
       expect(result.stdout).toMatch('Detected 0 problems\n');
@@ -420,7 +449,7 @@ describe('Create CLI command', () => {
     }, 20000);
 
     it('creates map with mutiple usecases', async () => {
-      documentName = 'sms/service';
+      documentName = 'communication/send-email';
       provider = 'twilio';
 
       let result = await execCLI(
@@ -449,7 +478,14 @@ describe('Create CLI command', () => {
       );
       result = await execCLI(
         tempDir,
-        ['lint', '--profileId', documentName, '--providerName', provider],
+        [
+          'lint',
+          '--profileId',
+          documentName,
+          '--providerName',
+          provider,
+          '--no-validation',
+        ],
         mockServer.url
       );
       expect(result.stdout).toMatch('Detected 0 problems\n');

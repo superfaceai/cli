@@ -7,7 +7,9 @@ import {
 import { SuperJson } from '@superfaceai/one-sdk';
 import {
   MapDocumentId,
+  parseMap,
   parseMapId,
+  parseProfile,
   ProfileHeaderStructure,
   Source,
   SyntaxError,
@@ -17,10 +19,12 @@ import { SyntaxErrorCategory } from '@superfaceai/parser/dist/language/error';
 import { MatchAttempts } from '@superfaceai/parser/dist/language/syntax/rule';
 import { mocked } from 'ts-jest/utils';
 
+import { fetchMapAST, fetchProfileAST } from '../common/http';
 import { ListWriter } from '../common/list-writer';
 import { OutputStream } from '../common/output-stream';
 import { ProfileId } from '../common/profile';
 import { ReportFormat } from '../common/report.interfaces';
+import { findLocalMapSource, findLocalProfileSource } from './check.utils';
 import {
   createFileReport,
   createProfileMapReport,
@@ -31,7 +35,6 @@ import {
   lint,
   ProfileToLint,
 } from './lint';
-import { loadMap, loadProfile } from './publish.utils';
 //Mock io
 jest.mock('../common/io', () => ({
   readFile: jest.fn(),
@@ -40,14 +43,22 @@ jest.mock('../common/io', () => ({
 //Mock output stream
 jest.mock('../common/output-stream');
 
-jest.mock('./publish.utils', () => ({
-  loadMap: jest.fn(),
-  loadProfile: jest.fn(),
+//Mock check utils
+jest.mock('./check.utils', () => ({
+  findLocalMapSource: jest.fn(),
+  findLocalProfileSource: jest.fn(),
+}));
+
+//Mock http
+jest.mock('../common/http', () => ({
+  fetchMapAST: jest.fn(),
+  fetchProfileAST: jest.fn(),
 }));
 
 jest.mock('@superfaceai/parser', () => ({
   ...jest.requireActual<Record<string, unknown>>('@superfaceai/parser'),
   parseProfile: jest.fn(),
+  parseMap: jest.fn(),
   parseMapId: jest.fn(),
 }));
 
@@ -372,7 +383,9 @@ describe('Lint logic', () => {
     const mockReportFn: (report: ReportFormat) => string = (
       report: ReportFormat
     ) => JSON.stringify(report);
-    const mockContent = 'file-content';
+    const mockProfileContent = 'profile-content';
+    const mockMapContent = 'map-content';
+
     const mockProfileDocument: ProfileDocumentNode = {
       kind: 'ProfileDocument',
       header: {
@@ -422,6 +435,195 @@ describe('Lint logic', () => {
       definitions: [],
     };
 
+    it('returns correct counts, local profile and map', async () => {
+      const profile = ProfileId.fromScopeName(
+        'starwars',
+        'character-information'
+      );
+      const mockSuperJson = new SuperJson();
+      const mockProfiles: ProfileToLint[] = [
+        {
+          id: profile,
+          maps: [
+            {
+              provider: 'swapi',
+              path: 'swapi path',
+            },
+            {
+              provider: 'starwars',
+              path: 'starwars path',
+            },
+          ],
+          path: 'profile path',
+        },
+      ];
+
+      mocked(findLocalMapSource).mockResolvedValue(mockMapContent);
+      mocked(findLocalProfileSource).mockResolvedValue(mockProfileContent);
+      mocked(parseProfile).mockReturnValue(mockProfileDocument);
+      mocked(parseMap)
+        .mockReturnValueOnce(mockMapDocument)
+        .mockReturnValueOnce(mockMapDocumentMatching);
+
+      const writeElementSpy = jest
+        .spyOn(mockListWriter, 'writeElement')
+        .mockResolvedValue(undefined);
+
+      await expect(
+        lint(mockSuperJson, mockProfiles, mockListWriter, mockReportFn)
+      ).resolves.toEqual([
+        [1, 0],
+        [0, 0],
+      ]);
+
+      expect(writeElementSpy).toHaveBeenCalledTimes(5);
+
+      expect(writeElementSpy).toHaveBeenNthCalledWith(
+        1,
+        mockReportFn({
+          kind: 'file',
+          path: 'profile path',
+          errors: [],
+          warnings: [],
+        })
+      );
+
+      expect(writeElementSpy).toHaveBeenNthCalledWith(
+        2,
+        mockReportFn({
+          kind: 'file',
+          path: 'swapi path',
+          errors: [],
+          warnings: [],
+        })
+      );
+
+      expect(writeElementSpy).toHaveBeenNthCalledWith(
+        3,
+        mockReportFn({
+          kind: 'compatibility',
+          profile: 'profile path',
+          path: 'swapi path',
+          errors: [
+            {
+              kind: 'wrongProfileName',
+              context: {
+                path: ['MapHeader'],
+                expected: 'test-profile',
+                actual: 'different-test-profile',
+              },
+            },
+          ],
+          warnings: [],
+        })
+      );
+
+      expect(writeElementSpy).toHaveBeenNthCalledWith(
+        4,
+        mockReportFn({
+          kind: 'file',
+          path: 'starwars path',
+          errors: [],
+          warnings: [],
+        })
+      );
+
+      expect(writeElementSpy).toHaveBeenNthCalledWith(
+        5,
+        mockReportFn({
+          kind: 'compatibility',
+          profile: 'profile path',
+          path: 'starwars path',
+          errors: [],
+          warnings: [],
+        })
+      );
+    });
+
+    it('returns correct counts, local profile and remote maps', async () => {
+      const profile = ProfileId.fromScopeName(
+        'starwars',
+        'character-information'
+      );
+      const mockSuperJson = new SuperJson();
+      const mockProfiles: ProfileToLint[] = [
+        {
+          id: profile,
+          maps: [
+            {
+              provider: 'swapi',
+              variant: 'test',
+            },
+            {
+              provider: 'starwars',
+              variant: 'test',
+            },
+          ],
+          path: 'profile path',
+        },
+      ];
+
+      mocked(findLocalMapSource).mockResolvedValue(undefined);
+      mocked(findLocalProfileSource).mockResolvedValue(mockProfileContent);
+      mocked(parseProfile).mockReturnValue(mockProfileDocument);
+      mocked(fetchMapAST)
+        .mockResolvedValueOnce(mockMapDocument)
+        .mockResolvedValueOnce(mockMapDocumentMatching);
+
+      const writeElementSpy = jest
+        .spyOn(mockListWriter, 'writeElement')
+        .mockResolvedValue(undefined);
+
+      await expect(
+        lint(mockSuperJson, mockProfiles, mockListWriter, mockReportFn)
+      ).resolves.toEqual([
+        [1, 0],
+        [0, 0],
+      ]);
+
+      expect(writeElementSpy).toHaveBeenCalledTimes(3);
+
+      expect(writeElementSpy).toHaveBeenNthCalledWith(
+        1,
+        mockReportFn({
+          kind: 'file',
+          path: 'profile path',
+          errors: [],
+          warnings: [],
+        })
+      );
+
+      expect(writeElementSpy).toHaveBeenNthCalledWith(
+        2,
+        mockReportFn({
+          kind: 'compatibility',
+          profile: 'profile path',
+          path: '',
+          errors: [
+            {
+              kind: 'wrongProfileName',
+              context: {
+                path: ['MapHeader'],
+                expected: 'test-profile',
+                actual: 'different-test-profile',
+              },
+            },
+          ],
+          warnings: [],
+        })
+      );
+      expect(writeElementSpy).toHaveBeenNthCalledWith(
+        3,
+        mockReportFn({
+          kind: 'compatibility',
+          profile: 'profile path',
+          path: '',
+          errors: [],
+          warnings: [],
+        })
+      );
+    });
+
     it('returns correct counts, remote profile and map', async () => {
       const profile = ProfileId.fromScopeName(
         'starwars',
@@ -444,13 +646,14 @@ describe('Lint logic', () => {
           version: '1.0.0',
         },
       ];
-      mocked(loadProfile).mockResolvedValue({
-        ast: mockProfileDocument,
-        source: mockContent,
-      });
-      mocked(loadMap)
-        .mockResolvedValueOnce({ ast: mockMapDocument })
-        .mockResolvedValueOnce({ ast: mockMapDocumentMatching });
+
+      mocked(findLocalMapSource).mockResolvedValue(undefined);
+      mocked(findLocalProfileSource).mockResolvedValue(undefined);
+      mocked(fetchMapAST)
+        .mockResolvedValueOnce(mockMapDocument)
+        .mockResolvedValueOnce(mockMapDocumentMatching);
+
+      mocked(fetchProfileAST).mockResolvedValue(mockProfileDocument);
 
       const writeElementSpy = jest
         .spyOn(mockListWriter, 'writeElement')
@@ -491,6 +694,184 @@ describe('Lint logic', () => {
           profile: profile.withVersion('1.0.0'),
           path: '',
           errors: [],
+          warnings: [],
+        })
+      );
+    });
+
+    it('returns correct counts, remote profile and map and no-validation flag', async () => {
+      const profile = ProfileId.fromScopeName(
+        'starwars',
+        'character-information'
+      );
+      const mockSuperJson = new SuperJson();
+      const mockProfiles: ProfileToLint[] = [
+        {
+          id: profile,
+          maps: [
+            {
+              provider: 'swapi',
+              variant: 'test',
+            },
+            {
+              provider: 'starwars',
+              variant: 'test',
+            },
+          ],
+          version: '1.0.0',
+        },
+      ];
+
+      mocked(findLocalMapSource).mockResolvedValue(undefined);
+      mocked(findLocalProfileSource).mockResolvedValue(undefined);
+      mocked(fetchMapAST)
+        .mockResolvedValueOnce(mockMapDocument)
+        .mockResolvedValueOnce(mockMapDocumentMatching);
+
+      mocked(fetchProfileAST).mockResolvedValue(mockProfileDocument);
+
+      const writeElementSpy = jest
+        .spyOn(mockListWriter, 'writeElement')
+        .mockResolvedValue(undefined);
+
+      await expect(
+        lint(mockSuperJson, mockProfiles, mockListWriter, mockReportFn, {
+          'no-validation': true,
+        })
+      ).resolves.toEqual([]);
+
+      expect(writeElementSpy).not.toHaveBeenCalled();
+    });
+
+    it('returns correct counts, corrupted profile', async () => {
+      const mockSyntaxErr = {
+        source: new Source('test'),
+        location: {
+          line: 0,
+          column: 0,
+        },
+        span: {
+          start: 0,
+          end: 0,
+        },
+        category: SyntaxErrorCategory.PARSER,
+        detail: '',
+        format: () => 'detail',
+        message: 'message',
+      };
+
+      const profile = ProfileId.fromScopeName(
+        'starwars',
+        'character-information'
+      );
+      const mockSuperJson = new SuperJson();
+      const mockProfiles: ProfileToLint[] = [
+        {
+          id: profile,
+          maps: [
+            {
+              provider: 'swapi',
+              variant: 'test',
+            },
+            {
+              provider: 'starwars',
+              variant: 'test',
+            },
+          ],
+          version: '1.0.0',
+        },
+      ];
+
+      mocked(findLocalProfileSource).mockResolvedValue(mockProfileContent);
+      mocked(parseProfile).mockImplementation(() => {
+        throw mockSyntaxErr;
+      });
+
+      const writeElementSpy = jest
+        .spyOn(mockListWriter, 'writeElement')
+        .mockResolvedValue(undefined);
+
+      await expect(
+        lint(mockSuperJson, mockProfiles, mockListWriter, mockReportFn)
+      ).resolves.toEqual([[1, 0]]);
+
+      expect(writeElementSpy).toHaveBeenCalledTimes(1);
+
+      expect(writeElementSpy).toHaveBeenCalledWith(
+        mockReportFn({
+          kind: 'file',
+          path: 'starwars/character-information@1.0.0',
+          errors: [mockSyntaxErr],
+          warnings: [],
+        })
+      );
+    });
+    it('returns correct counts, corrupted map', async () => {
+      const mockSyntaxErr = {
+        source: new Source('test'),
+        location: {
+          line: 0,
+          column: 0,
+        },
+        span: {
+          start: 0,
+          end: 0,
+        },
+        category: SyntaxErrorCategory.PARSER,
+        detail: '',
+        format: () => 'detail',
+        message: 'message',
+      };
+
+      const profile = ProfileId.fromScopeName(
+        'starwars',
+        'character-information'
+      );
+      const mockSuperJson = new SuperJson();
+      const mockProfiles: ProfileToLint[] = [
+        {
+          id: profile,
+          maps: [
+            {
+              provider: 'swapi',
+              variant: 'test',
+            },
+          ],
+          version: '1.0.0',
+        },
+      ];
+
+      mocked(findLocalProfileSource).mockResolvedValue(mockProfileContent);
+      mocked(parseProfile).mockReturnValue(mockProfileDocument);
+      mocked(findLocalMapSource).mockResolvedValue(mockMapContent);
+      mocked(parseMap).mockImplementation(() => {
+        throw mockSyntaxErr;
+      });
+      const writeElementSpy = jest
+        .spyOn(mockListWriter, 'writeElement')
+        .mockResolvedValue(undefined);
+
+      await expect(
+        lint(mockSuperJson, mockProfiles, mockListWriter, mockReportFn)
+      ).resolves.toEqual([[1, 0]]);
+
+      expect(writeElementSpy).toHaveBeenCalledTimes(2);
+
+      expect(writeElementSpy).toHaveBeenNthCalledWith(
+        1,
+        mockReportFn({
+          kind: 'file',
+          path: 'starwars/character-information@1.0.0',
+          errors: [],
+          warnings: [],
+        })
+      );
+      expect(writeElementSpy).toHaveBeenNthCalledWith(
+        2,
+        mockReportFn({
+          kind: 'file',
+          path: '',
+          errors: [mockSyntaxErr],
           warnings: [],
         })
       );

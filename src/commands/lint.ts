@@ -27,9 +27,8 @@ type OutputFormatFlag = 'long' | 'short' | 'json';
 
 export default class Lint extends Command {
   static description =
-    'Lints maps and profiles locally linked in super.json. Path to single file can be provided. Outputs the linter issues to STDOUT by default.\nLinter ends with non zero exit code if errors are found.';
+    'Lints all maps and profiles locally linked in super.json. Also can be used to lint specific profile and its maps, in that case remote files can be used.Outputs the linter issues to STDOUT by default.\nLinter ends with non zero exit code if errors are found.';
 
-  // Allow multiple files
   static strict = true;
 
   static flags = {
@@ -48,6 +47,13 @@ export default class Lint extends Command {
       description:
         'Filename where the output will be written. `-` is stdout, `-2` is stderr.',
       default: '-',
+    }),
+
+    ['no-validation']: oclifFlags.boolean({
+      description: 'When set to true, command does not validate map to profile',
+      default: false,
+      required: false,
+      hidden: true,
     }),
 
     append: oclifFlags.boolean({
@@ -257,7 +263,7 @@ export default class Lint extends Command {
             profiles,
             report =>
               formatHuman(report, flags.quiet, flags.outputFormat === 'short'),
-            { logCb: this.logCallback }
+            { logCb: this.logCallback, 'no-validation': flags['no-validation'] }
           );
           await outputStream.write(
             `\nDetected ${formatWordPlurality(
@@ -276,7 +282,7 @@ export default class Lint extends Command {
             superJson,
             profiles,
             report => formatJson(report),
-            { logCb: this.logCallback }
+            { logCb: undefined, 'no-validation': flags['no-validation'] }
           );
           await outputStream.write(
             `],"total":{"errors":${totals[0]},"warnings":${totals[1]}}}\n`
@@ -301,6 +307,7 @@ export default class Lint extends Command {
     fn: (report: ReportFormat) => string,
     options?: {
       logCb?: LogCallback;
+      ['no-validation']?: boolean;
     }
   ): Promise<[errors: number, warnings: number]> {
     const counts: [number, number][] = await lint(
