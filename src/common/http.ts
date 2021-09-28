@@ -11,6 +11,7 @@ import {
 } from '@superfaceai/one-sdk';
 import { VERSION as PARSER_VERSION } from '@superfaceai/parser';
 import {
+  ServiceApiError,
   ServiceApiErrorResponse,
   ServiceClient,
 } from '@superfaceai/service-client';
@@ -178,7 +179,7 @@ export async function fetchProviderInfo(
 async function checkSuperfaceResponse(response: Response): Promise<Response> {
   if (!response.ok) {
     const errorResponse = (await response.json()) as ServiceApiErrorResponse;
-    throw userError(errorResponse.detail, 1);
+    throw userError(new ServiceApiError(errorResponse).message, 1);
   }
 
   return response;
