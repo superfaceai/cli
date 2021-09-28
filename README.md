@@ -60,7 +60,7 @@ npx @superfaceai/cli install [profileId eg. communication/send-email] -i
 * [`superface create`](#superface-create)
 * [`superface init [NAME]`](#superface-init-name)
 * [`superface install [PROFILEID]`](#superface-install-profileid)
-* [`superface lint [FILE]`](#superface-lint-file)
+* [`superface lint`](#superface-lint)
 * [`superface login`](#superface-login)
 * [`superface logout`](#superface-logout)
 * [`superface publish DOCUMENTTYPE`](#superface-publish-documenttype)
@@ -244,44 +244,44 @@ EXAMPLES
 
 _See code: [src/commands/install.ts](https://github.com/superfaceai/cli/tree/main/src/commands/install.ts)_
 
-## `superface lint [FILE]`
+## `superface lint`
 
-Lints maps and profiles locally linked in super.json. Path to single file can be provided. Outputs the linter issues to STDOUT by default.
+Lints all maps and profiles locally linked in super.json. Also can be used to lint specific profile and its maps, in that case remote files can be used.Outputs the linter issues to STDOUT by default.
 
 ```
 USAGE
-  $ superface lint [FILE]
+  $ superface lint
 
 OPTIONS
-  -f, --outputFormat=long|short|json   [default: long] Output format to use to display errors and warnings.
-  -h, --help                           show CLI help
+  -f, --outputFormat=long|short|json  [default: long] Output format to use to display errors and warnings.
+  -h, --help                          show CLI help
 
-  -o, --output=output                  [default: -] Filename where the output will be written. `-` is stdout, `-2` is
-                                       stderr.
+  -o, --output=output                 [default: -] Filename where the output will be written. `-` is stdout, `-2` is
+                                      stderr.
 
-  -q, --quiet                          When set to true, disables the shell echo output of action.
+  -q, --quiet                         When set to true, disables the shell echo output of action.
 
-  -s, --scan=scan                      When number provided, scan for super.json outside cwd within range represented by
-                                       this number.
+  -s, --scan=scan                     When number provided, scan for super.json outside cwd within range represented by
+                                      this number.
 
-  -t, --documentType=auto|map|profile  [default: auto] Document type to parse. `auto` attempts to infer from file
-                                       extension.
+  --append                            Open output file in append mode instead of truncating it if it exists. Has no
+                                      effect with stdout and stderr streams.
 
-  -v, --validate                       Validate maps to specific profile.
+  --profileId=profileId               Profile Id in format [scope/](optional)[name]
 
-  --append                             Open output file in append mode instead of truncating it if it exists. Has no
-                                       effect with stdout and stderr streams.
+  --providerName=providerName         Provider name
 
 DESCRIPTION
   Linter ends with non zero exit code if errors are found.
 
 EXAMPLES
   $ superface lint
-  $ superface lint --validate
+  $ superface lint --profileId starwars/character-information
+  $ superface lint --profileId starwars/character-information --providerName swapi
+  $ superface lint --providerName swapi
   $ superface lint -o -2
   $ superface lint -f json
-  $ superface lint my/path/to/sms/service@1.0
-  $ superface lint -s
+  $ superface lint -s 3
 ```
 
 _See code: [src/commands/lint.ts](https://github.com/superfaceai/cli/tree/main/src/commands/lint.ts)_
