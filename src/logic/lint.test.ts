@@ -699,50 +699,6 @@ describe('Lint logic', () => {
       );
     });
 
-    it('returns correct counts, remote profile and map and no-validation flag', async () => {
-      const profile = ProfileId.fromScopeName(
-        'starwars',
-        'character-information'
-      );
-      const mockSuperJson = new SuperJson();
-      const mockProfiles: ProfileToLint[] = [
-        {
-          id: profile,
-          maps: [
-            {
-              provider: 'swapi',
-              variant: 'test',
-            },
-            {
-              provider: 'starwars',
-              variant: 'test',
-            },
-          ],
-          version: '1.0.0',
-        },
-      ];
-
-      mocked(findLocalMapSource).mockResolvedValue(undefined);
-      mocked(findLocalProfileSource).mockResolvedValue(undefined);
-      mocked(fetchMapAST)
-        .mockResolvedValueOnce(mockMapDocument)
-        .mockResolvedValueOnce(mockMapDocumentMatching);
-
-      mocked(fetchProfileAST).mockResolvedValue(mockProfileDocument);
-
-      const writeElementSpy = jest
-        .spyOn(mockListWriter, 'writeElement')
-        .mockResolvedValue(undefined);
-
-      await expect(
-        lint(mockSuperJson, mockProfiles, mockListWriter, mockReportFn, {
-          'no-validation': true,
-        })
-      ).resolves.toEqual([]);
-
-      expect(writeElementSpy).not.toHaveBeenCalled();
-    });
-
     it('returns correct counts, corrupted profile', async () => {
       const mockSyntaxErr = {
         source: new Source('test'),

@@ -240,7 +240,7 @@ describe('lint CLI command', () => {
           ],
           expect.anything(),
           expect.anything(),
-          { logCb: expect.anything(), 'no-validation': false }
+          { logCb: expect.anything() }
         );
 
         expect(detectSuperJson).toHaveBeenCalledWith(process.cwd(), 4);
@@ -317,7 +317,7 @@ describe('lint CLI command', () => {
           ],
           expect.anything(),
           expect.anything(),
-          { logCb: expect.anything(), 'no-validation': false }
+          { logCb: expect.anything() }
         );
 
         expect(detectSuperJson).toHaveBeenCalledWith(process.cwd(), 4);
@@ -393,7 +393,7 @@ describe('lint CLI command', () => {
           ],
           expect.anything(),
           expect.anything(),
-          { logCb: expect.anything(), 'no-validation': false }
+          { logCb: expect.anything() }
         );
 
         expect(detectSuperJson).toHaveBeenCalledWith(process.cwd(), 4);
@@ -469,7 +469,7 @@ describe('lint CLI command', () => {
           ],
           expect.anything(),
           expect.anything(),
-          { logCb: expect.anything(), 'no-validation': false }
+          { logCb: expect.anything() }
         );
 
         expect(detectSuperJson).toHaveBeenCalledWith(process.cwd(), 4);
@@ -544,7 +544,7 @@ describe('lint CLI command', () => {
           ],
           expect.anything(),
           expect.anything(),
-          { logCb: expect.anything(), 'no-validation': false }
+          { logCb: expect.anything() }
         );
 
         expect(detectSuperJson).toHaveBeenCalledWith(process.cwd(), 4);
@@ -616,7 +616,7 @@ describe('lint CLI command', () => {
           ],
           expect.anything(),
           expect.anything(),
-          { logCb: undefined, 'no-validation': false }
+          { logCb: undefined }
         );
 
         expect(detectSuperJson).toHaveBeenCalledWith(process.cwd(), 4);

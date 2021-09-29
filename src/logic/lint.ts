@@ -317,7 +317,6 @@ export async function lint(
   fn: (report: ReportFormat) => string,
   options?: {
     logCb?: LogCallback;
-    ['no-validation']?: boolean;
   }
 ): Promise<[number, number][]> {
   const counts: [number, number][] = [];
@@ -347,10 +346,6 @@ export async function lint(
       //Return if we have errors or warnings
       if (!preparedMap.ast) {
         return preparedMap.counts;
-      }
-
-      if (options?.['no-validation']) {
-        return counts;
       }
 
       const result = validateMap(

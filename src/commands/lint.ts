@@ -49,13 +49,6 @@ export default class Lint extends Command {
       default: '-',
     }),
 
-    ['no-validation']: oclifFlags.boolean({
-      description: 'When set to true, command does not validate map to profile',
-      default: false,
-      required: false,
-      hidden: true,
-    }),
-
     append: oclifFlags.boolean({
       default: false,
       description:
@@ -263,7 +256,7 @@ export default class Lint extends Command {
             profiles,
             report =>
               formatHuman(report, flags.quiet, flags.outputFormat === 'short'),
-            { logCb: this.logCallback, 'no-validation': flags['no-validation'] }
+            { logCb: this.logCallback }
           );
           await outputStream.write(
             `\nDetected ${formatWordPlurality(
@@ -282,7 +275,7 @@ export default class Lint extends Command {
             superJson,
             profiles,
             report => formatJson(report),
-            { logCb: undefined, 'no-validation': flags['no-validation'] }
+            { logCb: undefined }
           );
           await outputStream.write(
             `],"total":{"errors":${totals[0]},"warnings":${totals[1]}}}\n`
