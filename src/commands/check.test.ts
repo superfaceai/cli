@@ -3,6 +3,7 @@ import { err, ok, SuperJson } from '@superfaceai/one-sdk';
 import { SDKExecutionError } from '@superfaceai/one-sdk/dist/internal/errors';
 import { mocked } from 'ts-jest/utils';
 
+import { ProfileId } from '../common/profile';
 import { check, CheckResult, formatHuman, formatJson } from '../logic/check';
 import { detectSuperJson } from '../logic/install';
 import { MockStd, mockStd } from '../test/mock-std';
@@ -280,7 +281,10 @@ describe('Check CLI command', () => {
       expect(loadSpy).toHaveBeenCalled();
       expect(check).toHaveBeenCalledWith(
         mockSuperJson,
-        { name: 'character-information', scope: 'starwars' },
+        {
+          id: ProfileId.fromScopeName('starwars', 'character-information'),
+          version: undefined,
+        },
         provider,
         { variant: undefined },
         { logCb: expect.anything(), warnCb: expect.anything() }
@@ -325,7 +329,10 @@ describe('Check CLI command', () => {
       expect(loadSpy).toHaveBeenCalled();
       expect(check).toHaveBeenCalledWith(
         mockSuperJson,
-        { name: 'character-information', scope: 'starwars' },
+        {
+          id: ProfileId.fromScopeName('starwars', 'character-information'),
+          version: undefined,
+        },
         provider,
         { variant: undefined },
         { logCb: undefined, warnCb: undefined }
@@ -373,7 +380,10 @@ describe('Check CLI command', () => {
       expect(loadSpy).toHaveBeenCalled();
       expect(check).toHaveBeenCalledWith(
         mockSuperJson,
-        { name: 'character-information', scope: 'starwars' },
+        {
+          id: ProfileId.fromScopeName('starwars', 'character-information'),
+          version: undefined,
+        },
         provider,
         { variant: undefined },
         { logCb: undefined, warnCb: undefined }

@@ -326,7 +326,9 @@ export async function execCLI(
       reject(err.toString());
     });
 
-    childProcess.on('error', (err: Error) => reject(err));
+    childProcess.on('error', (err: Error) => {
+      reject(err);
+    });
 
     // Kick off the process
     loop(options?.inputs ?? []);

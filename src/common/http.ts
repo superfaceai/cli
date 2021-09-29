@@ -11,6 +11,7 @@ import {
 } from '@superfaceai/one-sdk';
 import { VERSION as PARSER_VERSION } from '@superfaceai/parser';
 import {
+  ServiceApiError,
   ServiceApiErrorResponse,
   ServiceClient,
 } from '@superfaceai/service-client';
@@ -22,6 +23,7 @@ import {
   SF_PRODUCTION,
 } from './document';
 import { userError } from './error';
+import { MapId } from './map';
 import { loadNetrc, saveNetrc } from './netrc';
 
 export interface ProfileInfo {
@@ -178,7 +180,7 @@ export async function fetchProviderInfo(
 async function checkSuperfaceResponse(response: Response): Promise<Response> {
   if (!response.ok) {
     const errorResponse = (await response.json()) as ServiceApiErrorResponse;
-    throw userError(errorResponse.detail, 1);
+    throw userError(new ServiceApiError(errorResponse).message, 1);
   }
 
   return response;
@@ -196,13 +198,16 @@ export async function fetchMapAST(
   version?: string,
   variant?: string
 ): Promise<MapDocumentNode> {
-  const path = variant
-    ? `/${scope ? `${scope}/` : ''}${profile}.${provider}.${variant}@${
-        version ? version : DEFAULT_PROFILE_VERSION_STR
-      }`
-    : `/${scope ? `${scope}/` : ''}${profile}.${provider}@${
-        version ? version : DEFAULT_PROFILE_VERSION_STR
-      }`;
+  const mapId = MapId.fromName({
+    profile: {
+      name: profile,
+      scope,
+    },
+    provider,
+    variant,
+  });
+  const path = '/' + mapId.withVersion(version || DEFAULT_PROFILE_VERSION_STR);
+
   const response = await SuperfaceClient.getClient().fetch(path, {
     //TODO: enable auth
     authenticate: false,

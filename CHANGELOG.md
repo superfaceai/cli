@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Use super.json schema validation from ast-js
 
 ### Added
+- Lint command loading files from server if not found localy
 - Exported function for security values preparation
 
 ## [0.0.24] - 2021-09-23

@@ -195,11 +195,11 @@ export async function interactiveInstall(
   }
 
   //Get installed usecases
-  const profileSource = await findLocalProfileSource(superJson, {
-    name: profileId.name,
-    scope: profileId.scope,
-    version,
-  });
+  const profileSource = await findLocalProfileSource(
+    superJson,
+    profileId,
+    version
+  );
   if (!profileSource) {
     throw developerError('Profile source not found after installation', 1);
   }

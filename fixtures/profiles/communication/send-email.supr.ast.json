@@ -1,0 +1,224 @@
+{
+  "kind": "ProfileDocument",
+  "header": {
+    "kind": "ProfileHeader",
+    "scope": "communication",
+    "name": "send-email",
+    "version": {
+      "major": 1,
+      "minor": 0,
+      "patch": 1
+    },
+    "location": {
+      "line": 1,
+      "column": 1
+    },
+    "span": {
+      "start": 0,
+      "end": 100
+    },
+    "title": "Send Email",
+    "description": "Send one transactional email"
+  },
+  "definitions": [
+    {
+      "kind": "UseCaseDefinition",
+      "useCaseName": "SendEmail",
+      "safety": "unsafe",
+      "input": {
+        "kind": "UseCaseSlotDefinition",
+        "type": {
+          "kind": "ObjectDefinition",
+          "fields": [
+            {
+              "kind": "FieldDefinition",
+              "fieldName": "from",
+              "required": true,
+              "location": {
+                "line": 15,
+                "column": 5
+              },
+              "span": {
+                "start": 243,
+                "end": 248
+              }
+            },
+            {
+              "kind": "FieldDefinition",
+              "fieldName": "to",
+              "required": true,
+              "location": {
+                "line": 16,
+                "column": 5
+              },
+              "span": {
+                "start": 253,
+                "end": 256
+              }
+            },
+            {
+              "kind": "FieldDefinition",
+              "fieldName": "subject",
+              "required": true,
+              "location": {
+                "line": 17,
+                "column": 5
+              },
+              "span": {
+                "start": 261,
+                "end": 269
+              }
+            },
+            {
+              "kind": "FieldDefinition",
+              "fieldName": "text",
+              "required": false,
+              "location": {
+                "line": 18,
+                "column": 5
+              },
+              "span": {
+                "start": 274,
+                "end": 278
+              }
+            },
+            {
+              "kind": "FieldDefinition",
+              "fieldName": "html",
+              "required": false,
+              "location": {
+                "line": 19,
+                "column": 5
+              },
+              "span": {
+                "start": 283,
+                "end": 287
+              }
+            }
+          ],
+          "location": {
+            "line": 14,
+            "column": 9
+          },
+          "span": {
+            "start": 237,
+            "end": 291
+          }
+        },
+        "location": {
+          "line": 14,
+          "column": 3
+        },
+        "span": {
+          "start": 231,
+          "end": 291
+        }
+      },
+      "result": {
+        "kind": "UseCaseSlotDefinition",
+        "type": {
+          "kind": "ObjectDefinition",
+          "fields": [
+            {
+              "kind": "FieldDefinition",
+              "fieldName": "messageId",
+              "required": false,
+              "location": {
+                "line": 23,
+                "column": 5
+              },
+              "span": {
+                "start": 308,
+                "end": 317
+              }
+            }
+          ],
+          "location": {
+            "line": 22,
+            "column": 10
+          },
+          "span": {
+            "start": 302,
+            "end": 321
+          }
+        },
+        "location": {
+          "line": 22,
+          "column": 3
+        },
+        "span": {
+          "start": 295,
+          "end": 321
+        }
+      },
+      "error": {
+        "kind": "UseCaseSlotDefinition",
+        "type": {
+          "kind": "ObjectDefinition",
+          "fields": [
+            {
+              "kind": "FieldDefinition",
+              "fieldName": "title",
+              "required": false,
+              "location": {
+                "line": 27,
+                "column": 5
+              },
+              "span": {
+                "start": 337,
+                "end": 342
+              }
+            },
+            {
+              "kind": "FieldDefinition",
+              "fieldName": "detail",
+              "required": false,
+              "location": {
+                "line": 28,
+                "column": 5
+              },
+              "span": {
+                "start": 347,
+                "end": 353
+              }
+            }
+          ],
+          "location": {
+            "line": 26,
+            "column": 9
+          },
+          "span": {
+            "start": 331,
+            "end": 357
+          }
+        },
+        "location": {
+          "line": 26,
+          "column": 3
+        },
+        "span": {
+          "start": 325,
+          "end": 357
+        }
+      },
+      "location": {
+        "line": 9,
+        "column": 1
+      },
+      "span": {
+        "start": 102,
+        "end": 359
+      },
+      "title": "Send transactional email to one recipient",
+      "description": "Email can contain text and/or html representation"
+    }
+  ],
+  "location": {
+    "line": 1,
+    "column": 1
+  },
+  "span": {
+    "start": 0,
+    "end": 359
+  }
+}

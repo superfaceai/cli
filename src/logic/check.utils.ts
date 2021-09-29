@@ -3,20 +3,15 @@ import { ProviderJson, SuperJson } from '@superfaceai/one-sdk';
 import { join as joinPath } from 'path';
 
 import { exists, readdir, readFile } from '../common/io';
+import { ProfileId } from '../common/profile';
 
 export async function findLocalProfileSource(
   superJson: SuperJson,
-  profile: {
-    name: string;
-    scope?: string;
-    version?: string;
-  }
+  profile: ProfileId,
+  version?: string
 ): Promise<string | undefined> {
   //Check file property
-  const profileName = profile.scope
-    ? `${profile.scope}/${profile.name}`
-    : profile.name;
-  const profileSettings = superJson.normalized.profiles[profileName];
+  const profileSettings = superJson.normalized.profiles[profile.id];
   if (profileSettings !== undefined && 'file' in profileSettings) {
     const resolvedPath = superJson.resolvePath(profileSettings.file);
     if (await exists(resolvedPath)) {
@@ -26,10 +21,10 @@ export async function findLocalProfileSource(
 
   //try to look in the grid for source file
   const basePath = profile.scope ? joinPath('grid', profile.scope) : 'grid';
-  if (profile.version) {
+  if (version) {
     const path = joinPath(
       basePath,
-      `${profile.name}@${profile.version}${EXTENSIONS.profile.source}`
+      `${profile.name}@${version}${EXTENSIONS.profile.source}`
     );
     const resolvedPath = superJson.resolvePath(path);
     if (await exists(resolvedPath)) {
@@ -63,17 +58,11 @@ export async function findLocalProfileSource(
 
 export async function findLocalMapSource(
   superJson: SuperJson,
-  profile: {
-    name: string;
-    scope?: string;
-  },
+  profile: ProfileId,
   provider: string
 ): Promise<string | undefined> {
   //Check file property
-  const profileName = profile.scope
-    ? `${profile.scope}/${profile.name}`
-    : profile.name;
-  const profileSettings = superJson.normalized.profiles[profileName];
+  const profileSettings = superJson.normalized.profiles[profile.id];
   if (profileSettings !== undefined) {
     const profileProviderSettings = profileSettings.providers[provider];
     if (profileProviderSettings && 'file' in profileProviderSettings) {

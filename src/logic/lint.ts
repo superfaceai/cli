@@ -1,11 +1,10 @@
 import {
-  DocumentType,
   EXTENSIONS,
-  isMapFile,
-  isProfileFile,
-  isUnknownFile,
+  MapDocumentNode,
   MapHeaderNode,
+  ProfileDocumentNode,
 } from '@superfaceai/ast';
+import { SuperJson } from '@superfaceai/one-sdk';
 import {
   formatIssues,
   getProfileOutput,
@@ -13,83 +12,32 @@ import {
   parseMapId,
   parseProfile,
   ProfileHeaderStructure,
-  ProfileOutput,
   Source,
   SyntaxError,
   validateMap,
   ValidationResult,
 } from '@superfaceai/parser';
+import { green, red, yellow } from 'chalk';
 import { basename } from 'path';
 
 import {
   composeVersion,
-  DOCUMENT_PARSE_FUNCTION,
-  inferDocumentTypeWithFlag,
+  DEFAULT_PROFILE_VERSION_STR,
 } from '../common/document';
 import { userError } from '../common/error';
-import { DocumentTypeFlag } from '../common/flags';
-import { readFile } from '../common/io';
+import { fetchMapAST, fetchProfileAST } from '../common/http';
 import { ListWriter } from '../common/list-writer';
+import { LogCallback } from '../common/log';
+import { MapId } from '../common/map';
+import { ProfileId } from '../common/profile';
 import {
   FileReport,
   ProfileMapReport,
   ReportFormat,
 } from '../common/report.interfaces';
+import { findLocalMapSource, findLocalProfileSource } from './check.utils';
 
-type ProfileDocument = ReturnType<typeof parseProfile>;
-type MapDocument = ReturnType<typeof parseMap>;
-
-export async function lintFiles(
-  files: string[],
-  writer: ListWriter,
-  documentTypeFlag: DocumentTypeFlag,
-  fn: (report: ReportFormat) => string
-): Promise<[number, number][]> {
-  return await Promise.all(
-    files.map(
-      async (file): Promise<[number, number]> => {
-        const report = await lintFile(file, documentTypeFlag);
-
-        await writer.writeElement(fn(report));
-
-        return [report.errors.length, report.warnings.length];
-      }
-    )
-  );
-}
-
-export async function lintFile(
-  path: string,
-  documentTypeFlag: DocumentTypeFlag
-): Promise<FileReport> {
-  const documentType = inferDocumentTypeWithFlag(documentTypeFlag, path);
-  if (
-    documentType !== DocumentType.MAP &&
-    documentType !== DocumentType.PROFILE
-  ) {
-    throw userError('Could not infer document type', 3);
-  }
-
-  const parse = DOCUMENT_PARSE_FUNCTION[documentType];
-  const content = await readFile(path, { encoding: 'utf-8' });
-  const source = new Source(content, path);
-
-  const result: FileReport = {
-    kind: 'file',
-    path,
-    errors: [],
-    warnings: [],
-  };
-
-  try {
-    parse(source);
-  } catch (e) {
-    result.errors.push(e);
-  }
-
-  return result;
-}
-
+//TODO: rewrite to return validation issue?
 export function isValidHeader(
   profileHeader: ProfileHeaderStructure,
   mapHeader: MapHeaderNode
@@ -105,7 +53,7 @@ export function isValidHeader(
 
   return true;
 }
-
+//TODO: rewrite to return validation issue?
 export function isValidMapId(
   profileHeader: ProfileHeaderStructure,
   mapHeader: MapHeaderNode,
@@ -165,129 +113,45 @@ export const createFileReport = (
   errors,
   warnings,
 });
-export async function lintMapsToProfile(
-  files: string[],
-  writer: ListWriter,
-  fn: (report: ReportFormat) => string
-): Promise<[number, number][]> {
-  const counts: [number, number][] = [];
-  const profiles = files.filter(isProfileFile);
-  const maps = files.filter(isMapFile);
-  const unknown = files.filter(isUnknownFile);
-
-  if (profiles.length === 0) {
-    throw userError('Cannot validate without profile', 1);
-  }
-  if (maps.length === 0) {
-    throw userError('Cannot validate without map', 1);
-  }
-
-  if (unknown.length > 0) {
-    for (const file of unknown) {
-      const report = createFileReport(
-        file,
-        [],
-        ['Could not infer document type']
-      );
-
-      await writer.writeElement(fn(report));
-    }
-
-    counts.push([0, unknown.length]);
-  }
-
-  const profileOutputs: Array<ProfileOutput & { path: string }> = [];
-  const mapDocuments: Array<
-    MapDocument & { path: string; matched: boolean }
-  > = [];
-
-  for (const profilePath of profiles) {
-    profileOutputs.push({
-      ...getProfileOutput(await getProfileDocument(profilePath)),
-      path: profilePath,
-    });
-  }
-
-  for (const mapPath of maps) {
-    mapDocuments.push({
-      ...(await getMapDocument(mapPath)),
-      path: mapPath,
-      matched: false,
-    });
-  }
-
-  // loop over profiles and validate only maps that have valid header
-  for (const profile of profileOutputs) {
-    for (const map of mapDocuments) {
-      if (isValidHeader(profile.header, map.header)) {
-        const result = validateMap(profile, map);
-        const report = createProfileMapReport(result, profile.path, map.path);
-
-        await writer.writeElement(fn(report));
-
-        counts.push([
-          result.pass ? 0 : result.errors.length,
-          result.warnings?.length ?? 0,
-        ]);
-
-        map.matched = true;
-      }
-    }
-  }
-
-  // loop over profiles and try to validate maps that did not match any profile
-  for (const profile of profileOutputs) {
-    for (const map of mapDocuments.filter(m => !m.matched)) {
-      if (isValidMapId(profile.header, map.header, map.path)) {
-        await writer.writeElement(
-          `⚠️ map ${map.path} assumed to belong to profile ${profile.path} based on file name`
-        );
-
-        const result = validateMap(profile, map);
-        const report = createProfileMapReport(result, profile.path, map.path);
-
-        await writer.writeElement(fn(report));
-
-        counts.push([
-          result.pass ? 0 : result.errors.length,
-          result.warnings?.length ?? 0,
-        ]);
-      }
-    }
-  }
-
-  return counts;
-}
 
 export function formatHuman(
   report: ReportFormat,
   quiet: boolean,
-  short?: boolean,
-  _color?: boolean
+  short?: boolean
 ): string {
   const REPORT_OK = '🆗';
   const REPORT_WARN = '⚠️';
   const REPORT_ERR = '❌';
 
   let prefix;
+  let color: (inout: string) => string;
+
   if (report.errors.length > 0) {
     prefix = REPORT_ERR;
+    color = red;
   } else if (report.warnings.length > 0) {
     prefix = REPORT_WARN;
+    color = yellow;
   } else {
     prefix = REPORT_OK;
+    color = green;
   }
 
-  const profileName =
-    'profile' in report ? `➡️ Profile:\t${report.profile}\n` : '';
-  let buffer = `${profileName}${prefix} ${report.path}\n`;
+  let buffer = '';
 
   if (report.kind === 'file') {
+    buffer += color(
+      `${prefix} Parsing ${
+        report.path.endsWith(EXTENSIONS.profile.source) ? 'profile' : 'map'
+      } file: ${report.path}\n`
+    );
     for (const error of report.errors) {
       if (short) {
-        buffer += `\t${error.location.line}:${error.location.column} ${error.message}\n`;
+        buffer += red(
+          `\t${error.location.line}:${error.location.column} ${error.message}\n`
+        );
       } else {
-        buffer += error.format();
+        buffer += red(error.format());
       }
     }
     if (report.errors.length > 0 && report.warnings.length > 0) {
@@ -298,19 +162,23 @@ export function formatHuman(
     if (!quiet) {
       for (const warning of report.warnings) {
         if (typeof warning === 'string') {
-          buffer += `\t${warning}\n`;
+          buffer += yellow(`\t${warning}\n`);
         }
       }
     }
   } else {
-    buffer += formatIssues(report.errors);
+    buffer += color(
+      `${prefix} Validating profile: ${report.profile} to map: ${report.path}\n`
+    );
+
+    buffer += red(formatIssues(report.errors));
 
     if (!quiet && report.errors.length > 0 && report.warnings.length > 0) {
       buffer += '\n';
     }
 
     if (!quiet) {
-      buffer += formatIssues(report.warnings);
+      buffer += yellow(formatIssues(report.warnings));
       buffer += '\n';
     }
   }
@@ -330,20 +198,212 @@ export function formatJson(report: ReportFormat): string {
   });
 }
 
-export async function getProfileDocument(
-  path: string
-): Promise<ProfileDocument> {
-  const parseFunction = DOCUMENT_PARSE_FUNCTION[DocumentType.PROFILE];
-  const content = await readFile(path, { encoding: 'utf-8' });
-  const source = new Source(content, path);
+export type MapToLint = { provider: string; variant?: string; path?: string };
+export type ProfileToLint = {
+  id: ProfileId;
+  maps: MapToLint[];
+  version?: string;
+  path?: string;
+};
+type MapToLintWithAst = MapToLint & {
+  ast?: MapDocumentNode;
+  path: string;
+  counts: [number, number][];
+};
+type ProfileToLintWithAst = ProfileToLint & {
+  ast?: ProfileDocumentNode;
+  path: string;
+  counts: [number, number][];
+};
 
-  return parseFunction(source);
+async function prepareLintedProfile(
+  superJson: SuperJson,
+  profile: ProfileToLint,
+  writer: ListWriter,
+  fn: (report: ReportFormat) => string,
+  options?: {
+    logCb?: LogCallback;
+  }
+): Promise<ProfileToLintWithAst> {
+  const counts: [number, number][] = [];
+  let profileAst: ProfileDocumentNode | undefined = undefined;
+  const profileSource = await findLocalProfileSource(
+    superJson,
+    profile.id,
+    profile.version
+  );
+  //If we have local profile we lint it
+  if (profileSource) {
+    options?.logCb?.(`Profile: "${profile.id.id}" found on local file system`);
+
+    const report: FileReport = {
+      kind: 'file',
+      path: profile.path || profile.id.withVersion(profile.version),
+      errors: [],
+      warnings: [],
+    };
+
+    try {
+      profileAst = parseProfile(new Source(profileSource, profile.path));
+    } catch (e) {
+      report.errors.push(e);
+    }
+    await writer.writeElement(fn(report));
+
+    counts.push([report.errors.length, report.warnings.length]);
+  } else {
+    options?.logCb?.(
+      `Loading profile: "${profile.id.id}" from Superface store`
+    );
+    profileAst = await fetchProfileAST(profile.id.id);
+  }
+
+  return {
+    ...profile,
+    ast: profileAst,
+    path: profile.path || profile.id.withVersion(profile.version),
+    counts,
+  };
 }
 
-export async function getMapDocument(path: string): Promise<MapDocument> {
-  const parseFunction = DOCUMENT_PARSE_FUNCTION[DocumentType.MAP];
-  const content = await readFile(path, { encoding: 'utf-8' });
-  const source = new Source(content, path);
+async function prepareLintedMap(
+  superJson: SuperJson,
+  profile: ProfileToLint,
+  map: MapToLint,
+  writer: ListWriter,
+  fn: (report: ReportFormat) => string,
+  options?: {
+    logCb?: LogCallback;
+  }
+): Promise<MapToLintWithAst> {
+  const counts: [number, number][] = [];
+  let mapAst: MapDocumentNode | undefined = undefined;
 
-  return parseFunction(source);
+  const mapSource = await findLocalMapSource(
+    superJson,
+    profile.id,
+    map.provider
+  );
+  if (mapSource) {
+    options?.logCb?.(
+      `Map for profile: "${profile.id.withVersion(
+        profile.version
+      )}" and provider: "${map.provider}" found on local filesystem`
+    );
+    const report: FileReport = {
+      kind: 'file',
+      path: map.path ? map.path : ``,
+      errors: [],
+      warnings: [],
+    };
+
+    try {
+      mapAst = parseMap(new Source(mapSource, profile.path));
+    } catch (e) {
+      report.errors.push(e);
+    }
+    await writer.writeElement(fn(report));
+
+    counts.push([report.errors.length, report.warnings.length]);
+  } else {
+    options?.logCb?.(
+      `Loading map for profile: "${profile.id.withVersion(
+        profile.version
+      )}" and provider: "${map.provider}" from Superface store`
+    );
+    mapAst = await fetchMapAST(
+      profile.id.name,
+      map.provider,
+      profile.id.scope,
+      profile.version,
+      map.variant
+    );
+  }
+
+  const mapId = MapId.fromName({
+    profile: {
+      name: profile.id.name,
+      scope: profile.id.scope,
+    },
+    provider: map.provider,
+    variant: map.variant,
+  });
+
+  return {
+    ...map,
+    ast: mapAst,
+    path:
+      map.path ??
+      mapId.withVersion(profile.version || DEFAULT_PROFILE_VERSION_STR),
+    counts,
+  };
+}
+
+export async function lint(
+  superJson: SuperJson,
+  profiles: ProfileToLint[],
+  writer: ListWriter,
+  fn: (report: ReportFormat) => string,
+  options?: {
+    logCb?: LogCallback;
+    errCb?: LogCallback;
+  }
+): Promise<[number, number][]> {
+  const counts: [number, number][] = [];
+
+  for (const profile of profiles) {
+    const profileWithAst = await prepareLintedProfile(
+      superJson,
+      profile,
+      writer,
+      fn,
+      options
+    );
+    //Return if we have errors or warnings
+    if (!profileWithAst.ast) {
+      return profileWithAst.counts;
+    }
+
+    for (const map of profile.maps) {
+      const preparedMap = await prepareLintedMap(
+        superJson,
+        profile,
+        map,
+        writer,
+        fn,
+        options
+      );
+      //Return if we have errors or warnings
+      if (!preparedMap.ast) {
+        return preparedMap.counts;
+      }
+
+      try {
+        const result = validateMap(
+          getProfileOutput(profileWithAst.ast),
+          preparedMap.ast
+        );
+
+        const report = createProfileMapReport(
+          result,
+          profileWithAst.path,
+          preparedMap.path
+        );
+
+        await writer.writeElement(fn(report));
+
+        counts.push([
+          result.pass ? 0 : result.errors.length,
+          result.warnings?.length ?? 0,
+        ]);
+        //We catch any unexpected error from parser validator to prevent ending the loop early
+      } catch (error) {
+        options?.errCb?.(
+          `\n\n\nUnexpected error during validation of map: ${preparedMap.path} to profile: ${profileWithAst.path}.\nThis error is probably not a problem in linted files but in parser itself.\nTry updating CLI and its dependencies or report an issue.\n\n\n`
+        );
+      }
+    }
+  }
+
+  return counts;
 }

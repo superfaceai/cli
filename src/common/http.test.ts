@@ -105,14 +105,20 @@ describe('HTTP functions', () => {
     }, 10000);
 
     it('throws error when request fails', async () => {
+      const mockErrResponse = {
+        detail: 'test',
+        title: 'NotFound',
+        status: 404,
+        instance: 'test instance',
+      };
       const fetchSpy = jest
         .spyOn(ServiceClient.prototype, 'fetch')
         .mockResolvedValue(
-          mockResponse(404, 'Not Found', undefined, { detail: 'Not Found' })
+          mockResponse(404, 'Not Found', undefined, mockErrResponse)
         );
 
       await expect(fetchProviders(profileId)).rejects.toEqual(
-        new CLIError('Not Found')
+        new CLIError(new ServiceApiError(mockErrResponse).message)
       );
 
       expect(fetchSpy).toHaveBeenCalledTimes(1);
@@ -164,14 +170,21 @@ describe('HTTP functions', () => {
     }, 10000);
 
     it('throws error when request fails', async () => {
+      const mockErrResponse = {
+        detail: 'test',
+        title: 'NotFound',
+        status: 404,
+        instance: 'test instance',
+      };
+
       const fetchSpy = jest
         .spyOn(ServiceClient.prototype, 'fetch')
         .mockResolvedValue(
-          mockResponse(404, 'Not Found', undefined, { detail: 'Not Found' })
+          mockResponse(404, 'Not Found', undefined, mockErrResponse)
         );
 
       await expect(fetchProfileInfo(profileId)).rejects.toEqual(
-        new CLIError('Not Found')
+        new CLIError(new ServiceApiError(mockErrResponse).message)
       );
 
       expect(fetchSpy).toHaveBeenCalledTimes(1);
@@ -206,14 +219,21 @@ describe('HTTP functions', () => {
     }, 10000);
 
     it('throws error when request fails', async () => {
+      const mockErrResponse = {
+        detail: 'test',
+        title: 'NotFound',
+        status: 404,
+        instance: 'test instance',
+      };
+
       const fetchSpy = jest
         .spyOn(ServiceClient.prototype, 'fetch')
         .mockResolvedValue(
-          mockResponse(404, 'Not Found', undefined, { detail: 'Not Found' })
+          mockResponse(404, 'Not Found', undefined, mockErrResponse)
         );
 
       await expect(fetchProfile(profileId)).rejects.toEqual(
-        new CLIError('Not Found')
+        new CLIError(new ServiceApiError(mockErrResponse).message)
       );
 
       expect(fetchSpy).toHaveBeenCalledTimes(1);
@@ -269,14 +289,21 @@ describe('HTTP functions', () => {
     }, 10000);
 
     it('throws error when request fails', async () => {
+      const mockErrResponse = {
+        detail: 'test',
+        title: 'NotFound',
+        status: 404,
+        instance: 'test instance',
+      };
+
       const fetchSpy = jest
         .spyOn(ServiceClient.prototype, 'fetch')
         .mockResolvedValue(
-          mockResponse(404, 'Not Found', undefined, { detail: 'Not Found' })
+          mockResponse(404, 'Not Found', undefined, mockErrResponse)
         );
 
       await expect(fetchProfileAST(profileId)).rejects.toEqual(
-        new CLIError('Not Found')
+        new CLIError(new ServiceApiError(mockErrResponse).message)
       );
 
       expect(fetchSpy).toHaveBeenCalledTimes(1);
@@ -459,15 +486,24 @@ describe('HTTP functions', () => {
     }, 10000);
 
     it('throws error when request fails', async () => {
+      const mockErrResponse = {
+        detail: 'test',
+        title: 'NotFound',
+        status: 404,
+        instance: 'test instance',
+      };
+
       const fetchSpy = jest
         .spyOn(ServiceClient.prototype, 'fetch')
         .mockResolvedValue(
-          mockResponse(404, 'Not Found', undefined, { detail: 'Not Found' })
+          mockResponse(404, 'Not Found', undefined, mockErrResponse)
         );
 
       await expect(
         fetchMapAST(profileName, provider, scope, version)
-      ).rejects.toEqual(new CLIError('Not Found'));
+      ).rejects.toEqual(
+        new CLIError(new ServiceApiError(mockErrResponse).message)
+      );
 
       expect(fetchSpy).toHaveBeenCalledTimes(1);
       expect(fetchSpy).toHaveBeenCalledWith(

@@ -2,7 +2,11 @@ import { SuperJson } from '@superfaceai/one-sdk';
 import { getLocal } from 'mockttp';
 import { join as joinPath } from 'path';
 
-import { mkdir, rimraf } from '../common/io';
+import { composeUsecaseName, DEFAULT_PROFILE_VERSION_STR } from '../common';
+import { mkdir, readFile, rimraf } from '../common/io';
+import * as mapTemplate from '../templates/map';
+import * as profileTemplate from '../templates/profile';
+import * as providerTemplate from '../templates/provider';
 import {
   ENTER,
   execCLI,
@@ -23,6 +27,7 @@ describe('Interactive create CLI command', () => {
     await mkdir(TEMP_PATH, { recursive: true });
     await mockServer.start();
     await mockResponsesForProfile(mockServer, 'starwars/character-information');
+    await mockResponsesForProfile(mockServer, 'communication/send-email');
     await mockResponsesForProvider(mockServer, 'swapi');
   });
   beforeEach(async () => {
@@ -41,7 +46,7 @@ describe('Interactive create CLI command', () => {
     it('creates profile with one usecase (with usecase name from cli)', async () => {
       documentName = 'sendsms';
 
-      let result = await execCLI(tempDir, ['create', '-i'], mockServer.url, {
+      const result = await execCLI(tempDir, ['create', '-i'], mockServer.url, {
         inputs: [
           //Create profile
           { value: ENTER, timeout: 2000 },
@@ -63,12 +68,16 @@ describe('Interactive create CLI command', () => {
         `-> Created ${documentName}.supr (name = "${documentName}", version = "1.0.0")`
       );
 
-      result = await execCLI(
-        tempDir,
-        ['lint', `${documentName}.supr`],
-        mockServer.url
+      const profileFile = await readFile(
+        joinPath(tempDir, `${documentName}.supr`),
+        { encoding: 'utf-8' }
       );
-      expect(result.stdout).toMatch('Detected 0 problems\n');
+      expect(profileFile).toEqual(
+        [
+          profileTemplate.header(documentName, DEFAULT_PROFILE_VERSION_STR),
+          profileTemplate.empty(composeUsecaseName(documentName)),
+        ].join('')
+      );
 
       const superJson = (
         await SuperJson.load(joinPath(tempDir, 'superface', 'super.json'))
@@ -85,11 +94,11 @@ describe('Interactive create CLI command', () => {
     }, 30000);
 
     it('creates profile with one usecase', async () => {
-      documentName = 'sms/service';
+      documentName = 'communication/send-email';
 
-      let result = await execCLI(
+      const result = await execCLI(
         tempDir,
-        ['create', '-u', 'SendSMS', '-i'],
+        ['create', '-u', 'SendUserEmail', '-i'],
         mockServer.url,
         {
           inputs: [
@@ -112,12 +121,16 @@ describe('Interactive create CLI command', () => {
       expect(result.stdout).toContain(
         `-> Created ${documentName}.supr (name = "${documentName}", version = "1.0.0")`
       );
-      result = await execCLI(
-        tempDir,
-        ['lint', `${documentName}.supr`],
-        mockServer.url
+      const profileFile = await readFile(
+        joinPath(tempDir, `${documentName}.supr`),
+        { encoding: 'utf-8' }
       );
-      expect(result.stdout).toMatch('Detected 0 problems\n');
+      expect(profileFile).toEqual(
+        [
+          profileTemplate.header(documentName, DEFAULT_PROFILE_VERSION_STR),
+          profileTemplate.empty('SendUserEmail'),
+        ].join('')
+      );
 
       const superJson = (
         await SuperJson.load(joinPath(tempDir, 'superface', 'super.json'))
@@ -136,7 +149,7 @@ describe('Interactive create CLI command', () => {
     it('creates profile with multiple usecases', async () => {
       documentName = 'sms/service';
 
-      let result = await execCLI(
+      const result = await execCLI(
         tempDir,
         ['create', '-u', 'ReceiveSMS', 'SendSMS', '-i'],
         mockServer.url,
@@ -162,12 +175,19 @@ describe('Interactive create CLI command', () => {
         `-> Created ${documentName}.supr (name = "${documentName}", version = "1.0.0")`
       );
 
-      result = await execCLI(
-        tempDir,
-        ['lint', `${documentName}.supr`],
-        mockServer.url
+      const profileFile = await readFile(
+        joinPath(tempDir, `${documentName}.supr`),
+        { encoding: 'utf-8' }
       );
-      expect(result.stdout).toMatch('Detected 0 problems\n');
+      expect(profileFile).toEqual(
+        [
+          profileTemplate.header(documentName, DEFAULT_PROFILE_VERSION_STR),
+          ...[
+            profileTemplate.empty('ReceiveSMS'),
+            profileTemplate.empty('SendSMS'),
+          ],
+        ].join('')
+      );
 
       const superJson = (
         await SuperJson.load(joinPath(tempDir, 'superface', 'super.json'))
@@ -184,10 +204,10 @@ describe('Interactive create CLI command', () => {
     }, 30000);
 
     it('creates map with one usecase (with usecase name from cli)', async () => {
-      documentName = 'sms/service';
+      documentName = 'communication/send-email';
       provider = 'twilio';
 
-      let result = await execCLI(tempDir, ['create', '-i'], mockServer.url, {
+      const result = await execCLI(tempDir, ['create', '-i'], mockServer.url, {
         inputs: [
           //Create profile
           { value: 'n', timeout: 2000 },
@@ -214,12 +234,16 @@ describe('Interactive create CLI command', () => {
       expect(result.stdout).not.toContain(
         `-> Created ${provider}.provider.json`
       );
-      result = await execCLI(
-        tempDir,
-        ['lint', `${documentName}.${provider}.suma`],
-        mockServer.url
+      const createdFile = await readFile(
+        joinPath(tempDir, `${documentName}.${provider}.suma`),
+        { encoding: 'utf-8' }
       );
-      expect(result.stdout).toMatch('Detected 0 problems\n');
+      expect(createdFile).toEqual(
+        [
+          mapTemplate.header(documentName, provider, '1.0'),
+          mapTemplate.empty('SendEmail'),
+        ].join('')
+      );
 
       const superJson = (
         await SuperJson.load(joinPath(tempDir, 'superface', 'super.json'))
@@ -243,10 +267,10 @@ describe('Interactive create CLI command', () => {
     }, 30000);
 
     it('creates map with one usecase and with provider', async () => {
-      documentName = 'sms/service';
+      documentName = 'communication/send-email';
       provider = 'twilio';
 
-      let result = await execCLI(
+      const result = await execCLI(
         tempDir,
         ['create', '-u', 'SendSMS', '-i'],
         mockServer.url,
@@ -275,12 +299,23 @@ describe('Interactive create CLI command', () => {
         `-> Created ${documentName}.${provider}.suma (profile = "${documentName}@1.0", provider = "${provider}")`
       );
       expect(result.stdout).toContain(`-> Created ${provider}.provider.json`);
-      result = await execCLI(
-        tempDir,
-        ['lint', `${documentName}.${provider}.suma`],
-        mockServer.url
+
+      let createdFile = await readFile(
+        joinPath(tempDir, `${documentName}.${provider}.suma`),
+        { encoding: 'utf-8' }
       );
-      expect(result.stdout).toMatch('Detected 0 problems\n');
+      expect(createdFile).toEqual(
+        [
+          mapTemplate.header(documentName, provider, '1.0'),
+          mapTemplate.empty('SendSMS'),
+        ].join('')
+      );
+
+      createdFile = await readFile(
+        joinPath(tempDir, `${provider}.provider.json`),
+        { encoding: 'utf-8' }
+      );
+      expect(createdFile).toEqual(providerTemplate.empty(provider));
 
       const superJson = (
         await SuperJson.load(joinPath(tempDir, 'superface', 'super.json'))
@@ -310,10 +345,10 @@ describe('Interactive create CLI command', () => {
     }, 30000);
 
     it('creates map with mutiple usecases', async () => {
-      documentName = 'sms/service';
+      documentName = 'communication/send-email';
       provider = 'twilio';
 
-      let result = await execCLI(
+      const result = await execCLI(
         tempDir,
         ['create', '-u', 'ReceiveSMS', 'SendSMS', '-i'],
         mockServer.url,
@@ -345,12 +380,17 @@ describe('Interactive create CLI command', () => {
       expect(result.stdout).not.toContain(
         `-> Created ${provider}.provider.json`
       );
-      result = await execCLI(
-        tempDir,
-        ['lint', `${documentName}.${provider}.suma`],
-        mockServer.url
+
+      const createdFile = await readFile(
+        joinPath(tempDir, `${documentName}.${provider}.suma`),
+        { encoding: 'utf-8' }
       );
-      expect(result.stdout).toMatch('Detected 0 problems\n');
+      expect(createdFile).toEqual(
+        [
+          mapTemplate.header(documentName, provider, '1.0'),
+          ...[mapTemplate.empty('ReceiveSMS'), mapTemplate.empty('SendSMS')],
+        ].join('')
+      );
 
       const superJson = (
         await SuperJson.load(joinPath(tempDir, 'superface', 'super.json'))
@@ -375,10 +415,10 @@ describe('Interactive create CLI command', () => {
     }, 30000);
 
     it('creates profile & map with one usecase (with usecase name from cli)', async () => {
-      documentName = 'sms/service';
+      documentName = 'communication/send-email';
       provider = 'twilio';
 
-      let result = await execCLI(tempDir, ['create', '-i'], mockServer.url, {
+      const result = await execCLI(tempDir, ['create', '-i'], mockServer.url, {
         inputs: [
           //Create profile
           { value: ENTER, timeout: 1000 },
@@ -407,20 +447,27 @@ describe('Interactive create CLI command', () => {
       expect(result.stdout).not.toContain(
         `-> Created ${provider}.provider.json`
       );
-
-      result = await execCLI(
-        tempDir,
-        ['lint', `${documentName}.supr`],
-        mockServer.url
+      let createdFile = await readFile(
+        joinPath(tempDir, `${documentName}.supr`),
+        { encoding: 'utf-8' }
       );
-      expect(result.stdout).toMatch('Detected 0 problems\n');
-
-      result = await execCLI(
-        tempDir,
-        ['lint', `${documentName}.${provider}.suma`],
-        mockServer.url
+      expect(createdFile).toEqual(
+        [
+          profileTemplate.header(documentName, DEFAULT_PROFILE_VERSION_STR),
+          profileTemplate.empty('SendEmail'),
+        ].join('')
       );
-      expect(result.stdout).toMatch('Detected 0 problems\n');
+
+      createdFile = await readFile(
+        joinPath(tempDir, `${documentName}.${provider}.suma`),
+        { encoding: 'utf-8' }
+      );
+      expect(createdFile).toEqual(
+        [
+          mapTemplate.header(documentName, provider, '1.0'),
+          mapTemplate.empty('SendEmail'),
+        ].join('')
+      );
 
       const superJson = (
         await SuperJson.load(joinPath(tempDir, 'superface', 'super.json'))
@@ -445,10 +492,10 @@ describe('Interactive create CLI command', () => {
     }, 30000);
 
     it('creates profile & map with one usecase', async () => {
-      documentName = 'sms/service';
+      documentName = 'communication/send-email';
       provider = 'twilio';
 
-      let result = await execCLI(
+      const result = await execCLI(
         tempDir,
         ['create', '-u', 'SendSMS', '-i'],
         mockServer.url,
@@ -482,19 +529,28 @@ describe('Interactive create CLI command', () => {
       expect(result.stdout).not.toContain(
         `-> Created ${provider}.provider.json`
       );
-      result = await execCLI(
-        tempDir,
-        ['lint', `${documentName}.supr`],
-        mockServer.url
-      );
-      expect(result.stdout).toMatch('Detected 0 problems\n');
 
-      result = await execCLI(
-        tempDir,
-        ['lint', `${documentName}.${provider}.suma`],
-        mockServer.url
+      let createdFile = await readFile(
+        joinPath(tempDir, `${documentName}.supr`),
+        { encoding: 'utf-8' }
       );
-      expect(result.stdout).toMatch('Detected 0 problems\n');
+      expect(createdFile).toEqual(
+        [
+          profileTemplate.header(documentName, DEFAULT_PROFILE_VERSION_STR),
+          profileTemplate.empty('SendSMS'),
+        ].join('')
+      );
+
+      createdFile = await readFile(
+        joinPath(tempDir, `${documentName}.${provider}.suma`),
+        { encoding: 'utf-8' }
+      );
+      expect(createdFile).toEqual(
+        [
+          mapTemplate.header(documentName, provider, '1.0'),
+          mapTemplate.empty('SendSMS'),
+        ].join('')
+      );
 
       const superJson = (
         await SuperJson.load(joinPath(tempDir, 'superface', 'super.json'))
@@ -519,10 +575,10 @@ describe('Interactive create CLI command', () => {
     }, 30000);
 
     it('creates profile & map with multiple usecases', async () => {
-      documentName = 'sms/service';
+      documentName = 'communication/send-email';
       provider = 'twilio';
 
-      let result = await execCLI(
+      const result = await execCLI(
         tempDir,
         ['create', '-u', 'SendSMS', 'ReceiveSMS', '-i'],
         mockServer.url,
@@ -555,19 +611,30 @@ describe('Interactive create CLI command', () => {
       );
       expect(result.stdout).not.toMatch(`-> Created ${provider}.provider.json`);
 
-      result = await execCLI(
-        tempDir,
-        ['lint', `${documentName}.supr`],
-        mockServer.url
+      let createdFile = await readFile(
+        joinPath(tempDir, `${documentName}.supr`),
+        { encoding: 'utf-8' }
       );
-      expect(result.stdout).toMatch('Detected 0 problems\n');
+      expect(createdFile).toEqual(
+        [
+          profileTemplate.header(documentName, DEFAULT_PROFILE_VERSION_STR),
+          ...[
+            profileTemplate.empty('SendSMS'),
+            profileTemplate.empty('ReceiveSMS'),
+          ],
+        ].join('')
+      );
 
-      result = await execCLI(
-        tempDir,
-        ['lint', `${documentName}.${provider}.suma`],
-        mockServer.url
+      createdFile = await readFile(
+        joinPath(tempDir, `${documentName}.${provider}.suma`),
+        { encoding: 'utf-8' }
       );
-      expect(result.stdout).toMatch('Detected 0 problems\n');
+      expect(createdFile).toEqual(
+        [
+          mapTemplate.header(documentName, provider, '1.0'),
+          ...[mapTemplate.empty('SendSMS'), mapTemplate.empty('ReceiveSMS')],
+        ].join('')
+      );
 
       const superJson = (
         await SuperJson.load(joinPath(tempDir, 'superface', 'super.json'))

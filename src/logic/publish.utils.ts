@@ -73,11 +73,7 @@ export async function loadProfile(
 ): Promise<{ ast: ProfileDocumentNode; source?: string }> {
   let ast: ProfileDocumentNode;
 
-  const source = await findLocalProfileSource(superJson, {
-    name: profile.name,
-    scope: profile.scope,
-    version,
-  });
+  const source = await findLocalProfileSource(superJson, profile, version);
 
   const profileId = `${profile.id}${version ? `@${version}` : ''}`;
 
