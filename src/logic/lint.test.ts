@@ -599,7 +599,7 @@ describe('Lint logic', () => {
         mockReportFn({
           kind: 'compatibility',
           profile: 'profile path',
-          path: '',
+          path: `${profile.id}.swapi.test@1.0.0`,
           errors: [
             {
               kind: 'wrongProfileName',
@@ -618,7 +618,7 @@ describe('Lint logic', () => {
         mockReportFn({
           kind: 'compatibility',
           profile: 'profile path',
-          path: '',
+          path: `${profile.id}.starwars.test@1.0.0`,
           errors: [],
           warnings: [],
         })
@@ -674,7 +674,7 @@ describe('Lint logic', () => {
         mockReportFn({
           kind: 'compatibility',
           profile: profile.withVersion('1.0.0'),
-          path: '',
+          path: `${profile.id}.swapi.test@1.0.0`,
           errors: [
             {
               kind: 'wrongProfileName',
@@ -693,7 +693,7 @@ describe('Lint logic', () => {
         mockReportFn({
           kind: 'compatibility',
           profile: profile.withVersion('1.0.0'),
-          path: '',
+          path: `${profile.id}.starwars.test@1.0.0`,
           errors: [],
           warnings: [],
         })

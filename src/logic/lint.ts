@@ -20,7 +20,10 @@ import {
 import { green, red, yellow } from 'chalk';
 import { basename } from 'path';
 
-import { composeVersion } from '../common/document';
+import {
+  composeVersion,
+  DEFAULT_PROFILE_VERSION_STR,
+} from '../common/document';
 import { userError } from '../common/error';
 import { fetchMapAST, fetchProfileAST } from '../common/http';
 import { ListWriter } from '../common/list-writer';
@@ -316,11 +319,20 @@ async function prepareLintedMap(
     );
   }
 
+  const path =
+    map.path ||
+    (map.variant
+      ? `${profile.id.id}.${map.provider}.${map.variant}@${
+          profile.version ? profile.version : DEFAULT_PROFILE_VERSION_STR
+        }`
+      : `/${profile.id.id}.${map.provider}@${
+          profile.version ? profile.version : DEFAULT_PROFILE_VERSION_STR
+        }`);
+
   return {
     ...map,
     ast: mapAst,
-    //FIX: format of map id
-    path: map.path ? map.path : ``,
+    path,
     counts,
   };
 }
