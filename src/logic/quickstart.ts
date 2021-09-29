@@ -1,15 +1,18 @@
-import { isValidDocumentName, isValidVersionString } from '@superfaceai/ast';
 import {
   BackoffKind,
   isApiKeySecurityValues,
   isBasicAuthSecurityValues,
   isBearerTokenSecurityValues,
   isDigestSecurityValues,
-  META_FILE,
+  isValidDocumentName,
+  isValidVersionString,
   OnFail,
-  Parser,
   RetryPolicy,
   SecurityValues,
+} from '@superfaceai/ast';
+import {
+  META_FILE,
+  Parser,
   SUPERFACE_DIR,
   SuperJson,
 } from '@superfaceai/one-sdk';

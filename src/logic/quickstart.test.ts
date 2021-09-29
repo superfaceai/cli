@@ -1,5 +1,5 @@
-import { ProfileDocumentNode } from '@superfaceai/ast';
-import { ok, OnFail, Parser, SuperJson } from '@superfaceai/one-sdk';
+import { OnFail, ProfileDocumentNode } from '@superfaceai/ast';
+import { ok, Parser, SuperJson } from '@superfaceai/one-sdk';
 import inquirer from 'inquirer';
 import { mocked } from 'ts-jest/utils';
 

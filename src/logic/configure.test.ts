@@ -1,9 +1,9 @@
 import { CLIError } from '@oclif/errors';
+import { OnFail } from '@superfaceai/ast';
 import {
   ApiKeyPlacement,
   HttpScheme,
   ok,
-  OnFail,
   ProviderJson,
   SecurityScheme,
   SecurityType,

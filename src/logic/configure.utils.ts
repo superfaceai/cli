@@ -1,10 +1,10 @@
+import { SecurityValues } from '@superfaceai/ast';
 import {
   isApiKeySecurityScheme,
   isBasicAuthSecurityScheme,
   isBearerTokenSecurityScheme,
   isDigestSecurityScheme,
   SecurityScheme,
-  SecurityValues,
 } from '@superfaceai/one-sdk';
 
 import { LogCallback } from '../common/log';

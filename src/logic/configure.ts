@@ -1,6 +1,6 @@
+import { ProfileProviderDefaults } from '@superfaceai/ast';
 import {
   parseProviderJson,
-  ProfileProviderDefaults,
   ProviderJson,
   SecurityScheme,
   SuperJson,

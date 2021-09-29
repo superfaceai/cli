@@ -1,5 +1,5 @@
-import { EXTENSIONS } from '@superfaceai/ast';
-import { OnFail, SuperJson } from '@superfaceai/one-sdk';
+import { EXTENSIONS, OnFail } from '@superfaceai/ast';
+import { SuperJson } from '@superfaceai/one-sdk';
 import { getLocal } from 'mockttp';
 import { join as joinPath } from 'path';
 
