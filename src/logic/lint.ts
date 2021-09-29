@@ -17,6 +17,7 @@ import {
   validateMap,
   ValidationResult,
 } from '@superfaceai/parser';
+import { green, red, yellow } from 'chalk';
 import { basename } from 'path';
 
 import { composeVersion } from '../common/document';
@@ -119,24 +120,34 @@ export function formatHuman(
   const REPORT_ERR = '❌';
 
   let prefix;
+  let color: (inout: string) => string;
+
   if (report.errors.length > 0) {
     prefix = REPORT_ERR;
+    color = red;
   } else if (report.warnings.length > 0) {
     prefix = REPORT_WARN;
+    color = yellow;
   } else {
     prefix = REPORT_OK;
+    color = green;
   }
 
-  const profileName =
-    'profile' in report ? `➡️ Profile:\t${report.profile}\n` : '';
-  let buffer = `${profileName}${prefix} ${report.path}\n`;
+  let buffer = '';
 
   if (report.kind === 'file') {
+    buffer += color(
+      `${prefix} Parsing ${
+        report.path.endsWith(EXTENSIONS.profile.source) ? 'profile' : 'map'
+      } file: ${report.path}\n`
+    );
     for (const error of report.errors) {
       if (short) {
-        buffer += `\t${error.location.line}:${error.location.column} ${error.message}\n`;
+        buffer += red(
+          `\t${error.location.line}:${error.location.column} ${error.message}\n`
+        );
       } else {
-        buffer += error.format();
+        buffer += red(error.format());
       }
     }
     if (report.errors.length > 0 && report.warnings.length > 0) {
@@ -147,19 +158,23 @@ export function formatHuman(
     if (!quiet) {
       for (const warning of report.warnings) {
         if (typeof warning === 'string') {
-          buffer += `\t${warning}\n`;
+          buffer += yellow(`\t${warning}\n`);
         }
       }
     }
   } else {
-    buffer += formatIssues(report.errors);
+    buffer += color(
+      `${prefix} Validating profile: ${report.profile} to map: ${report.path}\n`
+    );
+
+    buffer += red(formatIssues(report.errors));
 
     if (!quiet && report.errors.length > 0 && report.warnings.length > 0) {
       buffer += '\n';
     }
 
     if (!quiet) {
-      buffer += formatIssues(report.warnings);
+      buffer += yellow(formatIssues(report.warnings));
       buffer += '\n';
     }
   }
@@ -317,6 +332,7 @@ export async function lint(
   fn: (report: ReportFormat) => string,
   options?: {
     logCb?: LogCallback;
+    errCb?: LogCallback;
   }
 ): Promise<[number, number][]> {
   const counts: [number, number][] = [];
@@ -348,22 +364,30 @@ export async function lint(
         return preparedMap.counts;
       }
 
-      const result = validateMap(
-        getProfileOutput(profileWithAst.ast),
-        preparedMap.ast
-      );
-      const report = createProfileMapReport(
-        result,
-        profileWithAst.path,
-        preparedMap.path
-      );
+      try {
+        const result = validateMap(
+          getProfileOutput(profileWithAst.ast),
+          preparedMap.ast
+        );
 
-      await writer.writeElement(fn(report));
+        const report = createProfileMapReport(
+          result,
+          profileWithAst.path,
+          preparedMap.path
+        );
 
-      counts.push([
-        result.pass ? 0 : result.errors.length,
-        result.warnings?.length ?? 0,
-      ]);
+        await writer.writeElement(fn(report));
+
+        counts.push([
+          result.pass ? 0 : result.errors.length,
+          result.warnings?.length ?? 0,
+        ]);
+        //We catch any unexpected error from parser validator to prevent ending the loop early
+      } catch (error) {
+        options?.errCb?.(
+          `\n\n\nUnexpected error during validation of map: ${preparedMap.path} to profile: ${profileWithAst.path}.\nThis error is probably not a problem in linted files but in parser itself.\nTry updating CLI and its dependencies or report an issue.\n\n\n`
+        );
+      }
     }
   }
 

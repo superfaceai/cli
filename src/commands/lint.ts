@@ -1,8 +1,7 @@
 import { flags as oclifFlags } from '@oclif/command';
 import { isValidProviderName, SuperJson } from '@superfaceai/one-sdk';
 import { parseDocumentId } from '@superfaceai/parser';
-import { grey } from 'chalk';
-// import { grey } from 'chalk';
+import { bold, grey, red } from 'chalk';
 import { join as joinPath } from 'path';
 
 import { META_FILE } from '../common';
@@ -88,12 +87,14 @@ export default class Lint extends Command {
   ];
 
   private logCallback? = (message: string) => this.log(grey(message));
+  private errCallback? = (message: string) => this.log(red(bold(message)));
 
   async run(): Promise<void> {
     const { flags } = this.parse(Lint);
 
     if (flags.quiet) {
       this.logCallback = undefined;
+      this.errCallback = undefined;
     }
 
     // Check inputs
@@ -256,7 +257,7 @@ export default class Lint extends Command {
             profiles,
             report =>
               formatHuman(report, flags.quiet, flags.outputFormat === 'short'),
-            { logCb: this.logCallback }
+            { logCb: this.logCallback, errCb: this.errCallback }
           );
           await outputStream.write(
             `\nDetected ${formatWordPlurality(
@@ -275,7 +276,7 @@ export default class Lint extends Command {
             superJson,
             profiles,
             report => formatJson(report),
-            { logCb: undefined }
+            { logCb: undefined, errCb: this.errCallback }
           );
           await outputStream.write(
             `],"total":{"errors":${totals[0]},"warnings":${totals[1]}}}\n`
@@ -300,7 +301,7 @@ export default class Lint extends Command {
     fn: (report: ReportFormat) => string,
     options?: {
       logCb?: LogCallback;
-      ['no-validation']?: boolean;
+      errCb?: LogCallback;
     }
   ): Promise<[errors: number, warnings: number]> {
     const counts: [number, number][] = await lint(

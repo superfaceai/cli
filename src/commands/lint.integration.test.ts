@@ -1,4 +1,3 @@
-// import { CLIError } from '@oclif/errors';
 import { SuperJson } from '@superfaceai/one-sdk';
 import { join as joinPath } from 'path';
 
@@ -12,7 +11,6 @@ describe('lint CLI command', () => {
   const TEMP_PATH = joinPath('test', 'tmp');
 
   const profileId = 'starwars/character-information';
-  // const profileVersion = '1.0.1';
   const provider = 'swapi';
   const secondProvider = 'starwars';
   const fixture = {
@@ -90,13 +88,13 @@ describe('lint CLI command', () => {
     );
 
     expect(result.stdout).toContain(
-      `🆗 ../../../../${fixture.strictProfile}` + '\n'
+      `🆗 Parsing profile file: ../../../../${fixture.strictProfile}`
     );
     expect(result.stdout).toContain(
-      `🆗 ../../../../${fixture.validMap}` + '\n'
+      `🆗 Parsing map file: ../../../../${fixture.validMap}`
     );
 
-    expect(result.stdout).toContain('Detected 0 problems\n');
+    expect(result.stdout).toContain('Detected 0 problems');
   });
 
   it('lints a valid and an invalid map', async () => {
@@ -115,11 +113,15 @@ describe('lint CLI command', () => {
       )
     ).rejects.toContain('❌ Errors were found');
 
-    expect(stdout.output).toContain(`🆗 ../../../../${fixture.strictProfile}`);
-    expect(stdout.output).toContain(`🆗 ../../../../${fixture.validMap}`);
+    expect(stdout.output).toContain(
+      `🆗 Parsing profile file: ../../../../${fixture.strictProfile}`
+    );
+    expect(stdout.output).toContain(
+      `🆗 Parsing map file: ../../../../${fixture.validMap}`
+    );
 
     expect(stdout.output).toContain(
-      `❌ ../../../../${fixture.invalidParsedMap}\n` +
+      `❌ Parsing map file: ../../../../${fixture.invalidParsedMap}\n` +
         'SyntaxError: Expected `provider` but found `map`\n' +
         ` --> ../../../../${fixture.strictProfile}:3:1\n` +
         '2 | \n' +
@@ -147,11 +149,15 @@ describe('lint CLI command', () => {
       )
     ).rejects.toContain('❌ Errors were found');
 
-    expect(stdout.output).toContain(`🆗 ../../../../${fixture.strictProfile}`);
-    expect(stdout.output).toContain(`🆗 ../../../../${fixture.validMap}`);
+    expect(stdout.output).toContain(
+      `🆗 Parsing profile file: ../../../../${fixture.strictProfile}`
+    );
+    expect(stdout.output).toContain(
+      `🆗 Parsing map file: ../../../../${fixture.validMap}`
+    );
 
     expect(stdout.output).toContain(
-      `❌ ../../../../${fixture.invalidParsedMap}\n` +
+      `❌ Parsing map file: ../../../../${fixture.invalidParsedMap}\n` +
         '\t3:1 Expected `provider` but found `map`\n'
     );
     expect(stdout.output).toContain('Detected 1 problem\n');
@@ -239,7 +245,9 @@ describe('lint CLI command', () => {
         //Expose child process stdout to mocked stdout
         { debug: true }
       )
-    ).rejects.toContain(`🆗 ../../../../${fixture.strictProfile}` + '\n');
+    ).rejects.toContain(
+      `🆗 Parsing profile file: ../../../../${fixture.strictProfile}`
+    );
   });
 
   it('does not show warnings when linting with flag --quiet', async () => {
@@ -256,10 +264,10 @@ describe('lint CLI command', () => {
     );
 
     expect(result.stdout).toContain(
-      `🆗 ../../../../${fixture.strictProfile}` + '\n'
+      `🆗 Parsing profile file: ../../../../${fixture.strictProfile}`
     );
     expect(result.stdout).toContain(
-      `🆗 ../../../../${fixture.validMap}` + '\n'
+      `🆗 Parsing map file: ../../../../${fixture.validMap}`
     );
 
     expect(result.stdout).toContain('Detected 0 problems\n');
