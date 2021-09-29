@@ -4,7 +4,6 @@ import { ok, Parser, SuperJson } from '@superfaceai/one-sdk';
 import { join } from 'path';
 import { mocked } from 'ts-jest/utils';
 
-import { parseProfileDocument } from '../common/document';
 import {
   fetchProfile,
   fetchProfileAST,
@@ -26,12 +25,6 @@ jest.mock('../common/http', () => ({
   fetchProfileInfo: jest.fn(),
   fetchProfile: jest.fn(),
   fetchProfileAST: jest.fn(),
-}));
-
-//Mock document
-jest.mock('../common/document', () => ({
-  ...jest.requireActual<Record<string, unknown>>('../common/document'),
-  parseProfileDocument: jest.fn(),
 }));
 
 jest.mock('../common/io', () => ({
@@ -554,7 +547,7 @@ describe('Install CLI logic', () => {
     });
 
     it('returns correct id and version from file', async () => {
-      mocked(parseProfileDocument).mockResolvedValue({
+      jest.spyOn(Parser, 'parseProfile').mockResolvedValue({
         header: {
           kind: 'ProfileHeader',
           name: 'test',

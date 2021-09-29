@@ -84,6 +84,7 @@ export default class Install extends Command {
       description: `When set to true, command is used in interactive mode. It leads users through profile installation, provider selection, provider security and retry policy setup. Result of this command is ready to use superface configuration.`,
       default: false,
       exclusive: ['providers', 'force', 'local', 'scan', 'quiet'],
+      hidden: true,
     }),
     scan: oclifFlags.integer({
       char: 's',
@@ -96,8 +97,6 @@ export default class Install extends Command {
 
   static examples = [
     '$ superface install',
-    '$ superface install sms/service -i',
-    '$ superface install sms/service@1.0 -i',
     '$ superface install sms/service@1.0',
     '$ superface install sms/service@1.0 --providers twilio tyntec',
     '$ superface install sms/service@1.0 -p twilio',
@@ -108,11 +107,24 @@ export default class Install extends Command {
     this.log('⚠️  ' + yellow(message));
 
   private logCallback? = (message: string) => this.log(grey(message));
+
   private successCallback? = (message: string) =>
     this.log(bold(green(message)));
 
   async run(): Promise<void> {
     const { args, flags } = this.parse(Install);
+
+    if (flags.quiet) {
+      this.logCallback = undefined;
+      this.warnCallback = undefined;
+    }
+
+    if (flags.scan && (typeof flags.scan !== 'number' || flags.scan > 5)) {
+      throw userError(
+        '--scan/-s : Number of levels to scan cannot be higher than 5',
+        1
+      );
+    }
 
     if (flags.interactive) {
       if (!args.profileId) {
@@ -129,18 +141,6 @@ export default class Install extends Command {
       });
 
       return;
-    }
-
-    if (flags.quiet) {
-      this.logCallback = undefined;
-      this.warnCallback = undefined;
-    }
-
-    if (flags.scan && (typeof flags.scan !== 'number' || flags.scan > 5)) {
-      throw userError(
-        '--scan/-s : Number of levels to scan cannot be higher than 5',
-        1
-      );
     }
 
     let superPath = await detectSuperJson(process.cwd(), flags.scan);

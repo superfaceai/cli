@@ -24,7 +24,7 @@ import { initSuperface } from '../logic/init';
 import { detectSuperJson } from '../logic/install';
 
 export default class Create extends Command {
-  static strict = false;
+  static strict = true;
 
   static description =
     'Creates empty map, profile or/and provider on a local filesystem.';
@@ -90,6 +90,18 @@ export default class Create extends Command {
       default: undefined,
       description: 'Base path where files will be created',
     }),
+    mapFileName: oclifFlags.string({
+      default: undefined,
+      description: 'Name of map file',
+    }),
+    profileFileName: oclifFlags.string({
+      default: undefined,
+      description: 'Name of profile file',
+    }),
+    providerFileName: oclifFlags.string({
+      default: undefined,
+      description: 'Name of provider file',
+    }),
     scan: oclifFlags.integer({
       char: 's',
       description:
@@ -104,6 +116,7 @@ export default class Create extends Command {
     '$ superface create --profileId sms/service --providerName twilio --map',
     '$ superface create --profileId sms/service --providerName twilio --map -t bugfix',
     '$ superface create --providerName twilio tyntec --provider',
+    '$ superface create --providerName twilio --provider --providerFileName my-provider -p my/path',
     '$ superface create --profileId sms/service --providerName twilio --provider --map --profile -t bugfix -v 1.1-rev133 -u SendSMS ReceiveSMS',
     '$ superface create -i',
   ];
@@ -195,16 +208,13 @@ export default class Create extends Command {
     let providerNames: string[] = [];
 
     //Check inputs
-    if (flags.profile && !flags.profileId) {
-      throw userError('--profileId= must be provided when creating profile', 1);
-    }
     if (flags.map && !flags.profileId) {
       throw userError('--profileId= must be provided when creating map', 1);
     }
     if (flags.map && !flags.providerName) {
       throw userError('--providerName= must be provided when creating map', 1);
     }
-    if (flags.providerName && !flags.providerName) {
+    if (flags.provider && !flags.providerName) {
       throw userError(
         '--providerName= must be provided when creating provider',
         1
@@ -236,6 +246,19 @@ export default class Create extends Command {
     }
     providerNames = flags.providerName;
 
+    if (flags.providerFileName && providerNames.length > 1) {
+      throw userError(
+        `Unable to create mutiple providers with same file name: "${flags.providerFileName}"`,
+        1
+      );
+    }
+
+    if (flags.mapFileName && providerNames.length > 1) {
+      throw userError(
+        `Unable to create mutiple maps with same file name: "${flags.mapFileName}"`,
+        1
+      );
+    }
     // output a warning when generating profile only and provider is specified
     if (flags.profile && !flags.map && !flags.provider && flags.providerName) {
       this.warn(
@@ -351,20 +374,27 @@ export default class Create extends Command {
 
     await create(
       {
-        createProvider: !!flags.provider,
-        createMap: !!flags.map,
-        createProfile: !!flags.profile,
+        provider: !!flags.provider,
+        map: !!flags.map,
+        profile: !!flags.profile,
+        fileNames: {
+          map: flags.mapFileName,
+          profile: flags.profileFileName,
+          provider: flags.providerFileName,
+        },
+        paths: {
+          superPath,
+          basePath: flags.path,
+        },
+        document: {
+          scope,
+          version,
+          providerNames,
+          usecases,
+          name,
+          variant: flags.variant,
+        },
       },
-      usecases,
-      {
-        scope,
-        version,
-        providerNames,
-        name,
-        variant: flags.variant,
-      },
-      superPath,
-      flags.path,
       {
         logCb: this.logCallback,
         warnCb: this.warnCallback,

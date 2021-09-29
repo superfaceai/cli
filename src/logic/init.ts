@@ -13,6 +13,7 @@ import { userError } from '../common/error';
 import { mkdir, mkdirQuiet } from '../common/io';
 import { formatShellLog, LogCallback } from '../common/log';
 import { OutputStream } from '../common/output-stream';
+import { ProfileId } from '../common/profile';
 import { createProfile } from './create';
 
 /**
@@ -115,9 +116,11 @@ export async function generateSpecifiedProfiles(
 
     await createProfile(
       joinPath(path, GRID_DIR),
-      { scope, name, version },
+      ProfileId.fromScopeName(scope, name),
+      version,
       [composeUsecaseName(name)],
       superJson,
+      undefined,
       { logCb }
     );
   }

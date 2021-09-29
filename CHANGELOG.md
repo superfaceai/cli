@@ -9,6 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Lint command loading files from server if not found localy
 
+### Added
+- Exported function for security values preparation
+
+## [0.0.24] - 2021-09-23
+### Added
+- Create command file names flags
+
+### Fixed
+- Do not touch .env by default
+- Hide interactive install command
+
 ## [0.0.23] - 2021-09-07
 ### Added
 - Generate command
@@ -145,7 +156,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Transpile command
 - CI github flow
 
-[Unreleased]: https://github.com/superfaceai/cli/compare/v0.0.23...HEAD
+[Unreleased]: https://github.com/superfaceai/cli/compare/v0.0.24...HEAD
+[0.0.24]: https://github.com/superfaceai/cli/compare/v0.0.23...v0.0.24
 [0.0.23]: https://github.com/superfaceai/cli/compare/v0.0.22...v0.0.23
 [0.0.22]: https://github.com/superfaceai/cli/compare/v0.0.20...v0.0.22
 [0.0.20]: https://github.com/superfaceai/cli/compare/v0.0.19...v0.0.20

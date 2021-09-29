@@ -884,4 +884,107 @@ describe('Create CLI command', () => {
       });
     }, 20000);
   });
+
+  //Profile & map & provider
+  it('creates profile with version, map with multiple usecases and variant, provider and file names', async () => {
+    documentName = 'sms/service';
+    provider = 'twilio';
+    const mockProfileFileName = 'mockProfile';
+    const mockMapFileName = 'mockMap';
+    const mockProviderFileName = 'mockProvider';
+
+    const result = await execCLI(
+      tempDir,
+      [
+        'create',
+        '--profileId',
+        documentName,
+        '-v',
+        '1.1-rev133',
+        '-t',
+        'bugfix',
+        '-u',
+        'SendSMS',
+        'ReceiveSMS',
+        '--providerName',
+        provider,
+        '--profile',
+        '--map',
+        '--provider',
+        '--mapFileName',
+        mockMapFileName,
+        '--profileFileName',
+        mockProfileFileName,
+        '--providerFileName',
+        mockProviderFileName,
+      ],
+      mockServer.url,
+      {
+        inputs: [{ value: ENTER, timeout: 1000 }],
+      }
+    );
+    expect(result.stdout).toMatch(
+      `-> Created ${mockProfileFileName}.supr (name = "${documentName}", version = "1.1.0-rev133")`
+    );
+    expect(result.stdout).toMatch(
+      `-> Created ${mockMapFileName}.suma (profile = "${documentName}@1.1-rev133", provider = "${provider}")`
+    );
+    expect(result.stdout).toMatch(`-> Created ${mockProviderFileName}.json`);
+
+    let createdFile = await readFile(
+      joinPath(tempDir, `${mockProfileFileName}.supr`),
+      { encoding: 'utf-8' }
+    );
+    expect(createdFile).toEqual(
+      [
+        profileTemplate.header(documentName, '1.1.0-rev133'),
+        ...[
+          profileTemplate.empty('SendSMS'),
+          profileTemplate.empty('ReceiveSMS'),
+        ],
+      ].join('')
+    );
+
+    createdFile = await readFile(joinPath(tempDir, `${mockMapFileName}.suma`), {
+      encoding: 'utf-8',
+    });
+    expect(createdFile).toEqual(
+      [
+        mapTemplate.header(documentName, provider, '1.1-rev133', 'bugfix'),
+        ...[mapTemplate.empty('SendSMS'), mapTemplate.empty('ReceiveSMS')],
+      ].join('')
+    );
+
+    createdFile = await readFile(
+      joinPath(tempDir, `${mockProviderFileName}.json`),
+      { encoding: 'utf-8' }
+    );
+    expect(createdFile).toEqual(providerTemplate.empty(provider));
+
+    const superJson = (
+      await SuperJson.load(joinPath(tempDir, 'superface', 'super.json'))
+    ).unwrap();
+
+    expect(superJson.normalized).toEqual({
+      profiles: {
+        [documentName]: {
+          file: `../${mockProfileFileName}.supr`,
+          defaults: {},
+          priority: [provider],
+          providers: {
+            [provider]: {
+              defaults: {},
+              file: `../${mockMapFileName}.suma`,
+            },
+          },
+        },
+      },
+      providers: {
+        [provider]: {
+          file: `../${mockProviderFileName}.json`,
+          security: [],
+        },
+      },
+    });
+  }, 20000);
 });

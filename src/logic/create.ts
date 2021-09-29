@@ -7,6 +7,7 @@ import { composeVersion, META_FILE } from '../common/document';
 import { userError } from '../common/error';
 import { formatShellLog, LogCallback } from '../common/log';
 import { OutputStream } from '../common/output-stream';
+import { ProfileId } from '../common/profile';
 import * as mapTemplate from '../templates/map';
 import * as profileTemplate from '../templates/profile';
 import * as providerTemplate from '../templates/provider';
@@ -16,32 +17,29 @@ import * as providerTemplate from '../templates/provider';
  */
 export async function createProfile(
   basePath: string,
-  id: {
-    scope?: string;
-    name: string;
-    version: DocumentVersion;
-  },
+  profile: ProfileId,
+  version: DocumentVersion,
   usecaseNames: string[],
   superJson?: SuperJson,
+  fileName?: string,
   options?: {
     force?: boolean;
     logCb?: LogCallback;
   }
 ): Promise<void> {
-  let profileName = id.name;
-  let filePath = `${profileName}${EXTENSIONS.profile.source}`;
-  const version = composeVersion(id.version);
-
-  if (id.scope !== undefined) {
-    profileName = `${id.scope}/${profileName}`;
-    filePath = joinPath(id.scope, filePath);
+  //Add extension if missing
+  if (fileName && !fileName.endsWith(EXTENSIONS.profile.source)) {
+    fileName = fileName + EXTENSIONS.profile.source;
   }
+  let filePath = fileName || `${profile.id}${EXTENSIONS.profile.source}`;
+
+  const versionStr = composeVersion(version);
   filePath = joinPath(basePath, filePath);
 
   const created = await OutputStream.writeIfAbsent(
     filePath,
     [
-      profileTemplate.header(profileName, version),
+      profileTemplate.header(profile.id, versionStr),
       ...usecaseNames.map(u => profileTemplate.empty(u)),
     ].join(''),
     { force: options?.force, dirs: true }
@@ -49,10 +47,10 @@ export async function createProfile(
 
   if (created) {
     options?.logCb?.(
-      `-> Created ${filePath} (name = "${profileName}", version = "${version}")`
+      `-> Created ${filePath} (name = "${profile.id}", version = "${versionStr}")`
     );
     if (superJson) {
-      superJson.mergeProfile(profileName, {
+      superJson.mergeProfile(profile.id, {
         file: relativePath(dirname(superJson.path), filePath),
       });
     }
@@ -65,35 +63,37 @@ export async function createProfile(
 export async function createMap(
   basePath: string,
   id: {
-    scope?: string;
-    name: string;
+    profile: ProfileId;
     provider: string;
     variant?: string;
     version: DocumentVersion;
   },
   usecaseNames: string[],
   superJson?: SuperJson,
+  fileName?: string,
   options?: {
     force?: boolean;
     logCb?: LogCallback;
   }
 ): Promise<void> {
-  let profileName = id.name;
   const variantName = id.variant ? `.${id.variant}` : '';
+  //Add extension if missing
+  if (fileName && !fileName.endsWith(EXTENSIONS.map.source)) {
+    fileName = fileName + EXTENSIONS.map.source;
+  }
 
-  let filePath = `${profileName}.${id.provider}${variantName}${EXTENSIONS.map.source}`;
+  let filePath =
+    fileName ||
+    `${id.profile.id}.${id.provider}${variantName}${EXTENSIONS.map.source}`;
+
   const version = composeVersion(id.version, true);
 
-  if (id.scope !== undefined) {
-    profileName = `${id.scope}/${profileName}`;
-    filePath = joinPath(id.scope, filePath);
-  }
   filePath = joinPath(basePath, filePath);
 
   const created = await OutputStream.writeIfAbsent(
     filePath,
     [
-      mapTemplate.header(profileName, id.provider, version, id.variant),
+      mapTemplate.header(id.profile.id, id.provider, version, id.variant),
       ...usecaseNames.map(u => mapTemplate.empty(u)),
     ].join(''),
     { force: options?.force, dirs: true }
@@ -101,10 +101,12 @@ export async function createMap(
 
   if (created) {
     options?.logCb?.(
-      `-> Created ${filePath} (profile = "${profileName}@${version}", provider = "${id.provider}")`
+      `-> Created ${filePath} (profile = "${id.profile.withVersion(
+        version
+      )}", provider = "${id.provider}")`
     );
     if (superJson) {
-      superJson.mergeProfileProvider(profileName, id.provider, {
+      superJson.mergeProfileProvider(id.profile.id, id.provider, {
         file: relativePath(dirname(superJson.path), filePath),
       });
     }
@@ -115,24 +117,30 @@ export async function createMap(
  */
 export async function createProviderJson(
   basePath: string,
-  name: string,
+  provider: string,
   superJson?: SuperJson,
+  fileName?: string,
   options?: {
     force?: boolean;
     logCb?: LogCallback;
   }
 ): Promise<void> {
-  const filePath = joinPath(basePath, `${name}.provider.json`);
+  //Add extension if missing
+  if (fileName && !fileName.endsWith('.json')) {
+    fileName = `${fileName}.json`;
+  }
+
+  const filePath = joinPath(basePath, fileName || `${provider}.provider.json`);
   const created = await OutputStream.writeIfAbsent(
     filePath,
-    providerTemplate.empty(name),
+    providerTemplate.empty(provider),
     { force: options?.force }
   );
 
   if (created) {
-    options?.logCb?.(`-> Created ${name}.provider.json`);
+    options?.logCb?.(`-> Created ${filePath}`);
     if (superJson) {
-      superJson.mergeProvider(name, {
+      superJson.mergeProvider(provider, {
         file: relativePath(dirname(superJson.path), filePath),
       });
     }
@@ -144,20 +152,28 @@ export async function createProviderJson(
  */
 export async function create(
   create: {
-    createProfile: boolean;
-    createMap: boolean;
-    createProvider: boolean;
+    profile: boolean;
+    map: boolean;
+    provider: boolean;
+    document: {
+      scope?: string;
+      name?: string;
+      providerNames: string[];
+      usecases: string[];
+      version: DocumentVersion;
+      variant?: string;
+    };
+    paths: {
+      superPath?: string;
+      basePath?: string;
+    };
+    fileNames?: {
+      provider?: string;
+      map?: string;
+      profile?: string;
+    };
   },
-  usecases: string[],
-  documentStructure: {
-    scope?: string;
-    name?: string;
-    providerNames: string[];
-    version: DocumentVersion;
-    variant?: string;
-  },
-  superPath?: string,
-  basePath?: string,
+
   options?: {
     logCb?: LogCallback;
     warnCb?: LogCallback;
@@ -165,8 +181,10 @@ export async function create(
 ): Promise<void> {
   //Load super json if we have path
   let superJson: SuperJson | undefined = undefined;
-  if (superPath) {
-    const loadedResult = await SuperJson.load(joinPath(superPath, META_FILE));
+  if (create.paths.superPath) {
+    const loadedResult = await SuperJson.load(
+      joinPath(create.paths.superPath, META_FILE)
+    );
     superJson = loadedResult.match(
       v => v,
       err => {
@@ -183,9 +201,10 @@ export async function create(
     providerNames: providers,
     version,
     variant,
-  } = documentStructure;
+    usecases,
+  } = create.document;
 
-  if (create.createMap) {
+  if (create.map) {
     if (providers.length === 0) {
       throw userError(
         'Provider name must be provided when generating a map.',
@@ -200,15 +219,21 @@ export async function create(
     }
     for (const provider of providers) {
       await createMap(
-        basePath ?? '',
-        { scope, name, provider, variant, version },
+        create.paths.basePath ?? '',
+        {
+          profile: ProfileId.fromScopeName(scope, name),
+          provider,
+          variant,
+          version,
+        },
         usecases,
         superJson,
+        create.fileNames?.map,
         { logCb: options?.logCb }
       );
     }
   }
-  if (create.createProvider) {
+  if (create.provider) {
     if (providers.length === 0) {
       throw userError(
         'Provider name must be provided when generating a provider.',
@@ -216,12 +241,18 @@ export async function create(
       );
     }
     for (const provider of providers) {
-      await createProviderJson(basePath ?? '', provider, superJson, {
-        logCb: options?.logCb,
-      });
+      await createProviderJson(
+        create.paths.basePath ?? '',
+        provider,
+        superJson,
+        create.fileNames?.provider,
+        {
+          logCb: options?.logCb,
+        }
+      );
     }
   }
-  if (create.createProfile) {
+  if (create.profile) {
     if (!name) {
       throw userError(
         'Profile name must be provided when generating a profile.',
@@ -229,10 +260,12 @@ export async function create(
       );
     }
     await createProfile(
-      basePath ?? '',
-      { scope, name, version },
+      create.paths.basePath ?? '',
+      ProfileId.fromScopeName(scope, name),
+      version,
       usecases,
       superJson,
+      create.fileNames?.profile,
       {
         logCb: options?.logCb,
       }
