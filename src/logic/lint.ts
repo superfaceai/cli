@@ -333,7 +333,7 @@ async function prepareLintedMap(
     ...map,
     ast: mapAst,
     path:
-      map.path ||
+      map.path ??
       mapId.withVersion(profile.version || DEFAULT_PROFILE_VERSION_STR),
     counts,
   };
