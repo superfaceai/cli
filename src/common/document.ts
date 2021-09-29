@@ -1,9 +1,11 @@
-import { DocumentType, EXTENSIONS, inferDocumentType } from '@superfaceai/ast';
 import {
+  DocumentType,
+  EXTENSIONS,
+  inferDocumentType,
   ProfileEntry,
   ProfileProviderEntry,
   ProviderSettings,
-} from '@superfaceai/one-sdk';
+} from '@superfaceai/ast';
 import {
   DocumentVersion,
   parseMap,

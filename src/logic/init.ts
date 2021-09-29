@@ -1,4 +1,5 @@
-import { SuperJson, SuperJsonDocument } from '@superfaceai/one-sdk';
+import { SuperJsonDocument } from '@superfaceai/ast';
+import { SuperJson } from '@superfaceai/one-sdk';
 import { parseProfileId } from '@superfaceai/parser';
 import { join as joinPath } from 'path';
 
