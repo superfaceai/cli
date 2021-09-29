@@ -6,12 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
-### Changed
-- Use super.json schema validation from ast-js
 
+## [0.0.25] - 2021-09-29
 ### Added
 - Lint command loading files from server if not found localy
 - Exported function for security values preparation
+
+### Changed
+- Use super.json schema validation from ast-js
 
 ## [0.0.24] - 2021-09-23
 ### Added
@@ -157,7 +159,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Transpile command
 - CI github flow
 
-[Unreleased]: https://github.com/superfaceai/cli/compare/v0.0.24...HEAD
+[Unreleased]: https://github.com/superfaceai/cli/compare/v0.0.25...HEAD
+[0.0.25]: https://github.com/superfaceai/cli/compare/v0.0.24...v0.0.25
 [0.0.24]: https://github.com/superfaceai/cli/compare/v0.0.23...v0.0.24
 [0.0.23]: https://github.com/superfaceai/cli/compare/v0.0.22...v0.0.23
 [0.0.22]: https://github.com/superfaceai/cli/compare/v0.0.20...v0.0.22
