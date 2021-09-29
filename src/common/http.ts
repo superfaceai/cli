@@ -23,6 +23,7 @@ import {
   SF_PRODUCTION,
 } from './document';
 import { userError } from './error';
+import { MapId } from './map';
 import { loadNetrc, saveNetrc } from './netrc';
 
 export interface ProfileInfo {
@@ -197,13 +198,16 @@ export async function fetchMapAST(
   version?: string,
   variant?: string
 ): Promise<MapDocumentNode> {
-  const path = variant
-    ? `/${scope ? `${scope}/` : ''}${profile}.${provider}.${variant}@${
-        version ? version : DEFAULT_PROFILE_VERSION_STR
-      }`
-    : `/${scope ? `${scope}/` : ''}${profile}.${provider}@${
-        version ? version : DEFAULT_PROFILE_VERSION_STR
-      }`;
+  const mapId = MapId.fromName({
+    profile: {
+      name: profile,
+      scope,
+    },
+    provider,
+    variant,
+  });
+  const path = '/' + mapId.withVersion(version || DEFAULT_PROFILE_VERSION_STR);
+
   const response = await SuperfaceClient.getClient().fetch(path, {
     //TODO: enable auth
     authenticate: false,

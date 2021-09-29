@@ -28,6 +28,7 @@ import { userError } from '../common/error';
 import { fetchMapAST, fetchProfileAST } from '../common/http';
 import { ListWriter } from '../common/list-writer';
 import { LogCallback } from '../common/log';
+import { MapId } from '../common/map';
 import { ProfileId } from '../common/profile';
 import {
   FileReport,
@@ -319,20 +320,21 @@ async function prepareLintedMap(
     );
   }
 
-  const path =
-    map.path ||
-    (map.variant
-      ? `${profile.id.id}.${map.provider}.${map.variant}@${
-          profile.version ? profile.version : DEFAULT_PROFILE_VERSION_STR
-        }`
-      : `/${profile.id.id}.${map.provider}@${
-          profile.version ? profile.version : DEFAULT_PROFILE_VERSION_STR
-        }`);
+  const mapId = MapId.fromName({
+    profile: {
+      name: profile.id.name,
+      scope: profile.id.scope,
+    },
+    provider: map.provider,
+    variant: map.variant,
+  });
 
   return {
     ...map,
     ast: mapAst,
-    path,
+    path:
+      map.path ||
+      mapId.withVersion(profile.version || DEFAULT_PROFILE_VERSION_STR),
     counts,
   };
 }
