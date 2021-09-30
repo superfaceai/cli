@@ -30,7 +30,7 @@ export default class Publish extends Command {
   static args = [
     {
       name: 'documentType',
-      description: 'Document type of publeshed file',
+      description: 'Document type of published file',
       options: ['map', 'profile', 'provider'],
       required: true,
     },
