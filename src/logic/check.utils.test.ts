@@ -125,7 +125,7 @@ describe('Check utils', () => {
         expect.stringContaining(`grid/${profile.toString()}`)
       );
     });
-    it('returns undefinde if profile with scope and version does nit exist in grid', async () => {
+    it('returns undefined if profile with scope and version does not exist in grid', async () => {
       const mockSuperJson = new SuperJson();
       mocked(exists).mockResolvedValue(false);
       mocked(readFile).mockResolvedValue(mockProfileSource);
@@ -155,7 +155,12 @@ describe('Check utils', () => {
       ).resolves.toEqual(mockProfileSource);
 
       expect(exists).toHaveBeenCalledWith(
-        expect.stringContaining(`grid/${profile.toString()}`)
+        expect.stringContaining(
+          `grid/${ProfileId.fromParameters({
+            version: ProfileVersion.fromString(version),
+            name: profile.name,
+          }).toString()}`
+        )
       );
     });
 
@@ -170,9 +175,7 @@ describe('Check utils', () => {
           isFIFO: () => false,
           isFile: () => true,
           isSocket: () => false,
-          name: `${profile.name}@${DEFAULT_PROFILE_VERSION.toString()}${
-            EXTENSIONS.profile.source
-          }`,
+          name: `${profile.toString()}${EXTENSIONS.profile.source}`,
         },
         {
           isBlockDevice: () => false,
@@ -182,9 +185,7 @@ describe('Check utils', () => {
           isFIFO: () => false,
           isFile: () => true,
           isSocket: () => false,
-          name: `${profile.name}@${DEFAULT_PROFILE_VERSION.toString()}${
-            EXTENSIONS.profile.build
-          }`,
+          name: `${profile.toString()}${EXTENSIONS.profile.build}`,
         },
       ];
       mocked(exists).mockResolvedValue(true);
@@ -200,9 +201,7 @@ describe('Check utils', () => {
       );
       expect(exists).toHaveBeenCalledWith(
         expect.stringContaining(
-          `grid/${profile.toString()}@${DEFAULT_PROFILE_VERSION.toString()}${
-            EXTENSIONS.profile.source
-          }`
+          `grid/${profile.toString()}${EXTENSIONS.profile.source}`
         )
       );
     });
@@ -218,9 +217,7 @@ describe('Check utils', () => {
           isFIFO: () => false,
           isFile: () => false,
           isSocket: () => false,
-          name: `${profile.name}@${DEFAULT_PROFILE_VERSION.toString()}${
-            EXTENSIONS.profile.source
-          }`,
+          name: `${profile.toString()}${EXTENSIONS.profile.source}`,
         },
         {
           isBlockDevice: () => false,
@@ -230,9 +227,7 @@ describe('Check utils', () => {
           isFIFO: () => false,
           isFile: () => true,
           isSocket: () => false,
-          name: `${profile.name}@${DEFAULT_PROFILE_VERSION.toString()}${
-            EXTENSIONS.profile.build
-          }`,
+          name: `${profile.toString()}${EXTENSIONS.profile.build}`,
         },
       ];
       mocked(exists).mockResolvedValue(true);
@@ -248,9 +243,7 @@ describe('Check utils', () => {
       );
       expect(exists).toHaveBeenCalledWith(
         expect.stringContaining(
-          `grid/${profile.toString()}@${DEFAULT_PROFILE_VERSION.toString()}${
-            EXTENSIONS.profile.source
-          }`
+          `grid/${profile.toString()}${EXTENSIONS.profile.source}`
         )
       );
     });
@@ -288,7 +281,10 @@ describe('Check utils', () => {
       mocked(readdir).mockResolvedValue(mockFiles);
 
       await expect(
-        findLocalProfileSource(mockSuperJson, profile)
+        findLocalProfileSource(
+          mockSuperJson,
+          ProfileId.fromParameters({ scope: profile.scope, name: profile.name })
+        )
       ).resolves.toBeUndefined();
 
       expect(exists).toHaveBeenCalledWith(
@@ -329,7 +325,10 @@ describe('Check utils', () => {
       mocked(readdir).mockResolvedValue(mockFiles);
 
       await expect(
-        findLocalProfileSource(mockSuperJson, profile)
+        findLocalProfileSource(
+          mockSuperJson,
+          ProfileId.fromParameters({ scope: profile.scope, name: profile.name })
+        )
       ).resolves.toBeUndefined();
 
       expect(exists).toHaveBeenCalledWith(
@@ -337,9 +336,9 @@ describe('Check utils', () => {
       );
       expect(exists).toHaveBeenCalledWith(
         expect.stringContaining(
-          `grid/${profile.toString()}@${DEFAULT_PROFILE_VERSION.toString()}${
-            EXTENSIONS.profile.source
-          }`
+          `grid/${
+            profile.withoutVersion
+          }@${DEFAULT_PROFILE_VERSION.toString()}${EXTENSIONS.profile.source}`
         )
       );
     });

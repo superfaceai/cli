@@ -6,7 +6,11 @@ import {
 } from '@superfaceai/ast';
 import { SuperJson } from '@superfaceai/one-sdk';
 import {
+  DEFAULT_MAP_VERSION,
+  DEFAULT_PROFILE_VERSION,
   MapDocumentId,
+  MapId,
+  MapVersion,
   parseMap,
   parseMapId,
   parseProfile,
@@ -441,6 +445,7 @@ describe('Lint logic', () => {
       const profile = ProfileId.fromParameters({
         scope: 'starwars',
         name: 'character-information',
+        version: DEFAULT_PROFILE_VERSION,
       });
       const mockSuperJson = new SuperJson();
       const mockProfiles: ProfileToLint[] = [
@@ -448,11 +453,19 @@ describe('Lint logic', () => {
           id: profile,
           maps: [
             {
-              provider: 'swapi',
+              id: MapId.fromParameters({
+                profile,
+                version: DEFAULT_MAP_VERSION,
+                provider: 'swapi',
+              }),
               path: 'swapi path',
             },
             {
-              provider: 'starwars',
+              id: MapId.fromParameters({
+                profile,
+                version: DEFAULT_MAP_VERSION,
+                provider: 'starwars',
+              }),
               path: 'starwars path',
             },
           ],
@@ -546,6 +559,7 @@ describe('Lint logic', () => {
       const profile = ProfileId.fromParameters({
         scope: 'starwars',
         name: 'character-information',
+        version: ProfileVersion.fromString('1.2.3'),
       });
       const mockSuperJson = new SuperJson();
       const mockProfiles: ProfileToLint[] = [
@@ -553,12 +567,20 @@ describe('Lint logic', () => {
           id: profile,
           maps: [
             {
-              provider: 'swapi',
-              variant: 'test',
+              id: MapId.fromParameters({
+                profile,
+                version: MapVersion.fromString('1.2'),
+                provider: 'swapi',
+                variant: 'test',
+              }),
             },
             {
-              provider: 'starwars',
-              variant: 'test',
+              id: MapId.fromParameters({
+                profile,
+                version: MapVersion.fromString('1.2'),
+                provider: 'starwars',
+                variant: 'test',
+              }),
             },
           ],
           path: 'profile path',
@@ -600,7 +622,7 @@ describe('Lint logic', () => {
         mockReportFn({
           kind: 'compatibility',
           profile: 'profile path',
-          path: `${profile.withoutVersion}.swapi.test@1.0.0`,
+          path: `${profile.withoutVersion}.swapi.test@1.2`,
           errors: [
             {
               kind: 'wrongProfileName',
@@ -619,7 +641,7 @@ describe('Lint logic', () => {
         mockReportFn({
           kind: 'compatibility',
           profile: 'profile path',
-          path: `${profile.withoutVersion}.starwars.test@1.0.0`,
+          path: `${profile.withoutVersion}.starwars.test@1.2`,
           errors: [],
           warnings: [],
         })
@@ -638,15 +660,22 @@ describe('Lint logic', () => {
           id: profile,
           maps: [
             {
-              provider: 'swapi',
-              variant: 'test',
+              id: MapId.fromParameters({
+                profile,
+                version: DEFAULT_MAP_VERSION,
+                provider: 'swapi',
+                variant: 'test',
+              }),
             },
             {
-              provider: 'starwars',
-              variant: 'test',
+              id: MapId.fromParameters({
+                profile,
+                version: DEFAULT_MAP_VERSION,
+                provider: 'starwars',
+                variant: 'test',
+              }),
             },
           ],
-          version: '1.0.0',
         },
       ];
 
@@ -676,7 +705,7 @@ describe('Lint logic', () => {
         mockReportFn({
           kind: 'compatibility',
           profile: profile.toString(),
-          path: `${profile.withoutVersion}.swapi.test@1.0.0`,
+          path: `${profile.withoutVersion}.swapi.test@1.0`,
           errors: [
             {
               kind: 'wrongProfileName',
@@ -695,7 +724,7 @@ describe('Lint logic', () => {
         mockReportFn({
           kind: 'compatibility',
           profile: profile.toString(),
-          path: `${profile.withoutVersion}.starwars.test@1.0.0`,
+          path: `${profile.withoutVersion}.starwars.test@1.0`,
           errors: [],
           warnings: [],
         })
@@ -730,15 +759,22 @@ describe('Lint logic', () => {
           id: profile,
           maps: [
             {
-              provider: 'swapi',
-              variant: 'test',
+              id: MapId.fromParameters({
+                profile,
+                version: DEFAULT_MAP_VERSION,
+                provider: 'swapi',
+                variant: 'test',
+              }),
             },
             {
-              provider: 'starwars',
-              variant: 'test',
+              id: MapId.fromParameters({
+                profile,
+                version: DEFAULT_MAP_VERSION,
+                provider: 'starwars',
+                variant: 'test',
+              }),
             },
           ],
-          version: '1.0.0',
         },
       ];
 
@@ -794,11 +830,14 @@ describe('Lint logic', () => {
           id: profile,
           maps: [
             {
-              provider: 'swapi',
-              variant: 'test',
+              id: MapId.fromParameters({
+                profile,
+                version: DEFAULT_MAP_VERSION,
+                provider: 'swapi',
+                variant: 'test',
+              }),
             },
           ],
-          version: '1.0.0',
         },
       ];
 

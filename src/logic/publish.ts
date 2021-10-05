@@ -48,7 +48,7 @@ export async function publish(
   const mapFiles = await loadMap(map, superJson, options);
   if (!mapFiles.source && publishing == 'map') {
     throw userError(
-      `Map for profile: "${map.toString()}" not found on local filesystem`,
+      `Map: "${map.toString()}" not found on local filesystem`,
       1
     );
   }

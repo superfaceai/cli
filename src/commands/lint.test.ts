@@ -1,7 +1,14 @@
 import { CLIError } from '@oclif/errors';
 import { err, ok, SuperJson } from '@superfaceai/one-sdk';
 import { SDKExecutionError } from '@superfaceai/one-sdk/dist/internal/errors';
-import { ProfileId } from '@superfaceai/parser';
+import {
+  DEFAULT_MAP_VERSION,
+  DEFAULT_PROFILE_VERSION,
+  MapId,
+  MapVersion,
+  ProfileId,
+  VersionRange,
+} from '@superfaceai/parser';
 import { mocked } from 'ts-jest/utils';
 
 import { OutputStream } from '../common/output-stream';
@@ -220,19 +227,31 @@ describe('lint CLI command', () => {
         await expect(Lint.run(['-s', '4'])).resolves.toBeUndefined();
 
         expect(lint).toHaveBeenCalledTimes(1);
+        const expectedProfileId = ProfileId.fromId(
+          mockLocalProfile,
+          DEFAULT_PROFILE_VERSION.toString()
+        );
         expect(lint).toHaveBeenCalledWith(
           mockSuperJson,
           [
             {
-              id: ProfileId.fromId(mockLocalProfile),
+              id: expectedProfileId,
               maps: [
                 {
+                  id: MapId.fromParameters({
+                    profile: expectedProfileId,
+                    provider: mockLocalProvider,
+                    version: DEFAULT_MAP_VERSION,
+                  }),
                   path: `../${mockLocalProfile}.${mockLocalProvider}.suma`,
-                  provider: mockLocalProvider,
                 },
                 {
+                  id: MapId.fromParameters({
+                    profile: expectedProfileId,
+                    provider: secondMockLocalProvider,
+                    version: DEFAULT_MAP_VERSION,
+                  }),
                   path: `../${mockLocalProfile}.${secondMockLocalProvider}.suma`,
-                  provider: secondMockLocalProvider,
                 },
               ],
               path: `../${mockLocalProfile}.supr`,
@@ -300,17 +319,32 @@ describe('lint CLI command', () => {
         ).resolves.toBeUndefined();
 
         expect(lint).toHaveBeenCalledTimes(1);
+        const expectedProfileId = ProfileId.fromId(
+          mockLocalProfile,
+          DEFAULT_PROFILE_VERSION.toString()
+        );
         expect(lint).toHaveBeenCalledWith(
           mockSuperJson,
           [
             {
-              id: ProfileId.fromId(mockLocalProfile),
+              id: expectedProfileId,
               maps: [
                 {
+                  id: MapId.fromParameters({
+                    profile: expectedProfileId,
+                    provider: mockLocalProvider,
+                    version: DEFAULT_MAP_VERSION,
+                  }),
                   path: `../${mockLocalProfile}.${mockLocalProvider}.suma`,
-                  provider: mockLocalProvider,
                 },
-                { provider: mockProvider, variant: 'test' },
+                {
+                  id: MapId.fromParameters({
+                    profile: expectedProfileId,
+                    provider: mockProvider,
+                    version: DEFAULT_MAP_VERSION,
+                    variant: 'test',
+                  }),
+                },
               ],
               path: `../${mockLocalProfile}.supr`,
             },
@@ -376,19 +410,34 @@ describe('lint CLI command', () => {
         ).resolves.toBeUndefined();
 
         expect(lint).toHaveBeenCalledTimes(1);
+        const expectedProfileId = ProfileId.fromId(mockProfile, version);
         expect(lint).toHaveBeenCalledWith(
           mockSuperJson,
           [
             {
-              id: ProfileId.fromId(mockProfile),
+              id: expectedProfileId,
               maps: [
                 {
+                  id: MapId.fromParameters({
+                    profile: expectedProfileId,
+                    version: MapVersion.fromVersionRange(
+                      VersionRange.fromString(version)
+                    ),
+                    provider: mockLocalProvider,
+                  }),
                   path: `../${mockProfile}.${mockLocalProvider}.suma`,
-                  provider: mockLocalProvider,
                 },
-                { provider: mockProvider, variant: 'test' },
+                {
+                  id: MapId.fromParameters({
+                    profile: expectedProfileId,
+                    version: MapVersion.fromVersionRange(
+                      VersionRange.fromString(version)
+                    ),
+                    provider: mockProvider,
+                    variant: 'test',
+                  }),
+                },
               ],
-              version,
             },
           ],
           expect.anything(),
@@ -453,15 +502,24 @@ describe('lint CLI command', () => {
         ).resolves.toBeUndefined();
 
         expect(lint).toHaveBeenCalledTimes(1);
+        const expectedProfileId = ProfileId.fromId(
+          mockLocalProfile,
+          DEFAULT_PROFILE_VERSION.toString()
+        );
+
         expect(lint).toHaveBeenCalledWith(
           mockSuperJson,
           [
             {
-              id: ProfileId.fromId(mockLocalProfile),
+              id: expectedProfileId,
               maps: [
                 {
+                  id: MapId.fromParameters({
+                    profile: expectedProfileId,
+                    provider: mockLocalProvider,
+                    version: DEFAULT_MAP_VERSION,
+                  }),
                   path: `../${mockLocalProfile}.${mockLocalProvider}.suma`,
-                  provider: mockLocalProvider,
                 },
               ],
               path: `../${mockLocalProfile}.supr`,
@@ -528,18 +586,25 @@ describe('lint CLI command', () => {
         ).resolves.toBeUndefined();
 
         expect(lint).toHaveBeenCalledTimes(1);
+        const expectedProfileId = ProfileId.fromId(mockProfile, version);
+
         expect(lint).toHaveBeenCalledWith(
           mockSuperJson,
           [
             {
-              id: ProfileId.fromId(mockProfile),
+              id: expectedProfileId,
               maps: [
                 {
+                  id: MapId.fromParameters({
+                    profile: expectedProfileId,
+                    provider: mockLocalProvider,
+                    version: MapVersion.fromVersionRange(
+                      VersionRange.fromString(version)
+                    ),
+                  }),
                   path: `../${mockProfile}.${mockLocalProvider}.suma`,
-                  provider: mockLocalProvider,
                 },
               ],
-              version,
             },
           ],
           expect.anything(),
@@ -605,13 +670,25 @@ describe('lint CLI command', () => {
         ).resolves.toBeUndefined();
 
         expect(lint).toHaveBeenCalledTimes(1);
+        const expectedProfileId = ProfileId.fromId(mockProfile, version);
+
         expect(lint).toHaveBeenCalledWith(
           mockSuperJson,
           [
             {
-              id: ProfileId.fromId(mockProfile),
-              maps: [{ provider: mockProvider, variant: mapVariant }],
-              version,
+              id: expectedProfileId,
+              maps: [
+                {
+                  id: MapId.fromParameters({
+                    profile: expectedProfileId,
+                    provider: mockProvider,
+                    variant: mapVariant,
+                    version: MapVersion.fromVersionRange(
+                      VersionRange.fromString(version)
+                    ),
+                  }),
+                },
+              ],
             },
           ],
           expect.anything(),

@@ -159,7 +159,7 @@ describe('Create CLI command', () => {
         `Loading profile: "${profileId}@${profileVersion}" from Superface store`
       );
       expect(result.stdout).toContain(
-        `Map for profile: "${profileId}@${profileVersion}" and provider: "${provider}" found on local filesystem`
+        `Map for profile: "${profileId}" and provider: "${provider}" found on local filesystem`
       );
       expect(result.stdout).toContain(
         `Loading provider: "${provider}" from Superface store`
@@ -197,7 +197,7 @@ describe('Create CLI command', () => {
         `Profile: "${profileId}" found on local file system`
       );
       expect(result.stdout).toContain(
-        `Loading map for profile: "${profileId}" and provider: "${provider}" from Superface store`
+        `Loading map for profile: "${profileId}@1.0.0" and provider: "${provider}" from Superface store`
       );
       expect(result.stdout).toContain(
         `Loading provider: "${provider}" from Superface store`

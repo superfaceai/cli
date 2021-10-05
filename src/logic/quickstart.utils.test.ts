@@ -17,10 +17,10 @@ describe('Quickstart logic', () => {
       mocked(exists).mockResolvedValue(true);
 
       await expect(
-        profileExists(mockSuperJson, {
-          id: ProfileId.fromId('starwars/character-information'),
-          version: '1.0.0',
-        })
+        profileExists(
+          mockSuperJson,
+          ProfileId.fromId('starwars/character-information', '1.0.0')
+        )
       ).resolves.toEqual(true);
 
       expect(exists).toHaveBeenCalledTimes(1);
@@ -31,10 +31,10 @@ describe('Quickstart logic', () => {
       mocked(exists).mockResolvedValue(false);
 
       await expect(
-        profileExists(mockSuperJson, {
-          id: ProfileId.fromId('starwars/character-information'),
-          version: '1.0.0',
-        })
+        profileExists(
+          mockSuperJson,
+          ProfileId.fromId('starwars/character-information', '1.0.0')
+        )
       ).resolves.toEqual(false);
 
       expect(exists).toHaveBeenCalledTimes(1);
@@ -59,10 +59,10 @@ describe('Quickstart logic', () => {
       mocked(exists).mockResolvedValueOnce(false).mockResolvedValueOnce(true);
 
       await expect(
-        profileExists(mockSuperJson, {
-          id: ProfileId.fromId('communication/send-email'),
-          version: '1.0.0',
-        })
+        profileExists(
+          mockSuperJson,
+          ProfileId.fromId('communication/send-email', '1.0.0')
+        )
       ).resolves.toEqual(true);
 
       expect(exists).toHaveBeenCalledTimes(2);
@@ -87,10 +87,10 @@ describe('Quickstart logic', () => {
       mocked(exists).mockResolvedValueOnce(false).mockResolvedValueOnce(true);
 
       await expect(
-        profileExists(mockSuperJson, {
-          id: ProfileId.fromId('vcs/pull-request'),
-          version: '1.0.0',
-        })
+        profileExists(
+          mockSuperJson,
+          ProfileId.fromId('vcs/pull-request', '1.0.0')
+        )
       ).resolves.toEqual(false);
 
       expect(exists).toHaveBeenCalledTimes(1);

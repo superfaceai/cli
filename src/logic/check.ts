@@ -51,7 +51,7 @@ export async function check(
       scope: profile.scope,
     });
     options?.logCb?.(
-      `Profile: "${profile.toString()}" found on local file system`
+      `Profile: "${profile.withoutVersion}" found on local file system`
     );
   } else {
     //Load from store
@@ -79,9 +79,7 @@ export async function check(
       }
     );
     options?.logCb?.(
-      `Map for profile: "${profile.toString()}" and provider: "${
-        map.provider
-      }" found on local filesystem`
+      `Map for profile: "${profile.withoutVersion}" and provider: "${map.provider}" found on local filesystem`
     );
   } else {
     //Load from store

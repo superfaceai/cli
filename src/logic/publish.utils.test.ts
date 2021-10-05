@@ -1,7 +1,12 @@
 import { CLIError } from '@oclif/errors';
 import { MapDocumentNode, ProfileDocumentNode } from '@superfaceai/ast';
 import { Parser, SuperJson } from '@superfaceai/one-sdk';
-import { ProfileId } from '@superfaceai/parser';
+import {
+  DEFAULT_MAP_VERSION,
+  DEFAULT_PROFILE_VERSION,
+  MapId,
+  ProfileId,
+} from '@superfaceai/parser';
 import { mocked } from 'ts-jest/utils';
 
 import { fetchMapAST, fetchProfileAST } from '../common/http';
@@ -315,9 +320,18 @@ describe('Publish logic utils', () => {
         .spyOn(Parser, 'parseMap')
         .mockResolvedValue(validMapDocument);
 
-      await expect(
-        loadMap(mockSuperJson, mockProfile, mockProviderName, {})
-      ).resolves.toEqual({ ast: validMapDocument, source: mockMapSource });
+      const map = MapId.fromParameters({
+        profile: ProfileId.fromId(
+          mockProfileId,
+          DEFAULT_PROFILE_VERSION.toString()
+        ),
+        provider: mockProviderName,
+        version: DEFAULT_MAP_VERSION,
+      });
+      await expect(loadMap(map, mockSuperJson, {})).resolves.toEqual({
+        ast: validMapDocument,
+        source: mockMapSource,
+      });
 
       expect(parseMapSpy).toHaveBeenCalledWith(
         mockMapSource,
@@ -334,19 +348,21 @@ describe('Publish logic utils', () => {
       mocked(findLocalMapSource).mockResolvedValue(undefined);
       mocked(fetchMapAST).mockResolvedValue(validMapDocument);
       const parseMapSpy = jest.spyOn(Parser, 'parseMap');
+      const map = MapId.fromParameters({
+        profile: ProfileId.fromId(
+          mockProfileId,
+          DEFAULT_PROFILE_VERSION.toString()
+        ),
+        provider: mockProviderName,
+        version: DEFAULT_MAP_VERSION,
+      });
 
-      await expect(
-        loadMap(mockSuperJson, mockProfile, mockProviderName, {})
-      ).resolves.toEqual({ ast: validMapDocument });
+      await expect(loadMap(map, mockSuperJson, {})).resolves.toEqual({
+        ast: validMapDocument,
+      });
 
       expect(parseMapSpy).not.toHaveBeenCalled();
-      expect(fetchMapAST).toHaveBeenCalledWith(
-        mockProfile.name,
-        mockProviderName,
-        mockProfile.scope,
-        undefined,
-        undefined
-      );
+      expect(fetchMapAST).toHaveBeenCalledWith(map);
     });
   });
 });

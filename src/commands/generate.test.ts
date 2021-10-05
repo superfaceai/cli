@@ -134,7 +134,7 @@ describe('Generate CLI command', () => {
       expect(detectSuperJson).toHaveBeenCalled();
       expect(loadSpy).toHaveBeenCalled();
       expect(generate).toHaveBeenCalledWith(
-        [{ id: ProfileId.fromId(profileId), version: undefined }],
+        [ProfileId.fromId(profileId, '1.0.0')],
         mockSuperJson,
         { logCb: expect.anything(), warnCb: expect.anything() }
       );
@@ -162,7 +162,7 @@ describe('Generate CLI command', () => {
       expect(detectSuperJson).toHaveBeenCalled();
       expect(loadSpy).toHaveBeenCalled();
       expect(generate).toHaveBeenCalledWith(
-        [{ id: ProfileId.fromId(profileId), version }],
+        [ProfileId.fromId(profileId, version)],
         mockSuperJson,
         { logCb: expect.anything(), warnCb: expect.anything() }
       );
@@ -193,8 +193,8 @@ describe('Generate CLI command', () => {
       expect(loadSpy).toHaveBeenCalled();
       expect(generate).toHaveBeenCalledWith(
         [
-          { id: ProfileId.fromId(profileId), version },
-          { id: ProfileId.fromId('other') },
+          ProfileId.fromId(profileId, version),
+          ProfileId.fromId('other', '1.0.0'),
         ],
         mockSuperJson,
         { logCb: expect.anything(), warnCb: expect.anything() }
@@ -226,8 +226,8 @@ describe('Generate CLI command', () => {
       expect(loadSpy).toHaveBeenCalled();
       expect(generate).toHaveBeenCalledWith(
         [
-          { id: ProfileId.fromId(profileId), version },
-          { id: ProfileId.fromId('other'), version: undefined },
+          ProfileId.fromId(profileId, version),
+          ProfileId.fromId('other', '1.0.0'),
         ],
         mockSuperJson,
         { logCb: undefined, warnCb: undefined }

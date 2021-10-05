@@ -174,11 +174,9 @@ describe('Install CLI logic', () => {
       const mockProfile = 'mock profile';
       mocked(fetchProfile).mockResolvedValue(mockProfile);
 
-      const profileId = 'starwars/character-information';
+      const profileId = ProfileId.fromId('starwars/character-information');
 
-      await expect(
-        getProfileFromStore(ProfileId.fromId(profileId))
-      ).resolves.toEqual({
+      await expect(getProfileFromStore(profileId)).resolves.toEqual({
         ast: mockProfileAst,
         info: mockProfileInfo,
         profile: mockProfile,
@@ -196,11 +194,9 @@ describe('Install CLI logic', () => {
         new CLIError('Not Found', { exit: 1 })
       );
 
-      const profileId = 'made-up';
+      const profileId = ProfileId.fromId('made-up');
 
-      await expect(
-        getProfileFromStore(ProfileId.fromId(profileId))
-      ).resolves.toBeUndefined();
+      await expect(getProfileFromStore(profileId)).resolves.toBeUndefined();
       expect(fetchProfileInfo).toHaveBeenCalledTimes(1);
       expect(fetchProfileInfo).toHaveBeenCalledWith(profileId);
       expect(fetchProfile).not.toHaveBeenCalled();
@@ -543,10 +539,7 @@ describe('Install CLI logic', () => {
 
       stubSuperJson.mergeProfile(profileId, { version: '1.0.1' });
       await expect(getExistingProfileIds(stubSuperJson)).resolves.toEqual([
-        {
-          profileId: ProfileId.fromId(profileId),
-          version: '1.0.1',
-        },
+        ProfileId.fromId(profileId, '1.0.1'),
       ]);
     });
 
@@ -636,7 +629,7 @@ describe('Install CLI logic', () => {
         const parsedProfileSpy = jest
           .spyOn(Parser, 'parseProfile')
           .mockResolvedValue(mockProfileAst);
-        const profileId = 'starwars/character-information';
+        const profileId = ProfileId.fromId('starwars/character-information');
 
         await expect(
           installProfiles({
@@ -644,10 +637,7 @@ describe('Install CLI logic', () => {
             requests: [
               {
                 kind: 'store',
-                profileId: ProfileId.fromParameters({
-                  scope: 'starwars',
-                  name: 'character-information',
-                }),
+                profileId,
                 versionKnown: false,
               },
             ],
@@ -665,16 +655,20 @@ describe('Install CLI logic', () => {
         expect(mockWrite).toHaveBeenCalledWith(expect.anything(), mockProfile, {
           dirs: true,
         });
-        expect(parsedProfileSpy).toHaveBeenCalledWith(mockProfile, profileId, {
-          profileName: 'character-information',
-          scope: 'starwars',
-        });
+        expect(parsedProfileSpy).toHaveBeenCalledWith(
+          mockProfile,
+          profileId.toString(),
+          {
+            profileName: 'character-information',
+            scope: 'starwars',
+          }
+        );
         expect(mockWrite).toHaveBeenCalledWith(
           '',
           JSON.stringify(
             {
               profiles: {
-                [profileId]: {
+                [profileId.withoutVersion]: {
                   version: '1.0.1',
                 },
               },
@@ -710,26 +704,29 @@ describe('Install CLI logic', () => {
         expect(fetchProfileInfo).toHaveBeenCalledTimes(2);
         expect(fetchProfile).toHaveBeenCalledTimes(2);
         expect(fetchProfileAST).toHaveBeenCalledTimes(2);
-        expect(fetchProfile).toHaveBeenNthCalledWith(1, 'starwars/first@1.0.0');
+        expect(fetchProfile).toHaveBeenNthCalledWith(
+          1,
+          ProfileId.fromId('starwars/first@1.0.0')
+        );
         expect(fetchProfile).toHaveBeenNthCalledWith(
           2,
-          'starwars/second@2.0.0'
+          ProfileId.fromId('starwars/second@2.0.0')
         );
         expect(fetchProfileInfo).toHaveBeenNthCalledWith(
           1,
-          'starwars/first@1.0.0'
+          ProfileId.fromId('starwars/first@1.0.0')
         );
         expect(fetchProfileInfo).toHaveBeenNthCalledWith(
           2,
-          'starwars/second@2.0.0'
+          ProfileId.fromId('starwars/second@2.0.0')
         );
         expect(fetchProfileAST).toHaveBeenNthCalledWith(
           1,
-          'starwars/first@1.0.0'
+          ProfileId.fromId('starwars/first@1.0.0')
         );
         expect(fetchProfileAST).toHaveBeenNthCalledWith(
           2,
-          'starwars/second@2.0.0'
+          ProfileId.fromId('starwars/second@2.0.0')
         );
 
         expect(mockWrite).toHaveBeenCalled();

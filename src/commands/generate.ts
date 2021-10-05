@@ -1,6 +1,10 @@
 import { flags as oclifFlags } from '@oclif/command';
 import { SuperJson } from '@superfaceai/one-sdk';
-import { parseDocumentId, ProfileId } from '@superfaceai/parser';
+import {
+  DEFAULT_PROFILE_VERSION,
+  parseDocumentId,
+  ProfileId,
+} from '@superfaceai/parser';
 import { bold, green, grey, yellow } from 'chalk';
 import { join as joinPath } from 'path';
 
@@ -93,7 +97,9 @@ export default class Generate extends Command {
       profiles.push(
         ProfileId.fromId(
           flags.profileId,
-          'version' in profileSettings ? `@${profileSettings.version}` : ''
+          'version' in profileSettings
+            ? profileSettings.version
+            : DEFAULT_PROFILE_VERSION.toString()
         )
       );
     } else {
@@ -103,7 +109,9 @@ export default class Generate extends Command {
         profiles.push(
           ProfileId.fromId(
             profile,
-            'version' in profileSettings ? `@${profileSettings.version}` : ''
+            'version' in profileSettings
+              ? profileSettings.version
+              : DEFAULT_PROFILE_VERSION.toString()
           )
         );
       }

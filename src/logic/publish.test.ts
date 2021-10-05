@@ -218,20 +218,8 @@ describe('Publish logic', () => {
       ).resolves.toBeUndefined();
 
       expect(createSpy).toHaveBeenCalledWith(mockProfileSource);
-      expect(loadProfile).toHaveBeenCalledWith(
-        mockSuperJson,
-        profile,
-        undefined,
-        undefined
-      );
-      expect(loadMap).toHaveBeenCalledWith(
-        mockSuperJson,
-        profile,
-        mockProviderName,
-        {},
-        undefined,
-        undefined
-      );
+      expect(loadProfile).toHaveBeenCalledWith(mockSuperJson, profile, {});
+      expect(loadMap).toHaveBeenCalledWith(map, mockSuperJson, {});
       expect(findLocalProviderSource).toHaveBeenCalledWith(
         mockSuperJson,
         mockProviderName
@@ -297,16 +285,9 @@ describe('Publish logic', () => {
       expect(loadProfile).toHaveBeenCalledWith(
         mockSuperJson,
         profile,
-        undefined,
         undefined
       );
-      expect(loadMap).toHaveBeenCalledWith(
-        mockSuperJson,
-        profile,
-        map,
-        undefined,
-        undefined
-      );
+      expect(loadMap).toHaveBeenCalledWith(map, mockSuperJson, undefined);
       expect(findLocalProviderSource).toHaveBeenCalledWith(
         mockSuperJson,
         mockProviderName
@@ -366,19 +347,8 @@ describe('Publish logic', () => {
       ).resolves.toBeUndefined();
 
       expect(createSpy).toHaveBeenCalledWith(mockProfileSource);
-      expect(loadProfile).toHaveBeenCalledWith(
-        mockSuperJson,
-        profile,
-        undefined,
-        undefined
-      );
-      expect(loadMap).toHaveBeenCalledWith(
-        mockSuperJson,
-        profile,
-        map,
-        undefined,
-        undefined
-      );
+      expect(loadProfile).toHaveBeenCalledWith(mockSuperJson, profile, {});
+      expect(loadMap).toHaveBeenCalledWith(map, mockSuperJson, {});
       expect(findLocalProviderSource).toHaveBeenCalledWith(
         mockSuperJson,
         mockProviderName
@@ -437,19 +407,12 @@ describe('Publish logic', () => {
       ).resolves.toBeUndefined();
 
       expect(createSpy).not.toHaveBeenCalled();
-      expect(loadProfile).toHaveBeenCalledWith(
-        mockSuperJson,
-        profile,
-        undefined,
-        { dryRun: true }
-      );
-      expect(loadMap).toHaveBeenCalledWith(
-        mockSuperJson,
-        profile,
-        map,
-        undefined,
-        { dryRun: true }
-      );
+      expect(loadProfile).toHaveBeenCalledWith(mockSuperJson, profile, {
+        dryRun: true,
+      });
+      expect(loadMap).toHaveBeenCalledWith(map, mockSuperJson, {
+        dryRun: true,
+      });
       expect(findLocalProviderSource).toHaveBeenCalledWith(
         mockSuperJson,
         mockProviderName
@@ -500,12 +463,9 @@ describe('Publish logic', () => {
         )
       );
 
-      expect(loadProfile).toHaveBeenCalledWith(
-        mockSuperJson,
-        profile,
-        undefined,
-        { dryRun: true }
-      );
+      expect(loadProfile).toHaveBeenCalledWith(mockSuperJson, profile, {
+        dryRun: true,
+      });
     });
 
     it('publishes map', async () => {
@@ -552,19 +512,8 @@ describe('Publish logic', () => {
       ).resolves.toBeUndefined();
 
       expect(createSpy).toHaveBeenCalledWith(mockMapSource);
-      expect(loadProfile).toHaveBeenCalledWith(
-        mockSuperJson,
-        profile,
-        undefined,
-        undefined
-      );
-      expect(loadMap).toHaveBeenCalledWith(
-        mockSuperJson,
-        profile,
-        map,
-        undefined,
-        undefined
-      );
+      expect(loadProfile).toHaveBeenCalledWith(mockSuperJson, profile, {});
+      expect(loadMap).toHaveBeenCalledWith(map, mockSuperJson, {});
       expect(findLocalProviderSource).toHaveBeenCalledWith(
         mockSuperJson,
         mockProviderName
@@ -635,17 +584,9 @@ describe('Publish logic', () => {
       expect(loadProfile).toHaveBeenCalledWith(
         mockSuperJson,
         profile,
-        version,
         undefined
       );
-      expect(loadMap).toHaveBeenCalledWith(
-        mockSuperJson,
-        profile,
-        mockProviderName,
-        {},
-        version,
-        undefined
-      );
+      expect(loadMap).toHaveBeenCalledWith(map, mockSuperJson, undefined);
       expect(findLocalProviderSource).toHaveBeenCalledWith(
         mockSuperJson,
         mockProviderName
@@ -712,19 +653,8 @@ describe('Publish logic', () => {
       ).resolves.toBeUndefined();
 
       expect(createSpy).toHaveBeenCalledWith(mockMapSource);
-      expect(loadProfile).toHaveBeenCalledWith(
-        mockSuperJson,
-        profile,
-        undefined
-      );
-      expect(loadMap).toHaveBeenCalledWith(
-        mockSuperJson,
-        profile,
-        mockProviderName,
-        {},
-        DEFAULT_PROFILE_VERSION.toString(),
-        undefined
-      );
+      expect(loadProfile).toHaveBeenCalledWith(mockSuperJson, profile, {});
+      expect(loadMap).toHaveBeenCalledWith(map, mockSuperJson, {});
       expect(findLocalProviderSource).toHaveBeenCalledWith(
         mockSuperJson,
         mockProviderName
@@ -784,7 +714,7 @@ describe('Publish logic', () => {
       expect(loadProfile).toHaveBeenCalledWith(mockSuperJson, profile, {
         dryRun: true,
       });
-      expect(loadMap).toHaveBeenCalledWith(mockSuperJson, profile, map, {
+      expect(loadMap).toHaveBeenCalledWith(map, mockSuperJson, {
         dryRun: true,
       });
       expect(findLocalProviderSource).toHaveBeenCalledWith(
@@ -867,12 +797,7 @@ describe('Publish logic', () => {
         profile,
         undefined
       );
-      expect(loadMap).toHaveBeenCalledWith(
-        mockSuperJson,
-        profile,
-        map,
-        undefined
-      );
+      expect(loadMap).toHaveBeenCalledWith(map, mockSuperJson, undefined);
       expect(findLocalProviderSource).toHaveBeenCalledWith(
         mockSuperJson,
         mockProviderName
@@ -924,7 +849,7 @@ describe('Publish logic', () => {
         publish('map', mockSuperJson, profile, map, { dryRun: true })
       ).rejects.toEqual(
         new CLIError(
-          `Map for profile: "${profile.toString()}" and provider: "${mockProviderName}" not found on local filesystem`
+          `Map: "starwars/character-information.swapi@1.0" not found on local filesystem`
         )
       );
 
@@ -997,12 +922,7 @@ describe('Publish logic', () => {
         profile,
         undefined
       );
-      expect(loadMap).toHaveBeenCalledWith(
-        mockSuperJson,
-        profile,
-        map,
-        undefined
-      );
+      expect(loadMap).toHaveBeenCalledWith(map, mockSuperJson, undefined);
       expect(findLocalProviderSource).toHaveBeenCalledWith(
         mockSuperJson,
         provider
@@ -1088,7 +1008,7 @@ describe('Publish logic', () => {
         profile,
         undefined
       );
-      expect(loadMap).toHaveBeenCalledWith(mockSuperJson, map, undefined);
+      expect(loadMap).toHaveBeenCalledWith(map, mockSuperJson, undefined);
       expect(findLocalProviderSource).toHaveBeenCalledWith(
         mockSuperJson,
         provider
@@ -1158,7 +1078,7 @@ describe('Publish logic', () => {
       expect(loadProfile).toHaveBeenCalledWith(mockSuperJson, profile, {
         dryRun: true,
       });
-      expect(loadMap).toHaveBeenCalledWith(mockSuperJson, map, {
+      expect(loadMap).toHaveBeenCalledWith(map, mockSuperJson, {
         dryRun: true,
       });
       expect(findLocalProviderSource).toHaveBeenCalledWith(
@@ -1237,7 +1157,7 @@ describe('Publish logic', () => {
       expect(loadProfile).toHaveBeenCalledWith(mockSuperJson, profile, {
         dryRun: true,
       });
-      expect(loadMap).toHaveBeenCalledWith(mockSuperJson, profile, map, {
+      expect(loadMap).toHaveBeenCalledWith(map, mockSuperJson, {
         dryRun: true,
       });
       expect(findLocalProviderSource).toHaveBeenCalledWith(
@@ -1352,7 +1272,7 @@ describe('Publish logic', () => {
       expect(loadProfile).toHaveBeenCalledWith(mockSuperJson, profile, {
         dryRun: true,
       });
-      expect(loadMap).toHaveBeenCalledWith(mockSuperJson, profile, map, {
+      expect(loadMap).toHaveBeenCalledWith(map, mockSuperJson, {
         dryRun: true,
       });
       expect(findLocalProviderSource).toHaveBeenCalledWith(
@@ -1446,7 +1366,7 @@ describe('Publish logic', () => {
       expect(loadProfile).toHaveBeenCalledWith(mockSuperJson, profile, {
         dryRun: true,
       });
-      expect(loadMap).toHaveBeenCalledWith(mockSuperJson, profile, map, {
+      expect(loadMap).toHaveBeenCalledWith(map, mockSuperJson, {
         dryRun: true,
       });
       expect(findLocalProviderSource).toHaveBeenCalledWith(
@@ -1532,7 +1452,7 @@ describe('Publish logic', () => {
         dryRun: true,
         json: true,
       });
-      expect(loadMap).toHaveBeenCalledWith(mockSuperJson, profile, map, {
+      expect(loadMap).toHaveBeenCalledWith(map, mockSuperJson, {
         dryRun: true,
         json: true,
       });

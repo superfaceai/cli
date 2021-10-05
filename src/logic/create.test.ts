@@ -23,7 +23,7 @@ describe('Create logic', () => {
     it('creates empty profile with scope', async () => {
       const mockBasePath = 'test-path';
       const mockProfile = ProfileId.fromId(`test-scope/test-name`);
-      const mockVersion = { major: 1 };
+      const mockVersion = { major: 1, minor: 0, patch: 0 };
       const mockSuperJson = new SuperJson({});
       const mockUsecaseNames = ['test-usecase'];
       const writeIfAbsentSpy = jest
@@ -60,7 +60,7 @@ describe('Create logic', () => {
       const mockBasePath = 'test-path';
       const mockFilename = 'mock-filename';
       const mockProfile = ProfileId.fromId(`test-scope/test-name`);
-      const mockVersion = { major: 1 };
+      const mockVersion = { major: 1, minor: 0, patch: 0 };
       const mockSuperJson = new SuperJson({});
       const mockUsecaseNames = ['test-usecase'];
       const writeIfAbsentSpy = jest
@@ -98,7 +98,7 @@ describe('Create logic', () => {
       const mockBasePath = 'test-path';
       const mockFilename = `mock-filename${EXTENSIONS.profile.source}`;
       const mockProfile = ProfileId.fromId(`test-scope/test-name`);
-      const mockVersion = { major: 1 };
+      const mockVersion = { major: 1, minor: 0, patch: 0 };
       const mockSuperJson = new SuperJson({});
       const mockUsecaseNames = ['test-usecase'];
       const writeIfAbsentSpy = jest
@@ -135,7 +135,7 @@ describe('Create logic', () => {
     it('creates empty profile without scope', async () => {
       const mockBasePath = 'test-path';
       const mockProfile = ProfileId.fromId(`test-name`);
-      const mockVersion = { major: 1 };
+      const mockVersion = { major: 1, minor: 0, patch: 0 };
       const mockSuperJson = new SuperJson({});
       const mockUsecaseNames = ['test-usecase'];
       const writeIfAbsentSpy = jest
@@ -177,7 +177,7 @@ describe('Create logic', () => {
           version: ProfileVersion.fromString('1.0.0'),
         }),
         provider: 'twilio',
-        version: MapVersion.fromVersionRange({ major: 1 }),
+        version: MapVersion.fromVersionRange({ major: 1, minor: 0, patch: 0 }),
       });
       const mockSuperJson = new SuperJson({});
       const mockUsecaseNames = ['test-usecase'];
@@ -210,7 +210,7 @@ describe('Create logic', () => {
           version: ProfileVersion.fromString('1.0.0'),
         }),
         provider: 'twilio',
-        version: MapVersion.fromVersionRange({ major: 1 }),
+        version: MapVersion.fromVersionRange({ major: 1, minor: 0, patch: 0 }),
       };
       const mockSuperJson = new SuperJson({});
       const mockUsecaseNames = ['test-usecase'];
@@ -243,7 +243,7 @@ describe('Create logic', () => {
           version: ProfileVersion.fromString('1.0.0'),
         }),
         provider: 'twilio',
-        version: MapVersion.fromVersionRange({ major: 1 }),
+        version: MapVersion.fromVersionRange({ major: 1, minor: 0, patch: 0 }),
         variant: 'bugfix',
       };
       const mockSuperJson = new SuperJson({});
@@ -278,7 +278,7 @@ describe('Create logic', () => {
           version: ProfileVersion.fromString('1.0.0'),
         }),
         provider: 'twilio',
-        version: MapVersion.fromVersionRange({ major: 1 }),
+        version: MapVersion.fromVersionRange({ major: 1, minor: 0, patch: 0 }),
         variant: 'bugfix',
       };
       const mockSuperJson = new SuperJson({});
@@ -319,7 +319,7 @@ describe('Create logic', () => {
           version: ProfileVersion.fromString('1.0.0'),
         }),
         provider: 'twilio',
-        version: MapVersion.fromVersionRange({ major: 1 }),
+        version: MapVersion.fromVersionRange({ major: 1, minor: 0, patch: 0 }),
         variant: 'bugfix',
       };
       const mockSuperJson = new SuperJson({});

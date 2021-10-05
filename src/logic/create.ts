@@ -226,7 +226,7 @@ export async function create(
         2
       );
     }
-    if (!version.minor) {
+    if (version.minor === undefined) {
       throw userError(
         'Minor version component must be provided when generating a map.',
         2
@@ -278,15 +278,15 @@ export async function create(
         2
       );
     }
-    if (!version.minor) {
+    if (version.minor === undefined) {
       throw userError(
-        'Minor version component must be provided when generating a map.',
+        'Minor version component must be provided when generating a profile.',
         2
       );
     }
-    if (!version.patch) {
+    if (version.patch === undefined) {
       throw userError(
-        'Patch version component must be provided when generating a map.',
+        'Patch version component must be provided when generating a profile.',
         2
       );
     }

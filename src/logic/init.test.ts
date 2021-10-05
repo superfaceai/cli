@@ -111,7 +111,7 @@ describe('Init logic', () => {
         generateSpecifiedProfiles(mockPath, mockSuperJson, mockProfileIds)
       ).rejects.toEqual(
         new CLIError(
-          'Invalid profile id: could not parse version: major component is not a valid number'
+          'Invalid version range: r!l - major component: r!l is not a valid number'
         )
       );
 

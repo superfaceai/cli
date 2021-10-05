@@ -2,6 +2,7 @@ import { flags as oclifFlags } from '@oclif/command';
 import { isValidProviderName, SuperJson } from '@superfaceai/one-sdk';
 import {
   DEFAULT_MAP_VERSION,
+  DEFAULT_PROFILE_VERSION,
   MapId,
   parseDocumentId,
   ProfileId,
@@ -171,7 +172,10 @@ export default class Lint extends Command {
         superJson.normalized.profiles
       )) {
         if ('file' in profileSettings) {
-          const profileId = ProfileId.fromId(profile);
+          const profileId = ProfileId.fromId(
+            profile,
+            DEFAULT_PROFILE_VERSION.toString()
+          );
           const maps: MapToLint[] = [];
           for (const [provider, profileProviderSettings] of Object.entries(
             profileSettings.providers
@@ -203,7 +207,11 @@ export default class Lint extends Command {
       let profileId: ProfileId;
       let path: string | undefined;
       if ('file' in profileSettings) {
-        profileId = ProfileId.fromId(flags.profileId);
+        //TODO: get profile version from file?
+        profileId = ProfileId.fromId(
+          flags.profileId,
+          DEFAULT_PROFILE_VERSION.toString()
+        );
         path = profileSettings.file;
       } else {
         profileId = ProfileId.fromId(flags.profileId, profileSettings.version);
@@ -245,7 +253,11 @@ export default class Lint extends Command {
       let profileId: ProfileId;
       let path: string | undefined;
       if ('file' in profileSettings) {
-        profileId = ProfileId.fromId(flags.profileId);
+        //TODO: get profile version from file?
+        profileId = ProfileId.fromId(
+          flags.profileId,
+          DEFAULT_PROFILE_VERSION.toString()
+        );
         path = profileSettings.file;
       } else {
         profileId = ProfileId.fromId(flags.profileId, profileSettings.version);

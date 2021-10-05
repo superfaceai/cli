@@ -1,7 +1,12 @@
 import { CLIError } from '@oclif/errors';
 import { EXTENSIONS } from '@superfaceai/ast';
 import { err, ok, SDKExecutionError, SuperJson } from '@superfaceai/one-sdk';
-import { DEFAULT_PROFILE_VERSION, ProfileId } from '@superfaceai/parser';
+import {
+  DEFAULT_MAP_VERSION,
+  DEFAULT_PROFILE_VERSION,
+  MapId,
+  ProfileId,
+} from '@superfaceai/parser';
 import inquirer from 'inquirer';
 import { mocked } from 'ts-jest/utils';
 
@@ -675,15 +680,20 @@ describe('Publish CLI command', () => {
 
       expect(promptSpy).toHaveBeenCalledTimes(2);
       expect(loadSpy).toHaveBeenCalled();
+
+      const expectedProfileId = ProfileId.fromId(
+        profileId,
+        DEFAULT_PROFILE_VERSION.toString()
+      );
       expect(publish).toHaveBeenCalledWith(
         'profile',
         mockSuperJson,
-        ProfileId.fromId(profileId),
-        provider,
-        {
-          variant: undefined,
-        },
-        undefined,
+        expectedProfileId,
+        MapId.fromParameters({
+          profile: expectedProfileId,
+          version: DEFAULT_MAP_VERSION,
+          provider,
+        }),
         {
           logCb: expect.anything(),
           dryRun: false,
@@ -739,15 +749,20 @@ describe('Publish CLI command', () => {
 
       expect(promptSpy).toHaveBeenCalledTimes(2);
       expect(loadSpy).toHaveBeenCalled();
+      const expectedProfileId = ProfileId.fromId(
+        profileId,
+        DEFAULT_PROFILE_VERSION.toString()
+      );
+
       expect(publish).toHaveBeenCalledWith(
         'map',
         mockSuperJson,
-        ProfileId.fromId(profileId),
-        provider,
-        {
-          variant: undefined,
-        },
-        DEFAULT_PROFILE_VERSION.toString(),
+        expectedProfileId,
+        MapId.fromParameters({
+          profile: expectedProfileId,
+          version: DEFAULT_MAP_VERSION,
+          provider,
+        }),
         {
           logCb: expect.anything(),
           dryRun: false,
@@ -812,15 +827,20 @@ describe('Publish CLI command', () => {
 
       expect(promptSpy).toHaveBeenCalledTimes(2);
       expect(loadSpy).toHaveBeenCalled();
+      const expectedProfileId = ProfileId.fromId(
+        profileId,
+        DEFAULT_PROFILE_VERSION.toString()
+      );
+
       expect(publish).toHaveBeenCalledWith(
         'provider',
         mockSuperJson,
-        ProfileId.fromId(profileId),
-        provider,
-        {
-          variant: undefined,
-        },
-        DEFAULT_PROFILE_VERSION.toString(),
+        expectedProfileId,
+        MapId.fromParameters({
+          profile: expectedProfileId,
+          version: DEFAULT_MAP_VERSION,
+          provider,
+        }),
         {
           logCb: expect.anything(),
           dryRun: false,
@@ -879,13 +899,20 @@ describe('Publish CLI command', () => {
 
       expect(promptSpy).not.toHaveBeenCalledTimes(1);
       expect(loadSpy).toHaveBeenCalled();
+      const expectedProfileId = ProfileId.fromId(
+        profileId,
+        DEFAULT_PROFILE_VERSION.toString()
+      );
+
       expect(publish).toHaveBeenCalledWith(
         'map',
         mockSuperJson,
-        ProfileId.fromId(profileId),
-        provider,
-        { variant: undefined },
-        DEFAULT_PROFILE_VERSION.toString(),
+        expectedProfileId,
+        MapId.fromParameters({
+          profile: expectedProfileId,
+          version: DEFAULT_MAP_VERSION,
+          provider,
+        }),
         {
           logCb: expect.anything(),
           dryRun: false,
@@ -944,13 +971,20 @@ describe('Publish CLI command', () => {
 
       expect(promptSpy).not.toHaveBeenCalledTimes(1);
       expect(loadSpy).toHaveBeenCalled();
+      const expectedProfileId = ProfileId.fromId(
+        profileId,
+        DEFAULT_PROFILE_VERSION.toString()
+      );
+
       expect(publish).toHaveBeenCalledWith(
         'map',
         mockSuperJson,
-        ProfileId.fromId(profileId),
-        provider,
-        { variant: undefined },
-        DEFAULT_PROFILE_VERSION.toString(),
+        expectedProfileId,
+        MapId.fromParameters({
+          profile: expectedProfileId,
+          version: DEFAULT_MAP_VERSION,
+          provider,
+        }),
         {
           logCb: expect.anything(),
           dryRun: false,
@@ -1013,15 +1047,20 @@ describe('Publish CLI command', () => {
 
       expect(promptSpy).toHaveBeenCalledTimes(2);
       expect(loadSpy).toHaveBeenCalled();
+      const expectedProfileId = ProfileId.fromId(
+        profileId,
+        DEFAULT_PROFILE_VERSION.toString()
+      );
+
       expect(publish).toHaveBeenCalledWith(
         'provider',
         mockSuperJson,
-        ProfileId.fromId(profileId),
-        provider,
-        {
-          variant: undefined,
-        },
-        DEFAULT_PROFILE_VERSION.toString(),
+        expectedProfileId,
+        MapId.fromParameters({
+          profile: expectedProfileId,
+          version: DEFAULT_MAP_VERSION,
+          provider,
+        }),
         {
           logCb: expect.anything(),
           dryRun: true,
@@ -1086,15 +1125,20 @@ describe('Publish CLI command', () => {
 
       expect(promptSpy).toHaveBeenCalledTimes(2);
       expect(loadSpy).toHaveBeenCalled();
+      const expectedProfileId = ProfileId.fromId(
+        profileId,
+        DEFAULT_PROFILE_VERSION.toString()
+      );
+
       expect(publish).toHaveBeenCalledWith(
         'provider',
         mockSuperJson,
-        ProfileId.fromId(profileId),
-        provider,
-        {
-          variant: undefined,
-        },
-        DEFAULT_PROFILE_VERSION.toString(),
+        expectedProfileId,
+        MapId.fromParameters({
+          profile: expectedProfileId,
+          version: DEFAULT_MAP_VERSION,
+          provider,
+        }),
         {
           logCb: expect.anything(),
           quiet: false,
@@ -1159,15 +1203,20 @@ describe('Publish CLI command', () => {
 
       expect(promptSpy).toHaveBeenCalledTimes(2);
       expect(loadSpy).toHaveBeenCalled();
+      const expectedProfileId = ProfileId.fromId(
+        profileId,
+        DEFAULT_PROFILE_VERSION.toString()
+      );
+
       expect(publish).toHaveBeenCalledWith(
         'profile',
         mockSuperJson,
-        ProfileId.fromId(profileId),
-        provider,
-        {
-          variant: undefined,
-        },
-        undefined,
+        expectedProfileId,
+        MapId.fromParameters({
+          profile: expectedProfileId,
+          version: DEFAULT_MAP_VERSION,
+          provider,
+        }),
         {
           logCb: undefined,
           dryRun: false,
@@ -1221,15 +1270,20 @@ describe('Publish CLI command', () => {
 
       expect(promptSpy).toHaveBeenCalledTimes(1);
       expect(loadSpy).toHaveBeenCalled();
+      const expectedProfileId = ProfileId.fromId(
+        profileId,
+        DEFAULT_PROFILE_VERSION.toString()
+      );
+
       expect(publish).toHaveBeenCalledWith(
         'profile',
         mockSuperJson,
-        ProfileId.fromId(profileId),
-        provider,
-        {
-          variant: undefined,
-        },
-        undefined,
+        expectedProfileId,
+        MapId.fromParameters({
+          profile: expectedProfileId,
+          version: DEFAULT_MAP_VERSION,
+          provider,
+        }),
         {
           logCb: undefined,
           dryRun: false,

@@ -19,10 +19,9 @@ export async function findLocalProfileSource(
   }
 
   //try to look in the grid for source file
-  const basePath = profile.scope ? joinPath('grid', profile.scope) : 'grid';
   if (profile.version) {
     const path = joinPath(
-      basePath,
+      'grid',
       `${profile.toString()}${EXTENSIONS.profile.source}`
     );
     const resolvedPath = superJson.resolvePath(path);
@@ -31,6 +30,7 @@ export async function findLocalProfileSource(
     }
   } else {
     //Look for any version
+    const basePath = profile.scope ? joinPath('grid', profile.scope) : 'grid';
     const scopePath = superJson.resolvePath(basePath);
     if (await exists(scopePath)) {
       //Get files in profile directory

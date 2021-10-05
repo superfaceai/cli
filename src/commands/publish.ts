@@ -242,8 +242,8 @@ export default class Publish extends Command {
       MapId.fromParameters({
         profile: profileId,
         provider: flags.providerName,
-        version: MapVersion.fromString(
-          version ?? DEFAULT_PROFILE_VERSION.toString()
+        version: MapVersion.fromVersionRange(
+          profileId.version ?? DEFAULT_PROFILE_VERSION
         ),
         variant,
       }),

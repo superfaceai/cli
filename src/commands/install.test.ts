@@ -68,6 +68,7 @@ describe('Install CLI command', () => {
               scope: 'starwars',
               name: 'character-information',
             }),
+            versionKnown: false,
           },
         ],
         options: {
@@ -93,6 +94,7 @@ describe('Install CLI command', () => {
               scope: 'starwars',
               name: 'character-information',
             }),
+            versionKnown: false,
           },
         ],
         options: {
@@ -118,6 +120,7 @@ describe('Install CLI command', () => {
               scope: 'starwars',
               name: 'character-information',
             }),
+            versionKnown: false,
           },
         ],
         options: {
@@ -222,6 +225,7 @@ describe('Install CLI command', () => {
               scope: 'starwars',
               name: 'character-information',
             }),
+            versionKnown: false,
           },
         ],
         options: {
@@ -279,6 +283,7 @@ describe('Install CLI command', () => {
               scope: 'starwars',
               name: 'character-information',
             }),
+            versionKnown: false,
           },
         ],
         options: {
