@@ -1,10 +1,10 @@
 import { CLIError } from '@oclif/errors';
 import { MapDocumentNode, ProfileDocumentNode } from '@superfaceai/ast';
 import { Parser, SuperJson } from '@superfaceai/one-sdk';
+import { ProfileId } from '@superfaceai/parser';
 import { mocked } from 'ts-jest/utils';
 
 import { fetchMapAST, fetchProfileAST } from '../common/http';
-import { ProfileId } from '../common/profile';
 import { ProfileMapReport } from '../common/report.interfaces';
 import { findLocalMapSource, findLocalProfileSource } from './check.utils';
 import {
@@ -286,7 +286,7 @@ describe('Publish logic utils', () => {
 
       expect(parseProfileSpy).toHaveBeenCalledWith(
         mockProfileSource,
-        mockProfile.id,
+        mockProfile.withoutVersion,
         {
           profileName: mockProfile.name,
           scope: mockProfile.scope,
@@ -304,7 +304,7 @@ describe('Publish logic utils', () => {
       });
 
       expect(parseProfileSpy).not.toHaveBeenCalled();
-      expect(fetchProfileAST).toHaveBeenCalledWith(mockProfile.id);
+      expect(fetchProfileAST).toHaveBeenCalledWith(mockProfile);
     });
   });
 

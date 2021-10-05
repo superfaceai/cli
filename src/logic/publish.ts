@@ -1,4 +1,5 @@
 import { SuperJson } from '@superfaceai/one-sdk';
+import { MapId, ProfileId } from '@superfaceai/parser';
 import { ServiceApiError } from '@superfaceai/service-client';
 import { yellow } from 'chalk';
 
@@ -7,7 +8,6 @@ import { userError } from '../common/error';
 import { fetchProviderInfo, SuperfaceClient } from '../common/http';
 import { LogCallback } from '../common/log';
 import { loadNetrc } from '../common/netrc';
-import { ProfileId } from '../common/profile';
 import {
   formatHuman as checkFormatHuman,
   formatJson as checkFormatJson,
@@ -28,11 +28,7 @@ export async function publish(
   publishing: 'map' | 'profile' | 'provider',
   superJson: SuperJson,
   profile: ProfileId,
-  provider: string,
-  map: {
-    variant?: string;
-  },
-  version?: string,
+  map: MapId,
   options?: {
     logCb?: LogCallback;
     dryRun?: boolean;
@@ -41,44 +37,42 @@ export async function publish(
   }
 ): Promise<string | undefined> {
   //Profile
-  const profileFiles = await loadProfile(superJson, profile, version, options);
+  const profileFiles = await loadProfile(superJson, profile, options);
   if (!profileFiles.source && publishing === 'profile') {
     throw userError(
-      `Profile: "${profile.id}" not found on local file system`,
+      `Profile: "${profile.toString()}" not found on local file system`,
       1
     );
   }
   //Map
-  const mapFiles = await loadMap(
-    superJson,
-    profile,
-    provider,
-    map,
-    version,
-    options
-  );
+  const mapFiles = await loadMap(map, superJson, options);
   if (!mapFiles.source && publishing == 'map') {
     throw userError(
-      `Map for profile: "${profile.id}" and provider: "${provider}" not found on local filesystem`,
+      `Map for profile: "${map.toString()}" not found on local filesystem`,
       1
     );
   }
 
   //Provider
   let providerJson;
-  const localProviderJson = await findLocalProviderSource(superJson, provider);
+  const localProviderJson = await findLocalProviderSource(
+    superJson,
+    map.provider
+  );
   if (!localProviderJson && publishing === 'provider') {
     throw userError(
-      `Provider: "${provider}" not found on local file system`,
+      `Provider: "${map.provider}" not found on local file system`,
       1
     );
   }
   if (localProviderJson) {
     providerJson = localProviderJson;
-    options?.logCb?.(`Provider: "${provider}" found on local file system`);
+    options?.logCb?.(`Provider: "${map.provider}" found on local file system`);
   } else {
-    options?.logCb?.(`Loading provider: "${provider}" from Superface store`);
-    providerJson = await fetchProviderInfo(provider);
+    options?.logCb?.(
+      `Loading provider: "${map.provider}" from Superface store`
+    );
+    providerJson = await fetchProviderInfo(map.provider);
   }
 
   //Check
@@ -173,7 +167,7 @@ export async function publish(
   const client = SuperfaceClient.getClient();
 
   if (publishing === 'provider') {
-    options?.logCb?.(`Publishing provider "${provider}"`);
+    options?.logCb?.(`Publishing provider "${map.provider}"`);
     if (!options?.dryRun) {
       await client.createProvider(JSON.stringify(providerJson));
     }
@@ -184,7 +178,7 @@ export async function publish(
     }
   } else if (publishing === 'map' && mapFiles.source) {
     options?.logCb?.(
-      `Publishing map for profile "${profile.name}" and provider "${provider}"`
+      `Publishing map for profile "${profile.name}" and provider "${map.provider}"`
     );
 
     if (!options?.dryRun) {

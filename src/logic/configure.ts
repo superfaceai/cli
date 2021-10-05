@@ -5,6 +5,7 @@ import {
   SecurityScheme,
   SuperJson,
 } from '@superfaceai/one-sdk';
+import { ProfileId } from '@superfaceai/parser';
 import { join as joinPath } from 'path';
 
 import {
@@ -16,7 +17,6 @@ import { fetchProviderInfo } from '../common/http';
 import { readFile, readFileQuiet } from '../common/io';
 import { formatShellLog, LogCallback } from '../common/log';
 import { OutputStream } from '../common/output-stream';
-import { ProfileId } from '../common/profile';
 import { prepareEnvVariables } from '../templates/env';
 import { prepareSecurityValues } from './configure.utils';
 
@@ -96,7 +96,11 @@ export function handleProviderResponse(
       };
     }
   }
-  superJson.setProfileProvider(profileId.id, response.name, settings);
+  superJson.setProfileProvider(
+    profileId.withoutVersion,
+    response.name,
+    settings
+  );
 
   return security.length;
 }
@@ -154,9 +158,9 @@ export async function installProvider(parameters: {
   );
 
   //Check profile existance
-  if (!superJson.normalized.profiles[parameters.profileId.id]) {
+  if (!superJson.normalized.profiles[parameters.profileId.withoutVersion]) {
     throw userError(
-      `❌ profile ${parameters.profileId.id} not found in "${superJsonPath}".`,
+      `❌ profile ${parameters.profileId.withoutVersion} not found in "${superJsonPath}".`,
       1
     );
   }
@@ -267,5 +271,9 @@ export async function reconfigureProfileProvider(
   }
 ): Promise<void> {
   // TODO: Possibly do checks whether the remote file exists?
-  superJson.swapProfileProviderVariant(profileId.id, providerName, target);
+  superJson.swapProfileProviderVariant(
+    profileId.withoutVersion,
+    providerName,
+    target
+  );
 }

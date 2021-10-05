@@ -1,12 +1,11 @@
 import { CLIError } from '@oclif/errors';
 import { ok, SuperJson } from '@superfaceai/one-sdk';
-import { parseProfileId } from '@superfaceai/parser';
+import { ProfileId, ProfileVersion } from '@superfaceai/parser';
 import { mocked } from 'ts-jest/utils';
 
 import { composeUsecaseName } from '../common/document';
 import { mkdir, mkdirQuiet } from '../common/io';
 import { OutputStream } from '../common/output-stream';
-import { ProfileId } from '../common/profile';
 import { createProfile } from './create';
 import { generateSpecifiedProfiles, initSuperface } from './init';
 
@@ -14,11 +13,6 @@ import { generateSpecifiedProfiles, initSuperface } from './init';
 jest.mock('../common/io', () => ({
   mkdir: jest.fn(),
   mkdirQuiet: jest.fn(),
-}));
-
-//Mock parser
-jest.mock('@superfaceai/parser', () => ({
-  parseProfileId: jest.fn(),
 }));
 
 //Mock create profile
@@ -71,41 +65,24 @@ describe('Init logic', () => {
     });
 
     it('creates profile', async () => {
-      mocked(parseProfileId)
-        .mockReturnValueOnce({
-          kind: 'parsed',
-          value: {
-            name: 'first-test-name',
-            version: { major: 1 },
-          },
-        })
-        .mockReturnValueOnce({
-          kind: 'parsed',
-          value: {
-            name: 'second-test-name',
-            version: { major: 2 },
-          },
-        });
       mocked(createProfile).mockResolvedValue(undefined);
       const mockPath = 'test';
       const mockSuperJson = new SuperJson({});
-      const mockProfileIds = ['first-profile-id', 'second-profile-id'];
+      const mockProfileIds = ['first-profile@1.1.0', 'second-profile@2.1.0'];
 
       await expect(
         generateSpecifiedProfiles(mockPath, mockSuperJson, mockProfileIds)
       ).resolves.toBeUndefined();
 
-      expect(parseProfileId).toHaveBeenCalledTimes(2);
-      expect(parseProfileId).toHaveBeenNthCalledWith(1, 'first-profile-id');
-      expect(parseProfileId).toHaveBeenNthCalledWith(2, 'second-profile-id');
-
       expect(createProfile).toHaveBeenCalledTimes(2);
       expect(createProfile).toHaveBeenNthCalledWith(
         1,
         'test/superface/grid',
-        ProfileId.fromScopeName(undefined, 'first-test-name'),
-        { major: 1 },
-        [composeUsecaseName('first-test-name')],
+        ProfileId.fromParameters({
+          version: ProfileVersion.fromString('1.1.0'),
+          name: 'first-profile',
+        }),
+        [composeUsecaseName('first-profile')],
         mockSuperJson,
         undefined,
         { logCb: undefined }
@@ -113,9 +90,11 @@ describe('Init logic', () => {
       expect(createProfile).toHaveBeenNthCalledWith(
         2,
         'test/superface/grid',
-        ProfileId.fromScopeName(undefined, 'second-test-name'),
-        { major: 2 },
-        [composeUsecaseName('second-test-name')],
+        ProfileId.fromParameters({
+          version: ProfileVersion.fromString('2.1.0'),
+          name: 'second-profile',
+        }),
+        [composeUsecaseName('second-profile')],
         mockSuperJson,
         undefined,
         { logCb: undefined }
@@ -123,21 +102,18 @@ describe('Init logic', () => {
     });
 
     it('does not create profile if there is a parse error', async () => {
-      mocked(parseProfileId).mockReturnValue({
-        kind: 'error',
-        message: 'mockMessage',
-      });
       mocked(createProfile).mockResolvedValue(undefined);
       const mockPath = 'test';
       const mockSuperJson = new SuperJson({});
-      const mockProfileIds = ['first-profile-id'];
+      const mockProfileIds = ['first-profile-id@r!l'];
 
       await expect(
         generateSpecifiedProfiles(mockPath, mockSuperJson, mockProfileIds)
-      ).rejects.toEqual(new CLIError('Wrong profile Id'));
-
-      expect(parseProfileId).toHaveBeenCalledTimes(1);
-      expect(parseProfileId).toHaveBeenCalledWith('first-profile-id');
+      ).rejects.toEqual(
+        new CLIError(
+          'Invalid profile id: could not parse version: major component is not a valid number'
+        )
+      );
 
       expect(createProfile).not.toHaveBeenCalled();
     });

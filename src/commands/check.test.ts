@@ -1,9 +1,15 @@
 import { CLIError } from '@oclif/errors';
-import { err, ok, SuperJson } from '@superfaceai/one-sdk';
-import { SDKExecutionError } from '@superfaceai/one-sdk/dist/internal/errors';
+import { err, ok, SDKExecutionError, SuperJson } from '@superfaceai/one-sdk';
+import {
+  DEFAULT_MAP_VERSION,
+  DEFAULT_PROFILE_VERSION,
+  MapId,
+  MapVersion,
+  ProfileId,
+  ProfileVersion,
+} from '@superfaceai/parser';
 import { mocked } from 'ts-jest/utils';
 
-import { ProfileId } from '../common/profile';
 import { check, CheckResult, formatHuman, formatJson } from '../logic/check';
 import { detectSuperJson } from '../logic/install';
 import { MockStd, mockStd } from '../test/mock-std';
@@ -279,15 +285,77 @@ describe('Check CLI command', () => {
       ).resolves.toBeUndefined();
       expect(detectSuperJson).toHaveBeenCalled();
       expect(loadSpy).toHaveBeenCalled();
+      const expectedProfileId = ProfileId.fromParameters({
+        scope: 'starwars',
+        name: 'character-information',
+        version: DEFAULT_PROFILE_VERSION,
+      });
       expect(check).toHaveBeenCalledWith(
         mockSuperJson,
-        {
-          id: ProfileId.fromScopeName('starwars', 'character-information'),
-          version: undefined,
-        },
-        provider,
-        { variant: undefined },
+        expectedProfileId,
+        MapId.fromParameters({
+          profile: expectedProfileId,
+          provider,
+          version: DEFAULT_MAP_VERSION,
+        }),
         { logCb: expect.anything(), warnCb: expect.anything() }
+      );
+      expect(stdout.output).toEqual('format-human\n');
+      expect(formatHuman).toHaveBeenCalledWith(mockResult);
+    });
+
+    it('formats result to human readable format, profile with version, map with variant', async () => {
+      mocked(detectSuperJson).mockResolvedValue('.');
+      mocked(check).mockResolvedValue(mockResult);
+      const mockSuperJson = new SuperJson({
+        profiles: {
+          [profileId]: {
+            version: '1.2.3',
+            providers: {
+              [provider]: {
+                mapVariant: 'test',
+              },
+            },
+          },
+        },
+        providers: {
+          [provider]: {},
+        },
+      });
+      const loadSpy = jest
+        .spyOn(SuperJson, 'load')
+        .mockResolvedValue(ok(mockSuperJson));
+      mocked(formatHuman).mockReturnValue('format-human');
+
+      await expect(
+        Check.run([
+          '--profileId',
+          profileId,
+          '--providerName',
+          provider,
+          '-s',
+          '3',
+          '-q',
+        ])
+      ).resolves.toBeUndefined();
+      expect(detectSuperJson).toHaveBeenCalled();
+      expect(loadSpy).toHaveBeenCalled();
+      const expectedProfileId = ProfileId.fromParameters({
+        scope: 'starwars',
+        name: 'character-information',
+        version: ProfileVersion.fromString('1.2.3'),
+      });
+
+      expect(check).toHaveBeenCalledWith(
+        mockSuperJson,
+        expectedProfileId,
+        MapId.fromParameters({
+          profile: expectedProfileId,
+          provider,
+          version: MapVersion.fromString('1.2'),
+          variant: 'test',
+        }),
+        { logCb: undefined, warnCb: undefined }
       );
       expect(stdout.output).toEqual('format-human\n');
       expect(formatHuman).toHaveBeenCalledWith(mockResult);
@@ -327,14 +395,20 @@ describe('Check CLI command', () => {
       ).resolves.toBeUndefined();
       expect(detectSuperJson).toHaveBeenCalled();
       expect(loadSpy).toHaveBeenCalled();
+      const expectedProfileId = ProfileId.fromParameters({
+        scope: 'starwars',
+        name: 'character-information',
+        version: DEFAULT_PROFILE_VERSION,
+      });
+
       expect(check).toHaveBeenCalledWith(
         mockSuperJson,
-        {
-          id: ProfileId.fromScopeName('starwars', 'character-information'),
-          version: undefined,
-        },
-        provider,
-        { variant: undefined },
+        expectedProfileId,
+        MapId.fromParameters({
+          profile: expectedProfileId,
+          provider,
+          version: DEFAULT_MAP_VERSION,
+        }),
         { logCb: undefined, warnCb: undefined }
       );
       expect(stdout.output).toEqual('format-human\n');
@@ -378,14 +452,20 @@ describe('Check CLI command', () => {
       ).resolves.toBeUndefined();
       expect(detectSuperJson).toHaveBeenCalled();
       expect(loadSpy).toHaveBeenCalled();
+      const expectedProfileId = ProfileId.fromParameters({
+        scope: 'starwars',
+        name: 'character-information',
+        version: DEFAULT_PROFILE_VERSION,
+      });
+
       expect(check).toHaveBeenCalledWith(
         mockSuperJson,
-        {
-          id: ProfileId.fromScopeName('starwars', 'character-information'),
-          version: undefined,
-        },
-        provider,
-        { variant: undefined },
+        expectedProfileId,
+        MapId.fromParameters({
+          profile: expectedProfileId,
+          provider,
+          version: DEFAULT_MAP_VERSION,
+        }),
         { logCb: undefined, warnCb: undefined }
       );
       expect(stdout.output).toContain('[{"kind": "error", "message": "test"}]');

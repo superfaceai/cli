@@ -1,6 +1,7 @@
 import { flags as oclifFlags } from '@oclif/command';
 import { isValidDocumentName } from '@superfaceai/ast';
 import { isValidProviderName } from '@superfaceai/one-sdk';
+import { ProfileId } from '@superfaceai/parser';
 import { bold, green, grey, yellow } from 'chalk';
 import { join as joinPath } from 'path';
 
@@ -9,7 +10,6 @@ import { META_FILE, SUPERFACE_DIR } from '../common/document';
 import { userError } from '../common/error';
 import { LogCallback } from '../common/log';
 import { NORMALIZED_CWD_PATH } from '../common/path';
-import { ProfileId } from '../common/profile';
 import { installProvider } from '../logic/configure';
 import { initSuperface } from '../logic/init';
 import {
@@ -176,8 +176,7 @@ export default class Install extends Command {
           path: profileArg,
         });
       } else {
-        const [id, version] = profileArg.split('@');
-        const profileId = ProfileId.fromId(id);
+        const profileId = ProfileId.fromId(profileArg);
 
         if (!isValidDocumentName(profileId.name)) {
           this.warnCallback?.(`Invalid profile name: ${profileId.name}`);
@@ -187,7 +186,7 @@ export default class Install extends Command {
         requests.push({
           kind: 'store',
           profileId,
-          version,
+          versionKnown: profileId.version !== undefined,
         });
       }
     } else {

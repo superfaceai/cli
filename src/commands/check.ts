@@ -1,13 +1,19 @@
 import { flags as oclifFlags } from '@oclif/command';
 import { isValidProviderName, SuperJson } from '@superfaceai/one-sdk';
-import { parseDocumentId } from '@superfaceai/parser';
+import {
+  DEFAULT_PROFILE_VERSION,
+  MapId,
+  MapVersion,
+  parseDocumentId,
+  ProfileId,
+  ProfileVersion,
+} from '@superfaceai/parser';
 import { grey, yellow } from 'chalk';
 import { join as joinPath } from 'path';
 
 import { META_FILE } from '../common';
 import { Command } from '../common/command.abstract';
 import { userError } from '../common/error';
-import { ProfileId } from '../common/profile';
 import { check, formatHuman, formatJson } from '../logic/check';
 import { detectSuperJson } from '../logic/install';
 
@@ -89,15 +95,7 @@ export default class Check extends Command {
       throw userError(`Invalid provider name: "${flags.providerName}"`, 1);
     }
 
-    const profile: {
-      name: string;
-      scope?: string;
-      version?: string;
-    } = {
-      name: parsedProfileId.value.middle[0],
-      scope: parsedProfileId.value.scope,
-    };
-
+    let profileVersion: ProfileVersion | undefined = undefined;
     //Get profile info
     const profileSettings = superJson.normalized.profiles[flags.profileId];
     if (!profileSettings) {
@@ -108,13 +106,17 @@ export default class Check extends Command {
     }
 
     if ('version' in profileSettings) {
-      profile.version = profileSettings.version;
+      profileVersion = ProfileVersion.fromString(profileSettings.version);
     }
 
+    const profileId = ProfileId.fromParameters({
+      scope: parsedProfileId.value.scope,
+      version: profileVersion ?? DEFAULT_PROFILE_VERSION,
+      name: parsedProfileId.value.middle[0],
+    });
+
     //Get map info
-    const map: {
-      variant?: string;
-    } = {};
+    let variant: string | undefined = undefined;
     const profileProviderSettings =
       superJson.normalized.profiles[flags.profileId].providers[
         flags.providerName
@@ -129,8 +131,17 @@ export default class Check extends Command {
 
     //TODO: how to resolve map revision??
     if ('mapVariant' in profileProviderSettings) {
-      map.variant = profileProviderSettings.mapVariant;
+      variant = profileProviderSettings.mapVariant;
     }
+
+    const mapId = MapId.fromParameters({
+      profile: profileId,
+      provider: flags.providerName,
+      version: MapVersion.fromVersionRange(
+        profileId.version || DEFAULT_PROFILE_VERSION
+      ),
+      variant,
+    });
 
     //Get provider info
     const providerSettings = superJson.normalized.providers[flags.providerName];
@@ -142,19 +153,10 @@ export default class Check extends Command {
       );
     }
 
-    const result = await check(
-      superJson,
-      {
-        id: ProfileId.fromScopeName(profile.scope, profile.name),
-        version: profile.version,
-      },
-      flags.providerName,
-      map,
-      {
-        logCb: this.logCallback,
-        warnCb: this.warnCallback,
-      }
-    );
+    const result = await check(superJson, profileId, mapId, {
+      logCb: this.logCallback,
+      warnCb: this.warnCallback,
+    });
     if (flags.json) {
       this.log(formatJson(result));
     } else {

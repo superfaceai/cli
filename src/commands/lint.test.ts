@@ -1,10 +1,10 @@
 import { CLIError } from '@oclif/errors';
 import { err, ok, SuperJson } from '@superfaceai/one-sdk';
 import { SDKExecutionError } from '@superfaceai/one-sdk/dist/internal/errors';
+import { ProfileId } from '@superfaceai/parser';
 import { mocked } from 'ts-jest/utils';
 
 import { OutputStream } from '../common/output-stream';
-import { ProfileId } from '../common/profile';
 import { detectSuperJson } from '../logic/install';
 import { lint } from '../logic/lint';
 import Lint from './lint';

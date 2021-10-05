@@ -1,5 +1,6 @@
 import { flags as oclifFlags } from '@oclif/command';
 import { isValidProviderName } from '@superfaceai/one-sdk';
+import { ProfileId } from '@superfaceai/parser';
 import { grey, yellow } from 'chalk';
 import { join as joinPath } from 'path';
 
@@ -7,7 +8,6 @@ import { Command } from '../common/command.abstract';
 import { META_FILE, SUPERFACE_DIR } from '../common/document';
 import { userError } from '../common/error';
 import { exists } from '../common/io';
-import { ProfileId } from '../common/profile';
 import { installProvider } from '../logic/configure';
 import { initSuperface } from '../logic/init';
 import { detectSuperJson } from '../logic/install';

@@ -12,6 +12,7 @@ import {
   ProviderJson,
   SuperJson,
 } from '@superfaceai/one-sdk';
+import { MapId, ProfileId } from '@superfaceai/parser';
 import { green, red, yellow } from 'chalk';
 
 import { userError } from '../common/error';
@@ -21,7 +22,6 @@ import {
   fetchProviderInfo,
 } from '../common/http';
 import { LogCallback } from '../common/log';
-import { ProfileId } from '../common/profile';
 import {
   findLocalMapSource,
   findLocalProfileSource,
@@ -33,14 +33,8 @@ export type CheckResult = { kind: 'error' | 'warn'; message: string };
 
 export async function check(
   superJson: SuperJson,
-  profile: {
-    id: ProfileId;
-    version?: string;
-  },
-  provider: string,
-  map: {
-    variant?: string;
-  },
+  profile: ProfileId,
+  map: MapId,
   options?: { logCb?: LogCallback; warnCb?: LogCallback }
 ): Promise<CheckResult[]> {
   let profileAst: ProfileDocumentNode;
@@ -49,25 +43,22 @@ export async function check(
   let numberOfRemoteFilesUsed = 0;
 
   //Load profile AST
-  const profileId = `${profile.id.id}${
-    profile.version ? `@${profile.version}` : ''
-  }`;
-  const profileSource = await findLocalProfileSource(
-    superJson,
-    profile.id,
-    profile.version
-  );
+  const profileSource = await findLocalProfileSource(superJson, profile);
   if (profileSource) {
     //Enforce parsing
-    profileAst = await Parser.parseProfile(profileSource, profileId, {
-      profileName: profile.id.name,
-      scope: profile.id.scope,
+    profileAst = await Parser.parseProfile(profileSource, profile.toString(), {
+      profileName: profile.name,
+      scope: profile.scope,
     });
-    options?.logCb?.(`Profile: "${profileId}" found on local file system`);
+    options?.logCb?.(
+      `Profile: "${profile.toString()}" found on local file system`
+    );
   } else {
     //Load from store
-    options?.logCb?.(`Loading profile: "${profileId}" from Superface store`);
-    profileAst = await fetchProfileAST(profileId);
+    options?.logCb?.(
+      `Loading profile: "${profile.toString()}" from Superface store`
+    );
+    profileAst = await fetchProfileAST(profile);
     numberOfRemoteFilesUsed++;
   }
   if (!isProfileDocumentNode(profileAst)) {
@@ -75,33 +66,31 @@ export async function check(
   }
 
   //Load map AST
-  const mapSource = await findLocalMapSource(superJson, profile.id, provider);
+  const mapSource = await findLocalMapSource(superJson, map);
   if (mapSource) {
     //Enforce parsing
     mapAst = await Parser.parseMap(
       mapSource,
-      `${profile.id.name}.${provider}`,
+      `${profile.name}.${map.provider}`,
       {
-        profileName: profile.id.name,
-        scope: profile.id.scope,
-        providerName: provider,
+        profileName: profile.name,
+        scope: profile.scope,
+        providerName: map.provider,
       }
     );
     options?.logCb?.(
-      `Map for profile: "${profileId}" and provider: "${provider}" found on local filesystem`
+      `Map for profile: "${profile.toString()}" and provider: "${
+        map.provider
+      }" found on local filesystem`
     );
   } else {
     //Load from store
     options?.logCb?.(
-      `Loading map for profile: "${profileId}" and provider: "${provider}" from Superface store`
+      `Loading map for profile: "${profile.toString()}" and provider: "${
+        map.provider
+      }" from Superface store`
     );
-    mapAst = await fetchMapAST(
-      profile.id.name,
-      provider,
-      profile.id.scope,
-      profile.version,
-      map.variant
-    );
+    mapAst = await fetchMapAST(map);
     numberOfRemoteFilesUsed++;
   }
 
@@ -110,13 +99,18 @@ export async function check(
   }
 
   //Load provider.json
-  const localProviderJson = await findLocalProviderSource(superJson, provider);
+  const localProviderJson = await findLocalProviderSource(
+    superJson,
+    map.provider
+  );
   if (localProviderJson) {
     providerJson = localProviderJson;
-    options?.logCb?.(`Provider: "${provider}" found on local file system`);
+    options?.logCb?.(`Provider: "${map.provider}" found on local file system`);
   } else {
-    options?.logCb?.(`Loading provider: "${provider}" from Superface store`);
-    providerJson = await fetchProviderInfo(provider);
+    options?.logCb?.(
+      `Loading provider: "${map.provider}" from Superface store`
+    );
+    providerJson = await fetchProviderInfo(map.provider);
     numberOfRemoteFilesUsed++;
   }
 
@@ -127,12 +121,12 @@ export async function check(
   }
 
   options?.logCb?.(
-    `Checking profile: "${profile.id.name}" and map for provider: "${provider}"`
+    `Checking profile: "${profile.name}" and map for provider: "${map.provider}"`
   );
   //Check map and profile
   const result = checkMapAndProfile(profileAst, mapAst, options);
 
-  options?.logCb?.(`Checking provider: "${provider}"`);
+  options?.logCb?.(`Checking provider: "${map.provider}"`);
   result.push(...checkMapAndProvider(providerJson, mapAst));
 
   return result;

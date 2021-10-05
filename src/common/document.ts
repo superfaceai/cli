@@ -7,22 +7,17 @@ import {
   ProviderSettings,
 } from '@superfaceai/ast';
 import {
-  DocumentVersion,
   parseMap,
   parseProfile,
   parseProfileId,
+  ProfileVersion,
+  VersionRange,
 } from '@superfaceai/parser';
 import { basename, join as joinPath } from 'path';
 
 import { userError } from './error';
 import { DocumentTypeFlag } from './flags';
 
-export const DEFAULT_PROFILE_VERSION = {
-  major: 1,
-  minor: 0,
-  patch: 0,
-};
-export const DEFAULT_PROFILE_VERSION_STR = '1.0.0';
 export const UNVERIFIED_PROVIDER_PREFIX = 'unverified-';
 export const SF_API_URL_VARIABLE = 'SUPERFACE_API_URL';
 export const SF_PRODUCTION = 'https://superface.ai';
@@ -62,7 +57,7 @@ export const DOCUMENT_PARSE_FUNCTION = {
 };
 
 export function composeVersion(
-  version: DocumentVersion,
+  version: VersionRange | ProfileVersion,
   forMap = false
 ): string {
   const patch = forMap ? '' : `.${version.patch ?? 0}`;

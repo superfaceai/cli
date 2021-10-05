@@ -1,13 +1,12 @@
 import { flags as oclifFlags } from '@oclif/command';
 import { SuperJson } from '@superfaceai/one-sdk';
-import { parseDocumentId } from '@superfaceai/parser';
+import { parseDocumentId, ProfileId } from '@superfaceai/parser';
 import { bold, green, grey, yellow } from 'chalk';
 import { join as joinPath } from 'path';
 
 import { Command } from '../common/command.abstract';
 import { META_FILE } from '../common/document';
 import { userError } from '../common/error';
-import { ProfileId } from '../common/profile';
 import { generate } from '../logic/generate';
 import { detectSuperJson } from '../logic/install';
 
@@ -75,7 +74,7 @@ export default class Generate extends Command {
         throw userError(`Unable to load super.json: ${err.formatShort()}`, 1);
       }
     );
-    const profiles: { id: ProfileId; version?: string }[] = [];
+    const profiles: ProfileId[] = [];
     //Creat generate requests
     if (flags.profileId) {
       const parsedProfileId = parseDocumentId(flags.profileId);
@@ -91,20 +90,22 @@ export default class Generate extends Command {
         );
       }
 
-      profiles.push({
-        id: ProfileId.fromId(flags.profileId),
-        version:
-          'version' in profileSettings ? profileSettings.version : undefined,
-      });
+      profiles.push(
+        ProfileId.fromId(
+          flags.profileId,
+          'version' in profileSettings ? `@${profileSettings.version}` : ''
+        )
+      );
     } else {
       for (const [profile, profileSettings] of Object.entries(
         superJson.normalized.profiles
       )) {
-        profiles.push({
-          id: ProfileId.fromId(profile),
-          version:
-            'version' in profileSettings ? profileSettings.version : undefined,
-        });
+        profiles.push(
+          ProfileId.fromId(
+            profile,
+            'version' in profileSettings ? `@${profileSettings.version}` : ''
+          )
+        );
       }
     }
 

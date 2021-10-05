@@ -1,16 +1,12 @@
 import { CLIError } from '@oclif/errors';
 import { EXTENSIONS } from '@superfaceai/ast';
-import { err, ok, SuperJson } from '@superfaceai/one-sdk';
-import { SDKExecutionError } from '@superfaceai/one-sdk/dist/internal/errors';
+import { err, ok, SDKExecutionError, SuperJson } from '@superfaceai/one-sdk';
+import { DEFAULT_PROFILE_VERSION, ProfileId } from '@superfaceai/parser';
 import inquirer from 'inquirer';
 import { mocked } from 'ts-jest/utils';
 
-import {
-  DEFAULT_PROFILE_VERSION_STR,
-  UNVERIFIED_PROVIDER_PREFIX,
-} from '../common';
+import { UNVERIFIED_PROVIDER_PREFIX } from '../common';
 import { OutputStream } from '../common/output-stream';
-import { ProfileId } from '../common/profile';
 import {
   reconfigureProfileProvider,
   reconfigureProvider,
@@ -344,7 +340,7 @@ describe('Publish CLI command', () => {
       const mockSuperJson = new SuperJson({
         profiles: {
           [profileId]: {
-            version: DEFAULT_PROFILE_VERSION_STR,
+            version: DEFAULT_PROFILE_VERSION.toString(),
             providers: {
               [provider]: {
                 file: mockPath,
@@ -429,7 +425,7 @@ describe('Publish CLI command', () => {
       const mockSuperJson = new SuperJson({
         profiles: {
           [profileId]: {
-            version: DEFAULT_PROFILE_VERSION_STR,
+            version: DEFAULT_PROFILE_VERSION.toString(),
             providers: {
               [provider]: {},
             },
@@ -473,7 +469,7 @@ describe('Publish CLI command', () => {
       const mockSuperJson = new SuperJson({
         profiles: {
           [profileId]: {
-            version: DEFAULT_PROFILE_VERSION_STR,
+            version: DEFAULT_PROFILE_VERSION.toString(),
             providers: {
               [provider]: {},
             },
@@ -515,7 +511,7 @@ describe('Publish CLI command', () => {
       const mockSuperJson = new SuperJson({
         profiles: {
           [profileId]: {
-            version: DEFAULT_PROFILE_VERSION_STR,
+            version: DEFAULT_PROFILE_VERSION.toString(),
             providers: {
               [provider]: {},
             },
@@ -557,7 +553,7 @@ describe('Publish CLI command', () => {
       const mockSuperJson = new SuperJson({
         profiles: {
           [profileId]: {
-            version: DEFAULT_PROFILE_VERSION_STR,
+            version: DEFAULT_PROFILE_VERSION.toString(),
             providers: {
               test: {},
             },
@@ -601,7 +597,7 @@ describe('Publish CLI command', () => {
       const mockSuperJson = new SuperJson({
         profiles: {
           [profileId]: {
-            version: DEFAULT_PROFILE_VERSION_STR,
+            version: DEFAULT_PROFILE_VERSION.toString(),
             providers: {
               [provider]: {},
             },
@@ -709,7 +705,7 @@ describe('Publish CLI command', () => {
       const mockSuperJson = new SuperJson({
         profiles: {
           [profileId]: {
-            version: DEFAULT_PROFILE_VERSION_STR,
+            version: DEFAULT_PROFILE_VERSION.toString(),
             providers: {
               [provider]: {
                 file: mockMapPath,
@@ -751,7 +747,7 @@ describe('Publish CLI command', () => {
         {
           variant: undefined,
         },
-        DEFAULT_PROFILE_VERSION_STR,
+        DEFAULT_PROFILE_VERSION.toString(),
         {
           logCb: expect.anything(),
           dryRun: false,
@@ -782,7 +778,7 @@ describe('Publish CLI command', () => {
       const mockSuperJson = new SuperJson({
         profiles: {
           [profileId]: {
-            version: DEFAULT_PROFILE_VERSION_STR,
+            version: DEFAULT_PROFILE_VERSION.toString(),
             providers: {
               [provider]: {},
             },
@@ -824,7 +820,7 @@ describe('Publish CLI command', () => {
         {
           variant: undefined,
         },
-        DEFAULT_PROFILE_VERSION_STR,
+        DEFAULT_PROFILE_VERSION.toString(),
         {
           logCb: expect.anything(),
           dryRun: false,
@@ -850,7 +846,7 @@ describe('Publish CLI command', () => {
       const mockSuperJson = new SuperJson({
         profiles: {
           [profileId]: {
-            version: DEFAULT_PROFILE_VERSION_STR,
+            version: DEFAULT_PROFILE_VERSION.toString(),
             providers: {
               [provider]: {
                 file: mockMapPath,
@@ -889,7 +885,7 @@ describe('Publish CLI command', () => {
         ProfileId.fromId(profileId),
         provider,
         { variant: undefined },
-        DEFAULT_PROFILE_VERSION_STR,
+        DEFAULT_PROFILE_VERSION.toString(),
         {
           logCb: expect.anything(),
           dryRun: false,
@@ -914,7 +910,7 @@ describe('Publish CLI command', () => {
       const mockSuperJson = new SuperJson({
         profiles: {
           [profileId]: {
-            version: DEFAULT_PROFILE_VERSION_STR,
+            version: DEFAULT_PROFILE_VERSION.toString(),
             providers: {
               [provider]: {
                 file: mockMapPath,
@@ -954,7 +950,7 @@ describe('Publish CLI command', () => {
         ProfileId.fromId(profileId),
         provider,
         { variant: undefined },
-        DEFAULT_PROFILE_VERSION_STR,
+        DEFAULT_PROFILE_VERSION.toString(),
         {
           logCb: expect.anything(),
           dryRun: false,
@@ -984,7 +980,7 @@ describe('Publish CLI command', () => {
       const mockSuperJson = new SuperJson({
         profiles: {
           [profileId]: {
-            version: DEFAULT_PROFILE_VERSION_STR,
+            version: DEFAULT_PROFILE_VERSION.toString(),
             providers: {
               [provider]: {},
             },
@@ -1025,7 +1021,7 @@ describe('Publish CLI command', () => {
         {
           variant: undefined,
         },
-        DEFAULT_PROFILE_VERSION_STR,
+        DEFAULT_PROFILE_VERSION.toString(),
         {
           logCb: expect.anything(),
           dryRun: true,
@@ -1056,7 +1052,7 @@ describe('Publish CLI command', () => {
       const mockSuperJson = new SuperJson({
         profiles: {
           [profileId]: {
-            version: DEFAULT_PROFILE_VERSION_STR,
+            version: DEFAULT_PROFILE_VERSION.toString(),
             providers: {
               [provider]: {
                 file: mockPath,
@@ -1098,7 +1094,7 @@ describe('Publish CLI command', () => {
         {
           variant: undefined,
         },
-        DEFAULT_PROFILE_VERSION_STR,
+        DEFAULT_PROFILE_VERSION.toString(),
         {
           logCb: expect.anything(),
           quiet: false,

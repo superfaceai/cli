@@ -1,17 +1,16 @@
 import { EXTENSIONS } from '@superfaceai/ast';
 import { ProviderJson, SuperJson } from '@superfaceai/one-sdk';
+import { MapId, ProfileId } from '@superfaceai/parser';
 import { join as joinPath } from 'path';
 
 import { exists, readdir, readFile } from '../common/io';
-import { ProfileId } from '../common/profile';
 
 export async function findLocalProfileSource(
   superJson: SuperJson,
-  profile: ProfileId,
-  version?: string
+  profile: ProfileId
 ): Promise<string | undefined> {
   //Check file property
-  const profileSettings = superJson.normalized.profiles[profile.id];
+  const profileSettings = superJson.normalized.profiles[profile.withoutVersion];
   if (profileSettings !== undefined && 'file' in profileSettings) {
     const resolvedPath = superJson.resolvePath(profileSettings.file);
     if (await exists(resolvedPath)) {
@@ -21,10 +20,10 @@ export async function findLocalProfileSource(
 
   //try to look in the grid for source file
   const basePath = profile.scope ? joinPath('grid', profile.scope) : 'grid';
-  if (version) {
+  if (profile.version) {
     const path = joinPath(
       basePath,
-      `${profile.name}@${version}${EXTENSIONS.profile.source}`
+      `${profile.toString()}${EXTENSIONS.profile.source}`
     );
     const resolvedPath = superJson.resolvePath(path);
     if (await exists(resolvedPath)) {
@@ -58,13 +57,13 @@ export async function findLocalProfileSource(
 
 export async function findLocalMapSource(
   superJson: SuperJson,
-  profile: ProfileId,
-  provider: string
+  map: MapId
 ): Promise<string | undefined> {
   //Check file property
-  const profileSettings = superJson.normalized.profiles[profile.id];
+  const profileSettings =
+    superJson.normalized.profiles[map.profile.withoutVersion];
   if (profileSettings !== undefined) {
-    const profileProviderSettings = profileSettings.providers[provider];
+    const profileProviderSettings = profileSettings.providers[map.provider];
     if (profileProviderSettings && 'file' in profileProviderSettings) {
       const resolvedPath = superJson.resolvePath(profileProviderSettings.file);
       if (await exists(resolvedPath)) {

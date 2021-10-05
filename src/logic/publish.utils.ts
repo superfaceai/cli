@@ -5,12 +5,16 @@ import {
   ProfileDocumentNode,
 } from '@superfaceai/ast';
 import { Parser, ProviderJson, SuperJson } from '@superfaceai/one-sdk';
-import { getProfileOutput, validateMap } from '@superfaceai/parser';
+import {
+  getProfileOutput,
+  MapId,
+  ProfileId,
+  validateMap,
+} from '@superfaceai/parser';
 
 import { userError } from '../common/error';
 import { fetchMapAST, fetchProfileAST } from '../common/http';
 import { LogCallback } from '../common/log';
-import { ProfileId } from '../common/profile';
 import { ProfileMapReport } from '../common/report.interfaces';
 import { checkMapAndProfile, checkMapAndProvider, CheckResult } from './check';
 import { findLocalMapSource, findLocalProfileSource } from './check.utils';
@@ -66,27 +70,28 @@ export function prePublishLint(
 export async function loadProfile(
   superJson: SuperJson,
   profile: ProfileId,
-  version?: string,
   options?: {
     logCb?: LogCallback;
   }
 ): Promise<{ ast: ProfileDocumentNode; source?: string }> {
   let ast: ProfileDocumentNode;
 
-  const source = await findLocalProfileSource(superJson, profile, version);
-
-  const profileId = `${profile.id}${version ? `@${version}` : ''}`;
+  const source = await findLocalProfileSource(superJson, profile);
 
   if (source) {
-    ast = await Parser.parseProfile(source, profileId, {
+    ast = await Parser.parseProfile(source, profile.toString(), {
       profileName: profile.name,
       scope: profile.scope,
     });
-    options?.logCb?.(`Profile: "${profileId}" found on local file system`);
+    options?.logCb?.(
+      `Profile: "${profile.toString()}" found on local file system`
+    );
   } else {
     //Load from store
-    options?.logCb?.(`Loading profile: "${profileId}" from Superface store`);
-    ast = await fetchProfileAST(profileId);
+    options?.logCb?.(
+      `Loading profile: "${profile.toString()}" from Superface store`
+    );
+    ast = await fetchProfileAST(profile);
   }
 
   return { ast, source };
@@ -95,44 +100,25 @@ export async function loadProfile(
  * Loads map source (if present on local filesystem) and AST (downloaded when source not found locally, compiled when found)
  */
 export async function loadMap(
+  map: MapId,
   superJson: SuperJson,
-  profile: ProfileId,
-  provider: string,
-  map: {
-    variant?: string;
-  },
-  version?: string,
   options?: {
     logCb?: LogCallback;
   }
 ): Promise<{ ast: MapDocumentNode; source?: string }> {
   let ast: MapDocumentNode;
-  const source = await findLocalMapSource(superJson, profile, provider);
+  const source = await findLocalMapSource(superJson, map);
   if (source) {
-    ast = await Parser.parseMap(source, `${profile.name}.${provider}`, {
-      profileName: profile.name,
-      scope: profile.scope,
-      providerName: provider,
+    ast = await Parser.parseMap(source, `${map.profile.name}.${map.provider}`, {
+      profileName: map.profile.name,
+      scope: map.profile.scope,
+      providerName: map.provider,
     });
-    options?.logCb?.(
-      `Map for profile: "${profile.withVersion(
-        version
-      )}" and provider: "${provider}" found on local filesystem`
-    );
+    options?.logCb?.(`Map: "${map.toString()}" found on local filesystem`);
   } else {
     //Load from store
-    options?.logCb?.(
-      `Loading map for profile: "${profile.withVersion(
-        version
-      )}" and provider: "${provider}" from Superface store`
-    );
-    ast = await fetchMapAST(
-      profile.name,
-      provider,
-      profile.scope,
-      version,
-      map.variant
-    );
+    options?.logCb?.(`Loading map: "${map.toString()}" from Superface store`);
+    ast = await fetchMapAST(map);
   }
 
   return { ast, source };

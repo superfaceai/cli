@@ -1,8 +1,8 @@
 import { SuperJson } from '@superfaceai/one-sdk';
+import { ProfileId } from '@superfaceai/parser';
 import { mocked } from 'ts-jest/utils';
 
 import { exists } from '../common/io';
-import { ProfileId } from '../common/profile';
 import { profileExists, providerExists } from './quickstart.utils';
 
 jest.mock('../common/io');

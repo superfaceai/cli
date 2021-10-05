@@ -9,12 +9,12 @@ import {
   SecurityType,
   SuperJson,
 } from '@superfaceai/one-sdk';
+import { ProfileId } from '@superfaceai/parser';
 import { mocked } from 'ts-jest/utils';
 
 import { fetchProviderInfo } from '../common/http';
 import { readFile, readFileQuiet } from '../common/io';
 import { OutputStream } from '../common/output-stream';
-import { ProfileId } from '../common/profile';
 import {
   getProviderFromStore,
   handleProviderResponse,
@@ -153,7 +153,7 @@ describe('Configure CLI logic', () => {
 
       expect(setProfileProviderSpy).toHaveBeenCalledTimes(1);
       expect(setProfileProviderSpy).toHaveBeenCalledWith(
-        mockProfileId.id,
+        mockProfileId.withoutVersion,
         providerName,
         {}
       );
@@ -220,7 +220,7 @@ describe('Configure CLI logic', () => {
 
       expect(setProfileProviderSpy).toHaveBeenCalledTimes(1);
       expect(setProfileProviderSpy).toHaveBeenCalledWith(
-        mockProfileId.id,
+        mockProfileId.withoutVersion,
         'provider-test',
         {}
       );
@@ -266,7 +266,7 @@ describe('Configure CLI logic', () => {
 
       expect(setProfileProviderSpy).toHaveBeenCalledTimes(1);
       expect(setProfileProviderSpy).toHaveBeenCalledWith(
-        mockProfileId.id,
+        mockProfileId.withoutVersion,
         providerName,
         {}
       );
@@ -295,7 +295,7 @@ describe('Configure CLI logic', () => {
     const mockProfileId = ProfileId.fromId('test-profile');
     const mockSuperJson = new SuperJson({
       profiles: {
-        [mockProfileId.id]: {
+        [mockProfileId.withoutVersion]: {
           version: '1.0.0',
           defaults: {},
           providers: {},
@@ -309,7 +309,7 @@ describe('Configure CLI logic', () => {
       Object.assign(mockSuperJson, {
         normalized: {
           profiles: {
-            [mockProfileId.id]: {
+            [mockProfileId.withoutVersion]: {
               version: '1.0.0',
               defaults: {},
               providers: {},
@@ -352,9 +352,11 @@ describe('Configure CLI logic', () => {
 
       expect(setProfileProviderSpy).toHaveBeenCalledTimes(1);
       expect(setProfileProviderSpy).toHaveBeenCalledWith(
-        mockProfileId.id,
+        mockProfileId.withoutVersion,
         providerName,
-        { defaults: { testUseCase: { retryPolicy: OnFail.CIRCUIT_BREAKER } } }
+        {
+          defaults: { testUseCase: { retryPolicy: OnFail.CIRCUIT_BREAKER } },
+        }
       );
 
       expect(setProviderSpy).toHaveBeenCalledTimes(1);
@@ -379,7 +381,7 @@ describe('Configure CLI logic', () => {
       Object.assign(mockSuperJson, {
         normalized: {
           profiles: {
-            [mockProfileId.id]: {
+            [mockProfileId.withoutVersion]: {
               version: '1.0.0',
               defaults: {},
               providers: {},
@@ -422,9 +424,11 @@ describe('Configure CLI logic', () => {
 
       expect(setProfileProviderSpy).toHaveBeenCalledTimes(1);
       expect(setProfileProviderSpy).toHaveBeenCalledWith(
-        mockProfileId.id,
+        mockProfileId.withoutVersion,
         providerName,
-        { defaults: { testUseCase: { retryPolicy: OnFail.CIRCUIT_BREAKER } } }
+        {
+          defaults: { testUseCase: { retryPolicy: OnFail.CIRCUIT_BREAKER } },
+        }
       );
 
       expect(setProviderSpy).toHaveBeenCalledTimes(1);
@@ -453,7 +457,7 @@ describe('Configure CLI logic', () => {
       Object.assign(mockSuperJson, {
         normalized: {
           profiles: {
-            [mockProfileId.id]: {
+            [mockProfileId.withoutVersion]: {
               version: '1.0.0',
               defaults: {},
               providers: {},
@@ -497,7 +501,7 @@ describe('Configure CLI logic', () => {
 
       expect(setProfileProviderSpy).toHaveBeenCalledTimes(1);
       expect(setProfileProviderSpy).toHaveBeenCalledWith(
-        mockProfileId.id,
+        mockProfileId.withoutVersion,
         providerName,
         {}
       );
@@ -524,7 +528,7 @@ describe('Configure CLI logic', () => {
       Object.assign(mockSuperJson, {
         normalized: {
           profiles: {
-            [mockProfileId.id]: {
+            [mockProfileId.withoutVersion]: {
               version: '1.0.0',
               defaults: {},
               providers: {},
@@ -568,7 +572,7 @@ describe('Configure CLI logic', () => {
 
       expect(setProfileProviderSpy).toHaveBeenCalledTimes(1);
       expect(setProfileProviderSpy).toHaveBeenCalledWith(
-        mockProfileId.id,
+        mockProfileId.withoutVersion,
         providerName,
         {}
       );
@@ -595,7 +599,7 @@ describe('Configure CLI logic', () => {
       Object.assign(mockSuperJson, {
         normalized: {
           profiles: {
-            [mockProfileId.id]: {
+            [mockProfileId.withoutVersion]: {
               version: '1.0.0',
               defaults: {},
               providers: {},
@@ -640,7 +644,7 @@ describe('Configure CLI logic', () => {
 
       expect(setProfileProviderSpy).toHaveBeenCalledTimes(1);
       expect(setProfileProviderSpy).toHaveBeenCalledWith(
-        mockProfileId.id,
+        mockProfileId.withoutVersion,
         providerName,
         {}
       );
@@ -671,7 +675,7 @@ describe('Configure CLI logic', () => {
       Object.assign(mockSuperJson, {
         normalized: {
           profiles: {
-            [mockProfileId.id]: {
+            [mockProfileId.withoutVersion]: {
               version: '1.0.0',
               defaults: {},
               providers: {},
@@ -723,7 +727,7 @@ describe('Configure CLI logic', () => {
         })
       ).rejects.toEqual(
         new CLIError(
-          `❌ profile ${mockProfileId.id} not found in "some/path/super.json".`
+          `❌ profile ${mockProfileId.withoutVersion} not found in "some/path/super.json".`
         )
       );
 
@@ -738,7 +742,7 @@ describe('Configure CLI logic', () => {
       Object.assign(mockSuperJson, {
         normalized: {
           profiles: {
-            [mockProfileId.id]: {
+            [mockProfileId.withoutVersion]: {
               version: '1.0.0',
               defaults: {},
               providers: {},

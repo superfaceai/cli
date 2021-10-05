@@ -11,6 +11,8 @@ import {
   parseMapId,
   parseProfile,
   ProfileHeaderStructure,
+  ProfileId,
+  ProfileVersion,
   Source,
   SyntaxError,
   ValidationResult,
@@ -23,7 +25,6 @@ import { mocked } from 'ts-jest/utils';
 import { fetchMapAST, fetchProfileAST } from '../common/http';
 import { ListWriter } from '../common/list-writer';
 import { OutputStream } from '../common/output-stream';
-import { ProfileId } from '../common/profile';
 import { ReportFormat } from '../common/report.interfaces';
 import { findLocalMapSource, findLocalProfileSource } from './check.utils';
 import {
@@ -437,10 +438,10 @@ describe('Lint logic', () => {
     };
 
     it('returns correct counts, local profile and map', async () => {
-      const profile = ProfileId.fromScopeName(
-        'starwars',
-        'character-information'
-      );
+      const profile = ProfileId.fromParameters({
+        scope: 'starwars',
+        name: 'character-information',
+      });
       const mockSuperJson = new SuperJson();
       const mockProfiles: ProfileToLint[] = [
         {
@@ -542,10 +543,10 @@ describe('Lint logic', () => {
     });
 
     it('returns correct counts, local profile and remote maps', async () => {
-      const profile = ProfileId.fromScopeName(
-        'starwars',
-        'character-information'
-      );
+      const profile = ProfileId.fromParameters({
+        scope: 'starwars',
+        name: 'character-information',
+      });
       const mockSuperJson = new SuperJson();
       const mockProfiles: ProfileToLint[] = [
         {
@@ -599,7 +600,7 @@ describe('Lint logic', () => {
         mockReportFn({
           kind: 'compatibility',
           profile: 'profile path',
-          path: `${profile.id}.swapi.test@1.0.0`,
+          path: `${profile.withoutVersion}.swapi.test@1.0.0`,
           errors: [
             {
               kind: 'wrongProfileName',
@@ -618,7 +619,7 @@ describe('Lint logic', () => {
         mockReportFn({
           kind: 'compatibility',
           profile: 'profile path',
-          path: `${profile.id}.starwars.test@1.0.0`,
+          path: `${profile.withoutVersion}.starwars.test@1.0.0`,
           errors: [],
           warnings: [],
         })
@@ -626,10 +627,11 @@ describe('Lint logic', () => {
     });
 
     it('returns correct counts, remote profile and map', async () => {
-      const profile = ProfileId.fromScopeName(
-        'starwars',
-        'character-information'
-      );
+      const profile = ProfileId.fromParameters({
+        scope: 'starwars',
+        name: 'character-information',
+        version: ProfileVersion.fromString('1.0.0'),
+      });
       const mockSuperJson = new SuperJson();
       const mockProfiles: ProfileToLint[] = [
         {
@@ -673,8 +675,8 @@ describe('Lint logic', () => {
         1,
         mockReportFn({
           kind: 'compatibility',
-          profile: profile.withVersion('1.0.0'),
-          path: `${profile.id}.swapi.test@1.0.0`,
+          profile: profile.toString(),
+          path: `${profile.withoutVersion}.swapi.test@1.0.0`,
           errors: [
             {
               kind: 'wrongProfileName',
@@ -692,8 +694,8 @@ describe('Lint logic', () => {
         2,
         mockReportFn({
           kind: 'compatibility',
-          profile: profile.withVersion('1.0.0'),
-          path: `${profile.id}.starwars.test@1.0.0`,
+          profile: profile.toString(),
+          path: `${profile.withoutVersion}.starwars.test@1.0.0`,
           errors: [],
           warnings: [],
         })
@@ -717,10 +719,11 @@ describe('Lint logic', () => {
         message: 'message',
       };
 
-      const profile = ProfileId.fromScopeName(
-        'starwars',
-        'character-information'
-      );
+      const profile = ProfileId.fromParameters({
+        scope: 'starwars',
+        name: 'character-information',
+        version: ProfileVersion.fromString('1.0.0'),
+      });
       const mockSuperJson = new SuperJson();
       const mockProfiles: ProfileToLint[] = [
         {
@@ -780,10 +783,11 @@ describe('Lint logic', () => {
         message: 'message',
       };
 
-      const profile = ProfileId.fromScopeName(
-        'starwars',
-        'character-information'
-      );
+      const profile = ProfileId.fromParameters({
+        scope: 'starwars',
+        name: 'character-information',
+        version: ProfileVersion.fromString('1.0.0'),
+      });
       const mockSuperJson = new SuperJson();
       const mockProfiles: ProfileToLint[] = [
         {

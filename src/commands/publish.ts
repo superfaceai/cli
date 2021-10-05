@@ -1,7 +1,13 @@
 import { flags } from '@oclif/command';
 import { EXTENSIONS } from '@superfaceai/ast';
 import { isValidProviderName, SuperJson } from '@superfaceai/one-sdk';
-import { parseDocumentId } from '@superfaceai/parser';
+import {
+  DEFAULT_PROFILE_VERSION,
+  MapId,
+  MapVersion,
+  parseDocumentId,
+  ProfileId,
+} from '@superfaceai/parser';
 import { green, grey, yellow } from 'chalk';
 import inquirer from 'inquirer';
 import { join as joinPath } from 'path';
@@ -12,7 +18,6 @@ import { userError } from '../common/error';
 import { getServicesUrl } from '../common/http';
 import { formatShellLog } from '../common/log';
 import { OutputStream } from '../common/output-stream';
-import { ProfileId } from '../common/profile';
 import {
   reconfigureProfileProvider,
   reconfigureProvider,
@@ -220,20 +225,28 @@ export default class Publish extends Command {
     const version =
       'version' in profileSettings ? profileSettings.version : undefined;
 
-    const map = {
-      variant:
-        'mapVariant' in profileProviderSettings
-          ? profileProviderSettings.mapVariant
-          : undefined,
-    };
+    const variant =
+      'mapVariant' in profileProviderSettings
+        ? profileProviderSettings.mapVariant
+        : undefined;
+
+    const profileId = ProfileId.fromId(
+      flags.profileId,
+      version ?? DEFAULT_PROFILE_VERSION.toString()
+    );
 
     const result = await publish(
       documentType,
       superJson,
-      ProfileId.fromId(flags.profileId),
-      flags.providerName,
-      map,
-      version,
+      profileId,
+      MapId.fromParameters({
+        profile: profileId,
+        provider: flags.providerName,
+        version: MapVersion.fromString(
+          version ?? DEFAULT_PROFILE_VERSION.toString()
+        ),
+        variant,
+      }),
       {
         logCb: this.logCallback,
         dryRun: flags.dryRun,

@@ -1,20 +1,20 @@
 import { EXTENSIONS } from '@superfaceai/ast';
 import { SuperJson } from '@superfaceai/one-sdk';
+import { ProfileId } from '@superfaceai/parser';
 import { join as joinPath } from 'path';
 
 import { exists, readdir } from '../common/io';
-import { ProfileId } from '../common/profile';
 
 export async function profileExists(
   superJson: SuperJson,
-  profile: { id: ProfileId; version?: string }
+  profile: ProfileId
 ): Promise<boolean> {
   //Check source file
   //Look for specific version
   if (profile.version) {
     const path = joinPath(
       'grid',
-      `${profile.id.id}@${profile.version}${EXTENSIONS.profile.source}`
+      `${profile.toString()}${EXTENSIONS.profile.source}`
     );
     if (await exists(superJson.resolvePath(path))) {
       return true;
@@ -22,7 +22,7 @@ export async function profileExists(
   } else {
     //Look for any version
     const scopePath = superJson.resolvePath(
-      joinPath('grid', profile.id.scope ?? '')
+      joinPath('grid', profile.scope ?? '')
     );
 
     if (await exists(scopePath)) {
@@ -31,11 +31,11 @@ export async function profileExists(
         .filter(dirent => dirent.isFile() || dirent.isSymbolicLink())
         .map(dirent => dirent.name);
       //Find files with similar name to profile
-      const path = files.find(f => f.includes(profile.id.name));
+      const path = files.find(f => f.includes(profile.name));
       if (
         path &&
         (await exists(
-          superJson.resolvePath(joinPath('grid', profile.id.scope ?? '', path))
+          superJson.resolvePath(joinPath('grid', profile.scope ?? '', path))
         ))
       ) {
         return true;
@@ -44,7 +44,8 @@ export async function profileExists(
   }
 
   //Check file property
-  const profileSettings = superJson.normalized.profiles[`${profile.id.id}`];
+  const profileSettings =
+    superJson.normalized.profiles[`${profile.withoutVersion}`];
   if (profileSettings !== undefined && 'file' in profileSettings) {
     if (await exists(superJson.resolvePath(profileSettings.file))) {
       return true;

@@ -1,8 +1,8 @@
 import { CLIError } from '@oclif/errors';
 import { SuperJson } from '@superfaceai/one-sdk';
+import { ProfileId } from '@superfaceai/parser';
 import { mocked } from 'ts-jest/utils';
 
-import { ProfileId } from '../common/profile';
 import { installProvider } from '../logic/configure';
 import { initSuperface } from '../logic/init';
 import { detectSuperJson, installProfiles } from '../logic/install';
@@ -64,10 +64,10 @@ describe('Install CLI command', () => {
         requests: [
           {
             kind: 'store',
-            profileId: ProfileId.fromScopeName(
-              'starwars',
-              'character-information'
-            ),
+            profileId: ProfileId.fromParameters({
+              scope: 'starwars',
+              name: 'character-information',
+            }),
           },
         ],
         options: {
@@ -89,10 +89,10 @@ describe('Install CLI command', () => {
         requests: [
           {
             kind: 'store',
-            profileId: ProfileId.fromScopeName(
-              'starwars',
-              'character-information'
-            ),
+            profileId: ProfileId.fromParameters({
+              scope: 'starwars',
+              name: 'character-information',
+            }),
           },
         ],
         options: {
@@ -114,10 +114,10 @@ describe('Install CLI command', () => {
         requests: [
           {
             kind: 'store',
-            profileId: ProfileId.fromScopeName(
-              'starwars',
-              'character-information'
-            ),
+            profileId: ProfileId.fromParameters({
+              scope: 'starwars',
+              name: 'character-information',
+            }),
           },
         ],
         options: {
@@ -208,7 +208,7 @@ describe('Install CLI command', () => {
       const profileId = ProfileId.fromId('starwars/character-information');
 
       await expect(
-        Install.run([profileId.id, '-p', ...mockProviders])
+        Install.run([profileId.withoutVersion, '-p', ...mockProviders])
       ).resolves.toBeUndefined();
 
       expect(stdout.output).toContain('Invalid provider name: made.up');
@@ -218,10 +218,10 @@ describe('Install CLI command', () => {
         requests: [
           {
             kind: 'store',
-            profileId: ProfileId.fromScopeName(
-              'starwars',
-              'character-information'
-            ),
+            profileId: ProfileId.fromParameters({
+              scope: 'starwars',
+              name: 'character-information',
+            }),
           },
         ],
         options: {
@@ -262,7 +262,7 @@ describe('Install CLI command', () => {
 
       await expect(
         Install.run([
-          profileId.id,
+          profileId.withoutVersion,
           '-p',
           ',tyntec, twilio, , dhl-unified ,,github,made.up,',
         ])
@@ -275,10 +275,10 @@ describe('Install CLI command', () => {
         requests: [
           {
             kind: 'store',
-            profileId: ProfileId.fromScopeName(
-              'starwars',
-              'character-information'
-            ),
+            profileId: ProfileId.fromParameters({
+              scope: 'starwars',
+              name: 'character-information',
+            }),
           },
         ],
         options: {

@@ -1,8 +1,9 @@
 import { SuperJson } from '@superfaceai/one-sdk';
+import { DEFAULT_PROFILE_VERSION } from '@superfaceai/parser';
 import { getLocal } from 'mockttp';
 import { join as joinPath } from 'path';
 
-import { composeUsecaseName, DEFAULT_PROFILE_VERSION_STR } from '../common';
+import { composeUsecaseName } from '../common';
 import { mkdir, readFile, rimraf } from '../common/io';
 import * as mapTemplate from '../templates/map';
 import * as profileTemplate from '../templates/profile';
@@ -74,7 +75,10 @@ describe('Interactive create CLI command', () => {
       );
       expect(profileFile).toEqual(
         [
-          profileTemplate.header(documentName, DEFAULT_PROFILE_VERSION_STR),
+          profileTemplate.header(
+            documentName,
+            DEFAULT_PROFILE_VERSION.toString()
+          ),
           profileTemplate.empty(composeUsecaseName(documentName)),
         ].join('')
       );
@@ -127,7 +131,10 @@ describe('Interactive create CLI command', () => {
       );
       expect(profileFile).toEqual(
         [
-          profileTemplate.header(documentName, DEFAULT_PROFILE_VERSION_STR),
+          profileTemplate.header(
+            documentName,
+            DEFAULT_PROFILE_VERSION.toString()
+          ),
           profileTemplate.empty('SendUserEmail'),
         ].join('')
       );
@@ -181,7 +188,10 @@ describe('Interactive create CLI command', () => {
       );
       expect(profileFile).toEqual(
         [
-          profileTemplate.header(documentName, DEFAULT_PROFILE_VERSION_STR),
+          profileTemplate.header(
+            documentName,
+            DEFAULT_PROFILE_VERSION.toString()
+          ),
           ...[
             profileTemplate.empty('ReceiveSMS'),
             profileTemplate.empty('SendSMS'),
@@ -453,7 +463,10 @@ describe('Interactive create CLI command', () => {
       );
       expect(createdFile).toEqual(
         [
-          profileTemplate.header(documentName, DEFAULT_PROFILE_VERSION_STR),
+          profileTemplate.header(
+            documentName,
+            DEFAULT_PROFILE_VERSION.toString()
+          ),
           profileTemplate.empty('SendEmail'),
         ].join('')
       );
@@ -536,7 +549,10 @@ describe('Interactive create CLI command', () => {
       );
       expect(createdFile).toEqual(
         [
-          profileTemplate.header(documentName, DEFAULT_PROFILE_VERSION_STR),
+          profileTemplate.header(
+            documentName,
+            DEFAULT_PROFILE_VERSION.toString()
+          ),
           profileTemplate.empty('SendSMS'),
         ].join('')
       );
@@ -617,7 +633,10 @@ describe('Interactive create CLI command', () => {
       );
       expect(createdFile).toEqual(
         [
-          profileTemplate.header(documentName, DEFAULT_PROFILE_VERSION_STR),
+          profileTemplate.header(
+            documentName,
+            DEFAULT_PROFILE_VERSION.toString()
+          ),
           ...[
             profileTemplate.empty('SendSMS'),
             profileTemplate.empty('ReceiveSMS'),

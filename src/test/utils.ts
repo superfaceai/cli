@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { EXTENSIONS } from '@superfaceai/ast';
 import { ProviderJson } from '@superfaceai/one-sdk';
+import { DEFAULT_PROFILE_VERSION } from '@superfaceai/parser';
 import { AuthToken, CLILoginResponse } from '@superfaceai/service-client';
 import { execFile } from 'child_process';
 import concat from 'concat-stream';
@@ -9,7 +10,6 @@ import { Mockttp } from 'mockttp';
 import { constants } from 'os';
 import { join as joinPath, relative } from 'path';
 
-import { DEFAULT_PROFILE_VERSION_STR } from '../common/document';
 import { ContentType } from '../common/http';
 import { mkdir, readFile } from '../common/io';
 import { OutputStream } from '../common/output-stream';
@@ -79,7 +79,7 @@ export async function mockResponsesForMap(
   const url = `${profile.scope ? `${profile.scope}/` : ''}${
     profile.name
   }.${provider}${mapVariant ? `.${mapVariant}` : ''}@${
-    profile.version ? profile.version : DEFAULT_PROFILE_VERSION_STR
+    profile.version ? profile.version : DEFAULT_PROFILE_VERSION.toString()
   }`;
 
   const basePath = profile.scope

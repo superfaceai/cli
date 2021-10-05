@@ -9,7 +9,11 @@ import {
   ProviderJson,
   VERSION as SDK_VERSION,
 } from '@superfaceai/one-sdk';
-import { VERSION as PARSER_VERSION } from '@superfaceai/parser';
+import {
+  MapId,
+  ProfileId,
+  VERSION as PARSER_VERSION,
+} from '@superfaceai/parser';
 import {
   ServiceApiError,
   ServiceApiErrorResponse,
@@ -17,13 +21,8 @@ import {
 } from '@superfaceai/service-client';
 
 import { VERSION } from '..';
-import {
-  DEFAULT_PROFILE_VERSION_STR,
-  SF_API_URL_VARIABLE,
-  SF_PRODUCTION,
-} from './document';
+import { SF_API_URL_VARIABLE, SF_PRODUCTION } from './document';
 import { userError } from './error';
-import { MapId } from './map';
 import { loadNetrc, saveNetrc } from './netrc';
 
 export interface ProfileInfo {
@@ -94,11 +93,13 @@ export function getServicesUrl(): string {
   return SF_PRODUCTION;
 }
 
-export async function fetchProviders(profile: string): Promise<ProviderJson[]> {
+export async function fetchProviders(
+  profile: ProfileId
+): Promise<ProviderJson[]> {
   const userAgent = `superface cli/${VERSION} (${process.platform}-${process.arch}) ${process.release.name}-${process.version} (with @superfaceai/one-sdk@${SDK_VERSION}, @superfaceai/parser@${PARSER_VERSION})`;
 
   const response = await SuperfaceClient.getClient().fetch(
-    `/providers?profile=${encodeURIComponent(profile)}`,
+    `/providers?profile=${encodeURIComponent(profile.toString())}`,
     {
       //TODO: enable auth
       authenticate: false,
@@ -117,33 +118,39 @@ export async function fetchProviders(profile: string): Promise<ProviderJson[]> {
 
 //Unable to reuse service client getProfile due to profile ID resolution - version is always defined in service client
 export async function fetchProfileInfo(
-  profileId: string
+  profileId: ProfileId
 ): Promise<ProfileInfo> {
-  const response = await SuperfaceClient.getClient().fetch(`/${profileId}`, {
-    //TODO: enable auth
-    authenticate: false,
-    method: 'GET',
-    headers: {
-      ...commonHeaders(),
-      Accept: ContentType.JSON,
-    },
-  });
+  const response = await SuperfaceClient.getClient().fetch(
+    `/${profileId.toString()}`,
+    {
+      //TODO: enable auth
+      authenticate: false,
+      method: 'GET',
+      headers: {
+        ...commonHeaders(),
+        Accept: ContentType.JSON,
+      },
+    }
+  );
 
   await checkSuperfaceResponse(response);
 
   return (await response.json()) as ProfileInfo;
 }
 
-export async function fetchProfile(profileId: string): Promise<string> {
-  const response = await SuperfaceClient.getClient().fetch(`/${profileId}`, {
-    //TODO: enable auth
-    authenticate: false,
-    method: 'GET',
-    headers: {
-      ...commonHeaders(),
-      Accept: ContentType.PROFILE_SOURCE,
-    },
-  });
+export async function fetchProfile(profileId: ProfileId): Promise<string> {
+  const response = await SuperfaceClient.getClient().fetch(
+    `/${profileId.toString()}`,
+    {
+      //TODO: enable auth
+      authenticate: false,
+      method: 'GET',
+      headers: {
+        ...commonHeaders(),
+        Accept: ContentType.PROFILE_SOURCE,
+      },
+    }
+  );
 
   await checkSuperfaceResponse(response);
 
@@ -151,17 +158,20 @@ export async function fetchProfile(profileId: string): Promise<string> {
 }
 
 export async function fetchProfileAST(
-  profileId: string
+  profileId: ProfileId
 ): Promise<ProfileDocumentNode> {
-  const response = await SuperfaceClient.getClient().fetch(`/${profileId}`, {
-    //TODO: enable auth
-    authenticate: false,
-    method: 'GET',
-    headers: {
-      ...commonHeaders(),
-      Accept: ContentType.PROFILE_AST,
-    },
-  });
+  const response = await SuperfaceClient.getClient().fetch(
+    `/${profileId.toString()}`,
+    {
+      //TODO: enable auth
+      authenticate: false,
+      method: 'GET',
+      headers: {
+        ...commonHeaders(),
+        Accept: ContentType.PROFILE_AST,
+      },
+    }
+  );
 
   await checkSuperfaceResponse(response);
 
@@ -191,22 +201,15 @@ function commonHeaders(): Record<string, string> {
     'User-Agent': `superface cli/${VERSION} (${process.platform}-${process.arch}) ${process.release.name}-${process.version} (with @superfaceai/one-sdk@${SDK_VERSION}, @superfaceai/parser@${PARSER_VERSION})`,
   };
 }
-export async function fetchMapAST(
-  profile: string,
-  provider: string,
-  scope?: string,
-  version?: string,
-  variant?: string
-): Promise<MapDocumentNode> {
-  const mapId = MapId.fromName({
-    profile: {
-      name: profile,
-      scope,
-    },
-    provider,
-    variant,
-  });
-  const path = '/' + mapId.withVersion(version || DEFAULT_PROFILE_VERSION_STR);
+export async function fetchMapAST(mapId: MapId): Promise<MapDocumentNode> {
+  let path = `/${mapId.profile.withoutVersion}.${mapId.provider}`;
+  if (mapId.variant) {
+    path += `.${mapId.variant}`;
+  }
+  //We need profile version here instead of mapVersion
+  if (mapId.profile.version) {
+    path += `@${mapId.profile.version.toString()}`;
+  }
 
   const response = await SuperfaceClient.getClient().fetch(path, {
     //TODO: enable auth

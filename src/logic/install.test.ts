@@ -1,6 +1,7 @@
 import { CLIError } from '@oclif/errors';
 import { ProfileDocumentNode } from '@superfaceai/ast';
 import { ok, Parser, SuperJson } from '@superfaceai/one-sdk';
+import { ProfileId, ProfileVersion } from '@superfaceai/parser';
 import { join } from 'path';
 import { mocked } from 'ts-jest/utils';
 
@@ -11,7 +12,6 @@ import {
 } from '../common/http';
 import { exists, mkdirQuiet, readFile, rimraf } from '../common/io';
 import { OutputStream } from '../common/output-stream';
-import { ProfileId } from '../common/profile';
 import {
   detectSuperJson,
   getExistingProfileIds,
@@ -176,7 +176,9 @@ describe('Install CLI logic', () => {
 
       const profileId = 'starwars/character-information';
 
-      await expect(getProfileFromStore(profileId)).resolves.toEqual({
+      await expect(
+        getProfileFromStore(ProfileId.fromId(profileId))
+      ).resolves.toEqual({
         ast: mockProfileAst,
         info: mockProfileInfo,
         profile: mockProfile,
@@ -196,7 +198,9 @@ describe('Install CLI logic', () => {
 
       const profileId = 'made-up';
 
-      await expect(getProfileFromStore(profileId)).resolves.toBeUndefined();
+      await expect(
+        getProfileFromStore(ProfileId.fromId(profileId))
+      ).resolves.toBeUndefined();
       expect(fetchProfileInfo).toHaveBeenCalledTimes(1);
       expect(fetchProfileInfo).toHaveBeenCalledWith(profileId);
       expect(fetchProfile).not.toHaveBeenCalled();
@@ -306,7 +310,7 @@ describe('Install CLI logic', () => {
       });
       const fetchProfileInfoMock = mocked(fetchProfileInfo).mockImplementation(
         profileId => {
-          if (profileId === 'none') {
+          if (profileId.name === 'none') {
             return Promise.reject('none does not exist');
           } else {
             return Promise.resolve(MOCK_PROFILE_RESPONSE);
@@ -337,23 +341,23 @@ describe('Install CLI logic', () => {
           [
             {
               kind: 'store',
-              profileId: ProfileId.fromId('first'),
-              version: '1.0.1',
+              profileId: ProfileId.fromId('first@1.0.1'),
+              versionKnown: true,
             },
             {
               kind: 'store',
               profileId: ProfileId.fromId('none'),
-              version: undefined,
+              versionKnown: false,
             },
             {
               kind: 'store',
-              profileId: ProfileId.fromId('se/cond'),
-              version: '2.2.0',
+              profileId: ProfileId.fromId('se/cond@2.2.0'),
+              versionKnown: true,
             },
             {
               kind: 'store',
               profileId: ProfileId.fromId('third'),
-              version: undefined,
+              versionKnown: false,
             },
           ],
           { warnCb: warnCbMock }
@@ -476,8 +480,8 @@ describe('Install CLI logic', () => {
           [
             {
               kind: 'store',
-              profileId: ProfileId.fromId('local/first'),
-              version: '1.0.1',
+              profileId: ProfileId.fromId('local/first@1.0.1'),
+              versionKnown: true,
             },
             {
               kind: 'local',
@@ -490,13 +494,13 @@ describe('Install CLI logic', () => {
 
             {
               kind: 'store',
-              profileId: ProfileId.fromId('remote/first'),
-              version: '1.0.1',
+              profileId: ProfileId.fromId('remote/first@1.0.1'),
+              versionKnown: true,
             },
             {
               kind: 'store',
-              profileId: ProfileId.fromId('remote/second'),
-              version: '1.0.1',
+              profileId: ProfileId.fromId('remote/second@1.0.1'),
+              versionKnown: true,
             },
             {
               kind: 'local',
@@ -564,10 +568,11 @@ describe('Install CLI logic', () => {
         file: 'fixtures/install/playground/character-information.supr',
       });
       await expect(getExistingProfileIds(stubSuperJson)).resolves.toEqual([
-        {
-          profileId: ProfileId.fromScopeName('scope', 'test'),
-          version: '1.0.0',
-        },
+        ProfileId.fromParameters({
+          scope: 'scope',
+          name: 'test',
+          version: ProfileVersion.fromString('1.0.0'),
+        }),
       ]);
     });
 
@@ -639,11 +644,11 @@ describe('Install CLI logic', () => {
             requests: [
               {
                 kind: 'store',
-                profileId: ProfileId.fromScopeName(
-                  'starwars',
-                  'character-information'
-                ),
-                version: undefined,
+                profileId: ProfileId.fromParameters({
+                  scope: 'starwars',
+                  name: 'character-information',
+                }),
+                versionKnown: false,
               },
             ],
           })

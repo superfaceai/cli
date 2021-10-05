@@ -1,10 +1,10 @@
 import { CLIError } from '@oclif/errors';
 import { isValidDocumentName } from '@superfaceai/ast';
 import { SuperJson } from '@superfaceai/one-sdk';
+import { ProfileId } from '@superfaceai/parser';
 import { mocked } from 'ts-jest/utils';
 
 import { exists } from '../common/io';
-import { ProfileId } from '../common/profile';
 import { installProvider } from '../logic/configure';
 import { initSuperface } from '../logic/init';
 import { detectSuperJson } from '../logic/install';

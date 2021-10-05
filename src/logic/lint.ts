@@ -8,10 +8,12 @@ import { SuperJson } from '@superfaceai/one-sdk';
 import {
   formatIssues,
   getProfileOutput,
+  MapId,
   parseMap,
   parseMapId,
   parseProfile,
   ProfileHeaderStructure,
+  ProfileId,
   Source,
   SyntaxError,
   validateMap,
@@ -20,16 +22,11 @@ import {
 import { green, red, yellow } from 'chalk';
 import { basename } from 'path';
 
-import {
-  composeVersion,
-  DEFAULT_PROFILE_VERSION_STR,
-} from '../common/document';
+import { composeVersion } from '../common/document';
 import { userError } from '../common/error';
 import { fetchMapAST, fetchProfileAST } from '../common/http';
 import { ListWriter } from '../common/list-writer';
 import { LogCallback } from '../common/log';
-import { MapId } from '../common/map';
-import { ProfileId } from '../common/profile';
 import {
   FileReport,
   ProfileMapReport,
@@ -198,11 +195,11 @@ export function formatJson(report: ReportFormat): string {
   });
 }
 
-export type MapToLint = { provider: string; variant?: string; path?: string };
+export type MapToLint = { id: MapId; path?: string };
 export type ProfileToLint = {
   id: ProfileId;
   maps: MapToLint[];
-  version?: string;
+  // version?: string;
   path?: string;
 };
 type MapToLintWithAst = MapToLint & {
@@ -229,16 +226,18 @@ async function prepareLintedProfile(
   let profileAst: ProfileDocumentNode | undefined = undefined;
   const profileSource = await findLocalProfileSource(
     superJson,
-    profile.id,
-    profile.version
+    profile.id
+    // profile.version
   );
   //If we have local profile we lint it
   if (profileSource) {
-    options?.logCb?.(`Profile: "${profile.id.id}" found on local file system`);
+    options?.logCb?.(
+      `Profile: "${profile.id.toString()}" found on local file system`
+    );
 
     const report: FileReport = {
       kind: 'file',
-      path: profile.path || profile.id.withVersion(profile.version),
+      path: profile.path || profile.id.toString(),
       errors: [],
       warnings: [],
     };
@@ -253,15 +252,15 @@ async function prepareLintedProfile(
     counts.push([report.errors.length, report.warnings.length]);
   } else {
     options?.logCb?.(
-      `Loading profile: "${profile.id.id}" from Superface store`
+      `Loading profile: "${profile.id.toString()}" from Superface store`
     );
-    profileAst = await fetchProfileAST(profile.id.id);
+    profileAst = await fetchProfileAST(profile.id);
   }
 
   return {
     ...profile,
     ast: profileAst,
-    path: profile.path || profile.id.withVersion(profile.version),
+    path: profile.path || profile.id.toString(),
     counts,
   };
 }
@@ -279,16 +278,12 @@ async function prepareLintedMap(
   const counts: [number, number][] = [];
   let mapAst: MapDocumentNode | undefined = undefined;
 
-  const mapSource = await findLocalMapSource(
-    superJson,
-    profile.id,
-    map.provider
-  );
+  const mapSource = await findLocalMapSource(superJson, map.id);
   if (mapSource) {
     options?.logCb?.(
-      `Map for profile: "${profile.id.withVersion(
-        profile.version
-      )}" and provider: "${map.provider}" found on local filesystem`
+      `Map for profile: "${profile.id.toString()}" and provider: "${
+        map.id.provider
+      }" found on local filesystem`
     );
     const report: FileReport = {
       kind: 'file',
@@ -307,34 +302,17 @@ async function prepareLintedMap(
     counts.push([report.errors.length, report.warnings.length]);
   } else {
     options?.logCb?.(
-      `Loading map for profile: "${profile.id.withVersion(
-        profile.version
-      )}" and provider: "${map.provider}" from Superface store`
+      `Loading map for profile: "${profile.id.toString()}" and provider: "${
+        map.id.provider
+      }" from Superface store`
     );
-    mapAst = await fetchMapAST(
-      profile.id.name,
-      map.provider,
-      profile.id.scope,
-      profile.version,
-      map.variant
-    );
+    mapAst = await fetchMapAST(map.id);
   }
-
-  const mapId = MapId.fromName({
-    profile: {
-      name: profile.id.name,
-      scope: profile.id.scope,
-    },
-    provider: map.provider,
-    variant: map.variant,
-  });
 
   return {
     ...map,
     ast: mapAst,
-    path:
-      map.path ??
-      mapId.withVersion(profile.version || DEFAULT_PROFILE_VERSION_STR),
+    path: map.path ?? map.id.toString(),
     counts,
   };
 }

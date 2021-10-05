@@ -8,6 +8,14 @@ import {
   SecurityType,
   SuperJson,
 } from '@superfaceai/one-sdk';
+import {
+  DEFAULT_MAP_VERSION,
+  DEFAULT_PROFILE_VERSION,
+  MapId,
+  MapVersion,
+  ProfileId,
+  ProfileVersion,
+} from '@superfaceai/parser';
 import { green, red, yellow } from 'chalk';
 import { mocked } from 'ts-jest/utils';
 
@@ -17,7 +25,6 @@ import {
   fetchProfileAST,
   fetchProviderInfo,
 } from '../common/http';
-import { ProfileId } from '../common/profile';
 import {
   check,
   checkMapAndProfile,
@@ -61,9 +68,7 @@ describe('Check logic', () => {
   const provider = 'swapi';
   const unverifiedProvider = `${UNVERIFIED_PROVIDER_PREFIX}${provider}`;
 
-  const map = {
-    variant: 'variant',
-  };
+  const variant = 'variant';
   const mockProfileSource = 'mock profile source';
   const mockMapSource = 'mock map source';
 
@@ -234,13 +239,18 @@ describe('Check logic', () => {
         .spyOn(Parser, 'parseProfile')
         .mockResolvedValue(mockProfileDocument);
 
+      const expectedProfileId = ProfileId.fromParameters({
+        name: mockProfile.name,
+        version: DEFAULT_PROFILE_VERSION,
+      });
+      const expectedMapId = MapId.fromParameters({
+        profile: expectedProfileId,
+        provider: unverifiedProvider,
+        variant,
+        version: DEFAULT_MAP_VERSION,
+      });
       await expect(
-        check(
-          mockSuperJson,
-          { id: ProfileId.fromScopeName(undefined, mockProfile.name) },
-          unverifiedProvider,
-          map
-        )
+        check(mockSuperJson, expectedProfileId, expectedMapId)
       ).resolves.toEqual([]);
 
       expect(findLocalProviderSource).toHaveBeenCalledWith(
@@ -249,13 +259,11 @@ describe('Check logic', () => {
       );
       expect(findLocalProfileSource).toHaveBeenCalledWith(
         mockSuperJson,
-        ProfileId.fromScopeName(undefined, mockProfile.name),
-        undefined
+        expectedProfileId
       );
       expect(findLocalMapSource).toHaveBeenCalledWith(
         mockSuperJson,
-        ProfileId.fromScopeName(undefined, mockProfile.name),
-        unverifiedProvider
+        expectedMapId
       );
       expect(parseProfileSpy).toHaveBeenCalled();
       expect(parseMapSpy).toHaveBeenCalled();
@@ -288,17 +296,19 @@ describe('Check logic', () => {
       mocked(fetchMapAST).mockResolvedValue(mockMapDocumentWithUnverified);
       mocked(fetchProfileAST).mockResolvedValue(mockProfileDocument);
       mocked(fetchProviderInfo).mockResolvedValue(mockUnverifiedProviderJson);
-
+      const expectedProfileId = ProfileId.fromParameters({
+        scope: profile.scope,
+        name: profile.name,
+        version: ProfileVersion.fromString(profile.version),
+      });
+      const expectedMapId = MapId.fromParameters({
+        profile: expectedProfileId,
+        provider: unverifiedProvider,
+        variant,
+        version: MapVersion.fromString('1.0'),
+      });
       await expect(
-        check(
-          mockSuperJson,
-          {
-            id: ProfileId.fromScopeName(profile.scope, profile.name),
-            version: profile.version,
-          },
-          unverifiedProvider,
-          map
-        )
+        check(mockSuperJson, expectedProfileId, expectedMapId)
       ).resolves.toEqual([]);
 
       expect(findLocalProviderSource).toHaveBeenCalledWith(
@@ -307,25 +317,15 @@ describe('Check logic', () => {
       );
       expect(findLocalProfileSource).toHaveBeenCalledWith(
         mockSuperJson,
-        ProfileId.fromScopeName(profile.scope, profile.name),
-        profile.version
+        expectedProfileId
       );
       expect(findLocalMapSource).toHaveBeenCalledWith(
         mockSuperJson,
-        ProfileId.fromScopeName(profile.scope, profile.name),
-        unverifiedProvider
+        expectedMapId
       );
 
-      expect(fetchMapAST).toHaveBeenCalledWith(
-        profile.name,
-        unverifiedProvider,
-        profile.scope,
-        profile.version,
-        map.variant
-      );
-      expect(fetchProfileAST).toHaveBeenCalledWith(
-        `${profile.scope}/${profile.name}@${profile.version}`
-      );
+      expect(fetchMapAST).toHaveBeenCalledWith(expectedMapId);
+      expect(fetchProfileAST).toHaveBeenCalledWith(expectedProfileId);
       expect(fetchProviderInfo).toHaveBeenCalledWith(unverifiedProvider);
     });
 
@@ -353,41 +353,34 @@ describe('Check logic', () => {
       mocked(fetchMapAST).mockResolvedValue({} as MapDocumentNode);
       mocked(fetchProfileAST).mockResolvedValue(mockProfileDocument);
       mocked(fetchProviderInfo).mockResolvedValue(mockProviderJson);
+      const expectedProfileId = ProfileId.fromParameters({
+        scope: profile.scope,
+        name: profile.name,
+        version: ProfileVersion.fromString(profile.version),
+      });
+      const expectedMapId = MapId.fromParameters({
+        profile: expectedProfileId,
+        provider: unverifiedProvider,
+        variant,
+        version: MapVersion.fromString('1.0'),
+      });
 
       await expect(
-        check(
-          mockSuperJson,
-          {
-            id: ProfileId.fromScopeName(profile.scope, profile.name),
-            version: profile.version,
-          },
-          provider,
-          map
-        )
+        check(mockSuperJson, expectedProfileId, expectedMapId)
       ).rejects.toEqual(new CLIError('Map file has unknown structure'));
 
       expect(findLocalProviderSource).not.toHaveBeenCalled();
       expect(findLocalProfileSource).toHaveBeenCalledWith(
         mockSuperJson,
-        ProfileId.fromScopeName(profile.scope, profile.name),
-        profile.version
+        expectedProfileId
       );
       expect(findLocalMapSource).toHaveBeenCalledWith(
         mockSuperJson,
-        ProfileId.fromScopeName(profile.scope, profile.name),
-        provider
+        expectedMapId
       );
 
-      expect(fetchMapAST).toHaveBeenCalledWith(
-        profile.name,
-        provider,
-        profile.scope,
-        profile.version,
-        map.variant
-      );
-      expect(fetchProfileAST).toHaveBeenCalledWith(
-        `${profile.scope}/${profile.name}@${profile.version}`
-      );
+      expect(fetchMapAST).toHaveBeenCalledWith(expectedMapId);
+      expect(fetchProfileAST).toHaveBeenCalledWith(expectedProfileId);
       expect(fetchProviderInfo).not.toHaveBeenCalled();
     });
 
@@ -415,31 +408,31 @@ describe('Check logic', () => {
       mocked(fetchMapAST).mockResolvedValue(mockMapDocument);
       mocked(fetchProfileAST).mockResolvedValue({} as ProfileDocumentNode);
       mocked(fetchProviderInfo).mockResolvedValue(mockProviderJson);
+      const expectedProfileId = ProfileId.fromParameters({
+        scope: profile.scope,
+        name: profile.name,
+        version: ProfileVersion.fromString(profile.version),
+      });
+      const expectedMapId = MapId.fromParameters({
+        profile: expectedProfileId,
+        provider: unverifiedProvider,
+        variant,
+        version: MapVersion.fromString('1.0'),
+      });
 
       await expect(
-        check(
-          mockSuperJson,
-          {
-            id: ProfileId.fromScopeName(profile.scope, profile.name),
-            version: profile.version,
-          },
-          provider,
-          map
-        )
+        check(mockSuperJson, expectedProfileId, expectedMapId)
       ).rejects.toEqual(new CLIError('Profile file has unknown structure'));
 
       expect(findLocalProviderSource).not.toHaveBeenCalled();
       expect(findLocalProfileSource).toHaveBeenCalledWith(
         mockSuperJson,
-        ProfileId.fromScopeName(profile.scope, profile.name),
-        profile.version
+        expectedProfileId
       );
       expect(findLocalMapSource).not.toHaveBeenCalled();
 
       expect(fetchMapAST).not.toHaveBeenCalled();
-      expect(fetchProfileAST).toHaveBeenCalledWith(
-        `${profile.scope}/${profile.name}@${profile.version}`
-      );
+      expect(fetchProfileAST).toHaveBeenCalledWith(expectedProfileId);
       expect(fetchProviderInfo).not.toHaveBeenCalled();
     });
 
@@ -468,19 +461,20 @@ describe('Check logic', () => {
       mocked(fetchMapAST).mockResolvedValue(mockMapDocumentWithUnverified);
       mocked(fetchProfileAST).mockResolvedValue(mockProfileDocument);
       mocked(fetchProviderInfo).mockResolvedValue(mockProviderJson);
+      const expectedProfileId = ProfileId.fromParameters({
+        scope: profile.scope,
+        name: profile.name,
+        version: ProfileVersion.fromString(profile.version),
+      });
+      const expectedMapId = MapId.fromParameters({
+        profile: expectedProfileId,
+        provider,
+        variant,
+        version: MapVersion.fromString('1.0'),
+      });
 
       expect(
-        (
-          await check(
-            mockSuperJson,
-            {
-              id: ProfileId.fromScopeName(profile.scope, profile.name),
-              version: profile.version,
-            },
-            provider,
-            map
-          )
-        ).length
+        (await check(mockSuperJson, expectedProfileId, expectedMapId)).length
       ).not.toEqual(0);
 
       expect(findLocalProviderSource).toHaveBeenCalledWith(
@@ -489,25 +483,15 @@ describe('Check logic', () => {
       );
       expect(findLocalProfileSource).toHaveBeenCalledWith(
         mockSuperJson,
-        ProfileId.fromScopeName(profile.scope, profile.name),
-        profile.version
+        expectedProfileId
       );
       expect(findLocalMapSource).toHaveBeenCalledWith(
         mockSuperJson,
-        ProfileId.fromScopeName(profile.scope, profile.name),
-        provider
+        expectedMapId
       );
 
-      expect(fetchMapAST).toHaveBeenCalledWith(
-        profile.name,
-        provider,
-        profile.scope,
-        profile.version,
-        map.variant
-      );
-      expect(fetchProfileAST).toHaveBeenCalledWith(
-        `${profile.scope}/${profile.name}@${profile.version}`
-      );
+      expect(fetchMapAST).toHaveBeenCalledWith(expectedMapId);
+      expect(fetchProfileAST).toHaveBeenCalledWith(expectedProfileId);
       expect(fetchProviderInfo).toHaveBeenCalledWith(provider);
     });
   });

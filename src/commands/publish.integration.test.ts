@@ -1,4 +1,5 @@
 import { SuperJson } from '@superfaceai/one-sdk';
+import { ProfileId } from '@superfaceai/parser';
 import { getLocal } from 'mockttp';
 import { Netrc } from 'netrc-parser';
 import { join as joinPath } from 'path';
@@ -6,7 +7,6 @@ import { join as joinPath } from 'path';
 import { UNVERIFIED_PROVIDER_PREFIX } from '../common';
 import { mkdir, rimraf } from '../common/io';
 import { OutputStream } from '../common/output-stream';
-import { ProfileId } from '../common/profile';
 import {
   ENTER,
   execCLI,
@@ -72,7 +72,7 @@ describe('Publish CLI command', () => {
   beforeAll(async () => {
     await mkdir(TEMP_PATH, { recursive: true });
     await mockServer.start();
-    await mockResponsesForProfile(mockServer, profileId.id);
+    await mockResponsesForProfile(mockServer, profileId.withoutVersion);
     await mockResponsesForProfile(
       mockServer,
       'starwars/character-information@1.0.2'
@@ -80,7 +80,7 @@ describe('Publish CLI command', () => {
     await mockResponsesForProfileProviders(
       mockServer,
       [provider, unverifiedProvider],
-      profileId.id
+      profileId.withoutVersion
     );
     await mockResponsesForProvider(mockServer, provider);
     await mockResponsesForProvider(mockServer, unverifiedProvider);
@@ -137,7 +137,7 @@ describe('Publish CLI command', () => {
     it('publishes profile with local map and provider', async () => {
       const mockSuperJson = new SuperJson({
         profiles: {
-          [profileId.id]: {
+          [profileId.withoutVersion]: {
             file: `../../../../${sourceFixture.profile}`,
             providers: {
               [unverifiedProvider]: {
@@ -165,7 +165,7 @@ describe('Publish CLI command', () => {
           'publish',
           'profile',
           '--profileId',
-          profileId.id,
+          profileId.withoutVersion,
           '--providerName',
           unverifiedProvider,
         ],
@@ -183,10 +183,10 @@ describe('Publish CLI command', () => {
         }
       );
       expect(result.stdout).toContain(
-        `Profile: "${profileId.id}" found on local file system`
+        `Profile: "${profileId.withoutVersion}" found on local file system`
       );
       expect(result.stdout).toContain(
-        `Map for profile: "${profileId.id}" and provider: "${unverifiedProvider}" found on local filesystem`
+        `Map for profile: "${profileId.withoutVersion}" and provider: "${unverifiedProvider}" found on local filesystem`
       );
       expect(result.stdout).toContain(
         `Provider: "${unverifiedProvider}" found on local file system`
@@ -203,7 +203,7 @@ describe('Publish CLI command', () => {
 
       expect(superJson.document).toEqual({
         profiles: {
-          [profileId.id]: {
+          [profileId.withoutVersion]: {
             version: '1.0.1',
             providers: {
               [unverifiedProvider]: {
@@ -223,7 +223,7 @@ describe('Publish CLI command', () => {
     it('publishes profile with remote map and provider', async () => {
       const mockSuperJson = new SuperJson({
         profiles: {
-          [profileId.id]: {
+          [profileId.withoutVersion]: {
             file: `../../../../${sourceFixture.profile}`,
             providers: {
               [unverifiedProvider]: {},
@@ -247,7 +247,7 @@ describe('Publish CLI command', () => {
           'publish',
           'profile',
           '--profileId',
-          profileId.id,
+          profileId.withoutVersion,
           '--providerName',
           unverifiedProvider,
         ],
@@ -265,10 +265,10 @@ describe('Publish CLI command', () => {
         }
       );
       expect(result.stdout).toContain(
-        `Profile: "${profileId.id}" found on local file system`
+        `Profile: "${profileId.withoutVersion}" found on local file system`
       );
       expect(result.stdout).toContain(
-        `Loading map for profile: "${profileId.id}" and provider: "${unverifiedProvider}" from Superface store`
+        `Loading map for profile: "${profileId.withoutVersion}" and provider: "${unverifiedProvider}" from Superface store`
       );
       expect(result.stdout).toContain(
         `Loading provider: "${unverifiedProvider}" from Superface store`
@@ -285,7 +285,7 @@ describe('Publish CLI command', () => {
 
       expect(superJson.document).toEqual({
         profiles: {
-          [profileId.id]: {
+          [profileId.withoutVersion]: {
             version: '1.0.1',
             providers: {
               [unverifiedProvider]: {},
@@ -301,7 +301,7 @@ describe('Publish CLI command', () => {
     it('publishes map with local profile and provider', async () => {
       const mockSuperJson = new SuperJson({
         profiles: {
-          [profileId.id]: {
+          [profileId.withoutVersion]: {
             file: `../../../../${sourceFixture.profile}`,
             providers: {
               [unverifiedProvider]: {
@@ -329,7 +329,7 @@ describe('Publish CLI command', () => {
           'publish',
           'map',
           '--profileId',
-          profileId.id,
+          profileId.withoutVersion,
           '--providerName',
           unverifiedProvider,
         ],
@@ -347,10 +347,10 @@ describe('Publish CLI command', () => {
         }
       );
       expect(result.stdout).toContain(
-        `Profile: "${profileId.id}" found on local file system`
+        `Profile: "${profileId.withoutVersion}" found on local file system`
       );
       expect(result.stdout).toContain(
-        `Map for profile: "${profileId.id}" and provider: "${unverifiedProvider}" found on local filesystem`
+        `Map for profile: "${profileId.withoutVersion}" and provider: "${unverifiedProvider}" found on local filesystem`
       );
       expect(result.stdout).toContain(
         `Provider: "${unverifiedProvider}" found on local file system`
@@ -369,7 +369,7 @@ describe('Publish CLI command', () => {
 
       expect(superJson.document).toEqual({
         profiles: {
-          [profileId.id]: {
+          [profileId.withoutVersion]: {
             file: `../../../../${sourceFixture.profile}`,
             providers: {
               [unverifiedProvider]: {},
@@ -387,7 +387,7 @@ describe('Publish CLI command', () => {
     it('publishes map with remote profile and provider', async () => {
       const mockSuperJson = new SuperJson({
         profiles: {
-          [profileId.id]: {
+          [profileId.withoutVersion]: {
             version: profileVersion,
             priority: [provider],
             providers: {
@@ -414,7 +414,7 @@ describe('Publish CLI command', () => {
           'publish',
           'map',
           '--profileId',
-          profileId.id,
+          profileId.withoutVersion,
           '--providerName',
           unverifiedProvider,
         ],
@@ -432,10 +432,10 @@ describe('Publish CLI command', () => {
         }
       );
       expect(result.stdout).toContain(
-        `Loading profile: "${profileId.id}@${profileVersion}" from Superface store`
+        `Loading profile: "${profileId.withoutVersion}@${profileVersion}" from Superface store`
       );
       expect(result.stdout).toContain(
-        `Map for profile: "${profileId.id}@${profileVersion}" and provider: "${unverifiedProvider}" found on local filesystem`
+        `Map for profile: "${profileId.withoutVersion}@${profileVersion}" and provider: "${unverifiedProvider}" found on local filesystem`
       );
       expect(result.stdout).toContain(
         `Loading provider: "${unverifiedProvider}" from Superface store`
@@ -454,7 +454,7 @@ describe('Publish CLI command', () => {
 
       expect(superJson.document).toEqual({
         profiles: {
-          [profileId.id]: {
+          [profileId.withoutVersion]: {
             version: profileVersion,
             priority: [provider],
             providers: {
@@ -471,7 +471,7 @@ describe('Publish CLI command', () => {
     it('publishes provider with local profile and map', async () => {
       const mockSuperJson = new SuperJson({
         profiles: {
-          [profileId.id]: {
+          [profileId.withoutVersion]: {
             file: `../../../../${sourceFixture.profile}`,
             providers: {
               [unverifiedProvider]: {
@@ -499,7 +499,7 @@ describe('Publish CLI command', () => {
           'publish',
           'provider',
           '--profileId',
-          profileId.id,
+          profileId.withoutVersion,
           '--providerName',
           unverifiedProvider,
         ],
@@ -517,10 +517,10 @@ describe('Publish CLI command', () => {
         }
       );
       expect(result.stdout).toContain(
-        `Profile: "${profileId.id}" found on local file system`
+        `Profile: "${profileId.withoutVersion}" found on local file system`
       );
       expect(result.stdout).toContain(
-        `Map for profile: "${profileId.id}" and provider: "${unverifiedProvider}" found on local filesystem`
+        `Map for profile: "${profileId.withoutVersion}" and provider: "${unverifiedProvider}" found on local filesystem`
       );
       expect(result.stdout).toContain(
         `Provider: "${unverifiedProvider}" found on local file system`
@@ -539,7 +539,7 @@ describe('Publish CLI command', () => {
 
       expect(superJson.document).toEqual({
         profiles: {
-          [profileId.id]: {
+          [profileId.withoutVersion]: {
             file: `../../../../${sourceFixture.profile}`,
             providers: {
               [unverifiedProvider]: {
@@ -557,7 +557,7 @@ describe('Publish CLI command', () => {
     it('publishes provider with remote profile and map', async () => {
       const mockSuperJson = new SuperJson({
         profiles: {
-          [profileId.id]: {
+          [profileId.withoutVersion]: {
             version: profileVersion,
             priority: [unverifiedProvider],
             providers: {
@@ -584,7 +584,7 @@ describe('Publish CLI command', () => {
           'publish',
           'provider',
           '--profileId',
-          profileId.id,
+          profileId.withoutVersion,
           '--providerName',
           unverifiedProvider,
         ],
@@ -602,10 +602,10 @@ describe('Publish CLI command', () => {
         }
       );
       expect(result.stdout).toContain(
-        `Loading profile: "${profileId.id}@${profileVersion}" from Superface store`
+        `Loading profile: "${profileId.withoutVersion}@${profileVersion}" from Superface store`
       );
       expect(result.stdout).toContain(
-        `Loading map for profile: "${profileId.id}@${profileVersion}" and provider: "${unverifiedProvider}" from Superface store`
+        `Loading map for profile: "${profileId.withoutVersion}@${profileVersion}" and provider: "${unverifiedProvider}" from Superface store`
       );
       expect(result.stdout).toContain(
         `Provider: "${unverifiedProvider}" found on local file system`
@@ -624,7 +624,7 @@ describe('Publish CLI command', () => {
 
       expect(superJson.document).toEqual({
         profiles: {
-          [profileId.id]: {
+          [profileId.withoutVersion]: {
             version: profileVersion,
             priority: [unverifiedProvider],
             providers: {

@@ -5,6 +5,14 @@ import {
   ProviderJson,
   SecurityType,
 } from '@superfaceai/one-sdk';
+import {
+  DEFAULT_MAP_VERSION,
+  DEFAULT_PROFILE_VERSION,
+  MapId,
+  MapVersion,
+  ProfileId,
+  ProfileVersion,
+} from '@superfaceai/parser';
 import { ServiceApiError, ServiceClient } from '@superfaceai/service-client';
 
 import {
@@ -18,10 +26,9 @@ import {
   getServicesUrl,
 } from '../common/http';
 import { mockResponse } from '../test/utils';
-import { DEFAULT_PROFILE_VERSION_STR } from './document';
 
 describe('HTTP functions', () => {
-  const profileId = 'starwars/character-information';
+  const profileId = ProfileId.fromId('starwars/character-information');
 
   afterEach(async () => {
     jest.resetAllMocks();
@@ -92,7 +99,7 @@ describe('HTTP functions', () => {
 
       expect(fetchSpy).toHaveBeenCalledTimes(1);
       expect(fetchSpy).toHaveBeenCalledWith(
-        `/providers?profile=${encodeURIComponent(profileId)}`,
+        `/providers?profile=${encodeURIComponent(profileId.toString())}`,
         {
           authenticate: false,
           method: 'GET',
@@ -123,7 +130,7 @@ describe('HTTP functions', () => {
 
       expect(fetchSpy).toHaveBeenCalledTimes(1);
       expect(fetchSpy).toHaveBeenCalledWith(
-        `/providers?profile=${encodeURIComponent(profileId)}`,
+        `/providers?profile=${encodeURIComponent(profileId.toString())}`,
         {
           authenticate: false,
           method: 'GET',
@@ -159,7 +166,7 @@ describe('HTTP functions', () => {
       );
 
       expect(fetchSpy).toHaveBeenCalledTimes(1);
-      expect(fetchSpy).toHaveBeenCalledWith(`/${profileId}`, {
+      expect(fetchSpy).toHaveBeenCalledWith(`/${profileId.toString()}`, {
         authenticate: false,
         method: 'GET',
         headers: {
@@ -188,7 +195,7 @@ describe('HTTP functions', () => {
       );
 
       expect(fetchSpy).toHaveBeenCalledTimes(1);
-      expect(fetchSpy).toHaveBeenCalledWith(`/${profileId}`, {
+      expect(fetchSpy).toHaveBeenCalledWith(`/${profileId.toString()}`, {
         authenticate: false,
         method: 'GET',
         headers: {
@@ -208,7 +215,7 @@ describe('HTTP functions', () => {
       await expect(fetchProfile(profileId)).resolves.toEqual(`"mock profile"`);
 
       expect(fetchSpy).toHaveBeenCalledTimes(1);
-      expect(fetchSpy).toHaveBeenCalledWith(`/${profileId}`, {
+      expect(fetchSpy).toHaveBeenCalledWith(`/${profileId.toString()}`, {
         authenticate: false,
         method: 'GET',
         headers: {
@@ -237,7 +244,7 @@ describe('HTTP functions', () => {
       );
 
       expect(fetchSpy).toHaveBeenCalledTimes(1);
-      expect(fetchSpy).toHaveBeenCalledWith(`/${profileId}`, {
+      expect(fetchSpy).toHaveBeenCalledWith(`/${profileId.toString()}`, {
         authenticate: false,
         method: 'GET',
         headers: {
@@ -278,7 +285,7 @@ describe('HTTP functions', () => {
 
       await expect(fetchProfileAST(profileId)).resolves.toEqual(mockProfileAst);
       expect(fetchSpy).toHaveBeenCalledTimes(1);
-      expect(fetchSpy).toHaveBeenCalledWith(`/${profileId}`, {
+      expect(fetchSpy).toHaveBeenCalledWith(`/${profileId.toString()}`, {
         authenticate: false,
         method: 'GET',
         headers: {
@@ -307,7 +314,7 @@ describe('HTTP functions', () => {
       );
 
       expect(fetchSpy).toHaveBeenCalledTimes(1);
-      expect(fetchSpy).toHaveBeenCalledWith(`/${profileId}`, {
+      expect(fetchSpy).toHaveBeenCalledWith(`/${profileId.toString()}`, {
         authenticate: false,
         method: 'GET',
         headers: {
@@ -403,7 +410,18 @@ describe('HTTP functions', () => {
     const scope = 'starwars';
     const provider = 'swapi';
     const version = '1.0.2';
+    const mapVersion = '1.0';
     const variant = 'test';
+    const mapId = MapId.fromParameters({
+      profile: ProfileId.fromParameters({
+        scope,
+        name: profileName,
+        version: ProfileVersion.fromString(version),
+      }),
+      version: MapVersion.fromString(mapVersion),
+      provider,
+      variant,
+    });
 
     //mock map ast
     const mockMapDocument = {
@@ -429,12 +447,21 @@ describe('HTTP functions', () => {
         .spyOn(ServiceClient.prototype, 'fetch')
         .mockResolvedValue(mockResponse(200, 'OK', undefined, mockMapDocument));
 
-      await expect(fetchMapAST(profileName, provider)).resolves.toEqual(
-        mockMapDocument
-      );
+      await expect(
+        fetchMapAST(
+          MapId.fromParameters({
+            profile: ProfileId.fromParameters({
+              name: profileName,
+              version: DEFAULT_PROFILE_VERSION,
+            }),
+            version: DEFAULT_MAP_VERSION,
+            provider,
+          })
+        )
+      ).resolves.toEqual(mockMapDocument);
       expect(fetchSpy).toHaveBeenCalledTimes(1);
       expect(fetchSpy).toHaveBeenCalledWith(
-        `/${profileName}.${provider}@${DEFAULT_PROFILE_VERSION_STR}`,
+        `/${profileName}.${provider}@${DEFAULT_PROFILE_VERSION.toString()}`,
         {
           authenticate: false,
           method: 'GET',
@@ -468,9 +495,7 @@ describe('HTTP functions', () => {
         .spyOn(ServiceClient.prototype, 'fetch')
         .mockResolvedValue(mockResponse(200, 'OK', undefined, mockMapDocument));
 
-      await expect(
-        fetchMapAST(profileName, provider, scope, version, variant)
-      ).resolves.toEqual(mockMapDocument);
+      await expect(fetchMapAST(mapId)).resolves.toEqual(mockMapDocument);
       expect(fetchSpy).toHaveBeenCalledTimes(1);
       expect(fetchSpy).toHaveBeenCalledWith(
         `/${scope}/${profileName}.${provider}.${variant}@${version}`,
@@ -499,15 +524,13 @@ describe('HTTP functions', () => {
           mockResponse(404, 'Not Found', undefined, mockErrResponse)
         );
 
-      await expect(
-        fetchMapAST(profileName, provider, scope, version)
-      ).rejects.toEqual(
+      await expect(fetchMapAST(mapId)).rejects.toEqual(
         new CLIError(new ServiceApiError(mockErrResponse).message)
       );
 
       expect(fetchSpy).toHaveBeenCalledTimes(1);
       expect(fetchSpy).toHaveBeenCalledWith(
-        `/${scope}/${profileName}.${provider}@${version}`,
+        `/${scope}/${profileName}.${provider}.${variant}@${version}`,
         {
           authenticate: false,
           method: 'GET',

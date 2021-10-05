@@ -1,10 +1,14 @@
 import { CLIError } from '@oclif/errors';
 import { EXTENSIONS } from '@superfaceai/ast';
-import { err, ok, SuperJson } from '@superfaceai/one-sdk';
-import { SDKExecutionError } from '@superfaceai/one-sdk/dist/internal/errors';
+import { err, ok, SDKExecutionError, SuperJson } from '@superfaceai/one-sdk';
+import {
+  MapId,
+  MapVersion,
+  ProfileId,
+  ProfileVersion,
+} from '@superfaceai/parser';
 
 import { OutputStream } from '../common/output-stream';
-import { ProfileId } from '../common/profile';
 import { empty as emptyMap } from '../templates/map';
 import { empty as emptyProfile } from '../templates/profile';
 import { empty as emptyProvider } from '../templates/provider';
@@ -29,8 +33,11 @@ describe('Create logic', () => {
       await expect(
         createProfile(
           mockBasePath,
-          mockProfile,
-          mockVersion,
+          ProfileId.fromParameters({
+            name: mockProfile.name,
+            scope: mockProfile.scope,
+            version: ProfileVersion.fromVersionRange(mockVersion),
+          }),
           mockUsecaseNames,
           mockSuperJson
         )
@@ -42,7 +49,7 @@ describe('Create logic', () => {
       ).toHaveBeenCalledWith(
         'test-path/test-scope/test-name.supr',
         [
-          `name = "${mockProfile.id}"\nversion = "1.0.0"\n`,
+          `name = "${mockProfile.withoutVersion}"\nversion = "1.0.0"\n`,
           emptyProfile(mockUsecaseNames[0]),
         ].join(''),
         { dirs: true, force: undefined }
@@ -63,8 +70,11 @@ describe('Create logic', () => {
       await expect(
         createProfile(
           mockBasePath,
-          mockProfile,
-          mockVersion,
+          ProfileId.fromParameters({
+            name: mockProfile.name,
+            scope: mockProfile.scope,
+            version: ProfileVersion.fromVersionRange(mockVersion),
+          }),
           mockUsecaseNames,
           mockSuperJson,
           mockFilename
@@ -77,7 +87,7 @@ describe('Create logic', () => {
       ).toHaveBeenCalledWith(
         'test-path/mock-filename.supr',
         [
-          `name = "${mockProfile.id}"\nversion = "1.0.0"\n`,
+          `name = "${mockProfile.withoutVersion}"\nversion = "1.0.0"\n`,
           emptyProfile(mockUsecaseNames[0]),
         ].join(''),
         { dirs: true, force: undefined }
@@ -98,8 +108,11 @@ describe('Create logic', () => {
       await expect(
         createProfile(
           mockBasePath,
-          mockProfile,
-          mockVersion,
+          ProfileId.fromParameters({
+            name: mockProfile.name,
+            scope: mockProfile.scope,
+            version: ProfileVersion.fromVersionRange(mockVersion),
+          }),
           mockUsecaseNames,
           mockSuperJson,
           mockFilename
@@ -112,7 +125,7 @@ describe('Create logic', () => {
       ).toHaveBeenCalledWith(
         'test-path/mock-filename.supr',
         [
-          `name = "${mockProfile.id}"\nversion = "1.0.0"\n`,
+          `name = "${mockProfile.withoutVersion}"\nversion = "1.0.0"\n`,
           emptyProfile(mockUsecaseNames[0]),
         ].join(''),
         { dirs: true, force: undefined }
@@ -132,8 +145,11 @@ describe('Create logic', () => {
       await expect(
         createProfile(
           mockBasePath,
-          mockProfile,
-          mockVersion,
+          ProfileId.fromParameters({
+            name: mockProfile.name,
+            scope: mockProfile.scope,
+            version: ProfileVersion.fromVersionRange(mockVersion),
+          }),
           mockUsecaseNames,
           mockSuperJson
         )
@@ -154,11 +170,15 @@ describe('Create logic', () => {
   describe('when creating map', () => {
     it('creates empty map with scope', async () => {
       const mockBasePath = 'test-path';
-      const mockId = {
-        profile: ProfileId.fromScopeName('test-scope', 'test-name'),
+      const mockId = MapId.fromParameters({
+        profile: ProfileId.fromParameters({
+          name: 'test-name',
+          scope: 'test-scope',
+          version: ProfileVersion.fromString('1.0.0'),
+        }),
         provider: 'twilio',
-        version: { major: 1 },
-      };
+        version: MapVersion.fromVersionRange({ major: 1 }),
+      });
       const mockSuperJson = new SuperJson({});
       const mockUsecaseNames = ['test-usecase'];
       const writeIfAbsentSpy = jest
@@ -175,7 +195,7 @@ describe('Create logic', () => {
       ).toHaveBeenCalledWith(
         'test-path/test-scope/test-name.twilio.suma',
         [
-          `profile = "${mockId.profile.id}@1.0"\nprovider = "${mockId.provider}"\n`,
+          `profile = "${mockId.profile.withoutVersion}@1.0"\nprovider = "${mockId.provider}"\n`,
           emptyMap(mockUsecaseNames[0]),
         ].join(''),
         { dirs: true, force: undefined }
@@ -185,9 +205,12 @@ describe('Create logic', () => {
     it('creates empty map without scope', async () => {
       const mockBasePath = 'test-path';
       const mockId = {
-        profile: ProfileId.fromScopeName(undefined, 'test-name'),
+        profile: ProfileId.fromParameters({
+          name: 'test-name',
+          version: ProfileVersion.fromString('1.0.0'),
+        }),
         provider: 'twilio',
-        version: { major: 1 },
+        version: MapVersion.fromVersionRange({ major: 1 }),
       };
       const mockSuperJson = new SuperJson({});
       const mockUsecaseNames = ['test-usecase'];
@@ -215,9 +238,12 @@ describe('Create logic', () => {
     it('creates empty map without scope and with variant', async () => {
       const mockBasePath = 'test-path';
       const mockId = {
-        profile: ProfileId.fromScopeName(undefined, 'test-name'),
+        profile: ProfileId.fromParameters({
+          name: 'test-name',
+          version: ProfileVersion.fromString('1.0.0'),
+        }),
         provider: 'twilio',
-        version: { major: 1 },
+        version: MapVersion.fromVersionRange({ major: 1 }),
         variant: 'bugfix',
       };
       const mockSuperJson = new SuperJson({});
@@ -247,9 +273,12 @@ describe('Create logic', () => {
       const mockBasePath = 'test-path';
       const mockFilename = 'test-map';
       const mockId = {
-        profile: ProfileId.fromScopeName(undefined, 'test-name'),
+        profile: ProfileId.fromParameters({
+          name: 'test-name',
+          version: ProfileVersion.fromString('1.0.0'),
+        }),
         provider: 'twilio',
-        version: { major: 1 },
+        version: MapVersion.fromVersionRange({ major: 1 }),
         variant: 'bugfix',
       };
       const mockSuperJson = new SuperJson({});
@@ -285,9 +314,12 @@ describe('Create logic', () => {
       const mockBasePath = 'test-path';
       const mockFilename = `test-map${EXTENSIONS.map.source}`;
       const mockId = {
-        profile: ProfileId.fromScopeName(undefined, 'test-name'),
+        profile: ProfileId.fromParameters({
+          name: 'test-name',
+          version: ProfileVersion.fromString('1.0.0'),
+        }),
         provider: 'twilio',
-        version: { major: 1 },
+        version: MapVersion.fromVersionRange({ major: 1 }),
         variant: 'bugfix',
       };
       const mockSuperJson = new SuperJson({});

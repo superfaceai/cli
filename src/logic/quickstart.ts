@@ -5,7 +5,6 @@ import {
   isBearerTokenSecurityValues,
   isDigestSecurityValues,
   isValidDocumentName,
-  isValidVersionString,
   OnFail,
   RetryPolicy,
   SecurityValues,
@@ -16,7 +15,7 @@ import {
   SUPERFACE_DIR,
   SuperJson,
 } from '@superfaceai/one-sdk';
-import { getProfileUsecases } from '@superfaceai/parser';
+import { getProfileUsecases, ProfileId } from '@superfaceai/parser';
 import { bold } from 'chalk';
 import inquirer from 'inquirer';
 import { join as joinPath } from 'path';
@@ -28,7 +27,6 @@ import { LogCallback } from '../common/log';
 import { OutputStream } from '../common/output-stream';
 import { PackageManager } from '../common/package-manager';
 import { NORMALIZED_CWD_PATH } from '../common/path';
-import { ProfileId } from '../common/profile';
 import { envVariable } from '../templates/env';
 import { findLocalProfileSource } from './check.utils';
 import { installProvider } from './configure';
@@ -44,23 +42,14 @@ export async function interactiveInstall(
     successCb?: LogCallback;
   }
 ): Promise<void> {
-  const [profileIdStr, version] = profileArg.split('@');
-  const profilePathParts = profileIdStr.split('/');
-  const profileId = ProfileId.fromScopeName(
-    profilePathParts[0],
-    profilePathParts[profilePathParts.length - 1]
-  );
+  const profileId = ProfileId.fromId(profileArg);
 
   if (!isValidDocumentName(profileId.name)) {
     options?.warnCb?.(`Invalid profile name: ${profileId.name}`);
 
     return;
   }
-  if (version && !isValidVersionString(version)) {
-    options?.warnCb?.(`Invalid profile version: ${version}`);
 
-    return;
-  }
   let envContent = '';
   //Super.json path
   let superPath = await detectSuperJson(process.cwd());
@@ -84,10 +73,10 @@ export async function interactiveInstall(
 
   let installProfile = true;
   //Override existing profile
-  if (await profileExists(superJson, { id: profileId, version })) {
+  if (await profileExists(superJson, profileId)) {
     if (
       !(await confirmPrompt(
-        `Profile "${profileId.id}" already exists.\nDo you want to override it?:`
+        `Profile "${profileId.toString()}" already exists.\nDo you want to override it?:`
       ))
     )
       installProfile = false;
@@ -100,7 +89,7 @@ export async function interactiveInstall(
         {
           kind: 'store',
           profileId,
-          version: version,
+          versionKnown: profileId.version !== undefined,
         },
       ],
       options: {
@@ -113,7 +102,7 @@ export async function interactiveInstall(
     superJson = (await SuperJson.load(joinPath(superPath, META_FILE))).unwrap();
   }
   //Ask for providers
-  const possibleProviders = (await fetchProviders(profileArg)).map(p => p.name);
+  const possibleProviders = (await fetchProviders(profileId)).map(p => p.name);
 
   const priorityToString: Map<number, string> = new Map([
     [1, 'primary'],
@@ -195,18 +184,18 @@ export async function interactiveInstall(
   }
 
   //Get installed usecases
-  const profileSource = await findLocalProfileSource(
-    superJson,
-    profileId,
-    version
-  );
+  const profileSource = await findLocalProfileSource(superJson, profileId);
   if (!profileSource) {
     throw developerError('Profile source not found after installation', 1);
   }
-  const profileAst = await Parser.parseProfile(profileSource, profileId.id, {
-    profileName: profileId.name,
-    scope: profileId.scope,
-  });
+  const profileAst = await Parser.parseProfile(
+    profileSource,
+    profileId.withoutVersion,
+    {
+      profileName: profileId.name,
+      scope: profileId.scope,
+    }
+  );
   const profileUsecases = getProfileUsecases(profileAst);
   //Check usecase
   if (profileUsecases.length === 0) {
@@ -221,7 +210,7 @@ export async function interactiveInstall(
   if (profileUsecases.length > 1) {
     const useCaseResponse: { useCase: string } = await inquirer.prompt({
       name: 'useCase',
-      message: `Installed profile "${profileId.id}" has more than one use case.\nSelect one you want to configure:`,
+      message: `Installed profile "${profileId.withoutVersion}" has more than one use case.\nSelect one you want to configure:`,
       type: 'list',
       choices: profileUsecases.map(usecase => usecase.name),
     });
@@ -246,7 +235,7 @@ export async function interactiveInstall(
       )
     ) {
       //Add provider failover
-      superJson.mergeProfileDefaults(profileId.id, {
+      superJson.mergeProfileDefaults(profileId.withoutVersion, {
         [selectedUseCase]: { providerFailover: true },
       });
       await OutputStream.writeOnce(superJson.path, superJson.stringified, {
@@ -418,7 +407,7 @@ export async function interactiveInstall(
   //Lead to docs page
   options?.successCb?.(
     `\nNow you can follow our documentation to use installed capability: "${
-      new URL(profileId.id, getServicesUrl()).href
+      new URL(profileId.withoutVersion, getServicesUrl()).href
     }"`
   );
 }

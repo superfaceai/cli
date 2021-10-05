@@ -1,6 +1,6 @@
 import { SuperJsonDocument } from '@superfaceai/ast';
 import { SuperJson } from '@superfaceai/one-sdk';
-import { parseProfileId } from '@superfaceai/parser';
+import { ProfileId } from '@superfaceai/parser';
 import { join as joinPath } from 'path';
 
 import {
@@ -14,7 +14,6 @@ import { userError } from '../common/error';
 import { mkdir, mkdirQuiet } from '../common/io';
 import { formatShellLog, LogCallback } from '../common/log';
 import { OutputStream } from '../common/output-stream';
-import { ProfileId } from '../common/profile';
 import { createProfile } from './create';
 
 /**
@@ -107,22 +106,18 @@ export async function generateSpecifiedProfiles(
   logCb?: LogCallback
 ): Promise<void> {
   for (const profileId of profileIds) {
-    const parsedProfile = parseProfileId(profileId);
-
-    if (parsedProfile.kind === 'error') {
-      throw userError('Wrong profile Id', 1);
+    try {
+      const parsedProfile = ProfileId.fromId(profileId);
+      await createProfile(
+        joinPath(path, GRID_DIR),
+        parsedProfile,
+        [composeUsecaseName(parsedProfile.name)],
+        superJson,
+        undefined,
+        { logCb }
+      );
+    } catch (error) {
+      throw userError(error, 1);
     }
-
-    const { scope, name, version } = parsedProfile.value;
-
-    await createProfile(
-      joinPath(path, GRID_DIR),
-      ProfileId.fromScopeName(scope, name),
-      version,
-      [composeUsecaseName(name)],
-      superJson,
-      undefined,
-      { logCb }
-    );
   }
 }

@@ -1,13 +1,18 @@
 import { EXTENSIONS } from '@superfaceai/ast';
 import { SuperJson } from '@superfaceai/one-sdk';
-import { DocumentVersion } from '@superfaceai/parser';
+import {
+  MapId,
+  MapVersion,
+  ProfileId,
+  ProfileVersion,
+  VersionRange,
+} from '@superfaceai/parser';
 import { dirname, join as joinPath, relative as relativePath } from 'path';
 
 import { composeVersion, META_FILE } from '../common/document';
 import { userError } from '../common/error';
 import { formatShellLog, LogCallback } from '../common/log';
 import { OutputStream } from '../common/output-stream';
-import { ProfileId } from '../common/profile';
 import * as mapTemplate from '../templates/map';
 import * as profileTemplate from '../templates/profile';
 import * as providerTemplate from '../templates/provider';
@@ -18,7 +23,6 @@ import * as providerTemplate from '../templates/provider';
 export async function createProfile(
   basePath: string,
   profile: ProfileId,
-  version: DocumentVersion,
   usecaseNames: string[],
   superJson?: SuperJson,
   fileName?: string,
@@ -31,15 +35,22 @@ export async function createProfile(
   if (fileName && !fileName.endsWith(EXTENSIONS.profile.source)) {
     fileName = fileName + EXTENSIONS.profile.source;
   }
-  let filePath = fileName || `${profile.id}${EXTENSIONS.profile.source}`;
+  let filePath =
+    fileName || `${profile.withoutVersion}${EXTENSIONS.profile.source}`;
 
-  const versionStr = composeVersion(version);
+  if (!profile.version) {
+    throw userError(
+      `Error when creating profile: "${profile.toString()}" - version must be defined`,
+      1
+    );
+  }
+  const versionStr = profile.version?.toString();
   filePath = joinPath(basePath, filePath);
 
   const created = await OutputStream.writeIfAbsent(
     filePath,
     [
-      profileTemplate.header(profile.id, versionStr),
+      profileTemplate.header(profile.withoutVersion, versionStr),
       ...usecaseNames.map(u => profileTemplate.empty(u)),
     ].join(''),
     { force: options?.force, dirs: true }
@@ -47,10 +58,10 @@ export async function createProfile(
 
   if (created) {
     options?.logCb?.(
-      `-> Created ${filePath} (name = "${profile.id}", version = "${versionStr}")`
+      `-> Created ${filePath} (name = "${profile.withoutVersion}", version = "${versionStr}")`
     );
     if (superJson) {
-      superJson.mergeProfile(profile.id, {
+      superJson.mergeProfile(profile.withoutVersion, {
         file: relativePath(dirname(superJson.path), filePath),
       });
     }
@@ -62,12 +73,7 @@ export async function createProfile(
  */
 export async function createMap(
   basePath: string,
-  id: {
-    profile: ProfileId;
-    provider: string;
-    variant?: string;
-    version: DocumentVersion;
-  },
+  map: MapId,
   usecaseNames: string[],
   superJson?: SuperJson,
   fileName?: string,
@@ -76,7 +82,7 @@ export async function createMap(
     logCb?: LogCallback;
   }
 ): Promise<void> {
-  const variantName = id.variant ? `.${id.variant}` : '';
+  const variantName = map.variant ? `.${map.variant}` : '';
   //Add extension if missing
   if (fileName && !fileName.endsWith(EXTENSIONS.map.source)) {
     fileName = fileName + EXTENSIONS.map.source;
@@ -84,16 +90,21 @@ export async function createMap(
 
   let filePath =
     fileName ||
-    `${id.profile.id}.${id.provider}${variantName}${EXTENSIONS.map.source}`;
+    `${map.profile.withoutVersion}.${map.provider}${variantName}${EXTENSIONS.map.source}`;
 
-  const version = composeVersion(id.version, true);
+  const version = composeVersion(map.version, true);
 
   filePath = joinPath(basePath, filePath);
 
   const created = await OutputStream.writeIfAbsent(
     filePath,
     [
-      mapTemplate.header(id.profile.id, id.provider, version, id.variant),
+      mapTemplate.header(
+        map.profile.withoutVersion,
+        map.provider,
+        version,
+        map.variant
+      ),
       ...usecaseNames.map(u => mapTemplate.empty(u)),
     ].join(''),
     { force: options?.force, dirs: true }
@@ -101,12 +112,10 @@ export async function createMap(
 
   if (created) {
     options?.logCb?.(
-      `-> Created ${filePath} (profile = "${id.profile.withVersion(
-        version
-      )}", provider = "${id.provider}")`
+      `-> Created ${filePath} (profile = "${map.profile.withoutVersion}", provider = "${map.provider}")`
     );
     if (superJson) {
-      superJson.mergeProfileProvider(id.profile.id, id.provider, {
+      superJson.mergeProfileProvider(map.profile.withoutVersion, map.provider, {
         file: relativePath(dirname(superJson.path), filePath),
       });
     }
@@ -160,7 +169,7 @@ export async function create(
       name?: string;
       providerNames: string[];
       usecases: string[];
-      version: DocumentVersion;
+      version: VersionRange;
       variant?: string;
     };
     paths: {
@@ -217,15 +226,25 @@ export async function create(
         2
       );
     }
+    if (!version.minor) {
+      throw userError(
+        'Minor version component must be provided when generating a map.',
+        2
+      );
+    }
     for (const provider of providers) {
       await createMap(
         create.paths.basePath ?? '',
-        {
-          profile: ProfileId.fromScopeName(scope, name),
+        MapId.fromParameters({
+          profile: ProfileId.fromParameters({
+            scope,
+            name,
+            version: ProfileVersion.fromVersionRange(version),
+          }),
+          version: MapVersion.fromVersionRange(version),
           provider,
           variant,
-          version,
-        },
+        }),
         usecases,
         superJson,
         create.fileNames?.map,
@@ -259,10 +278,25 @@ export async function create(
         2
       );
     }
+    if (!version.minor) {
+      throw userError(
+        'Minor version component must be provided when generating a map.',
+        2
+      );
+    }
+    if (!version.patch) {
+      throw userError(
+        'Patch version component must be provided when generating a map.',
+        2
+      );
+    }
     await createProfile(
       create.paths.basePath ?? '',
-      ProfileId.fromScopeName(scope, name),
-      version,
+      ProfileId.fromParameters({
+        scope,
+        name,
+        version: ProfileVersion.fromVersionRange(version),
+      }),
       usecases,
       superJson,
       create.fileNames?.profile,

@@ -1,18 +1,21 @@
 import { CLIError } from '@oclif/errors';
 import { MapDocumentNode, ProfileDocumentNode } from '@superfaceai/ast';
 import { SuperJson } from '@superfaceai/one-sdk';
-import { ServiceApiError } from '@superfaceai/service-client';
-import { ServiceClient } from '@superfaceai/service-client/dist/client';
+import {
+  DEFAULT_MAP_VERSION,
+  DEFAULT_PROFILE_VERSION,
+  MapId,
+  MapVersion,
+  ProfileId,
+  ProfileVersion,
+} from '@superfaceai/parser';
+import { ServiceApiError, ServiceClient } from '@superfaceai/service-client';
 import { yellow } from 'chalk';
 import { mocked } from 'ts-jest/utils';
 
-import {
-  DEFAULT_PROFILE_VERSION_STR,
-  UNVERIFIED_PROVIDER_PREFIX,
-} from '../common';
+import { UNVERIFIED_PROVIDER_PREFIX } from '../common';
 import { fetchProviderInfo, getServicesUrl } from '../common/http';
 import { loadNetrc } from '../common/netrc';
-import { ProfileId } from '../common/profile';
 import { ProfileMapReport } from '../common/report.interfaces';
 import {
   CheckResult,
@@ -60,8 +63,22 @@ jest.mock('./publish.utils', () => ({
 
 describe('Publish logic', () => {
   describe('when publishing', () => {
-    const mockProfileId = 'starwars/character-information';
+    const scope = 'starwars';
+    const name = 'character-information';
+
     const mockProviderName = 'swapi';
+
+    const profile = ProfileId.fromParameters({
+      scope,
+      name,
+      version: DEFAULT_PROFILE_VERSION,
+    });
+
+    const map = MapId.fromParameters({
+      profile,
+      provider: mockProviderName,
+      version: DEFAULT_MAP_VERSION,
+    });
 
     const mockProfileDocument: ProfileDocumentNode = {
       kind: 'ProfileDocument',
@@ -167,7 +184,7 @@ describe('Publish logic', () => {
     it('publishes profile', async () => {
       const mockSuperJson = new SuperJson({
         profiles: {
-          [mockProfileId]: {
+          [profile.withoutVersion]: {
             file: mockPath,
             providers: {
               [mockProviderName]: {},
@@ -197,25 +214,19 @@ describe('Publish logic', () => {
         .mockResolvedValue(undefined);
 
       await expect(
-        publish(
-          'profile',
-          mockSuperJson,
-          ProfileId.fromId(mockProfileId),
-          mockProviderName,
-          {}
-        )
+        publish('profile', mockSuperJson, profile, map, {})
       ).resolves.toBeUndefined();
 
       expect(createSpy).toHaveBeenCalledWith(mockProfileSource);
       expect(loadProfile).toHaveBeenCalledWith(
         mockSuperJson,
-        ProfileId.fromId(mockProfileId),
+        profile,
         undefined,
         undefined
       );
       expect(loadMap).toHaveBeenCalledWith(
         mockSuperJson,
-        ProfileId.fromId(mockProfileId),
+        profile,
         mockProviderName,
         {},
         undefined,
@@ -240,9 +251,15 @@ describe('Publish logic', () => {
 
     it('publishes profile with map variant', async () => {
       const variant = 'test';
+      const map = MapId.fromParameters({
+        profile: profile,
+        version: DEFAULT_MAP_VERSION,
+        provider: mockProviderName,
+        variant,
+      });
       const mockSuperJson = new SuperJson({
         profiles: {
-          [mockProfileId]: {
+          [profile.withoutVersion]: {
             file: mockPath,
             providers: {
               [mockProviderName]: {
@@ -273,27 +290,20 @@ describe('Publish logic', () => {
         .mockResolvedValue(undefined);
 
       await expect(
-        publish(
-          'profile',
-          mockSuperJson,
-          ProfileId.fromId(mockProfileId),
-          mockProviderName,
-          { variant }
-        )
+        publish('profile', mockSuperJson, profile, map)
       ).resolves.toBeUndefined();
 
       expect(createSpy).toHaveBeenCalledWith(mockProfileSource);
       expect(loadProfile).toHaveBeenCalledWith(
         mockSuperJson,
-        ProfileId.fromId(mockProfileId),
+        profile,
         undefined,
         undefined
       );
       expect(loadMap).toHaveBeenCalledWith(
         mockSuperJson,
-        ProfileId.fromId(mockProfileId),
-        mockProviderName,
-        { variant },
+        profile,
+        map,
         undefined,
         undefined
       );
@@ -315,9 +325,14 @@ describe('Publish logic', () => {
     });
 
     it('publishes profile with remote provider', async () => {
+      const map = MapId.fromParameters({
+        profile: profile,
+        version: DEFAULT_MAP_VERSION,
+        provider: mockProviderName,
+      });
       const mockSuperJson = new SuperJson({
         profiles: {
-          [mockProfileId]: {
+          [profile.withoutVersion]: {
             file: mockPath,
             providers: {
               [mockProviderName]: {},
@@ -347,27 +362,20 @@ describe('Publish logic', () => {
         .mockResolvedValue(undefined);
 
       await expect(
-        publish(
-          'profile',
-          mockSuperJson,
-          ProfileId.fromId(mockProfileId),
-          mockProviderName,
-          {}
-        )
+        publish('profile', mockSuperJson, profile, map, {})
       ).resolves.toBeUndefined();
 
       expect(createSpy).toHaveBeenCalledWith(mockProfileSource);
       expect(loadProfile).toHaveBeenCalledWith(
         mockSuperJson,
-        ProfileId.fromId(mockProfileId),
+        profile,
         undefined,
         undefined
       );
       expect(loadMap).toHaveBeenCalledWith(
         mockSuperJson,
-        ProfileId.fromId(mockProfileId),
-        mockProviderName,
-        {},
+        profile,
+        map,
         undefined,
         undefined
       );
@@ -389,9 +397,14 @@ describe('Publish logic', () => {
     });
 
     it('does not publish profile with --dry-run', async () => {
+      const map = MapId.fromParameters({
+        profile: profile,
+        version: DEFAULT_MAP_VERSION,
+        provider: mockProviderName,
+      });
       const mockSuperJson = new SuperJson({
         profiles: {
-          [mockProfileId]: {
+          [profile.withoutVersion]: {
             file: mockPath,
             providers: {
               [mockProviderName]: {},
@@ -420,29 +433,20 @@ describe('Publish logic', () => {
         .mockResolvedValue(undefined);
 
       await expect(
-        publish(
-          'profile',
-          mockSuperJson,
-          ProfileId.fromId(mockProfileId),
-          mockProviderName,
-          {},
-          undefined,
-          { dryRun: true }
-        )
+        publish('profile', mockSuperJson, profile, map, { dryRun: true })
       ).resolves.toBeUndefined();
 
       expect(createSpy).not.toHaveBeenCalled();
       expect(loadProfile).toHaveBeenCalledWith(
         mockSuperJson,
-        ProfileId.fromId(mockProfileId),
+        profile,
         undefined,
         { dryRun: true }
       );
       expect(loadMap).toHaveBeenCalledWith(
         mockSuperJson,
-        ProfileId.fromId(mockProfileId),
-        mockProviderName,
-        {},
+        profile,
+        map,
         undefined,
         { dryRun: true }
       );
@@ -464,9 +468,14 @@ describe('Publish logic', () => {
     });
 
     it('throws when publishing profile and profile not found locally', async () => {
+      const map = MapId.fromParameters({
+        profile: profile,
+        version: DEFAULT_MAP_VERSION,
+        provider: mockProviderName,
+      });
       const mockSuperJson = new SuperJson({
         profiles: {
-          [mockProfileId]: {
+          [profile.withoutVersion]: {
             file: mockPath,
             providers: {
               [mockProviderName]: {},
@@ -484,34 +493,31 @@ describe('Publish logic', () => {
       });
 
       await expect(
-        publish(
-          'profile',
-          mockSuperJson,
-          ProfileId.fromId(mockProfileId),
-          mockProviderName,
-          {},
-          undefined,
-          { dryRun: true }
-        )
+        publish('profile', mockSuperJson, profile, map, { dryRun: true })
       ).rejects.toEqual(
         new CLIError(
-          `Profile: "${mockProfileId}" not found on local file system`
+          `Profile: "${profile.toString()}" not found on local file system`
         )
       );
 
       expect(loadProfile).toHaveBeenCalledWith(
         mockSuperJson,
-        ProfileId.fromId(mockProfileId),
+        profile,
         undefined,
         { dryRun: true }
       );
     });
 
     it('publishes map', async () => {
+      const map = MapId.fromParameters({
+        profile: profile,
+        version: DEFAULT_MAP_VERSION,
+        provider: mockProviderName,
+      });
       const mockSuperJson = new SuperJson({
         profiles: {
-          [mockProfileId]: {
-            version: DEFAULT_PROFILE_VERSION_STR,
+          [profile.withoutVersion]: {
+            version: DEFAULT_PROFILE_VERSION.toString(),
             providers: {
               [mockProviderName]: {
                 file: mockPath,
@@ -542,27 +548,20 @@ describe('Publish logic', () => {
         .mockResolvedValue(undefined);
 
       await expect(
-        publish(
-          'map',
-          mockSuperJson,
-          ProfileId.fromId(mockProfileId),
-          mockProviderName,
-          {}
-        )
+        publish('map', mockSuperJson, profile, map, {})
       ).resolves.toBeUndefined();
 
       expect(createSpy).toHaveBeenCalledWith(mockMapSource);
       expect(loadProfile).toHaveBeenCalledWith(
         mockSuperJson,
-        ProfileId.fromId(mockProfileId),
+        profile,
         undefined,
         undefined
       );
       expect(loadMap).toHaveBeenCalledWith(
         mockSuperJson,
-        ProfileId.fromId(mockProfileId),
-        mockProviderName,
-        {},
+        profile,
+        map,
         undefined,
         undefined
       );
@@ -585,9 +584,19 @@ describe('Publish logic', () => {
 
     it('publishes map with profile version', async () => {
       const version = '1.0.6';
+      const profile = ProfileId.fromParameters({
+        scope,
+        name,
+        version: ProfileVersion.fromString(version),
+      });
+      const map = MapId.fromParameters({
+        profile: profile,
+        version: MapVersion.fromString('1.0'),
+        provider: mockProviderName,
+      });
       const mockSuperJson = new SuperJson({
         profiles: {
-          [mockProfileId]: {
+          [profile.withoutVersion]: {
             version: version,
             providers: {
               [mockProviderName]: {
@@ -619,26 +628,19 @@ describe('Publish logic', () => {
         .mockResolvedValue(undefined);
 
       await expect(
-        publish(
-          'map',
-          mockSuperJson,
-          ProfileId.fromId(mockProfileId),
-          mockProviderName,
-          {},
-          version
-        )
+        publish('map', mockSuperJson, profile, map)
       ).resolves.toBeUndefined();
 
       expect(createSpy).toHaveBeenCalledWith(mockMapSource);
       expect(loadProfile).toHaveBeenCalledWith(
         mockSuperJson,
-        ProfileId.fromId(mockProfileId),
+        profile,
         version,
         undefined
       );
       expect(loadMap).toHaveBeenCalledWith(
         mockSuperJson,
-        ProfileId.fromId(mockProfileId),
+        profile,
         mockProviderName,
         {},
         version,
@@ -662,10 +664,20 @@ describe('Publish logic', () => {
     });
 
     it('publishes map with remote provider', async () => {
+      const profile = ProfileId.fromParameters({
+        scope,
+        name,
+        version: DEFAULT_PROFILE_VERSION,
+      });
+      const map = MapId.fromParameters({
+        profile: profile,
+        version: DEFAULT_PROFILE_VERSION,
+        provider: mockProviderName,
+      });
       const mockSuperJson = new SuperJson({
         profiles: {
-          [mockProfileId]: {
-            version: DEFAULT_PROFILE_VERSION_STR,
+          [profile.withoutVersion]: {
+            version: DEFAULT_PROFILE_VERSION.toString(),
             providers: {
               [mockProviderName]: {
                 file: mockPath,
@@ -696,29 +708,21 @@ describe('Publish logic', () => {
         .mockResolvedValue(undefined);
 
       await expect(
-        publish(
-          'map',
-          mockSuperJson,
-          ProfileId.fromId(mockProfileId),
-          mockProviderName,
-          {},
-          DEFAULT_PROFILE_VERSION_STR
-        )
+        publish('map', mockSuperJson, profile, map, {})
       ).resolves.toBeUndefined();
 
       expect(createSpy).toHaveBeenCalledWith(mockMapSource);
       expect(loadProfile).toHaveBeenCalledWith(
         mockSuperJson,
-        ProfileId.fromId(mockProfileId),
-        DEFAULT_PROFILE_VERSION_STR,
+        profile,
         undefined
       );
       expect(loadMap).toHaveBeenCalledWith(
         mockSuperJson,
-        ProfileId.fromId(mockProfileId),
+        profile,
         mockProviderName,
         {},
-        DEFAULT_PROFILE_VERSION_STR,
+        DEFAULT_PROFILE_VERSION.toString(),
         undefined
       );
       expect(findLocalProviderSource).toHaveBeenCalledWith(
@@ -741,8 +745,8 @@ describe('Publish logic', () => {
     it('does not publish map with --dry-run', async () => {
       const mockSuperJson = new SuperJson({
         profiles: {
-          [mockProfileId]: {
-            version: DEFAULT_PROFILE_VERSION_STR,
+          [profile.withoutVersion]: {
+            version: DEFAULT_PROFILE_VERSION.toString(),
             providers: {
               [mockProviderName]: {
                 file: mockPath,
@@ -773,32 +777,16 @@ describe('Publish logic', () => {
         .mockResolvedValue(undefined);
 
       await expect(
-        publish(
-          'map',
-          mockSuperJson,
-          ProfileId.fromId(mockProfileId),
-          mockProviderName,
-          {},
-          DEFAULT_PROFILE_VERSION_STR,
-          { dryRun: true }
-        )
+        publish('map', mockSuperJson, profile, map, { dryRun: true })
       ).resolves.toBeUndefined();
 
       expect(createSpy).not.toHaveBeenCalled();
-      expect(loadProfile).toHaveBeenCalledWith(
-        mockSuperJson,
-        ProfileId.fromId(mockProfileId),
-        DEFAULT_PROFILE_VERSION_STR,
-        { dryRun: true }
-      );
-      expect(loadMap).toHaveBeenCalledWith(
-        mockSuperJson,
-        ProfileId.fromId(mockProfileId),
-        mockProviderName,
-        {},
-        DEFAULT_PROFILE_VERSION_STR,
-        { dryRun: true }
-      );
+      expect(loadProfile).toHaveBeenCalledWith(mockSuperJson, profile, {
+        dryRun: true,
+      });
+      expect(loadMap).toHaveBeenCalledWith(mockSuperJson, profile, map, {
+        dryRun: true,
+      });
       expect(findLocalProviderSource).toHaveBeenCalledWith(
         mockSuperJson,
         mockProviderName
@@ -817,10 +805,20 @@ describe('Publish logic', () => {
     });
 
     it('throws when publishin map and provider without unverified prefix does not exist in superface store', async () => {
+      const profile = ProfileId.fromParameters({
+        scope,
+        name,
+        version: DEFAULT_PROFILE_VERSION,
+      });
+      const map = MapId.fromParameters({
+        profile: profile,
+        version: DEFAULT_MAP_VERSION,
+        provider: mockProviderName,
+      });
       const mockSuperJson = new SuperJson({
         profiles: {
-          [mockProfileId]: {
-            version: DEFAULT_PROFILE_VERSION_STR,
+          [profile.withoutVersion]: {
+            version: DEFAULT_PROFILE_VERSION.toString(),
             providers: {
               [mockProviderName]: {
                 file: mockPath,
@@ -857,16 +855,7 @@ describe('Publish logic', () => {
         .spyOn(ServiceClient.prototype, 'createMap')
         .mockResolvedValue(undefined);
 
-      await expect(
-        publish(
-          'map',
-          mockSuperJson,
-          ProfileId.fromId(mockProfileId),
-          mockProviderName,
-          {},
-          DEFAULT_PROFILE_VERSION_STR
-        )
-      ).rejects.toEqual(
+      await expect(publish('map', mockSuperJson, profile, map)).rejects.toEqual(
         new CLIError(
           `Provider: "${mockMapDocument.header.provider}" does not exist in Superface store and it does not start with: "${UNVERIFIED_PROVIDER_PREFIX}" prefix.\nPlease, rename provider: "${mockMapDocument.header.provider}" or use existing provider.`
         )
@@ -875,16 +864,13 @@ describe('Publish logic', () => {
       expect(createSpy).not.toHaveBeenCalled();
       expect(loadProfile).toHaveBeenCalledWith(
         mockSuperJson,
-        ProfileId.fromId(mockProfileId),
-        DEFAULT_PROFILE_VERSION_STR,
+        profile,
         undefined
       );
       expect(loadMap).toHaveBeenCalledWith(
         mockSuperJson,
-        ProfileId.fromId(mockProfileId),
-        mockProviderName,
-        {},
-        DEFAULT_PROFILE_VERSION_STR,
+        profile,
+        map,
         undefined
       );
       expect(findLocalProviderSource).toHaveBeenCalledWith(
@@ -905,10 +891,20 @@ describe('Publish logic', () => {
     });
 
     it('throws when publishing map and map not found locally', async () => {
+      const profile = ProfileId.fromParameters({
+        scope,
+        name,
+        version: DEFAULT_PROFILE_VERSION,
+      });
+      const map = MapId.fromParameters({
+        profile: profile,
+        version: DEFAULT_MAP_VERSION,
+        provider: mockProviderName,
+      });
       const mockSuperJson = new SuperJson({
         profiles: {
-          [mockProfileId]: {
-            version: DEFAULT_PROFILE_VERSION_STR,
+          [profile.withoutVersion]: {
+            version: DEFAULT_PROFILE_VERSION.toString(),
             providers: {
               [mockProviderName]: {
                 file: mockPath,
@@ -925,31 +921,30 @@ describe('Publish logic', () => {
       mocked(loadMap).mockResolvedValue({ ast: mockMapDocument });
 
       await expect(
-        publish(
-          'map',
-          mockSuperJson,
-          ProfileId.fromId(mockProfileId),
-          mockProviderName,
-          {},
-          DEFAULT_PROFILE_VERSION_STR,
-          { dryRun: true }
-        )
+        publish('map', mockSuperJson, profile, map, { dryRun: true })
       ).rejects.toEqual(
         new CLIError(
-          `Map for profile: "${mockProfileId}" and provider: "${mockProviderName}" not found on local filesystem`
+          `Map for profile: "${profile.toString()}" and provider: "${mockProviderName}" not found on local filesystem`
         )
       );
 
-      expect(loadProfile).toHaveBeenCalledWith(
-        mockSuperJson,
-        ProfileId.fromId(mockProfileId),
-        DEFAULT_PROFILE_VERSION_STR,
-        { dryRun: true }
-      );
+      expect(loadProfile).toHaveBeenCalledWith(mockSuperJson, profile, {
+        dryRun: true,
+      });
     });
 
     it('publishes provider', async () => {
       const provider = 'unverified-swapi';
+      const profile = ProfileId.fromParameters({
+        scope,
+        name,
+        version: DEFAULT_PROFILE_VERSION,
+      });
+      const map = MapId.fromParameters({
+        profile: profile,
+        version: DEFAULT_MAP_VERSION,
+        provider,
+      });
       const mockProviderSource = {
         name: provider,
         services: [
@@ -962,8 +957,8 @@ describe('Publish logic', () => {
       };
       const mockSuperJson = new SuperJson({
         profiles: {
-          [mockProfileId]: {
-            version: DEFAULT_PROFILE_VERSION_STR,
+          [profile.withoutVersion]: {
+            version: DEFAULT_PROFILE_VERSION.toString(),
             providers: {
               [provider]: {},
             },
@@ -991,14 +986,7 @@ describe('Publish logic', () => {
         .mockResolvedValue(undefined);
 
       await expect(
-        publish(
-          'provider',
-          mockSuperJson,
-          ProfileId.fromId(mockProfileId),
-          provider,
-          {},
-          DEFAULT_PROFILE_VERSION_STR
-        )
+        publish('provider', mockSuperJson, profile, map)
       ).resolves.toBeUndefined();
 
       expect(createSpy).toHaveBeenCalledWith(
@@ -1006,16 +994,13 @@ describe('Publish logic', () => {
       );
       expect(loadProfile).toHaveBeenCalledWith(
         mockSuperJson,
-        ProfileId.fromId(mockProfileId),
-        DEFAULT_PROFILE_VERSION_STR,
+        profile,
         undefined
       );
       expect(loadMap).toHaveBeenCalledWith(
         mockSuperJson,
-        ProfileId.fromId(mockProfileId),
-        provider,
-        {},
-        DEFAULT_PROFILE_VERSION_STR,
+        profile,
+        map,
         undefined
       );
       expect(findLocalProviderSource).toHaveBeenCalledWith(
@@ -1037,6 +1022,19 @@ describe('Publish logic', () => {
 
     it('publishes provider with map varinat', async () => {
       const provider = 'unverified-swapi';
+      const variant = 'test';
+
+      const profile = ProfileId.fromParameters({
+        scope,
+        name,
+        version: DEFAULT_PROFILE_VERSION,
+      });
+      const map = MapId.fromParameters({
+        profile: profile,
+        version: DEFAULT_MAP_VERSION,
+        provider,
+        variant,
+      });
       const mockProviderSource = {
         name: provider,
         services: [
@@ -1047,11 +1045,10 @@ describe('Publish logic', () => {
         ],
         defaultService: 'default',
       };
-      const variant = 'test';
       const mockSuperJson = new SuperJson({
         profiles: {
-          [mockProfileId]: {
-            version: DEFAULT_PROFILE_VERSION_STR,
+          [profile.withoutVersion]: {
+            version: DEFAULT_PROFILE_VERSION.toString(),
             providers: {
               [provider]: {
                 mapVariant: variant,
@@ -1080,14 +1077,7 @@ describe('Publish logic', () => {
         .mockResolvedValue(undefined);
 
       await expect(
-        publish(
-          'provider',
-          mockSuperJson,
-          ProfileId.fromId(mockProfileId),
-          provider,
-          { variant },
-          DEFAULT_PROFILE_VERSION_STR
-        )
+        publish('provider', mockSuperJson, profile, map)
       ).resolves.toBeUndefined();
 
       expect(createSpy).toHaveBeenCalledWith(
@@ -1095,18 +1085,10 @@ describe('Publish logic', () => {
       );
       expect(loadProfile).toHaveBeenCalledWith(
         mockSuperJson,
-        ProfileId.fromId(mockProfileId),
-        DEFAULT_PROFILE_VERSION_STR,
+        profile,
         undefined
       );
-      expect(loadMap).toHaveBeenCalledWith(
-        mockSuperJson,
-        ProfileId.fromId(mockProfileId),
-        provider,
-        { variant },
-        DEFAULT_PROFILE_VERSION_STR,
-        undefined
-      );
+      expect(loadMap).toHaveBeenCalledWith(mockSuperJson, map, undefined);
       expect(findLocalProviderSource).toHaveBeenCalledWith(
         mockSuperJson,
         provider
@@ -1125,10 +1107,20 @@ describe('Publish logic', () => {
     });
 
     it('throws when publishing provider withou unverified prefix', async () => {
+      const profile = ProfileId.fromParameters({
+        scope,
+        name,
+        version: DEFAULT_PROFILE_VERSION,
+      });
+      const map = MapId.fromParameters({
+        profile: profile,
+        version: DEFAULT_MAP_VERSION,
+        provider: mockProviderName,
+      });
       const mockSuperJson = new SuperJson({
         profiles: {
-          [mockProfileId]: {
-            version: DEFAULT_PROFILE_VERSION_STR,
+          [profile.withoutVersion]: {
+            version: DEFAULT_PROFILE_VERSION.toString(),
             providers: {
               [mockProviderName]: {},
             },
@@ -1155,15 +1147,7 @@ describe('Publish logic', () => {
         .mockResolvedValue(undefined);
 
       await expect(
-        publish(
-          'provider',
-          mockSuperJson,
-          ProfileId.fromId(mockProfileId),
-          mockProviderName,
-          {},
-          DEFAULT_PROFILE_VERSION_STR,
-          { dryRun: true }
-        )
+        publish('provider', mockSuperJson, profile, map, { dryRun: true })
       ).rejects.toEqual(
         new CLIError(
           `❌ When publishing provider, provider name: "${mockProviderName}" in provider.json must have prefix "${UNVERIFIED_PROVIDER_PREFIX}"`
@@ -1171,20 +1155,12 @@ describe('Publish logic', () => {
       );
 
       expect(createSpy).not.toHaveBeenCalled();
-      expect(loadProfile).toHaveBeenCalledWith(
-        mockSuperJson,
-        ProfileId.fromId(mockProfileId),
-        DEFAULT_PROFILE_VERSION_STR,
-        { dryRun: true }
-      );
-      expect(loadMap).toHaveBeenCalledWith(
-        mockSuperJson,
-        ProfileId.fromId(mockProfileId),
-        mockProviderName,
-        {},
-        DEFAULT_PROFILE_VERSION_STR,
-        { dryRun: true }
-      );
+      expect(loadProfile).toHaveBeenCalledWith(mockSuperJson, profile, {
+        dryRun: true,
+      });
+      expect(loadMap).toHaveBeenCalledWith(mockSuperJson, map, {
+        dryRun: true,
+      });
       expect(findLocalProviderSource).toHaveBeenCalledWith(
         mockSuperJson,
         mockProviderName
@@ -1204,6 +1180,16 @@ describe('Publish logic', () => {
 
     it('does not publish provider with --dry-run', async () => {
       const provider = 'unverified-swapi';
+      const profile = ProfileId.fromParameters({
+        scope,
+        name,
+        version: DEFAULT_PROFILE_VERSION,
+      });
+      const map = MapId.fromParameters({
+        profile: profile,
+        version: DEFAULT_MAP_VERSION,
+        provider,
+      });
       const mockProviderSource = {
         name: provider,
         services: [
@@ -1216,8 +1202,8 @@ describe('Publish logic', () => {
       };
       const mockSuperJson = new SuperJson({
         profiles: {
-          [mockProfileId]: {
-            version: DEFAULT_PROFILE_VERSION_STR,
+          [profile.withoutVersion]: {
+            version: DEFAULT_PROFILE_VERSION.toString(),
             providers: {
               [provider]: {},
             },
@@ -1244,32 +1230,16 @@ describe('Publish logic', () => {
         .mockResolvedValue(undefined);
 
       await expect(
-        publish(
-          'provider',
-          mockSuperJson,
-          ProfileId.fromId(mockProfileId),
-          provider,
-          {},
-          DEFAULT_PROFILE_VERSION_STR,
-          { dryRun: true }
-        )
+        publish('provider', mockSuperJson, profile, map, { dryRun: true })
       ).resolves.toBeUndefined();
 
       expect(createSpy).not.toHaveBeenCalled();
-      expect(loadProfile).toHaveBeenCalledWith(
-        mockSuperJson,
-        ProfileId.fromId(mockProfileId),
-        DEFAULT_PROFILE_VERSION_STR,
-        { dryRun: true }
-      );
-      expect(loadMap).toHaveBeenCalledWith(
-        mockSuperJson,
-        ProfileId.fromId(mockProfileId),
-        provider,
-        {},
-        DEFAULT_PROFILE_VERSION_STR,
-        { dryRun: true }
-      );
+      expect(loadProfile).toHaveBeenCalledWith(mockSuperJson, profile, {
+        dryRun: true,
+      });
+      expect(loadMap).toHaveBeenCalledWith(mockSuperJson, profile, map, {
+        dryRun: true,
+      });
       expect(findLocalProviderSource).toHaveBeenCalledWith(
         mockSuperJson,
         provider
@@ -1288,10 +1258,20 @@ describe('Publish logic', () => {
     });
 
     it('throws when publishing provider and provider not found locally', async () => {
+      const profile = ProfileId.fromParameters({
+        scope,
+        name,
+        version: DEFAULT_PROFILE_VERSION,
+      });
+      const map = MapId.fromParameters({
+        profile: profile,
+        version: DEFAULT_MAP_VERSION,
+        provider: mockProviderName,
+      });
       const mockSuperJson = new SuperJson({
         profiles: {
-          [mockProfileId]: {
-            version: DEFAULT_PROFILE_VERSION_STR,
+          [profile.withoutVersion]: {
+            version: DEFAULT_PROFILE_VERSION.toString(),
             providers: {
               [mockProviderName]: {},
             },
@@ -1309,34 +1289,34 @@ describe('Publish logic', () => {
       mocked(findLocalProviderSource).mockResolvedValue(undefined);
 
       await expect(
-        publish(
-          'provider',
-          mockSuperJson,
-          ProfileId.fromId(mockProfileId),
-          mockProviderName,
-          {},
-          DEFAULT_PROFILE_VERSION_STR,
-          { dryRun: true }
-        )
+        publish('provider', mockSuperJson, profile, map, { dryRun: true })
       ).rejects.toEqual(
         new CLIError(
           `Provider: "${mockProviderName}" not found on local file system`
         )
       );
 
-      expect(loadProfile).toHaveBeenCalledWith(
-        mockSuperJson,
-        ProfileId.fromId(mockProfileId),
-        DEFAULT_PROFILE_VERSION_STR,
-        { dryRun: true }
-      );
+      expect(loadProfile).toHaveBeenCalledWith(mockSuperJson, profile, {
+        dryRun: true,
+      });
     });
 
     it('does not publish when there are check errors', async () => {
+      const profile = ProfileId.fromParameters({
+        scope,
+        name,
+        version: DEFAULT_PROFILE_VERSION,
+      });
+      const map = MapId.fromParameters({
+        profile: profile,
+        version: DEFAULT_MAP_VERSION,
+        provider: mockProviderName,
+      });
+
       const mockSuperJson = new SuperJson({
         profiles: {
-          [mockProfileId]: {
-            version: DEFAULT_PROFILE_VERSION_STR,
+          [profile.withoutVersion]: {
+            version: DEFAULT_PROFILE_VERSION.toString(),
             providers: {
               [mockProviderName]: {},
             },
@@ -1360,15 +1340,7 @@ describe('Publish logic', () => {
         .mockResolvedValue(undefined);
 
       await expect(
-        publish(
-          'provider',
-          mockSuperJson,
-          ProfileId.fromId(mockProfileId),
-          mockProviderName,
-          {},
-          DEFAULT_PROFILE_VERSION_STR,
-          { dryRun: true }
-        )
+        publish('provider', mockSuperJson, profile, map, { dryRun: true })
       ).resolves.toEqual(
         yellow('Check results:\n') +
           checkFormatHuman(checkResult) +
@@ -1377,20 +1349,12 @@ describe('Publish logic', () => {
       );
 
       expect(createSpy).not.toHaveBeenCalled();
-      expect(loadProfile).toHaveBeenCalledWith(
-        mockSuperJson,
-        ProfileId.fromId(mockProfileId),
-        DEFAULT_PROFILE_VERSION_STR,
-        { dryRun: true }
-      );
-      expect(loadMap).toHaveBeenCalledWith(
-        mockSuperJson,
-        ProfileId.fromId(mockProfileId),
-        mockProviderName,
-        {},
-        DEFAULT_PROFILE_VERSION_STR,
-        { dryRun: true }
-      );
+      expect(loadProfile).toHaveBeenCalledWith(mockSuperJson, profile, {
+        dryRun: true,
+      });
+      expect(loadMap).toHaveBeenCalledWith(mockSuperJson, profile, map, {
+        dryRun: true,
+      });
       expect(findLocalProviderSource).toHaveBeenCalledWith(
         mockSuperJson,
         mockProviderName
@@ -1409,6 +1373,16 @@ describe('Publish logic', () => {
     });
 
     it('does not publish when there are lint errors', async () => {
+      const profile = ProfileId.fromParameters({
+        scope,
+        name,
+        version: DEFAULT_PROFILE_VERSION,
+      });
+      const map = MapId.fromParameters({
+        profile: profile,
+        version: DEFAULT_MAP_VERSION,
+        provider: mockProviderName,
+      });
       const checkResult: CheckResult[] = [];
       const lintResult: ProfileMapReport = {
         path: mockPath,
@@ -1435,8 +1409,8 @@ describe('Publish logic', () => {
       };
       const mockSuperJson = new SuperJson({
         profiles: {
-          [mockProfileId]: {
-            version: DEFAULT_PROFILE_VERSION_STR,
+          [profile.withoutVersion]: {
+            version: DEFAULT_PROFILE_VERSION.toString(),
             providers: {
               [mockProviderName]: {},
             },
@@ -1460,15 +1434,7 @@ describe('Publish logic', () => {
         .mockResolvedValue(undefined);
 
       await expect(
-        publish(
-          'provider',
-          mockSuperJson,
-          ProfileId.fromId(mockProfileId),
-          mockProviderName,
-          {},
-          DEFAULT_PROFILE_VERSION_STR,
-          { dryRun: true }
-        )
+        publish('provider', mockSuperJson, profile, map, { dryRun: true })
       ).resolves.toEqual(
         yellow('Check results:\n') +
           checkFormatHuman(checkResult) +
@@ -1477,20 +1443,12 @@ describe('Publish logic', () => {
       );
 
       expect(createSpy).not.toHaveBeenCalled();
-      expect(loadProfile).toHaveBeenCalledWith(
-        mockSuperJson,
-        ProfileId.fromId(mockProfileId),
-        DEFAULT_PROFILE_VERSION_STR,
-        { dryRun: true }
-      );
-      expect(loadMap).toHaveBeenCalledWith(
-        mockSuperJson,
-        ProfileId.fromId(mockProfileId),
-        mockProviderName,
-        {},
-        DEFAULT_PROFILE_VERSION_STR,
-        { dryRun: true }
-      );
+      expect(loadProfile).toHaveBeenCalledWith(mockSuperJson, profile, {
+        dryRun: true,
+      });
+      expect(loadMap).toHaveBeenCalledWith(mockSuperJson, profile, map, {
+        dryRun: true,
+      });
       expect(findLocalProviderSource).toHaveBeenCalledWith(
         mockSuperJson,
         mockProviderName
@@ -1509,10 +1467,20 @@ describe('Publish logic', () => {
     });
 
     it('does not publish when there are lint and check errors and json flag', async () => {
+      const profile = ProfileId.fromParameters({
+        scope,
+        name,
+        version: DEFAULT_PROFILE_VERSION,
+      });
+      const map = MapId.fromParameters({
+        profile: profile,
+        version: DEFAULT_MAP_VERSION,
+        provider: mockProviderName,
+      });
       const mockSuperJson = new SuperJson({
         profiles: {
-          [mockProfileId]: {
-            version: DEFAULT_PROFILE_VERSION_STR,
+          [profile.withoutVersion]: {
+            version: DEFAULT_PROFILE_VERSION.toString(),
             providers: {
               [mockProviderName]: {},
             },
@@ -1536,15 +1504,10 @@ describe('Publish logic', () => {
         .mockResolvedValue(undefined);
 
       await expect(
-        publish(
-          'provider',
-          mockSuperJson,
-          ProfileId.fromId(mockProfileId),
-          mockProviderName,
-          {},
-          DEFAULT_PROFILE_VERSION_STR,
-          { dryRun: true, json: true }
-        )
+        publish('provider', mockSuperJson, profile, map, {
+          dryRun: true,
+          json: true,
+        })
       ).resolves.toEqual(
         JSON.stringify({
           check: {
@@ -1565,20 +1528,14 @@ describe('Publish logic', () => {
       );
 
       expect(createSpy).not.toHaveBeenCalled();
-      expect(loadProfile).toHaveBeenCalledWith(
-        mockSuperJson,
-        ProfileId.fromId(mockProfileId),
-        DEFAULT_PROFILE_VERSION_STR,
-        { dryRun: true, json: true }
-      );
-      expect(loadMap).toHaveBeenCalledWith(
-        mockSuperJson,
-        ProfileId.fromId(mockProfileId),
-        mockProviderName,
-        {},
-        DEFAULT_PROFILE_VERSION_STR,
-        { dryRun: true, json: true }
-      );
+      expect(loadProfile).toHaveBeenCalledWith(mockSuperJson, profile, {
+        dryRun: true,
+        json: true,
+      });
+      expect(loadMap).toHaveBeenCalledWith(mockSuperJson, profile, map, {
+        dryRun: true,
+        json: true,
+      });
       expect(findLocalProviderSource).toHaveBeenCalledWith(
         mockSuperJson,
         mockProviderName

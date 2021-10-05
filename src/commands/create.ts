@@ -1,17 +1,15 @@
 import { flags as oclifFlags } from '@oclif/command';
-import { isValidIdentifier } from '@superfaceai/ast';
+import { isValidDocumentName, isValidIdentifier } from '@superfaceai/ast';
 import {
-  DocumentVersion,
-  isValidDocumentIdentifier,
+  DEFAULT_PROFILE_VERSION,
   parseProfileId,
+  VersionRange,
 } from '@superfaceai/parser';
 import { grey, yellow } from 'chalk';
 import inquirer from 'inquirer';
 
 import {
   composeUsecaseName,
-  DEFAULT_PROFILE_VERSION,
-  DEFAULT_PROFILE_VERSION_STR,
   SUPERFACE_DIR,
   UNVERIFIED_PROVIDER_PREFIX,
 } from '../common';
@@ -61,7 +59,7 @@ export default class Create extends Command {
     }),
     version: oclifFlags.string({
       char: 'v',
-      default: DEFAULT_PROFILE_VERSION_STR,
+      default: DEFAULT_PROFILE_VERSION.toString(),
       description: 'Version of a profile',
     }),
     //Command modifiers
@@ -231,7 +229,7 @@ export default class Create extends Command {
         if (provider === 'profile' || provider === 'map') {
           throw userError(`ProviderName "${provider}" is reserved!`, 1);
         }
-        if (!isValidDocumentIdentifier(provider)) {
+        if (!isValidDocumentName(provider)) {
           throw userError(`Invalid provider name: ${provider}`, 1);
         }
         if (
@@ -280,17 +278,17 @@ export default class Create extends Command {
       !flags.profile &&
       flags.map &&
       !flags.provider &&
-      flags.version !== DEFAULT_PROFILE_VERSION_STR
+      flags.version !== DEFAULT_PROFILE_VERSION.toString()
     ) {
       this.warn(
         'Profile version should not be specified when generating map only'
       );
-      flags.version = DEFAULT_PROFILE_VERSION_STR;
+      flags.version = DEFAULT_PROFILE_VERSION.toString();
     }
 
     let scope,
       name: string | undefined = undefined;
-    let version: DocumentVersion | undefined = DEFAULT_PROFILE_VERSION;
+    let version: VersionRange | undefined = DEFAULT_PROFILE_VERSION;
     let usecases: string[] = [];
     if (profileId) {
       // parse profile Id
@@ -305,7 +303,7 @@ export default class Create extends Command {
       name = parsedProfileId.value.name;
 
       // parse variant
-      if (flags.variant && !isValidDocumentIdentifier(flags.variant)) {
+      if (flags.variant && !isValidDocumentName(flags.variant)) {
         throw userError(`Invalid map variant: ${flags.variant}`, 1);
       }
 
