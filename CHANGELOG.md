@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- Compile command provider name check
+
 ## [0.0.25] - 2021-09-29
 ### Added
 - Lint command loading files from server if not found localy
