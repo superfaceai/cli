@@ -1,6 +1,30 @@
-import { format as formatPath, normalize, parse as parsePath } from 'path';
+import { SuperJson } from '@superfaceai/one-sdk';
+import {
+  dirname,
+  format as formatPath,
+  isAbsolute,
+  normalize,
+  parse as parsePath,
+  resolve,
+} from 'path';
 
 export const NORMALIZED_CWD_PATH = normalize('./');
+
+export function resolveSuperfaceRelatedPath(
+  path: string,
+  superJson: SuperJson
+): string {
+  if (!isAbsolute(path)) {
+    path = resolve(process.cwd(), path);
+  }
+
+  const absoluteSj = resolve(superJson.path);
+  if (path.startsWith(dirname(absoluteSj))) {
+    return './' + superJson.relativePath(path);
+  } else {
+    return superJson.relativePath(path);
+  }
+}
 /**
  * In practice, this is the number of starting `../` parts of the normalized relative path.
  */
