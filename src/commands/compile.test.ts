@@ -510,5 +510,71 @@ describe('Compile CLI command', () => {
         }
       );
     });
+
+    it('compiles map for provider with - in name', async () => {
+      const mockProfileId = 'starwars/character-information';
+      const mockProvider = 'swapi-provider';
+      const mockSuperJson = new SuperJson({
+        profiles: {
+          [mockProfileId]: {
+            file: 'some/file.supr',
+            providers: {
+              [mockProvider]: {
+                file: 'some/file.suma',
+              },
+            },
+          },
+        },
+      });
+      mocked(detectSuperJson).mockResolvedValue('.');
+      const loadSpy = jest
+        .spyOn(SuperJson, 'load')
+        .mockResolvedValue(ok(mockSuperJson));
+
+      mocked(readFile)
+        .mockResolvedValueOnce(mockProfileContent)
+        .mockResolvedValueOnce(mockMapContent);
+      const parseProfileSpy = jest
+        .spyOn(Parser, 'parseProfile')
+        .mockResolvedValue(mockProfileDocument);
+      const parseMapSpy = jest
+        .spyOn(Parser, 'parseMap')
+        .mockResolvedValue(mockMapDocument);
+
+      mocked(exists).mockResolvedValueOnce(true).mockResolvedValueOnce(true);
+
+      await expect(
+        Compile.run([
+          '--profileId',
+          mockProfileId,
+          '--profile',
+          '--providerName',
+          mockProvider,
+          '--map',
+        ])
+      ).resolves.toBeUndefined();
+
+      expect(loadSpy).toHaveBeenCalledTimes(1);
+      expect(parseProfileSpy).toHaveBeenCalledTimes(1);
+      expect(parseProfileSpy).toHaveBeenCalledWith(
+        mockProfileContent,
+        mockSuperJson.resolvePath('some/file.supr'),
+        {
+          scope: 'starwars',
+          profileName: 'character-information',
+        }
+      );
+
+      expect(parseMapSpy).toHaveBeenCalledTimes(1);
+      expect(parseMapSpy).toHaveBeenCalledWith(
+        mockMapContent,
+        mockSuperJson.resolvePath('some/file.suma'),
+        {
+          scope: 'starwars',
+          providerName: mockProvider,
+          profileName: 'character-information',
+        }
+      );
+    });
   });
 });
