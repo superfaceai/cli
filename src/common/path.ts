@@ -18,9 +18,9 @@ export function resolveSuperfaceRelatedPath(
     path = resolve(process.cwd(), path);
   }
 
-  const absoluteSj = resolve(superJson.path);
-  if (path.startsWith(dirname(absoluteSj))) {
-    return './' + superJson.relativePath(path);
+  const superfacePath = resolve(superJson.path);
+  if (path.startsWith(dirname(superfacePath))) {
+    return NORMALIZED_CWD_PATH + superJson.relativePath(path);
   } else {
     return superJson.relativePath(path);
   }
