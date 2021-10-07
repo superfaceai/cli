@@ -123,7 +123,7 @@ describe('lint CLI command', () => {
     expect(stdout.output).toContain(
       `❌ Parsing map file: ../../../../${fixture.invalidParsedMap}\n` +
         'SyntaxError: Expected `provider` but found `map`\n' +
-        ` --> ../../../../${fixture.strictProfile}:3:1\n` +
+        ` --> ../../../../${fixture.invalidParsedMap}:3:1\n` +
         '2 | \n' +
         '3 | map Foo {\n' +
         '  | ^^^      \n' +
