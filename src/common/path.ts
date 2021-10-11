@@ -9,16 +9,23 @@ import {
 } from 'path';
 
 export const NORMALIZED_CWD_PATH = normalize('./');
-
+/**
+ * Resolves specified path according to provider SuperJson
+ * @param path relative or absolute path
+ * @param superJson SuperJson to be used to resolution
+ * @returns relative path from super.json. Starts with ./ if original path leads to superface directory
+ */
 export function resolveSuperfaceRelatedPath(
   path: string,
   superJson: SuperJson
 ): string {
+  //Make input path absolute
   if (!isAbsolute(path)) {
     path = resolve(process.cwd(), path);
   }
-
+  //Absolute path to super.json
   const superfacePath = resolve(superJson.path);
+  //If path leads to superface directory
   if (path.startsWith(dirname(superfacePath))) {
     return NORMALIZED_CWD_PATH + superJson.relativePath(path);
   } else {
