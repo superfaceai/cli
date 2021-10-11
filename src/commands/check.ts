@@ -16,7 +16,7 @@ export default class Check extends Command {
   static strict = false;
 
   static description =
-    'Checks if specified capability is correctly set up in super.json, has profile and map with corresponding version, scope, name, use case definitions and provider';
+    'Checks all maps and profiles locally linked in super.json. Also can be used to lint specific profile and its maps, in that case remote files can be used.\nCommand ends with non zero exit code if errors are found.';
 
   static args = [];
 
@@ -49,6 +49,7 @@ export default class Check extends Command {
 
   static examples = [
     '$ superface check',
+    '$ superface check -f',
     '$ superface check --profileId starwars/character-information',
     '$ superface check --profileId starwars/character-information --providerName swapi',
     '$ superface check --profileId starwars/character-information --providerName swapi -j',
@@ -56,8 +57,8 @@ export default class Check extends Command {
     '$ superface check --profileId starwars/character-information --providerName swapi -q',
   ];
 
-  private logCallback? = (message: string) => this.log(grey(message));
-  private warnCallback? = (message: string) => this.log(yellow(message));
+  private logCallback?= (message: string) => this.log(grey(message));
+  private warnCallback?= (message: string) => this.log(yellow(message));
 
   async run(): Promise<void> {
     const { flags } = this.parse(Check);
@@ -120,7 +121,7 @@ export default class Check extends Command {
       if (flags.providerName) {
         if (
           !superJson.normalized.profiles[flags.profileId].providers[
-            flags.providerName
+          flags.providerName
           ]
         ) {
           throw userError(
