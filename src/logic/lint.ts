@@ -298,7 +298,7 @@ async function prepareLintedMap(
     };
 
     try {
-      mapAst = parseMap(new Source(mapSource, profile.path));
+      mapAst = parseMap(new Source(mapSource, map.path));
     } catch (e) {
       report.errors.push(e);
     }

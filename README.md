@@ -276,7 +276,6 @@ EXAMPLES
   $ superface lint
   $ superface lint --profileId starwars/character-information
   $ superface lint --profileId starwars/character-information --providerName swapi
-  $ superface lint --providerName swapi
   $ superface lint -o -2
   $ superface lint -f json
   $ superface lint -s 3
