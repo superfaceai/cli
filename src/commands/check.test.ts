@@ -239,6 +239,23 @@ describe('Check CLI command', () => {
       expect(loadSpy).not.toHaveBeenCalled();
     }, 10000);
 
+    it('throws error on missing profile id when providerName is provided', async () => {
+      mocked(detectSuperJson).mockResolvedValue('.');
+      const loadSpy = jest
+        .spyOn(SuperJson, 'load')
+        .mockResolvedValue(ok(new SuperJson()));
+
+      await expect(
+        Check.run(['--providerName', provider, '-s', '3'])
+      ).rejects.toEqual(
+        new CLIError(
+          '❌ --profileId must be specified when using --providerName'
+        )
+      );
+      expect(detectSuperJson).not.toHaveBeenCalled();
+      expect(loadSpy).not.toHaveBeenCalled();
+    }, 10000);
+
     it('throws error when profile Id not found in super.json', async () => {
       mocked(detectSuperJson).mockResolvedValue('.');
       const loadSpy = jest
@@ -499,6 +516,211 @@ describe('Check CLI command', () => {
       expect(stdout.output).toContain('[{"kind": "error", "message": "test"}]');
       expect(formatJson).toHaveBeenCalledWith(mockResult);
       expect(formatHuman).not.toHaveBeenCalled();
+    });
+  });
+  describe('when preparing profiles to validation', () => {
+    const localProfile = 'local/profile';
+    const remoteProfile = 'remote/profile';
+    const localProvider = 'local-provider';
+    const remoteProvider = 'remote-provider';
+    const remoteProviderWithVarinat = 'remote-provider-with-variant';
+    const variant = 'variant';
+    const mockSuperJson = new SuperJson({
+      profiles: {
+        [localProfile]: {
+          file: 'profileFile',
+          providers: {
+            [localProvider]: {
+              file: 'mapPath',
+            },
+            [remoteProvider]: {},
+            [remoteProviderWithVarinat]: {
+              mapVariant: variant,
+            },
+          },
+        },
+        [remoteProfile]: {
+          version: '1.0.0',
+          providers: {
+            [localProvider]: {
+              file: 'mapPath',
+            },
+            [remoteProvider]: {},
+            [remoteProviderWithVarinat]: {
+              mapVariant: variant,
+            },
+          },
+        },
+      },
+      providers: {
+        [localProvider]: {},
+        [remoteProviderWithVarinat]: {},
+        [remoteProvider]: {},
+      },
+    });
+
+    it('prepares every local capability in super.json', async () => {
+      expect(Check.prepareProfilesToValidate(mockSuperJson)).toEqual([
+        {
+          id: ProfileId.fromId(localProfile),
+          maps: [
+            {
+              provider: localProvider,
+            },
+          ],
+        },
+      ]);
+    });
+
+    it('prepares specific profile id in super.json', async () => {
+      expect(
+        Check.prepareProfilesToValidate(mockSuperJson, localProfile)
+      ).toEqual([
+        {
+          id: ProfileId.fromId(localProfile),
+          maps: [
+            {
+              provider: localProvider,
+            },
+            {
+              provider: remoteProvider,
+            },
+            {
+              provider: remoteProviderWithVarinat,
+              variant,
+            },
+          ],
+        },
+      ]);
+
+      expect(
+        Check.prepareProfilesToValidate(mockSuperJson, remoteProfile)
+      ).toEqual([
+        {
+          id: ProfileId.fromId(remoteProfile),
+          maps: [
+            {
+              provider: localProvider,
+            },
+            {
+              provider: remoteProvider,
+            },
+            {
+              provider: remoteProviderWithVarinat,
+              variant,
+            },
+          ],
+          version: '1.0.0',
+        },
+      ]);
+    });
+
+    it('prepares specific profile and map in super.json', async () => {
+      expect(
+        Check.prepareProfilesToValidate(
+          mockSuperJson,
+          localProfile,
+          localProvider
+        )
+      ).toEqual([
+        {
+          id: ProfileId.fromId(localProfile),
+          maps: [
+            {
+              provider: localProvider,
+            },
+          ],
+        },
+      ]);
+
+      expect(
+        Check.prepareProfilesToValidate(
+          mockSuperJson,
+          remoteProfile,
+          localProvider
+        )
+      ).toEqual([
+        {
+          id: ProfileId.fromId(remoteProfile),
+          maps: [
+            {
+              provider: localProvider,
+            },
+          ],
+          version: '1.0.0',
+        },
+      ]);
+      expect(
+        Check.prepareProfilesToValidate(
+          mockSuperJson,
+          localProfile,
+          remoteProvider
+        )
+      ).toEqual([
+        {
+          id: ProfileId.fromId(localProfile),
+          maps: [
+            {
+              provider: remoteProvider,
+            },
+          ],
+        },
+      ]);
+
+      expect(
+        Check.prepareProfilesToValidate(
+          mockSuperJson,
+          remoteProfile,
+          remoteProvider
+        )
+      ).toEqual([
+        {
+          id: ProfileId.fromId(remoteProfile),
+          maps: [
+            {
+              provider: remoteProvider,
+            },
+          ],
+          version: '1.0.0',
+        },
+      ]);
+
+      expect(
+        Check.prepareProfilesToValidate(
+          mockSuperJson,
+          localProfile,
+          remoteProviderWithVarinat
+        )
+      ).toEqual([
+        {
+          id: ProfileId.fromId(localProfile),
+          maps: [
+            {
+              provider: remoteProviderWithVarinat,
+              variant,
+            },
+          ],
+        },
+      ]);
+
+      expect(
+        Check.prepareProfilesToValidate(
+          mockSuperJson,
+          remoteProfile,
+          remoteProviderWithVarinat
+        )
+      ).toEqual([
+        {
+          id: ProfileId.fromId(remoteProfile),
+          maps: [
+            {
+              provider: remoteProviderWithVarinat,
+              variant,
+            },
+          ],
+          version: '1.0.0',
+        },
+      ]);
     });
   });
 });
