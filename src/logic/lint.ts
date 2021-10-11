@@ -198,19 +198,18 @@ export function formatJson(report: ReportFormat): string {
   });
 }
 
-export type MapToLint = { provider: string; variant?: string; path?: string };
-export type ProfileToLint = {
+export type MapToValidate = { provider: string; variant?: string };
+export type ProfileToValidate = {
   id: ProfileId;
-  maps: MapToLint[];
+  maps: MapToValidate[];
   version?: string;
-  path?: string;
 };
-type MapToLintWithAst = MapToLint & {
+type MapToLintWithAst = MapToValidate & {
   ast?: MapDocumentNode;
   path: string;
   counts: [number, number][];
 };
-type ProfileToLintWithAst = ProfileToLint & {
+type ProfileToLintWithAst = ProfileToValidate & {
   ast?: ProfileDocumentNode;
   path: string;
   counts: [number, number][];
@@ -218,7 +217,7 @@ type ProfileToLintWithAst = ProfileToLint & {
 
 async function prepareLintedProfile(
   superJson: SuperJson,
-  profile: ProfileToLint,
+  profile: ProfileToValidate,
   writer: ListWriter,
   fn: (report: ReportFormat) => string,
   options?: {
@@ -238,13 +237,15 @@ async function prepareLintedProfile(
 
     const report: FileReport = {
       kind: 'file',
-      path: profile.path || profile.id.withVersion(profile.version),
+      path: profileSource.path || profile.id.withVersion(profile.version),
       errors: [],
       warnings: [],
     };
 
     try {
-      profileAst = parseProfile(new Source(profileSource, profile.path));
+      profileAst = parseProfile(
+        new Source(profileSource.source, profileSource.path)
+      );
     } catch (e) {
       report.errors.push(e);
     }
@@ -261,15 +262,15 @@ async function prepareLintedProfile(
   return {
     ...profile,
     ast: profileAst,
-    path: profile.path || profile.id.withVersion(profile.version),
+    path: profileSource?.path || profile.id.withVersion(profile.version),
     counts,
   };
 }
 
 async function prepareLintedMap(
   superJson: SuperJson,
-  profile: ProfileToLint,
-  map: MapToLint,
+  profile: ProfileToValidate,
+  map: MapToValidate,
   writer: ListWriter,
   fn: (report: ReportFormat) => string,
   options?: {
@@ -292,13 +293,13 @@ async function prepareLintedMap(
     );
     const report: FileReport = {
       kind: 'file',
-      path: map.path ? map.path : ``,
+      path: mapSource.path,
       errors: [],
       warnings: [],
     };
 
     try {
-      mapAst = parseMap(new Source(mapSource, profile.path));
+      mapAst = parseMap(new Source(mapSource.source, mapSource.path));
     } catch (e) {
       report.errors.push(e);
     }
@@ -333,7 +334,7 @@ async function prepareLintedMap(
     ...map,
     ast: mapAst,
     path:
-      map.path ??
+      mapSource?.path ??
       mapId.withVersion(profile.version || DEFAULT_PROFILE_VERSION_STR),
     counts,
   };
@@ -341,7 +342,7 @@ async function prepareLintedMap(
 
 export async function lint(
   superJson: SuperJson,
-  profiles: ProfileToLint[],
+  profiles: ProfileToValidate[],
   writer: ListWriter,
   fn: (report: ReportFormat) => string,
   options?: {

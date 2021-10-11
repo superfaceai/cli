@@ -203,10 +203,14 @@ export async function interactiveInstall(
   if (!profileSource) {
     throw developerError('Profile source not found after installation', 1);
   }
-  const profileAst = await Parser.parseProfile(profileSource, profileId.id, {
-    profileName: profileId.name,
-    scope: profileId.scope,
-  });
+  const profileAst = await Parser.parseProfile(
+    profileSource.source,
+    profileId.id,
+    {
+      profileName: profileId.name,
+      scope: profileId.scope,
+    }
+  );
   const profileUsecases = getProfileUsecases(profileAst);
   //Check usecase
   if (profileUsecases.length === 0) {

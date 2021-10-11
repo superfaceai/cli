@@ -124,7 +124,12 @@ describe('Create CLI command', () => {
       expect(result.stdout).toContain(
         `Provider: "${provider}" found on local file system`
       );
-      expect(result.stdout).toContain('🆗 check without errors.');
+      expect(result.stdout).toContain(
+        '🆗 Checking profile starwars/character-information@1.0.1 and map for provider unverified-swapi'
+      );
+      expect(result.stdout).toContain(
+        '🆗 Checking map for profile starwars/character-information@1.0.1 and provider unverified-swapi'
+      );
     });
 
     it('checks capability with local map', async () => {
