@@ -290,14 +290,15 @@ describe('Check logic', () => {
           mapFrom: mockLocalMapFrom,
           providerFrom: mockLocalProviderFrom,
           issues: [],
-          profileId: 'starwars/character-information@1.0.3',
+          profileId: 'starwars/character-information',
           provider: unverifiedProvider,
         },
       ]);
 
       expect(loadProvider).toHaveBeenCalledWith(
         mockSuperJson,
-        unverifiedProvider
+        unverifiedProvider,
+        undefined
       );
       expect(loadProfile).toHaveBeenCalledWith(
         mockSuperJson,
@@ -371,14 +372,15 @@ describe('Check logic', () => {
           mapFrom: mockRemoteMapFrom,
           providerFrom: mockRemoteProviderFrom,
           issues: [],
-          profileId: 'starwars/character-information@1.0.3',
+          profileId: 'starwars/character-information',
           provider: unverifiedProvider,
         },
       ]);
 
       expect(loadProvider).toHaveBeenCalledWith(
         mockSuperJson,
-        unverifiedProvider
+        unverifiedProvider,
+        undefined
       );
       expect(loadProfile).toHaveBeenCalledWith(
         mockSuperJson,
@@ -552,7 +554,11 @@ describe('Check logic', () => {
         ).length
       ).not.toEqual(0);
 
-      expect(loadProvider).toHaveBeenCalledWith(mockSuperJson, provider);
+      expect(loadProvider).toHaveBeenCalledWith(
+        mockSuperJson,
+        provider,
+        undefined
+      );
       expect(loadProfile).toHaveBeenCalledWith(
         mockSuperJson,
         ProfileId.fromScopeName(profile.scope, profile.name),
@@ -942,7 +948,7 @@ describe('Check logic', () => {
         issues: [],
         kind: 'mapProvider',
         provider: unverifiedProvider,
-        profileId: 'starwars/character-information@1.0.3',
+        profileId: 'starwars/character-information',
       });
     });
 
@@ -1002,7 +1008,7 @@ describe('Check logic', () => {
             message: `Map contains provider with name: "${unverifiedProvider}" but provider.json contains provider with name: "${mockProviderJson.name}"`,
           },
         ],
-        profileId: 'starwars/character-information@1.0.3',
+        profileId: 'starwars/character-information',
         provider: mockProviderJson.name,
       });
     });

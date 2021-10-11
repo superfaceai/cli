@@ -227,7 +227,7 @@ describe('Publish logic utils', () => {
         {
           issues: [],
           kind: 'mapProvider',
-          profileId: 'starwars/character-information@1.0.0',
+          profileId: 'starwars/character-information',
           provider: 'unverified-swapi',
           providerFrom: mockProviderFrom,
           mapFrom: mockMapFrom,

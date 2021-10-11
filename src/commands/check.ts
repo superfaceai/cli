@@ -57,8 +57,8 @@ export default class Check extends Command {
     '$ superface check --profileId starwars/character-information --providerName swapi -q',
   ];
 
-  private logCallback?= (message: string) => this.log(grey(message));
-  private warnCallback?= (message: string) => this.log(yellow(message));
+  private logCallback? = (message: string) => this.log(grey(message));
+  private warnCallback? = (message: string) => this.log(yellow(message));
 
   async run(): Promise<void> {
     const { flags } = this.parse(Check);
@@ -121,7 +121,7 @@ export default class Check extends Command {
       if (flags.providerName) {
         if (
           !superJson.normalized.profiles[flags.profileId].providers[
-          flags.providerName
+            flags.providerName
           ]
         ) {
           throw userError(

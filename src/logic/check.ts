@@ -91,7 +91,11 @@ export async function check(
       assertMapDocumentNode(mapFiles.ast);
 
       //Load provider.json
-      const providerFiles = await loadProvider(superJson, map.provider);
+      const providerFiles = await loadProvider(
+        superJson,
+        map.provider,
+        options
+      );
 
       options?.logCb?.(
         `Checking profile: "${profile.id.toString()}" and map for provider: "${
@@ -153,7 +157,7 @@ export function checkMapAndProvider(
 
   const profileId = `${
     map.header.profile.scope ? `${map.header.profile.scope}/` : ''
-  }${map.header.profile.name}@${composeVersion(map.header.profile.version)}`;
+  }${map.header.profile.name}`;
 
   return {
     kind: 'mapProvider',
