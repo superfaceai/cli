@@ -883,11 +883,6 @@
   dependencies:
     "@sinonjs/commons" "^1.7.0"
 
-"@superfaceai/ast@0.0.23":
-  version "0.0.23"
-  resolved "https://registry.yarnpkg.com/@superfaceai/ast/-/ast-0.0.23.tgz#0e58a76b45c0a2dadc72499001d32d0c37cf4128"
-  integrity sha512-9SKqJmC/g8caDZ9T4RcWm43D4f/UFCX57nX8a1J9dM0/GRtMq1fsPt+qcEmCTyys2Gt9JGzH8MDCBym2F92MBg==
-
 "@superfaceai/ast@0.0.31", "@superfaceai/ast@^0.0.31":
   version "0.0.31"
   resolved "https://registry.yarnpkg.com/@superfaceai/ast/-/ast-0.0.31.tgz#b0ee6db7757d94f1e03bb8b27789ad921ac99f91"
@@ -895,20 +890,20 @@
   dependencies:
     typescript-is "^0.18.3"
 
-"@superfaceai/ast@^0.0.28":
-  version "0.0.28"
-  resolved "https://registry.yarnpkg.com/@superfaceai/ast/-/ast-0.0.28.tgz#8953bda490515bdffdb18209360be44e8a9fa543"
-  integrity sha512-gPnmjeL/j73gTFRnseqYdXjbyxrJAQVvmM+XrH1cVZbcsNnc3c9e/a3ra2HWOVK2f4e4FbZiXVfre5qrL4Abeg==
+"@superfaceai/ast@^0.0.29":
+  version "0.0.29"
+  resolved "https://registry.yarnpkg.com/@superfaceai/ast/-/ast-0.0.29.tgz#944de20d615029cef666cfe3dfb8511946f471f4"
+  integrity sha512-buUBbk7gX6/E7sTvw9LBANbqAwKTEkH7ptbc4zgOB7caAf08TXpkNgknbTpbvsE7ySnh0nvI2n7RHAeXHO3CWQ==
   dependencies:
     typescript-is "^0.18.3"
 
-"@superfaceai/one-sdk@0.0.36":
-  version "0.0.36"
-  resolved "https://registry.yarnpkg.com/@superfaceai/one-sdk/-/one-sdk-0.0.36.tgz#082d37e8de4a2b9e8afcca3eb9c6ffbe187e4a18"
-  integrity sha512-7KdMe9Su1VCsmN5l/a2DFZE0b2/XutUrFGK4rsMe2hE91Nl6BvZJgO4dBI2g8o8kBnvU7rIJr2VUBNtss1No/w==
+"@superfaceai/one-sdk@0.0.38-beta.0":
+  version "0.0.38-beta.0"
+  resolved "https://registry.yarnpkg.com/@superfaceai/one-sdk/-/one-sdk-0.0.38-beta.0.tgz#3818c9b4828a610a9f3cca46f24e62528b0ec68a"
+  integrity sha512-c4+KWSgoAZWTQC/CgJSJjogwyqJq3IzIZakMRe8d1ipSE0wtlpRVQsvIbaydatfvH5cR0lmSkDyU6Oa854hnQg==
   dependencies:
     "@superfaceai/ast" "^0.0.31"
-    "@superfaceai/parser" "^0.0.19"
+    "@superfaceai/parser" "0.0.22"
     abort-controller "^3.0.0"
     cross-fetch "^3.0.5"
     debug "^4.3.2"
@@ -916,30 +911,20 @@
     vm2 "^3.9.2"
     zod "^2.0.0-beta.30"
 
-"@superfaceai/parser@0.0.21":
-  version "0.0.21"
-  resolved "https://registry.yarnpkg.com/@superfaceai/parser/-/parser-0.0.21.tgz#ff7c0b5f2d22d83ebc14eab1d15838467bd54f96"
-  integrity sha512-dFuzulFKyKXvj6iBolINrIECALCZOwmHlDMR88VU6Whn7+lYJ2ygutnOmZsicWsF/otLfK0Fcd9bpRpM7lOwBg==
+"@superfaceai/parser@0.0.22":
+  version "0.0.22"
+  resolved "https://registry.yarnpkg.com/@superfaceai/parser/-/parser-0.0.22.tgz#38bca4a3b6c9c7741c245ce1a5e02de8534f384e"
+  integrity sha512-mWKBi0b0bQjmSyLvI92AP7KFwcG2q9w8MYtXu+wDJE5dnwcPtg/qfVaawyUYzC1DWu5Oe4Bt8khDAayenD6o6g==
   dependencies:
-    "@superfaceai/ast" "^0.0.28"
+    "@superfaceai/ast" "^0.0.29"
     "@types/debug" "^4.1.5"
     debug "^4.3.1"
     typescript "^4"
 
-"@superfaceai/parser@^0.0.19":
-  version "0.0.19"
-  resolved "https://registry.yarnpkg.com/@superfaceai/parser/-/parser-0.0.19.tgz#d5c1be386a37d9fda4db2993a10936291abdc259"
-  integrity sha512-XkVe2V5FFfbItz7mZ0Dr/pymTNpcM7ZDuRa91gotIpWBUGBuXM7zWyDEkMPp7quUeKA2qZ3SA7UAmU7yF1XKEA==
-  dependencies:
-    "@superfaceai/ast" "0.0.23"
-    "@types/debug" "^4.1.5"
-    debug "^4.3.1"
-    typescript "~4.1"
-
-"@superfaceai/service-client@0.0.23":
-  version "0.0.23"
-  resolved "https://registry.yarnpkg.com/@superfaceai/service-client/-/service-client-0.0.23.tgz#7ad70368337dc97760b6b03f573f1bbc604624b7"
-  integrity sha512-2SCy12wTqlfJja5Y2am3UK2vW9+oCJUgwrEze4SH6KqAwEFkj+USuLyATa4wk0uT2two4ySLsxuCucLn/9TSeA==
+"@superfaceai/service-client@0.0.24":
+  version "0.0.24"
+  resolved "https://registry.yarnpkg.com/@superfaceai/service-client/-/service-client-0.0.24.tgz#e1af09854ed95aadc6bb1a08e1e6fb519b8024be"
+  integrity sha512-mtIS7xi8FFTcBpfr1PKfLktbl1CRjEOWOUzQ3ca1BcfDfMbGdfKQQ5RnIbydX4azMl3x35XGs7KYKuq/vSQ/Yw==
   dependencies:
     cross-fetch "^3.1.0"
 
@@ -5287,11 +5272,6 @@ typescript@^4.0.5:
   version "4.2.2"
   resolved "https://registry.yarnpkg.com/typescript/-/typescript-4.2.2.tgz#1450f020618f872db0ea17317d16d8da8ddb8c4c"
   integrity sha512-tbb+NVrLfnsJy3M59lsDgrzWIflR4d4TIUjz+heUnHZwdF7YsrMTKoRERiIvI2lvBG95dfpLxB21WZhys1bgaQ==
-
-typescript@~4.1:
-  version "4.1.6"
-  resolved "https://registry.yarnpkg.com/typescript/-/typescript-4.1.6.tgz#1becd85d77567c3c741172339e93ce2e69932138"
-  integrity sha512-pxnwLxeb/Z5SP80JDRzVjh58KsM6jZHRAOtTpS7sXLS4ogXNKC9ANxHHZqLLeVHZN35jCtI4JdmLLbLiC1kBow==
 
 ultron@~1.1.0:
   version "1.1.1"
