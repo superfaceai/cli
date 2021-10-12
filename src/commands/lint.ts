@@ -311,9 +311,9 @@ export default class Lint extends Command {
       options
     );
 
-    return counts.reduce((acc, curr) => [acc[0] + curr[0], acc[1] + curr[1]], [
-      0,
-      0,
-    ]);
+    return counts.reduce(
+      (acc, curr) => [acc[0] + curr[0], acc[1] + curr[1]],
+      [0, 0]
+    );
   }
 }

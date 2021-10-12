@@ -313,9 +313,8 @@ describe('Install CLI logic', () => {
           }
         }
       );
-      const fetchProfileMock = mocked(fetchProfile).mockResolvedValue(
-        'mock profile'
-      );
+      const fetchProfileMock =
+        mocked(fetchProfile).mockResolvedValue('mock profile');
       const fetchProfileASTMock = mocked(fetchProfileAST).mockResolvedValue({
         kind: 'ProfileDocument',
         header: {

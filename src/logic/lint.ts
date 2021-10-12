@@ -246,7 +246,7 @@ async function prepareLintedProfile(
     try {
       profileAst = parseProfile(new Source(profileSource, profile.path));
     } catch (e) {
-      report.errors.push(e);
+      report.errors.push(e as SyntaxError);
     }
     await writer.writeElement(fn(report));
 
@@ -300,7 +300,7 @@ async function prepareLintedMap(
     try {
       mapAst = parseMap(new Source(mapSource, map.path));
     } catch (e) {
-      report.errors.push(e);
+      report.errors.push(e as SyntaxError);
     }
     await writer.writeElement(fn(report));
 

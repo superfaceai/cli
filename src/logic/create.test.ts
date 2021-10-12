@@ -37,9 +37,7 @@ describe('Create logic', () => {
       ).resolves.toBeUndefined();
 
       expect(writeIfAbsentSpy).toHaveBeenCalledTimes(1);
-      expect(
-        writeIfAbsentSpy
-      ).toHaveBeenCalledWith(
+      expect(writeIfAbsentSpy).toHaveBeenCalledWith(
         'test-path/test-scope/test-name.supr',
         [
           `name = "${mockProfile.id}"\nversion = "1.0.0"\n`,
@@ -72,9 +70,7 @@ describe('Create logic', () => {
       ).resolves.toBeUndefined();
 
       expect(writeIfAbsentSpy).toHaveBeenCalledTimes(1);
-      expect(
-        writeIfAbsentSpy
-      ).toHaveBeenCalledWith(
+      expect(writeIfAbsentSpy).toHaveBeenCalledWith(
         'test-path/mock-filename.supr',
         [
           `name = "${mockProfile.id}"\nversion = "1.0.0"\n`,
@@ -107,9 +103,7 @@ describe('Create logic', () => {
       ).resolves.toBeUndefined();
 
       expect(writeIfAbsentSpy).toHaveBeenCalledTimes(1);
-      expect(
-        writeIfAbsentSpy
-      ).toHaveBeenCalledWith(
+      expect(writeIfAbsentSpy).toHaveBeenCalledWith(
         'test-path/mock-filename.supr',
         [
           `name = "${mockProfile.id}"\nversion = "1.0.0"\n`,
@@ -170,9 +164,7 @@ describe('Create logic', () => {
       ).resolves.toBeUndefined();
 
       expect(writeIfAbsentSpy).toHaveBeenCalledTimes(1);
-      expect(
-        writeIfAbsentSpy
-      ).toHaveBeenCalledWith(
+      expect(writeIfAbsentSpy).toHaveBeenCalledWith(
         'test-path/test-scope/test-name.twilio.suma',
         [
           `profile = "${mockId.profile.id}@1.0"\nprovider = "${mockId.provider}"\n`,
@@ -200,9 +192,7 @@ describe('Create logic', () => {
       ).resolves.toBeUndefined();
 
       expect(writeIfAbsentSpy).toHaveBeenCalledTimes(1);
-      expect(
-        writeIfAbsentSpy
-      ).toHaveBeenCalledWith(
+      expect(writeIfAbsentSpy).toHaveBeenCalledWith(
         'test-path/test-name.twilio.suma',
         [
           `profile = "${mockId.profile.name}@1.0"\nprovider = "${mockId.provider}"\n`,
@@ -231,9 +221,7 @@ describe('Create logic', () => {
       ).resolves.toBeUndefined();
 
       expect(writeIfAbsentSpy).toHaveBeenCalledTimes(1);
-      expect(
-        writeIfAbsentSpy
-      ).toHaveBeenCalledWith(
+      expect(writeIfAbsentSpy).toHaveBeenCalledWith(
         'test-path/test-name.twilio.bugfix.suma',
         [
           `profile = "${mockId.profile.name}@1.0"\nprovider = "${mockId.provider}"\nvariant = "bugfix"\n`,
@@ -269,9 +257,7 @@ describe('Create logic', () => {
       ).resolves.toBeUndefined();
 
       expect(writeIfAbsentSpy).toHaveBeenCalledTimes(1);
-      expect(
-        writeIfAbsentSpy
-      ).toHaveBeenCalledWith(
+      expect(writeIfAbsentSpy).toHaveBeenCalledWith(
         `${mockBasePath}/${mockFilename}.suma`,
         [
           `profile = "${mockId.profile.name}@1.0"\nprovider = "${mockId.provider}"\nvariant = "bugfix"\n`,
@@ -307,9 +293,7 @@ describe('Create logic', () => {
       ).resolves.toBeUndefined();
 
       expect(writeIfAbsentSpy).toHaveBeenCalledTimes(1);
-      expect(
-        writeIfAbsentSpy
-      ).toHaveBeenCalledWith(
+      expect(writeIfAbsentSpy).toHaveBeenCalledWith(
         `${mockBasePath}/${mockFilename}`,
         [
           `profile = "${mockId.profile.name}@1.0"\nprovider = "${mockId.provider}"\nvariant = "bugfix"\n`,
@@ -333,9 +317,7 @@ describe('Create logic', () => {
       ).resolves.toBeUndefined();
 
       expect(writeIfAbsentSpy).toHaveBeenCalledTimes(1);
-      expect(
-        writeIfAbsentSpy
-      ).toHaveBeenCalledWith(
+      expect(writeIfAbsentSpy).toHaveBeenCalledWith(
         'test-path/twilio.provider.json',
         emptyProvider(mockName),
         { force: undefined }
@@ -356,9 +338,7 @@ describe('Create logic', () => {
       ).resolves.toBeUndefined();
 
       expect(writeIfAbsentSpy).toHaveBeenCalledTimes(1);
-      expect(
-        writeIfAbsentSpy
-      ).toHaveBeenCalledWith(
+      expect(writeIfAbsentSpy).toHaveBeenCalledWith(
         `${mockBasePath}/${mockFilename}.json`,
         emptyProvider(mockName),
         { force: undefined }
@@ -379,9 +359,7 @@ describe('Create logic', () => {
       ).resolves.toBeUndefined();
 
       expect(writeIfAbsentSpy).toHaveBeenCalledTimes(1);
-      expect(
-        writeIfAbsentSpy
-      ).toHaveBeenCalledWith(
+      expect(writeIfAbsentSpy).toHaveBeenCalledWith(
         `${mockBasePath}/${mockFilename}`,
         emptyProvider(mockName),
         { force: undefined }
@@ -823,9 +801,7 @@ describe('Create logic', () => {
       });
 
       expect(writeIfAbsentSpy).toHaveBeenCalledTimes(1);
-      expect(
-        writeIfAbsentSpy
-      ).toHaveBeenCalledWith(
+      expect(writeIfAbsentSpy).toHaveBeenCalledWith(
         'test-scope/test-name.provider.suma',
         [
           `profile = "${mockScope}/${mockName}@1.0"\nprovider = "${mockProvider}"\n`,

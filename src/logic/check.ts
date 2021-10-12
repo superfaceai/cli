@@ -143,6 +143,7 @@ export function checkMapAndProvider(
   map: MapDocumentNode
 ): CheckResult[] {
   const result: CheckResult[] = [];
+  //TODO: use typescript-is provider.json definition to validate
   try {
     parseProviderJson(provider);
   } catch (error) {

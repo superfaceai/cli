@@ -54,7 +54,7 @@ export default class Login extends Command {
           await SuperfaceClient.getClient().logout();
         }
       } catch (err) {
-        this.warnCallback?.(err);
+        this.error(err as Error);
       }
     }
 

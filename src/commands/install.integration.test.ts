@@ -141,8 +141,7 @@ describe('Install CLI command', () => {
       const localSuperJson = {
         profiles: {
           [profileId]: {
-            file:
-              '../../../../fixtures/profiles/starwars/character-information.supr',
+            file: '../../../../fixtures/profiles/starwars/character-information.supr',
           },
         },
         providers: {},
