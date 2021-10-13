@@ -1,6 +1,7 @@
 import { SuperJson } from '@superfaceai/one-sdk';
+import { green } from 'chalk';
 import { getLocal } from 'mockttp';
-import { join as joinPath } from 'path';
+import { join as joinPath, resolve } from 'path';
 
 import { UNVERIFIED_PROVIDER_PREFIX } from '../common';
 import { mkdir, rimraf } from '../common/io';
@@ -16,7 +17,7 @@ import {
 
 const mockServer = getLocal();
 
-describe('Create CLI command', () => {
+describe('Check CLI command', () => {
   //File specific path
   const TEMP_PATH = joinPath('test', 'tmp');
   let tempDir: string;
@@ -124,7 +125,28 @@ describe('Create CLI command', () => {
       expect(result.stdout).toContain(
         `Provider: "${provider}" found on local file system`
       );
-      expect(result.stdout).toContain('🆗 check without errors.');
+      expect(result.stdout).toContain(
+        'Checking profile: "starwars/character-information" and map for provider: "unverified-swapi"'
+      );
+      expect(result.stdout).toContain(
+        green(
+          `🆗 Checking local profile ${profileId}@1.0.1 at path\n${resolve(
+            sourceFixture.profile
+          )}\nand local map for provider ${provider} at path\n${resolve(
+            sourceFixture.map
+          )}\n\n`
+        )
+      );
+
+      expect(result.stdout).toContain(
+        green(
+          `🆗 Checking local map at path\n${resolve(
+            sourceFixture.map
+          )}\nfor profile ${profileId} and local provider unverified-swapi at path\n${resolve(
+            sourceFixture.provider
+          )}\n\n`
+        )
+      );
     });
 
     it('checks capability with local map', async () => {
@@ -156,7 +178,7 @@ describe('Create CLI command', () => {
         mockServer.url
       );
       expect(result.stdout).toContain(
-        `Loading profile: "${profileId}@${profileVersion}" from Superface store`
+        `Loading profile: "${profileId}" in version: "${profileVersion}" from Superface store`
       );
       expect(result.stdout).toContain(
         `Map for profile: "${profileId}" and provider: "${provider}" found on local filesystem`
@@ -164,7 +186,20 @@ describe('Create CLI command', () => {
       expect(result.stdout).toContain(
         `Loading provider: "${provider}" from Superface store`
       );
-      expect(result.stdout).toContain('🆗 check without errors.');
+      expect(result.stdout).toContain(
+        green(
+          `🆗 Checking remote profile ${profileId}@${profileVersion} with version ${profileVersion} and local map for provider ${provider} at path\n${resolve(
+            sourceFixture.map
+          )}\n\n`
+        )
+      );
+      expect(result.stdout).toContain(
+        green(
+          `🆗 Checking local map at path\n${resolve(
+            sourceFixture.map
+          )}\nfor profile ${profileId} and remote provider ${provider}`
+        )
+      );
     });
 
     it('checks capability with local profile', async () => {
@@ -202,7 +237,18 @@ describe('Create CLI command', () => {
       expect(result.stdout).toContain(
         `Loading provider: "${provider}" from Superface store`
       );
-      expect(result.stdout).toContain('🆗 check without errors.');
+      expect(result.stdout).toContain(
+        green(
+          `🆗 Checking local profile ${profileId}@1.0.1 at path\n${resolve(
+            sourceFixture.profile
+          )}\nand remote map with version 1.0.0 for provider ${provider}`
+        )
+      );
+      expect(result.stdout).toContain(
+        green(
+          `🆗 Checking remote map with version 1.0.0 for profile ${profileId} and remote provider ${provider}`
+        )
+      );
     });
 
     it('checks capability with local provider', async () => {
@@ -234,15 +280,26 @@ describe('Create CLI command', () => {
         mockServer.url
       );
       expect(result.stdout).toContain(
-        `Loading profile: "${profileId}@${profileVersion}" from Superface store`
+        `Loading profile: "${profileId}" in version: "${profileVersion}" from Superface store`
       );
       expect(result.stdout).toContain(
-        `Loading map for profile: "${profileId}@${profileVersion}" and provider: "${provider}" from Superface store`
+        `Loading map for profile: "${profileId}@${profileVersion}" and provider: "${provider}" in version: "1.0.0" from Superface store`
       );
       expect(result.stdout).toContain(
         `Provider: "${provider}" found on local file system`
       );
-      expect(result.stdout).toContain('🆗 check without errors.');
+      expect(result.stdout).toContain(
+        green(
+          `🆗 Checking remote profile ${profileId}@${profileVersion} with version ${profileVersion} and remote map with version 1.0.0 for provider ${provider}`
+        )
+      );
+      expect(result.stdout).toContain(
+        green(
+          `🆗 Checking remote map with version 1.0.0 for profile ${profileId} and local provider ${provider} at path\n${resolve(
+            sourceFixture.provider
+          )}\n\n`
+        )
+      );
     });
 
     it('checks capability with local map, profile and provider and --json flag', async () => {

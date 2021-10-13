@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.0.26] - 2021-10-13
+### Added
+- Check command loading files from server if not found localy
+
+### Fixed
+- Compile command provider name check
+
 ## [0.0.25] - 2021-09-29
 ### Added
 - Lint command loading files from server if not found localy
@@ -159,7 +166,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Transpile command
 - CI github flow
 
-[Unreleased]: https://github.com/superfaceai/cli/compare/v0.0.25...HEAD
+[Unreleased]: https://github.com/superfaceai/cli/compare/v0.0.26...HEAD
+[0.0.26]: https://github.com/superfaceai/cli/compare/v0.0.25...v0.0.26
 [0.0.25]: https://github.com/superfaceai/cli/compare/v0.0.24...v0.0.25
 [0.0.24]: https://github.com/superfaceai/cli/compare/v0.0.23...v0.0.24
 [0.0.23]: https://github.com/superfaceai/cli/compare/v0.0.22...v0.0.23

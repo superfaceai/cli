@@ -39,7 +39,7 @@ import {
   isValidHeader,
   isValidMapId,
   lint,
-  ProfileToLint,
+  ProfileToValidate,
 } from './lint';
 //Mock io
 jest.mock('../common/io', () => ({
@@ -69,6 +69,8 @@ jest.mock('@superfaceai/parser', () => ({
 }));
 
 describe('Lint logic', () => {
+  const mockMapPath = 'mockMapPath';
+  const mockProfilePath = 'mockProfilePath';
   afterEach(() => {
     jest.resetAllMocks();
   });
@@ -92,6 +94,7 @@ describe('Lint logic', () => {
   describe('when validating header', () => {
     let mockValidProfileHeader: ProfileHeaderStructure;
     let mocValidMapHeader: MapHeaderNode;
+
     beforeEach(() => {
       mockValidProfileHeader = {
         name: 'mockProfileHeader',
@@ -448,33 +451,34 @@ describe('Lint logic', () => {
         version: DEFAULT_PROFILE_VERSION,
       });
       const mockSuperJson = new SuperJson();
-      const mockProfiles: ProfileToLint[] = [
+      const mockProfiles: ProfileToValidate[] = [
         {
           id: profile,
           maps: [
-            {
-              id: MapId.fromParameters({
-                profile,
-                version: DEFAULT_MAP_VERSION,
-                provider: 'swapi',
-              }),
-              path: 'swapi path',
-            },
-            {
-              id: MapId.fromParameters({
-                profile,
-                version: DEFAULT_MAP_VERSION,
-                provider: 'starwars',
-              }),
-              path: 'starwars path',
-            },
+            MapId.fromParameters({
+              profile,
+              version: DEFAULT_MAP_VERSION,
+              provider: 'swapi',
+            }),
+            MapId.fromParameters({
+              profile,
+              version: DEFAULT_MAP_VERSION,
+              provider: 'starwars',
+            }),
           ],
-          path: 'profile path',
         },
       ];
 
-      mocked(findLocalMapSource).mockResolvedValue(mockMapContent);
-      mocked(findLocalProfileSource).mockResolvedValue(mockProfileContent);
+      mocked(findLocalMapSource)
+        .mockResolvedValueOnce({ source: mockMapContent, path: 'swapi path' })
+        .mockResolvedValueOnce({
+          source: mockMapContent,
+          path: 'starwars path',
+        });
+      mocked(findLocalProfileSource).mockResolvedValue({
+        source: mockProfileContent,
+        path: mockProfilePath,
+      });
       mocked(parseProfile).mockReturnValue(mockProfileDocument);
       mocked(parseMap)
         .mockReturnValueOnce(mockMapDocument)
@@ -497,7 +501,7 @@ describe('Lint logic', () => {
         1,
         mockReportFn({
           kind: 'file',
-          path: 'profile path',
+          path: mockProfilePath,
           errors: [],
           warnings: [],
         })
@@ -517,7 +521,7 @@ describe('Lint logic', () => {
         3,
         mockReportFn({
           kind: 'compatibility',
-          profile: 'profile path',
+          profile: mockProfilePath,
           path: 'swapi path',
           errors: [
             {
@@ -547,7 +551,7 @@ describe('Lint logic', () => {
         5,
         mockReportFn({
           kind: 'compatibility',
-          profile: 'profile path',
+          profile: mockProfilePath,
           path: 'starwars path',
           errors: [],
           warnings: [],
@@ -562,33 +566,31 @@ describe('Lint logic', () => {
         version: ProfileVersion.fromString('1.2.3'),
       });
       const mockSuperJson = new SuperJson();
-      const mockProfiles: ProfileToLint[] = [
+      const mockProfiles: ProfileToValidate[] = [
         {
           id: profile,
           maps: [
-            {
-              id: MapId.fromParameters({
-                profile,
-                version: MapVersion.fromString('1.2'),
-                provider: 'swapi',
-                variant: 'test',
-              }),
-            },
-            {
-              id: MapId.fromParameters({
-                profile,
-                version: MapVersion.fromString('1.2'),
-                provider: 'starwars',
-                variant: 'test',
-              }),
-            },
+            MapId.fromParameters({
+              profile,
+              version: MapVersion.fromString('1.2'),
+              provider: 'swapi',
+              variant: 'test',
+            }),
+            MapId.fromParameters({
+              profile,
+              version: MapVersion.fromString('1.2'),
+              provider: 'starwars',
+              variant: 'test',
+            }),
           ],
-          path: 'profile path',
         },
       ];
 
       mocked(findLocalMapSource).mockResolvedValue(undefined);
-      mocked(findLocalProfileSource).mockResolvedValue(mockProfileContent);
+      mocked(findLocalProfileSource).mockResolvedValue({
+        source: mockProfileContent,
+        path: mockProfilePath,
+      });
       mocked(parseProfile).mockReturnValue(mockProfileDocument);
       mocked(fetchMapAST)
         .mockResolvedValueOnce(mockMapDocument)
@@ -611,7 +613,7 @@ describe('Lint logic', () => {
         1,
         mockReportFn({
           kind: 'file',
-          path: 'profile path',
+          path: mockProfilePath,
           errors: [],
           warnings: [],
         })
@@ -655,26 +657,22 @@ describe('Lint logic', () => {
         version: ProfileVersion.fromString('1.0.0'),
       });
       const mockSuperJson = new SuperJson();
-      const mockProfiles: ProfileToLint[] = [
+      const mockProfiles: ProfileToValidate[] = [
         {
           id: profile,
           maps: [
-            {
-              id: MapId.fromParameters({
-                profile,
-                version: DEFAULT_MAP_VERSION,
-                provider: 'swapi',
-                variant: 'test',
-              }),
-            },
-            {
-              id: MapId.fromParameters({
-                profile,
-                version: DEFAULT_MAP_VERSION,
-                provider: 'starwars',
-                variant: 'test',
-              }),
-            },
+            MapId.fromParameters({
+              profile,
+              version: DEFAULT_MAP_VERSION,
+              provider: 'swapi',
+              variant: 'test',
+            }),
+            MapId.fromParameters({
+              profile,
+              version: DEFAULT_MAP_VERSION,
+              provider: 'starwars',
+              variant: 'test',
+            }),
           ],
         },
       ];
@@ -754,31 +752,30 @@ describe('Lint logic', () => {
         version: ProfileVersion.fromString('1.0.0'),
       });
       const mockSuperJson = new SuperJson();
-      const mockProfiles: ProfileToLint[] = [
+      const mockProfiles: ProfileToValidate[] = [
         {
           id: profile,
           maps: [
-            {
-              id: MapId.fromParameters({
-                profile,
-                version: DEFAULT_MAP_VERSION,
-                provider: 'swapi',
-                variant: 'test',
-              }),
-            },
-            {
-              id: MapId.fromParameters({
-                profile,
-                version: DEFAULT_MAP_VERSION,
-                provider: 'starwars',
-                variant: 'test',
-              }),
-            },
+            MapId.fromParameters({
+              profile,
+              version: DEFAULT_MAP_VERSION,
+              provider: 'swapi',
+              variant: 'test',
+            }),
+            MapId.fromParameters({
+              profile,
+              version: DEFAULT_MAP_VERSION,
+              provider: 'starwars',
+              variant: 'test',
+            }),
           ],
         },
       ];
 
-      mocked(findLocalProfileSource).mockResolvedValue(mockProfileContent);
+      mocked(findLocalProfileSource).mockResolvedValue({
+        source: mockProfileContent,
+        path: mockProfilePath,
+      });
       mocked(parseProfile).mockImplementation(() => {
         throw mockSyntaxErr;
       });
@@ -796,7 +793,7 @@ describe('Lint logic', () => {
       expect(writeElementSpy).toHaveBeenCalledWith(
         mockReportFn({
           kind: 'file',
-          path: 'starwars/character-information@1.0.0',
+          path: mockProfilePath,
           errors: [mockSyntaxErr],
           warnings: [],
         })
@@ -825,25 +822,29 @@ describe('Lint logic', () => {
         version: ProfileVersion.fromString('1.0.0'),
       });
       const mockSuperJson = new SuperJson();
-      const mockProfiles: ProfileToLint[] = [
+      const mockProfiles: ProfileToValidate[] = [
         {
           id: profile,
           maps: [
-            {
-              id: MapId.fromParameters({
-                profile,
-                version: DEFAULT_MAP_VERSION,
-                provider: 'swapi',
-                variant: 'test',
-              }),
-            },
+            MapId.fromParameters({
+              profile,
+              version: DEFAULT_MAP_VERSION,
+              provider: 'swapi',
+              variant: 'test',
+            }),
           ],
         },
       ];
 
-      mocked(findLocalProfileSource).mockResolvedValue(mockProfileContent);
+      mocked(findLocalProfileSource).mockResolvedValue({
+        source: mockProfileContent,
+        path: mockProfilePath,
+      });
       mocked(parseProfile).mockReturnValue(mockProfileDocument);
-      mocked(findLocalMapSource).mockResolvedValue(mockMapContent);
+      mocked(findLocalMapSource).mockResolvedValue({
+        source: mockMapContent,
+        path: mockMapPath,
+      });
       mocked(parseMap).mockImplementation(() => {
         throw mockSyntaxErr;
       });
@@ -861,7 +862,7 @@ describe('Lint logic', () => {
         1,
         mockReportFn({
           kind: 'file',
-          path: 'starwars/character-information@1.0.0',
+          path: mockProfilePath,
           errors: [],
           warnings: [],
         })
@@ -870,7 +871,7 @@ describe('Lint logic', () => {
         2,
         mockReportFn({
           kind: 'file',
-          path: '',
+          path: mockMapPath,
           errors: [mockSyntaxErr],
           warnings: [],
         })

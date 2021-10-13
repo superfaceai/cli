@@ -28,6 +28,7 @@ import {
 import { exists, isAccessible, readFile } from '../common/io';
 import { formatShellLog, LogCallback } from '../common/log';
 import { OutputStream } from '../common/output-stream';
+import { resolveSuperfaceRelatedPath } from '../common/path';
 import { arrayFilterUndefined } from '../common/util';
 
 const installDebug = createDebug('superface:install');
@@ -189,7 +190,7 @@ export async function resolveInstallationRequests(
     installDebug('Install phase 4:', entry);
     if (entry.kind === 'local') {
       superJson.mergeProfile(entry.profileId.withoutVersion, {
-        file: superJson.relativePath(entry.path),
+        file: resolveSuperfaceRelatedPath(entry.path, superJson),
       });
     } else {
       superJson.mergeProfile(entry.profileId.withoutVersion, {

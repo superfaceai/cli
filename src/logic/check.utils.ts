@@ -8,13 +8,16 @@ import { exists, readdir, readFile } from '../common/io';
 export async function findLocalProfileSource(
   superJson: SuperJson,
   profile: ProfileId
-): Promise<string | undefined> {
+): Promise<{ path: string; source: string } | undefined> {
   //Check file property
   const profileSettings = superJson.normalized.profiles[profile.withoutVersion];
   if (profileSettings !== undefined && 'file' in profileSettings) {
     const resolvedPath = superJson.resolvePath(profileSettings.file);
     if (await exists(resolvedPath)) {
-      return readFile(resolvedPath, { encoding: 'utf-8' });
+      return {
+        source: await readFile(resolvedPath, { encoding: 'utf-8' }),
+        path: resolvedPath,
+      };
     }
   }
 
@@ -26,7 +29,10 @@ export async function findLocalProfileSource(
     );
     const resolvedPath = superJson.resolvePath(path);
     if (await exists(resolvedPath)) {
-      return readFile(resolvedPath, { encoding: 'utf-8' });
+      return {
+        source: await readFile(resolvedPath, { encoding: 'utf-8' }),
+        path: resolvedPath,
+      };
     }
   } else {
     //Look for any version
@@ -46,7 +52,10 @@ export async function findLocalProfileSource(
       if (path) {
         const resolvedPath = superJson.resolvePath(joinPath(basePath, path));
         if (await exists(resolvedPath)) {
-          return readFile(resolvedPath, { encoding: 'utf-8' });
+          return {
+            source: await readFile(resolvedPath, { encoding: 'utf-8' }),
+            path: resolvedPath,
+          };
         }
       }
     }
@@ -58,7 +67,7 @@ export async function findLocalProfileSource(
 export async function findLocalMapSource(
   superJson: SuperJson,
   map: MapId
-): Promise<string | undefined> {
+): Promise<{ path: string; source: string } | undefined> {
   //Check file property
   const profileSettings =
     superJson.normalized.profiles[map.profile.withoutVersion];
@@ -67,7 +76,10 @@ export async function findLocalMapSource(
     if (profileProviderSettings && 'file' in profileProviderSettings) {
       const resolvedPath = superJson.resolvePath(profileProviderSettings.file);
       if (await exists(resolvedPath)) {
-        return readFile(resolvedPath, { encoding: 'utf-8' });
+        return {
+          source: await readFile(resolvedPath, { encoding: 'utf-8' }),
+          path: resolvedPath,
+        };
       }
     }
   }
@@ -78,7 +90,7 @@ export async function findLocalMapSource(
 export async function findLocalProviderSource(
   superJson: SuperJson,
   provider: string
-): Promise<ProviderJson | undefined> {
+): Promise<{ path: string; source: ProviderJson } | undefined> {
   //Check file property
   const providerSettings = superJson.normalized.providers[provider];
   if (
@@ -88,9 +100,12 @@ export async function findLocalProviderSource(
   ) {
     const resolvedPath = superJson.resolvePath(providerSettings.file);
     if (await exists(resolvedPath)) {
-      return JSON.parse(
-        await readFile(resolvedPath, { encoding: 'utf-8' })
-      ) as ProviderJson;
+      return {
+        path: resolvedPath,
+        source: JSON.parse(
+          await readFile(resolvedPath, { encoding: 'utf-8' })
+        ) as ProviderJson,
+      };
     }
   }
 

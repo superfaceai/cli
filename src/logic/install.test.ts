@@ -277,7 +277,7 @@ describe('Install CLI logic', () => {
       expect(stubSuperJson.document).toEqual({
         profiles: {
           first: {
-            file: 'first.supr',
+            file: './first.supr',
           },
           'se/cond': {
             file: 'second.supr',
@@ -513,10 +513,10 @@ describe('Install CLI logic', () => {
             version: '1.0.1',
           },
           'local/second': {
-            file: 'local-second.supr',
+            file: './local-second.supr',
           },
           'local/third': {
-            file: 'local-third.supr',
+            file: './local-third.supr',
           },
           'remote/first': {
             version: '1.0.1',
@@ -525,7 +525,7 @@ describe('Install CLI logic', () => {
             version: '1.0.1',
           },
           'remote/third': {
-            file: 'remote-third.supr',
+            file: './remote-third.supr',
           },
         },
       });

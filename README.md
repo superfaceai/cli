@@ -23,9 +23,9 @@ Superface CLI provides access to superface tooling from the CLI.
 
 ## Background
 
-Superface (super-interface) is a higher-order API, an abstraction on top of the modern APIs like GraphQL and REST. Superface is one interface to discover, connect, and query any capabilities available via conventional APIs. 
+Superface (super-interface) is a higher-order API, an abstraction on top of the modern APIs like GraphQL and REST. Superface is one interface to discover, connect, and query any capabilities available via conventional APIs.
 
-Through its focus on application-level semantics, Superface decouples the clients from servers, enabling fully autonomous evolution. As such it minimizes the code base as well as errors and downtimes while providing unmatched resiliency and redundancy. 
+Through its focus on application-level semantics, Superface decouples the clients from servers, enabling fully autonomous evolution. As such it minimizes the code base as well as errors and downtimes while providing unmatched resiliency and redundancy.
 
 Superface allows for switching capability providers without development at a runtime in milliseconds. Furthermore, Superface decentralizes the composition and aggregation, and thus creates an Autonomous Integration Mesh.
 
@@ -68,13 +68,14 @@ npx @superfaceai/cli install [profileId eg. communication/send-email]
 
 ## `superface check`
 
-Checks if specified capability is correctly set up in super.json, has profile and map with corresponding version, scope, name, use case definitions and provider
+Checks all maps and profiles locally linked in super.json. Also can be used to lint specific profile and its maps, in that case remote files can be used.
 
 ```
 USAGE
   $ superface check
 
 OPTIONS
+  -f, --failOnWarning          When true command will fail on warning
   -h, --help                   show CLI help
   -j, --json                   Formats result to JSON
   -q, --quiet                  When set to true, disables the shell echo output of action.
@@ -82,11 +83,17 @@ OPTIONS
   -s, --scan=scan              When number provided, scan for super.json outside cwd within range represented by this
                                number.
 
-  --profileId=profileId        (required) Profile Id in format [scope/](optional)[name]
+  --profileId=profileId        Profile Id in format [scope/](optional)[name]
 
-  --providerName=providerName  (required) Name of provider.
+  --providerName=providerName  Name of provider.
+
+DESCRIPTION
+  Command ends with non zero exit code if errors are found.
 
 EXAMPLES
+  $ superface check
+  $ superface check -f
+  $ superface check --profileId starwars/character-information
   $ superface check --profileId starwars/character-information --providerName swapi
   $ superface check --profileId starwars/character-information --providerName swapi -j
   $ superface check --profileId starwars/character-information --providerName swapi -s 3
@@ -276,7 +283,6 @@ EXAMPLES
   $ superface lint
   $ superface lint --profileId starwars/character-information
   $ superface lint --profileId starwars/character-information --providerName swapi
-  $ superface lint --providerName swapi
   $ superface lint -o -2
   $ superface lint -f json
   $ superface lint -s 3
@@ -331,7 +337,7 @@ USAGE
   $ superface publish DOCUMENTTYPE
 
 ARGUMENTS
-  DOCUMENTTYPE  (map|profile|provider) Document type of publeshed file
+  DOCUMENTTYPE  (map|profile|provider) Document type of published file
 
 OPTIONS
   -f, --force                  Publishes without asking for any confirmation.
@@ -375,6 +381,7 @@ EXAMPLES
 ```
 
 _See code: [src/commands/whoami.ts](https://github.com/superfaceai/cli/tree/main/src/commands/whoami.ts)_
+
 <!-- commandsstop -->
 
 ## Security
@@ -385,7 +392,7 @@ You can find more information in [SDK repository](https://github.com/superfaceai
 
 ## Support
 
-If you need any additional support, have any questions or you just want to talk you can do that through our [documentation page](https://docs.superface.ai). 
+If you need any additional support, have any questions or you just want to talk you can do that through our [documentation page](https://docs.superface.ai).
 
 ## Development
 
@@ -396,6 +403,7 @@ After cloning, the dependencies must be downloaded using `yarn install` or `npm 
 Now the repository is ready for code changes.
 
 The `package.json` also contains scripts (runnable by calling `yarn <script-name>` or `npm run <script-name>`):
+
 - `test` - run all tests
 - `lint` - lint the code (use `lint --fix` to run autofix)
 - `format` - check the code formatting (use `firmat:fix` to autoformat)

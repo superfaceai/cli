@@ -1,12 +1,6 @@
 import { flags as oclifFlags } from '@oclif/command';
 import { isValidProviderName, SuperJson } from '@superfaceai/one-sdk';
-import {
-  DEFAULT_MAP_VERSION,
-  DEFAULT_PROFILE_VERSION,
-  MapId,
-  parseDocumentId,
-  ProfileId,
-} from '@superfaceai/parser';
+import { parseDocumentId } from '@superfaceai/parser';
 import { bold, grey, red } from 'chalk';
 import { join as joinPath } from 'path';
 
@@ -23,9 +17,9 @@ import {
   formatHuman,
   formatJson,
   lint,
-  MapToLint,
-  ProfileToLint,
+  ProfileToValidate,
 } from '../logic/lint';
+import Check from './check';
 
 type OutputFormatFlag = 'long' | 'short' | 'json';
 
@@ -85,7 +79,6 @@ export default class Lint extends Command {
     '$ superface lint',
     '$ superface lint --profileId starwars/character-information',
     '$ superface lint --profileId starwars/character-information --providerName swapi',
-    '$ superface lint --providerName swapi',
     '$ superface lint -o -2',
     '$ superface lint -f json',
     '$ superface lint -s 3',
@@ -164,134 +157,11 @@ export default class Lint extends Command {
         }
       }
     }
-    const profiles: ProfileToLint[] = [];
-
-    //Lint every local map/profile in super.json
-    if (!flags.profileId && !flags.providerName) {
-      for (const [profile, profileSettings] of Object.entries(
-        superJson.normalized.profiles
-      )) {
-        if ('file' in profileSettings) {
-          const profileId = ProfileId.fromId(
-            profile,
-            DEFAULT_PROFILE_VERSION.toString()
-          );
-          const maps: MapToLint[] = [];
-          for (const [provider, profileProviderSettings] of Object.entries(
-            profileSettings.providers
-          )) {
-            if ('file' in profileProviderSettings) {
-              maps.push({
-                id: MapId.fromParameters({
-                  profile: profileId,
-                  version: DEFAULT_MAP_VERSION,
-                  provider,
-                }),
-                path: profileProviderSettings.file,
-              });
-            }
-          }
-          profiles.push({
-            id: profileId,
-            maps,
-            path: profileSettings.file,
-          });
-        }
-      }
-    }
-    //Lint single profile and its maps
-    if (flags.profileId && !flags.providerName) {
-      const profileSettings = superJson.normalized.profiles[flags.profileId];
-      const maps: MapToLint[] = [];
-
-      let profileId: ProfileId;
-      let path: string | undefined;
-      if ('file' in profileSettings) {
-        //TODO: get profile version from file?
-        profileId = ProfileId.fromId(
-          flags.profileId,
-          DEFAULT_PROFILE_VERSION.toString()
-        );
-        path = profileSettings.file;
-      } else {
-        profileId = ProfileId.fromId(flags.profileId, profileSettings.version);
-      }
-
-      for (const [provider, profileProviderSettings] of Object.entries(
-        profileSettings.providers
-      )) {
-        if ('file' in profileProviderSettings) {
-          maps.push({
-            id: MapId.fromParameters({
-              profile: profileId,
-              version: DEFAULT_MAP_VERSION,
-              provider,
-            }),
-            path: profileProviderSettings.file,
-          });
-        } else {
-          maps.push({
-            id: MapId.fromParameters({
-              profile: profileId,
-              version: DEFAULT_MAP_VERSION,
-              provider,
-              variant: profileProviderSettings.mapVariant,
-            }),
-          });
-        }
-      }
-      profiles.push({
-        id: profileId,
-        maps,
-        path,
-      });
-    }
-    //Lint single profile and single map
-    if (flags.profileId && flags.providerName) {
-      const profileSettings = superJson.normalized.profiles[flags.profileId];
-
-      let profileId: ProfileId;
-      let path: string | undefined;
-      if ('file' in profileSettings) {
-        //TODO: get profile version from file?
-        profileId = ProfileId.fromId(
-          flags.profileId,
-          DEFAULT_PROFILE_VERSION.toString()
-        );
-        path = profileSettings.file;
-      } else {
-        profileId = ProfileId.fromId(flags.profileId, profileSettings.version);
-      }
-
-      const profileProviderSettings =
-        profileSettings.providers[flags.providerName];
-      const maps: MapToLint[] = [];
-      if ('file' in profileProviderSettings) {
-        maps.push({
-          id: MapId.fromParameters({
-            profile: profileId,
-            version: DEFAULT_MAP_VERSION,
-            provider: flags.providerName,
-          }),
-          path: profileProviderSettings.file,
-        });
-      } else {
-        maps.push({
-          id: MapId.fromParameters({
-            profile: profileId,
-            version: DEFAULT_MAP_VERSION,
-            provider: flags.providerName,
-            variant: profileProviderSettings.mapVariant,
-          }),
-        });
-      }
-
-      profiles.push({
-        id: profileId,
-        maps,
-        path,
-      });
-    }
+    const profiles = Check.prepareProfilesToValidate(
+      superJson,
+      flags.profileId,
+      flags.providerName
+    );
 
     const outputStream = new OutputStream(flags.output, {
       append: flags.append,
@@ -348,7 +218,7 @@ export default class Lint extends Command {
   static async processFiles(
     writer: ListWriter,
     superJson: SuperJson,
-    profiles: ProfileToLint[],
+    profiles: ProfileToValidate[],
     fn: (report: ReportFormat) => string,
     options?: {
       logCb?: LogCallback;

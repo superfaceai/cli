@@ -432,7 +432,7 @@ describe('Publish CLI command', () => {
         }
       );
       expect(result.stdout).toContain(
-        `Loading profile: "${profileId.withoutVersion}@${profileVersion}" from Superface store`
+        `Loading profile: "${profileId.withoutVersion}" in version: "${profileVersion}" from Superface store`
       );
       expect(result.stdout).toContain(
         `Map for profile: "${profileId.withoutVersion}@${profileVersion}" and provider: "${unverifiedProvider}" found on local filesystem`

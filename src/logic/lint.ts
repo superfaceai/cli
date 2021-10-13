@@ -195,19 +195,17 @@ export function formatJson(report: ReportFormat): string {
   });
 }
 
-export type MapToLint = { id: MapId; path?: string };
-export type ProfileToLint = {
+export type ProfileToValidate = {
   id: ProfileId;
-  maps: MapToLint[];
-  // version?: string;
-  path?: string;
+  maps: MapId[];
 };
-type MapToLintWithAst = MapToLint & {
+type MapToValidateWithAst = {
+  id: MapId;
   ast?: MapDocumentNode;
   path: string;
   counts: [number, number][];
 };
-type ProfileToLintWithAst = ProfileToLint & {
+type ProfileToValidateWithAst = ProfileToValidate & {
   ast?: ProfileDocumentNode;
   path: string;
   counts: [number, number][];
@@ -215,20 +213,16 @@ type ProfileToLintWithAst = ProfileToLint & {
 
 async function prepareLintedProfile(
   superJson: SuperJson,
-  profile: ProfileToLint,
+  profile: ProfileToValidate,
   writer: ListWriter,
   fn: (report: ReportFormat) => string,
   options?: {
     logCb?: LogCallback;
   }
-): Promise<ProfileToLintWithAst> {
+): Promise<ProfileToValidateWithAst> {
   const counts: [number, number][] = [];
   let profileAst: ProfileDocumentNode | undefined = undefined;
-  const profileSource = await findLocalProfileSource(
-    superJson,
-    profile.id
-    // profile.version
-  );
+  const profileSource = await findLocalProfileSource(superJson, profile.id);
   //If we have local profile we lint it
   if (profileSource) {
     options?.logCb?.(
@@ -237,13 +231,15 @@ async function prepareLintedProfile(
 
     const report: FileReport = {
       kind: 'file',
-      path: profile.path || profile.id.toString(),
+      path: profileSource.path,
       errors: [],
       warnings: [],
     };
 
     try {
-      profileAst = parseProfile(new Source(profileSource, profile.path));
+      profileAst = parseProfile(
+        new Source(profileSource.source, profileSource.path)
+      );
     } catch (e) {
       report.errors.push(e);
     }
@@ -260,40 +256,40 @@ async function prepareLintedProfile(
   return {
     ...profile,
     ast: profileAst,
-    path: profile.path || profile.id.toString(),
+    path: profileSource?.path || profile.id.toString(),
     counts,
   };
 }
 
 async function prepareLintedMap(
   superJson: SuperJson,
-  profile: ProfileToLint,
-  map: MapToLint,
+  profile: ProfileToValidate,
+  map: MapId,
   writer: ListWriter,
   fn: (report: ReportFormat) => string,
   options?: {
     logCb?: LogCallback;
   }
-): Promise<MapToLintWithAst> {
+): Promise<MapToValidateWithAst> {
   const counts: [number, number][] = [];
   let mapAst: MapDocumentNode | undefined = undefined;
 
-  const mapSource = await findLocalMapSource(superJson, map.id);
+  const mapSource = await findLocalMapSource(superJson, map);
   if (mapSource) {
     options?.logCb?.(
       `Map for profile: "${profile.id.toString()}" and provider: "${
-        map.id.provider
+        map.provider
       }" found on local filesystem`
     );
     const report: FileReport = {
       kind: 'file',
-      path: map.path ? map.path : ``,
+      path: mapSource.path,
       errors: [],
       warnings: [],
     };
 
     try {
-      mapAst = parseMap(new Source(mapSource, profile.path));
+      mapAst = parseMap(new Source(mapSource.source, mapSource.path));
     } catch (e) {
       report.errors.push(e);
     }
@@ -303,23 +299,23 @@ async function prepareLintedMap(
   } else {
     options?.logCb?.(
       `Loading map for profile: "${profile.id.toString()}" and provider: "${
-        map.id.provider
+        map.provider
       }" from Superface store`
     );
-    mapAst = await fetchMapAST(map.id);
+    mapAst = await fetchMapAST(map);
   }
 
   return {
-    ...map,
+    id: map,
     ast: mapAst,
-    path: map.path ?? map.id.toString(),
+    path: mapSource?.path ?? map.toString(),
     counts,
   };
 }
 
 export async function lint(
   superJson: SuperJson,
-  profiles: ProfileToLint[],
+  profiles: ProfileToValidate[],
   writer: ListWriter,
   fn: (report: ReportFormat) => string,
   options?: {

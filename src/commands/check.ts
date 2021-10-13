@@ -1,12 +1,11 @@
 import { flags as oclifFlags } from '@oclif/command';
 import { isValidProviderName, SuperJson } from '@superfaceai/one-sdk';
 import {
-  DEFAULT_PROFILE_VERSION,
+  DEFAULT_MAP_VERSION,
   MapId,
   MapVersion,
   parseDocumentId,
   ProfileId,
-  ProfileVersion,
 } from '@superfaceai/parser';
 import { grey, yellow } from 'chalk';
 import { join as joinPath } from 'path';
@@ -16,12 +15,13 @@ import { Command } from '../common/command.abstract';
 import { userError } from '../common/error';
 import { check, formatHuman, formatJson } from '../logic/check';
 import { detectSuperJson } from '../logic/install';
+import { ProfileToValidate } from '../logic/lint';
 
 export default class Check extends Command {
   static strict = false;
 
   static description =
-    'Checks if specified capability is correctly set up in super.json, has profile and map with corresponding version, scope, name, use case definitions and provider';
+    'Checks all maps and profiles locally linked in super.json. Also can be used to lint specific profile and its maps, in that case remote files can be used.\nCommand ends with non zero exit code if errors are found.';
 
   static args = [];
 
@@ -30,11 +30,11 @@ export default class Check extends Command {
     //Inputs
     profileId: oclifFlags.string({
       description: 'Profile Id in format [scope/](optional)[name]',
-      required: true,
+      required: false,
     }),
     providerName: oclifFlags.string({
       description: 'Name of provider.',
-      required: true,
+      required: false,
     }),
     scan: oclifFlags.integer({
       char: 's',
@@ -46,9 +46,16 @@ export default class Check extends Command {
       char: 'j',
       description: 'Formats result to JSON',
     }),
+    failOnWarning: oclifFlags.boolean({
+      char: 'f',
+      description: 'When true command will fail on warning',
+    }),
   };
 
   static examples = [
+    '$ superface check',
+    '$ superface check -f',
+    '$ superface check --profileId starwars/character-information',
     '$ superface check --profileId starwars/character-information --providerName swapi',
     '$ superface check --profileId starwars/character-information --providerName swapi -j',
     '$ superface check --profileId starwars/character-information --providerName swapi -s 3',
@@ -66,6 +73,25 @@ export default class Check extends Command {
       this.warnCallback = undefined;
     }
 
+    // Check inputs
+    if (flags.profileId) {
+      const parsedProfileId = parseDocumentId(flags.profileId);
+      if (parsedProfileId.kind == 'error') {
+        throw userError(`❌ Invalid profile id: ${parsedProfileId.message}`, 1);
+      }
+    }
+
+    if (flags.providerName) {
+      if (!isValidProviderName(flags.providerName)) {
+        throw userError(`❌ Invalid provider name: "${flags.providerName}"`, 1);
+      }
+      if (!flags.profileId) {
+        throw userError(
+          `❌ --profileId must be specified when using --providerName`,
+          1
+        );
+      }
+    }
     if (flags.scan && (typeof flags.scan !== 'number' || flags.scan > 5)) {
       throw userError(
         '--scan/-s : Number of levels to scan cannot be higher than 5',
@@ -76,84 +102,54 @@ export default class Check extends Command {
     //Load super json
     const superPath = await detectSuperJson(process.cwd(), flags.scan);
     if (!superPath) {
-      throw userError('Unable to check, super.json not found', 1);
+      throw userError('❌ Unable to check, super.json not found', 1);
     }
     const loadedResult = await SuperJson.load(joinPath(superPath, META_FILE));
     const superJson = loadedResult.match(
       v => v,
       err => {
-        throw userError(`Unable to load super.json: ${err.formatShort()}`, 1);
+        throw userError(
+          `❌ Unable to load super.json: ${err.formatShort()}`,
+          1
+        );
       }
     );
 
-    const parsedProfileId = parseDocumentId(flags.profileId);
-    if (parsedProfileId.kind == 'error') {
-      throw userError(`Invalid profile id: ${parsedProfileId.message}`, 1);
+    //Check super.json
+    if (flags.profileId) {
+      if (!superJson.normalized.profiles[flags.profileId]) {
+        throw userError(
+          `❌ Unable to check, profile: "${flags.profileId}" not found in super.json`,
+          1
+        );
+      }
+      if (flags.providerName) {
+        if (
+          !superJson.normalized.profiles[flags.profileId].providers[
+            flags.providerName
+          ]
+        ) {
+          throw userError(
+            `❌ Unable to check, provider: "${flags.providerName}" not found in profile: "${flags.profileId}" in super.json`,
+            1
+          );
+        }
+        if (!superJson.normalized.providers[flags.providerName]) {
+          throw userError(
+            `❌ Unable to check, provider: "${flags.providerName}" not found in super.json`,
+            1
+          );
+        }
+      }
     }
 
-    if (!isValidProviderName(flags.providerName)) {
-      throw userError(`Invalid provider name: "${flags.providerName}"`, 1);
-    }
+    const profilesToValidate = Check.prepareProfilesToValidate(
+      superJson,
+      flags.profileId,
+      flags.providerName
+    );
 
-    let profileVersion: ProfileVersion | undefined = undefined;
-    //Get profile info
-    const profileSettings = superJson.normalized.profiles[flags.profileId];
-    if (!profileSettings) {
-      throw userError(
-        `Profile id: "${flags.profileId}" not found in super.json`,
-        1
-      );
-    }
-
-    if ('version' in profileSettings) {
-      profileVersion = ProfileVersion.fromString(profileSettings.version);
-    }
-
-    const profileId = ProfileId.fromParameters({
-      scope: parsedProfileId.value.scope,
-      version: profileVersion ?? DEFAULT_PROFILE_VERSION,
-      name: parsedProfileId.value.middle[0],
-    });
-
-    //Get map info
-    let variant: string | undefined = undefined;
-    const profileProviderSettings =
-      superJson.normalized.profiles[flags.profileId].providers[
-        flags.providerName
-      ];
-
-    if (!profileProviderSettings) {
-      throw userError(
-        `Provider: "${flags.providerName}" not found in profile: "${flags.profileId}" in super.json`,
-        1
-      );
-    }
-
-    //TODO: how to resolve map revision??
-    if ('mapVariant' in profileProviderSettings) {
-      variant = profileProviderSettings.mapVariant;
-    }
-
-    const mapId = MapId.fromParameters({
-      profile: profileId,
-      provider: flags.providerName,
-      version: MapVersion.fromVersionRange(
-        profileId.version || DEFAULT_PROFILE_VERSION
-      ),
-      variant,
-    });
-
-    //Get provider info
-    const providerSettings = superJson.normalized.providers[flags.providerName];
-
-    if (!providerSettings) {
-      throw userError(
-        `Provider: "${flags.providerName}" not found in super.json`,
-        1
-      );
-    }
-
-    const result = await check(superJson, profileId, mapId, {
+    const result = await check(superJson, profilesToValidate, {
       logCb: this.logCallback,
       warnCb: this.warnCallback,
     });
@@ -162,5 +158,116 @@ export default class Check extends Command {
     } else {
       this.log(formatHuman(result));
     }
+    const issues = result.flatMap(result => result.issues);
+    const numOfErrros = issues.filter(issue => issue.kind === 'error').length;
+    const numOfWarnings = issues.filter(issue => issue.kind === 'warn').length;
+    if (numOfErrros > 0 || (flags.failOnWarning && numOfWarnings > 0)) {
+      throw userError(
+        `❌ Command found ${numOfErrros} errors and ${numOfWarnings} warnings`,
+        1
+      );
+    }
+  }
+
+  public static prepareProfilesToValidate(
+    superJson: SuperJson,
+    profileId?: string,
+    providerName?: string
+  ): ProfileToValidate[] {
+    const profiles: ProfileToValidate[] = [];
+    //validate every local map/profile in super.json
+    if (!profileId && !providerName) {
+      for (const [profile, profileSettings] of Object.entries(
+        superJson.normalized.profiles
+      )) {
+        if ('file' in profileSettings) {
+          const maps: MapId[] = [];
+          const profileId = ProfileId.fromId(profile);
+          for (const [provider, profileProviderSettings] of Object.entries(
+            profileSettings.providers
+          )) {
+            if ('file' in profileProviderSettings) {
+              maps.push(
+                MapId.fromParameters({
+                  profile: profileId,
+                  provider,
+                  //TODO: this is not perfect - until we have profile ast we cant know version
+                  version: DEFAULT_MAP_VERSION,
+                })
+              );
+            }
+          }
+          profiles.push({
+            id: profileId,
+            maps,
+          });
+        }
+      }
+    }
+
+    //Validate single profile and its maps
+    if (profileId && !providerName) {
+      const profileSettings = superJson.normalized.profiles[profileId];
+      const maps: MapId[] = [];
+      let id: ProfileId;
+      if ('version' in profileSettings) {
+        id = ProfileId.fromId(profileId, profileSettings.version);
+      } else {
+        id = ProfileId.fromId(profileId);
+      }
+      for (const [provider, profileProviderSettings] of Object.entries(
+        profileSettings.providers
+      )) {
+        let variant: string | undefined = undefined;
+        if ('mapVariant' in profileProviderSettings) {
+          variant = profileProviderSettings.mapVariant;
+        }
+        maps.push(
+          MapId.fromParameters({
+            profile: id,
+            provider,
+            version: id.version
+              ? MapVersion.fromVersionRange(id.version)
+              : DEFAULT_MAP_VERSION,
+            variant,
+          })
+        );
+      }
+      profiles.push({
+        id,
+        maps,
+      });
+    }
+    //Validate single profile and single map
+    if (profileId && providerName) {
+      const profileSettings = superJson.normalized.profiles[profileId];
+      let id: ProfileId;
+      if ('version' in profileSettings) {
+        id = ProfileId.fromId(profileId, profileSettings.version);
+      } else {
+        id = ProfileId.fromId(profileId);
+      }
+      const profileProviderSettings = profileSettings.providers[providerName];
+      let variant: string | undefined = undefined;
+      if ('mapVariant' in profileProviderSettings) {
+        variant = profileProviderSettings.mapVariant;
+      }
+
+      const mapId = MapId.fromParameters({
+        profile: id,
+        provider: providerName,
+        version: id.version
+          ? MapVersion.fromVersionRange(id.version)
+          : DEFAULT_MAP_VERSION,
+        variant,
+      });
+
+      profiles.push({
+        id,
+        maps: [mapId],
+      });
+    }
+
+    return profiles;
   }
 }

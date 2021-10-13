@@ -1,9 +1,7 @@
-import { CLIError } from '@oclif/errors';
 import { MapDocumentNode, ProfileDocumentNode } from '@superfaceai/ast';
 import {
   ApiKeyPlacement,
   HttpScheme,
-  Parser,
   ProviderJson,
   SecurityType,
   SuperJson,
@@ -33,17 +31,24 @@ import {
   formatHuman,
   formatJson,
 } from './check';
+import { isProviderParseError } from './check.utils';
 import {
-  findLocalMapSource,
-  findLocalProfileSource,
-  findLocalProviderSource,
-  isProviderParseError,
-} from './check.utils';
+  loadMap,
+  loadProfile,
+  loadProvider,
+  MapFromMetadata,
+  ProfileFromMetadata,
+  ProviderFromMetadata,
+} from './publish.utils';
 
+//Mock publish utils
+jest.mock('./publish.utils', () => ({
+  loadMap: jest.fn(),
+  loadProfile: jest.fn(),
+  loadProvider: jest.fn(),
+}));
 //Mock check utils
 jest.mock('./check.utils', () => ({
-  findLocalProfileSource: jest.fn(),
-  findLocalMapSource: jest.fn(),
   findLocalProviderSource: jest.fn(),
   isProviderParseError: jest.fn(),
 }));
@@ -62,7 +67,7 @@ describe('Check logic', () => {
   const profile = {
     name: 'character-information',
     scope: 'starwars',
-    version: '1.0.0',
+    version: '1.0.3',
   };
 
   const provider = 'swapi';
@@ -131,7 +136,7 @@ describe('Check logic', () => {
       version: {
         major: 1,
         minor: 0,
-        patch: 0,
+        patch: 3,
       },
     },
     definitions: [
@@ -205,6 +210,37 @@ describe('Check logic', () => {
     defaultService: 'test-service',
   };
 
+  const mockLocalProfileFrom: ProfileFromMetadata = {
+    kind: 'local',
+    source: mockProfileSource,
+    path: 'mock profile path',
+  };
+
+  const mockLocalMapFrom: MapFromMetadata = {
+    kind: 'local',
+    source: mockMapSource,
+    path: 'mock map path',
+  };
+
+  const mockLocalProviderFrom: ProviderFromMetadata = {
+    kind: 'local',
+    path: 'mock provider path',
+  };
+
+  const mockRemoteProfileFrom: ProfileFromMetadata = {
+    kind: 'remote',
+    version: profile.version,
+  };
+
+  const mockRemoteMapFrom: MapFromMetadata = {
+    kind: 'remote',
+    version: profile.version,
+  };
+
+  const mockRemoteProviderFrom: ProviderFromMetadata = {
+    kind: 'remote',
+  };
+
   describe('when checking capability', () => {
     it('returns correctly formated string when we use local files', async () => {
       const mockProfile = {
@@ -227,17 +263,18 @@ describe('Check logic', () => {
           },
         },
       });
-      mocked(findLocalMapSource).mockResolvedValue(mockMapSource);
-      mocked(findLocalProfileSource).mockResolvedValue(mockProfileSource);
-      mocked(findLocalProviderSource).mockResolvedValue(
-        mockUnverifiedProviderJson
-      );
-      const parseMapSpy = jest
-        .spyOn(Parser, 'parseMap')
-        .mockResolvedValue(mockMapDocumentWithUnverified);
-      const parseProfileSpy = jest
-        .spyOn(Parser, 'parseProfile')
-        .mockResolvedValue(mockProfileDocument);
+      mocked(loadMap).mockResolvedValue({
+        from: mockLocalMapFrom,
+        ast: mockMapDocumentWithUnverified,
+      });
+      mocked(loadProfile).mockResolvedValue({
+        from: mockLocalProfileFrom,
+        ast: mockProfileDocument,
+      });
+      mocked(loadProvider).mockResolvedValue({
+        source: mockUnverifiedProviderJson,
+        from: mockLocalProviderFrom,
+      });
 
       const expectedProfileId = ProfileId.fromParameters({
         name: mockProfile.name,
@@ -250,23 +287,41 @@ describe('Check logic', () => {
         version: DEFAULT_MAP_VERSION,
       });
       await expect(
-        check(mockSuperJson, expectedProfileId, expectedMapId)
-      ).resolves.toEqual([]);
+        check(mockSuperJson, [
+          {
+            id: expectedProfileId,
+            maps: [expectedMapId],
+          },
+        ])
+      ).resolves.toEqual([
+        {
+          kind: 'profileMap',
+          mapFrom: mockLocalMapFrom,
+          profileFrom: mockLocalProfileFrom,
+          issues: [],
+          profileId: 'starwars/character-information@1.0.3',
+          provider: unverifiedProvider,
+        },
+        {
+          kind: 'mapProvider',
+          mapFrom: mockLocalMapFrom,
+          providerFrom: mockLocalProviderFrom,
+          issues: [],
+          profileId: 'starwars/character-information',
+          provider: unverifiedProvider,
+        },
+      ]);
 
-      expect(findLocalProviderSource).toHaveBeenCalledWith(
+      expect(loadProvider).toHaveBeenCalledWith(
         mockSuperJson,
-        unverifiedProvider
+        unverifiedProvider,
+        undefined
       );
-      expect(findLocalProfileSource).toHaveBeenCalledWith(
+      expect(loadProfile).toHaveBeenCalledWith(
         mockSuperJson,
         expectedProfileId
       );
-      expect(findLocalMapSource).toHaveBeenCalledWith(
-        mockSuperJson,
-        expectedMapId
-      );
-      expect(parseProfileSpy).toHaveBeenCalled();
-      expect(parseMapSpy).toHaveBeenCalled();
+      expect(loadMap).toHaveBeenCalledWith(mockSuperJson, expectedMapId);
       expect(fetchMapAST).not.toHaveBeenCalled();
       expect(fetchProfileAST).not.toHaveBeenCalled();
       expect(fetchProviderInfo).not.toHaveBeenCalled();
@@ -290,12 +345,6 @@ describe('Check logic', () => {
           },
         },
       });
-      mocked(findLocalMapSource).mockResolvedValue(undefined);
-      mocked(findLocalProfileSource).mockResolvedValue(undefined);
-      mocked(findLocalProviderSource).mockResolvedValue(undefined);
-      mocked(fetchMapAST).mockResolvedValue(mockMapDocumentWithUnverified);
-      mocked(fetchProfileAST).mockResolvedValue(mockProfileDocument);
-      mocked(fetchProviderInfo).mockResolvedValue(mockUnverifiedProviderJson);
       const expectedProfileId = ProfileId.fromParameters({
         scope: profile.scope,
         name: profile.name,
@@ -307,22 +356,55 @@ describe('Check logic', () => {
         variant,
         version: MapVersion.fromString('1.0'),
       });
-      await expect(
-        check(mockSuperJson, expectedProfileId, expectedMapId)
-      ).resolves.toEqual([]);
+      mocked(loadMap).mockResolvedValue({
+        ast: mockMapDocumentWithUnverified,
+        from: mockRemoteMapFrom,
+      });
+      mocked(loadProfile).mockResolvedValue({
+        ast: mockProfileDocument,
+        from: mockRemoteProfileFrom,
+      });
+      mocked(loadProvider).mockResolvedValue({
+        source: mockUnverifiedProviderJson,
+        from: mockRemoteProviderFrom,
+      });
 
-      expect(findLocalProviderSource).toHaveBeenCalledWith(
+      await expect(
+        check(mockSuperJson, [
+          {
+            id: expectedProfileId,
+            maps: [expectedMapId],
+          },
+        ])
+      ).resolves.toEqual([
+        {
+          kind: 'profileMap',
+          mapFrom: mockRemoteMapFrom,
+          profileFrom: mockRemoteProfileFrom,
+          issues: [],
+          profileId: 'starwars/character-information@1.0.3',
+          provider: unverifiedProvider,
+        },
+        {
+          kind: 'mapProvider',
+          mapFrom: mockRemoteMapFrom,
+          providerFrom: mockRemoteProviderFrom,
+          issues: [],
+          profileId: 'starwars/character-information',
+          provider: unverifiedProvider,
+        },
+      ]);
+
+      expect(loadProvider).toHaveBeenCalledWith(
         mockSuperJson,
-        unverifiedProvider
+        unverifiedProvider,
+        undefined
       );
-      expect(findLocalProfileSource).toHaveBeenCalledWith(
+      expect(loadProfile).toHaveBeenCalledWith(
         mockSuperJson,
         expectedProfileId
       );
-      expect(findLocalMapSource).toHaveBeenCalledWith(
-        mockSuperJson,
-        expectedMapId
-      );
+      expect(loadMap).toHaveBeenCalledWith(mockSuperJson, expectedMapId);
 
       expect(fetchMapAST).toHaveBeenCalledWith(expectedMapId);
       expect(fetchProfileAST).toHaveBeenCalledWith(expectedProfileId);
@@ -347,12 +429,6 @@ describe('Check logic', () => {
           },
         },
       });
-      mocked(findLocalMapSource).mockResolvedValue(undefined);
-      mocked(findLocalProfileSource).mockResolvedValue(undefined);
-      mocked(findLocalProviderSource).mockResolvedValue(undefined);
-      mocked(fetchMapAST).mockResolvedValue({} as MapDocumentNode);
-      mocked(fetchProfileAST).mockResolvedValue(mockProfileDocument);
-      mocked(fetchProviderInfo).mockResolvedValue(mockProviderJson);
       const expectedProfileId = ProfileId.fromParameters({
         scope: profile.scope,
         name: profile.name,
@@ -365,19 +441,34 @@ describe('Check logic', () => {
         version: MapVersion.fromString('1.0'),
       });
 
-      await expect(
-        check(mockSuperJson, expectedProfileId, expectedMapId)
-      ).rejects.toEqual(new CLIError('Map file has unknown structure'));
+      mocked(loadMap).mockResolvedValue({
+        ast: {} as MapDocumentNode,
+        from: mockRemoteMapFrom,
+      });
+      mocked(loadProfile).mockResolvedValue({
+        ast: mockProfileDocument,
+        from: mockRemoteProfileFrom,
+      });
+      mocked(loadProvider).mockResolvedValue({
+        source: mockProviderJson,
+        from: mockRemoteProviderFrom,
+      });
 
-      expect(findLocalProviderSource).not.toHaveBeenCalled();
-      expect(findLocalProfileSource).toHaveBeenCalledWith(
+      await expect(
+        check(mockSuperJson, [
+          {
+            id: expectedProfileId,
+            maps: [expectedMapId],
+          },
+        ])
+      ).rejects.toThrow();
+
+      expect(loadProvider).not.toHaveBeenCalled();
+      expect(loadProfile).toHaveBeenCalledWith(
         mockSuperJson,
         expectedProfileId
       );
-      expect(findLocalMapSource).toHaveBeenCalledWith(
-        mockSuperJson,
-        expectedMapId
-      );
+      expect(loadMap).toHaveBeenCalledWith(mockSuperJson, expectedMapId);
 
       expect(fetchMapAST).toHaveBeenCalledWith(expectedMapId);
       expect(fetchProfileAST).toHaveBeenCalledWith(expectedProfileId);
@@ -402,12 +493,6 @@ describe('Check logic', () => {
           },
         },
       });
-      mocked(findLocalMapSource).mockResolvedValue(undefined);
-      mocked(findLocalProfileSource).mockResolvedValue(undefined);
-      mocked(findLocalProviderSource).mockResolvedValue(undefined);
-      mocked(fetchMapAST).mockResolvedValue(mockMapDocument);
-      mocked(fetchProfileAST).mockResolvedValue({} as ProfileDocumentNode);
-      mocked(fetchProviderInfo).mockResolvedValue(mockProviderJson);
       const expectedProfileId = ProfileId.fromParameters({
         scope: profile.scope,
         name: profile.name,
@@ -419,17 +504,33 @@ describe('Check logic', () => {
         variant,
         version: MapVersion.fromString('1.0'),
       });
-
+      mocked(loadMap).mockResolvedValue({
+        ast: mockMapDocument,
+        from: mockRemoteMapFrom,
+      });
+      mocked(loadProfile).mockResolvedValue({
+        ast: {} as ProfileDocumentNode,
+        from: mockRemoteProfileFrom,
+      });
+      mocked(loadProvider).mockResolvedValue({
+        source: mockProviderJson,
+        from: mockRemoteProviderFrom,
+      });
       await expect(
-        check(mockSuperJson, expectedProfileId, expectedMapId)
-      ).rejects.toEqual(new CLIError('Profile file has unknown structure'));
+        check(mockSuperJson, [
+          {
+            id: expectedProfileId,
+            maps: [expectedMapId],
+          },
+        ])
+      ).rejects.toThrow();
 
-      expect(findLocalProviderSource).not.toHaveBeenCalled();
-      expect(findLocalProfileSource).toHaveBeenCalledWith(
+      expect(loadProvider).not.toHaveBeenCalled();
+      expect(loadProfile).toHaveBeenCalledWith(
         mockSuperJson,
         expectedProfileId
       );
-      expect(findLocalMapSource).not.toHaveBeenCalled();
+      expect(loadMap).not.toHaveBeenCalled();
 
       expect(fetchMapAST).not.toHaveBeenCalled();
       expect(fetchProfileAST).toHaveBeenCalledWith(expectedProfileId);
@@ -454,13 +555,6 @@ describe('Check logic', () => {
           },
         },
       });
-      mocked(isProviderParseError).mockReturnValue(true);
-      mocked(findLocalMapSource).mockResolvedValue(undefined);
-      mocked(findLocalProfileSource).mockResolvedValue(undefined);
-      mocked(findLocalProviderSource).mockResolvedValue(undefined);
-      mocked(fetchMapAST).mockResolvedValue(mockMapDocumentWithUnverified);
-      mocked(fetchProfileAST).mockResolvedValue(mockProfileDocument);
-      mocked(fetchProviderInfo).mockResolvedValue(mockProviderJson);
       const expectedProfileId = ProfileId.fromParameters({
         scope: profile.scope,
         name: profile.name,
@@ -473,22 +567,41 @@ describe('Check logic', () => {
         version: MapVersion.fromString('1.0'),
       });
 
+      mocked(isProviderParseError).mockReturnValue(true);
+      mocked(loadMap).mockResolvedValue({
+        ast: mockMapDocumentWithUnverified,
+        from: mockRemoteProfileFrom,
+      });
+      mocked(loadProfile).mockResolvedValue({
+        ast: mockProfileDocument,
+        from: mockRemoteMapFrom,
+      });
+      mocked(loadProvider).mockResolvedValue({
+        source: mockProviderJson,
+        from: mockRemoteProviderFrom,
+      });
+
       expect(
-        (await check(mockSuperJson, expectedProfileId, expectedMapId)).length
+        (
+          await check(mockSuperJson, [
+            {
+              id: expectedProfileId,
+              maps: [expectedMapId],
+            },
+          ])
+        ).length
       ).not.toEqual(0);
 
-      expect(findLocalProviderSource).toHaveBeenCalledWith(
+      expect(loadProvider).toHaveBeenCalledWith(
         mockSuperJson,
-        provider
+        provider,
+        undefined
       );
-      expect(findLocalProfileSource).toHaveBeenCalledWith(
+      expect(loadProfile).toHaveBeenCalledWith(
         mockSuperJson,
         expectedProfileId
       );
-      expect(findLocalMapSource).toHaveBeenCalledWith(
-        mockSuperJson,
-        expectedMapId
-      );
+      expect(loadMap).toHaveBeenCalledWith(mockSuperJson, expectedMapId);
 
       expect(fetchMapAST).toHaveBeenCalledWith(expectedMapId);
       expect(fetchProfileAST).toHaveBeenCalledWith(expectedProfileId);
@@ -497,33 +610,162 @@ describe('Check logic', () => {
   });
 
   describe('when formating human', () => {
-    it('returns correctly formated string when empty array is passed', async () => {
-      expect(formatHuman([])).toEqual(green(`🆗 check without errors.\n`));
+    it('returns correctly formated string when empty issues array is passed', async () => {
+      expect(
+        formatHuman([
+          {
+            kind: 'profileMap',
+            profileId: ProfileId.fromParameters({
+              scope: profile.scope,
+              name: profile.name,
+            }).toString(),
+            provider,
+            issues: [],
+            mapFrom: mockRemoteMapFrom,
+            profileFrom: mockRemoteProfileFrom,
+          },
+        ])
+      ).toEqual(
+        green(
+          `🆗 Checking remote profile ${profile.scope}/${profile.name} with version ${profile.version} and remote map with version ${profile.version} for provider ${provider}\n`
+        ) + '\n'
+      );
+      expect(
+        formatHuman([
+          {
+            kind: 'mapProvider',
+            profileId: ProfileId.fromParameters({
+              scope: profile.scope,
+              name: profile.name,
+            }).toString(),
+            provider,
+            issues: [],
+            mapFrom: mockRemoteMapFrom,
+            providerFrom: mockRemoteProfileFrom,
+          },
+        ])
+      ).toEqual(
+        green(
+          `🆗 Checking remote map with version ${profile.version} for profile ${profile.scope}/${profile.name} and remote provider ${provider}\n`
+        ) + '\n'
+      );
+
+      expect(
+        formatHuman([
+          {
+            kind: 'profileMap',
+            profileId: ProfileId.fromParameters({
+              scope: profile.scope,
+              name: profile.name,
+            }).toString(),
+            provider,
+            issues: [],
+            mapFrom: mockLocalMapFrom,
+            profileFrom: mockLocalProfileFrom,
+          },
+        ])
+      ).toEqual(
+        green(
+          `🆗 Checking local profile ${profile.scope}/${profile.name} at path\n${mockLocalProfileFrom.path}\nand local map for provider ${provider} at path\n${mockLocalMapFrom.path}\n\n`
+        ) + '\n'
+      );
+      expect(
+        formatHuman([
+          {
+            kind: 'mapProvider',
+            profileId: ProfileId.fromParameters({
+              scope: profile.scope,
+              name: profile.name,
+            }).toString(),
+            provider,
+            issues: [],
+            mapFrom: mockLocalMapFrom,
+            providerFrom: mockLocalProviderFrom,
+          },
+        ])
+      ).toEqual(
+        green(
+          `🆗 Checking local map at path\n${mockLocalMapFrom.path}\nfor profile ${profile.scope}/${profile.name} and local provider ${provider} at path\n${mockLocalProviderFrom.path}\n\n`
+        ) + '\n'
+      );
     });
 
     it('returns crrectly formated string when not empty array is passed', async () => {
       const mockResult: CheckResult[] = [
         {
-          kind: 'error',
-          message: 'first-error',
+          kind: 'profileMap',
+          provider,
+          profileFrom: mockRemoteProfileFrom,
+          mapFrom: mockRemoteMapFrom,
+          profileId: ProfileId.fromParameters({
+            scope: profile.scope,
+            name: profile.name,
+          }).toString(),
+          issues: [
+            {
+              kind: 'error',
+              message: 'first-error',
+            },
+            {
+              kind: 'warn',
+              message: 'first-warn',
+            },
+            {
+              kind: 'error',
+              message: 'second-error',
+            },
+            {
+              kind: 'warn',
+              message: 'second-warn',
+            },
+          ],
         },
         {
-          kind: 'warn',
-          message: 'first-warn',
-        },
-        {
-          kind: 'error',
-          message: 'second-error',
-        },
-        {
-          kind: 'warn',
-          message: 'second-warn',
+          kind: 'mapProvider',
+          provider,
+          providerFrom: mockLocalProviderFrom,
+          mapFrom: mockLocalMapFrom,
+          profileId: ProfileId.fromParameters({
+            scope: profile.scope,
+            name: profile.name,
+          }).toString(),
+          issues: [
+            {
+              kind: 'error',
+              message: 'first-error',
+            },
+            {
+              kind: 'warn',
+              message: 'first-warn',
+            },
+            {
+              kind: 'error',
+              message: 'second-error',
+            },
+            {
+              kind: 'warn',
+              message: 'second-warn',
+            },
+          ],
         },
       ];
-      const expected = `${red(`❌ first-error\n`)}${yellow(
+      const firstTitle = red(
+        `❌ Checking remote profile ${profile.scope}/${profile.name} with version ${profile.version} and remote map with version ${profile.version} for provider ${provider}\n`
+      );
+      const firstBody = `${red(`❌ first-error\n`)}${yellow(
         `⚠️ first-warn\n`
       )}${red(`❌ second-error\n`)}${yellow(`⚠️ second-warn\n`)}`;
-      expect(formatHuman(mockResult)).toEqual(expected);
+
+      const secondTitle = red(
+        `❌ Checking local map at path\n${mockLocalMapFrom.path}\nfor profile ${profile.scope}/${profile.name} and local provider ${provider} at path\n${mockLocalProviderFrom.path}\n\n`
+      );
+      const secondBody = `${red(`❌ first-error\n`)}${yellow(
+        `⚠️ first-warn\n`
+      )}${red(`❌ second-error\n`)}${yellow(`⚠️ second-warn\n`)}`;
+
+      expect(formatHuman(mockResult)).toEqual(
+        firstTitle + firstBody + '\n' + secondTitle + secondBody + '\n'
+      );
     });
   });
 
@@ -532,23 +774,35 @@ describe('Check logic', () => {
       expect(formatJson([])).toEqual(JSON.stringify([]));
     });
 
-    it('returns crrectly formated string when not empty array is passed', async () => {
+    it('returns correctly formated string when not empty array is passed', async () => {
       const mockResult: CheckResult[] = [
         {
-          kind: 'error',
-          message: 'first-error',
-        },
-        {
-          kind: 'warn',
-          message: 'first-warn',
-        },
-        {
-          kind: 'error',
-          message: 'second-error',
-        },
-        {
-          kind: 'warn',
-          message: 'second-warn',
+          kind: 'mapProvider',
+          provider,
+          providerFrom: mockRemoteProviderFrom,
+          mapFrom: mockRemoteMapFrom,
+          profileId: ProfileId.fromParameters({
+            scope: profile.scope,
+            name: profile.name,
+          }).toString(),
+          issues: [
+            {
+              kind: 'error',
+              message: 'first-error',
+            },
+            {
+              kind: 'warn',
+              message: 'first-warn',
+            },
+            {
+              kind: 'error',
+              message: 'second-error',
+            },
+            {
+              kind: 'warn',
+              message: 'second-warn',
+            },
+          ],
         },
       ];
       expect(formatJson(mockResult)).toEqual(JSON.stringify(mockResult));
@@ -557,9 +811,12 @@ describe('Check logic', () => {
 
   describe('when checking profile and map', () => {
     it('returns empty result if profile and map checks out', async () => {
-      expect(checkMapAndProfile(mockProfileDocument, mockMapDocument)).toEqual(
-        []
-      );
+      expect(checkMapAndProfile(mockProfileDocument, mockMapDocument)).toEqual({
+        kind: 'profileMap',
+        issues: [],
+        profileId: 'starwars/character-information@1.0.3',
+        provider,
+      });
     });
 
     it('returns result with errors if profile and map has different name,scope and version', async () => {
@@ -598,7 +855,7 @@ describe('Check logic', () => {
       };
 
       expect(
-        checkMapAndProfile(mockProfileDocument, mockMapDocument).length
+        checkMapAndProfile(mockProfileDocument, mockMapDocument).issues.length
       ).toEqual(5);
     });
 
@@ -647,10 +904,10 @@ describe('Check logic', () => {
       };
 
       expect(
-        checkMapAndProfile(mockProfileDocument, mockMapDocument).length
+        checkMapAndProfile(mockProfileDocument, mockMapDocument).issues.length
       ).toEqual(7);
       expect(
-        checkMapAndProfile(mockProfileDocument, mockMapDocument).filter(
+        checkMapAndProfile(mockProfileDocument, mockMapDocument).issues.filter(
           result => result.kind === 'warn'
         ).length
       ).toEqual(2);
@@ -703,12 +960,12 @@ describe('Check logic', () => {
       expect(
         checkMapAndProfile(mockProfileDocument, mockMapDocument, {
           strict: true,
-        }).length
+        }).issues.length
       ).toEqual(7);
       expect(
         checkMapAndProfile(mockProfileDocument, mockMapDocument, {
           strict: true,
-        }).filter(result => result.kind === 'warn').length
+        }).issues.filter(result => result.kind === 'warn').length
       ).toEqual(0);
     });
   });
@@ -720,7 +977,12 @@ describe('Check logic', () => {
           mockUnverifiedProviderJson,
           mockMapDocumentWithUnverified
         )
-      ).toEqual([]);
+      ).toEqual({
+        issues: [],
+        kind: 'mapProvider',
+        provider: unverifiedProvider,
+        profileId: 'starwars/character-information',
+      });
     });
 
     it('returns result with errors if provider and map has different name', async () => {
@@ -771,12 +1033,17 @@ describe('Check logic', () => {
         ],
         defaultService: 'test-service',
       };
-      expect(checkMapAndProvider(mockProviderJson, mockMapDocument)).toEqual([
-        {
-          kind: 'error',
-          message: `Map contains provider with name: "${unverifiedProvider}" but provider.json contains provider with name: "${mockProviderJson.name}"`,
-        },
-      ]);
+      expect(checkMapAndProvider(mockProviderJson, mockMapDocument)).toEqual({
+        kind: 'mapProvider',
+        issues: [
+          {
+            kind: 'error',
+            message: `Map contains provider with name: "${unverifiedProvider}" but provider.json contains provider with name: "${mockProviderJson.name}"`,
+          },
+        ],
+        profileId: 'starwars/character-information',
+        provider: mockProviderJson.name,
+      });
     });
   });
 });

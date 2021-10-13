@@ -189,7 +189,7 @@ export async function interactiveInstall(
     throw developerError('Profile source not found after installation', 1);
   }
   const profileAst = await Parser.parseProfile(
-    profileSource,
+    profileSource.source,
     profileId.withoutVersion,
     {
       profileName: profileId.name,

@@ -7,12 +7,13 @@ import {
   ProfileVersion,
   VersionRange,
 } from '@superfaceai/parser';
-import { dirname, join as joinPath, relative as relativePath } from 'path';
+import { join as joinPath } from 'path';
 
 import { composeVersion, META_FILE } from '../common/document';
 import { userError } from '../common/error';
 import { formatShellLog, LogCallback } from '../common/log';
 import { OutputStream } from '../common/output-stream';
+import { resolveSuperfaceRelatedPath } from '../common/path';
 import * as mapTemplate from '../templates/map';
 import * as profileTemplate from '../templates/profile';
 import * as providerTemplate from '../templates/provider';
@@ -62,7 +63,7 @@ export async function createProfile(
     );
     if (superJson) {
       superJson.mergeProfile(profile.withoutVersion, {
-        file: relativePath(dirname(superJson.path), filePath),
+        file: resolveSuperfaceRelatedPath(filePath, superJson),
       });
     }
   }
@@ -116,7 +117,7 @@ export async function createMap(
     );
     if (superJson) {
       superJson.mergeProfileProvider(map.profile.withoutVersion, map.provider, {
-        file: relativePath(dirname(superJson.path), filePath),
+        file: resolveSuperfaceRelatedPath(filePath, superJson),
       });
     }
   }
@@ -150,7 +151,7 @@ export async function createProviderJson(
     options?.logCb?.(`-> Created ${filePath}`);
     if (superJson) {
       superJson.mergeProvider(provider, {
-        file: relativePath(dirname(superJson.path), filePath),
+        file: resolveSuperfaceRelatedPath(filePath, superJson),
       });
     }
   }

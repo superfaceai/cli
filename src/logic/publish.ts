@@ -12,7 +12,6 @@ import {
   formatHuman as checkFormatHuman,
   formatJson as checkFormatJson,
 } from './check';
-import { findLocalProviderSource } from './check.utils';
 import {
   formatHuman as lintFormatHuman,
   formatJson as lintFormatJson,
@@ -20,6 +19,7 @@ import {
 import {
   loadMap,
   loadProfile,
+  loadProvider,
   prePublishCheck,
   prePublishLint,
 } from './publish.utils';
@@ -38,7 +38,8 @@ export async function publish(
 ): Promise<string | undefined> {
   //Profile
   const profileFiles = await loadProfile(superJson, profile, options);
-  if (!profileFiles.source && publishing === 'profile') {
+
+  if (profileFiles.from.kind !== 'local' && publishing === 'profile') {
     throw userError(
       `Profile: "${profile.toString()}" not found on local file system`,
       1
@@ -46,7 +47,8 @@ export async function publish(
   }
   //Map
   const mapFiles = await loadMap(map, superJson, options);
-  if (!mapFiles.source && publishing == 'map') {
+
+  if (mapFiles.from.kind !== 'local' && publishing == 'map') {
     throw userError(
       `Map: "${map.toString()}" not found on local filesystem`,
       1
@@ -54,39 +56,30 @@ export async function publish(
   }
 
   //Provider
-  let providerJson;
-  const localProviderJson = await findLocalProviderSource(
-    superJson,
-    map.provider
-  );
-  if (!localProviderJson && publishing === 'provider') {
+  const providerFiles = await loadProvider(superJson, map.provider, options);
+
+  if (providerFiles.from.kind === 'remote' && publishing === 'provider') {
     throw userError(
       `Provider: "${map.provider}" not found on local file system`,
       1
     );
   }
-  if (localProviderJson) {
-    providerJson = localProviderJson;
-    options?.logCb?.(`Provider: "${map.provider}" found on local file system`);
-  } else {
-    options?.logCb?.(
-      `Loading provider: "${map.provider}" from Superface store`
-    );
-    providerJson = await fetchProviderInfo(map.provider);
-  }
-
   //Check
-  const checkReport = prePublishCheck(
+  const checkReports = prePublishCheck({
     publishing,
-    profileFiles.ast,
-    mapFiles.ast,
-    providerJson
-  );
+    profileAst: profileFiles.ast,
+    mapAst: mapFiles.ast,
+    providerJson: providerFiles.source,
+    providerFrom: providerFiles.from,
+    mapFrom: mapFiles.from,
+    profileFrom: profileFiles.from,
+  });
+  const checkIssues = checkReports.flatMap(c => c.issues);
   //Lint
   const lintReport = prePublishLint(profileFiles.ast, mapFiles.ast);
 
   if (
-    checkReport.length !== 0 ||
+    checkIssues.length !== 0 ||
     lintReport.errors.length !== 0 ||
     lintReport.warnings.length !== 0
   ) {
@@ -94,12 +87,10 @@ export async function publish(
     if (options?.json) {
       return JSON.stringify({
         check: {
-          reports: checkFormatJson(checkReport),
+          reports: checkFormatJson(checkReports),
           total: {
-            errors: checkReport.filter(result => result.kind === 'error')
-              .length,
-            warnings: checkReport.filter(result => result.kind === 'warn')
-              .length,
+            errors: checkIssues.filter(issue => issue.kind === 'error').length,
+            warnings: checkIssues.filter(issue => issue.kind === 'warn').length,
           },
         },
         lint: {
@@ -112,7 +103,7 @@ export async function publish(
       });
     } else {
       let reportStr = yellow('Check results:\n');
-      reportStr += checkFormatHuman(checkReport);
+      reportStr += checkFormatHuman(checkReports);
       reportStr += yellow('\n\nLint results:\n');
       reportStr += lintFormatHuman(lintReport, options?.quiet ?? false);
 
@@ -134,7 +125,7 @@ export async function publish(
     //If we are working with local provider and name does not start with unverified we check existance of provider in SF register
     if (
       !mapFiles.ast.header.provider.startsWith(UNVERIFIED_PROVIDER_PREFIX) &&
-      localProviderJson
+      providerFiles.from.kind === 'local'
     ) {
       try {
         await fetchProviderInfo(mapFiles.ast.header.provider);
@@ -156,9 +147,9 @@ export async function publish(
     }
   }
   if (publishing === 'provider') {
-    if (!providerJson.name.startsWith(UNVERIFIED_PROVIDER_PREFIX)) {
+    if (!providerFiles.source.name.startsWith(UNVERIFIED_PROVIDER_PREFIX)) {
       throw userError(
-        `❌ When publishing provider, provider name: "${providerJson.name}" in provider.json must have prefix "${UNVERIFIED_PROVIDER_PREFIX}"`,
+        `❌ When publishing provider, provider name: "${providerFiles.source.name}" in provider.json must have prefix "${UNVERIFIED_PROVIDER_PREFIX}"`,
         1
       );
     }
@@ -169,20 +160,20 @@ export async function publish(
   if (publishing === 'provider') {
     options?.logCb?.(`Publishing provider "${map.provider}"`);
     if (!options?.dryRun) {
-      await client.createProvider(JSON.stringify(providerJson));
+      await client.createProvider(JSON.stringify(providerFiles.source));
     }
-  } else if (publishing === 'profile' && profileFiles.source) {
+  } else if (publishing === 'profile' && profileFiles.from.kind === 'local') {
     options?.logCb?.(`Publishing profile "${profile.name}"`);
     if (!options?.dryRun) {
-      await client.createProfile(profileFiles.source);
+      await client.createProfile(profileFiles.from.source);
     }
-  } else if (publishing === 'map' && mapFiles.source) {
+  } else if (publishing === 'map' && mapFiles.from.kind === 'local') {
     options?.logCb?.(
       `Publishing map for profile "${profile.name}" and provider "${map.provider}"`
     );
 
     if (!options?.dryRun) {
-      await client.createMap(mapFiles.source);
+      await client.createMap(mapFiles.from.source);
     }
   }
 
