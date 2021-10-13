@@ -43,7 +43,7 @@ export default class Check extends Command {
     }),
     failOnWarning: oclifFlags.boolean({
       char: 'f',
-      description: 'When true command will on warning',
+      description: 'When true command will fail on warning',
     }),
   };
 
