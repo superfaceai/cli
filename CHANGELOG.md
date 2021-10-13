@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Check command loading files from server if not found localy
+
 ### Fixed
 - Compile command provider name check
 

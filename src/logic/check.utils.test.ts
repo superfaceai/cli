@@ -109,7 +109,10 @@ describe('Check utils', () => {
 
       await expect(
         findLocalProfileSource(mockSuperJson, profile, version)
-      ).resolves.toEqual(mockProfileSource);
+      ).resolves.toEqual({
+        source: mockProfileSource,
+        path: expect.stringContaining(`grid/${profile.id}@${version}`),
+      });
 
       expect(exists).toHaveBeenCalledWith(
         expect.stringContaining(`grid/${profile.id}@${version}`)
@@ -140,7 +143,10 @@ describe('Check utils', () => {
           ProfileId.fromScopeName(undefined, profile.name),
           version
         )
-      ).resolves.toEqual(mockProfileSource);
+      ).resolves.toEqual({
+        source: mockProfileSource,
+        path: expect.stringContaining(`grid/${profile.name}@${version}`),
+      });
 
       expect(exists).toHaveBeenCalledWith(
         expect.stringContaining(`grid/${profile.name}@${version}`)
@@ -177,7 +183,12 @@ describe('Check utils', () => {
 
       await expect(
         findLocalProfileSource(mockSuperJson, profile)
-      ).resolves.toEqual(mockProfileSource);
+      ).resolves.toEqual({
+        source: mockProfileSource,
+        path: expect.stringContaining(
+          `grid/${profile.id}@${DEFAULT_PROFILE_VERSION_STR}${EXTENSIONS.profile.source}`
+        ),
+      });
 
       expect(exists).toHaveBeenCalledWith(
         expect.stringContaining(`grid/starwars`)
@@ -219,7 +230,12 @@ describe('Check utils', () => {
 
       await expect(
         findLocalProfileSource(mockSuperJson, profile)
-      ).resolves.toEqual(mockProfileSource);
+      ).resolves.toEqual({
+        source: mockProfileSource,
+        path: expect.stringContaining(
+          `grid/${profile.id}@${DEFAULT_PROFILE_VERSION_STR}${EXTENSIONS.profile.source}`
+        ),
+      });
 
       expect(exists).toHaveBeenCalledWith(
         expect.stringContaining(`grid/starwars`)
@@ -323,7 +339,10 @@ describe('Check utils', () => {
 
       await expect(
         findLocalProfileSource(mockSuperJson, profile)
-      ).resolves.toEqual(mockProfileSource);
+      ).resolves.toEqual({
+        source: mockProfileSource,
+        path: expect.stringContaining(testPath),
+      });
 
       expect(exists).toHaveBeenCalledWith(expect.stringContaining(testPath));
     });
@@ -368,7 +387,10 @@ describe('Check utils', () => {
 
       await expect(
         findLocalMapSource(mockSuperJson, profile, provider)
-      ).resolves.toEqual(mockMapSource);
+      ).resolves.toEqual({
+        source: mockMapSource,
+        path: expect.stringContaining(`${provider}.${profile.id}`),
+      });
 
       expect(exists).toHaveBeenCalledWith(
         expect.stringContaining(`${provider}.${profile.id}`)
@@ -398,7 +420,10 @@ describe('Check utils', () => {
           ProfileId.fromScopeName(undefined, profile.name),
           provider
         )
-      ).resolves.toEqual(mockMapSource);
+      ).resolves.toEqual({
+        source: mockMapSource,
+        path: expect.stringContaining(`${provider}.${profile.id}`),
+      });
 
       expect(exists).toHaveBeenCalledWith(
         expect.stringContaining(`${provider}.${profile.id}`)
@@ -499,7 +524,10 @@ describe('Check utils', () => {
 
       await expect(
         findLocalProviderSource(mockSuperJson, provider)
-      ).resolves.toEqual(mockProviderJson);
+      ).resolves.toEqual({
+        source: mockProviderJson,
+        path: expect.stringContaining(provider),
+      });
 
       expect(exists).toHaveBeenCalledWith(expect.stringContaining(provider));
     });

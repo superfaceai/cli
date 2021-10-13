@@ -268,7 +268,7 @@ describe('Publish CLI command', () => {
         `Profile: "${profileId.id}" found on local file system`
       );
       expect(result.stdout).toContain(
-        `Loading map for profile: "${profileId.id}" and provider: "${unverifiedProvider}" from Superface store`
+        `Loading map for profile: "${profileId.id}" and provider: "${unverifiedProvider}" in version: "1.0.0" from Superface store`
       );
       expect(result.stdout).toContain(
         `Loading provider: "${unverifiedProvider}" from Superface store`
@@ -432,7 +432,7 @@ describe('Publish CLI command', () => {
         }
       );
       expect(result.stdout).toContain(
-        `Loading profile: "${profileId.id}@${profileVersion}" from Superface store`
+        `Loading profile: "${profileId.id}" in version: "${profileVersion}" from Superface store`
       );
       expect(result.stdout).toContain(
         `Map for profile: "${profileId.id}@${profileVersion}" and provider: "${unverifiedProvider}" found on local filesystem`
@@ -602,10 +602,10 @@ describe('Publish CLI command', () => {
         }
       );
       expect(result.stdout).toContain(
-        `Loading profile: "${profileId.id}@${profileVersion}" from Superface store`
+        `Loading profile: "${profileId.id}" in version: "${profileVersion}" from Superface store`
       );
       expect(result.stdout).toContain(
-        `Loading map for profile: "${profileId.id}@${profileVersion}" and provider: "${unverifiedProvider}" from Superface store`
+        `Loading map for profile: "${profileId.id}@${profileVersion}" and provider: "${unverifiedProvider}" in version: "1.0.0" from Superface store`
       );
       expect(result.stdout).toContain(
         `Provider: "${unverifiedProvider}" found on local file system`

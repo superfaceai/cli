@@ -227,15 +227,12 @@ describe('lint CLI command', () => {
               id: ProfileId.fromId(mockLocalProfile),
               maps: [
                 {
-                  path: `../${mockLocalProfile}.${mockLocalProvider}.suma`,
                   provider: mockLocalProvider,
                 },
                 {
-                  path: `../${mockLocalProfile}.${secondMockLocalProvider}.suma`,
                   provider: secondMockLocalProvider,
                 },
               ],
-              path: `../${mockLocalProfile}.supr`,
             },
           ],
           expect.anything(),
@@ -307,12 +304,10 @@ describe('lint CLI command', () => {
               id: ProfileId.fromId(mockLocalProfile),
               maps: [
                 {
-                  path: `../${mockLocalProfile}.${mockLocalProvider}.suma`,
                   provider: mockLocalProvider,
                 },
                 { provider: mockProvider, variant: 'test' },
               ],
-              path: `../${mockLocalProfile}.supr`,
             },
           ],
           expect.anything(),
@@ -383,7 +378,6 @@ describe('lint CLI command', () => {
               id: ProfileId.fromId(mockProfile),
               maps: [
                 {
-                  path: `../${mockProfile}.${mockLocalProvider}.suma`,
                   provider: mockLocalProvider,
                 },
                 { provider: mockProvider, variant: 'test' },
@@ -460,11 +454,9 @@ describe('lint CLI command', () => {
               id: ProfileId.fromId(mockLocalProfile),
               maps: [
                 {
-                  path: `../${mockLocalProfile}.${mockLocalProvider}.suma`,
                   provider: mockLocalProvider,
                 },
               ],
-              path: `../${mockLocalProfile}.supr`,
             },
           ],
           expect.anything(),
@@ -535,7 +527,6 @@ describe('lint CLI command', () => {
               id: ProfileId.fromId(mockProfile),
               maps: [
                 {
-                  path: `../${mockProfile}.${mockLocalProvider}.suma`,
                   provider: mockLocalProvider,
                 },
               ],

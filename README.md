@@ -68,13 +68,14 @@ npx @superfaceai/cli install [profileId eg. communication/send-email]
 
 ## `superface check`
 
-Checks if specified capability is correctly set up in super.json, has profile and map with corresponding version, scope, name, use case definitions and provider
+Checks all maps and profiles locally linked in super.json. Also can be used to lint specific profile and its maps, in that case remote files can be used.
 
 ```
 USAGE
   $ superface check
 
 OPTIONS
+  -f, --failOnWarning          When true command will fail on warning
   -h, --help                   show CLI help
   -j, --json                   Formats result to JSON
   -q, --quiet                  When set to true, disables the shell echo output of action.
@@ -82,11 +83,17 @@ OPTIONS
   -s, --scan=scan              When number provided, scan for super.json outside cwd within range represented by this
                                number.
 
-  --profileId=profileId        (required) Profile Id in format [scope/](optional)[name]
+  --profileId=profileId        Profile Id in format [scope/](optional)[name]
 
-  --providerName=providerName  (required) Name of provider.
+  --providerName=providerName  Name of provider.
+
+DESCRIPTION
+  Command ends with non zero exit code if errors are found.
 
 EXAMPLES
+  $ superface check
+  $ superface check -f
+  $ superface check --profileId starwars/character-information
   $ superface check --profileId starwars/character-information --providerName swapi
   $ superface check --profileId starwars/character-information --providerName swapi -j
   $ superface check --profileId starwars/character-information --providerName swapi -s 3
@@ -177,7 +184,7 @@ EXAMPLES
   $ superface create --profileId sms/service --providerName twilio --map -t bugfix
   $ superface create --providerName twilio tyntec --provider
   $ superface create --providerName twilio --provider --providerFileName my-provider -p my/path
-  $ superface create --profileId sms/service --providerName twilio --provider --map --profile -t bugfix -v 1.1-rev133 -u
+  $ superface create --profileId sms/service --providerName twilio --provider --map --profile -t bugfix -v 1.1-rev133 -u 
   SendSMS ReceiveSMS
   $ superface create -i
 ```
