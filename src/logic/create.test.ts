@@ -454,7 +454,7 @@ describe('Create logic', () => {
       expect(mockSuperJson.normalized).toEqual({
         profiles: {},
         providers: {
-          provider: { file: 'provider.provider.json', security: [] },
+          provider: { file: './provider.provider.json', security: [] },
         },
       });
 
@@ -499,7 +499,7 @@ describe('Create logic', () => {
       expect(mockSuperJson.normalized).toEqual({
         profiles: {},
         providers: {
-          provider: { file: `${mockFilename}.json`, security: [] },
+          provider: { file: `./${mockFilename}.json`, security: [] },
         },
       });
 
@@ -543,9 +543,9 @@ describe('Create logic', () => {
       expect(mockSuperJson.normalized).toEqual({
         profiles: {},
         providers: {
-          provider: { file: 'provider.provider.json', security: [] },
+          provider: { file: './provider.provider.json', security: [] },
           secondProvider: {
-            file: 'secondProvider.provider.json',
+            file: './secondProvider.provider.json',
             security: [],
           },
         },
@@ -598,7 +598,7 @@ describe('Create logic', () => {
           'test-scope/test-name': {
             priority: [],
             defaults: {},
-            file: `${mockScope}/${mockName}.supr`,
+            file: `./${mockScope}/${mockName}.supr`,
             providers: {},
           },
         },
@@ -651,7 +651,7 @@ describe('Create logic', () => {
           'test-scope/test-name': {
             priority: [],
             defaults: {},
-            file: `${mockFilename}.supr`,
+            file: `./${mockFilename}.supr`,
             providers: {},
           },
         },
@@ -749,13 +749,13 @@ describe('Create logic', () => {
             providers: {
               [mockProvider]: {
                 defaults: {},
-                file: `${mockScope}/${mockName}.provider.suma`,
+                file: `./${mockScope}/${mockName}.provider.suma`,
               },
             },
           },
         },
         providers: {
-          provider: { file: 'provider.provider.json', security: [] },
+          provider: { file: './provider.provider.json', security: [] },
         },
       });
 
@@ -814,7 +814,7 @@ describe('Create logic', () => {
             providers: {
               [mockProvider]: {
                 defaults: {},
-                file: `${mockScope}/${mockName}.provider.suma`,
+                file: `./${mockScope}/${mockName}.provider.suma`,
               },
             },
           },
@@ -874,7 +874,7 @@ describe('Create logic', () => {
             providers: {
               [mockProvider]: {
                 defaults: {},
-                file: `${mockFilename}.suma`,
+                file: `./${mockFilename}.suma`,
               },
             },
           },
@@ -923,13 +923,13 @@ describe('Create logic', () => {
       expect(mockSuperJson.normalized).toEqual({
         profiles: {
           'test-scope/test-name': {
-            file: `${mockScope}/${mockName}.supr`,
+            file: `./${mockScope}/${mockName}.supr`,
             defaults: {},
             priority: [mockProvider],
             providers: {
               [mockProvider]: {
                 defaults: {},
-                file: `${mockScope}/${mockName}.provider.suma`,
+                file: `./${mockScope}/${mockName}.provider.suma`,
               },
             },
           },
