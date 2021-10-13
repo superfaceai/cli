@@ -8,10 +8,7 @@ import { inspect } from 'util';
  *
  * Has a positive exit code.
  */
-export function userError(
-  message: string | Error,
-  code: number
-): CLIError {
+export function userError(message: string | Error, code: number): CLIError {
   if (code <= 0) {
     throw developerError('expected positive error code', 1);
   }
