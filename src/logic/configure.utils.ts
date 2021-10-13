@@ -5,7 +5,11 @@ import {
   isBearerTokenSecurityScheme,
   isDigestSecurityScheme,
   SecurityScheme,
-} from '@superfaceai/one-sdk';
+  // Please use the exact path when importing the module from `@superfaceai/one-sdk`.
+  // This prevents from resolving top-level imports of other modules from SDK;
+  // and allows for easier bundling when using this module in other
+  // projects, e.g. frontend.
+} from '@superfaceai/one-sdk/dist/internal/providerjson';
 
 import { LogCallback } from '../common/log';
 
