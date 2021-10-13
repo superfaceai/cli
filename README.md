@@ -75,7 +75,7 @@ USAGE
   $ superface check
 
 OPTIONS
-  -f, --failOnWarning          When true command will on warning
+  -f, --failOnWarning          When true command will fail on warning
   -h, --help                   show CLI help
   -j, --json                   Formats result to JSON
   -q, --quiet                  When set to true, disables the shell echo output of action.
