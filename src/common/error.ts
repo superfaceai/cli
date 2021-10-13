@@ -9,7 +9,7 @@ import { inspect } from 'util';
  * Has a positive exit code.
  */
 export function userError(
-  message: string | Error | unknown,
+  message: string | Error,
   code: number
 ): CLIError {
   if (code <= 0) {
