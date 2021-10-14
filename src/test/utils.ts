@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import { EXTENSIONS } from '@superfaceai/ast';
-import { ProviderJson } from '@superfaceai/one-sdk';
+import { EXTENSIONS, ProviderJson } from '@superfaceai/ast';
 import { AuthToken, CLILoginResponse } from '@superfaceai/service-client';
 import { execFile } from 'child_process';
 import concat from 'concat-stream';

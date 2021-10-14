@@ -1,10 +1,10 @@
-import { ProfileProviderDefaults } from '@superfaceai/ast';
 import {
-  parseProviderJson,
+  assertProviderJson,
+  ProfileProviderDefaults,
   ProviderJson,
   SecurityScheme,
-  SuperJson,
-} from '@superfaceai/one-sdk';
+} from '@superfaceai/ast';
+import { SuperJson } from '@superfaceai/one-sdk';
 import { join as joinPath } from 'path';
 
 import {
@@ -169,7 +169,7 @@ export async function installProvider(parameters: {
       const file = await readFile(parameters.options.localProvider, {
         encoding: 'utf-8',
       });
-      providerInfo = parseProviderJson(JSON.parse(file));
+      providerInfo = assertProviderJson(JSON.parse(file));
     } catch (error) {
       throw userError(error, 1);
     }

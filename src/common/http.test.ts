@@ -4,7 +4,7 @@ import {
   HttpScheme,
   ProviderJson,
   SecurityType,
-} from '@superfaceai/one-sdk';
+} from '@superfaceai/ast';
 import { ServiceApiError, ServiceClient } from '@superfaceai/service-client';
 
 import {

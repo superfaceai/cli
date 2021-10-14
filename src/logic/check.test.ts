@@ -1,11 +1,12 @@
-import { MapDocumentNode, ProfileDocumentNode } from '@superfaceai/ast';
 import {
   ApiKeyPlacement,
   HttpScheme,
+  MapDocumentNode,
+  ProfileDocumentNode,
   ProviderJson,
   SecurityType,
-  SuperJson,
-} from '@superfaceai/one-sdk';
+} from '@superfaceai/ast';
+import { SuperJson } from '@superfaceai/one-sdk';
 import { green, red, yellow } from 'chalk';
 import { mocked } from 'ts-jest/utils';
 

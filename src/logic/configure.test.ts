@@ -1,14 +1,13 @@
 import { CLIError } from '@oclif/errors';
-import { OnFail } from '@superfaceai/ast';
 import {
   ApiKeyPlacement,
   HttpScheme,
-  ok,
+  OnFail,
   ProviderJson,
   SecurityScheme,
   SecurityType,
-  SuperJson,
-} from '@superfaceai/one-sdk';
+} from '@superfaceai/ast';
+import { ok, SuperJson } from '@superfaceai/one-sdk';
 import { mocked } from 'ts-jest/utils';
 
 import { fetchProviderInfo } from '../common/http';

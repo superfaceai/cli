@@ -1,4 +1,4 @@
-import { ProviderJson } from '@superfaceai/one-sdk';
+import { ProviderJson } from '@superfaceai/ast';
 
 function stringifyProvider(input: ProviderJson): string {
   return JSON.stringify(input, null, 2);

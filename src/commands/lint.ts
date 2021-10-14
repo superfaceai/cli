@@ -1,5 +1,6 @@
 import { flags as oclifFlags } from '@oclif/command';
-import { isValidProviderName, SuperJson } from '@superfaceai/one-sdk';
+import { isValidProviderName } from '@superfaceai/ast';
+import { SuperJson } from '@superfaceai/one-sdk';
 import { parseDocumentId } from '@superfaceai/parser';
 import { bold, grey, red } from 'chalk';
 import { join as joinPath } from 'path';

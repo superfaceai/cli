@@ -1,14 +1,12 @@
 import {
   assertMapDocumentNode,
   assertProfileDocumentNode,
+  assertProviderJson,
   MapDocumentNode,
   ProfileDocumentNode,
-} from '@superfaceai/ast';
-import {
-  parseProviderJson,
   ProviderJson,
-  VERSION as SDK_VERSION,
-} from '@superfaceai/one-sdk';
+} from '@superfaceai/ast';
+import { VERSION as SDK_VERSION } from '@superfaceai/one-sdk';
 import { VERSION as PARSER_VERSION } from '@superfaceai/parser';
 import {
   ServiceApiError,
@@ -174,7 +172,7 @@ export async function fetchProviderInfo(
   //TODO: user agent?
   const response = await SuperfaceClient.getClient().getProvider(providerName);
 
-  return parseProviderJson(response);
+  return assertProviderJson(response);
 }
 
 async function checkSuperfaceResponse(response: Response): Promise<Response> {

@@ -3,7 +3,7 @@ import {
   HttpScheme,
   SecurityScheme,
   SecurityType,
-} from '@superfaceai/one-sdk';
+} from '@superfaceai/ast';
 
 import { prepareSecurityValues } from '.';
 

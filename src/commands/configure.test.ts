@@ -17,6 +17,7 @@ jest.mock('../common/io', () => ({
 
 //Mock ast
 jest.mock('@superfaceai/ast', () => ({
+  ...jest.requireActual('@superfaceai/ast'),
   isValidDocumentName: jest.fn(),
 }));
 
