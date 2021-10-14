@@ -108,4 +108,4 @@ dist
 yalc.lock
 
 testground
-test/
+/test/

@@ -30,6 +30,7 @@ describe('Interactive create CLI command', () => {
     await mockResponsesForProfile(mockServer, 'communication/send-email');
     await mockResponsesForProvider(mockServer, 'swapi');
   });
+
   beforeEach(async () => {
     tempDir = await setUpTempDir(TEMP_PATH);
   });
