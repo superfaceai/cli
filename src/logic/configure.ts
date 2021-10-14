@@ -1,8 +1,6 @@
-import { ProfileProviderDefaults } from '@superfaceai/ast';
+
+import { assertProviderJson, prepareSecurityValues, ProfileProviderDefaults, ProviderJson, SecurityScheme } from '@superfaceai/ast';
 import {
-  parseProviderJson,
-  ProviderJson,
-  SecurityScheme,
   SuperJson,
 } from '@superfaceai/one-sdk';
 import { join as joinPath } from 'path';
@@ -18,7 +16,6 @@ import { formatShellLog, LogCallback } from '../common/log';
 import { OutputStream } from '../common/output-stream';
 import { ProfileId } from '../common/profile';
 import { prepareEnvVariables } from '../templates/env';
-import { prepareSecurityValues } from './configure.utils';
 
 export async function updateEnv(
   provider: string,
@@ -70,12 +67,21 @@ export function handleProviderResponse(
 ): number {
   options?.logCb?.(`Installing provider: "${response.name}"`);
 
+  let parameters: { [key: string]: string } | undefined = undefined
+  if (response.parameters) {
+    parameters = {};
+    for (const parameter of response.parameters) {
+      parameters[parameter.name] = parameter.default || '';
+    }
+  }
   const security = response.securitySchemes
-    ? prepareSecurityValues(response.name, response.securitySchemes, options)
+    ? prepareSecurityValues(response.name, response.securitySchemes)
     : [];
+
   // update super.json
   superJson.setProvider(response.name, {
     security,
+    parameters,
     file: options?.localProvider
       ? superJson.relativePath(options.localProvider)
       : undefined,
@@ -169,7 +175,7 @@ export async function installProvider(parameters: {
       const file = await readFile(parameters.options.localProvider, {
         encoding: 'utf-8',
       });
-      providerInfo = parseProviderJson(JSON.parse(file));
+      providerInfo = assertProviderJson(JSON.parse(file));
     } catch (error) {
       throw userError(error, 1);
     }

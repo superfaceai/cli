@@ -888,10 +888,10 @@
   resolved "https://registry.yarnpkg.com/@superfaceai/ast/-/ast-0.0.23.tgz#0e58a76b45c0a2dadc72499001d32d0c37cf4128"
   integrity sha512-9SKqJmC/g8caDZ9T4RcWm43D4f/UFCX57nX8a1J9dM0/GRtMq1fsPt+qcEmCTyys2Gt9JGzH8MDCBym2F92MBg==
 
-"@superfaceai/ast@0.0.31", "@superfaceai/ast@^0.0.31":
-  version "0.0.31"
-  resolved "https://registry.yarnpkg.com/@superfaceai/ast/-/ast-0.0.31.tgz#b0ee6db7757d94f1e03bb8b27789ad921ac99f91"
-  integrity sha512-hEnr1LeCKorzR3U12M8q6PIBIS9JLUmmAnKIG+suL1djgxzUegEYcMDE1PX+mlByv/YzSb+7wJ5DGnJspip8eg==
+"@superfaceai/ast@0.0.33":
+  version "0.0.33"
+  resolved "https://registry.yarnpkg.com/@superfaceai/ast/-/ast-0.0.33.tgz#e370b8aa2a3c19f056fb7d3e9997448fc444c4da"
+  integrity sha512-yuoorNPoyazbqfc53JD6c4Tm1Nso/8hU50xgaIbMtWsCCfrsvNTR1E0IHAhLB5BxFJlcROOFzr1w3MUZJjgN1w==
   dependencies:
     typescript-is "^0.18.3"
 
@@ -899,6 +899,13 @@
   version "0.0.28"
   resolved "https://registry.yarnpkg.com/@superfaceai/ast/-/ast-0.0.28.tgz#8953bda490515bdffdb18209360be44e8a9fa543"
   integrity sha512-gPnmjeL/j73gTFRnseqYdXjbyxrJAQVvmM+XrH1cVZbcsNnc3c9e/a3ra2HWOVK2f4e4FbZiXVfre5qrL4Abeg==
+  dependencies:
+    typescript-is "^0.18.3"
+
+"@superfaceai/ast@^0.0.31":
+  version "0.0.31"
+  resolved "https://registry.yarnpkg.com/@superfaceai/ast/-/ast-0.0.31.tgz#b0ee6db7757d94f1e03bb8b27789ad921ac99f91"
+  integrity sha512-hEnr1LeCKorzR3U12M8q6PIBIS9JLUmmAnKIG+suL1djgxzUegEYcMDE1PX+mlByv/YzSb+7wJ5DGnJspip8eg==
   dependencies:
     typescript-is "^0.18.3"
 
