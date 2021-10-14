@@ -3,6 +3,7 @@ import { SuperJson } from '@superfaceai/one-sdk';
 import inquirer from 'inquirer';
 import { mocked } from 'ts-jest/utils';
 
+import { mkdirQuiet } from '../common/io';
 import { create } from '../logic/create';
 import { initSuperface } from '../logic/init';
 import Create from './create';
@@ -49,6 +50,7 @@ describe('Interactive create CLI command', () => {
         //Init
         .mockResolvedValueOnce({ init: true });
 
+      await mkdirQuiet('test');
       await expect(Create.run(['-i', '-p', 'test'])).resolves.toBeUndefined();
       expect(create).toHaveBeenCalledTimes(1);
       expect(create).toHaveBeenCalledWith(
