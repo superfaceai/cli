@@ -107,7 +107,7 @@ describe('Interactive install CLI command', () => {
             },
             { value: ENTER, timeout: 500 },
           ],
-          debug: true,
+          // debug: true,
         }
       );
 

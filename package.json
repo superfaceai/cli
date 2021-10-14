@@ -16,13 +16,15 @@
   ],
   "scripts": {
     "build": "tsc -p tsconfig.release.json --outDir dist",
-    "test": "jest",
+    "test": "yarn test:fast && yarn test:integration",
     "test:clean": "jest --clear-cache && jest",
     "lint": "eslint src/",
     "lint:fix": "yarn lint --fix",
     "format": "prettier -c src/",
     "format:fix": "prettier --write src/",
-    "prepush": "yarn build && yarn test && yarn lint && yarn format"
+    "prepush": "yarn build && yarn test && yarn lint && yarn format",
+    "test:fast": "jest",
+    "test:integration": "jest --config=jest.config.integration.js"
   },
   "devDependencies": {
     "@types/concat-stream": "^1.6.0",
