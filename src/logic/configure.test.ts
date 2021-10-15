@@ -1,9 +1,13 @@
 import { CLIError } from '@oclif/errors';
-import { ApiKeyPlacement, HttpScheme, OnFail, ProviderJson, SecurityScheme, SecurityType } from '@superfaceai/ast';
 import {
-  ok,
-  SuperJson,
-} from '@superfaceai/one-sdk';
+  ApiKeyPlacement,
+  HttpScheme,
+  OnFail,
+  ProviderJson,
+  SecurityScheme,
+  SecurityType,
+} from '@superfaceai/ast';
+import { ok, SuperJson } from '@superfaceai/one-sdk';
 import { mocked } from 'ts-jest/utils';
 
 import { fetchProviderInfo } from '../common/http';
@@ -264,16 +268,16 @@ describe('Configure CLI logic', () => {
           {
             name: 'first',
             default: 'first-value',
-            description: '1'
+            description: '1',
           },
           {
             name: 'second',
-            description: '2'
+            description: '2',
           },
           {
             name: 'third',
-          }
-        ]
+          },
+        ],
       };
 
       expect(

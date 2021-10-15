@@ -1,4 +1,10 @@
-import { isApiKeySecurityScheme, isBasicAuthSecurityScheme, isBearerTokenSecurityScheme, isDigestSecurityScheme, SecurityScheme } from "@superfaceai/ast";
+import {
+  isApiKeySecurityScheme,
+  isBasicAuthSecurityScheme,
+  isBearerTokenSecurityScheme,
+  isDigestSecurityScheme,
+  SecurityScheme,
+} from '@superfaceai/ast';
 
 export function envVariable(name: string, value = ''): string {
   return `${name}=${value}\n`;

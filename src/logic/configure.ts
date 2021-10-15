@@ -1,8 +1,11 @@
-
-import { assertProviderJson, prepareSecurityValues, ProfileProviderDefaults, ProviderJson, SecurityScheme } from '@superfaceai/ast';
 import {
-  SuperJson,
-} from '@superfaceai/one-sdk';
+  assertProviderJson,
+  prepareSecurityValues,
+  ProfileProviderDefaults,
+  ProviderJson,
+  SecurityScheme,
+} from '@superfaceai/ast';
+import { SuperJson } from '@superfaceai/one-sdk';
 import { join as joinPath } from 'path';
 
 import {
@@ -67,7 +70,7 @@ export function handleProviderResponse(
 ): number {
   options?.logCb?.(`Installing provider: "${response.name}"`);
 
-  let parameters: { [key: string]: string } | undefined = undefined
+  let parameters: { [key: string]: string } | undefined = undefined;
   if (response.parameters) {
     parameters = {};
     for (const parameter of response.parameters) {
@@ -242,14 +245,18 @@ export async function installProvider(parameters: {
   // inform user about configured parameters
   if (providerInfo.parameters && providerInfo.parameters.length > 0) {
     for (const parameter of providerInfo.parameters) {
-      let description = ''
+      let description = '';
       if (parameter.description) {
-        description = ` with description ${parameter.description}`
+        description = ` with description ${parameter.description}`;
       }
       if (parameter.default) {
-        parameters.options?.logCb?.(`🆗 Parameter ${parameter.name}${description} configured with default value "${parameter.default}"`)
+        parameters.options?.logCb?.(
+          `🆗 Parameter ${parameter.name}${description} configured with default value "${parameter.default}"`
+        );
       } else {
-        parameters.options?.logCb?.(`❌ Parameter ${parameter.name}${description} has not been configured.\nPlease, configure this parameter manualy in super.json on path: ${superJson.path}`)
+        parameters.options?.logCb?.(
+          `❌ Parameter ${parameter.name}${description} has not been configured.\nPlease, configure this parameter manualy in super.json on path: ${superJson.path}`
+        );
       }
     }
   }

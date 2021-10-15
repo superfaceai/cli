@@ -1,16 +1,14 @@
 import {
   assertMapDocumentNode,
   assertProfileDocumentNode,
+  assertProviderJson,
   isMapDefinitionNode,
   isUseCaseDefinitionNode,
   MapDocumentNode,
   ProfileDocumentNode,
-} from '@superfaceai/ast';
-import {
-  parseProviderJson,
   ProviderJson,
-  SuperJson,
-} from '@superfaceai/one-sdk';
+} from '@superfaceai/ast';
+import { SuperJson } from '@superfaceai/one-sdk';
 import { green, red, yellow } from 'chalk';
 
 import { composeVersion } from '..';
@@ -127,21 +125,15 @@ export function checkMapAndProvider(
 ): CheckMapProviderResult {
   const results: CheckIssue[] = [];
   try {
-    parseProviderJson(provider);
+    assertProviderJson(provider);
   } catch (error) {
     if (isProviderParseError(error)) {
-      for (const issue of error.issues) {
-        results.push({
-          kind: 'error',
-          message: `Provider check error: ${issue.code}: ${
-            issue.message
-          } on path ${issue.path
-            .map(value => {
-              return typeof value === 'string' ? value : value.toString();
-            })
-            .join(', ')}`,
-        });
-      }
+      results.push({
+        kind: 'error',
+        message: `Provider check error: ${
+          error.message
+        } on path ${error.path.join(', ')}`,
+      });
     } else {
       throw error;
     }

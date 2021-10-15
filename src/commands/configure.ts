@@ -1,5 +1,5 @@
 import { flags as oclifFlags } from '@oclif/command';
-import { isValidProviderName } from '@superfaceai/one-sdk';
+import { isValidProviderName } from '@superfaceai/ast';
 import { grey, yellow } from 'chalk';
 import { join as joinPath } from 'path';
 

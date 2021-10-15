@@ -346,6 +346,7 @@ describe('Create CLI command', () => {
           [provider]: {
             file: `../${provider}.provider.json`,
             security: [],
+            parameters: {},
           },
         },
       });
@@ -385,10 +386,12 @@ describe('Create CLI command', () => {
           [provider]: {
             file: `../${provider}.provider.json`,
             security: [],
+            parameters: {},
           },
           [secondProvider]: {
             file: `../${secondProvider}.provider.json`,
             security: [],
+            parameters: {},
           },
         },
       });
@@ -460,6 +463,7 @@ describe('Create CLI command', () => {
           [provider]: {
             file: `../${provider}.provider.json`,
             security: [],
+            parameters: {},
           },
         },
       });
@@ -875,10 +879,12 @@ describe('Create CLI command', () => {
           [provider]: {
             file: `../${provider}.provider.json`,
             security: [],
+            parameters: {},
           },
           [secondProvider]: {
             file: `../${secondProvider}.provider.json`,
             security: [],
+            parameters: {},
           },
         },
       });
@@ -983,6 +989,7 @@ describe('Create CLI command', () => {
         [provider]: {
           file: `../${mockProviderFileName}.json`,
           security: [],
+          parameters: {},
         },
       },
     });

@@ -1,4 +1,5 @@
-import { HttpScheme, SecurityType, SuperJson } from '@superfaceai/one-sdk';
+import { HttpScheme, SecurityType } from '@superfaceai/ast';
+import { SuperJson } from '@superfaceai/one-sdk';
 import { getLocal } from 'mockttp';
 import { join as joinPath } from 'path';
 

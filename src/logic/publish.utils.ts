@@ -3,8 +3,9 @@ import {
   assertProfileDocumentNode,
   MapDocumentNode,
   ProfileDocumentNode,
+  ProviderJson,
 } from '@superfaceai/ast';
-import { Parser, ProviderJson, SuperJson } from '@superfaceai/one-sdk';
+import { Parser, SuperJson } from '@superfaceai/one-sdk';
 import {
   composeVersion,
   getProfileOutput,
