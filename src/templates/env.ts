@@ -4,7 +4,7 @@ import {
   isBearerTokenSecurityScheme,
   isDigestSecurityScheme,
   SecurityScheme,
-} from '@superfaceai/one-sdk';
+} from '@superfaceai/ast';
 
 export function envVariable(name: string, value = ''): string {
   return `${name}=${value}\n`;

@@ -1,5 +1,5 @@
-import { EXTENSIONS } from '@superfaceai/ast';
-import { ProviderJson, SuperJson } from '@superfaceai/one-sdk';
+import { EXTENSIONS, ProviderJson } from '@superfaceai/ast';
+import { SuperJson } from '@superfaceai/one-sdk';
 import { join as joinPath } from 'path';
 
 import { exists, readdir, readFile } from '../common/io';
@@ -115,29 +115,6 @@ export async function findLocalProviderSource(
 
 export function isProviderParseError(
   input: Record<string, unknown>
-): input is {
-  issues: { path: (string | number)[]; message: string; code: string }[];
-} {
-  if ('issues' in input && Array.isArray(input.issues)) {
-    return input.issues.every((issue: Record<string, unknown>) => {
-      if (!('message' in issue) || !('path' in issue) || !('code' in issue)) {
-        return false;
-      }
-      if (typeof issue.message !== 'string' || typeof issue.code !== 'string') {
-        return false;
-      }
-      if (!Array.isArray(issue.path)) {
-        return false;
-      }
-      for (const p of issue.path) {
-        if (typeof p !== 'string' && typeof p !== 'number') {
-          return false;
-        }
-      }
-
-      return true;
-    });
-  }
-
-  return false;
+): input is { path: string[]; message: string } {
+  return 'path' in input && 'message' in input;
 }

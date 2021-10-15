@@ -1,5 +1,5 @@
 import { flags as oclifFlags } from '@oclif/command';
-import { isValidProviderName } from '@superfaceai/one-sdk';
+import { isValidProviderName } from '@superfaceai/ast';
 import { parseProfileId } from '@superfaceai/parser';
 import { grey, yellow } from 'chalk';
 import inquirer from 'inquirer';

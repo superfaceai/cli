@@ -1,11 +1,11 @@
-import { EXTENSIONS } from '@superfaceai/ast';
 import {
   ApiKeyPlacement,
+  EXTENSIONS,
   HttpScheme,
   ProviderJson,
   SecurityType,
-  SuperJson,
-} from '@superfaceai/one-sdk';
+} from '@superfaceai/ast';
+import { SuperJson } from '@superfaceai/one-sdk';
 import * as fs from 'fs';
 import { mocked } from 'ts-jest/utils';
 
@@ -61,43 +61,16 @@ describe('Check utils', () => {
   };
 
   describe('when checking provider parse error', () => {
-    it('returns false when error object has unexpected structure', async () => {
+    it('returns corrrect boolean', () => {
       expect(isProviderParseError({})).toEqual(false);
-      expect(isProviderParseError({ issues: 'test' })).toEqual(false);
-      expect(
-        isProviderParseError({ issues: [{ message: '', code: '' }] })
-      ).toEqual(false);
-      expect(
-        isProviderParseError({ issues: [{ path: '', code: '' }] })
-      ).toEqual(false);
+      expect(isProviderParseError({ path: ['test'] })).toEqual(false);
+      expect(isProviderParseError({ path: ['test'], message: 'test' })).toEqual(
+        true
+      );
+      expect(isProviderParseError({ something: 'else' })).toEqual(false);
       expect(
         isProviderParseError({ issues: [{ path: '', message: '' }] })
       ).toEqual(false);
-      expect(
-        isProviderParseError({ issues: [{ path: '', message: '', code: 2 }] })
-      ).toEqual(false);
-      expect(
-        isProviderParseError({ issues: [{ path: '', message: 2, code: '' }] })
-      ).toEqual(false);
-      expect(
-        isProviderParseError({ issues: [{ path: '', message: '', code: '' }] })
-      ).toEqual(false);
-      expect(
-        isProviderParseError({
-          issues: [{ path: [{ test: 'test' }], message: '', code: '' }],
-        })
-      ).toEqual(false);
-    });
-    it('returns true when error object has expected structure', async () => {
-      expect(isProviderParseError({ issues: [] })).toEqual(true);
-      expect(
-        isProviderParseError({ issues: [{ path: [], message: '', code: '' }] })
-      ).toEqual(true);
-      expect(
-        isProviderParseError({
-          issues: [{ path: ['test', 2], message: '', code: '' }],
-        })
-      ).toEqual(true);
     });
   });
 

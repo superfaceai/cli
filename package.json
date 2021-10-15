@@ -16,13 +16,15 @@
   ],
   "scripts": {
     "build": "tsc -p tsconfig.release.json --outDir dist",
-    "test": "jest",
+    "test": "yarn test:fast && yarn test:integration",
     "test:clean": "jest --clear-cache && jest",
     "lint": "eslint src/",
     "lint:fix": "yarn lint --fix",
     "format": "prettier -c src/",
     "format:fix": "prettier --write src/",
-    "prepush": "yarn build && yarn test && yarn lint && yarn format"
+    "prepush": "yarn build && yarn test && yarn lint && yarn format",
+    "test:fast": "jest",
+    "test:integration": "jest --config=jest.config.integration.js"
   },
   "devDependencies": {
     "@types/concat-stream": "^1.6.0",
@@ -43,16 +45,15 @@
     "jest": "^27.1.0",
     "mockttp": "^2.2.3",
     "prettier": "^2.1.2",
-    "ts-jest": "^27.0.3",
-    "typescript": "^4.0.5"
+    "ts-jest": "^27.0.3"
   },
   "dependencies": {
     "@oclif/command": "^1.8.0",
     "@oclif/config": "^1.17.0",
     "@superfaceai/service-client": "0.0.23",
-    "@superfaceai/ast": "0.0.31",
-    "@superfaceai/parser": "0.0.21",
-    "@superfaceai/one-sdk": "0.0.36",
+    "@superfaceai/ast": ">=0.0.32",
+    "@superfaceai/parser": ">=0.0.22",
+    "@superfaceai/one-sdk": ">=0.0.37",
     "chalk": "^4.1.0",
     "cross-fetch": "^3.1.4",
     "debug": "^4.3.1",

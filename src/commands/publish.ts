@@ -1,6 +1,6 @@
 import { flags } from '@oclif/command';
-import { EXTENSIONS } from '@superfaceai/ast';
-import { isValidProviderName, SuperJson } from '@superfaceai/one-sdk';
+import { EXTENSIONS, isValidProviderName } from '@superfaceai/ast';
+import { SuperJson } from '@superfaceai/one-sdk';
 import { parseDocumentId } from '@superfaceai/parser';
 import { green, grey, yellow } from 'chalk';
 import inquirer from 'inquirer';
