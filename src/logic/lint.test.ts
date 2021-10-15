@@ -17,7 +17,6 @@ import {
 } from '@superfaceai/parser';
 import { SyntaxErrorCategory } from '@superfaceai/parser/dist/language/error';
 import { MatchAttempts } from '@superfaceai/parser/dist/language/syntax/rule';
-import { green, red, yellow } from 'chalk';
 import { mocked } from 'ts-jest/utils';
 
 import { fetchMapAST, fetchProfileAST } from '../common/http';
@@ -875,11 +874,13 @@ describe('Lint logic', () => {
         warnings: ['ouch!'],
       };
 
-      expect(formatHuman(mockFileReport, false)).toEqual(
-        `${red(`❌ Parsing map file: ${mockPath}\n`)}${red(
-          'SyntaxError: Expected  but found <NONE>\n --> some/path.suma:0:0\n-1 | mock-content\n  |             \n\n'
-        )}\n${yellow('\touch!\n')}`
-      );
+      const formated = formatHuman(mockFileReport, false);
+      expect(formated).toMatch(`❌ Parsing map file: ${mockPath}`);
+      expect(formated).toMatch('SyntaxError: Expected  but found <NONE>');
+      expect(formated).toMatch(`--> some/path.suma:0:0`);
+
+      expect(formated).toMatch(`-1 | mock-content`);
+      expect(formated).toMatch('ouch!');
     });
 
     it('formats file with errors and warnings correctly - short output', async () => {
@@ -892,11 +893,10 @@ describe('Lint logic', () => {
         warnings: ['ouch!'],
       };
 
-      expect(formatHuman(mockFileReport, false, true)).toEqual(
-        `${red(`❌ Parsing profile file: ${mockPath}\n`)}${red(
-          '\t0:0 message\n'
-        )}\n${yellow('\touch!\n')}`
-      );
+      const formated = formatHuman(mockFileReport, false, true);
+      expect(formated).toMatch(`❌ Parsing profile file: ${mockPath}`);
+      expect(formated).toMatch('0:0 message');
+      expect(formated).toMatch('ouch!');
     });
 
     it('formats file with errors and warnings correctly - quiet', async () => {
@@ -909,9 +909,9 @@ describe('Lint logic', () => {
         warnings: ['ouch!'],
       };
 
-      expect(formatHuman(mockFileReport, true)).toEqual(
-        `${red(`❌ Parsing map file: some/path.suma\n`)}${red('detail')}\n`
-      );
+      const formated = formatHuman(mockFileReport, true);
+      expect(formated).toMatch(`❌ Parsing map file: some/path.suma`);
+      expect(formated).toMatch('detail');
     });
 
     it('formats file with errors correctly', async () => {
@@ -923,10 +923,9 @@ describe('Lint logic', () => {
         errors: [mockSyntaxErr],
         warnings: [],
       };
-
-      expect(formatHuman(mockFileReport, false)).toEqual(
-        `${red(`❌ Parsing profile file: ${mockPath}\n`)}${red('detail')}`
-      );
+      const formated = formatHuman(mockFileReport, false);
+      expect(formated).toMatch(`❌ Parsing profile file: ${mockPath}`);
+      expect(formated).toMatch('detail');
     });
 
     it('formats file with warnings correctly', async () => {
@@ -939,9 +938,9 @@ describe('Lint logic', () => {
         warnings: ['ouch!'],
       };
 
-      expect(formatHuman(mockFileReport, false)).toEqual(
-        `${yellow(`⚠️ Parsing map file: ${mockPath}\n`)}${yellow('\touch!\n')}`
-      );
+      const formated = formatHuman(mockFileReport, false);
+      expect(formated).toMatch(`⚠️ Parsing map file: ${mockPath}`);
+      expect(formated).toMatch('ouch!');
     });
 
     it('formats ok file correctly', async () => {
@@ -954,9 +953,8 @@ describe('Lint logic', () => {
         warnings: [],
       };
 
-      expect(formatHuman(mockFileReport, false)).toEqual(
-        green(`🆗 Parsing map file: ${mockPath}\n`)
-      );
+      const formated = formatHuman(mockFileReport, false);
+      expect(formated).toMatch(`🆗 Parsing map file: ${mockPath}`);
     });
 
     it('formats compatibility correctly', async () => {
@@ -985,15 +983,13 @@ describe('Lint logic', () => {
           },
         ],
       };
-      expect(red('test\n')).toEqual(red('test\n'));
 
-      expect(formatHuman(mockFileReport, false).toString()).toEqual(
-        `${red(
-          `❌ Validating profile: test-profile to map: ${mockPath}\n`
-        )}${red(' - Wrong Scope: expected this, but got that')}\n${yellow(
-          ' - Wrong Scope: expected this, but got that'
-        )}\n`
+      const formated = formatHuman(mockFileReport, false);
+      expect(formated).toMatch(
+        `❌ Validating profile: test-profile to map: ${mockPath}`
       );
+      expect(formated).toMatch(' - Wrong Scope: expected this, but got that');
+      expect(formated).toMatch(' - Wrong Scope: expected this, but got that');
     });
   });
   describe('when formating json', () => {
