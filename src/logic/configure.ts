@@ -239,6 +239,20 @@ export async function installProvider(parameters: {
   } else {
     parameters.options?.logCb?.(`No security schemes found to configure.`);
   }
+  // inform user about configured parameters
+  if (providerInfo.parameters && providerInfo.parameters.length > 0) {
+    for (const parameter of providerInfo.parameters) {
+      let description = ''
+      if (parameter.description) {
+        description = ` with description ${parameter.description}`
+      }
+      if (parameter.default) {
+        parameters.options?.logCb?.(`🆗 Parameter ${parameter.name}${description} configured with default value "${parameter.default}"`)
+      } else {
+        parameters.options?.logCb?.(`❌ Parameter ${parameter.name}${description} has not been configured.\nPlease, configure this parameter manualy in super.json on path: ${superJson.path}`)
+      }
+    }
+  }
 }
 
 /**
