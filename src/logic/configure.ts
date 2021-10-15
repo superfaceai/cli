@@ -247,7 +247,7 @@ export async function installProvider(parameters: {
     for (const parameter of providerInfo.parameters) {
       let description = '';
       if (parameter.description) {
-        description = ` with description ${parameter.description}`;
+        description = ` with description "${parameter.description}"`;
       }
       if (parameter.default) {
         parameters.options?.logCb?.(
