@@ -7,7 +7,6 @@ import {
   SecurityType,
 } from '@superfaceai/ast';
 import { SuperJson } from '@superfaceai/one-sdk';
-import { green, red, yellow } from 'chalk';
 import { mocked } from 'ts-jest/utils';
 
 import { UNVERIFIED_PROVIDER_PREFIX } from '../common';
@@ -590,10 +589,8 @@ describe('Check logic', () => {
             profileFrom: mockRemoteProfileFrom,
           },
         ])
-      ).toEqual(
-        green(
-          `🆗 Checking remote profile ${profile.scope}/${profile.name} with version ${profile.version} and remote map with version ${profile.version} for provider ${provider}\n`
-        ) + '\n'
+      ).toMatch(
+        `🆗 Checking remote profile ${profile.scope}/${profile.name} with version ${profile.version} and remote map with version ${profile.version} for provider ${provider}`
       );
       expect(
         formatHuman([
@@ -609,50 +606,49 @@ describe('Check logic', () => {
             providerFrom: mockRemoteProfileFrom,
           },
         ])
-      ).toEqual(
-        green(
-          `🆗 Checking remote map with version ${profile.version} for profile ${profile.scope}/${profile.name} and remote provider ${provider}\n`
-        ) + '\n'
+      ).toMatch(
+        `🆗 Checking remote map with version ${profile.version} for profile ${profile.scope}/${profile.name} and remote provider ${provider}`
       );
 
-      expect(
-        formatHuman([
-          {
-            kind: 'profileMap',
-            profileId: ProfileId.fromScopeName(
-              profile.scope,
-              profile.name
-            ).toString(),
-            provider,
-            issues: [],
-            mapFrom: mockLocalMapFrom,
-            profileFrom: mockLocalProfileFrom,
-          },
-        ])
-      ).toEqual(
-        green(
-          `🆗 Checking local profile ${profile.scope}/${profile.name} at path\n${mockLocalProfileFrom.path}\nand local map for provider ${provider} at path\n${mockLocalMapFrom.path}\n\n`
-        ) + '\n'
+      let result = formatHuman([
+        {
+          kind: 'profileMap',
+          profileId: ProfileId.fromScopeName(
+            profile.scope,
+            profile.name
+          ).toString(),
+          provider,
+          issues: [],
+          mapFrom: mockLocalMapFrom,
+          profileFrom: mockLocalProfileFrom,
+        },
+      ]);
+      expect(result).toMatch(
+        `🆗 Checking local profile ${profile.scope}/${profile.name} at path`
       );
-      expect(
-        formatHuman([
-          {
-            kind: 'mapProvider',
-            profileId: ProfileId.fromScopeName(
-              profile.scope,
-              profile.name
-            ).toString(),
-            provider,
-            issues: [],
-            mapFrom: mockLocalMapFrom,
-            providerFrom: mockLocalProviderFrom,
-          },
-        ])
-      ).toEqual(
-        green(
-          `🆗 Checking local map at path\n${mockLocalMapFrom.path}\nfor profile ${profile.scope}/${profile.name} and local provider ${provider} at path\n${mockLocalProviderFrom.path}\n\n`
-        ) + '\n'
+      expect(result).toMatch(mockLocalProfileFrom.path);
+      expect(result).toMatch(`and local map for provider ${provider} at path`);
+      expect(result).toMatch(mockLocalMapFrom.path);
+
+      result = formatHuman([
+        {
+          kind: 'mapProvider',
+          profileId: ProfileId.fromScopeName(
+            profile.scope,
+            profile.name
+          ).toString(),
+          provider,
+          issues: [],
+          mapFrom: mockLocalMapFrom,
+          providerFrom: mockLocalProviderFrom,
+        },
+      ]);
+      expect(result).toMatch(`🆗 Checking local map at path`);
+      expect(result).toMatch(mockLocalMapFrom.path);
+      expect(result).toMatch(
+        `for profile ${profile.scope}/${profile.name} and local provider ${provider} at path`
       );
+      expect(result).toMatch(mockLocalProviderFrom.path);
     });
 
     it('returns crrectly formated string when not empty array is passed', async () => {
@@ -669,19 +665,19 @@ describe('Check logic', () => {
           issues: [
             {
               kind: 'error',
-              message: 'first-error',
+              message: 'first-check-first-error',
             },
             {
               kind: 'warn',
-              message: 'first-warn',
+              message: 'first-check-first-warn',
             },
             {
               kind: 'error',
-              message: 'second-error',
+              message: 'first-check-second-error',
             },
             {
               kind: 'warn',
-              message: 'second-warn',
+              message: 'first-check-second-warn',
             },
           ],
         },
@@ -697,40 +693,45 @@ describe('Check logic', () => {
           issues: [
             {
               kind: 'error',
-              message: 'first-error',
+              message: 'second-check-first-error',
             },
             {
               kind: 'warn',
-              message: 'first-warn',
+              message: 'second-check-first-warn',
             },
             {
               kind: 'error',
-              message: 'second-error',
+              message: 'second-check-second-error',
             },
             {
               kind: 'warn',
-              message: 'second-warn',
+              message: 'second-check-second-warn',
             },
           ],
         },
       ];
-      const firstTitle = red(
-        `❌ Checking remote profile ${profile.scope}/${profile.name} with version ${profile.version} and remote map with version ${profile.version} for provider ${provider}\n`
+      const formated = formatHuman(mockResult);
+      //First title
+      expect(formated).toMatch(
+        `❌ Checking remote profile ${profile.scope}/${profile.name} with version ${profile.version} and remote map with version ${profile.version} for provider ${provider}`
       );
-      const firstBody = `${red(`❌ first-error\n`)}${yellow(
-        `⚠️ first-warn\n`
-      )}${red(`❌ second-error\n`)}${yellow(`⚠️ second-warn\n`)}`;
-
-      const secondTitle = red(
-        `❌ Checking local map at path\n${mockLocalMapFrom.path}\nfor profile ${profile.scope}/${profile.name} and local provider ${provider} at path\n${mockLocalProviderFrom.path}\n\n`
+      //First body
+      expect(formated).toMatch('❌ first-check-first-error');
+      expect(formated).toMatch('⚠️ first-check-first-warn');
+      expect(formated).toMatch('❌ first-check-second-error');
+      expect(formated).toMatch('⚠️ first-check-second-warn');
+      //Second title
+      expect(formated).toMatch(`❌ Checking local map at path`);
+      expect(formated).toMatch(mockLocalMapFrom.path);
+      expect(formated).toMatch(
+        `for profile ${profile.scope}/${profile.name} and local provider ${provider} at path`
       );
-      const secondBody = `${red(`❌ first-error\n`)}${yellow(
-        `⚠️ first-warn\n`
-      )}${red(`❌ second-error\n`)}${yellow(`⚠️ second-warn\n`)}`;
-
-      expect(formatHuman(mockResult)).toEqual(
-        firstTitle + firstBody + '\n' + secondTitle + secondBody + '\n'
-      );
+      expect(formated).toMatch(mockLocalProviderFrom.path);
+      //Second title
+      expect(formated).toMatch('❌ second-check-first-error');
+      expect(formated).toMatch('⚠️ second-check-first-warn');
+      expect(formated).toMatch('❌ second-check-second-error');
+      expect(formated).toMatch('⚠️ second-check-second-warn');
     });
   });
 

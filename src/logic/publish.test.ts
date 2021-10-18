@@ -3,7 +3,6 @@ import { MapDocumentNode, ProfileDocumentNode } from '@superfaceai/ast';
 import { SuperJson } from '@superfaceai/one-sdk';
 import { ServiceApiError } from '@superfaceai/service-client';
 import { ServiceClient } from '@superfaceai/service-client/dist/client';
-import { yellow } from 'chalk';
 import { mocked } from 'ts-jest/utils';
 
 import {
@@ -1567,22 +1566,23 @@ describe('Publish logic', () => {
         .spyOn(ServiceClient.prototype, 'createProvider')
         .mockResolvedValue(undefined);
 
-      await expect(
-        publish(
-          'provider',
-          mockSuperJson,
-          ProfileId.fromId(mockProfileId),
-          mockProviderName,
-          {},
-          DEFAULT_PROFILE_VERSION_STR,
-          { dryRun: true }
-        )
-      ).resolves.toEqual(
-        yellow('Check results:\n') +
-          checkFormatHuman(checkResult) +
-          yellow('\n\nLint results:\n') +
-          lintFormatHuman(emptyLintResult, false)
+      const result = await publish(
+        'provider',
+        mockSuperJson,
+        ProfileId.fromId(mockProfileId),
+        mockProviderName,
+        {},
+        DEFAULT_PROFILE_VERSION_STR,
+        { dryRun: true }
       );
+
+      expect(result).toMatch('Check results:');
+
+      expect(result).toMatch(checkFormatHuman(checkResult));
+
+      expect(result).toMatch('Lint results:');
+
+      expect(result).toMatch(lintFormatHuman(emptyLintResult, false));
 
       expect(createSpy).not.toHaveBeenCalled();
       expect(loadProfile).toHaveBeenCalledWith(
@@ -1679,22 +1679,22 @@ describe('Publish logic', () => {
         .spyOn(ServiceClient.prototype, 'createProvider')
         .mockResolvedValue(undefined);
 
-      await expect(
-        publish(
-          'provider',
-          mockSuperJson,
-          ProfileId.fromId(mockProfileId),
-          mockProviderName,
-          {},
-          DEFAULT_PROFILE_VERSION_STR,
-          { dryRun: true }
-        )
-      ).resolves.toEqual(
-        yellow('Check results:\n') +
-          checkFormatHuman(checkResult) +
-          yellow('\n\nLint results:\n') +
-          lintFormatHuman(lintResult, false)
+      const result = await publish(
+        'provider',
+        mockSuperJson,
+        ProfileId.fromId(mockProfileId),
+        mockProviderName,
+        {},
+        DEFAULT_PROFILE_VERSION_STR,
+        { dryRun: true }
       );
+      expect(result).toMatch('Check results:');
+
+      expect(result).toMatch(checkFormatHuman(checkResult));
+
+      expect(result).toMatch('Lint results:');
+
+      expect(result).toMatch(lintFormatHuman(lintResult, false));
 
       expect(createSpy).not.toHaveBeenCalled();
       expect(loadProfile).toHaveBeenCalledWith(
