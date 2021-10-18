@@ -120,11 +120,8 @@ export async function fetchProfileInfo(
     tryToAuthenticate?: boolean;
   }
 ): Promise<ProfileInfo> {
-  const client = SuperfaceClient.getClient();
-  const response = await client.fetch(`/${profileId}`, {
-    //Auth only when we have usable token
-    authenticate:
-      (options?.tryToAuthenticate && !client.isAccessTokenExpired()) || false,
+  const response = await SuperfaceClient.getClient().fetch(`/${profileId}`, {
+    authenticate: options?.tryToAuthenticate || false,
     method: 'GET',
     headers: {
       ...commonHeaders(),
@@ -143,12 +140,8 @@ export async function fetchProfile(
     tryToAuthenticate?: boolean;
   }
 ): Promise<string> {
-  const client = SuperfaceClient.getClient();
-
-  const response = await client.fetch(`/${profileId}`, {
-    //Auth only when we have usable token
-    authenticate:
-      (options?.tryToAuthenticate && !client.isAccessTokenExpired()) || false,
+  const response = await SuperfaceClient.getClient().fetch(`/${profileId}`, {
+    authenticate: options?.tryToAuthenticate || false,
     method: 'GET',
     headers: {
       ...commonHeaders(),
@@ -167,12 +160,8 @@ export async function fetchProfileAST(
     tryToAuthenticate?: boolean;
   }
 ): Promise<ProfileDocumentNode> {
-  const client = SuperfaceClient.getClient();
-
-  const response = await client.fetch(`/${profileId}`, {
-    //Auth only when we have usable token
-    authenticate:
-      (options?.tryToAuthenticate && !client.isAccessTokenExpired()) || false,
+  const response = await SuperfaceClient.getClient().fetch(`/${profileId}`, {
+    authenticate: options?.tryToAuthenticate || false,
     method: 'GET',
     headers: {
       ...commonHeaders(),

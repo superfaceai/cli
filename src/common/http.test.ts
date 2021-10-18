@@ -173,10 +173,6 @@ describe('HTTP functions', () => {
         .spyOn(ServiceClient.prototype, 'fetch')
         .mockResolvedValue(mockResponse(200, 'OK', undefined, mockProfileInfo));
 
-      jest
-        .spyOn(ServiceClient.prototype, 'isAccessTokenExpired')
-        .mockReturnValue(false);
-
       await expect(
         fetchProfileInfo(profileId, { tryToAuthenticate: true })
       ).resolves.toEqual(mockProfileInfo);
@@ -184,30 +180,6 @@ describe('HTTP functions', () => {
       expect(fetchSpy).toHaveBeenCalledTimes(1);
       expect(fetchSpy).toHaveBeenCalledWith(`/${profileId}`, {
         authenticate: true,
-        method: 'GET',
-        headers: {
-          Accept: ContentType.JSON,
-          'User-Agent': expect.any(String),
-        },
-      });
-    }, 10000);
-
-    it('calls superface client correctly with enabled authentication, token expired', async () => {
-      const fetchSpy = jest
-        .spyOn(ServiceClient.prototype, 'fetch')
-        .mockResolvedValue(mockResponse(200, 'OK', undefined, mockProfileInfo));
-
-      jest
-        .spyOn(ServiceClient.prototype, 'isAccessTokenExpired')
-        .mockReturnValue(true);
-
-      await expect(
-        fetchProfileInfo(profileId, { tryToAuthenticate: true })
-      ).resolves.toEqual(mockProfileInfo);
-
-      expect(fetchSpy).toHaveBeenCalledTimes(1);
-      expect(fetchSpy).toHaveBeenCalledWith(`/${profileId}`, {
-        authenticate: false,
         method: 'GET',
         headers: {
           Accept: ContentType.JSON,
@@ -270,10 +242,6 @@ describe('HTTP functions', () => {
         .spyOn(ServiceClient.prototype, 'fetch')
         .mockResolvedValue(mockResponse(200, 'OK', undefined, 'mock profile'));
 
-      jest
-        .spyOn(ServiceClient.prototype, 'isAccessTokenExpired')
-        .mockReturnValue(false);
-
       await expect(
         fetchProfile(profileId, { tryToAuthenticate: true })
       ).resolves.toEqual(`"mock profile"`);
@@ -281,30 +249,6 @@ describe('HTTP functions', () => {
       expect(fetchSpy).toHaveBeenCalledTimes(1);
       expect(fetchSpy).toHaveBeenCalledWith(`/${profileId}`, {
         authenticate: true,
-        method: 'GET',
-        headers: {
-          Accept: ContentType.PROFILE_SOURCE,
-          'User-Agent': expect.any(String),
-        },
-      });
-    }, 10000);
-
-    it('calls superface client correctly with enabled authentication, token expired', async () => {
-      const fetchSpy = jest
-        .spyOn(ServiceClient.prototype, 'fetch')
-        .mockResolvedValue(mockResponse(200, 'OK', undefined, 'mock profile'));
-
-      jest
-        .spyOn(ServiceClient.prototype, 'isAccessTokenExpired')
-        .mockReturnValue(true);
-
-      await expect(
-        fetchProfile(profileId, { tryToAuthenticate: true })
-      ).resolves.toEqual(`"mock profile"`);
-
-      expect(fetchSpy).toHaveBeenCalledTimes(1);
-      expect(fetchSpy).toHaveBeenCalledWith(`/${profileId}`, {
-        authenticate: false,
         method: 'GET',
         headers: {
           Accept: ContentType.PROFILE_SOURCE,
@@ -388,10 +332,6 @@ describe('HTTP functions', () => {
         .spyOn(ServiceClient.prototype, 'fetch')
         .mockResolvedValue(mockResponse(200, 'OK', undefined, mockProfileAst));
 
-      jest
-        .spyOn(ServiceClient.prototype, 'isAccessTokenExpired')
-        .mockReturnValue(false);
-
       await expect(
         fetchProfileAST(profileId, { tryToAuthenticate: true })
       ).resolves.toEqual(mockProfileAst);
@@ -399,30 +339,6 @@ describe('HTTP functions', () => {
       expect(fetchSpy).toHaveBeenCalledTimes(1);
       expect(fetchSpy).toHaveBeenCalledWith(`/${profileId}`, {
         authenticate: true,
-        method: 'GET',
-        headers: {
-          Accept: ContentType.PROFILE_AST,
-          'User-Agent': expect.any(String),
-        },
-      });
-    }, 10000);
-
-    it('calls superface client correctly with enabled authentication, token expired', async () => {
-      const fetchSpy = jest
-        .spyOn(ServiceClient.prototype, 'fetch')
-        .mockResolvedValue(mockResponse(200, 'OK', undefined, mockProfileAst));
-
-      jest
-        .spyOn(ServiceClient.prototype, 'isAccessTokenExpired')
-        .mockReturnValue(true);
-
-      await expect(
-        fetchProfileAST(profileId, { tryToAuthenticate: true })
-      ).resolves.toEqual(mockProfileAst);
-
-      expect(fetchSpy).toHaveBeenCalledTimes(1);
-      expect(fetchSpy).toHaveBeenCalledWith(`/${profileId}`, {
-        authenticate: false,
         method: 'GET',
         headers: {
           Accept: ContentType.PROFILE_AST,
