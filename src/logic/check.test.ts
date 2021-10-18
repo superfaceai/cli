@@ -138,9 +138,6 @@ describe('Check logic', () => {
         kind: 'UseCaseDefinition',
         useCaseName: 'RetrieveCharacterInformation',
         safety: 'safe',
-        input: {
-          kind: 'UseCaseSlotDefinition',
-        },
       },
     ],
   };
@@ -864,9 +861,6 @@ describe('Check logic', () => {
             kind: 'UseCaseDefinition',
             useCaseName: 'RetrieveCharacterInformation',
             safety: 'safe',
-            input: {
-              kind: 'UseCaseSlotDefinition',
-            },
           },
         ],
       };
@@ -918,9 +912,6 @@ describe('Check logic', () => {
             kind: 'UseCaseDefinition',
             useCaseName: 'RetrieveCharacterInformation',
             safety: 'safe',
-            input: {
-              kind: 'UseCaseSlotDefinition',
-            },
           },
         ],
       };

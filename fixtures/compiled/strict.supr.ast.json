@@ -26,7 +26,7 @@
       "useCaseName": "Foo",
       "input": {
         "kind": "UseCaseSlotDefinition",
-        "type": {
+        "value": {
           "kind": "ObjectDefinition",
           "fields": [
             {
@@ -162,7 +162,7 @@
       },
       "result": {
         "kind": "UseCaseSlotDefinition",
-        "type": {
+        "value": {
           "kind": "PrimitiveTypeName",
           "name": "number",
           "span": {
@@ -185,7 +185,7 @@
       },
       "asyncResult": {
         "kind": "UseCaseSlotDefinition",
-        "type": {
+        "value": {
           "kind": "ListDefinition",
           "elementType": {
             "kind": "ModelTypeName",
@@ -219,7 +219,7 @@
       },
       "error": {
         "kind": "UseCaseSlotDefinition",
-        "type": {
+        "value": {
           "kind": "EnumDefinition",
           "values": [
             {

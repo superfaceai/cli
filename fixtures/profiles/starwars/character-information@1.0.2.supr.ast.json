@@ -25,7 +25,7 @@
       "safety": "safe",
       "input": {
         "kind": "UseCaseSlotDefinition",
-        "type": {
+        "value": {
           "kind": "ObjectDefinition",
           "fields": [
             {
@@ -62,7 +62,7 @@
       },
       "result": {
         "kind": "UseCaseSlotDefinition",
-        "type": {
+        "value": {
           "kind": "ObjectDefinition",
           "fields": [
             {
@@ -125,7 +125,7 @@
       },
       "error": {
         "kind": "UseCaseSlotDefinition",
-        "type": {
+        "value": {
           "kind": "ObjectDefinition",
           "fields": [
             {
