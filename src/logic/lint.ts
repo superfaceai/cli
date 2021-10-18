@@ -399,7 +399,6 @@ export async function lint(
         ]);
         //We catch any unexpected error from parser validator to prevent ending the loop early
       } catch (error) {
-        console.log('err', error);
         options?.errCb?.(
           `\n\n\nUnexpected error during validation of map: ${preparedMap.path} to profile: ${profileWithAst.path}.\nThis error is probably not a problem in linted files but in parser itself.\nTry updating CLI and its dependencies or report an issue.\n\n\n`
         );

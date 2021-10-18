@@ -225,7 +225,7 @@ describe('Configure CLI logic', () => {
       );
     });
 
-    it('add provider with paramaeters to super json', async () => {
+    it('add provider with parameters to super json', async () => {
       const setProviderSpy = jest.spyOn(SuperJson.prototype, 'setProvider');
       const setProfileProviderSpy = jest.spyOn(
         SuperJson.prototype,
