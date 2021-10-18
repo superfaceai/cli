@@ -73,6 +73,7 @@ describe('Install CLI command', () => {
         options: {
           logCb: expect.anything(),
           warnCb: expect.anything(),
+          tryToAuthenticate: true,
           force: false,
         },
       });
@@ -98,6 +99,7 @@ describe('Install CLI command', () => {
         options: {
           logCb: expect.anything(),
           warnCb: expect.anything(),
+          tryToAuthenticate: true,
           force: false,
         },
       });
@@ -123,6 +125,7 @@ describe('Install CLI command', () => {
         options: {
           logCb: undefined,
           warnCb: undefined,
+          tryToAuthenticate: true,
           force: false,
         },
       });
@@ -139,6 +142,7 @@ describe('Install CLI command', () => {
         options: {
           logCb: expect.any(Function),
           warnCb: expect.any(Function),
+          tryToAuthenticate: true,
           force: false,
         },
       });
@@ -227,6 +231,7 @@ describe('Install CLI command', () => {
         options: {
           logCb: expect.anything(),
           warnCb: expect.anything(),
+          tryToAuthenticate: true,
           force: false,
         },
       });
@@ -284,6 +289,7 @@ describe('Install CLI command', () => {
         options: {
           logCb: expect.anything(),
           warnCb: expect.anything(),
+          tryToAuthenticate: true,
           force: false,
         },
       });

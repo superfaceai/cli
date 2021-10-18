@@ -70,6 +70,7 @@ type InstallOptions = {
   logCb?: LogCallback;
   warnCb?: LogCallback;
   force?: boolean;
+  tryToAuthenticate?: boolean;
 };
 
 export type LocalRequest = {
@@ -365,7 +366,11 @@ export type ProfileResponse = {
 export async function getProfileFromStore(
   profileId: string,
   version?: string,
-  options?: { logCb?: LogCallback; warnCb?: LogCallback }
+  options?: {
+    logCb?: LogCallback;
+    warnCb?: LogCallback;
+    tryToAuthenticate?: boolean;
+  }
 ): Promise<ProfileResponse | undefined> {
   if (version !== undefined) {
     profileId = `${profileId}@${version}`;
@@ -378,13 +383,19 @@ export async function getProfileFromStore(
   options?.logCb?.(`\nFetching profile ${profileId} from the Store`);
 
   try {
-    info = await fetchProfileInfo(profileId);
+    info = await fetchProfileInfo(profileId, {
+      tryToAuthenticate: options?.tryToAuthenticate,
+    });
     options?.logCb?.(`GET Profile Info ${profileId}`);
 
-    profile = await fetchProfile(profileId);
+    profile = await fetchProfile(profileId, {
+      tryToAuthenticate: options?.tryToAuthenticate,
+    });
     options?.logCb?.(`GET Profile Source File ${profileId}`);
 
-    ast = await fetchProfileAST(profileId);
+    ast = await fetchProfileAST(profileId, {
+      tryToAuthenticate: options?.tryToAuthenticate,
+    });
     options?.logCb?.(`GET compiled Profile ${profileId}`);
   } catch (error) {
     // eslint-disable-next-line @typescript-eslint/restrict-template-expressions

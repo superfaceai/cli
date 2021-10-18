@@ -134,41 +134,41 @@ describe('Install CLI logic', () => {
   });
 
   describe('when geting profile from store', () => {
-    it('gets profile', async () => {
-      //mock profile info
-      const mockProfileInfo = {
-        profile_id: 'starwars/character-information@1.0.1',
-        profile_name: 'starwars/character-information',
-        profile_version: '1.0.1',
-        url: 'https://superface.dev/starwars/character-information@1.0.1',
-        owner: 'freaz',
-        owner_url: '',
-        published_at: '2021-01-29T08:10:50.925Z',
-        published_by: 'Ondrej Musil <mail@ondrejmusil.cz>',
-      };
-      mocked(fetchProfileInfo).mockResolvedValue(mockProfileInfo);
-      //mock profile ast
-      const mockProfileAst: ProfileDocumentNode = {
-        kind: 'ProfileDocument',
-        header: {
-          kind: 'ProfileHeader',
-          scope: 'starwars',
-          name: 'character-information',
-          version: { major: 1, minor: 0, patch: 1 },
-          location: { line: 1, column: 1 },
-          span: { start: 0, end: 57 },
-        },
-        definitions: [
-          {
-            kind: 'UseCaseDefinition',
-            useCaseName: 'RetrieveCharacterInformation',
-            safety: 'safe',
-            title: 'Starwars',
-          },
-        ],
+    //mock profile info
+    const mockProfileInfo = {
+      profile_id: 'starwars/character-information@1.0.1',
+      profile_name: 'starwars/character-information',
+      profile_version: '1.0.1',
+      url: 'https://superface.dev/starwars/character-information@1.0.1',
+      owner: 'freaz',
+      owner_url: '',
+      published_at: '2021-01-29T08:10:50.925Z',
+      published_by: 'Ondrej Musil <mail@ondrejmusil.cz>',
+    };
+    //mock profile ast
+    const mockProfileAst: ProfileDocumentNode = {
+      kind: 'ProfileDocument',
+      header: {
+        kind: 'ProfileHeader',
+        scope: 'starwars',
+        name: 'character-information',
+        version: { major: 1, minor: 0, patch: 1 },
         location: { line: 1, column: 1 },
-        span: { start: 0, end: 228 },
-      };
+        span: { start: 0, end: 57 },
+      },
+      definitions: [
+        {
+          kind: 'UseCaseDefinition',
+          useCaseName: 'RetrieveCharacterInformation',
+          safety: 'safe',
+          title: 'Starwars',
+        },
+      ],
+      location: { line: 1, column: 1 },
+      span: { start: 0, end: 228 },
+    };
+    it('gets profile', async () => {
+      mocked(fetchProfileInfo).mockResolvedValue(mockProfileInfo);
       mocked(fetchProfileAST).mockResolvedValue(mockProfileAst);
       //mock profile
       const mockProfile = 'mock profile';
@@ -184,9 +184,45 @@ describe('Install CLI logic', () => {
       expect(fetchProfile).toHaveBeenCalledTimes(1);
       expect(fetchProfileAST).toHaveBeenCalledTimes(1);
       expect(fetchProfileInfo).toHaveBeenCalledTimes(1);
-      expect(fetchProfile).toHaveBeenCalledWith(profileId);
-      expect(fetchProfileInfo).toHaveBeenCalledWith(profileId);
-      expect(fetchProfileAST).toHaveBeenCalledWith(profileId);
+      expect(fetchProfile).toHaveBeenCalledWith(profileId, {
+        tryToAuthenticate: undefined,
+      });
+      expect(fetchProfileInfo).toHaveBeenCalledWith(profileId, {
+        tryToAuthenticate: undefined,
+      });
+      expect(fetchProfileAST).toHaveBeenCalledWith(profileId, {
+        tryToAuthenticate: undefined,
+      });
+    }, 10000);
+
+    it('gets profile with auth', async () => {
+      mocked(fetchProfileInfo).mockResolvedValue(mockProfileInfo);
+      mocked(fetchProfileAST).mockResolvedValue(mockProfileAst);
+      //mock profile
+      const mockProfile = 'mock profile';
+      mocked(fetchProfile).mockResolvedValue(mockProfile);
+
+      const profileId = 'starwars/character-information';
+
+      await expect(
+        getProfileFromStore(profileId, undefined, { tryToAuthenticate: true })
+      ).resolves.toEqual({
+        ast: mockProfileAst,
+        info: mockProfileInfo,
+        profile: mockProfile,
+      });
+      expect(fetchProfile).toHaveBeenCalledTimes(1);
+      expect(fetchProfileAST).toHaveBeenCalledTimes(1);
+      expect(fetchProfileInfo).toHaveBeenCalledTimes(1);
+      expect(fetchProfile).toHaveBeenCalledWith(profileId, {
+        tryToAuthenticate: true,
+      });
+      expect(fetchProfileInfo).toHaveBeenCalledWith(profileId, {
+        tryToAuthenticate: true,
+      });
+      expect(fetchProfileAST).toHaveBeenCalledWith(profileId, {
+        tryToAuthenticate: true,
+      });
     }, 10000);
 
     it('throws user error on invalid profileId', async () => {
@@ -198,7 +234,9 @@ describe('Install CLI logic', () => {
 
       await expect(getProfileFromStore(profileId)).resolves.toBeUndefined();
       expect(fetchProfileInfo).toHaveBeenCalledTimes(1);
-      expect(fetchProfileInfo).toHaveBeenCalledWith(profileId);
+      expect(fetchProfileInfo).toHaveBeenCalledWith(profileId, {
+        tryToAuthenticate: undefined,
+      });
       expect(fetchProfile).not.toHaveBeenCalled();
       expect(fetchProfileAST).not.toHaveBeenCalled();
     }, 10000);
@@ -652,9 +690,15 @@ describe('Install CLI logic', () => {
         expect(fetchProfileInfo).toHaveBeenCalledTimes(1);
         expect(fetchProfile).toHaveBeenCalledTimes(1);
         expect(fetchProfileAST).toHaveBeenCalledTimes(1);
-        expect(fetchProfile).toHaveBeenCalledWith(profileId);
-        expect(fetchProfileInfo).toHaveBeenCalledWith(profileId);
-        expect(fetchProfileAST).toHaveBeenCalledWith(profileId);
+        expect(fetchProfile).toHaveBeenCalledWith(profileId, {
+          tryToAuthenticate: undefined,
+        });
+        expect(fetchProfileInfo).toHaveBeenCalledWith(profileId, {
+          tryToAuthenticate: undefined,
+        });
+        expect(fetchProfileAST).toHaveBeenCalledWith(profileId, {
+          tryToAuthenticate: undefined,
+        });
 
         //actual path is changing
         expect(mockWrite).toHaveBeenCalledWith(expect.anything(), mockProfile, {
@@ -705,26 +749,35 @@ describe('Install CLI logic', () => {
         expect(fetchProfileInfo).toHaveBeenCalledTimes(2);
         expect(fetchProfile).toHaveBeenCalledTimes(2);
         expect(fetchProfileAST).toHaveBeenCalledTimes(2);
-        expect(fetchProfile).toHaveBeenNthCalledWith(1, 'starwars/first@1.0.0');
+        expect(fetchProfile).toHaveBeenNthCalledWith(
+          1,
+          'starwars/first@1.0.0',
+          { tryToAuthenticate: undefined }
+        );
         expect(fetchProfile).toHaveBeenNthCalledWith(
           2,
-          'starwars/second@2.0.0'
+          'starwars/second@2.0.0',
+          { tryToAuthenticate: undefined }
         );
         expect(fetchProfileInfo).toHaveBeenNthCalledWith(
           1,
-          'starwars/first@1.0.0'
+          'starwars/first@1.0.0',
+          { tryToAuthenticate: undefined }
         );
         expect(fetchProfileInfo).toHaveBeenNthCalledWith(
           2,
-          'starwars/second@2.0.0'
+          'starwars/second@2.0.0',
+          { tryToAuthenticate: undefined }
         );
         expect(fetchProfileAST).toHaveBeenNthCalledWith(
           1,
-          'starwars/first@1.0.0'
+          'starwars/first@1.0.0',
+          { tryToAuthenticate: undefined }
         );
         expect(fetchProfileAST).toHaveBeenNthCalledWith(
           2,
-          'starwars/second@2.0.0'
+          'starwars/second@2.0.0',
+          { tryToAuthenticate: undefined }
         );
 
         expect(mockWrite).toHaveBeenCalled();
