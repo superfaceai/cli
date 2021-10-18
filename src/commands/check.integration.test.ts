@@ -1,7 +1,6 @@
 import { SuperJson } from '@superfaceai/one-sdk';
-import { green } from 'chalk';
 import { getLocal } from 'mockttp';
-import { join as joinPath, resolve } from 'path';
+import { join as joinPath } from 'path';
 
 import { UNVERIFIED_PROVIDER_PREFIX } from '../common';
 import { mkdir, rimraf } from '../common/io';
@@ -128,25 +127,23 @@ describe('Check CLI command', () => {
       expect(result.stdout).toContain(
         'Checking profile: "starwars/character-information" and map for provider: "unverified-swapi"'
       );
-      expect(result.stdout).toContain(
-        green(
-          `🆗 Checking local profile ${profileId}@1.0.1 at path\n${resolve(
-            sourceFixture.profile
-          )}\nand local map for provider ${provider} at path\n${resolve(
-            sourceFixture.map
-          )}\n\n`
-        )
+      //Map and profile
+      expect(result.stdout).toMatch(
+        `🆗 Checking local profile ${profileId}@1.0.1 at path`
       );
+      expect(result.stdout).toMatch(sourceFixture.profile);
+      expect(result.stdout).toMatch(
+        `and local map for provider ${provider} at path`
+      );
+      expect(result.stdout).toMatch(sourceFixture.map);
 
-      expect(result.stdout).toContain(
-        green(
-          `🆗 Checking local map at path\n${resolve(
-            sourceFixture.map
-          )}\nfor profile ${profileId} and local provider unverified-swapi at path\n${resolve(
-            sourceFixture.provider
-          )}\n\n`
-        )
+      //Map and provider
+      expect(result.stdout).toMatch(`🆗 Checking local map at path`);
+      expect(result.stdout).toMatch(sourceFixture.map);
+      expect(result.stdout).toMatch(
+        `for profile ${profileId} and local provider unverified-swapi at path`
       );
+      expect(result.stdout).toMatch(sourceFixture.provider);
     });
 
     it('checks capability with local map', async () => {
@@ -186,19 +183,16 @@ describe('Check CLI command', () => {
       expect(result.stdout).toContain(
         `Loading provider: "${provider}" from Superface store`
       );
-      expect(result.stdout).toContain(
-        green(
-          `🆗 Checking remote profile ${profileId}@${profileVersion} with version ${profileVersion} and local map for provider ${provider} at path\n${resolve(
-            sourceFixture.map
-          )}\n\n`
-        )
+      //Map and profile
+      expect(result.stdout).toMatch(
+        `🆗 Checking remote profile ${profileId}@${profileVersion} with version ${profileVersion} and local map for provider ${provider} at path`
       );
-      expect(result.stdout).toContain(
-        green(
-          `🆗 Checking local map at path\n${resolve(
-            sourceFixture.map
-          )}\nfor profile ${profileId} and remote provider ${provider}`
-        )
+      expect(result.stdout).toMatch(sourceFixture.map);
+      //Map and provider
+      expect(result.stdout).toMatch(`🆗 Checking local map at path`);
+
+      expect(result.stdout).toMatch(
+        `for profile ${profileId} and remote provider ${provider}`
       );
     });
 
@@ -237,17 +231,20 @@ describe('Check CLI command', () => {
       expect(result.stdout).toContain(
         `Loading provider: "${provider}" from Superface store`
       );
-      expect(result.stdout).toContain(
-        green(
-          `🆗 Checking local profile ${profileId}@1.0.1 at path\n${resolve(
-            sourceFixture.profile
-          )}\nand remote map with version 1.0.0 for provider ${provider}`
-        )
+      //Map and profile
+      expect(result.stdout).toMatch(
+        `🆗 Checking local profile ${profileId}@1.0.1 at path`
       );
-      expect(result.stdout).toContain(
-        green(
-          `🆗 Checking remote map with version 1.0.0 for profile ${profileId} and remote provider ${provider}`
-        )
+
+      expect(result.stdout).toMatch(sourceFixture.profile);
+
+      expect(result.stdout).toMatch(
+        `and remote map with version 1.0.0 for provider ${provider}`
+      );
+
+      //Map and provider
+      expect(result.stdout).toMatch(
+        `🆗 Checking remote map with version 1.0.0 for profile ${profileId} and remote provider ${provider}`
       );
     });
 
@@ -288,18 +285,15 @@ describe('Check CLI command', () => {
       expect(result.stdout).toContain(
         `Provider: "${provider}" found on local file system`
       );
-      expect(result.stdout).toContain(
-        green(
-          `🆗 Checking remote profile ${profileId}@${profileVersion} with version ${profileVersion} and remote map with version 1.0.0 for provider ${provider}`
-        )
+      //Map and profile
+      expect(result.stdout).toMatch(
+        `🆗 Checking remote profile ${profileId}@${profileVersion} with version ${profileVersion} and remote map with version 1.0.0 for provider ${provider}`
       );
-      expect(result.stdout).toContain(
-        green(
-          `🆗 Checking remote map with version 1.0.0 for profile ${profileId} and local provider ${provider} at path\n${resolve(
-            sourceFixture.provider
-          )}\n\n`
-        )
+      //Map and provider
+      expect(result.stdout).toMatch(
+        `🆗 Checking remote map with version 1.0.0 for profile ${profileId} and local provider ${provider} at path`
       );
+      expect(result.stdout).toMatch(sourceFixture.provider);
     });
 
     it('checks capability with local map, profile and provider and --json flag', async () => {

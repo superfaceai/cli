@@ -1,5 +1,4 @@
 import { ServiceApiError } from '@superfaceai/service-client';
-import { bold, gray, green, yellow } from 'chalk';
 import { getLocal } from 'mockttp';
 import { join as joinPath } from 'path';
 
@@ -41,13 +40,9 @@ describe('Whoami CLI command', () => {
         .thenJson(200, mockUserInfo);
       const result = await execCLI(tempDir, ['whoami'], mockServer.url);
 
-      expect(result.stdout).toContain(
-        gray(
-          `🆗 You are logged in as: ${bold(green(mockUserInfo.name))} (${bold(
-            green(mockUserInfo.email)
-          )})`
-        )
-      );
+      expect(result.stdout).toMatch(`🆗 You are logged in as: `);
+      expect(result.stdout).toContain(mockUserInfo.name);
+      expect(result.stdout).toContain(mockUserInfo.email);
     });
 
     it('returns warning if user is not logged in', async () => {
@@ -64,8 +59,8 @@ describe('Whoami CLI command', () => {
         .thenJson(401, mockServerResponse);
       const result = await execCLI(tempDir, ['whoami'], mockServer.url);
 
-      expect(result.stdout.trim()).toEqual(
-        yellow('❌ You are not logged in. Please try running "sf login"')
+      expect(result.stdout).toMatch(
+        '❌ You are not logged in. Please try running "sf login"'
       );
     });
   });
