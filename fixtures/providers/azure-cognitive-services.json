@@ -1,0 +1,28 @@
+{
+  "name": "azure-cognitive-services",
+  "services": [
+    {
+      "id": "default",
+      "baseUrl": "https://{instance}.cognitiveservices.azure.com/{version}"
+    }
+  ],
+  "securitySchemes": [
+    {
+      "id": "azure-subscription-key",
+      "type": "apiKey",
+      "in": "header",
+      "name": "Ocp-Apim-Subscription-Key"
+    }
+  ],
+  "defaultService": "default",
+  "parameters": [
+    {
+      "name": "instance",
+      "description": "Instance of your azure cognitive service"
+    },
+    {
+      "name": "version",
+      "default": "v1"
+    }
+  ]
+}

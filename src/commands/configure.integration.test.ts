@@ -21,6 +21,7 @@ describe('Configure CLI command', () => {
   const profileId = 'starwars/character-information';
   const profileVersion = '1.0.1';
   const provider = 'swapi';
+  const providerWithParameters = 'azure-cognitive-services';
   let tempDir: string;
 
   beforeAll(async () => {
@@ -28,6 +29,7 @@ describe('Configure CLI command', () => {
     await mockServer.start();
     await mockResponsesForProfile(mockServer, 'starwars/character-information');
     await mockResponsesForProvider(mockServer, 'swapi');
+    await mockResponsesForProvider(mockServer, 'azure-cognitive-services');
   });
   beforeEach(async () => {
     tempDir = await setUpTempDir(TEMP_PATH);
@@ -92,6 +94,65 @@ describe('Configure CLI command', () => {
         version: profileVersion,
         priority: [provider],
         providers: { [provider]: {} },
+      });
+    }, 30000);
+
+    it('configures provider with integration parameters correctly', async () => {
+      let result = await execCLI(
+        tempDir,
+        ['install', 'starwars/character-information'],
+        mockServer.url
+      );
+      expect(result.stdout).toMatch(
+        'All profiles (1) have been installed successfully.'
+      );
+
+      result = await execCLI(
+        tempDir,
+        ['configure', providerWithParameters, '-p', profileId],
+        mockServer.url
+      );
+      expect(result.stdout).toMatch(
+        '🆗 All security schemes have been configured successfully.'
+      );
+      expect(result.stdout).toMatch(
+        '🆗 Parameter version configured with default value "v1"'
+      );
+
+      expect(result.stdout).toContain(
+        '❌ Parameter instance with description "Instance of your azure cognitive service" has not been configured.'
+      );
+      expect(result.stdout).toContain(
+        'Please, configure this parameter manualy in super.json on path: superface/super.json'
+      );
+
+      await expect(
+        exists(joinPath(tempDir, 'superface', 'super.json'))
+      ).resolves.toEqual(true);
+
+      const superJson = (
+        await SuperJson.load(joinPath(tempDir, 'superface', 'super.json'))
+      ).unwrap();
+
+      //Check super.json
+      expect(
+        superJson.normalized.providers[providerWithParameters].security
+      ).toEqual([
+        {
+          id: 'azure-subscription-key',
+          apikey: '$AZURE_COGNITIVE-SERVICES_API_KEY',
+        },
+      ]);
+      expect(
+        superJson.normalized.providers[providerWithParameters].parameters
+      ).toEqual({
+        instance: '',
+        version: 'v1',
+      });
+      expect(superJson.document.profiles![profileId]).toEqual({
+        version: profileVersion,
+        priority: [providerWithParameters],
+        providers: { [providerWithParameters]: {} },
       });
     }, 30000);
 

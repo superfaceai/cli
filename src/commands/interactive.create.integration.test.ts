@@ -340,6 +340,7 @@ describe('Interactive create CLI command', () => {
           [provider]: {
             file: `../${provider}.provider.json`,
             security: [],
+            parameters: {},
           },
         },
       });

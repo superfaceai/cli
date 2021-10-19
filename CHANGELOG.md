@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Use provider.json from ast instead of sdk
 
+### Added
+- prepare integration parameters during configure command
+
 ## [0.0.26] - 2021-10-13
 ### Added
 - Check command loading files from server if not found localy
