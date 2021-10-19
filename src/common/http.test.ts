@@ -319,7 +319,7 @@ describe('HTTP functions', () => {
   });
 
   describe('when fetching provider info', () => {
-    const mockProviderJson: ProviderJson = {
+    const mockProviderResponse = {
       name: 'test',
       services: [{ id: 'test-service', baseUrl: 'service/base/url' }],
       securitySchemes: [
@@ -347,18 +347,45 @@ describe('HTTP functions', () => {
         },
       ],
       defaultService: 'test-service',
+      url: 'some url',
     };
     it('calls superface client correctly', async () => {
       const provider = 'mailchimp';
       const fetchSpy = jest
         .spyOn(ServiceClient.prototype, 'fetch')
         .mockResolvedValue(
-          mockResponse(200, 'OK', undefined, mockProviderJson)
+          mockResponse(200, 'OK', undefined, mockProviderResponse)
         );
 
-      await expect(fetchProviderInfo(provider)).resolves.toEqual(
-        mockProviderJson
-      );
+      await expect(fetchProviderInfo(provider)).resolves.toEqual({
+        name: 'test',
+        services: [{ id: 'test-service', baseUrl: 'service/base/url' }],
+        securitySchemes: [
+          {
+            type: SecurityType.HTTP,
+            id: 'basic',
+            scheme: HttpScheme.BASIC,
+          },
+          {
+            id: 'api',
+            type: SecurityType.APIKEY,
+            in: ApiKeyPlacement.HEADER,
+            name: 'Authorization',
+          },
+          {
+            id: 'bearer',
+            type: SecurityType.HTTP,
+            scheme: HttpScheme.BEARER,
+            bearerFormat: 'some',
+          },
+          {
+            id: 'digest',
+            type: SecurityType.HTTP,
+            scheme: HttpScheme.DIGEST,
+          },
+        ],
+        defaultService: 'test-service',
+      });
       expect(fetchSpy).toHaveBeenCalledTimes(1);
       expect(fetchSpy).toHaveBeenCalledWith(`/providers/${provider}`, {
         authenticate: false,
