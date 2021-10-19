@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Changed
 - Use provider.json from ast instead of sdk
+- Compile command now compiles every locally linked file in super.json
 
 ### Added
 - prepare integration parameters during configure command
