@@ -2,7 +2,6 @@ import { flags as oclifFlags } from '@oclif/command';
 import { isValidDocumentName } from '@superfaceai/ast';
 import { Parser, SuperJson } from '@superfaceai/one-sdk';
 import { parseDocumentId } from '@superfaceai/parser';
-import { bold, green, grey } from 'chalk';
 import { join as joinPath } from 'path';
 
 import { Command } from '../common/command.abstract';
@@ -46,17 +45,18 @@ export default class Compile extends Command {
     '$ superface compile --profileId starwars/character-information --providerName swapi --map --profile',
   ];
 
-  private logCallback? = (message: string) => this.log(grey(message));
-  private successCallback? = (message: string) =>
-    this.log(bold(green(message)));
+  // private logCallback? = (message: string) => this.log(grey(message));
+  // private successCallback? = (message: string) =>
+  //   this.log(bold(green(message)));
 
   async run(): Promise<void> {
     const { flags } = this.parse(Compile);
+    const logger = this.logger(flags.quiet)
 
-    if (flags.quiet) {
-      this.logCallback = undefined;
-      this.successCallback = undefined;
-    }
+    // if (flags.quiet) {
+    //   this.logCallback = undefined;
+    //   this.successCallback = undefined;
+    // }
 
     const superPath = await detectSuperJson(process.cwd());
     if (!superPath) {
@@ -86,7 +86,7 @@ export default class Compile extends Command {
 
     //Load profile
     if (flags.profile) {
-      this.logCallback?.(`Compiling profile: "${flags.profileId}".`);
+      logger.info(`Compiling profile: "${flags.profileId}".`);
       if (!('file' in profileSettings)) {
         throw userError(
           `Profile id: "${flags.profileId}" not locally linked in super.json`,
@@ -105,7 +105,7 @@ export default class Compile extends Command {
         scope: parsedProfileId.value.scope,
       });
 
-      this.successCallback?.(
+      logger.success(
         `🆗 profile: "${flags.profileId}" compiled successfully.`
       );
     }
@@ -117,7 +117,7 @@ export default class Compile extends Command {
           1
         );
       }
-      this.logCallback?.(
+      logger.success(
         `Compiling map for profile: "${flags.profileId}" and provider: "${flags.providerName}".`
       );
 
@@ -127,7 +127,7 @@ export default class Compile extends Command {
 
       const profileProviderSettings =
         superJson.normalized.profiles[flags.profileId].providers[
-          flags.providerName
+        flags.providerName
         ];
 
       if (!profileProviderSettings) {
@@ -157,7 +157,7 @@ export default class Compile extends Command {
         providerName: flags.providerName,
       });
 
-      this.successCallback?.(
+      logger.success(
         `🆗 map for profile: "${flags.profileId}" and provider: "${flags.providerName}" compiled successfully.`
       );
     }

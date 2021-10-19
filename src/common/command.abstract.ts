@@ -1,5 +1,7 @@
 import { Command as OclifCommand, flags } from '@oclif/command';
 
+import { Logger } from '.';
+
 export abstract class Command extends OclifCommand {
   static flags = {
     quiet: flags.boolean({
@@ -10,4 +12,8 @@ export abstract class Command extends OclifCommand {
     }),
     help: flags.help({ char: 'h' }),
   };
+
+  public logger(quiet?: boolean): Logger {
+    return Logger.setup(quiet)
+  }
 }
