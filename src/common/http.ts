@@ -171,8 +171,16 @@ export async function fetchProviderInfo(
 ): Promise<ProviderJson> {
   //TODO: user agent?
   const response = await SuperfaceClient.getClient().getProvider(providerName);
+  //Response is type ProviderResponse which has extra property url - validation would fail
+  const result: unknown = {
+    name: response.name,
+    services: response.services,
+    defaultService: response.defaultService,
+    securitySchemes: response.securitySchemes,
+    //TODO: integration parameters
+  };
 
-  return assertProviderJson(response);
+  return assertProviderJson(result);
 }
 
 async function checkSuperfaceResponse(response: Response): Promise<Response> {
