@@ -134,41 +134,43 @@ describe('Install CLI logic', () => {
   });
 
   describe('when geting profile from store', () => {
-    it('gets profile', async () => {
-      //mock profile info
-      const mockProfileInfo = {
-        profile_id: 'starwars/character-information@1.0.1',
-        profile_name: 'starwars/character-information',
-        profile_version: '1.0.1',
-        url: 'https://superface.dev/starwars/character-information@1.0.1',
-        owner: 'freaz',
-        owner_url: '',
-        published_at: '2021-01-29T08:10:50.925Z',
-        published_by: 'Ondrej Musil <mail@ondrejmusil.cz>',
-      };
-      mocked(fetchProfileInfo).mockResolvedValue(mockProfileInfo);
-      //mock profile ast
-      const mockProfileAst: ProfileDocumentNode = {
-        kind: 'ProfileDocument',
-        header: {
-          kind: 'ProfileHeader',
-          scope: 'starwars',
-          name: 'character-information',
-          version: { major: 1, minor: 0, patch: 1 },
-          location: { line: 1, column: 1 },
-          span: { start: 0, end: 57 },
-        },
-        definitions: [
-          {
-            kind: 'UseCaseDefinition',
-            useCaseName: 'RetrieveCharacterInformation',
-            safety: 'safe',
-            title: 'Starwars',
-          },
-        ],
+    //mock profile info
+    const mockProfileInfo = {
+      profile_id: 'starwars/character-information@1.0.1',
+      profile_name: 'starwars/character-information',
+      profile_version: '1.0.1',
+      url: 'https://superface.dev/starwars/character-information@1.0.1',
+      owner: 'freaz',
+      owner_url: '',
+      published_at: '2021-01-29T08:10:50.925Z',
+      published_by: 'Ondrej Musil <mail@ondrejmusil.cz>',
+    };
+
+    //mock profile ast
+    const mockProfileAst: ProfileDocumentNode = {
+      kind: 'ProfileDocument',
+      header: {
+        kind: 'ProfileHeader',
+        scope: 'starwars',
+        name: 'character-information',
+        version: { major: 1, minor: 0, patch: 1 },
         location: { line: 1, column: 1 },
-        span: { start: 0, end: 228 },
-      };
+        span: { start: 0, end: 57 },
+      },
+      definitions: [
+        {
+          kind: 'UseCaseDefinition',
+          useCaseName: 'RetrieveCharacterInformation',
+          safety: 'safe',
+          title: 'Starwars',
+        },
+      ],
+      location: { line: 1, column: 1 },
+      span: { start: 0, end: 228 },
+    };
+
+    it('gets profile', async () => {
+      mocked(fetchProfileInfo).mockResolvedValue(mockProfileInfo);
       mocked(fetchProfileAST).mockResolvedValue(mockProfileAst);
       //mock profile
       const mockProfile = 'mock profile';
@@ -176,7 +178,9 @@ describe('Install CLI logic', () => {
 
       const profileId = 'starwars/character-information';
 
-      await expect(getProfileFromStore(profileId)).resolves.toEqual({
+      await expect(
+        getProfileFromStore(ProfileId.fromId(profileId))
+      ).resolves.toEqual({
         ast: mockProfileAst,
         info: mockProfileInfo,
         profile: mockProfile,
@@ -189,6 +193,38 @@ describe('Install CLI logic', () => {
       expect(fetchProfileAST).toHaveBeenCalledWith(profileId);
     }, 10000);
 
+    it('gets profile when AST validation failed', async () => {
+      mocked(fetchProfileInfo).mockResolvedValue(mockProfileInfo);
+      mocked(fetchProfileAST).mockRejectedValue(new Error('validation error'));
+      //mock profile
+      const mockProfile = 'mock profile';
+      mocked(fetchProfile).mockResolvedValue(mockProfile);
+
+      const parseProfileSpy = jest
+        .spyOn(Parser, 'parseProfile')
+        .mockResolvedValue(mockProfileAst);
+
+      const profileId = 'starwars/character-information';
+
+      await expect(
+        getProfileFromStore(ProfileId.fromId(profileId))
+      ).resolves.toEqual({
+        ast: mockProfileAst,
+        info: mockProfileInfo,
+        profile: mockProfile,
+      });
+      expect(fetchProfile).toHaveBeenCalledTimes(1);
+      expect(fetchProfileAST).toHaveBeenCalledTimes(1);
+      expect(fetchProfileInfo).toHaveBeenCalledTimes(1);
+      expect(fetchProfile).toHaveBeenCalledWith(profileId);
+      expect(fetchProfileInfo).toHaveBeenCalledWith(profileId);
+      expect(fetchProfileAST).toHaveBeenCalledWith(profileId);
+      expect(parseProfileSpy).toHaveBeenCalledWith(mockProfile, profileId, {
+        profileName: 'character-information',
+        scope: 'starwars',
+      });
+    }, 10000);
+
     it('throws user error on invalid profileId', async () => {
       mocked(fetchProfileInfo).mockRejectedValue(
         new CLIError('Not Found', { exit: 1 })
@@ -196,7 +232,9 @@ describe('Install CLI logic', () => {
 
       const profileId = 'made-up';
 
-      await expect(getProfileFromStore(profileId)).resolves.toBeUndefined();
+      await expect(
+        getProfileFromStore(ProfileId.fromId(profileId))
+      ).resolves.toBeUndefined();
       expect(fetchProfileInfo).toHaveBeenCalledTimes(1);
       expect(fetchProfileInfo).toHaveBeenCalledWith(profileId);
       expect(fetchProfile).not.toHaveBeenCalled();
