@@ -454,7 +454,11 @@ describe('Create logic', () => {
       expect(mockSuperJson.normalized).toEqual({
         profiles: {},
         providers: {
-          provider: { file: './provider.provider.json', security: [] },
+          provider: {
+            file: './provider.provider.json',
+            security: [],
+            parameters: {},
+          },
         },
       });
 
@@ -499,7 +503,11 @@ describe('Create logic', () => {
       expect(mockSuperJson.normalized).toEqual({
         profiles: {},
         providers: {
-          provider: { file: `./${mockFilename}.json`, security: [] },
+          provider: {
+            file: `./${mockFilename}.json`,
+            security: [],
+            parameters: {},
+          },
         },
       });
 
@@ -543,10 +551,15 @@ describe('Create logic', () => {
       expect(mockSuperJson.normalized).toEqual({
         profiles: {},
         providers: {
-          provider: { file: './provider.provider.json', security: [] },
+          provider: {
+            file: './provider.provider.json',
+            security: [],
+            parameters: {},
+          },
           secondProvider: {
             file: './secondProvider.provider.json',
             security: [],
+            parameters: {},
           },
         },
       });
@@ -755,7 +768,11 @@ describe('Create logic', () => {
           },
         },
         providers: {
-          provider: { file: './provider.provider.json', security: [] },
+          provider: {
+            file: './provider.provider.json',
+            security: [],
+            parameters: {},
+          },
         },
       });
 

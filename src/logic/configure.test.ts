@@ -225,6 +225,92 @@ describe('Configure CLI logic', () => {
       );
     });
 
+    it('add provider with parameters to super json', async () => {
+      const setProviderSpy = jest.spyOn(SuperJson.prototype, 'setProvider');
+      const setProfileProviderSpy = jest.spyOn(
+        SuperJson.prototype,
+        'setProfileProvider'
+      );
+
+      const customProviderJson: ProviderJson = {
+        name: 'provider-test',
+        services: [
+          {
+            id: 'swapidev',
+            baseUrl: 'https://swapi.dev/api',
+          },
+        ],
+        securitySchemes: [
+          {
+            id: 'api',
+            type: SecurityType.APIKEY,
+            in: ApiKeyPlacement.HEADER,
+            name: 'X-API-Key',
+          },
+          {
+            id: 'bearer',
+            type: SecurityType.HTTP,
+            scheme: HttpScheme.BEARER,
+          },
+          {
+            id: 'basic',
+            type: SecurityType.HTTP,
+            scheme: HttpScheme.BASIC,
+          },
+          {
+            id: 'digest',
+            type: SecurityType.HTTP,
+            scheme: HttpScheme.DIGEST,
+          },
+        ],
+        defaultService: 'swapidev',
+        parameters: [
+          {
+            name: 'first',
+            default: 'first-value',
+            description: '1',
+          },
+          {
+            name: 'second',
+            description: '2',
+          },
+          {
+            name: 'third',
+          },
+        ],
+      };
+
+      expect(
+        handleProviderResponse(mockSuperJson, mockProfileId, customProviderJson)
+      ).toEqual(4);
+
+      expect(setProviderSpy).toHaveBeenCalledTimes(1);
+      expect(setProviderSpy).toHaveBeenCalledWith('provider-test', {
+        security: [
+          { apikey: '$PROVIDER_TEST_API_KEY', id: 'api' },
+          { id: 'bearer', token: '$PROVIDER_TEST_TOKEN' },
+          {
+            id: 'basic',
+            password: '$PROVIDER_TEST_PASSWORD',
+            username: '$PROVIDER_TEST_USERNAME',
+          },
+          { digest: '$PROVIDER_TEST_DIGEST', id: 'digest' },
+        ],
+        parameters: {
+          first: 'first-value',
+          second: '',
+          third: '',
+        },
+      });
+
+      expect(setProfileProviderSpy).toHaveBeenCalledTimes(1);
+      expect(setProfileProviderSpy).toHaveBeenCalledWith(
+        mockProfileId.id,
+        'provider-test',
+        {}
+      );
+    });
+
     it('does not throw error on unknown security scheme', async () => {
       const mockProviderJsonWithSingleSchema: ProviderJson = {
         name: providerName,

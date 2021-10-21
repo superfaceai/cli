@@ -364,7 +364,7 @@ export type ProfileResponse = {
   ast: ProfileDocumentNode;
 };
 export async function getProfileFromStore(
-  profileId: string,
+  profileId: ProfileId,
   version?: string,
   options?: {
     logCb?: LogCallback;
@@ -372,31 +372,41 @@ export async function getProfileFromStore(
     tryToAuthenticate?: boolean;
   }
 ): Promise<ProfileResponse | undefined> {
-  if (version !== undefined) {
-    profileId = `${profileId}@${version}`;
-  }
+  const profileIdStr = profileId.withVersion(version);
 
   // fetch the profile
   let info: ProfileInfo;
   let profile: string;
   let ast: ProfileDocumentNode;
-  options?.logCb?.(`\nFetching profile ${profileId} from the Store`);
+  options?.logCb?.(`\nFetching profile ${profileIdStr} from the Store`);
 
   try {
-    info = await fetchProfileInfo(profileId, {
+    info = await fetchProfileInfo(profileIdStr, {
       tryToAuthenticate: options?.tryToAuthenticate,
     });
-    options?.logCb?.(`GET Profile Info ${profileId}`);
+    options?.logCb?.(`Fetching profile info of profile ${profileIdStr}`);
 
-    profile = await fetchProfile(profileId, {
+    profile = await fetchProfile(profileIdStr, {
       tryToAuthenticate: options?.tryToAuthenticate,
     });
-    options?.logCb?.(`GET Profile Source File ${profileId}`);
+    options?.logCb?.(`Fetching profile source file for ${profileIdStr}`);
 
-    ast = await fetchProfileAST(profileId, {
-      tryToAuthenticate: options?.tryToAuthenticate,
-    });
-    options?.logCb?.(`GET compiled Profile ${profileId}`);
+    try {
+      //This can fail due to validation issues, ast and parser version issues
+      ast = await fetchProfileAST(profileIdStr, {
+        tryToAuthenticate: options?.tryToAuthenticate,
+      });
+      options?.logCb?.(`Fetching compiled profile for ${profileIdStr}`);
+    } catch (error) {
+      options?.warnCb?.(
+        `Fetching compiled profile for ${profileIdStr} failed, trying to parse source file`
+      );
+      //We try to parse profile on our own
+      ast = await Parser.parseProfile(profile, profileIdStr, {
+        profileName: profileId.name,
+        scope: profileId.scope,
+      });
+    }
   } catch (error) {
     // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
     options?.warnCb?.(`Could not fetch ${profileId}: ${error}`);
@@ -417,7 +427,7 @@ async function fetchStoreRequestCheckedOrDeferred(
   options?: InstallOptions
 ): Promise<StoreRequestFetched | undefined> {
   const fetched = await getProfileFromStore(
-    request.profileId.id,
+    request.profileId,
     request.version,
     options
   );

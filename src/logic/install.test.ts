@@ -176,7 +176,9 @@ describe('Install CLI logic', () => {
 
       const profileId = 'starwars/character-information';
 
-      await expect(getProfileFromStore(profileId)).resolves.toEqual({
+      await expect(
+        getProfileFromStore(ProfileId.fromId(profileId))
+      ).resolves.toEqual({
         ast: mockProfileAst,
         info: mockProfileInfo,
         profile: mockProfile,
@@ -195,6 +197,44 @@ describe('Install CLI logic', () => {
       });
     }, 10000);
 
+    it('gets profile when AST validation failed', async () => {
+      mocked(fetchProfileInfo).mockResolvedValue(mockProfileInfo);
+      mocked(fetchProfileAST).mockRejectedValue(new Error('validation error'));
+      //mock profile
+      const mockProfile = 'mock profile';
+      mocked(fetchProfile).mockResolvedValue(mockProfile);
+
+      const parseProfileSpy = jest
+        .spyOn(Parser, 'parseProfile')
+        .mockResolvedValue(mockProfileAst);
+
+      const profileId = 'starwars/character-information';
+
+      await expect(
+        getProfileFromStore(ProfileId.fromId(profileId))
+      ).resolves.toEqual({
+        ast: mockProfileAst,
+        info: mockProfileInfo,
+        profile: mockProfile,
+      });
+      expect(fetchProfile).toHaveBeenCalledTimes(1);
+      expect(fetchProfileAST).toHaveBeenCalledTimes(1);
+      expect(fetchProfileInfo).toHaveBeenCalledTimes(1);
+      expect(fetchProfile).toHaveBeenCalledWith(profileId, {
+        tryToAuthenticate: undefined,
+      });
+      expect(fetchProfileInfo).toHaveBeenCalledWith(profileId, {
+        tryToAuthenticate: undefined,
+      });
+      expect(fetchProfileAST).toHaveBeenCalledWith(profileId, {
+        tryToAuthenticate: undefined,
+      });
+      expect(parseProfileSpy).toHaveBeenCalledWith(mockProfile, profileId, {
+        profileName: 'character-information',
+        scope: 'starwars',
+      });
+    }, 10000);
+
     it('gets profile with auth', async () => {
       mocked(fetchProfileInfo).mockResolvedValue(mockProfileInfo);
       mocked(fetchProfileAST).mockResolvedValue(mockProfileAst);
@@ -205,7 +245,9 @@ describe('Install CLI logic', () => {
       const profileId = 'starwars/character-information';
 
       await expect(
-        getProfileFromStore(profileId, undefined, { tryToAuthenticate: true })
+        getProfileFromStore(ProfileId.fromId(profileId), undefined, {
+          tryToAuthenticate: true,
+        })
       ).resolves.toEqual({
         ast: mockProfileAst,
         info: mockProfileInfo,
@@ -223,7 +265,8 @@ describe('Install CLI logic', () => {
       expect(fetchProfileAST).toHaveBeenCalledWith(profileId, {
         tryToAuthenticate: true,
       });
-    }, 10000);
+      10000;
+    });
 
     it('throws user error on invalid profileId', async () => {
       mocked(fetchProfileInfo).mockRejectedValue(
@@ -232,7 +275,9 @@ describe('Install CLI logic', () => {
 
       const profileId = 'made-up';
 
-      await expect(getProfileFromStore(profileId)).resolves.toBeUndefined();
+      await expect(
+        getProfileFromStore(ProfileId.fromId(profileId))
+      ).resolves.toBeUndefined();
       expect(fetchProfileInfo).toHaveBeenCalledTimes(1);
       expect(fetchProfileInfo).toHaveBeenCalledWith(profileId, {
         tryToAuthenticate: undefined,

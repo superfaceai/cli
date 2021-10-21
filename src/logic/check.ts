@@ -94,6 +94,7 @@ export async function check(
         map.provider,
         options
       );
+      assertProviderJson(providerFiles.source);
 
       options?.logCb?.(
         `Checking profile: "${profile.id.toString()}" and map for provider: "${

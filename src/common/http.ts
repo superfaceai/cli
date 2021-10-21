@@ -180,7 +180,7 @@ export async function fetchProviderInfo(
   //TODO: user agent? Control authenticate?
   const response = await SuperfaceClient.getClient().getProvider(providerName);
 
-  return assertProviderJson(response);
+  return assertProviderJson(response.definition);
 }
 
 async function checkSuperfaceResponse(response: Response): Promise<Response> {
