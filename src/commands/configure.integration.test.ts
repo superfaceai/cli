@@ -118,7 +118,6 @@ describe('Configure CLI command', () => {
       expect(result.stdout).toMatch(
         '🆗 Parameter version configured with default value "v1"'
       );
-
       expect(result.stdout).toContain(
         '❌ Parameter instance with description "Instance of your azure cognitive service" has not been configured.'
       );
@@ -183,7 +182,7 @@ describe('Configure CLI command', () => {
       await mockServer
         .get('/providers/' + emptyProvider)
         .withHeaders({ 'Content-Type': ContentType.JSON })
-        .thenJson(200, mockProviderInfo);
+        .thenJson(200, { definition: mockProviderInfo });
 
       result = await execCLI(
         tempDir,
@@ -233,7 +232,7 @@ describe('Configure CLI command', () => {
       await mockServer
         .get('/providers/' + providerWithoutSecurity)
         .withHeaders({ 'Content-Type': ContentType.JSON })
-        .thenJson(200, mockProviderInfo);
+        .thenJson(200, { definition: mockProviderInfo });
 
       result = await execCLI(
         tempDir,
@@ -406,7 +405,7 @@ describe('Configure CLI command', () => {
       await mockServer
         .get('/providers/' + simpleProvider)
         .withHeaders({ 'Content-Type': ContentType.JSON })
-        .thenJson(200, mockProviderInfo);
+        .thenJson(200, { definition: mockProviderInfo });
 
       const result = await execCLI(
         tempDir,

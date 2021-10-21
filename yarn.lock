@@ -890,7 +890,7 @@
   dependencies:
     typescript-is "^0.18.3"
 
-"@superfaceai/one-sdk@>=0.0.40":
+"@superfaceai/one-sdk@0.0.40":
   version "0.0.40"
   resolved "https://registry.yarnpkg.com/@superfaceai/one-sdk/-/one-sdk-0.0.40.tgz#fd0e5c416be044e7420e8aff3363f24eb6ba5228"
   integrity sha512-YhHxQ4MaNvpoM+L0db8mEc/I/riMeYRnqSI2+2BqIMRS5drrrDItyZuYWDIA53jgB+tapKAc5GJkB79Va86Dkg==
@@ -914,10 +914,10 @@
     debug "^4.3.1"
     typescript "^4"
 
-"@superfaceai/service-client@0.0.23":
-  version "0.0.23"
-  resolved "https://registry.yarnpkg.com/@superfaceai/service-client/-/service-client-0.0.23.tgz#7ad70368337dc97760b6b03f573f1bbc604624b7"
-  integrity sha512-2SCy12wTqlfJja5Y2am3UK2vW9+oCJUgwrEze4SH6KqAwEFkj+USuLyATa4wk0uT2two4ySLsxuCucLn/9TSeA==
+"@superfaceai/service-client@0.0.25":
+  version "0.0.25"
+  resolved "https://registry.yarnpkg.com/@superfaceai/service-client/-/service-client-0.0.25.tgz#33f37dbdc279e6527420fe4beb0e1aee747d2689"
+  integrity sha512-3lxiVNl3cZOVxfSqckuB3ZnnLmJGzLk4exw4MwK0bp8NbvknAqr3jAUJGaPMNJWxoBKnErejYf85KFrGmHKMdg==
   dependencies:
     cross-fetch "^3.1.0"
 
