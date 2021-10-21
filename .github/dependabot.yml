@@ -1,9 +1,9 @@
 version: 2
 updates:
-  - package-ecosystem: 'yarn'
-    directory: '/'
+  - package-ecosystem: "npm"
+    directory: "/"
     schedule:
-      interval: 'daily'
+      interval: "daily"
     allow:
-      - dependency-name: '@superfaceai/*'
-        dependency-type: 'direct'
+      - dependency-name: "@superfaceai/*"
+        dependency-type: "direct"
