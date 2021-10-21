@@ -1,10 +1,10 @@
 import { CLIError } from '@oclif/errors';
-import { MapDocumentNode, ProfileDocumentNode } from '@superfaceai/ast';
-import { err, ok, Parser, SuperJson } from '@superfaceai/one-sdk';
+import { err, ok, SuperJson } from '@superfaceai/one-sdk';
 import { SDKExecutionError } from '@superfaceai/one-sdk/dist/internal/errors';
 import { mocked } from 'ts-jest/utils';
 
-import { exists, readFile } from '../common/io';
+import { ProfileId } from '../common/profile';
+import { compile } from '../logic/compile';
 import { detectSuperJson } from '../logic/install';
 import Compile from './compile';
 
@@ -13,22 +13,9 @@ jest.mock('../logic/install', () => ({
   detectSuperJson: jest.fn(),
 }));
 
-//Mock io
-jest.mock('../common/io', () => ({
-  readFile: jest.fn(),
-  isDirectoryQuiet: jest.fn(),
-  exists: jest.fn(),
-}));
-
-//Mock output stream
-jest.mock('../common/output-stream');
-
-jest.mock('@superfaceai/one-sdk/dist/internal/parser', () => ({
-  ...jest.requireActual<Record<string, unknown>>(
-    '@superfaceai/one-sdk/dist/internal/parser'
-  ),
-  parseMap: jest.fn(),
-  parseProfile: jest.fn(),
+//Mock compile logic
+jest.mock('../logic/compile', () => ({
+  compile: jest.fn(),
 }));
 
 describe('Compile CLI command', () => {
@@ -37,544 +24,670 @@ describe('Compile CLI command', () => {
   });
 
   describe('running compile command', () => {
-    const mockProfileContent = 'mock-profile-content';
-    const mockMapContent = 'mock-map-content';
-
-    const mockMapDocument: MapDocumentNode = {
-      kind: 'MapDocument',
-      header: {
-        kind: 'MapHeader',
-        profile: {
-          name: 'different-test-profile',
-          scope: 'some-map-scope',
-          version: {
-            major: 1,
-            minor: 0,
-            patch: 0,
+    const mockProfile = 'starwars/character-information';
+    const secondMockProfile = 'startrek/character-information';
+    const mockProvider = 'swapi';
+    const secondMockProvider = 'starwarsapi';
+    const thirdMockProvider = 'startrek';
+    const mockSuperJson = new SuperJson({
+      profiles: {
+        [mockProfile]: {
+          file: `../${mockProfile}.supr`,
+          defaults: {},
+          providers: {
+            [mockProvider]: {
+              file: `../${mockProfile}.${mockProvider}.suma`,
+            },
+            [secondMockProvider]: {
+              file: `../${mockProfile}.${secondMockProvider}.suma`,
+            },
           },
         },
-        provider: 'test-profile',
-      },
-      definitions: [],
-    };
-
-    const mockProfileDocument: ProfileDocumentNode = {
-      kind: 'ProfileDocument',
-      header: {
-        kind: 'ProfileHeader',
-        name: 'test-profile',
-        version: {
-          major: 1,
-          minor: 0,
-          patch: 0,
+        [secondMockProfile]: {
+          file: `../${secondMockProfile}.supr`,
+          defaults: {},
+          providers: {
+            [thirdMockProvider]: {
+              file: `../${secondMockProfile}.${thirdMockProvider}.suma`,
+            },
+          },
+        },
+        'other/profile': {
+          version: '1.0.0',
+          defaults: {},
+          providers: {
+            [mockProvider]: {
+              mapVariant: 'test',
+            },
+          },
         },
       },
-      definitions: [],
-    };
-    it('throws error when super.json not found', async () => {
+      providers: {
+        [mockProvider]: {
+          file: '../swapi.provider.json',
+          security: [],
+        },
+        [secondMockProvider]: {
+          file: '../starwarsapi.provider.json',
+          security: [],
+        },
+        [thirdMockProvider]: {
+          file: '../startrek.provider.json',
+          security: [],
+        },
+      },
+    });
+    it('throws when super.json not found', async () => {
       mocked(detectSuperJson).mockResolvedValue(undefined);
+      await expect(Compile.run([])).rejects.toEqual(
+        new CLIError('❌ Unable to compile, super.json not found')
+      );
+    });
+
+    it('throws when super.json not loaded correctly', async () => {
+      mocked(detectSuperJson).mockResolvedValue('.');
+      jest
+        .spyOn(SuperJson, 'load')
+        .mockResolvedValue(err(new SDKExecutionError('test error', [], [])));
+      await expect(Compile.run([])).rejects.toEqual(
+        new CLIError('❌ Unable to load super.json: test error')
+      );
+    });
+
+    it('throws error on invalid scan flag', async () => {
+      mocked(detectSuperJson).mockResolvedValue('.');
+
+      await expect(Compile.run(['-s test'])).rejects.toEqual(
+        new CLIError('Expected an integer but received:  test')
+      );
+      expect(detectSuperJson).not.toHaveBeenCalled();
+    }, 10000);
+
+    it('throws error on scan flag higher than 5', async () => {
+      mocked(detectSuperJson).mockResolvedValue('.');
+
+      await expect(Compile.run(['-s', '6'])).rejects.toEqual(
+        new CLIError(
+          '❌ --scan/-s : Number of levels to scan cannot be higher than 5'
+        )
+      );
+      expect(detectSuperJson).not.toHaveBeenCalled();
+    }, 10000);
+
+    it('throws error on invalid profile id', async () => {
+      mocked(detectSuperJson).mockResolvedValue('.');
+      const loadSpy = jest
+        .spyOn(SuperJson, 'load')
+        .mockResolvedValue(ok(new SuperJson()));
 
       await expect(
         Compile.run([
           '--profileId',
-          'starwars/character-information',
-          '--profile',
-        ])
-      ).rejects.toEqual(
-        new CLIError('Unable to compile, super.json not found')
-      );
-    });
-
-    it('throws error when unable to load super.json', async () => {
-      mocked(detectSuperJson).mockResolvedValue('.');
-      const loadSpy = jest
-        .spyOn(SuperJson, 'load')
-        .mockResolvedValue(err(new SDKExecutionError('test', [], [])));
-      await expect(
-        Compile.run([
-          '--profileId',
-          'starwars/character-information',
-          '--profile',
-        ])
-      ).rejects.toEqual(new CLIError('Unable to load super.json: test'));
-      expect(loadSpy).toHaveBeenCalledTimes(1);
-    });
-
-    it('throws error when invalid profile id is passed', async () => {
-      const mockProfileId = 'starwars/8-L!';
-      const mockSuperJson = new SuperJson();
-      mocked(detectSuperJson).mockResolvedValue('.');
-      const loadSpy = jest
-        .spyOn(SuperJson, 'load')
-        .mockResolvedValue(ok(mockSuperJson));
-      await expect(
-        Compile.run(['--profileId', mockProfileId, '--profile'])
-      ).rejects.toEqual(
-        new CLIError(
-          'Invalid profile id: "8-L!" is not a valid lowercase identifier'
-        )
-      );
-      expect(loadSpy).toHaveBeenCalledTimes(1);
-    });
-
-    it('throws error when profile not found in super.json', async () => {
-      const mockProfileId = 'starwars/character-information';
-      const mockSuperJson = new SuperJson();
-      mocked(detectSuperJson).mockResolvedValue('.');
-      const loadSpy = jest
-        .spyOn(SuperJson, 'load')
-        .mockResolvedValue(ok(mockSuperJson));
-
-      await expect(
-        Compile.run(['--profileId', mockProfileId, '--profile'])
-      ).rejects.toEqual(
-        new CLIError(`Profile id: "${mockProfileId}" not found in super.json`)
-      );
-      expect(loadSpy).toHaveBeenCalledTimes(1);
-    });
-
-    it('throws error when profile not locally linked in super.json', async () => {
-      const mockProfileId = 'starwars/character-information';
-      const mockSuperJson = new SuperJson({
-        profiles: {
-          [mockProfileId]: {
-            version: '1.0.0',
-          },
-        },
-      });
-      mocked(detectSuperJson).mockResolvedValue('.');
-      const loadSpy = jest
-        .spyOn(SuperJson, 'load')
-        .mockResolvedValue(ok(mockSuperJson));
-
-      await expect(
-        Compile.run(['--profileId', mockProfileId, '--profile'])
-      ).rejects.toEqual(
-        new CLIError(
-          `Profile id: "${mockProfileId}" not locally linked in super.json`
-        )
-      );
-      expect(loadSpy).toHaveBeenCalledTimes(1);
-    });
-
-    it('throws error when profile file not found', async () => {
-      const mockProfileId = 'starwars/character-information';
-      const mockSuperJson = new SuperJson({
-        profiles: {
-          [mockProfileId]: {
-            file: 'some/file.supr',
-          },
-        },
-      });
-      mocked(detectSuperJson).mockResolvedValue('.');
-      const loadSpy = jest
-        .spyOn(SuperJson, 'load')
-        .mockResolvedValue(ok(mockSuperJson));
-      mocked(exists).mockResolvedValue(false);
-
-      await expect(
-        Compile.run(['--profileId', mockProfileId, '--profile'])
-      ).rejects.toEqual(
-        new CLIError(
-          `Path: "${mockSuperJson.resolvePath(
-            'some/file.supr'
-          )}" does not exist`
-        )
-      );
-      expect(loadSpy).toHaveBeenCalledTimes(1);
-    });
-
-    it('parses the profile', async () => {
-      const mockProfileId = 'starwars/character-information';
-      const mockSuperJson = new SuperJson({
-        profiles: {
-          [mockProfileId]: {
-            file: 'some/file.supr',
-          },
-        },
-      });
-      mocked(detectSuperJson).mockResolvedValue('.');
-      const loadSpy = jest
-        .spyOn(SuperJson, 'load')
-        .mockResolvedValue(ok(mockSuperJson));
-
-      mocked(readFile).mockResolvedValue(mockProfileContent);
-      const parseProfileSpy = jest
-        .spyOn(Parser, 'parseProfile')
-        .mockResolvedValue(mockProfileDocument);
-
-      mocked(exists).mockResolvedValue(true);
-
-      await expect(
-        Compile.run(['--profileId', mockProfileId, '--profile'])
-      ).resolves.toBeUndefined();
-
-      expect(loadSpy).toHaveBeenCalledTimes(1);
-      expect(parseProfileSpy).toHaveBeenCalledTimes(1);
-      expect(parseProfileSpy).toHaveBeenCalledWith(
-        mockProfileContent,
-        mockSuperJson.resolvePath('some/file.supr'),
-        {
-          scope: 'starwars',
-          profileName: 'character-information',
-        }
-      );
-    });
-
-    it('throws on missing providerName', async () => {
-      const mockProfileId = 'starwars/character-information';
-      mocked(detectSuperJson).mockResolvedValue('.');
-      const loadSpy = jest.spyOn(SuperJson, 'load');
-
-      mocked(readFile).mockResolvedValue(mockProfileContent);
-      const parseProfileSpy = jest.spyOn(Parser, 'parseProfile');
-
-      mocked(exists).mockResolvedValue(true);
-
-      await expect(
-        Compile.run(['--profileId', mockProfileId, '--profile', '--map'])
-      ).rejects.toEqual(
-        new CLIError(`--providerName= must also be provided when using --map=`)
-      );
-
-      expect(loadSpy).toHaveBeenCalledTimes(0);
-      expect(parseProfileSpy).toHaveBeenCalledTimes(0);
-    });
-
-    it('throws on invalid providerName', async () => {
-      const mockProfileId = 'starwars/character-information';
-      const mockProvider = '8!l%';
-      const mockSuperJson = new SuperJson({
-        profiles: {
-          [mockProfileId]: {
-            file: 'some/file.supr',
-          },
-        },
-      });
-      mocked(detectSuperJson).mockResolvedValue('.');
-      const loadSpy = jest
-        .spyOn(SuperJson, 'load')
-        .mockResolvedValue(ok(mockSuperJson));
-
-      mocked(readFile).mockResolvedValue(mockProfileContent);
-      const parseProfileSpy = jest
-        .spyOn(Parser, 'parseProfile')
-        .mockResolvedValue(mockProfileDocument);
-
-      mocked(exists).mockResolvedValue(true);
-
-      await expect(
-        Compile.run([
-          '--profileId',
-          mockProfileId,
-          '--profile',
+          'U!0_',
           '--providerName',
           mockProvider,
-          '--map',
+          '-s',
+          '3',
         ])
       ).rejects.toEqual(
-        new CLIError(`Invalid provider name: "${mockProvider}"`)
+        new CLIError(
+          '❌ Invalid profile id: "U!0_" is not a valid lowercase identifier'
+        )
       );
+      expect(detectSuperJson).not.toHaveBeenCalled();
+      expect(loadSpy).not.toHaveBeenCalled();
+    }, 10000);
 
-      expect(loadSpy).toHaveBeenCalledTimes(1);
-      expect(parseProfileSpy).toHaveBeenCalledTimes(1);
-      expect(parseProfileSpy).toHaveBeenCalledWith(
-        mockProfileContent,
-        mockSuperJson.resolvePath('some/file.supr'),
-        {
-          scope: 'starwars',
-          profileName: 'character-information',
-        }
-      );
-    });
-
-    it('throws when provider not found in super.json', async () => {
-      const mockProfileId = 'starwars/character-information';
-      const mockProvider = 'swapi';
-      const mockSuperJson = new SuperJson({
-        profiles: {
-          [mockProfileId]: {
-            file: 'some/file.supr',
-          },
-        },
-      });
+    it('throws error on invalid provider name', async () => {
       mocked(detectSuperJson).mockResolvedValue('.');
       const loadSpy = jest
         .spyOn(SuperJson, 'load')
-        .mockResolvedValue(ok(mockSuperJson));
-
-      mocked(readFile).mockResolvedValue(mockProfileContent);
-      const parseProfileSpy = jest
-        .spyOn(Parser, 'parseProfile')
-        .mockResolvedValue(mockProfileDocument);
-
-      mocked(exists).mockResolvedValue(true);
+        .mockResolvedValue(ok(new SuperJson()));
 
       await expect(
         Compile.run([
           '--profileId',
-          mockProfileId,
-          '--profile',
+          mockProfile,
           '--providerName',
-          mockProvider,
-          '--map',
+          'U!0_',
+          '-s',
+          '3',
         ])
-      ).rejects.toEqual(
-        new CLIError(
-          `Provider: "${mockProvider}" not found in profile: "${mockProfileId}" in super.json`
-        )
-      );
+      ).rejects.toEqual(new CLIError('❌ Invalid provider name: "U!0_"'));
+      expect(detectSuperJson).not.toHaveBeenCalled();
+      expect(loadSpy).not.toHaveBeenCalled();
+    }, 10000);
 
-      expect(loadSpy).toHaveBeenCalledTimes(1);
-      expect(parseProfileSpy).toHaveBeenCalledTimes(1);
-      expect(parseProfileSpy).toHaveBeenCalledWith(
-        mockProfileContent,
-        mockSuperJson.resolvePath('some/file.supr'),
-        {
-          scope: 'starwars',
-          profileName: 'character-information',
-        }
-      );
-    });
-
-    it('throws when provider not locally linked in super.json', async () => {
-      const mockProfileId = 'starwars/character-information';
-      const mockProvider = 'swapi';
-      const mockSuperJson = new SuperJson({
-        profiles: {
-          [mockProfileId]: {
-            file: 'some/file.supr',
-            providers: {
-              [mockProvider]: {},
-            },
-          },
-        },
-      });
+    it('throws error when provider name is specified but profile id is not', async () => {
       mocked(detectSuperJson).mockResolvedValue('.');
       const loadSpy = jest
         .spyOn(SuperJson, 'load')
-        .mockResolvedValue(ok(mockSuperJson));
+        .mockResolvedValue(ok(new SuperJson()));
 
-      mocked(readFile).mockResolvedValue(mockProfileContent);
-      const parseProfileSpy = jest
-        .spyOn(Parser, 'parseProfile')
-        .mockResolvedValue(mockProfileDocument);
+      await expect(
+        Compile.run(['--providerName', mockProvider, '-s', '3'])
+      ).rejects.toEqual(
+        new CLIError(
+          '❌ --profileId must be specified when using --providerName'
+        )
+      );
+      expect(detectSuperJson).not.toHaveBeenCalled();
+      expect(loadSpy).not.toHaveBeenCalled();
+    }, 10000);
 
-      mocked(exists).mockResolvedValue(true);
+    it('throws error on missing profile id in super.json', async () => {
+      mocked(detectSuperJson).mockResolvedValue('.');
+      const loadSpy = jest
+        .spyOn(SuperJson, 'load')
+        .mockResolvedValue(ok(new SuperJson()));
 
       await expect(
         Compile.run([
           '--profileId',
-          mockProfileId,
-          '--profile',
+          mockProfile,
           '--providerName',
           mockProvider,
-          '--map',
+          '-s',
+          '3',
         ])
       ).rejects.toEqual(
         new CLIError(
-          `Provider: "${mockProvider}" not locally linked in super.json in profile: "${mockProfileId}"`
+          `❌ Unable to compile, profile: "${mockProfile}" not found in super.json`
         )
       );
+      expect(detectSuperJson).toHaveBeenCalled();
+      expect(loadSpy).toHaveBeenCalled();
+    }, 10000);
 
-      expect(loadSpy).toHaveBeenCalledTimes(1);
-      expect(parseProfileSpy).toHaveBeenCalledTimes(1);
-      expect(parseProfileSpy).toHaveBeenCalledWith(
-        mockProfileContent,
-        mockSuperJson.resolvePath('some/file.supr'),
-        {
-          scope: 'starwars',
-          profileName: 'character-information',
-        }
-      );
-    });
-
-    it('throws when map file not found', async () => {
-      const mockProfileId = 'starwars/character-information';
-      const mockProvider = 'swapi';
-      const mockSuperJson = new SuperJson({
-        profiles: {
-          [mockProfileId]: {
-            file: 'some/file.supr',
-            providers: {
-              [mockProvider]: {
-                file: 'some/file.suma',
+    it('throws error on missing provider id in super.json', async () => {
+      mocked(detectSuperJson).mockResolvedValue('.');
+      const loadSpy = jest.spyOn(SuperJson, 'load').mockResolvedValue(
+        ok(
+          new SuperJson({
+            profiles: {
+              [mockProfile]: {
+                version: '1.0.0',
+                defaults: {},
               },
             },
-          },
-        },
-      });
-      mocked(detectSuperJson).mockResolvedValue('.');
-      const loadSpy = jest
-        .spyOn(SuperJson, 'load')
-        .mockResolvedValue(ok(mockSuperJson));
-
-      mocked(readFile).mockResolvedValue(mockProfileContent);
-      const parseProfileSpy = jest
-        .spyOn(Parser, 'parseProfile')
-        .mockResolvedValue(mockProfileDocument);
-
-      mocked(exists).mockResolvedValueOnce(true).mockResolvedValueOnce(false);
-
-      await expect(
-        Compile.run([
-          '--profileId',
-          mockProfileId,
-          '--profile',
-          '--providerName',
-          mockProvider,
-          '--map',
-        ])
-      ).rejects.toEqual(
-        new CLIError(
-          `Path: "${mockSuperJson.resolvePath(
-            'some/file.suma'
-          )}" does not exist`
+            providers: {},
+          })
         )
       );
 
-      expect(loadSpy).toHaveBeenCalledTimes(1);
-      expect(parseProfileSpy).toHaveBeenCalledTimes(1);
-      expect(parseProfileSpy).toHaveBeenCalledWith(
-        mockProfileContent,
-        mockSuperJson.resolvePath('some/file.supr'),
-        {
-          scope: 'starwars',
-          profileName: 'character-information',
-        }
-      );
-    });
-
-    it('compiles map', async () => {
-      const mockProfileId = 'starwars/character-information';
-      const mockProvider = 'swapi';
-      const mockSuperJson = new SuperJson({
-        profiles: {
-          [mockProfileId]: {
-            file: 'some/file.supr',
-            providers: {
-              [mockProvider]: {
-                file: 'some/file.suma',
-              },
-            },
-          },
-        },
-      });
-      mocked(detectSuperJson).mockResolvedValue('.');
-      const loadSpy = jest
-        .spyOn(SuperJson, 'load')
-        .mockResolvedValue(ok(mockSuperJson));
-
-      mocked(readFile)
-        .mockResolvedValueOnce(mockProfileContent)
-        .mockResolvedValueOnce(mockMapContent);
-      const parseProfileSpy = jest
-        .spyOn(Parser, 'parseProfile')
-        .mockResolvedValue(mockProfileDocument);
-      const parseMapSpy = jest
-        .spyOn(Parser, 'parseMap')
-        .mockResolvedValue(mockMapDocument);
-
-      mocked(exists).mockResolvedValueOnce(true).mockResolvedValueOnce(true);
-
       await expect(
         Compile.run([
           '--profileId',
-          mockProfileId,
-          '--profile',
+          mockProfile,
           '--providerName',
           mockProvider,
-          '--map',
+          '-s',
+          '3',
         ])
-      ).resolves.toBeUndefined();
-
-      expect(loadSpy).toHaveBeenCalledTimes(1);
-      expect(parseProfileSpy).toHaveBeenCalledTimes(1);
-      expect(parseProfileSpy).toHaveBeenCalledWith(
-        mockProfileContent,
-        mockSuperJson.resolvePath('some/file.supr'),
-        {
-          scope: 'starwars',
-          profileName: 'character-information',
-        }
+      ).rejects.toEqual(
+        new CLIError(
+          `❌ Unable to compile, provider: "${mockProvider}" not found in profile: "${mockProfile}" in super.json`
+        )
       );
+      expect(detectSuperJson).toHaveBeenCalled();
+      expect(loadSpy).toHaveBeenCalled();
+    }, 10000);
 
-      expect(parseMapSpy).toHaveBeenCalledTimes(1);
-      expect(parseMapSpy).toHaveBeenCalledWith(
-        mockMapContent,
-        mockSuperJson.resolvePath('some/file.suma'),
-        {
-          scope: 'starwars',
-          providerName: mockProvider,
-          profileName: 'character-information',
-        }
-      );
+    describe('compiling whole super json', () => {
+      it('compiles all local profiles and maps file from super.json and scan flag', async () => {
+        const loadSpy = jest
+          .spyOn(SuperJson, 'load')
+          .mockResolvedValue(ok(mockSuperJson));
+
+        mocked(detectSuperJson).mockResolvedValue('.');
+        mocked(compile).mockResolvedValue();
+
+        await expect(Compile.run(['-s', '4'])).resolves.toBeUndefined();
+
+        expect(compile).toHaveBeenCalledWith(
+          [
+            {
+              path: mockSuperJson.resolvePath(`../${mockProfile}.supr`),
+              id: ProfileId.fromId(mockProfile),
+              maps: [
+                {
+                  path: mockSuperJson.resolvePath(
+                    `../${mockProfile}.${mockProvider}.suma`
+                  ),
+                  provider: mockProvider,
+                },
+                {
+                  path: mockSuperJson.resolvePath(
+                    `../${mockProfile}.${secondMockProvider}.suma`
+                  ),
+                  provider: secondMockProvider,
+                },
+              ],
+            },
+            {
+              path: mockSuperJson.resolvePath(`../${secondMockProfile}.supr`),
+              id: ProfileId.fromId(secondMockProfile),
+              maps: [
+                {
+                  path: mockSuperJson.resolvePath(
+                    `../${secondMockProfile}.${thirdMockProvider}.suma`
+                  ),
+                  provider: thirdMockProvider,
+                },
+              ],
+            },
+          ],
+          {
+            logCb: expect.anything(),
+            onlyMap: undefined,
+            onlyProfile: undefined,
+          }
+        );
+
+        expect(detectSuperJson).toHaveBeenCalledWith(process.cwd(), 4);
+        expect(loadSpy).toHaveBeenCalledTimes(1);
+      });
+
+      it('compiles local profiles and maps file from super.json - only maps', async () => {
+        const loadSpy = jest
+          .spyOn(SuperJson, 'load')
+          .mockResolvedValue(ok(mockSuperJson));
+
+        mocked(detectSuperJson).mockResolvedValue('.');
+        mocked(compile).mockResolvedValue();
+
+        await expect(Compile.run(['--onlyMap'])).resolves.toBeUndefined();
+
+        expect(compile).toHaveBeenCalledWith(
+          [
+            {
+              path: mockSuperJson.resolvePath(`../${mockProfile}.supr`),
+              id: ProfileId.fromId(mockProfile),
+              maps: [
+                {
+                  path: mockSuperJson.resolvePath(
+                    `../${mockProfile}.${mockProvider}.suma`
+                  ),
+                  provider: mockProvider,
+                },
+                {
+                  path: mockSuperJson.resolvePath(
+                    `../${mockProfile}.${secondMockProvider}.suma`
+                  ),
+                  provider: secondMockProvider,
+                },
+              ],
+            },
+            {
+              path: mockSuperJson.resolvePath(`../${secondMockProfile}.supr`),
+              id: ProfileId.fromId(secondMockProfile),
+              maps: [
+                {
+                  path: mockSuperJson.resolvePath(
+                    `../${secondMockProfile}.${thirdMockProvider}.suma`
+                  ),
+                  provider: thirdMockProvider,
+                },
+              ],
+            },
+          ],
+          { logCb: expect.anything(), onlyMap: true, onlyProfile: undefined }
+        );
+
+        expect(detectSuperJson).toHaveBeenCalledWith(process.cwd(), undefined);
+        expect(loadSpy).toHaveBeenCalledTimes(1);
+      });
+
+      it('compiles local profiles and maps file from super.json - only profiles', async () => {
+        const loadSpy = jest
+          .spyOn(SuperJson, 'load')
+          .mockResolvedValue(ok(mockSuperJson));
+
+        mocked(detectSuperJson).mockResolvedValue('.');
+        mocked(compile).mockResolvedValue();
+
+        await expect(Compile.run(['--onlyProfile'])).resolves.toBeUndefined();
+
+        expect(compile).toHaveBeenCalledWith(
+          [
+            {
+              path: mockSuperJson.resolvePath(`../${mockProfile}.supr`),
+              id: ProfileId.fromId(mockProfile),
+              maps: [
+                {
+                  path: mockSuperJson.resolvePath(
+                    `../${mockProfile}.${mockProvider}.suma`
+                  ),
+                  provider: mockProvider,
+                },
+                {
+                  path: mockSuperJson.resolvePath(
+                    `../${mockProfile}.${secondMockProvider}.suma`
+                  ),
+                  provider: secondMockProvider,
+                },
+              ],
+            },
+            {
+              path: mockSuperJson.resolvePath(`../${secondMockProfile}.supr`),
+              id: ProfileId.fromId(secondMockProfile),
+              maps: [
+                {
+                  path: mockSuperJson.resolvePath(
+                    `../${secondMockProfile}.${thirdMockProvider}.suma`
+                  ),
+                  provider: thirdMockProvider,
+                },
+              ],
+            },
+          ],
+          { logCb: expect.anything(), onlyMap: undefined, onlyProfile: true }
+        );
+
+        expect(detectSuperJson).toHaveBeenCalledWith(process.cwd(), undefined);
+        expect(loadSpy).toHaveBeenCalledTimes(1);
+      });
+
+      it('compiles local profiles and maps file from super.json - quiet flag', async () => {
+        const loadSpy = jest
+          .spyOn(SuperJson, 'load')
+          .mockResolvedValue(ok(mockSuperJson));
+
+        mocked(detectSuperJson).mockResolvedValue('.');
+        mocked(compile).mockResolvedValue();
+
+        await expect(Compile.run(['-q'])).resolves.toBeUndefined();
+
+        expect(compile).toHaveBeenCalledWith(
+          [
+            {
+              path: mockSuperJson.resolvePath(`../${mockProfile}.supr`),
+              id: ProfileId.fromId(mockProfile),
+              maps: [
+                {
+                  path: mockSuperJson.resolvePath(
+                    `../${mockProfile}.${mockProvider}.suma`
+                  ),
+                  provider: mockProvider,
+                },
+                {
+                  path: mockSuperJson.resolvePath(
+                    `../${mockProfile}.${secondMockProvider}.suma`
+                  ),
+                  provider: secondMockProvider,
+                },
+              ],
+            },
+            {
+              path: mockSuperJson.resolvePath(`../${secondMockProfile}.supr`),
+              id: ProfileId.fromId(secondMockProfile),
+              maps: [
+                {
+                  path: mockSuperJson.resolvePath(
+                    `../${secondMockProfile}.${thirdMockProvider}.suma`
+                  ),
+                  provider: thirdMockProvider,
+                },
+              ],
+            },
+          ],
+          { logCb: undefined, onlyMap: undefined, onlyProfile: undefined }
+        );
+
+        expect(detectSuperJson).toHaveBeenCalledWith(process.cwd(), undefined);
+        expect(loadSpy).toHaveBeenCalledTimes(1);
+      });
     });
 
-    it('compiles map for provider with - in name', async () => {
-      const mockProfileId = 'starwars/character-information';
-      const mockProvider = 'swapi-provider';
-      const mockSuperJson = new SuperJson({
-        profiles: {
-          [mockProfileId]: {
-            file: 'some/file.supr',
-            providers: {
-              [mockProvider]: {
-                file: 'some/file.suma',
-              },
+    describe('compiling single profile', () => {
+      it('compiles single local profile and its maps', async () => {
+        const loadSpy = jest
+          .spyOn(SuperJson, 'load')
+          .mockResolvedValue(ok(mockSuperJson));
+
+        mocked(detectSuperJson).mockResolvedValue('.');
+        mocked(compile).mockResolvedValue();
+
+        await expect(
+          Compile.run(['--profileId', mockProfile])
+        ).resolves.toBeUndefined();
+
+        expect(compile).toHaveBeenCalledWith(
+          [
+            {
+              path: mockSuperJson.resolvePath(`../${mockProfile}.supr`),
+              id: ProfileId.fromId(mockProfile),
+              maps: [
+                {
+                  path: mockSuperJson.resolvePath(
+                    `../${mockProfile}.${mockProvider}.suma`
+                  ),
+                  provider: mockProvider,
+                },
+                {
+                  path: mockSuperJson.resolvePath(
+                    `../${mockProfile}.${secondMockProvider}.suma`
+                  ),
+                  provider: secondMockProvider,
+                },
+              ],
             },
-          },
-        },
+          ],
+          {
+            logCb: expect.anything(),
+            onlyMap: undefined,
+            onlyProfile: undefined,
+          }
+        );
+
+        expect(detectSuperJson).toHaveBeenCalledWith(process.cwd(), undefined);
+        expect(loadSpy).toHaveBeenCalledTimes(1);
       });
-      mocked(detectSuperJson).mockResolvedValue('.');
-      const loadSpy = jest
-        .spyOn(SuperJson, 'load')
-        .mockResolvedValue(ok(mockSuperJson));
 
-      mocked(readFile)
-        .mockResolvedValueOnce(mockProfileContent)
-        .mockResolvedValueOnce(mockMapContent);
-      const parseProfileSpy = jest
-        .spyOn(Parser, 'parseProfile')
-        .mockResolvedValue(mockProfileDocument);
-      const parseMapSpy = jest
-        .spyOn(Parser, 'parseMap')
-        .mockResolvedValue(mockMapDocument);
+      it('compiles single local profile and its maps - only maps', async () => {
+        const loadSpy = jest
+          .spyOn(SuperJson, 'load')
+          .mockResolvedValue(ok(mockSuperJson));
 
-      mocked(exists).mockResolvedValueOnce(true).mockResolvedValueOnce(true);
+        mocked(detectSuperJson).mockResolvedValue('.');
+        mocked(compile).mockResolvedValue();
 
-      await expect(
-        Compile.run([
-          '--profileId',
-          mockProfileId,
-          '--profile',
-          '--providerName',
-          mockProvider,
-          '--map',
-        ])
-      ).resolves.toBeUndefined();
+        await expect(
+          Compile.run(['--profileId', mockProfile, '--onlyMap'])
+        ).resolves.toBeUndefined();
 
-      expect(loadSpy).toHaveBeenCalledTimes(1);
-      expect(parseProfileSpy).toHaveBeenCalledTimes(1);
-      expect(parseProfileSpy).toHaveBeenCalledWith(
-        mockProfileContent,
-        mockSuperJson.resolvePath('some/file.supr'),
-        {
-          scope: 'starwars',
-          profileName: 'character-information',
-        }
-      );
+        expect(compile).toHaveBeenCalledWith(
+          [
+            {
+              path: mockSuperJson.resolvePath(`../${mockProfile}.supr`),
+              id: ProfileId.fromId(mockProfile),
+              maps: [
+                {
+                  path: mockSuperJson.resolvePath(
+                    `../${mockProfile}.${mockProvider}.suma`
+                  ),
+                  provider: mockProvider,
+                },
+                {
+                  path: mockSuperJson.resolvePath(
+                    `../${mockProfile}.${secondMockProvider}.suma`
+                  ),
+                  provider: secondMockProvider,
+                },
+              ],
+            },
+          ],
+          { logCb: expect.anything(), onlyMap: true, onlyProfile: undefined }
+        );
 
-      expect(parseMapSpy).toHaveBeenCalledTimes(1);
-      expect(parseMapSpy).toHaveBeenCalledWith(
-        mockMapContent,
-        mockSuperJson.resolvePath('some/file.suma'),
-        {
-          scope: 'starwars',
-          providerName: mockProvider,
-          profileName: 'character-information',
-        }
-      );
+        expect(detectSuperJson).toHaveBeenCalledWith(process.cwd(), undefined);
+        expect(loadSpy).toHaveBeenCalledTimes(1);
+      });
+
+      it('compiles single local profile and its maps - only profiles', async () => {
+        const loadSpy = jest
+          .spyOn(SuperJson, 'load')
+          .mockResolvedValue(ok(mockSuperJson));
+
+        mocked(detectSuperJson).mockResolvedValue('.');
+        mocked(compile).mockResolvedValue();
+
+        await expect(
+          Compile.run(['--profileId', mockProfile, '--onlyProfile'])
+        ).resolves.toBeUndefined();
+
+        expect(compile).toHaveBeenCalledWith(
+          [
+            {
+              path: mockSuperJson.resolvePath(`../${mockProfile}.supr`),
+              id: ProfileId.fromId(mockProfile),
+              maps: [
+                {
+                  path: mockSuperJson.resolvePath(
+                    `../${mockProfile}.${mockProvider}.suma`
+                  ),
+                  provider: mockProvider,
+                },
+                {
+                  path: mockSuperJson.resolvePath(
+                    `../${mockProfile}.${secondMockProvider}.suma`
+                  ),
+                  provider: secondMockProvider,
+                },
+              ],
+            },
+          ],
+          { logCb: expect.anything(), onlyMap: undefined, onlyProfile: true }
+        );
+
+        expect(detectSuperJson).toHaveBeenCalledWith(process.cwd(), undefined);
+        expect(loadSpy).toHaveBeenCalledTimes(1);
+      });
+    });
+
+    describe('compiling single profile and single map', () => {
+      it('compiles single local profile and single local map', async () => {
+        const loadSpy = jest
+          .spyOn(SuperJson, 'load')
+          .mockResolvedValue(ok(mockSuperJson));
+
+        mocked(detectSuperJson).mockResolvedValue('.');
+        mocked(compile).mockResolvedValue();
+
+        await expect(
+          Compile.run([
+            '--profileId',
+            mockProfile,
+            '--providerName',
+            mockProvider,
+          ])
+        ).resolves.toBeUndefined();
+
+        expect(compile).toHaveBeenCalledWith(
+          [
+            {
+              path: mockSuperJson.resolvePath(`../${mockProfile}.supr`),
+              id: ProfileId.fromId(mockProfile),
+              maps: [
+                {
+                  path: mockSuperJson.resolvePath(
+                    `../${mockProfile}.${mockProvider}.suma`
+                  ),
+                  provider: mockProvider,
+                },
+              ],
+            },
+          ],
+          {
+            logCb: expect.anything(),
+            onlyMap: undefined,
+            onlyProfile: undefined,
+          }
+        );
+
+        expect(detectSuperJson).toHaveBeenCalledWith(process.cwd(), undefined);
+        expect(loadSpy).toHaveBeenCalledTimes(1);
+      });
+
+      it('compiles single local profile and single local map - only maps', async () => {
+        const loadSpy = jest
+          .spyOn(SuperJson, 'load')
+          .mockResolvedValue(ok(mockSuperJson));
+
+        mocked(detectSuperJson).mockResolvedValue('.');
+        mocked(compile).mockResolvedValue();
+
+        await expect(
+          Compile.run([
+            '--profileId',
+            mockProfile,
+            '--providerName',
+            mockProvider,
+            '--onlyMap',
+          ])
+        ).resolves.toBeUndefined();
+
+        expect(compile).toHaveBeenCalledWith(
+          [
+            {
+              path: mockSuperJson.resolvePath(`../${mockProfile}.supr`),
+              id: ProfileId.fromId(mockProfile),
+              maps: [
+                {
+                  path: mockSuperJson.resolvePath(
+                    `../${mockProfile}.${mockProvider}.suma`
+                  ),
+                  provider: mockProvider,
+                },
+              ],
+            },
+          ],
+          { logCb: expect.anything(), onlyMap: true, onlyProfile: undefined }
+        );
+
+        expect(detectSuperJson).toHaveBeenCalledWith(process.cwd(), undefined);
+        expect(loadSpy).toHaveBeenCalledTimes(1);
+      });
+
+      it('compiles single local profile and single local map - only profiles', async () => {
+        const loadSpy = jest
+          .spyOn(SuperJson, 'load')
+          .mockResolvedValue(ok(mockSuperJson));
+
+        mocked(detectSuperJson).mockResolvedValue('.');
+        mocked(compile).mockResolvedValue();
+
+        await expect(
+          Compile.run([
+            '--profileId',
+            mockProfile,
+            '--providerName',
+            mockProvider,
+            '--onlyProfile',
+          ])
+        ).resolves.toBeUndefined();
+
+        expect(compile).toHaveBeenCalledWith(
+          [
+            {
+              path: mockSuperJson.resolvePath(`../${mockProfile}.supr`),
+              id: ProfileId.fromId(mockProfile),
+              maps: [
+                {
+                  path: mockSuperJson.resolvePath(
+                    `../${mockProfile}.${mockProvider}.suma`
+                  ),
+                  provider: mockProvider,
+                },
+              ],
+            },
+          ],
+          { logCb: expect.anything(), onlyMap: undefined, onlyProfile: true }
+        );
+
+        expect(detectSuperJson).toHaveBeenCalledWith(process.cwd(), undefined);
+        expect(loadSpy).toHaveBeenCalledTimes(1);
+      });
     });
   });
 });
