@@ -883,6 +883,13 @@
   dependencies:
     "@sinonjs/commons" "^1.7.0"
 
+"@superfaceai/ast@0.0.32":
+  version "0.0.32"
+  resolved "https://registry.yarnpkg.com/@superfaceai/ast/-/ast-0.0.32.tgz#9230c970e6c3319e89eea312925b9d63d3c2c47b"
+  integrity sha512-ZAsLWlr7b/orV3zRpXySeihhYLQE1t9J+ZHYnsnb4UKahXPqIPr7F3bnRCusS6scXOvCA2oCu1cOsotHqcg5cA==
+  dependencies:
+    typescript-is "^0.18.3"
+
 "@superfaceai/ast@>=0.0.34":
   version "0.0.34"
   resolved "https://registry.yarnpkg.com/@superfaceai/ast/-/ast-0.0.34.tgz#2bdfbb485bd2b7ee9d0a398fb3e2b7a1cce77173"
@@ -890,19 +897,36 @@
   dependencies:
     typescript-is "^0.18.3"
 
-"@superfaceai/one-sdk@>=0.0.40":
-  version "0.0.40"
-  resolved "https://registry.yarnpkg.com/@superfaceai/one-sdk/-/one-sdk-0.0.40.tgz#fd0e5c416be044e7420e8aff3363f24eb6ba5228"
-  integrity sha512-YhHxQ4MaNvpoM+L0db8mEc/I/riMeYRnqSI2+2BqIMRS5drrrDItyZuYWDIA53jgB+tapKAc5GJkB79Va86Dkg==
+"@superfaceai/ast@^0.0.29":
+  version "0.0.29"
+  resolved "https://registry.yarnpkg.com/@superfaceai/ast/-/ast-0.0.29.tgz#944de20d615029cef666cfe3dfb8511946f471f4"
+  integrity sha512-buUBbk7gX6/E7sTvw9LBANbqAwKTEkH7ptbc4zgOB7caAf08TXpkNgknbTpbvsE7ySnh0nvI2n7RHAeXHO3CWQ==
   dependencies:
-    "@superfaceai/ast" ">=0.0.34"
-    "@superfaceai/parser" ">=0.0.23"
+    typescript-is "^0.18.3"
+
+"@superfaceai/one-sdk@>=0.0.40":
+  version "0.0.43"
+  resolved "https://registry.yarnpkg.com/@superfaceai/one-sdk/-/one-sdk-0.0.43.tgz#2ed4ad44de0320562001db9488897004e69e6059"
+  integrity sha512-GIUBBR7dPTHKRcPHWB/IivwVBOpSCu9mUUUxUr+1jwqcxz8aJQ/WRUkwjxcTX5VN+nf5dYuSrB5xsxW/Rqtdkw==
+  dependencies:
+    "@superfaceai/ast" "0.0.32"
+    "@superfaceai/parser" "0.0.22"
     abort-controller "^3.0.0"
     cross-fetch "^3.0.5"
     debug "^4.3.2"
     isomorphic-form-data "^2.0.0"
     vm2 "^3.9.2"
     zod "^2.0.0-beta.30"
+
+"@superfaceai/parser@0.0.22":
+  version "0.0.22"
+  resolved "https://registry.yarnpkg.com/@superfaceai/parser/-/parser-0.0.22.tgz#38bca4a3b6c9c7741c245ce1a5e02de8534f384e"
+  integrity sha512-mWKBi0b0bQjmSyLvI92AP7KFwcG2q9w8MYtXu+wDJE5dnwcPtg/qfVaawyUYzC1DWu5Oe4Bt8khDAayenD6o6g==
+  dependencies:
+    "@superfaceai/ast" "^0.0.29"
+    "@types/debug" "^4.1.5"
+    debug "^4.3.1"
+    typescript "^4"
 
 "@superfaceai/parser@>=0.0.23":
   version "0.0.23"
@@ -1870,7 +1894,7 @@ debug@2.6.9, debug@^2.6.9:
   dependencies:
     ms "2.0.0"
 
-debug@4, debug@^4.3.2:
+debug@4, debug@^4.0.1, debug@^4.1.0, debug@^4.1.1, debug@^4.3.1, debug@^4.3.2:
   version "4.3.2"
   resolved "https://registry.yarnpkg.com/debug/-/debug-4.3.2.tgz#f0a49c18ac8779e31d4a0c6029dfb76873c7428b"
   integrity sha512-mOp8wKcvj7XxC78zLgw/ZA+6TSgkoE2C/ienthhRD298T7UNwAg9diBpLRxC0mOezLl4B0xV7M0cCO6P/O0Xhw==
@@ -1883,13 +1907,6 @@ debug@^3.1.0, debug@^3.1.1, debug@^3.2.7:
   integrity sha512-CFjzYYAi4ThfiQvizrFQevTTXHtnCqWfe7x1AhgEscTz6ZbLbfoLRLPugTQyBth6f8ZERVUSyWHFD/7Wu4t1XQ==
   dependencies:
     ms "^2.1.1"
-
-debug@^4.0.1, debug@^4.1.0, debug@^4.1.1, debug@^4.3.1:
-  version "4.3.1"
-  resolved "https://registry.yarnpkg.com/debug/-/debug-4.3.1.tgz#f0d229c505e0c6d8c49ac553d1b13dc183f6b2ee"
-  integrity sha512-doEwdvm4PCeK4K3RQN2ZC2BYUBaxwLARCqZmMjtF8a51J2Rb0xpVloFRnCODwqjpwnAoao4pelN8l3RJdv3gRQ==
-  dependencies:
-    ms "2.1.2"
 
 decimal.js@^10.2.1:
   version "10.2.1"
