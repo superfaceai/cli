@@ -115,11 +115,13 @@ export async function fetchProviders(profile: string): Promise<ProviderJson[]> {
 
 //Unable to reuse service client getProfile due to profile ID resolution - version is always defined in service client
 export async function fetchProfileInfo(
-  profileId: string
+  profileId: string,
+  options?: {
+    tryToAuthenticate?: boolean;
+  }
 ): Promise<ProfileInfo> {
   const response = await SuperfaceClient.getClient().fetch(`/${profileId}`, {
-    //TODO: enable auth
-    authenticate: false,
+    authenticate: options?.tryToAuthenticate || false,
     method: 'GET',
     headers: {
       ...commonHeaders(),
@@ -132,10 +134,14 @@ export async function fetchProfileInfo(
   return (await response.json()) as ProfileInfo;
 }
 
-export async function fetchProfile(profileId: string): Promise<string> {
+export async function fetchProfile(
+  profileId: string,
+  options?: {
+    tryToAuthenticate?: boolean;
+  }
+): Promise<string> {
   const response = await SuperfaceClient.getClient().fetch(`/${profileId}`, {
-    //TODO: enable auth
-    authenticate: false,
+    authenticate: options?.tryToAuthenticate || false,
     method: 'GET',
     headers: {
       ...commonHeaders(),
@@ -149,11 +155,13 @@ export async function fetchProfile(profileId: string): Promise<string> {
 }
 
 export async function fetchProfileAST(
-  profileId: string
+  profileId: string,
+  options?: {
+    tryToAuthenticate?: boolean;
+  }
 ): Promise<ProfileDocumentNode> {
   const response = await SuperfaceClient.getClient().fetch(`/${profileId}`, {
-    //TODO: enable auth
-    authenticate: false,
+    authenticate: options?.tryToAuthenticate || false,
     method: 'GET',
     headers: {
       ...commonHeaders(),
@@ -169,7 +177,7 @@ export async function fetchProfileAST(
 export async function fetchProviderInfo(
   providerName: string
 ): Promise<ProviderJson> {
-  //TODO: user agent?
+  //TODO: user agent? Control authenticate?
   const response = await SuperfaceClient.getClient().getProvider(providerName);
 
   return assertProviderJson(response.definition);

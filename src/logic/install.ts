@@ -70,6 +70,7 @@ type InstallOptions = {
   logCb?: LogCallback;
   warnCb?: LogCallback;
   force?: boolean;
+  tryToAuthenticate?: boolean;
 };
 
 export type LocalRequest = {
@@ -365,7 +366,11 @@ export type ProfileResponse = {
 export async function getProfileFromStore(
   profileId: ProfileId,
   version?: string,
-  options?: { logCb?: LogCallback; warnCb?: LogCallback }
+  options?: {
+    logCb?: LogCallback;
+    warnCb?: LogCallback;
+    tryToAuthenticate?: boolean;
+  }
 ): Promise<ProfileResponse | undefined> {
   const profileIdStr = profileId.withVersion(version);
 
@@ -376,15 +381,21 @@ export async function getProfileFromStore(
   options?.logCb?.(`\nFetching profile ${profileIdStr} from the Store`);
 
   try {
-    info = await fetchProfileInfo(profileIdStr);
+    info = await fetchProfileInfo(profileIdStr, {
+      tryToAuthenticate: options?.tryToAuthenticate,
+    });
     options?.logCb?.(`Fetching profile info of profile ${profileIdStr}`);
 
-    profile = await fetchProfile(profileIdStr);
+    profile = await fetchProfile(profileIdStr, {
+      tryToAuthenticate: options?.tryToAuthenticate,
+    });
     options?.logCb?.(`Fetching profile source file for ${profileIdStr}`);
 
     try {
       //This can fail due to validation issues, ast and parser version issues
-      ast = await fetchProfileAST(profileIdStr);
+      ast = await fetchProfileAST(profileIdStr, {
+        tryToAuthenticate: options?.tryToAuthenticate,
+      });
       options?.logCb?.(`Fetching compiled profile for ${profileIdStr}`);
     } catch (error) {
       options?.warnCb?.(
