@@ -883,6 +883,13 @@
   dependencies:
     "@sinonjs/commons" "^1.7.0"
 
+"@superfaceai/ast@0.0.35-beta.0":
+  version "0.0.35-beta.0"
+  resolved "https://registry.yarnpkg.com/@superfaceai/ast/-/ast-0.0.35-beta.0.tgz#01a114736aaa2529640a4c505c8600ff0aa72f0f"
+  integrity sha512-IDROQ2tAL+H2pUF8yOUMr3pUYKOeEdtL3Oi4PNhmKSAnt2Uxv5ivyGCxujqxr7JfluWucXrjK/+pgUK1SkI/qA==
+  dependencies:
+    typescript-is "^0.18.3"
+
 "@superfaceai/ast@>=0.0.34":
   version "0.0.34"
   resolved "https://registry.yarnpkg.com/@superfaceai/ast/-/ast-0.0.34.tgz#2bdfbb485bd2b7ee9d0a398fb3e2b7a1cce77173"

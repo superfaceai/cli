@@ -139,13 +139,13 @@ describe('Configure CLI command', () => {
       ).toEqual([
         {
           id: 'azure-subscription-key',
-          apikey: '$AZURE_COGNITIVE-SERVICES_API_KEY',
+          apikey: '$AZURE_COGNITIVE_SERVICES_API_KEY',
         },
       ]);
       expect(
         superJson.normalized.providers[providerWithParameters].parameters
       ).toEqual({
-        instance: '',
+        instance: '$AZURE_COGNITIVE_SERVICES_INSTANCE',
         version: 'v1',
       });
       expect(superJson.document.profiles![profileId]).toEqual({

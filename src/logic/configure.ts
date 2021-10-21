@@ -1,5 +1,6 @@
 import {
   assertProviderJson,
+  prepareProviderParameters,
   prepareSecurityValues,
   ProfileProviderDefaults,
   ProviderJson,
@@ -72,11 +73,9 @@ export function handleProviderResponse(
 
   let parameters: { [key: string]: string } | undefined = undefined;
   if (response.parameters) {
-    parameters = {};
-    for (const parameter of response.parameters) {
-      parameters[parameter.name] = parameter.default || '';
-    }
+    parameters = prepareProviderParameters(response.name, response.parameters);
   }
+
   const security = response.securitySchemes
     ? prepareSecurityValues(response.name, response.securitySchemes)
     : [];

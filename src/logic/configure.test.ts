@@ -298,8 +298,8 @@ describe('Configure CLI logic', () => {
         ],
         parameters: {
           first: 'first-value',
-          second: '',
-          third: '',
+          second: '$PROVIDER_TEST_SECOND',
+          third: '$PROVIDER_TEST_THIRD',
         },
       });
 
