@@ -128,10 +128,20 @@ export async function mockResponsesForProvider(
     await readFile(basePath + '.json', { encoding: 'utf-8' })
   );
 
+  const mockProviderResponse = {
+    provider_id: 'test',
+    url: 'url/to/provider',
+    owner: 'your-moma',
+    owner_url: 'path/to/your/moma',
+    published_at: new Date(),
+    published_by: 'your-popa',
+    definition: providerInfo,
+  };
+
   await server
     .get('/providers/' + provider)
     .withHeaders({ 'Content-Type': ContentType.JSON })
-    .thenJson(200, providerInfo);
+    .thenJson(200, mockProviderResponse);
 }
 
 /**

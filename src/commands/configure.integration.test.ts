@@ -115,16 +115,15 @@ describe('Configure CLI command', () => {
       expect(result.stdout).toMatch(
         '🆗 All security schemes have been configured successfully.'
       );
-      //TODO: Uncomment when service-client ProviderResponse contains parameters
-      // expect(result.stdout).toMatch(
-      //   '🆗 Parameter version configured with default value "v1"'
-      // );
-      // expect(result.stdout).toContain(
-      //   '❌ Parameter instance with description "Instance of your azure cognitive service" has not been configured.'
-      // );
-      // expect(result.stdout).toContain(
-      //   'Please, configure this parameter manualy in super.json on path: superface/super.json'
-      // );
+      expect(result.stdout).toMatch(
+        '🆗 Parameter version configured with default value "v1"'
+      );
+      expect(result.stdout).toContain(
+        '❌ Parameter instance with description "Instance of your azure cognitive service" has not been configured.'
+      );
+      expect(result.stdout).toContain(
+        'Please, configure this parameter manualy in super.json on path: superface/super.json'
+      );
 
       await expect(
         exists(joinPath(tempDir, 'superface', 'super.json'))
@@ -143,13 +142,12 @@ describe('Configure CLI command', () => {
           apikey: '$AZURE_COGNITIVE-SERVICES_API_KEY',
         },
       ]);
-      //TODO: Uncomment when service-client ProviderResponse contains parameters
-      // expect(
-      //   superJson.normalized.providers[providerWithParameters].parameters
-      // ).toEqual({
-      //   instance: '',
-      //   version: 'v1',
-      // });
+      expect(
+        superJson.normalized.providers[providerWithParameters].parameters
+      ).toEqual({
+        instance: '',
+        version: 'v1',
+      });
       expect(superJson.document.profiles![profileId]).toEqual({
         version: profileVersion,
         priority: [providerWithParameters],
@@ -184,7 +182,7 @@ describe('Configure CLI command', () => {
       await mockServer
         .get('/providers/' + emptyProvider)
         .withHeaders({ 'Content-Type': ContentType.JSON })
-        .thenJson(200, mockProviderInfo);
+        .thenJson(200, { definition: mockProviderInfo });
 
       result = await execCLI(
         tempDir,
@@ -234,7 +232,7 @@ describe('Configure CLI command', () => {
       await mockServer
         .get('/providers/' + providerWithoutSecurity)
         .withHeaders({ 'Content-Type': ContentType.JSON })
-        .thenJson(200, mockProviderInfo);
+        .thenJson(200, { definition: mockProviderInfo });
 
       result = await execCLI(
         tempDir,
@@ -407,7 +405,7 @@ describe('Configure CLI command', () => {
       await mockServer
         .get('/providers/' + simpleProvider)
         .withHeaders({ 'Content-Type': ContentType.JSON })
-        .thenJson(200, mockProviderInfo);
+        .thenJson(200, { definition: mockProviderInfo });
 
       const result = await execCLI(
         tempDir,

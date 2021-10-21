@@ -320,34 +320,88 @@ describe('HTTP functions', () => {
 
   describe('when fetching provider info', () => {
     const mockProviderResponse = {
-      name: 'test',
-      services: [{ id: 'test-service', baseUrl: 'service/base/url' }],
-      securitySchemes: [
-        {
-          type: SecurityType.HTTP,
-          id: 'basic',
-          scheme: HttpScheme.BASIC,
-        },
-        {
-          id: 'api',
-          type: SecurityType.APIKEY,
-          in: ApiKeyPlacement.HEADER,
-          name: 'Authorization',
-        },
-        {
-          id: 'bearer',
-          type: SecurityType.HTTP,
-          scheme: HttpScheme.BEARER,
-          bearerFormat: 'some',
-        },
-        {
-          id: 'digest',
-          type: SecurityType.HTTP,
-          scheme: HttpScheme.DIGEST,
-        },
-      ],
-      defaultService: 'test-service',
-      url: 'some url',
+      provider_id: 'test',
+      url: 'url/to/provider',
+      owner: 'your-moma',
+      owner_url: 'path/to/your/moma',
+      published_at: new Date(),
+      published_by: 'your-popa',
+      definition: {
+        name: 'test',
+        services: [{ id: 'test-service', baseUrl: 'service/base/url' }],
+        securitySchemes: [
+          {
+            type: SecurityType.HTTP,
+            id: 'basic',
+            scheme: HttpScheme.BASIC,
+          },
+          {
+            id: 'api',
+            type: SecurityType.APIKEY,
+            in: ApiKeyPlacement.HEADER,
+            name: 'Authorization',
+          },
+          {
+            id: 'bearer',
+            type: SecurityType.HTTP,
+            scheme: HttpScheme.BEARER,
+            bearerFormat: 'some',
+          },
+          {
+            id: 'digest',
+            type: SecurityType.HTTP,
+            scheme: HttpScheme.DIGEST,
+          },
+        ],
+        defaultService: 'test-service',
+      },
+    };
+    const mockProviderResponseWithIntParameters = {
+      provider_id: 'test',
+      url: 'url/to/provider',
+      owner: 'your-moma',
+      owner_url: 'path/to/your/moma',
+      published_at: new Date(),
+      published_by: 'your-popa',
+      definition: {
+        name: 'test',
+        services: [{ id: 'test-service', baseUrl: 'service/base/url' }],
+        securitySchemes: [
+          {
+            type: SecurityType.HTTP,
+            id: 'basic',
+            scheme: HttpScheme.BASIC,
+          },
+          {
+            id: 'api',
+            type: SecurityType.APIKEY,
+            in: ApiKeyPlacement.HEADER,
+            name: 'Authorization',
+          },
+          {
+            id: 'bearer',
+            type: SecurityType.HTTP,
+            scheme: HttpScheme.BEARER,
+            bearerFormat: 'some',
+          },
+          {
+            id: 'digest',
+            type: SecurityType.HTTP,
+            scheme: HttpScheme.DIGEST,
+          },
+        ],
+        defaultService: 'test-service',
+        parameters: [
+          {
+            name: 'first',
+            default: 'first-value',
+            description: 'des',
+          },
+          {
+            name: 'second',
+          },
+        ],
+      },
     };
     it('calls superface client correctly', async () => {
       const provider = 'mailchimp';
@@ -385,6 +439,68 @@ describe('HTTP functions', () => {
           },
         ],
         defaultService: 'test-service',
+      });
+      expect(fetchSpy).toHaveBeenCalledTimes(1);
+      expect(fetchSpy).toHaveBeenCalledWith(`/providers/${provider}`, {
+        authenticate: false,
+        method: 'GET',
+        headers: {
+          'Content-Type': ContentType.JSON,
+        },
+      });
+    }, 10000);
+
+    it('calls superface client correctly - provider with integration parameters', async () => {
+      const provider = 'mailchimp';
+      const fetchSpy = jest
+        .spyOn(ServiceClient.prototype, 'fetch')
+        .mockResolvedValue(
+          mockResponse(
+            200,
+            'OK',
+            undefined,
+            mockProviderResponseWithIntParameters
+          )
+        );
+
+      await expect(fetchProviderInfo(provider)).resolves.toEqual({
+        name: 'test',
+        services: [{ id: 'test-service', baseUrl: 'service/base/url' }],
+        securitySchemes: [
+          {
+            type: SecurityType.HTTP,
+            id: 'basic',
+            scheme: HttpScheme.BASIC,
+          },
+          {
+            id: 'api',
+            type: SecurityType.APIKEY,
+            in: ApiKeyPlacement.HEADER,
+            name: 'Authorization',
+          },
+          {
+            id: 'bearer',
+            type: SecurityType.HTTP,
+            scheme: HttpScheme.BEARER,
+            bearerFormat: 'some',
+          },
+          {
+            id: 'digest',
+            type: SecurityType.HTTP,
+            scheme: HttpScheme.DIGEST,
+          },
+        ],
+        defaultService: 'test-service',
+        parameters: [
+          {
+            name: 'first',
+            default: 'first-value',
+            description: 'des',
+          },
+          {
+            name: 'second',
+          },
+        ],
       });
       expect(fetchSpy).toHaveBeenCalledTimes(1);
       expect(fetchSpy).toHaveBeenCalledWith(`/providers/${provider}`, {
