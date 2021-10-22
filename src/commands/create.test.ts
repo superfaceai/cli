@@ -1230,7 +1230,7 @@ describe('Create CLI command', () => {
         ])
       ).rejects.toEqual(
         new CLIError(
-          'could not parse version: major component is not a valid number'
+          'Invalid version range:  - major component:  is not a valid number'
         )
       );
     });

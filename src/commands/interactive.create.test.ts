@@ -608,7 +608,7 @@ describe('Interactive create CLI command', () => {
         Create.run(['-v', '', '-u', 'SendSMS', '-i'])
       ).rejects.toEqual(
         new CLIError(
-          'could not parse version: major component is not a valid number'
+          'Invalid version range:  - major component:  is not a valid number'
         )
       );
     });

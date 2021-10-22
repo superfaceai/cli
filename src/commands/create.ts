@@ -1,10 +1,10 @@
 import { flags as oclifFlags } from '@oclif/command';
-import { isValidIdentifier } from '@superfaceai/ast';
 import {
-  DocumentVersion,
-  isValidDocumentIdentifier,
-  parseProfileId,
-} from '@superfaceai/parser';
+  isValidDocumentName,
+  isValidIdentifier,
+  isValidProviderName,
+} from '@superfaceai/ast';
+import { parseProfileId, VersionRange } from '@superfaceai/parser';
 import { grey, yellow } from 'chalk';
 import inquirer from 'inquirer';
 
@@ -231,7 +231,7 @@ export default class Create extends Command {
         if (provider === 'profile' || provider === 'map') {
           throw userError(`ProviderName "${provider}" is reserved!`, 1);
         }
-        if (!isValidDocumentIdentifier(provider)) {
+        if (!isValidProviderName(provider)) {
           throw userError(`Invalid provider name: ${provider}`, 1);
         }
         if (
@@ -290,7 +290,7 @@ export default class Create extends Command {
 
     let scope,
       name: string | undefined = undefined;
-    let version: DocumentVersion | undefined = DEFAULT_PROFILE_VERSION;
+    let version: VersionRange | undefined = DEFAULT_PROFILE_VERSION;
     let usecases: string[] = [];
     if (profileId) {
       // parse profile Id
@@ -305,7 +305,7 @@ export default class Create extends Command {
       name = parsedProfileId.value.name;
 
       // parse variant
-      if (flags.variant && !isValidDocumentIdentifier(flags.variant)) {
+      if (flags.variant && !isValidDocumentName(flags.variant)) {
         throw userError(`Invalid map variant: ${flags.variant}`, 1);
       }
 
