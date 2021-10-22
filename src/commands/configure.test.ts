@@ -44,7 +44,7 @@ describe('Configure CLI command', () => {
   describe('when running configure command', () => {
     const provider = 'twilio';
     const superPath = 'some/path';
-    const profileId = ProfileId.fromId('sms');
+    const profileId = ProfileId.fromScopeName(undefined, 'sms');
 
     it('does not configure on invalid provider name', async () => {
       mocked(isValidDocumentName).mockReturnValue(false);

@@ -163,7 +163,7 @@ describe('lint CLI command', () => {
     expect(stdout.output).toContain('Detected 1 problem\n');
   });
 
-  it('lints a valid and an invalid map - json format', async () => {
+  it.only('lints a valid and an invalid map - json format', async () => {
     await mkdir(joinPath(tempDir, 'superface'));
     await OutputStream.writeOnce(
       joinPath(tempDir, 'superface', 'super.json'),

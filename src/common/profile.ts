@@ -8,9 +8,7 @@ export class ProfileId {
   public readonly id: string;
 
   public static fromId(profileId: string): ProfileId {
-    console.log('id', profileId)
     const parsed = parseDocumentId(profileId);
-    console.log('parsed', parsed)
     if (parsed.kind === 'error') {
       throw userError(`Invalid profile id: ${parsed.message}`, 1);
     }
