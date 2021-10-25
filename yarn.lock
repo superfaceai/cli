@@ -914,10 +914,10 @@
     debug "^4.3.1"
     typescript "^4"
 
-"@superfaceai/service-client@0.0.25":
-  version "0.0.25"
-  resolved "https://registry.yarnpkg.com/@superfaceai/service-client/-/service-client-0.0.25.tgz#33f37dbdc279e6527420fe4beb0e1aee747d2689"
-  integrity sha512-3lxiVNl3cZOVxfSqckuB3ZnnLmJGzLk4exw4MwK0bp8NbvknAqr3jAUJGaPMNJWxoBKnErejYf85KFrGmHKMdg==
+"@superfaceai/service-client@0.0.26":
+  version "0.0.26"
+  resolved "https://registry.yarnpkg.com/@superfaceai/service-client/-/service-client-0.0.26.tgz#16ba6b9d12ad646afc77e5ce8a6f000e757eaa3f"
+  integrity sha512-Hh8tJ2buhUANOuuvt9gGpBl9AqgY5fHY6DpH8LMW1hKZPBZWzr6mBlobKe2qNhFN/FG6JLxTHgFwgf6VN+s2kA==
   dependencies:
     cross-fetch "^3.1.0"
 
