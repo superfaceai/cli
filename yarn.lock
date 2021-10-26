@@ -890,6 +890,13 @@
   dependencies:
     typescript-is "^0.18.3"
 
+"@superfaceai/ast@0.0.35-beta.1":
+  version "0.0.35-beta.1"
+  resolved "https://registry.yarnpkg.com/@superfaceai/ast/-/ast-0.0.35-beta.1.tgz#0433afc9069937b76855fa5037b471d436b55ec9"
+  integrity sha512-bKzOZNLi9zBK8lyf8S9tJja1reQqY0rPINJ3On2Jb4QbwmdgyBSd85UcfKGSEkmipEcT278rv31Z63FKjOXqTg==
+  dependencies:
+    typescript-is "^0.18.3"
+
 "@superfaceai/one-sdk@0.0.41-beta.0":
   version "0.0.41-beta.0"
   resolved "https://registry.yarnpkg.com/@superfaceai/one-sdk/-/one-sdk-0.0.41-beta.0.tgz#378dbb0dba0bb8d0f1e066eb802ca30e0ef132db"
@@ -909,6 +916,16 @@
   integrity sha512-+zhneO+JNnmOZCFleAJO+nO7SAGlQr6M66H6oREJ94p8ViUS79sfEJjsJ4NeIOdD24S2DE6NLbnc3XoYHCHeMA==
   dependencies:
     "@superfaceai/ast" "0.0.35-beta.0"
+    "@types/debug" "^4.1.5"
+    debug "^4.3.1"
+    typescript "^4"
+
+"@superfaceai/parser@0.0.24-beta.2":
+  version "0.0.24-beta.2"
+  resolved "https://registry.yarnpkg.com/@superfaceai/parser/-/parser-0.0.24-beta.2.tgz#cc574e1ea34bf150fe1d407cc3a1c20c6a7026c5"
+  integrity sha512-r9dGLVwQINQz08DnxPX+1UO720CKgqhBZ1hqEN0kGz3ORylz75fDytxCZI/2F+hjvmjnucHZGrj+LgqAD71Y4g==
+  dependencies:
+    "@superfaceai/ast" "0.0.35-beta.1"
     "@types/debug" "^4.1.5"
     debug "^4.3.1"
     typescript "^4"

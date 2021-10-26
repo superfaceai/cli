@@ -1,5 +1,6 @@
 import {
   ApiKeyPlacement,
+  AstMetadata,
   HttpScheme,
   MapDocumentNode,
   ProfileDocumentNode,
@@ -70,8 +71,23 @@ describe('Check logic', () => {
   const mockProfileSource = 'mock profile source';
   const mockMapSource = 'mock map source';
 
+  const astMetadata: AstMetadata = {
+    sourceChecksum: 'check',
+    astVersion: {
+      major: 1,
+      minor: 0,
+      patch: 0,
+    },
+    parserVersion: {
+      major: 1,
+      minor: 0,
+      patch: 0,
+    },
+  };
+
   const mockMapDocument: MapDocumentNode = {
     kind: 'MapDocument',
+    astMetadata,
     header: {
       kind: 'MapHeader',
       profile: {
@@ -97,6 +113,7 @@ describe('Check logic', () => {
 
   const mockMapDocumentWithUnverified: MapDocumentNode = {
     kind: 'MapDocument',
+    astMetadata,
     header: {
       kind: 'MapHeader',
       profile: {
@@ -122,6 +139,7 @@ describe('Check logic', () => {
 
   const mockProfileDocument: ProfileDocumentNode = {
     kind: 'ProfileDocument',
+    astMetadata,
     header: {
       kind: 'ProfileHeader',
       name: 'character-information',
@@ -788,6 +806,7 @@ describe('Check logic', () => {
     it('returns result with errors if profile and map has different name,scope and version', async () => {
       const mockMapDocument: MapDocumentNode = {
         kind: 'MapDocument',
+        astMetadata,
         header: {
           kind: 'MapHeader',
           profile: {
@@ -807,6 +826,7 @@ describe('Check logic', () => {
 
       const mockProfileDocument: ProfileDocumentNode = {
         kind: 'ProfileDocument',
+        astMetadata,
         header: {
           kind: 'ProfileHeader',
           name: 'character-information',
@@ -828,6 +848,7 @@ describe('Check logic', () => {
     it('returns result with errors and warnings if profile and map has different name,scope, version and number of usecasses', async () => {
       const mockMapDocument: MapDocumentNode = {
         kind: 'MapDocument',
+        astMetadata,
         header: {
           kind: 'MapHeader',
           profile: {
@@ -847,6 +868,7 @@ describe('Check logic', () => {
 
       const mockProfileDocument: ProfileDocumentNode = {
         kind: 'ProfileDocument',
+        astMetadata,
         header: {
           kind: 'ProfileHeader',
           name: 'character-information',
@@ -879,6 +901,7 @@ describe('Check logic', () => {
     it('returns result with errors if profile and map has different name,scope, version and number of usecasses -strict', async () => {
       const mockMapDocument: MapDocumentNode = {
         kind: 'MapDocument',
+        astMetadata,
         header: {
           kind: 'MapHeader',
           profile: {
@@ -898,6 +921,7 @@ describe('Check logic', () => {
 
       const mockProfileDocument: ProfileDocumentNode = {
         kind: 'ProfileDocument',
+        astMetadata,
         header: {
           kind: 'ProfileHeader',
           name: 'character-information',
@@ -948,6 +972,7 @@ describe('Check logic', () => {
     it('returns result with errors if provider and map has different name', async () => {
       const mockMapDocument: MapDocumentNode = {
         kind: 'MapDocument',
+        astMetadata,
         header: {
           kind: 'MapHeader',
           profile: {

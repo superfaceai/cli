@@ -75,11 +75,9 @@ export async function mockResponsesForMap(
   mapVariant?: string,
   path = joinPath('fixtures', 'profiles')
 ): Promise<void> {
-  const url = `${profile.scope ? `${profile.scope}/` : ''}${
-    profile.name
-  }.${provider}${mapVariant ? `.${mapVariant}` : ''}@${
-    profile.version ? profile.version : DEFAULT_PROFILE_VERSION_STR
-  }`;
+  const url = `${profile.scope ? `${profile.scope}/` : ''}${profile.name
+    }.${provider}${mapVariant ? `.${mapVariant}` : ''}@${profile.version ? profile.version : DEFAULT_PROFILE_VERSION_STR
+    }`;
 
   const basePath = profile.scope
     ? joinPath(path, profile.scope, 'maps', `${provider}.${profile.name}`)
@@ -200,12 +198,12 @@ export async function mockResponsesForLogin(
   mockInitLoginResponse: CLILoginResponse,
   mockVerifyResponse:
     | {
-        authToken: AuthToken;
-      }
+      authToken: AuthToken;
+    }
     | {
-        statusCode: number;
-        errStatus: string;
-      }
+      statusCode: number;
+      errStatus: string;
+    }
 ): Promise<void> {
   if (mockInitLoginResponse.success) {
     await server.post('/auth/cli').thenJson(201, {
@@ -263,7 +261,7 @@ export async function execCLI(
 
   childProcess.stdin?.setDefaultEncoding('utf-8');
 
-  let currentInputTimeout: NodeJS.Timeout, killIOTimeout: NodeJS.Timeout;
+  let killIOTimeout: NodeJS.Timeout;
 
   // Creates a loop to feed user inputs to the child process in order to get results from the tool
   const loop = (userInputs: { value: string; timeout: number }[]) => {
@@ -284,13 +282,12 @@ export async function execCLI(
       return;
     }
 
-    currentInputTimeout = setTimeout(() => {
+    setTimeout(() => {
       childProcess.stdin?.write(userInputs[0].value);
       // Log debug I/O statements on tests
       if (options?.debug) {
         console.log(
-          `\n\ninput: ${formatInput(userInputs[0].value)} \ntimeout: ${
-            userInputs[0].timeout
+          `\n\ninput: ${formatInput(userInputs[0].value)} \ntimeout: ${userInputs[0].timeout
           }\n user inputs: ${userInputs
             .map(input => formatInput(input.value))
             .join(', ')}\n\n`
@@ -326,14 +323,14 @@ export async function execCLI(
       childProcess.stderr?.on('data', chunk => process.stderr.write(chunk));
     }
 
-    childProcess.stderr?.once('data', (err: string | Buffer) => {
-      childProcess.stdin?.end();
+    // childProcess.stderr?.once('data', (err: string | Buffer) => {
+    //   childProcess.stdin?.end();
 
-      if (currentInputTimeout) {
-        clearTimeout(currentInputTimeout);
-      }
-      reject(err.toString());
-    });
+    //   if (currentInputTimeout) {
+    //     clearTimeout(currentInputTimeout);
+    //   }
+    //   reject(err.toString());
+    // });
 
     childProcess.on('error', (err: Error) => {
       reject(err);

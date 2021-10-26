@@ -1,5 +1,5 @@
 import { CLIError } from '@oclif/errors';
-import { ProfileDocumentNode } from '@superfaceai/ast';
+import { AstMetadata, ProfileDocumentNode } from '@superfaceai/ast';
 import { ok, Parser, SuperJson } from '@superfaceai/one-sdk';
 import { join } from 'path';
 import { mocked } from 'ts-jest/utils';
@@ -37,6 +37,19 @@ describe('Install CLI logic', () => {
   afterEach(() => {
     jest.resetAllMocks();
   });
+  const astMetadata: AstMetadata = {
+    sourceChecksum: 'check',
+    astVersion: {
+      major: 1,
+      minor: 0,
+      patch: 0,
+    },
+    parserVersion: {
+      major: 1,
+      minor: 0,
+      patch: 0,
+    },
+  };
 
   describe('when detecting super json', () => {
     let INITIAL_CWD: string;
@@ -148,24 +161,31 @@ describe('Install CLI logic', () => {
     //mock profile ast
     const mockProfileAst: ProfileDocumentNode = {
       kind: 'ProfileDocument',
+      astMetadata,
       header: {
         kind: 'ProfileHeader',
         scope: 'starwars',
         name: 'character-information',
         version: { major: 1, minor: 0, patch: 1 },
-        location: { line: 1, column: 1 },
-        span: { start: 0, end: 57 },
+        location: {
+          start: { line: 1, column: 1, charIndex: 0 },
+          end: { line: 1, column: 1, charIndex: 0 },
+        },
       },
       definitions: [
         {
           kind: 'UseCaseDefinition',
           useCaseName: 'RetrieveCharacterInformation',
           safety: 'safe',
-          title: 'Starwars',
+          documentation: {
+            title: 'Starwars',
+          },
         },
       ],
-      location: { line: 1, column: 1 },
-      span: { start: 0, end: 228 },
+      location: {
+        start: { line: 1, column: 1, charIndex: 0 },
+        end: { line: 1, column: 1, charIndex: 0 },
+      },
     };
     it('gets profile', async () => {
       mocked(fetchProfileInfo).mockResolvedValue(mockProfileInfo);
@@ -325,6 +345,7 @@ describe('Install CLI logic', () => {
             if (_info.profileName === 'first') {
               return Promise.resolve({
                 kind: 'ProfileDocument',
+                astMetadata,
                 header: {
                   kind: 'ProfileHeader',
                   name: 'first',
@@ -335,6 +356,7 @@ describe('Install CLI logic', () => {
             } else if (_info.profileName === 'second') {
               return Promise.resolve({
                 kind: 'ProfileDocument',
+                astMetadata,
                 header: {
                   kind: 'ProfileHeader',
                   scope: 'se',
@@ -401,6 +423,7 @@ describe('Install CLI logic', () => {
       );
       const fetchProfileASTMock = mocked(fetchProfileAST).mockResolvedValue({
         kind: 'ProfileDocument',
+        astMetadata,
         header: {
           kind: 'ProfileHeader',
           name: 'mock profile',
@@ -506,6 +529,7 @@ describe('Install CLI logic', () => {
       mocked(fetchProfile).mockResolvedValue('mock profile');
       mocked(fetchProfileAST).mockResolvedValue({
         kind: 'ProfileDocument',
+        astMetadata,
         header: {
           kind: 'ProfileHeader',
           name: 'mock profile',
@@ -543,6 +567,7 @@ describe('Install CLI logic', () => {
 
           return Promise.resolve({
             kind: 'ProfileDocument',
+            astMetadata,
             header: {
               kind: 'ProfileHeader',
               scope,
@@ -638,6 +663,7 @@ describe('Install CLI logic', () => {
           version: { major: 1, minor: 0, patch: 0 },
         },
         kind: 'ProfileDocument',
+        astMetadata,
         definitions: [],
       });
 
@@ -673,24 +699,31 @@ describe('Install CLI logic', () => {
       //mock profile ast
       const mockProfileAst: ProfileDocumentNode = {
         kind: 'ProfileDocument',
+        astMetadata,
         header: {
           kind: 'ProfileHeader',
           scope: 'starwars',
           name: 'character-information',
           version: { major: 1, minor: 0, patch: 1 },
-          location: { line: 1, column: 1 },
-          span: { start: 0, end: 57 },
+          location: {
+            start: { line: 1, column: 1, charIndex: 0 },
+            end: { line: 1, column: 1, charIndex: 0 },
+          },
         },
         definitions: [
           {
             kind: 'UseCaseDefinition',
             useCaseName: 'RetrieveCharacterInformation',
             safety: 'safe',
-            title: 'Starwars',
+            documentation: {
+              title: 'Starwars',
+            },
           },
         ],
-        location: { line: 1, column: 1 },
-        span: { start: 0, end: 228 },
+        location: {
+          start: { line: 1, column: 1, charIndex: 0 },
+          end: { line: 1, column: 1, charIndex: 0 },
+        },
       };
       //mock profile
       const mockProfile = 'mock profile';

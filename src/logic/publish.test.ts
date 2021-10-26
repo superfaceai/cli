@@ -1,5 +1,9 @@
 import { CLIError } from '@oclif/errors';
-import { MapDocumentNode, ProfileDocumentNode } from '@superfaceai/ast';
+import {
+  AstMetadata,
+  MapDocumentNode,
+  ProfileDocumentNode,
+} from '@superfaceai/ast';
 import { SuperJson } from '@superfaceai/one-sdk';
 import { ServiceApiError } from '@superfaceai/service-client';
 import { ServiceClient } from '@superfaceai/service-client/dist/client';
@@ -67,8 +71,23 @@ describe('Publish logic', () => {
     const mockProviderName = 'swapi';
     const mockVersion = '1.0.0';
 
+    const astMetadata: AstMetadata = {
+      sourceChecksum: 'check',
+      astVersion: {
+        major: 1,
+        minor: 0,
+        patch: 0,
+      },
+      parserVersion: {
+        major: 1,
+        minor: 0,
+        patch: 0,
+      },
+    };
+
     const mockProfileDocument: ProfileDocumentNode = {
       kind: 'ProfileDocument',
+      astMetadata,
       header: {
         kind: 'ProfileHeader',
         name: 'test-profile',
@@ -86,6 +105,7 @@ describe('Publish logic', () => {
 
     const mockMapDocument: MapDocumentNode = {
       kind: 'MapDocument',
+      astMetadata,
       header: {
         kind: 'MapHeader',
         profile: {

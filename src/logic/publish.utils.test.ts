@@ -1,5 +1,9 @@
 import { CLIError } from '@oclif/errors';
-import { MapDocumentNode, ProfileDocumentNode } from '@superfaceai/ast';
+import {
+  AstMetadata,
+  MapDocumentNode,
+  ProfileDocumentNode,
+} from '@superfaceai/ast';
 import { Parser, SuperJson } from '@superfaceai/one-sdk';
 import { mocked } from 'ts-jest/utils';
 
@@ -47,7 +51,22 @@ describe('Publish logic utils', () => {
   const mockProfileId = 'starwars/character-information';
   const mockProfile = ProfileId.fromId(mockProfileId);
   const mockProviderName = 'unverified-swapi';
+
+  const astMetadata: AstMetadata = {
+    sourceChecksum: 'check',
+    astVersion: {
+      major: 1,
+      minor: 0,
+      patch: 0,
+    },
+    parserVersion: {
+      major: 1,
+      minor: 0,
+      patch: 0,
+    },
+  };
   const validProfileDocument: ProfileDocumentNode = {
+    astMetadata,
     kind: 'ProfileDocument',
     header: {
       kind: 'ProfileHeader',
@@ -63,6 +82,7 @@ describe('Publish logic utils', () => {
   };
 
   const invalidProfileDocument: ProfileDocumentNode = {
+    astMetadata,
     kind: 'ProfileDocument',
     header: {
       kind: 'ProfileHeader',
@@ -77,6 +97,7 @@ describe('Publish logic utils', () => {
   };
 
   const validMapDocument: MapDocumentNode = {
+    astMetadata,
     kind: 'MapDocument',
     header: {
       kind: 'MapHeader',
@@ -95,6 +116,7 @@ describe('Publish logic utils', () => {
   };
 
   const invalidMapDocument: MapDocumentNode = {
+    astMetadata,
     kind: 'MapDocument',
     header: {
       kind: 'MapHeader',
@@ -181,7 +203,7 @@ describe('Publish logic utils', () => {
         })
       ).toThrow(
         new CLIError(
-          `validation failed at $: expected 'kind' in object, found: {}`
+          `validation failed at $: expected 'astMetadata' in object, found: {}`
         )
       );
     });
@@ -199,7 +221,7 @@ describe('Publish logic utils', () => {
         })
       ).toThrow(
         new CLIError(
-          `validation failed at $: expected 'kind' in object, found: {}`
+          `validation failed at $: expected 'astMetadata' in object, found: {}`
         )
       );
     });

@@ -1,5 +1,6 @@
 import { CLIError } from '@oclif/errors';
 import {
+  AstMetadata,
   MapDocumentNode,
   MapHeaderNode,
   ProfileDocumentNode,
@@ -69,15 +70,33 @@ describe('Lint logic', () => {
     jest.resetAllMocks();
   });
 
-  const mockSyntaxErr = {
+  const astMetadata: AstMetadata = {
+    sourceChecksum: 'check',
+    astVersion: {
+      major: 1,
+      minor: 0,
+      patch: 0,
+    },
+    parserVersion: {
+      major: 1,
+      minor: 0,
+      patch: 0,
+    },
+  };
+
+  const mockSyntaxErr: SyntaxError = {
     source: new Source('test'),
     location: {
-      line: 0,
-      column: 0,
-    },
-    span: {
-      start: 0,
-      end: 0,
+      start: {
+        line: 0,
+        column: 0,
+        charIndex: 0,
+      },
+      end: {
+        line: 0,
+        column: 0,
+        charIndex: 0,
+      },
     },
     category: SyntaxErrorCategory.PARSER,
     detail: '',
@@ -391,6 +410,7 @@ describe('Lint logic', () => {
 
     const mockProfileDocument: ProfileDocumentNode = {
       kind: 'ProfileDocument',
+      astMetadata,
       header: {
         kind: 'ProfileHeader',
         name: 'test-profile',
@@ -405,6 +425,7 @@ describe('Lint logic', () => {
     };
     const mockMapDocumentMatching: MapDocumentNode = {
       kind: 'MapDocument',
+      astMetadata,
       header: {
         kind: 'MapHeader',
         profile: {
@@ -422,6 +443,7 @@ describe('Lint logic', () => {
     };
     const mockMapDocument: MapDocumentNode = {
       kind: 'MapDocument',
+      astMetadata,
       header: {
         kind: 'MapHeader',
         profile: {
@@ -710,15 +732,19 @@ describe('Lint logic', () => {
     });
 
     it('returns correct counts, corrupted profile', async () => {
-      const mockSyntaxErr = {
+      const mockSyntaxErr: SyntaxError = {
         source: new Source('test'),
         location: {
-          line: 0,
-          column: 0,
-        },
-        span: {
-          start: 0,
-          end: 0,
+          start: {
+            line: 0,
+            column: 0,
+            charIndex: 0,
+          },
+          end: {
+            line: 0,
+            column: 0,
+            charIndex: 0,
+          },
         },
         category: SyntaxErrorCategory.PARSER,
         detail: '',
@@ -776,15 +802,19 @@ describe('Lint logic', () => {
       );
     });
     it('returns correct counts, corrupted map', async () => {
-      const mockSyntaxErr = {
+      const mockSyntaxErr: SyntaxError = {
         source: new Source('test'),
         location: {
-          line: 0,
-          column: 0,
-        },
-        span: {
-          start: 0,
-          end: 0,
+          start: {
+            line: 0,
+            column: 0,
+            charIndex: 0,
+          },
+          end: {
+            line: 0,
+            column: 0,
+            charIndex: 0,
+          },
         },
         category: SyntaxErrorCategory.PARSER,
         detail: '',
@@ -1003,7 +1033,7 @@ describe('Lint logic', () => {
     };
     it('formats json correctly', async () => {
       expect(formatJson(mockFileReport)).toEqual(
-        '{"path":"some/path","kind":"file","errors":[{"location":{"line":0,"column":0},"span":{"start":0,"end":0},"category":"Parser","detail":"","message":"message"}],"warnings":[]}'
+        '{"path":"some/path","kind":"file","errors":[{"location":{"start":{"line":0,"column":0,"charIndex":0},"end":{"line":0,"column":0,"charIndex":0}},"category":"Parser","detail":"","message":"message"}],"warnings":[]}'
       );
     });
   });

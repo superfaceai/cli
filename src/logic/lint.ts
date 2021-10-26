@@ -148,7 +148,7 @@ export function formatHuman(
     for (const error of report.errors) {
       if (short) {
         buffer += red(
-          `\t${error.location.line}:${error.location.column} ${error.message}\n`
+          `\t${error.location.start.line}:${error.location.start.column} ${error.message}\n`
         );
       } else {
         buffer += red(error.format());
