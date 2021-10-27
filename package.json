@@ -50,7 +50,7 @@
   "dependencies": {
     "@oclif/command": "^1.8.0",
     "@oclif/config": "^1.17.0",
-    "@superfaceai/ast": "0.0.35-beta.1",
+    "@superfaceai/ast": "0.0.35-beta.2",
     "@superfaceai/parser": "0.0.24-beta.2",
     "@superfaceai/one-sdk": "0.0.41-beta.0",
     "@superfaceai/service-client": "0.0.26",

@@ -297,7 +297,7 @@ describe('Configure CLI logic', () => {
           { digest: '$PROVIDER_TEST_DIGEST', id: 'digest' },
         ],
         parameters: {
-          first: 'first-value',
+          first: '$PROVIDER_TEST_FIRST',
           second: '$PROVIDER_TEST_SECOND',
           third: '$PROVIDER_TEST_THIRD',
         },
