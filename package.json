@@ -50,10 +50,11 @@
   "dependencies": {
     "@oclif/command": "^1.8.0",
     "@oclif/config": "^1.17.0",
-    "@superfaceai/service-client": "0.0.26",
+    "@oclif/plugin-warn-if-update-available": "^1.7.0",
     "@superfaceai/ast": ">=0.0.34",
-    "@superfaceai/parser": ">=0.0.23",
     "@superfaceai/one-sdk": "0.0.40",
+    "@superfaceai/parser": ">=0.0.23",
+    "@superfaceai/service-client": "0.0.26",
     "chalk": "^4.1.0",
     "cross-fetch": "^3.1.4",
     "debug": "^4.3.1",
@@ -69,6 +70,13 @@
     "bin": "superface",
     "hooks": {
       "init": "dist/hooks/init"
+    },
+    "plugins": [
+      "@oclif/plugin-warn-if-update-available"
+    ],
+    "warn-if-update-available": {
+      "timeoutInDays": 7,
+      "message": "<%= config.name %> update available from <%= chalk.greenBright(config.version) %> to <%= chalk.greenBright(latest) %>."
     }
   }
 }
