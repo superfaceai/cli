@@ -18,6 +18,7 @@ import {
 import { ProfileId } from '../common/profile';
 import {
   check,
+  checkIntegrationParameters,
   checkMapAndProfile,
   checkMapAndProvider,
   CheckResult,
@@ -232,7 +233,7 @@ describe('Check logic', () => {
   };
 
   describe('when checking capability', () => {
-    it('returns correctly formated string when we use local files', async () => {
+    it('returns correctly formated result when we use local files', async () => {
       const mockProfile = {
         name: 'character-information',
       };
@@ -290,6 +291,13 @@ describe('Check logic', () => {
           profileId: 'starwars/character-information',
           provider: unverifiedProvider,
         },
+        {
+          kind: 'parameters',
+          providerFrom: mockLocalProviderFrom,
+          issues: [],
+          provider: unverifiedProvider,
+          superJsonPath: '',
+        },
       ]);
 
       expect(loadProvider).toHaveBeenCalledWith(
@@ -316,7 +324,7 @@ describe('Check logic', () => {
       expect(fetchProviderInfo).not.toHaveBeenCalled();
     });
 
-    it('returns correctly formated string when we use remote files', async () => {
+    it('returns correctly formated result when we use remote files', async () => {
       const mockSuperJson = new SuperJson({
         profiles: {
           [`${profile.scope}/${profile.name}`]: {
@@ -371,6 +379,13 @@ describe('Check logic', () => {
           issues: [],
           profileId: 'starwars/character-information',
           provider: unverifiedProvider,
+        },
+        {
+          kind: 'parameters',
+          providerFrom: mockRemoteProviderFrom,
+          issues: [],
+          provider: unverifiedProvider,
+          superJsonPath: '',
         },
       ]);
 
@@ -709,6 +724,30 @@ describe('Check logic', () => {
             },
           ],
         },
+        {
+          kind: 'parameters',
+          provider,
+          providerFrom: mockLocalProviderFrom,
+          superJsonPath: 'some/path',
+          issues: [
+            {
+              kind: 'error',
+              message: 'third-check-first-error',
+            },
+            {
+              kind: 'warn',
+              message: 'third-check-first-warn',
+            },
+            {
+              kind: 'error',
+              message: 'third-check-second-error',
+            },
+            {
+              kind: 'warn',
+              message: 'third-check-second-warn',
+            },
+          ],
+        },
       ];
       const formated = formatHuman(mockResult);
       //First title
@@ -727,11 +766,23 @@ describe('Check logic', () => {
         `for profile ${profile.scope}/${profile.name} and local provider ${provider} at path`
       );
       expect(formated).toMatch(mockLocalProviderFrom.path);
-      //Second title
+      //Second boby
       expect(formated).toMatch('❌ second-check-first-error');
       expect(formated).toMatch('⚠️ second-check-first-warn');
       expect(formated).toMatch('❌ second-check-second-error');
       expect(formated).toMatch('⚠️ second-check-second-warn');
+      //Third title
+      expect(formated).toMatch(
+        `❌ Checking integration parameters of local provider at path`
+      );
+      expect(formated).toMatch(mockLocalProviderFrom.path);
+      expect(formated).toMatch(`and super.json at path`);
+      expect(formated).toMatch('some/path');
+      //Third body
+      expect(formated).toMatch('❌ third-check-first-error');
+      expect(formated).toMatch('⚠️ third-check-first-warn');
+      expect(formated).toMatch('❌ third-check-second-error');
+      expect(formated).toMatch('⚠️ third-check-second-warn');
     });
   });
 
@@ -1003,6 +1054,138 @@ describe('Check logic', () => {
         ],
         profileId: 'starwars/character-information',
         provider: mockProviderJson.name,
+      });
+    });
+  });
+
+  describe('when checking integration parameters', () => {
+    it('returns empty result if there are no integration parameters', async () => {
+      const mockSuperJson = new SuperJson({
+        profiles: {
+          [profile.name]: {
+            file: '',
+            providers: {
+              [provider]: {
+                file: '',
+              },
+            },
+          },
+        },
+        providers: {
+          [provider]: {
+            file: '',
+          },
+        },
+      });
+      expect(
+        checkIntegrationParameters(mockProviderJson, mockSuperJson)
+      ).toEqual({
+        issues: [],
+        kind: 'parameters',
+        provider: provider,
+      });
+    });
+
+    it('returns result with warnings if there are extra integration parameters in super.json', async () => {
+      const mockSuperJson = new SuperJson({
+        profiles: {
+          [profile.name]: {
+            file: '',
+            providers: {
+              [provider]: {
+                file: '',
+              },
+            },
+          },
+        },
+        providers: {
+          [provider]: {
+            file: '',
+            parameters: {
+              first: '$FIRST',
+              extra: 'hi, i am extra',
+            },
+          },
+        },
+      });
+
+      const mockProviderJson: ProviderJson = {
+        name: provider,
+        services: [{ id: 'test-service', baseUrl: 'service/base/url' }],
+        securitySchemes: [],
+        defaultService: 'test-service',
+        parameters: [
+          {
+            name: 'first',
+          },
+        ],
+      };
+      expect(
+        checkIntegrationParameters(mockProviderJson, mockSuperJson)
+      ).toEqual({
+        issues: [
+          {
+            kind: 'warn',
+            message: `Super.json defines parameter: extra which is not needed in provider ${provider}`,
+          },
+        ],
+        kind: 'parameters',
+        provider: provider,
+      });
+    });
+
+    it('returns result with errors if there are integration parameters missing in super.json', async () => {
+      const mockSuperJson = new SuperJson({
+        profiles: {
+          [profile.name]: {
+            file: '',
+            providers: {
+              [provider]: {
+                file: '',
+              },
+            },
+          },
+        },
+        providers: {
+          [provider]: {
+            file: '',
+            parameters: {
+              first: '$FIRST',
+              extra: 'hi, i am extra',
+            },
+          },
+        },
+      });
+
+      const mockProviderJson: ProviderJson = {
+        name: provider,
+        services: [{ id: 'test-service', baseUrl: 'service/base/url' }],
+        securitySchemes: [],
+        defaultService: 'test-service',
+        parameters: [
+          {
+            name: 'first',
+          },
+          {
+            name: 'second',
+          },
+        ],
+      };
+      expect(
+        checkIntegrationParameters(mockProviderJson, mockSuperJson)
+      ).toEqual({
+        issues: [
+          {
+            kind: 'warn',
+            message: `Super.json defines parameter: extra which is not needed in provider ${provider}`,
+          },
+          {
+            kind: 'error',
+            message: `Parameter second is not defined in super.json for provider ${provider}`,
+          },
+        ],
+        kind: 'parameters',
+        provider: provider,
       });
     });
   });
