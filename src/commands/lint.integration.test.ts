@@ -204,12 +204,16 @@ describe('lint CLI command', () => {
           category: 'Parser',
           detail: 'Expected `provider` but found `map`',
           location: {
-            line: 3,
-            column: 1,
-          },
-          span: {
-            start: 31,
-            end: 34,
+            end: {
+              charIndex: 34,
+              line: 3,
+              column: 4,
+            },
+            start: {
+              line: 3,
+              column: 1,
+              charIndex: 31,
+            },
           },
         },
       ],

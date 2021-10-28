@@ -94,8 +94,8 @@ export function generateTypingsForProfile(
       output.usecases.map(usecase => ({
         name: usecase.useCaseName,
         doc: {
-          title: usecase.documentation?.title,
-          description: usecase.documentation?.description,
+          title: usecase.title,
+          description: usecase.description,
         },
       }))
     ),

@@ -263,7 +263,7 @@ export async function execCLI(
 
   childProcess.stdin?.setDefaultEncoding('utf-8');
 
-  let killIOTimeout: NodeJS.Timeout;
+  let currentInputTimeout: NodeJS.Timeout, killIOTimeout: NodeJS.Timeout;
 
   // Creates a loop to feed user inputs to the child process in order to get results from the tool
   const loop = (userInputs: { value: string; timeout: number }[]) => {
@@ -284,7 +284,7 @@ export async function execCLI(
       return;
     }
 
-    setTimeout(() => {
+    currentInputTimeout = setTimeout(() => {
       childProcess.stdin?.write(userInputs[0].value);
       // Log debug I/O statements on tests
       if (options?.debug) {
@@ -326,14 +326,14 @@ export async function execCLI(
       childProcess.stderr?.on('data', chunk => process.stderr.write(chunk));
     }
 
-    // childProcess.stderr?.once('data', (err: string | Buffer) => {
-    //   childProcess.stdin?.end();
+    childProcess.stderr?.once('data', (err: string | Buffer) => {
+      childProcess.stdin?.end();
 
-    //   if (currentInputTimeout) {
-    //     clearTimeout(currentInputTimeout);
-    //   }
-    //   reject(err.toString());
-    // });
+      if (currentInputTimeout) {
+        clearTimeout(currentInputTimeout);
+      }
+      reject(err.toString());
+    });
 
     childProcess.on('error', (err: Error) => {
       reject(err);

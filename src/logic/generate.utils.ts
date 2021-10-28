@@ -455,8 +455,8 @@ export function variableType(
         ([name, innerStructure]) => {
           const doc = isDocumentedStructure(innerStructure)
             ? {
-                title: innerStructure.documentation?.title,
-                description: innerStructure.documentation?.description,
+                title: innerStructure.title,
+                description: innerStructure.description,
               }
             : undefined;
 
@@ -592,8 +592,8 @@ export function createUsecaseTypes(
   ) => {
     const doc = isDocumentedStructure(structure)
       ? {
-          title: structure.documentation?.title,
-          description: structure.documentation?.description,
+          title: structure.title,
+          description: structure.description,
         }
       : undefined;
 

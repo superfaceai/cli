@@ -146,7 +146,7 @@ describe('Configure CLI command', () => {
         superJson.normalized.providers[providerWithParameters].parameters
       ).toEqual({
         instance: '$AZURE_COGNITIVE_SERVICES_INSTANCE',
-        version: 'v1',
+        version: '$AZURE_COGNITIVE_SERVICES_VERSION',
       });
       expect(superJson.document.profiles![profileId]).toEqual({
         version: profileVersion,
