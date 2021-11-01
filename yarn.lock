@@ -898,13 +898,6 @@
   dependencies:
     "@sinonjs/commons" "^1.7.0"
 
-"@superfaceai/ast@0.0.35-beta.0":
-  version "0.0.35-beta.0"
-  resolved "https://registry.yarnpkg.com/@superfaceai/ast/-/ast-0.0.35-beta.0.tgz#01a114736aaa2529640a4c505c8600ff0aa72f0f"
-  integrity sha512-IDROQ2tAL+H2pUF8yOUMr3pUYKOeEdtL3Oi4PNhmKSAnt2Uxv5ivyGCxujqxr7JfluWucXrjK/+pgUK1SkI/qA==
-  dependencies:
-    typescript-is "^0.18.3"
-
 "@superfaceai/ast@0.0.35-beta.2":
   version "0.0.35-beta.2"
   resolved "https://registry.yarnpkg.com/@superfaceai/ast/-/ast-0.0.35-beta.2.tgz#7a574c1fff1a54b5df329a6f0644da58fb439781"
@@ -912,28 +905,18 @@
   dependencies:
     typescript-is "^0.18.3"
 
-"@superfaceai/one-sdk@0.0.41-beta.0":
-  version "0.0.41-beta.0"
-  resolved "https://registry.yarnpkg.com/@superfaceai/one-sdk/-/one-sdk-0.0.41-beta.0.tgz#378dbb0dba0bb8d0f1e066eb802ca30e0ef132db"
-  integrity sha512-26oAbH5aTQVrjGzpyCddlBEdpWaA+onzd09BJU8D6xILuSOUIg1Szjydn5hrTsn0CFho/FsPbhI3NG+g6Xq0SA==
+"@superfaceai/one-sdk@0.0.41-beta.2":
+  version "0.0.41-beta.2"
+  resolved "https://registry.yarnpkg.com/@superfaceai/one-sdk/-/one-sdk-0.0.41-beta.2.tgz#4a5a4adb7785eaece9765b322146b0c7419292ae"
+  integrity sha512-hCE2+3Cux5gRyznKyGF6uSaPZDK/WfCVptJUSc/1Np5PyCJPdtVC71wiGO/6AGEXYd3alWRUCtMjvs7hNxF4yg==
   dependencies:
-    "@superfaceai/ast" "0.0.35-beta.0"
-    "@superfaceai/parser" "0.0.24-beta.1"
+    "@superfaceai/ast" "0.0.35-beta.2"
+    "@superfaceai/parser" "0.0.24-beta.4"
     abort-controller "^3.0.0"
     cross-fetch "^3.0.5"
     debug "^4.3.2"
     isomorphic-form-data "^2.0.0"
     vm2 "^3.9.2"
-
-"@superfaceai/parser@0.0.24-beta.1":
-  version "0.0.24-beta.1"
-  resolved "https://registry.yarnpkg.com/@superfaceai/parser/-/parser-0.0.24-beta.1.tgz#45866f1fa1e4bfa5fc40d7812bb525d5495b4a1d"
-  integrity sha512-+zhneO+JNnmOZCFleAJO+nO7SAGlQr6M66H6oREJ94p8ViUS79sfEJjsJ4NeIOdD24S2DE6NLbnc3XoYHCHeMA==
-  dependencies:
-    "@superfaceai/ast" "0.0.35-beta.0"
-    "@types/debug" "^4.1.5"
-    debug "^4.3.1"
-    typescript "^4"
 
 "@superfaceai/parser@0.0.24-beta.4":
   version "0.0.24-beta.4"
