@@ -82,6 +82,7 @@ export async function publish(
     providerFrom: providerFiles.from,
     mapFrom: mapFiles.from,
     profileFrom: profileFiles.from,
+    superJson,
   });
   const checkIssues = checkReports.flatMap(c => c.issues);
   //Lint

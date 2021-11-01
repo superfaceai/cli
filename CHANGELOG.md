@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - prepare integration parameters during configure command
 - install command fallbacks to parse profile source on profile AST validation fail
 - added `warn if update available` package
+- integration parameters setup check in `check` command and before publishing
 
 ## [0.0.26] - 2021-10-13
 ### Added
