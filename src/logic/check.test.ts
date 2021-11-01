@@ -766,7 +766,7 @@ describe('Check logic', () => {
         `for profile ${profile.scope}/${profile.name} and local provider ${provider} at path`
       );
       expect(formated).toMatch(mockLocalProviderFrom.path);
-      //Second boby
+      // Second body
       expect(formated).toMatch('❌ second-check-first-error');
       expect(formated).toMatch('⚠️ second-check-first-warn');
       expect(formated).toMatch('❌ second-check-second-error');
