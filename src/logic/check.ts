@@ -45,6 +45,15 @@ type CheckMapProviderResult = {
 };
 
 /**
+ * Represents result of integration parameters check
+ */
+type CheckIntegrationParametersResult = {
+  kind: 'parameters';
+  provider: string;
+  issues: CheckIssue[];
+};
+
+/**
  * Represents result of capability check
  */
 export type CheckResult =
@@ -55,6 +64,10 @@ export type CheckResult =
   | (CheckMapProviderResult & {
       mapFrom: MapFromMetadata;
       providerFrom: ProviderFromMetadata;
+    })
+  | (CheckIntegrationParametersResult & {
+      providerFrom: ProviderFromMetadata;
+      superJsonPath: string;
     });
 
 export type CheckIssue = { kind: 'error' | 'warn'; message: string };
@@ -94,7 +107,6 @@ export async function check(
         map.provider,
         options
       );
-      assertProviderJson(providerFiles.source);
 
       options?.logCb?.(
         `Checking profile: "${profile.id.toString()}" and map for provider: "${
@@ -108,16 +120,65 @@ export async function check(
         profileFrom: profileFiles.from,
       });
 
+      //Check map and provider
       options?.logCb?.(`Checking provider: "${map.provider}"`);
       finalResults.push({
         ...checkMapAndProvider(providerFiles.source, mapFiles.ast),
         mapFrom: mapFiles.from,
         providerFrom: providerFiles.from,
       });
+
+      //Check integration parameters
+      options?.logCb?.(
+        `Checking integration parameters of provider: "${map.provider}"`
+      );
+      finalResults.push({
+        ...checkIntegrationParameters(providerFiles.source, superJson),
+        providerFrom: providerFiles.from,
+        superJsonPath: superJson.path,
+      });
     }
   }
 
   return finalResults;
+}
+
+export function checkIntegrationParameters(
+  provider: ProviderJson,
+  superJson: SuperJson
+): CheckIntegrationParametersResult {
+  const providerParameters = provider.parameters ?? [];
+  const superJsonParameterKeys = Object.keys(
+    superJson.normalized.providers[provider.name].parameters
+  );
+  const issues: CheckIssue[] = [];
+  //Check if we have some extra parameters in super.json
+  for (const key of superJsonParameterKeys) {
+    const parameterFromProvider = providerParameters.find(
+      parameter => parameter.name === key
+    );
+    if (!parameterFromProvider) {
+      issues.push({
+        kind: 'warn',
+        message: `Super.json defines parameter: ${key} which is not needed in provider ${provider.name}`,
+      });
+    }
+  }
+  //Check if all of the provider parameters are defined
+  for (const parameter of providerParameters) {
+    if (!superJsonParameterKeys.includes(parameter.name)) {
+      issues.push({
+        kind: 'error',
+        message: `Parameter ${parameter.name} is not defined in super.json for provider ${provider.name}`,
+      });
+    }
+  }
+
+  return {
+    kind: 'parameters',
+    issues,
+    provider: provider.name,
+  };
 }
 
 export function checkMapAndProvider(
@@ -273,12 +334,12 @@ export function formatHuman(checkResults: CheckResult[]): string {
       }
       //Map
       if (result.mapFrom.kind === 'local') {
-        message += `and local map for provider ${result.provider} at path\n${result.mapFrom.path}\n`;
+        message += `and local map for provider ${result.provider} at path\n${result.mapFrom.path}`;
       } else {
         message += `and remote map with version ${result.mapFrom.version} for provider ${result.provider}`;
       }
       //Map&Provider
-    } else {
+    } else if (result.kind === 'mapProvider') {
       //Map
       if (result.mapFrom.kind === 'local') {
         message += `Checking local map at path\n${result.mapFrom.path}\nfor profile ${result.profileId} `;
@@ -287,10 +348,18 @@ export function formatHuman(checkResults: CheckResult[]): string {
       }
       //Provider
       if (result.providerFrom.kind === 'local') {
-        message += `and local provider ${result.provider} at path\n${result.providerFrom.path}\n`;
+        message += `and local provider ${result.provider} at path\n${result.providerFrom.path}`;
       } else {
         message += `and remote provider ${result.provider}`;
       }
+      //Parameters
+    } else {
+      if (result.providerFrom.kind === 'local') {
+        message += `Checking integration parameters of local provider at path\n${result.providerFrom.path}`;
+      } else {
+        message += `Checking integration parameters of remote provider ${result.provider} `;
+      }
+      message += `and super.json at path\n${result.superJsonPath}`;
     }
     if (result.issues.length === 0) {
       return green(`${REPORT_OK} ${message}\n`);

@@ -166,7 +166,13 @@ describe('Publish logic utils', () => {
 
   const mockProfileSource = 'profile source';
   const mockMapSource = 'map source';
-  const mockSuperJson = new SuperJson();
+  const mockSuperJson = new SuperJson({
+    providers: {
+      ['swapi']: {},
+      ['someName']: {},
+      [mockProviderName]: {},
+    },
+  });
 
   const mockProfileFrom: ProfileFromMetadata = {
     kind: 'local',
@@ -200,6 +206,7 @@ describe('Publish logic utils', () => {
           profileFrom: mockProfileFrom,
           providerFrom: mockProviderFrom,
           mapFrom: mockMapFrom,
+          superJson: mockSuperJson,
         })
       ).toThrow(
         new CLIError(
@@ -218,6 +225,7 @@ describe('Publish logic utils', () => {
           profileFrom: mockProfileFrom,
           providerFrom: mockProviderFrom,
           mapFrom: mockMapFrom,
+          superJson: mockSuperJson,
         })
       ).toThrow(
         new CLIError(
@@ -236,6 +244,7 @@ describe('Publish logic utils', () => {
           profileFrom: mockProfileFrom,
           providerFrom: mockProviderFrom,
           mapFrom: mockMapFrom,
+          superJson: mockSuperJson,
         })
       ).toEqual([
         {
@@ -254,6 +263,13 @@ describe('Publish logic utils', () => {
           providerFrom: mockProviderFrom,
           mapFrom: mockMapFrom,
         },
+        {
+          issues: [],
+          kind: 'parameters',
+          provider: 'unverified-swapi',
+          providerFrom: mockProviderFrom,
+          superJsonPath: '',
+        },
       ]);
     });
 
@@ -267,6 +283,7 @@ describe('Publish logic utils', () => {
           profileFrom: mockProfileFrom,
           providerFrom: mockProviderFrom,
           mapFrom: mockMapFrom,
+          superJson: mockSuperJson,
         })
           .flatMap(checkResult => checkResult.issues)
           .filter(err => err.kind === 'error').length
@@ -293,6 +310,7 @@ describe('Publish logic utils', () => {
           profileFrom: mockProfileFrom,
           providerFrom: mockProviderFrom,
           mapFrom: mockMapFrom,
+          superJson: mockSuperJson,
         })
           .flatMap(checkResult => checkResult.issues)
           .filter(err => err.kind === 'warn').length
@@ -309,6 +327,7 @@ describe('Publish logic utils', () => {
           profileFrom: mockProfileFrom,
           providerFrom: mockProviderFrom,
           mapFrom: mockMapFrom,
+          superJson: mockSuperJson,
         })
           .flatMap(checkResult => checkResult.issues)
           .filter(err => err.kind === 'error').length
@@ -335,6 +354,7 @@ describe('Publish logic utils', () => {
           profileFrom: mockProfileFrom,
           providerFrom: mockProviderFrom,
           mapFrom: mockMapFrom,
+          superJson: mockSuperJson,
         })
           .flatMap(checkResult => checkResult.issues)
           .filter(err => err.kind === 'warn').length
@@ -351,6 +371,7 @@ describe('Publish logic utils', () => {
           profileFrom: mockProfileFrom,
           providerFrom: mockProviderFrom,
           mapFrom: mockMapFrom,
+          superJson: mockSuperJson,
         })
           .flatMap(checkResult => checkResult.issues)
           .filter(err => err.kind === 'error').length

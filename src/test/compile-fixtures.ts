@@ -4,7 +4,7 @@ import {
   ProfileDocumentNode,
 } from '@superfaceai/ast';
 import { parseMap, parseProfile, Source } from '@superfaceai/parser';
-import { dirname,join as joinPath } from 'path';
+import { dirname, join as joinPath } from 'path';
 
 import { exists, mkdir, readFile } from '../common/io';
 import { OutputStream } from '../common/output-stream';

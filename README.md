@@ -68,7 +68,7 @@ npx @superfaceai/cli install [profileId eg. communication/send-email]
 
 ## `superface check`
 
-Checks all maps and profiles locally linked in super.json. Also can be used to lint specific profile and its maps, in that case remote files can be used.
+Checks all maps, profiles and providers locally linked in super.json. Also can be used to check specific profile and its maps, in that case remote files can be used.
 
 ```
 USAGE
