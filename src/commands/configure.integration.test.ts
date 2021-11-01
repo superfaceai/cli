@@ -116,13 +116,10 @@ describe('Configure CLI command', () => {
         '🆗 All security schemes have been configured successfully.'
       );
       expect(result.stdout).toMatch(
-        '🆗 Parameter version configured with default value "v1"'
+        '🆗 Parameter version has been configured to use value of environment value "$AZURE_COGNITIVE_SERVICES_VERSION"'
       );
       expect(result.stdout).toContain(
-        '❌ Parameter instance with description "Instance of your azure cognitive service" has not been configured.'
-      );
-      expect(result.stdout).toContain(
-        'Please, configure this parameter manualy in super.json on path: superface/super.json'
+        'Please, configure this environment value.'
       );
 
       await expect(

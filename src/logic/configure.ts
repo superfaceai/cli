@@ -248,13 +248,18 @@ export async function installProvider(parameters: {
       if (parameter.description) {
         description = ` with description "${parameter.description}"`;
       }
-      if (parameter.default) {
+
+      const superJsonValue =
+        superJson.normalized.providers[providerInfo.name].parameters[
+          parameter.name
+        ];
+      if (superJsonValue === undefined) {
         parameters.options?.logCb?.(
-          `🆗 Parameter ${parameter.name}${description} configured with default value "${parameter.default}"`
+          `❌ Parameter ${parameter.name}${description} has not been configured.\nPlease, configure this parameter manualy in super.json on path: ${superJson.path}`
         );
       } else {
         parameters.options?.logCb?.(
-          `❌ Parameter ${parameter.name}${description} has not been configured.\nPlease, configure this parameter manualy in super.json on path: ${superJson.path}`
+          `🆗 Parameter ${parameter.name}${description} has been configured to use value of environment value "${superJsonValue}".\nPlease, configure this environment value.`
         );
       }
     }
