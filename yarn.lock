@@ -905,10 +905,10 @@
   dependencies:
     typescript-is "^0.18.3"
 
-"@superfaceai/one-sdk@0.0.41-beta.2":
-  version "0.0.41-beta.2"
-  resolved "https://registry.yarnpkg.com/@superfaceai/one-sdk/-/one-sdk-0.0.41-beta.2.tgz#4a5a4adb7785eaece9765b322146b0c7419292ae"
-  integrity sha512-hCE2+3Cux5gRyznKyGF6uSaPZDK/WfCVptJUSc/1Np5PyCJPdtVC71wiGO/6AGEXYd3alWRUCtMjvs7hNxF4yg==
+"@superfaceai/one-sdk@0.0.41-beta.3":
+  version "0.0.41-beta.3"
+  resolved "https://registry.yarnpkg.com/@superfaceai/one-sdk/-/one-sdk-0.0.41-beta.3.tgz#2312eab5a2ad33cc82fc00eb6e7aa998f93f8640"
+  integrity sha512-wSEDdqx6gcAznpgInDIIcpwO5iJSK4A19lcoeBx1UXtgFuDgTCR7cnecLprO5EZNEqWlaGKVH5OBSGWyEY+7QQ==
   dependencies:
     "@superfaceai/ast" "0.0.35-beta.2"
     "@superfaceai/parser" "0.0.24-beta.4"

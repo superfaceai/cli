@@ -53,7 +53,7 @@
     "@oclif/config": "^1.17.0",
     "@superfaceai/ast": "0.0.35-beta.2",
     "@superfaceai/parser": "0.0.24-beta.4",
-    "@superfaceai/one-sdk": "0.0.41-beta.2",
+    "@superfaceai/one-sdk": "0.0.41-beta.3",
     "@oclif/plugin-warn-if-update-available": "^1.7.0",
     "@superfaceai/service-client": "0.0.26",
     "chalk": "^4.1.0",

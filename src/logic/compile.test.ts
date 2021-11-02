@@ -52,6 +52,7 @@ describe('Compile CLI logic', () => {
 
         return Promise.resolve(mockProfileContent);
       });
+      const clearCacheSpy = jest.spyOn(Parser, 'clearCache');
       const parseMapSpy = jest.spyOn(Parser, 'parseMap');
       const parseProfileSpy = jest.spyOn(Parser, 'parseProfile');
 
@@ -93,6 +94,7 @@ describe('Compile CLI logic', () => {
         profiles[1].maps[1].path,
         { profileName: 'profile', scope: 'second', providerName: 'second' }
       );
+      expect(clearCacheSpy).toHaveBeenCalled();
     });
 
     it('compiles only maps', async () => {
@@ -104,6 +106,7 @@ describe('Compile CLI logic', () => {
 
         return Promise.resolve(mockProfileContent);
       });
+      const clearCacheSpy = jest.spyOn(Parser, 'clearCache');
       const parseMapSpy = jest.spyOn(Parser, 'parseMap');
       const parseProfileSpy = jest.spyOn(Parser, 'parseProfile');
 
@@ -136,6 +139,7 @@ describe('Compile CLI logic', () => {
         profiles[1].maps[1].path,
         { profileName: 'profile', scope: 'second', providerName: 'second' }
       );
+      expect(clearCacheSpy).toHaveBeenCalled();
     });
 
     it('compiles only profiles', async () => {
@@ -147,6 +151,7 @@ describe('Compile CLI logic', () => {
 
         return Promise.resolve(mockProfileContent);
       });
+      const clearCacheSpy = jest.spyOn(Parser, 'clearCache');
       const parseMapSpy = jest.spyOn(Parser, 'parseMap');
       const parseProfileSpy = jest.spyOn(Parser, 'parseProfile');
 
@@ -166,6 +171,7 @@ describe('Compile CLI logic', () => {
         { profileName: 'profile', scope: 'second' }
       );
 
+      expect(clearCacheSpy).toHaveBeenCalled();
       expect(parseMapSpy).not.toHaveBeenCalled();
     });
 
@@ -173,6 +179,7 @@ describe('Compile CLI logic', () => {
       mocked(exists).mockResolvedValue(false);
       const parseMapSpy = jest.spyOn(Parser, 'parseMap');
       const parseProfileSpy = jest.spyOn(Parser, 'parseProfile');
+      const clearCacheSpy = jest.spyOn(Parser, 'clearCache');
 
       await expect(compile(profiles)).rejects.toEqual(
         new CLIError(
@@ -182,12 +189,14 @@ describe('Compile CLI logic', () => {
       expect(parseProfileSpy).not.toHaveBeenCalled();
 
       expect(parseMapSpy).not.toHaveBeenCalled();
+      expect(clearCacheSpy).toHaveBeenCalled();
     });
 
     it('throws when map file does not exist', async () => {
       mocked(exists).mockResolvedValueOnce(true).mockResolvedValueOnce(false);
       const parseMapSpy = jest.spyOn(Parser, 'parseMap');
       const parseProfileSpy = jest.spyOn(Parser, 'parseProfile');
+      const clearCacheSpy = jest.spyOn(Parser, 'clearCache');
       mocked(readFile).mockImplementation(path => {
         if (path.toString().endsWith('.suma')) {
           return Promise.resolve(mockMapContent);
@@ -209,6 +218,7 @@ describe('Compile CLI logic', () => {
       );
 
       expect(parseMapSpy).not.toHaveBeenCalled();
+      expect(clearCacheSpy).toHaveBeenCalled();
     });
   });
 });
