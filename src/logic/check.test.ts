@@ -1213,5 +1213,55 @@ describe('Check logic', () => {
         provider: provider,
       });
     });
+
+    it('returns result with error if there are not matching provider names super.json and provider.json', async () => {
+      const mockSuperJson = new SuperJson({
+        profiles: {
+          [profile.name]: {
+            file: '',
+            providers: {
+              [provider]: {
+                file: '',
+              },
+            },
+          },
+        },
+        providers: {
+          [provider]: {
+            file: '',
+            parameters: {
+              first: '$FIRST',
+            },
+          },
+        },
+      });
+
+      const mockProviderJson: ProviderJson = {
+        name: 'different',
+        services: [{ id: 'test-service', baseUrl: 'service/base/url' }],
+        securitySchemes: [],
+        defaultService: 'test-service',
+        parameters: [
+          {
+            name: 'first',
+          },
+          {
+            name: 'second',
+          },
+        ],
+      };
+      expect(
+        checkIntegrationParameters(mockProviderJson, mockSuperJson)
+      ).toEqual({
+        issues: [
+          {
+            kind: 'error',
+            message: `Provider different is not defined in super.json`,
+          },
+        ],
+        kind: 'parameters',
+        provider: 'different',
+      });
+    });
   });
 });
