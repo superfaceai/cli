@@ -243,6 +243,9 @@ export async function installProvider(parameters: {
   }
   // inform user about configured parameters
   if (providerInfo.parameters && providerInfo.parameters.length > 0) {
+    parameters.options?.logCb?.(
+      `Provider ${providerInfo.name} has integration parameters that must be configured. You can configure them in super.json on path: ${superJson.path} or set the environment variables as defined below.`
+    );
     for (const parameter of providerInfo.parameters) {
       let description = '';
       if (parameter.description) {
@@ -260,6 +263,11 @@ export async function installProvider(parameters: {
       } else {
         parameters.options?.logCb?.(
           `🆗 Parameter ${parameter.name}${description} has been configured to use value of environment value "${superJsonValue}".\nPlease, configure this environment value.`
+        );
+      }
+      if (parameter.default) {
+        parameters.options?.logCb?.(
+          `If you do not set the variable, the default value "${parameter.default}" will be used.`
         );
       }
     }
