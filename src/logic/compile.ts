@@ -20,6 +20,8 @@ export async function compile(
     onlyProfile?: boolean;
   }
 ): Promise<void> {
+  //Clear cache
+  await Parser.clearCache();
   for (const profile of profiles) {
     //Compile profile
     if (!options?.onlyMap) {
