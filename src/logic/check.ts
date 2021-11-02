@@ -148,9 +148,21 @@ export function checkIntegrationParameters(
   superJson: SuperJson
 ): CheckIntegrationParametersResult {
   const providerParameters = provider.parameters ?? [];
-  const superJsonParameterKeys = Object.keys(
-    superJson.normalized.providers[provider.name].parameters
-  );
+  const superJsonProvider = superJson.normalized.providers[provider.name];
+  //If there is no provider with passed name there is high probability of not matching provider name in super.json and provider.json
+  if (!superJsonProvider) {
+    return {
+      kind: 'parameters',
+      issues: [
+        {
+          kind: 'error',
+          message: `Provider ${provider.name} is not defined in super.json`,
+        },
+      ],
+      provider: provider.name,
+    };
+  }
+  const superJsonParameterKeys = Object.keys(superJsonProvider.parameters);
   const issues: CheckIssue[] = [];
   //Check if we have some extra parameters in super.json
   for (const key of superJsonParameterKeys) {
