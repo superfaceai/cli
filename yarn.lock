@@ -905,23 +905,23 @@
   dependencies:
     typescript-is "^0.18.3"
 
-"@superfaceai/one-sdk@0.0.41-beta.4":
-  version "0.0.41-beta.4"
-  resolved "https://registry.yarnpkg.com/@superfaceai/one-sdk/-/one-sdk-0.0.41-beta.4.tgz#8ff7befe1bdeae7eec23716dd2a899ef430c9621"
-  integrity sha512-cJgWDVi1evcUv144SOOp0xhPvTsiScTqmo/Sf81O3cQgK6HwXi/a3ewX66a+RbAkOgNF6K7bDvVZKfD5Oxw6Xw==
+"@superfaceai/one-sdk@0.0.41-beta.6":
+  version "0.0.41-beta.6"
+  resolved "https://registry.yarnpkg.com/@superfaceai/one-sdk/-/one-sdk-0.0.41-beta.6.tgz#8bce6897ae810994650e4056c53508bfc617edcb"
+  integrity sha512-txq2u3msVbziPa7El/AhPwBG9qho5Iw/fr+2+rpbW+CuNIkIJY8mjAnmUi0XvLdCLI6+4mFwpNnSR/rpibo+uA==
   dependencies:
     "@superfaceai/ast" "0.0.35-beta.2"
-    "@superfaceai/parser" "0.0.24-beta.4"
+    "@superfaceai/parser" "0.0.24-beta.5"
     abort-controller "^3.0.0"
     cross-fetch "^3.0.5"
     debug "^4.3.2"
     isomorphic-form-data "^2.0.0"
     vm2 "^3.9.2"
 
-"@superfaceai/parser@0.0.24-beta.4":
-  version "0.0.24-beta.4"
-  resolved "https://registry.yarnpkg.com/@superfaceai/parser/-/parser-0.0.24-beta.4.tgz#4e3cca51c643224a6dc27c90cfd7baabde048935"
-  integrity sha512-SW/tgCsxZjsp8E/cwKCTr+uvz8nz2ZXNut7HXFbO2tv+kM0oQnKhhYwfvikLNefqA9OkBfQqjgsVrT9KW2WAdQ==
+"@superfaceai/parser@0.0.24-beta.5":
+  version "0.0.24-beta.5"
+  resolved "https://registry.yarnpkg.com/@superfaceai/parser/-/parser-0.0.24-beta.5.tgz#7f33969f4c02170353335e205c864953439e89da"
+  integrity sha512-qgZazstUxXM3AfAbKW77rYNvKXjkm9zODyAAYplQXS6P6EWNd2KDC4j5HLMEAOi+rDjDIBCjGBaiqTyje2Uz2A==
   dependencies:
     "@superfaceai/ast" "0.0.35-beta.2"
     "@types/debug" "^4.1.5"
