@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [1.0.1] - 2021-11-04
 ### Changed
 - Compile command now clears cache before compilation
 - Check command checks for not matching provider name in provider.json and super.json
@@ -180,7 +182,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Transpile command
 - CI github flow
 
-[Unreleased]: https://github.com/superfaceai/cli/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/superfaceai/cli/compare/v1.0.1...HEAD
+[1.0.1]: https://github.com/superfaceai/cli/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/superfaceai/cli/compare/v0.0.26...v1.0.0
 [0.0.26]: https://github.com/superfaceai/cli/compare/v0.0.25...v0.0.26
 [0.0.25]: https://github.com/superfaceai/cli/compare/v0.0.24...v0.0.25
