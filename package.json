@@ -51,9 +51,9 @@
   "dependencies": {
     "@oclif/command": "^1.8.0",
     "@oclif/config": "^1.17.0",
-    "@superfaceai/ast": "0.0.35-beta.2",
-    "@superfaceai/parser": "0.0.24-beta.5",
-    "@superfaceai/one-sdk": "0.0.41-beta.6",
+    "@superfaceai/ast": "^1.0.0",
+    "@superfaceai/parser": "^1.0.0",
+    "@superfaceai/one-sdk": "^1.0.0",
     "@oclif/plugin-warn-if-update-available": "^1.7.0",
     "@superfaceai/service-client": "0.0.26",
     "chalk": "^4.1.0",
