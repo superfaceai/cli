@@ -7,16 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Changed
-- Use provider.json from ast instead of sdk
-- Compile command now compiles every locally linked file in super.json
 - Compile command now clears cache before compilation
 - Check command checks for not matching provider name in provider.json and super.json
 
+## [1.0.0] - 2021-11-04
 ### Added
 - prepare integration parameters during configure command
 - install command fallbacks to parse profile source on profile AST validation fail
 - added `warn if update available` package
 - integration parameters setup check in `check` command and before publishing
+
+### Changed
+- Use provider.json from ast instead of sdk
+- Compile command now compiles every locally linked file in super.json
 
 ## [0.0.26] - 2021-10-13
 ### Added
@@ -177,7 +180,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Transpile command
 - CI github flow
 
-[Unreleased]: https://github.com/superfaceai/cli/compare/v0.0.26...HEAD
+[Unreleased]: https://github.com/superfaceai/cli/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/superfaceai/cli/compare/v0.0.26...v1.0.0
 [0.0.26]: https://github.com/superfaceai/cli/compare/v0.0.25...v0.0.26
 [0.0.25]: https://github.com/superfaceai/cli/compare/v0.0.24...v0.0.25
 [0.0.24]: https://github.com/superfaceai/cli/compare/v0.0.23...v0.0.24
