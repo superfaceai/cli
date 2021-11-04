@@ -653,16 +653,14 @@
   },
   "astMetadata": {
     "astVersion": {
-      "major": 0,
+      "major": 1,
       "minor": 0,
-      "patch": 35,
-      "label": "beta.2"
+      "patch": 0
     },
     "parserVersion": {
-      "major": 0,
+      "major": 1,
       "minor": 0,
-      "patch": 24,
-      "label": "beta.5"
+      "patch": 0
     },
     "sourceChecksum": "1ed288c0f2b9ae0d099a6c12d06e0183489ec58ec880f0ab62a15fba4eedc045"
   }

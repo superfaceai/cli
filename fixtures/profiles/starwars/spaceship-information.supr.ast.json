@@ -295,16 +295,14 @@
   },
   "astMetadata": {
     "astVersion": {
-      "major": 0,
+      "major": 1,
       "minor": 0,
-      "patch": 35,
-      "label": "beta.2"
+      "patch": 0
     },
     "parserVersion": {
-      "major": 0,
+      "major": 1,
       "minor": 0,
-      "patch": 24,
-      "label": "beta.5"
+      "patch": 0
     },
     "sourceChecksum": "b6ec612a02624f1086c1a9606b3cc1b3164e64520694d719ee5ac0055a2f7472"
   }
