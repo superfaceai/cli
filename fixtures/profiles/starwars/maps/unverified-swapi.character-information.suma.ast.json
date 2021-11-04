@@ -13,12 +13,16 @@
     },
     "provider": "unverified-swapi",
     "location": {
-      "line": 1,
-      "column": 1
-    },
-    "span": {
-      "start": 0,
-      "end": 65
+      "start": {
+        "line": 1,
+        "column": 1,
+        "charIndex": 0
+      },
+      "end": {
+        "line": 2,
+        "column": 30,
+        "charIndex": 76
+      }
     }
   },
   "definitions": [
@@ -47,40 +51,56 @@
                     "source": "input.characterName",
                     "sourceMap": "AAAA,IAAI,aAAa,GAAG,KAAK,CAAC,aAAa,CAAC",
                     "location": {
-                      "line": 8,
-                      "column": 18
-                    },
-                    "span": {
-                      "start": 171,
-                      "end": 190
+                      "start": {
+                        "line": 8,
+                        "column": 18,
+                        "charIndex": 182
+                      },
+                      "end": {
+                        "line": 8,
+                        "column": 37,
+                        "charIndex": 201
+                      }
                     }
                   },
                   "location": {
-                    "line": 8,
-                    "column": 9
-                  },
-                  "span": {
-                    "start": 162,
-                    "end": 190
+                    "start": {
+                      "line": 8,
+                      "column": 9,
+                      "charIndex": 173
+                    },
+                    "end": {
+                      "line": 8,
+                      "column": 37,
+                      "charIndex": 201
+                    }
                   }
                 }
               ],
               "location": {
-                "line": 7,
-                "column": 13
-              },
-              "span": {
-                "start": 152,
-                "end": 198
+                "start": {
+                  "line": 7,
+                  "column": 13,
+                  "charIndex": 163
+                },
+                "end": {
+                  "line": 9,
+                  "column": 8,
+                  "charIndex": 209
+                }
               }
             },
             "location": {
-              "line": 6,
-              "column": 5
-            },
-            "span": {
-              "start": 130,
-              "end": 204
+              "start": {
+                "line": 6,
+                "column": 5,
+                "charIndex": 141
+              },
+              "end": {
+                "line": 10,
+                "column": 6,
+                "charIndex": 215
+              }
             },
             "security": []
           },
@@ -102,21 +122,29 @@
                       "source": "body.count === 0",
                       "sourceMap": "AAAA,IAAI,aAAa,GAAG,IAAI,CAAC,KAAK,KAAK,CAAC,CAAC",
                       "location": {
-                        "line": 13,
-                        "column": 28
-                      },
-                      "span": {
-                        "start": 271,
-                        "end": 287
+                        "start": {
+                          "line": 13,
+                          "column": 28,
+                          "charIndex": 282
+                        },
+                        "end": {
+                          "line": 13,
+                          "column": 44,
+                          "charIndex": 298
+                        }
                       }
                     },
                     "location": {
-                      "line": 13,
-                      "column": 24
-                    },
-                    "span": {
-                      "start": 267,
-                      "end": 288
+                      "start": {
+                        "line": 13,
+                        "column": 24,
+                        "charIndex": 278
+                      },
+                      "end": {
+                        "line": 13,
+                        "column": 45,
+                        "charIndex": 299
+                      }
                     }
                   },
                   "value": {
@@ -131,40 +159,56 @@
                           "kind": "PrimitiveLiteral",
                           "value": "No character found",
                           "location": {
-                            "line": 14,
-                            "column": 19
-                          },
-                          "span": {
-                            "start": 309,
-                            "end": 329
+                            "start": {
+                              "line": 14,
+                              "column": 19,
+                              "charIndex": 320
+                            },
+                            "end": {
+                              "line": 14,
+                              "column": 39,
+                              "charIndex": 340
+                            }
                           }
                         },
                         "location": {
-                          "line": 14,
-                          "column": 9
-                        },
-                        "span": {
-                          "start": 299,
-                          "end": 329
+                          "start": {
+                            "line": 14,
+                            "column": 9,
+                            "charIndex": 310
+                          },
+                          "end": {
+                            "line": 14,
+                            "column": 39,
+                            "charIndex": 340
+                          }
                         }
                       }
                     ],
                     "location": {
-                      "line": 13,
-                      "column": 46
-                    },
-                    "span": {
-                      "start": 289,
-                      "end": 337
+                      "start": {
+                        "line": 13,
+                        "column": 46,
+                        "charIndex": 300
+                      },
+                      "end": {
+                        "line": 15,
+                        "column": 8,
+                        "charIndex": 348
+                      }
                     }
                   },
                   "location": {
-                    "line": 13,
-                    "column": 7
-                  },
-                  "span": {
-                    "start": 250,
-                    "end": 337
+                    "start": {
+                      "line": 13,
+                      "column": 7,
+                      "charIndex": 261
+                    },
+                    "end": {
+                      "line": 15,
+                      "column": 8,
+                      "charIndex": 348
+                    }
                   }
                 },
                 {
@@ -181,31 +225,43 @@
                         "source": "body.results.filter(result => result.name.toLowerCase() === input.characterName.toLowerCase())",
                         "sourceMap": "AAAA,IAAI,aAAa,GAAG,IAAI,CAAC,OAAO,CAAC,MAAM,CAAC,UAAA,MAAM,IAAI,OAAA,MAAM,CAAC,IAAI,CAAC,WAAW,EAAE,KAAK,KAAK,CAAC,aAAa,CAAC,WAAW,EAAE,EAA/D,CAA+D,CAAC,CAAC",
                         "location": {
-                          "line": 17,
-                          "column": 17
-                        },
-                        "span": {
-                          "start": 355,
-                          "end": 449
+                          "start": {
+                            "line": 17,
+                            "column": 17,
+                            "charIndex": 366
+                          },
+                          "end": {
+                            "line": 17,
+                            "column": 111,
+                            "charIndex": 460
+                          }
                         }
                       },
                       "location": {
-                        "line": 17,
-                        "column": 7
-                      },
-                      "span": {
-                        "start": 345,
-                        "end": 449
+                        "start": {
+                          "line": 17,
+                          "column": 7,
+                          "charIndex": 356
+                        },
+                        "end": {
+                          "line": 17,
+                          "column": 111,
+                          "charIndex": 460
+                        }
                       }
                     }
                   ],
                   "location": {
-                    "line": 17,
-                    "column": 7
-                  },
-                  "span": {
-                    "start": 345,
-                    "end": 449
+                    "start": {
+                      "line": 17,
+                      "column": 7,
+                      "charIndex": 356
+                    },
+                    "end": {
+                      "line": 17,
+                      "column": 111,
+                      "charIndex": 460
+                    }
                   }
                 },
                 {
@@ -220,21 +276,29 @@
                       "source": "entries.length === 0",
                       "sourceMap": "AAAA,IAAI,aAAa,GAAG,OAAO,CAAC,MAAM,KAAK,CAAC,CAAC",
                       "location": {
-                        "line": 19,
-                        "column": 28
-                      },
-                      "span": {
-                        "start": 478,
-                        "end": 498
+                        "start": {
+                          "line": 19,
+                          "column": 28,
+                          "charIndex": 489
+                        },
+                        "end": {
+                          "line": 19,
+                          "column": 48,
+                          "charIndex": 509
+                        }
                       }
                     },
                     "location": {
-                      "line": 19,
-                      "column": 24
-                    },
-                    "span": {
-                      "start": 474,
-                      "end": 499
+                      "start": {
+                        "line": 19,
+                        "column": 24,
+                        "charIndex": 485
+                      },
+                      "end": {
+                        "line": 19,
+                        "column": 49,
+                        "charIndex": 510
+                      }
                     }
                   },
                   "value": {
@@ -249,40 +313,56 @@
                           "kind": "PrimitiveLiteral",
                           "value": "Specified character name is incorrect, did you mean to enter one of following?",
                           "location": {
-                            "line": 20,
-                            "column": 19
-                          },
-                          "span": {
-                            "start": 520,
-                            "end": 600
+                            "start": {
+                              "line": 20,
+                              "column": 19,
+                              "charIndex": 531
+                            },
+                            "end": {
+                              "line": 20,
+                              "column": 99,
+                              "charIndex": 611
+                            }
                           }
                         },
                         "location": {
-                          "line": 20,
-                          "column": 9
-                        },
-                        "span": {
-                          "start": 510,
-                          "end": 600
+                          "start": {
+                            "line": 20,
+                            "column": 9,
+                            "charIndex": 521
+                          },
+                          "end": {
+                            "line": 20,
+                            "column": 99,
+                            "charIndex": 611
+                          }
                         }
                       }
                     ],
                     "location": {
-                      "line": 19,
-                      "column": 50
-                    },
-                    "span": {
-                      "start": 500,
-                      "end": 608
+                      "start": {
+                        "line": 19,
+                        "column": 50,
+                        "charIndex": 511
+                      },
+                      "end": {
+                        "line": 21,
+                        "column": 8,
+                        "charIndex": 619
+                      }
                     }
                   },
                   "location": {
-                    "line": 19,
-                    "column": 7
-                  },
-                  "span": {
-                    "start": 457,
-                    "end": 608
+                    "start": {
+                      "line": 19,
+                      "column": 7,
+                      "charIndex": 468
+                    },
+                    "end": {
+                      "line": 21,
+                      "column": 8,
+                      "charIndex": 619
+                    }
                   }
                 },
                 {
@@ -299,31 +379,43 @@
                         "source": "entries[0]",
                         "sourceMap": "AAAA,IAAI,aAAa,GAAG,OAAO,CAAC,CAAC,CAAC,CAAC",
                         "location": {
-                          "line": 23,
-                          "column": 19
-                        },
-                        "span": {
-                          "start": 634,
-                          "end": 644
+                          "start": {
+                            "line": 23,
+                            "column": 19,
+                            "charIndex": 645
+                          },
+                          "end": {
+                            "line": 23,
+                            "column": 29,
+                            "charIndex": 655
+                          }
                         }
                       },
                       "location": {
-                        "line": 23,
-                        "column": 7
-                      },
-                      "span": {
-                        "start": 622,
-                        "end": 644
+                        "start": {
+                          "line": 23,
+                          "column": 7,
+                          "charIndex": 633
+                        },
+                        "end": {
+                          "line": 23,
+                          "column": 29,
+                          "charIndex": 655
+                        }
                       }
                     }
                   ],
                   "location": {
-                    "line": 23,
-                    "column": 7
-                  },
-                  "span": {
-                    "start": 622,
-                    "end": 644
+                    "start": {
+                      "line": 23,
+                      "column": 7,
+                      "charIndex": 633
+                    },
+                    "end": {
+                      "line": 23,
+                      "column": 29,
+                      "charIndex": 655
+                    }
                   }
                 },
                 {
@@ -344,21 +436,29 @@
                           "source": "character.height",
                           "sourceMap": "AAAA,IAAI,aAAa,GAAG,SAAS,CAAC,MAAM,CAAC",
                           "location": {
-                            "line": 26,
-                            "column": 18
-                          },
-                          "span": {
-                            "start": 682,
-                            "end": 698
+                            "start": {
+                              "line": 26,
+                              "column": 18,
+                              "charIndex": 693
+                            },
+                            "end": {
+                              "line": 26,
+                              "column": 34,
+                              "charIndex": 709
+                            }
                           }
                         },
                         "location": {
-                          "line": 26,
-                          "column": 9
-                        },
-                        "span": {
-                          "start": 673,
-                          "end": 698
+                          "start": {
+                            "line": 26,
+                            "column": 9,
+                            "charIndex": 684
+                          },
+                          "end": {
+                            "line": 26,
+                            "column": 34,
+                            "charIndex": 709
+                          }
                         }
                       },
                       {
@@ -372,21 +472,29 @@
                           "source": "character.mass",
                           "sourceMap": "AAAA,IAAI,aAAa,GAAG,SAAS,CAAC,IAAI,CAAC",
                           "location": {
-                            "line": 27,
-                            "column": 18
-                          },
-                          "span": {
-                            "start": 716,
-                            "end": 730
+                            "start": {
+                              "line": 27,
+                              "column": 18,
+                              "charIndex": 727
+                            },
+                            "end": {
+                              "line": 27,
+                              "column": 32,
+                              "charIndex": 741
+                            }
                           }
                         },
                         "location": {
-                          "line": 27,
-                          "column": 9
-                        },
-                        "span": {
-                          "start": 707,
-                          "end": 730
+                          "start": {
+                            "line": 27,
+                            "column": 9,
+                            "charIndex": 718
+                          },
+                          "end": {
+                            "line": 27,
+                            "column": 32,
+                            "charIndex": 741
+                          }
                         }
                       },
                       {
@@ -400,79 +508,124 @@
                           "source": "character.birth_year",
                           "sourceMap": "AAAA,IAAI,aAAa,GAAG,SAAS,CAAC,UAAU,CAAC",
                           "location": {
-                            "line": 28,
-                            "column": 23
-                          },
-                          "span": {
-                            "start": 753,
-                            "end": 773
+                            "start": {
+                              "line": 28,
+                              "column": 23,
+                              "charIndex": 764
+                            },
+                            "end": {
+                              "line": 28,
+                              "column": 43,
+                              "charIndex": 784
+                            }
                           }
                         },
                         "location": {
-                          "line": 28,
-                          "column": 9
-                        },
-                        "span": {
-                          "start": 739,
-                          "end": 773
+                          "start": {
+                            "line": 28,
+                            "column": 9,
+                            "charIndex": 750
+                          },
+                          "end": {
+                            "line": 28,
+                            "column": 43,
+                            "charIndex": 784
+                          }
                         }
                       }
                     ],
                     "location": {
-                      "line": 25,
-                      "column": 18
-                    },
-                    "span": {
-                      "start": 663,
-                      "end": 781
+                      "start": {
+                        "line": 25,
+                        "column": 18,
+                        "charIndex": 674
+                      },
+                      "end": {
+                        "line": 29,
+                        "column": 8,
+                        "charIndex": 792
+                      }
                     }
                   },
                   "location": {
-                    "line": 25,
-                    "column": 7
-                  },
-                  "span": {
-                    "start": 652,
-                    "end": 781
+                    "start": {
+                      "line": 25,
+                      "column": 7,
+                      "charIndex": 663
+                    },
+                    "end": {
+                      "line": 29,
+                      "column": 8,
+                      "charIndex": 792
+                    }
                   }
                 }
               ],
               "location": {
-                "line": 12,
-                "column": 5
-              },
-              "span": {
-                "start": 210,
-                "end": 787
+                "start": {
+                  "line": 12,
+                  "column": 5,
+                  "charIndex": 221
+                },
+                "end": {
+                  "line": 30,
+                  "column": 6,
+                  "charIndex": 798
+                }
               }
             }
           ],
           "location": {
-            "line": 5,
-            "column": 3
-          },
-          "span": {
-            "start": 104,
-            "end": 791
+            "start": {
+              "line": 5,
+              "column": 3,
+              "charIndex": 115
+            },
+            "end": {
+              "line": 31,
+              "column": 4,
+              "charIndex": 802
+            }
           }
         }
       ],
       "location": {
-        "line": 4,
-        "column": 1
-      },
-      "span": {
-        "start": 67,
-        "end": 793
+        "start": {
+          "line": 4,
+          "column": 1,
+          "charIndex": 78
+        },
+        "end": {
+          "line": 32,
+          "column": 2,
+          "charIndex": 804
+        }
       }
     }
   ],
   "location": {
-    "line": 1,
-    "column": 1
+    "start": {
+      "line": 1,
+      "column": 1,
+      "charIndex": 0
+    },
+    "end": {
+      "line": 32,
+      "column": 2,
+      "charIndex": 804
+    }
   },
-  "span": {
-    "start": 0,
-    "end": 793
+  "astMetadata": {
+    "astVersion": {
+      "major": 1,
+      "minor": 0,
+      "patch": 0
+    },
+    "parserVersion": {
+      "major": 1,
+      "minor": 0,
+      "patch": 0
+    },
+    "sourceChecksum": "d3129969bac23e221bf7311ae7ea4a61f1eab9f14a63ebe7cbb03fcb0f009265"
   }
 }

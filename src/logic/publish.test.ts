@@ -1,5 +1,9 @@
 import { CLIError } from '@oclif/errors';
-import { MapDocumentNode, ProfileDocumentNode } from '@superfaceai/ast';
+import {
+  AstMetadata,
+  MapDocumentNode,
+  ProfileDocumentNode,
+} from '@superfaceai/ast';
 import { SuperJson } from '@superfaceai/one-sdk';
 import { ServiceApiError } from '@superfaceai/service-client';
 import { ServiceClient } from '@superfaceai/service-client/dist/client';
@@ -67,8 +71,23 @@ describe('Publish logic', () => {
     const mockProviderName = 'swapi';
     const mockVersion = '1.0.0';
 
+    const astMetadata: AstMetadata = {
+      sourceChecksum: 'check',
+      astVersion: {
+        major: 1,
+        minor: 0,
+        patch: 0,
+      },
+      parserVersion: {
+        major: 1,
+        minor: 0,
+        patch: 0,
+      },
+    };
+
     const mockProfileDocument: ProfileDocumentNode = {
       kind: 'ProfileDocument',
+      astMetadata,
       header: {
         kind: 'ProfileHeader',
         name: 'test-profile',
@@ -86,6 +105,7 @@ describe('Publish logic', () => {
 
     const mockMapDocument: MapDocumentNode = {
       kind: 'MapDocument',
+      astMetadata,
       header: {
         kind: 'MapHeader',
         profile: {
@@ -293,6 +313,7 @@ describe('Publish logic', () => {
         profileFrom: mockLocalProfileFrom,
         mapFrom: mockLocalMapFrom,
         providerFrom: mockLocalProviderFrom,
+        superJson: mockSuperJson,
       });
       expect(prePublishLint).toHaveBeenCalledWith(
         mockProfileDocument,
@@ -378,6 +399,7 @@ describe('Publish logic', () => {
         profileFrom: mockLocalProfileFrom,
         mapFrom: mockRemoteMapFrom,
         providerFrom: mockRemoteProviderFrom,
+        superJson: mockSuperJson,
       });
       expect(prePublishLint).toHaveBeenCalledWith(
         mockProfileDocument,
@@ -460,6 +482,7 @@ describe('Publish logic', () => {
         profileFrom: mockLocalProfileFrom,
         mapFrom: mockLocalMapFrom,
         providerFrom: mockRemoteProviderFrom,
+        superJson: mockSuperJson,
       });
       expect(prePublishLint).toHaveBeenCalledWith(
         mockProfileDocument,
@@ -544,6 +567,7 @@ describe('Publish logic', () => {
         profileFrom: mockLocalProfileFrom,
         mapFrom: mockLocalMapFrom,
         providerFrom: mockLocalProviderFrom,
+        superJson: mockSuperJson,
       });
       expect(prePublishLint).toHaveBeenCalledWith(
         mockProfileDocument,
@@ -672,6 +696,7 @@ describe('Publish logic', () => {
         profileFrom: mockRemoteProfileFrom,
         mapFrom: mockLocalMapFrom,
         providerFrom: mockRemoteProviderFrom,
+        superJson: mockSuperJson,
       });
 
       expect(prePublishLint).toHaveBeenCalledWith(
@@ -759,6 +784,7 @@ describe('Publish logic', () => {
         profileFrom: mockLocalProfileFrom,
         mapFrom: mockLocalMapFrom,
         providerFrom: mockRemoteProviderFrom,
+        superJson: mockSuperJson,
       });
       expect(prePublishLint).toHaveBeenCalledWith(
         mockProfileDocument,
@@ -844,6 +870,7 @@ describe('Publish logic', () => {
         profileFrom: mockRemoteProfileFrom,
         mapFrom: mockLocalMapFrom,
         providerFrom: mockLocalProviderFrom,
+        superJson: mockSuperJson,
       });
       expect(prePublishLint).toHaveBeenCalledWith(
         mockProfileDocument,
@@ -930,6 +957,7 @@ describe('Publish logic', () => {
         profileFrom: mockRemoteProfileFrom,
         mapFrom: mockLocalMapFrom,
         providerFrom: mockLocalProviderFrom,
+        superJson: mockSuperJson,
       });
       expect(prePublishLint).toHaveBeenCalledWith(
         mockProfileDocument,
@@ -1028,6 +1056,7 @@ describe('Publish logic', () => {
         profileFrom: mockRemoteProfileFrom,
         mapFrom: mockLocalMapFrom,
         providerFrom: mockLocalProviderFrom,
+        superJson: mockSuperJson,
       });
 
       expect(prePublishLint).toHaveBeenCalledWith(
@@ -1178,6 +1207,7 @@ describe('Publish logic', () => {
         profileFrom: mockLocalProfileFrom,
         mapFrom: mockRemoteMapFrom,
         providerFrom: mockLocalProviderFrom,
+        superJson: mockSuperJson,
       });
       expect(prePublishLint).toHaveBeenCalledWith(
         mockProfileDocument,
@@ -1280,6 +1310,7 @@ describe('Publish logic', () => {
         profileFrom: mockRemoteProfileFrom,
         mapFrom: mockRemoteMapFrom,
         providerFrom: mockLocalProviderFrom,
+        superJson: mockSuperJson,
       });
       expect(prePublishLint).toHaveBeenCalledWith(
         mockProfileDocument,
@@ -1371,6 +1402,7 @@ describe('Publish logic', () => {
         profileFrom: mockRemoteProfileFrom,
         mapFrom: mockRemoteMapFrom,
         providerFrom: mockLocalProviderFrom,
+        superJson: mockSuperJson,
       });
       expect(prePublishLint).toHaveBeenCalledWith(
         mockProfileDocument,
@@ -1467,6 +1499,7 @@ describe('Publish logic', () => {
         profileFrom: mockRemoteProfileFrom,
         mapFrom: mockRemoteMapFrom,
         providerFrom: mockLocalProviderFrom,
+        superJson: mockSuperJson,
       });
       expect(prePublishLint).toHaveBeenCalledWith(
         mockProfileDocument,
@@ -1612,6 +1645,7 @@ describe('Publish logic', () => {
         profileFrom: mockRemoteProfileFrom,
         mapFrom: mockRemoteMapFrom,
         providerFrom: mockLocalProviderFrom,
+        superJson: mockSuperJson,
       });
       expect(prePublishLint).toHaveBeenCalledWith(
         mockProfileDocument,
@@ -1724,6 +1758,7 @@ describe('Publish logic', () => {
         profileFrom: mockRemoteProfileFrom,
         mapFrom: mockRemoteMapFrom,
         providerFrom: mockLocalProviderFrom,
+        superJson: mockSuperJson,
       });
       expect(prePublishLint).toHaveBeenCalledWith(
         mockProfileDocument,
@@ -1825,6 +1860,7 @@ describe('Publish logic', () => {
         profileFrom: mockRemoteProfileFrom,
         mapFrom: mockRemoteMapFrom,
         providerFrom: mockLocalProviderFrom,
+        superJson: mockSuperJson,
       });
       expect(prePublishLint).toHaveBeenCalledWith(
         mockProfileDocument,

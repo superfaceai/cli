@@ -1,6 +1,7 @@
 import { CLIError } from '@oclif/errors';
 import {
   ApiKeyPlacement,
+  AstMetadata,
   HttpScheme,
   ProviderJson,
   SecurityType,
@@ -22,6 +23,20 @@ import { DEFAULT_PROFILE_VERSION_STR } from './document';
 
 describe('HTTP functions', () => {
   const profileId = 'starwars/character-information';
+
+  const astMetadata: AstMetadata = {
+    sourceChecksum: 'check',
+    astVersion: {
+      major: 1,
+      minor: 0,
+      patch: 0,
+    },
+    parserVersion: {
+      major: 1,
+      minor: 0,
+      patch: 0,
+    },
+  };
 
   afterEach(async () => {
     jest.resetAllMocks();
@@ -290,25 +305,32 @@ describe('HTTP functions', () => {
   describe('when fetching profile ast', () => {
     //mock profile ast
     const mockProfileAst = {
+      astMetadata,
       kind: 'ProfileDocument',
       header: {
         kind: 'ProfileHeader',
         scope: 'starwars',
         name: 'character-information',
         version: { major: 1, minor: 0, patch: 1 },
-        location: { line: 1, column: 1 },
-        span: { start: 0, end: 57 },
+        location: {
+          start: { line: 1, column: 1, charIndex: 0 },
+          end: { line: 1, column: 1, charIndex: 0 },
+        },
       },
       definitions: [
         {
           kind: 'UseCaseDefinition',
           useCaseName: 'RetrieveCharacterInformation',
           safety: 'safe',
-          title: 'Starwars',
+          documentation: {
+            title: 'Starwars',
+          },
         },
       ],
-      location: { line: 1, column: 1 },
-      span: { start: 0, end: 228 },
+      location: {
+        start: { line: 1, column: 1, charIndex: 0 },
+        end: { line: 1, column: 1, charIndex: 0 },
+      },
     };
 
     it('calls superface client correctly', async () => {
@@ -610,6 +632,7 @@ describe('HTTP functions', () => {
     //mock map ast
     const mockMapDocument = {
       kind: 'MapDocument',
+      astMetadata,
       header: {
         kind: 'MapHeader',
         profile: {
@@ -651,6 +674,7 @@ describe('HTTP functions', () => {
     it('calls superface client correctly with scope,version and variant', async () => {
       const mockMapDocument = {
         kind: 'MapDocument',
+        astMetadata,
         header: {
           kind: 'MapHeader',
           profile: {

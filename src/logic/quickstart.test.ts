@@ -1,4 +1,4 @@
-import { OnFail, ProfileDocumentNode } from '@superfaceai/ast';
+import { AstMetadata, OnFail, ProfileDocumentNode } from '@superfaceai/ast';
 import { ok, Parser, SuperJson } from '@superfaceai/one-sdk';
 import inquirer from 'inquirer';
 import { mocked } from 'ts-jest/utils';
@@ -59,17 +59,36 @@ describe('Quickstart logic', () => {
     SuperJson.load = originalLoad;
   });
 
+  const astMetadata: AstMetadata = {
+    sourceChecksum: 'check',
+    astVersion: {
+      major: 1,
+      minor: 0,
+      patch: 0,
+    },
+    parserVersion: {
+      major: 1,
+      minor: 0,
+      patch: 0,
+    },
+  };
+
   const mockProfileAst: ProfileDocumentNode = {
     kind: 'ProfileDocument',
+    astMetadata,
     header: {
       kind: 'ProfileHeader',
       scope: 'communication',
       name: 'send-email',
       version: { major: 1, minor: 1, patch: 0 },
-      location: { line: 1, column: 1 },
-      span: { start: 0, end: 100 },
-      title: 'Send Email',
-      description: 'Send one transactional email',
+      location: {
+        start: { line: 1, column: 1, charIndex: 0 },
+        end: { line: 1, column: 1, charIndex: 0 },
+      },
+      documentation: {
+        title: 'Send Email',
+        description: 'Send one transactional email',
+      },
     },
     definitions: [
       {
@@ -77,24 +96,30 @@ describe('Quickstart logic', () => {
         useCaseName: 'SendEmail',
         safety: 'unsafe',
         asyncResult: undefined,
-        title: 'Send transactional email to one recipient',
-        description: 'Email can contain text and/or html representation',
+        documentation: {
+          title: 'Send transactional email to one recipient',
+          description: 'Email can contain text and/or html representation',
+        },
       },
       {
         kind: 'UseCaseDefinition',
         useCaseName: 'SendTemplatedEmail',
         safety: 'unsafe',
         asyncResult: undefined,
-        title: 'Send templated transactional email to one recipient',
-        description: 'Requires template defined on provider side.',
+        documentation: {
+          title: 'Send templated transactional email to one recipient',
+          description: 'Requires template defined on provider side.',
+        },
       },
       {
         kind: 'NamedModelDefinition',
         modelName: 'Error',
       },
     ],
-    location: { line: 1, column: 1 },
-    span: { start: 0, end: 775 },
+    location: {
+      start: { line: 1, column: 1, charIndex: 0 },
+      end: { line: 1, column: 1, charIndex: 0 },
+    },
   };
   describe('when installing sdk', () => {
     const profile = {

@@ -606,11 +606,7 @@ describe('Interactive create CLI command', () => {
 
       await expect(
         Create.run(['-v', '', '-u', 'SendSMS', '-i'])
-      ).rejects.toEqual(
-        new CLIError(
-          'Invalid version range:  - major component:  is not a valid number'
-        )
-      );
+      ).rejects.toEqual(new CLIError(' is not a valid version'));
     });
 
     it('throws error on invalid usecase', async () => {
