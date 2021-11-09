@@ -3,6 +3,7 @@ import { isValidDocumentName } from '@superfaceai/ast';
 import { Parser, SuperJson } from '@superfaceai/one-sdk';
 import { parseDocumentId } from '@superfaceai/parser';
 import { join as joinPath } from 'path';
+import { Logger } from '..';
 
 import { Command } from '../common/command.abstract';
 import { META_FILE } from '../common/document';
@@ -45,18 +46,9 @@ export default class Compile extends Command {
     '$ superface compile --profileId starwars/character-information --providerName swapi --map --profile',
   ];
 
-  // private logCallback? = (message: string) => this.log(grey(message));
-  // private successCallback? = (message: string) =>
-  //   this.log(bold(green(message)));
-
   async run(): Promise<void> {
     const { flags } = this.parse(Compile);
-    const logger = this.logger(flags.quiet)
-
-    // if (flags.quiet) {
-    //   this.logCallback = undefined;
-    //   this.successCallback = undefined;
-    // }
+    this.setUpLogger(flags.quiet);
 
     const superPath = await detectSuperJson(process.cwd());
     if (!superPath) {
@@ -86,7 +78,7 @@ export default class Compile extends Command {
 
     //Load profile
     if (flags.profile) {
-      logger.info(`Compiling profile: "${flags.profileId}".`);
+      Logger.info(`Compiling profile: "${flags.profileId}".`);
       if (!('file' in profileSettings)) {
         throw userError(
           `Profile id: "${flags.profileId}" not locally linked in super.json`,
@@ -105,9 +97,7 @@ export default class Compile extends Command {
         scope: parsedProfileId.value.scope,
       });
 
-      logger.success(
-        `🆗 profile: "${flags.profileId}" compiled successfully.`
-      );
+      Logger.success(`🆗 profile: "${flags.profileId}" compiled successfully.`);
     }
 
     if (flags.map) {
@@ -117,7 +107,7 @@ export default class Compile extends Command {
           1
         );
       }
-      logger.success(
+      Logger.success(
         `Compiling map for profile: "${flags.profileId}" and provider: "${flags.providerName}".`
       );
 
@@ -157,8 +147,8 @@ export default class Compile extends Command {
         providerName: flags.providerName,
       });
 
-      logger.success(
-        `🆗 map for profile: "${flags.profileId}" and provider: "${flags.providerName}" compiled successfully.`
+      Logger.success(
+        `map for profile: "${flags.profileId}" and provider: "${flags.providerName}" compiled successfully.`
       );
     }
   }

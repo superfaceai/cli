@@ -1,43 +1,40 @@
 import { flags as oclifFlags } from '@oclif/command';
 import { isValidProviderName } from '@superfaceai/ast';
 import { parseProfileId } from '@superfaceai/parser';
-import { grey, yellow } from 'chalk';
 import inquirer from 'inquirer';
 import { join as joinPath } from 'path';
 
 import { Command } from '../common/command.abstract';
 import { constructProviderSettings } from '../common/document';
-import { LogCallback } from '../common/log';
+import { Logger } from '../common/log';
 import { OutputStream } from '../common/output-stream';
 import { generateSpecifiedProfiles, initSuperface } from '../logic/init';
 
 const parseProfileIds = (
-  input: string,
-  options?: { warnCb?: LogCallback }
-): string[] =>
-  input
+  input: string
+): string[] => {
+  return input
     .split(' ')
     .filter(p => p.trim() !== '')
     .filter(p => {
       if (parseProfileId(p).kind === 'error') {
-        options?.warnCb?.('⬅ Invalid profile id');
-
+        Logger.warn('⬅ Invalid profile id');
         return false;
       }
 
       return true;
     });
+};
 
 const parseProviders = (
-  input: string,
-  options?: { warnCb?: LogCallback }
+  input: string
 ): string[] =>
   input
     .split(' ')
     .filter(i => i.trim() !== '')
     .filter(p => {
       if (!isValidProviderName(p)) {
-        options?.warnCb?.('⬅ Invalid provider name');
+        Logger.warn('⬅ Invalid provider name');
 
         return false;
       }
@@ -45,9 +42,7 @@ const parseProviders = (
       return true;
     });
 
-async function promptProfiles(options?: {
-  warnCb?: LogCallback;
-}): Promise<string[]> {
+async function promptProfiles(): Promise<string[]> {
   const response: { profiles: string } = await inquirer.prompt({
     name: 'profiles',
     message: 'Input space separated list of profile ids to initialize.',
@@ -58,16 +53,14 @@ async function promptProfiles(options?: {
         return true;
       }
 
-      return parseProfileIds(input, options).length > 0;
+      return parseProfileIds(input).length > 0;
     },
   });
 
-  return parseProfileIds(response.profiles, options);
+  return parseProfileIds(response.profiles);
 }
 
-async function promptProviders(options?: {
-  warnCb?: LogCallback;
-}): Promise<string[]> {
+async function promptProviders(): Promise<string[]> {
   const response: { providers: string } = await inquirer.prompt({
     name: 'providers',
     message: 'Input space separated list of providers to initialize.',
@@ -78,11 +71,11 @@ async function promptProviders(options?: {
         return true;
       }
 
-      return parseProviders(input, options).length > 0;
+      return parseProviders(input).length > 0;
     },
   });
 
-  return parseProviders(response.providers, options);
+  return parseProviders(response.providers);
 }
 
 export default class Init extends Command {
@@ -123,9 +116,6 @@ export default class Init extends Command {
     }),
   };
 
-  private logCallback? = (message: string) => this.log(grey(message));
-  private warnCallback? = (message: string) => this.warn(yellow(message));
-
   async run(): Promise<void> {
     const { args, flags } = this.parse(Init);
     const hints: Record<string, string> = {
@@ -135,21 +125,15 @@ export default class Init extends Command {
       quiet: '',
     };
 
-    if (flags.quiet) {
-      this.logCallback = undefined;
-      this.warnCallback = undefined;
-
-      hints.quiet = yellow('\nYou are in Quiet mode.\n');
-    }
+    this.setUpLogger(flags.quiet);
 
     if (flags.prompt) {
-      this
-        .log(`This command will walk you through initializing superface folder structure ( mainly super.json structure ).
-If no value is specified, the default will be taken in place ( empty super.json ).
-
-${hints.flags} ${hints.help}
-${hints.quietMode}
-${hints.quiet}`);
+      Logger.info(`This command will walk you through initializing superface folder structure ( mainly super.json structure ).
+      If no value is specified, the default will be taken in place ( empty super.json ).
+      
+      ${hints.flags} ${hints.help}
+      ${hints.quietMode}
+      ${hints.quiet}`);
     }
 
     let profiles = flags.profiles;
@@ -157,11 +141,11 @@ ${hints.quiet}`);
 
     if (flags.prompt) {
       if (!flags.profiles || flags.profiles.length === 0) {
-        profiles = await promptProfiles({ warnCb: this.warnCallback });
+        profiles = await promptProfiles();
       }
 
       if (!flags.providers || flags.providers.length === 0) {
-        providers = await promptProviders({ warnCb: this.warnCallback });
+        providers = await promptProviders();
       }
     } else {
       profiles ??= [];
@@ -170,24 +154,12 @@ ${hints.quiet}`);
 
     const path = args.name ? joinPath('.', args.name) : '.';
 
-    const superJson = await initSuperface(
-      path,
-      {
-        providers: constructProviderSettings(providers),
-      },
-      {
-        logCb: this.logCallback,
-        warnCb: this.warnCallback,
-      }
-    );
+    const superJson = await initSuperface(path, {
+      providers: constructProviderSettings(providers),
+    });
 
     if (profiles.length > 0) {
-      await generateSpecifiedProfiles(
-        path,
-        superJson,
-        profiles,
-        this.logCallback
-      );
+      await generateSpecifiedProfiles(path, superJson, profiles);
       await OutputStream.writeOnce(superJson.path, superJson.stringified);
     }
   }

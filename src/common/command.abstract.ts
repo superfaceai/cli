@@ -13,7 +13,11 @@ export abstract class Command extends OclifCommand {
     help: flags.help({ char: 'h' }),
   };
 
-  public logger(quiet?: boolean): Logger {
-    return Logger.setup(quiet)
+  /**
+   * Sets up logger for current run of oclif command
+   * @param quiet - quiet flag
+   */
+  public setUpLogger(quiet?: boolean) {
+    Logger.setup(quiet);
   }
 }

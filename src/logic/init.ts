@@ -12,7 +12,7 @@ import {
 } from '../common/document';
 import { userError } from '../common/error';
 import { mkdir, mkdirQuiet } from '../common/io';
-import { formatShellLog, LogCallback } from '../common/log';
+import { formatShellLog, LogCallback, Logger } from '../common/log';
 import { OutputStream } from '../common/output-stream';
 import { ProfileId } from '../common/profile';
 import { createProfile } from './create';
@@ -46,7 +46,7 @@ export async function initSuperface(
   {
     const created = await mkdir(appPath, { recursive: true });
     if (created) {
-      options?.logCb?.(formatShellLog('mkdir', [appPath]));
+      Logger.info(formatShellLog('mkdir', [appPath]));
     }
   }
 
@@ -55,7 +55,7 @@ export async function initSuperface(
   {
     const created = await mkdirQuiet(superPath);
     if (created) {
-      options?.logCb?.(formatShellLog('mkdir', [superPath]));
+      Logger.info(formatShellLog('mkdir', [superPath]));
     }
   }
 
@@ -68,7 +68,7 @@ export async function initSuperface(
     );
 
     if (created) {
-      options?.logCb?.(
+      Logger.info(
         formatShellLog("echo '<initial super.json>' >", [superJsonPath])
       );
     }
@@ -79,14 +79,14 @@ export async function initSuperface(
     const gridPath = joinPath(appPath, GRID_DIR);
     const created = await mkdirQuiet(gridPath);
     if (created) {
-      options?.logCb?.(formatShellLog('mkdir', [gridPath]));
+      Logger.info(formatShellLog('mkdir', [gridPath]));
     }
   }
   {
     const typesPath = joinPath(appPath, TYPES_DIR);
     const created = await mkdirQuiet(typesPath);
     if (created) {
-      options?.logCb?.(formatShellLog('mkdir', [typesPath]));
+      Logger.info(formatShellLog('mkdir', [typesPath]));
     }
   }
 
