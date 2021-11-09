@@ -591,7 +591,10 @@ export function createUsecaseTypes(
     suffix: 'Input' | 'Result'
   ) => {
     const doc = isDocumentedStructure(structure)
-      ? { title: structure.title, description: structure.description }
+      ? {
+          title: structure.title,
+          description: structure.description,
+        }
       : undefined;
 
     return [

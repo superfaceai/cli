@@ -21,7 +21,12 @@ import {
 import { LogCallback } from '../common/log';
 import { ProfileId } from '../common/profile';
 import { ProfileMapReport } from '../common/report.interfaces';
-import { checkMapAndProfile, checkMapAndProvider, CheckResult } from './check';
+import {
+  checkIntegrationParameters,
+  checkMapAndProfile,
+  checkMapAndProvider,
+  CheckResult,
+} from './check';
 import {
   findLocalMapSource,
   findLocalProfileSource,
@@ -38,6 +43,7 @@ export function prePublishCheck(
     profileFrom: ProfileFromMetadata;
     mapFrom: MapFromMetadata;
     providerFrom: ProviderFromMetadata;
+    superJson: SuperJson;
   },
   options?: { logCb?: LogCallback; warnCb?: LogCallback }
 ): CheckResult[] {
@@ -71,6 +77,13 @@ export function prePublishCheck(
     ...checkMapAndProvider(params.providerJson, params.mapAst),
     mapFrom: params.mapFrom,
     providerFrom: params.providerFrom,
+  });
+
+  //Check integration parameters
+  result.push({
+    ...checkIntegrationParameters(params.providerJson, params.superJson),
+    providerFrom: params.providerFrom,
+    superJsonPath: params.superJson.path,
   });
 
   return result;

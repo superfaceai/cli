@@ -1228,11 +1228,7 @@ describe('Create CLI command', () => {
           'SendSMS',
           '--profile',
         ])
-      ).rejects.toEqual(
-        new CLIError(
-          'could not parse version: major component is not a valid number'
-        )
-      );
+      ).rejects.toEqual(new CLIError(' is not a valid version'));
     });
 
     it('throws error on invalid usecase', async () => {

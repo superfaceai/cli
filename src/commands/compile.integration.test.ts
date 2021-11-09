@@ -11,11 +11,9 @@ describe('Compile CLI command', () => {
   //File specific path
   const TEMP_PATH = joinPath('test', 'tmp');
   const profileId = 'starwars/character-information';
-  const profileVersion = '1.0.1';
   const provider = 'swapi';
   let tempDir: string;
 
-  // const compileDir = joinPath('fixtures', 'compile');
   const fixture = {
     strictProfile: joinPath('fixtures', 'strict.supr'),
     strictMap: joinPath('fixtures', 'strict.suma'),
@@ -36,11 +34,11 @@ describe('Compile CLI command', () => {
   });
 
   describe('integration tests', () => {
-    it('compiles map', async () => {
+    it('compiles all', async () => {
       const mockSuperJson = new SuperJson({
         profiles: {
           [profileId]: {
-            version: profileVersion,
+            file: `../../../../${fixture.strictProfile}`,
             providers: {
               [provider]: {
                 file: `../../../../${fixture.strictMap}`,
@@ -55,30 +53,15 @@ describe('Compile CLI command', () => {
         joinPath(tempDir, 'superface', 'super.json'),
         mockSuperJson.stringified
       );
-      const result = await execCLI(
-        tempDir,
-        [
-          'compile',
-          '--profileId',
-          profileId,
-          '--providerName',
-          provider,
-          '--map',
-        ],
-        ''
-      );
+      const result = await execCLI(tempDir, ['compile'], '');
       //Check stdout
-      expect(result.stdout).toContain(
-        `Compiling map for profile: "${profileId}" and provider: "${provider}".`
-      );
-      expect(result.stdout).toContain(
-        `🆗 map for profile: "${profileId}" and provider: "${provider}" compiled successfully.`
+      expect(result.stdout).toMatch(
+        `Compiling map for profile ${profileId} and provider ${provider}`
       );
 
-      expect(result.stdout).not.toContain(`Compiling profile: "${profileId}".`);
-      expect(result.stdout).not.toContain(
-        `🆗 profile: "${profileId}" compiled successfully.`
-      );
+      expect(result.stdout).toContain(`Compiling profile ${profileId}`);
+
+      expect(result.stdout).toContain(`🆗 compiled successfully.`);
 
       //Check super.json
       const superJson = (
@@ -111,7 +94,7 @@ describe('Compile CLI command', () => {
       ).toEqual(mapASTFixture);
     }, 10000);
 
-    it('compiles profile', async () => {
+    it('compiles single profile and its maps', async () => {
       const mockSuperJson = new SuperJson({
         profiles: {
           [profileId]: {
@@ -121,6 +104,10 @@ describe('Compile CLI command', () => {
                 file: `../../../../${fixture.strictMap}`,
               },
             },
+          },
+          other: {
+            version: '1.0.0',
+            providers: {},
           },
         },
       });
@@ -132,21 +119,17 @@ describe('Compile CLI command', () => {
       );
       const result = await execCLI(
         tempDir,
-        ['compile', '--profileId', profileId, '--profile'],
+        ['compile', '--profileId', profileId],
         ''
       );
       //Check stdout
-      expect(result.stdout).not.toContain(
-        `Compiling map for profile: "${profileId}" and provider: "${provider}".`
-      );
-      expect(result.stdout).not.toContain(
-        `🆗 map for profile: "${profileId}" and provider: "${provider}" compiled successfully.`
+      expect(result.stdout).toMatch(
+        `Compiling map for profile ${profileId} and provider ${provider}`
       );
 
-      expect(result.stdout).toContain(`Compiling profile: "${profileId}".`);
-      expect(result.stdout).toContain(
-        `🆗 profile: "${profileId}" compiled successfully.`
-      );
+      expect(result.stdout).toContain(`Compiling profile ${profileId}`);
+
+      expect(result.stdout).toContain(`🆗 compiled successfully.`);
 
       //Check super.json
       const superJson = (
@@ -155,9 +138,6 @@ describe('Compile CLI command', () => {
       expect(superJson.normalized).toEqual(mockSuperJson.normalized);
 
       //Check output file
-      const profileASTFixture = JSON.parse(
-        await readFile(fixture.strictProfileAst, { encoding: 'utf-8' })
-      ) as unknown;
 
       const outputDir = resolve(
         joinPath(tempDir, 'superface', '.cache', 'starwars')
@@ -166,20 +146,43 @@ describe('Compile CLI command', () => {
       expect((await stat(outputDir)).isDirectory()).toEqual(true);
 
       const outputFiles = await fsp.readdir(outputDir);
-      expect(outputFiles.length).toEqual(1);
+      expect(outputFiles.length).toEqual(2);
+      //Map
+      const mapASTFixture = JSON.parse(
+        await readFile(fixture.strictMapAst, { encoding: 'utf-8' })
+      ) as unknown;
+
       expect(outputFiles[0]).toContain('character-information');
-      expect(outputFiles[0]).toContain(EXTENSIONS.profile.build);
+      expect(
+        (await stat(joinPath(outputDir, outputFiles[0]))).isDirectory()
+      ).toEqual(true);
+
+      const mapFiles = await fsp.readdir(joinPath(outputDir, outputFiles[0]));
+      expect(mapFiles.length).toEqual(1);
+      expect(
+        JSON.parse(
+          await readFile(joinPath(outputDir, outputFiles[0], mapFiles[0]), {
+            encoding: 'utf-8',
+          })
+        )
+      ).toEqual(mapASTFixture);
+
+      //Profile
+      const profileASTFixture = JSON.parse(
+        await readFile(fixture.strictProfileAst, { encoding: 'utf-8' })
+      ) as unknown;
+      expect(outputFiles[1]).toContain(EXTENSIONS.profile.build);
 
       expect(
         JSON.parse(
-          await readFile(joinPath(outputDir, outputFiles[0]), {
+          await readFile(joinPath(outputDir, outputFiles[1]), {
             encoding: 'utf-8',
           })
         )
       ).toEqual(profileASTFixture);
     }, 10000);
 
-    it('compiles profile and map', async () => {
+    it('compiles single profile and single map', async () => {
       const mockSuperJson = new SuperJson({
         profiles: {
           [profileId]: {
@@ -200,28 +203,15 @@ describe('Compile CLI command', () => {
       );
       const result = await execCLI(
         tempDir,
-        [
-          'compile',
-          '--profileId',
-          profileId,
-          '--providerName',
-          provider,
-          '--map',
-          '--profile',
-        ],
+        ['compile', '--profileId', profileId, '--providerName', provider],
         ''
       );
       //Check stdout
       expect(result.stdout).toContain(
-        `Compiling map for profile: "${profileId}" and provider: "${provider}".`
+        `Compiling map for profile ${profileId} and provider ${provider}`
       );
-      expect(result.stdout).toContain(
-        `🆗 map for profile: "${profileId}" and provider: "${provider}" compiled successfully.`
-      );
-      expect(result.stdout).toContain(`Compiling profile: "${profileId}".`);
-      expect(result.stdout).toContain(
-        `🆗 profile: "${profileId}" compiled successfully.`
-      );
+      expect(result.stdout).toContain(`Compiling profile ${profileId}`);
+      expect(result.stdout).toContain(`🆗 compiled successfully`);
 
       //Check super.json
       const superJson = (

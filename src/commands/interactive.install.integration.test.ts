@@ -25,7 +25,7 @@ import {
 
 const mockServer = getLocal();
 
-describe('Interactive install CLI command', () => {
+describe.skip('Interactive install CLI command', () => {
   //File specific path
   const TEMP_PATH = joinPath('test', 'tmp');
   let tempDir: string;

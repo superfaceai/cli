@@ -7,10 +7,10 @@ import {
   ProviderSettings,
 } from '@superfaceai/ast';
 import {
-  DocumentVersion,
   parseMap,
   parseProfile,
   parseProfileId,
+  VersionRange,
 } from '@superfaceai/parser';
 import { basename, join as joinPath } from 'path';
 
@@ -61,10 +61,7 @@ export const DOCUMENT_PARSE_FUNCTION = {
   [DocumentType.PROFILE]: parseProfile,
 };
 
-export function composeVersion(
-  version: DocumentVersion,
-  forMap = false
-): string {
+export function composeVersion(version: VersionRange, forMap = false): string {
   const patch = forMap ? '' : `.${version.patch ?? 0}`;
   const label = version.label ? `-${version.label}` : '';
 

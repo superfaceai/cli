@@ -617,6 +617,147 @@ describe('lint CLI command', () => {
 
         expect(cleanupSpy).toHaveBeenCalledTimes(1);
       });
+
+      it('does not throw on warning', async () => {
+        const mockProfile = 'starwars/character-information';
+        const mockProvider = 'swapi';
+        const version = '1.0.2';
+        const mapVariant = 'test';
+        const mockSuperJson = new SuperJson({
+          profiles: {
+            [mockProfile]: {
+              version,
+              defaults: {},
+              providers: {
+                [mockProvider]: {
+                  mapVariant,
+                },
+              },
+            },
+          },
+          providers: {
+            [mockProvider]: {
+              file: '../swapi.provider.json',
+              security: [],
+            },
+          },
+        });
+        const loadSpy = jest
+          .spyOn(SuperJson, 'load')
+          .mockResolvedValue(ok(mockSuperJson));
+
+        mocked(detectSuperJson).mockResolvedValue('.');
+        mocked(lint).mockResolvedValue([[0, 1]]);
+        const writeSpy = jest
+          .spyOn(OutputStream.prototype, 'write')
+          .mockResolvedValue(undefined);
+        const cleanupSpy = jest
+          .spyOn(OutputStream.prototype, 'cleanup')
+          .mockResolvedValue(undefined);
+
+        await expect(
+          Lint.run([
+            '--profileId',
+            mockProfile,
+            '--providerName',
+            mockProvider,
+            '-s',
+            '4',
+          ])
+        ).resolves.toBeUndefined();
+
+        expect(lint).toHaveBeenCalledTimes(1);
+        expect(lint).toHaveBeenCalledWith(
+          mockSuperJson,
+          [
+            {
+              id: ProfileId.fromId(mockProfile),
+              maps: [{ provider: mockProvider, variant: mapVariant }],
+              version,
+            },
+          ],
+          expect.anything(),
+          expect.anything(),
+          { logCb: expect.anything(), errCb: expect.anything() }
+        );
+
+        expect(detectSuperJson).toHaveBeenCalledWith(process.cwd(), 4);
+        expect(loadSpy).toHaveBeenCalledTimes(1);
+        expect(writeSpy).toHaveBeenCalledTimes(1);
+        expect(writeSpy).toHaveBeenCalledWith(`\nDetected 1 problem\n`);
+
+        expect(cleanupSpy).toHaveBeenCalledTimes(1);
+      });
+      it('throws on error', async () => {
+        const mockProfile = 'starwars/character-information';
+        const mockProvider = 'swapi';
+        const version = '1.0.2';
+        const mapVariant = 'test';
+        const mockSuperJson = new SuperJson({
+          profiles: {
+            [mockProfile]: {
+              version,
+              defaults: {},
+              providers: {
+                [mockProvider]: {
+                  mapVariant,
+                },
+              },
+            },
+          },
+          providers: {
+            [mockProvider]: {
+              file: '../swapi.provider.json',
+              security: [],
+            },
+          },
+        });
+        const loadSpy = jest
+          .spyOn(SuperJson, 'load')
+          .mockResolvedValue(ok(mockSuperJson));
+
+        mocked(detectSuperJson).mockResolvedValue('.');
+        mocked(lint).mockResolvedValue([[1, 0]]);
+        const writeSpy = jest
+          .spyOn(OutputStream.prototype, 'write')
+          .mockResolvedValue(undefined);
+        const cleanupSpy = jest
+          .spyOn(OutputStream.prototype, 'cleanup')
+          .mockResolvedValue(undefined);
+
+        await expect(
+          Lint.run([
+            '--profileId',
+            mockProfile,
+            '--providerName',
+            mockProvider,
+            '-s',
+            '4',
+          ])
+        ).rejects.toEqual(new CLIError('❌ Errors were found'));
+
+        expect(lint).toHaveBeenCalledTimes(1);
+        expect(lint).toHaveBeenCalledWith(
+          mockSuperJson,
+          [
+            {
+              id: ProfileId.fromId(mockProfile),
+              maps: [{ provider: mockProvider, variant: mapVariant }],
+              version,
+            },
+          ],
+          expect.anything(),
+          expect.anything(),
+          { logCb: expect.anything(), errCb: expect.anything() }
+        );
+
+        expect(detectSuperJson).toHaveBeenCalledWith(process.cwd(), 4);
+        expect(loadSpy).toHaveBeenCalledTimes(1);
+        expect(writeSpy).toHaveBeenCalledTimes(1);
+        expect(writeSpy).toHaveBeenCalledWith(`\nDetected 1 problem\n`);
+
+        expect(cleanupSpy).toHaveBeenCalledTimes(1);
+      });
     });
   });
 });

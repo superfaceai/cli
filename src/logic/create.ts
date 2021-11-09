@@ -1,6 +1,6 @@
 import { EXTENSIONS } from '@superfaceai/ast';
 import { SuperJson } from '@superfaceai/one-sdk';
-import { DocumentVersion } from '@superfaceai/parser';
+import { VersionRange } from '@superfaceai/parser';
 import { join as joinPath } from 'path';
 
 import { composeVersion, META_FILE } from '../common/document';
@@ -19,7 +19,7 @@ import * as providerTemplate from '../templates/provider';
 export async function createProfile(
   basePath: string,
   profile: ProfileId,
-  version: DocumentVersion,
+  version: VersionRange,
   usecaseNames: string[],
   superJson?: SuperJson,
   fileName?: string,
@@ -67,7 +67,7 @@ export async function createMap(
     profile: ProfileId;
     provider: string;
     variant?: string;
-    version: DocumentVersion;
+    version: VersionRange;
   },
   usecaseNames: string[],
   superJson?: SuperJson,
@@ -161,7 +161,7 @@ export async function create(
       name?: string;
       providerNames: string[];
       usecases: string[];
-      version: DocumentVersion;
+      version: VersionRange;
       variant?: string;
     };
     paths: {

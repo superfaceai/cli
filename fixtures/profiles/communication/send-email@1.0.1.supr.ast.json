@@ -10,15 +10,33 @@
       "patch": 1
     },
     "location": {
-      "line": 1,
-      "column": 1
+      "start": {
+        "line": 6,
+        "column": 1,
+        "charIndex": 49
+      },
+      "end": {
+        "line": 7,
+        "column": 18,
+        "charIndex": 100
+      }
     },
-    "span": {
-      "start": 0,
-      "end": 100
-    },
-    "title": "Send Email",
-    "description": "Send one transactional email"
+    "documentation": {
+      "title": "Send Email",
+      "description": "Send one transactional email",
+      "location": {
+        "start": {
+          "line": 1,
+          "column": 1,
+          "charIndex": 0
+        },
+        "end": {
+          "line": 4,
+          "column": 4,
+          "charIndex": 47
+        }
+      }
+    }
   },
   "definitions": [
     {
@@ -35,12 +53,16 @@
               "fieldName": "from",
               "required": true,
               "location": {
-                "line": 15,
-                "column": 5
-              },
-              "span": {
-                "start": 243,
-                "end": 248
+                "start": {
+                  "line": 15,
+                  "column": 5,
+                  "charIndex": 243
+                },
+                "end": {
+                  "line": 15,
+                  "column": 10,
+                  "charIndex": 248
+                }
               }
             },
             {
@@ -48,12 +70,16 @@
               "fieldName": "to",
               "required": true,
               "location": {
-                "line": 16,
-                "column": 5
-              },
-              "span": {
-                "start": 253,
-                "end": 256
+                "start": {
+                  "line": 16,
+                  "column": 5,
+                  "charIndex": 253
+                },
+                "end": {
+                  "line": 16,
+                  "column": 8,
+                  "charIndex": 256
+                }
               }
             },
             {
@@ -61,12 +87,16 @@
               "fieldName": "subject",
               "required": true,
               "location": {
-                "line": 17,
-                "column": 5
-              },
-              "span": {
-                "start": 261,
-                "end": 269
+                "start": {
+                  "line": 17,
+                  "column": 5,
+                  "charIndex": 261
+                },
+                "end": {
+                  "line": 17,
+                  "column": 13,
+                  "charIndex": 269
+                }
               }
             },
             {
@@ -74,12 +104,16 @@
               "fieldName": "text",
               "required": false,
               "location": {
-                "line": 18,
-                "column": 5
-              },
-              "span": {
-                "start": 274,
-                "end": 278
+                "start": {
+                  "line": 18,
+                  "column": 5,
+                  "charIndex": 274
+                },
+                "end": {
+                  "line": 18,
+                  "column": 9,
+                  "charIndex": 278
+                }
               }
             },
             {
@@ -87,31 +121,43 @@
               "fieldName": "html",
               "required": false,
               "location": {
-                "line": 19,
-                "column": 5
-              },
-              "span": {
-                "start": 283,
-                "end": 287
+                "start": {
+                  "line": 19,
+                  "column": 5,
+                  "charIndex": 283
+                },
+                "end": {
+                  "line": 19,
+                  "column": 9,
+                  "charIndex": 287
+                }
               }
             }
           ],
           "location": {
-            "line": 14,
-            "column": 9
-          },
-          "span": {
-            "start": 237,
-            "end": 291
+            "start": {
+              "line": 14,
+              "column": 9,
+              "charIndex": 237
+            },
+            "end": {
+              "line": 20,
+              "column": 4,
+              "charIndex": 291
+            }
           }
         },
         "location": {
-          "line": 14,
-          "column": 3
-        },
-        "span": {
-          "start": 231,
-          "end": 291
+          "start": {
+            "line": 14,
+            "column": 3,
+            "charIndex": 231
+          },
+          "end": {
+            "line": 20,
+            "column": 4,
+            "charIndex": 291
+          }
         }
       },
       "result": {
@@ -124,31 +170,43 @@
               "fieldName": "messageId",
               "required": false,
               "location": {
-                "line": 23,
-                "column": 5
-              },
-              "span": {
-                "start": 308,
-                "end": 317
+                "start": {
+                  "line": 23,
+                  "column": 5,
+                  "charIndex": 308
+                },
+                "end": {
+                  "line": 23,
+                  "column": 14,
+                  "charIndex": 317
+                }
               }
             }
           ],
           "location": {
-            "line": 22,
-            "column": 10
-          },
-          "span": {
-            "start": 302,
-            "end": 321
+            "start": {
+              "line": 22,
+              "column": 10,
+              "charIndex": 302
+            },
+            "end": {
+              "line": 24,
+              "column": 4,
+              "charIndex": 321
+            }
           }
         },
         "location": {
-          "line": 22,
-          "column": 3
-        },
-        "span": {
-          "start": 295,
-          "end": 321
+          "start": {
+            "line": 22,
+            "column": 3,
+            "charIndex": 295
+          },
+          "end": {
+            "line": 24,
+            "column": 4,
+            "charIndex": 321
+          }
         }
       },
       "error": {
@@ -161,12 +219,16 @@
               "fieldName": "title",
               "required": false,
               "location": {
-                "line": 27,
-                "column": 5
-              },
-              "span": {
-                "start": 337,
-                "end": 342
+                "start": {
+                  "line": 27,
+                  "column": 5,
+                  "charIndex": 337
+                },
+                "end": {
+                  "line": 27,
+                  "column": 10,
+                  "charIndex": 342
+                }
               }
             },
             {
@@ -174,51 +236,98 @@
               "fieldName": "detail",
               "required": false,
               "location": {
-                "line": 28,
-                "column": 5
-              },
-              "span": {
-                "start": 347,
-                "end": 353
+                "start": {
+                  "line": 28,
+                  "column": 5,
+                  "charIndex": 347
+                },
+                "end": {
+                  "line": 28,
+                  "column": 11,
+                  "charIndex": 353
+                }
               }
             }
           ],
           "location": {
-            "line": 26,
-            "column": 9
-          },
-          "span": {
-            "start": 331,
-            "end": 357
+            "start": {
+              "line": 26,
+              "column": 9,
+              "charIndex": 331
+            },
+            "end": {
+              "line": 29,
+              "column": 4,
+              "charIndex": 357
+            }
           }
         },
         "location": {
-          "line": 26,
-          "column": 3
-        },
-        "span": {
-          "start": 325,
-          "end": 357
+          "start": {
+            "line": 26,
+            "column": 3,
+            "charIndex": 325
+          },
+          "end": {
+            "line": 29,
+            "column": 4,
+            "charIndex": 357
+          }
         }
       },
       "location": {
-        "line": 9,
-        "column": 1
+        "start": {
+          "line": 13,
+          "column": 1,
+          "charIndex": 202
+        },
+        "end": {
+          "line": 30,
+          "column": 2,
+          "charIndex": 359
+        }
       },
-      "span": {
-        "start": 102,
-        "end": 359
-      },
-      "title": "Send transactional email to one recipient",
-      "description": "Email can contain text and/or html representation"
+      "documentation": {
+        "title": "Send transactional email to one recipient",
+        "description": "Email can contain text and/or html representation",
+        "location": {
+          "start": {
+            "line": 9,
+            "column": 1,
+            "charIndex": 102
+          },
+          "end": {
+            "line": 12,
+            "column": 4,
+            "charIndex": 201
+          }
+        }
+      }
     }
   ],
   "location": {
-    "line": 1,
-    "column": 1
+    "start": {
+      "line": 6,
+      "column": 1,
+      "charIndex": 49
+    },
+    "end": {
+      "line": 30,
+      "column": 2,
+      "charIndex": 359
+    }
   },
-  "span": {
-    "start": 0,
-    "end": 359
+  "astMetadata": {
+    "astVersion": {
+      "major": 1,
+      "minor": 0,
+      "patch": 0
+    },
+    "parserVersion": {
+      "major": 1,
+      "minor": 0,
+      "patch": 0
+    },
+    "sourceChecksum": "f6e540bf86a47d56bd2d7b174a0075790a89538c829ace2f8cd9d5a878067e59"
   }
 }

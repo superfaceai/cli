@@ -1,6 +1,7 @@
 import { CLIError } from '@oclif/errors';
 import {
   ApiKeyPlacement,
+  AstMetadata,
   HttpScheme,
   ProviderJson,
   SecurityType,
@@ -22,6 +23,20 @@ import { DEFAULT_PROFILE_VERSION_STR } from './document';
 
 describe('HTTP functions', () => {
   const profileId = 'starwars/character-information';
+
+  const astMetadata: AstMetadata = {
+    sourceChecksum: 'check',
+    astVersion: {
+      major: 1,
+      minor: 0,
+      patch: 0,
+    },
+    parserVersion: {
+      major: 1,
+      minor: 0,
+      patch: 0,
+    },
+  };
 
   afterEach(async () => {
     jest.resetAllMocks();
@@ -137,19 +152,18 @@ describe('HTTP functions', () => {
   });
 
   describe('when fetching profile info', () => {
+    //mock profile info
+    const mockProfileInfo = {
+      profile_id: 'starwars/character-information@1.0.1',
+      profile_name: 'starwars/character-information',
+      profile_version: '1.0.1',
+      url: 'https://superface.dev/starwars/character-information@1.0.1',
+      owner: 'freaz',
+      owner_url: '',
+      published_at: '2021-01-29T08:10:50.925Z',
+      published_by: 'Ondrej Musil <mail@ondrejmusil.cz>',
+    };
     it('calls superface client correctly', async () => {
-      //mock profile info
-      const mockProfileInfo = {
-        profile_id: 'starwars/character-information@1.0.1',
-        profile_name: 'starwars/character-information',
-        profile_version: '1.0.1',
-        url: 'https://superface.dev/starwars/character-information@1.0.1',
-        owner: 'freaz',
-        owner_url: '',
-        published_at: '2021-01-29T08:10:50.925Z',
-        published_by: 'Ondrej Musil <mail@ondrejmusil.cz>',
-      };
-
       const fetchSpy = jest
         .spyOn(ServiceClient.prototype, 'fetch')
         .mockResolvedValue(mockResponse(200, 'OK', undefined, mockProfileInfo));
@@ -161,6 +175,26 @@ describe('HTTP functions', () => {
       expect(fetchSpy).toHaveBeenCalledTimes(1);
       expect(fetchSpy).toHaveBeenCalledWith(`/${profileId}`, {
         authenticate: false,
+        method: 'GET',
+        headers: {
+          Accept: ContentType.JSON,
+          'User-Agent': expect.any(String),
+        },
+      });
+    }, 10000);
+
+    it('calls superface client correctly with enabled authentication', async () => {
+      const fetchSpy = jest
+        .spyOn(ServiceClient.prototype, 'fetch')
+        .mockResolvedValue(mockResponse(200, 'OK', undefined, mockProfileInfo));
+
+      await expect(
+        fetchProfileInfo(profileId, { tryToAuthenticate: true })
+      ).resolves.toEqual(mockProfileInfo);
+
+      expect(fetchSpy).toHaveBeenCalledTimes(1);
+      expect(fetchSpy).toHaveBeenCalledWith(`/${profileId}`, {
+        authenticate: true,
         method: 'GET',
         headers: {
           Accept: ContentType.JSON,
@@ -218,6 +252,26 @@ describe('HTTP functions', () => {
       });
     }, 10000);
 
+    it('calls superface client correctly with enabled authentication', async () => {
+      const fetchSpy = jest
+        .spyOn(ServiceClient.prototype, 'fetch')
+        .mockResolvedValue(mockResponse(200, 'OK', undefined, 'mock profile'));
+
+      await expect(
+        fetchProfile(profileId, { tryToAuthenticate: true })
+      ).resolves.toEqual(`"mock profile"`);
+
+      expect(fetchSpy).toHaveBeenCalledTimes(1);
+      expect(fetchSpy).toHaveBeenCalledWith(`/${profileId}`, {
+        authenticate: true,
+        method: 'GET',
+        headers: {
+          Accept: ContentType.PROFILE_SOURCE,
+          'User-Agent': expect.any(String),
+        },
+      });
+    }, 10000);
+
     it('throws error when request fails', async () => {
       const mockErrResponse = {
         detail: 'test',
@@ -249,29 +303,37 @@ describe('HTTP functions', () => {
   });
 
   describe('when fetching profile ast', () => {
-    it('calls superface client correctly', async () => {
-      //mock profile ast
-      const mockProfileAst = {
-        kind: 'ProfileDocument',
-        header: {
-          kind: 'ProfileHeader',
-          scope: 'starwars',
-          name: 'character-information',
-          version: { major: 1, minor: 0, patch: 1 },
-          location: { line: 1, column: 1 },
-          span: { start: 0, end: 57 },
+    //mock profile ast
+    const mockProfileAst = {
+      astMetadata,
+      kind: 'ProfileDocument',
+      header: {
+        kind: 'ProfileHeader',
+        scope: 'starwars',
+        name: 'character-information',
+        version: { major: 1, minor: 0, patch: 1 },
+        location: {
+          start: { line: 1, column: 1, charIndex: 0 },
+          end: { line: 1, column: 1, charIndex: 0 },
         },
-        definitions: [
-          {
-            kind: 'UseCaseDefinition',
-            useCaseName: 'RetrieveCharacterInformation',
-            safety: 'safe',
+      },
+      definitions: [
+        {
+          kind: 'UseCaseDefinition',
+          useCaseName: 'RetrieveCharacterInformation',
+          safety: 'safe',
+          documentation: {
             title: 'Starwars',
           },
-        ],
-        location: { line: 1, column: 1 },
-        span: { start: 0, end: 228 },
-      };
+        },
+      ],
+      location: {
+        start: { line: 1, column: 1, charIndex: 0 },
+        end: { line: 1, column: 1, charIndex: 0 },
+      },
+    };
+
+    it('calls superface client correctly', async () => {
       const fetchSpy = jest
         .spyOn(ServiceClient.prototype, 'fetch')
         .mockResolvedValue(mockResponse(200, 'OK', undefined, mockProfileAst));
@@ -280,6 +342,25 @@ describe('HTTP functions', () => {
       expect(fetchSpy).toHaveBeenCalledTimes(1);
       expect(fetchSpy).toHaveBeenCalledWith(`/${profileId}`, {
         authenticate: false,
+        method: 'GET',
+        headers: {
+          Accept: ContentType.PROFILE_AST,
+          'User-Agent': expect.any(String),
+        },
+      });
+    }, 10000);
+    it('calls superface client correctly with enabled authentication', async () => {
+      const fetchSpy = jest
+        .spyOn(ServiceClient.prototype, 'fetch')
+        .mockResolvedValue(mockResponse(200, 'OK', undefined, mockProfileAst));
+
+      await expect(
+        fetchProfileAST(profileId, { tryToAuthenticate: true })
+      ).resolves.toEqual(mockProfileAst);
+
+      expect(fetchSpy).toHaveBeenCalledTimes(1);
+      expect(fetchSpy).toHaveBeenCalledWith(`/${profileId}`, {
+        authenticate: true,
         method: 'GET',
         headers: {
           Accept: ContentType.PROFILE_AST,
@@ -319,46 +400,189 @@ describe('HTTP functions', () => {
   });
 
   describe('when fetching provider info', () => {
-    const mockProviderJson: ProviderJson = {
-      name: 'test',
-      services: [{ id: 'test-service', baseUrl: 'service/base/url' }],
-      securitySchemes: [
-        {
-          type: SecurityType.HTTP,
-          id: 'basic',
-          scheme: HttpScheme.BASIC,
-        },
-        {
-          id: 'api',
-          type: SecurityType.APIKEY,
-          in: ApiKeyPlacement.HEADER,
-          name: 'Authorization',
-        },
-        {
-          id: 'bearer',
-          type: SecurityType.HTTP,
-          scheme: HttpScheme.BEARER,
-          bearerFormat: 'some',
-        },
-        {
-          id: 'digest',
-          type: SecurityType.HTTP,
-          scheme: HttpScheme.DIGEST,
-        },
-      ],
-      defaultService: 'test-service',
+    const mockProviderResponse = {
+      provider_id: 'test',
+      url: 'url/to/provider',
+      owner: 'your-moma',
+      owner_url: 'path/to/your/moma',
+      published_at: new Date(),
+      published_by: 'your-popa',
+      definition: {
+        name: 'test',
+        services: [{ id: 'test-service', baseUrl: 'service/base/url' }],
+        securitySchemes: [
+          {
+            type: SecurityType.HTTP,
+            id: 'basic',
+            scheme: HttpScheme.BASIC,
+          },
+          {
+            id: 'api',
+            type: SecurityType.APIKEY,
+            in: ApiKeyPlacement.HEADER,
+            name: 'Authorization',
+          },
+          {
+            id: 'bearer',
+            type: SecurityType.HTTP,
+            scheme: HttpScheme.BEARER,
+            bearerFormat: 'some',
+          },
+          {
+            id: 'digest',
+            type: SecurityType.HTTP,
+            scheme: HttpScheme.DIGEST,
+          },
+        ],
+        defaultService: 'test-service',
+      },
+    };
+    const mockProviderResponseWithIntParameters = {
+      provider_id: 'test',
+      url: 'url/to/provider',
+      owner: 'your-moma',
+      owner_url: 'path/to/your/moma',
+      published_at: new Date(),
+      published_by: 'your-popa',
+      definition: {
+        name: 'test',
+        services: [{ id: 'test-service', baseUrl: 'service/base/url' }],
+        securitySchemes: [
+          {
+            type: SecurityType.HTTP,
+            id: 'basic',
+            scheme: HttpScheme.BASIC,
+          },
+          {
+            id: 'api',
+            type: SecurityType.APIKEY,
+            in: ApiKeyPlacement.HEADER,
+            name: 'Authorization',
+          },
+          {
+            id: 'bearer',
+            type: SecurityType.HTTP,
+            scheme: HttpScheme.BEARER,
+            bearerFormat: 'some',
+          },
+          {
+            id: 'digest',
+            type: SecurityType.HTTP,
+            scheme: HttpScheme.DIGEST,
+          },
+        ],
+        defaultService: 'test-service',
+        parameters: [
+          {
+            name: 'first',
+            default: 'first-value',
+            description: 'des',
+          },
+          {
+            name: 'second',
+          },
+        ],
+      },
     };
     it('calls superface client correctly', async () => {
       const provider = 'mailchimp';
       const fetchSpy = jest
         .spyOn(ServiceClient.prototype, 'fetch')
         .mockResolvedValue(
-          mockResponse(200, 'OK', undefined, mockProviderJson)
+          mockResponse(200, 'OK', undefined, mockProviderResponse)
         );
 
-      await expect(fetchProviderInfo(provider)).resolves.toEqual(
-        mockProviderJson
-      );
+      await expect(fetchProviderInfo(provider)).resolves.toEqual({
+        name: 'test',
+        services: [{ id: 'test-service', baseUrl: 'service/base/url' }],
+        securitySchemes: [
+          {
+            type: SecurityType.HTTP,
+            id: 'basic',
+            scheme: HttpScheme.BASIC,
+          },
+          {
+            id: 'api',
+            type: SecurityType.APIKEY,
+            in: ApiKeyPlacement.HEADER,
+            name: 'Authorization',
+          },
+          {
+            id: 'bearer',
+            type: SecurityType.HTTP,
+            scheme: HttpScheme.BEARER,
+            bearerFormat: 'some',
+          },
+          {
+            id: 'digest',
+            type: SecurityType.HTTP,
+            scheme: HttpScheme.DIGEST,
+          },
+        ],
+        defaultService: 'test-service',
+      });
+      expect(fetchSpy).toHaveBeenCalledTimes(1);
+      expect(fetchSpy).toHaveBeenCalledWith(`/providers/${provider}`, {
+        authenticate: false,
+        method: 'GET',
+        headers: {
+          'Content-Type': ContentType.JSON,
+        },
+      });
+    }, 10000);
+
+    it('calls superface client correctly - provider with integration parameters', async () => {
+      const provider = 'mailchimp';
+      const fetchSpy = jest
+        .spyOn(ServiceClient.prototype, 'fetch')
+        .mockResolvedValue(
+          mockResponse(
+            200,
+            'OK',
+            undefined,
+            mockProviderResponseWithIntParameters
+          )
+        );
+
+      await expect(fetchProviderInfo(provider)).resolves.toEqual({
+        name: 'test',
+        services: [{ id: 'test-service', baseUrl: 'service/base/url' }],
+        securitySchemes: [
+          {
+            type: SecurityType.HTTP,
+            id: 'basic',
+            scheme: HttpScheme.BASIC,
+          },
+          {
+            id: 'api',
+            type: SecurityType.APIKEY,
+            in: ApiKeyPlacement.HEADER,
+            name: 'Authorization',
+          },
+          {
+            id: 'bearer',
+            type: SecurityType.HTTP,
+            scheme: HttpScheme.BEARER,
+            bearerFormat: 'some',
+          },
+          {
+            id: 'digest',
+            type: SecurityType.HTTP,
+            scheme: HttpScheme.DIGEST,
+          },
+        ],
+        defaultService: 'test-service',
+        parameters: [
+          {
+            name: 'first',
+            default: 'first-value',
+            description: 'des',
+          },
+          {
+            name: 'second',
+          },
+        ],
+      });
       expect(fetchSpy).toHaveBeenCalledTimes(1);
       expect(fetchSpy).toHaveBeenCalledWith(`/providers/${provider}`, {
         authenticate: false,
@@ -408,6 +632,7 @@ describe('HTTP functions', () => {
     //mock map ast
     const mockMapDocument = {
       kind: 'MapDocument',
+      astMetadata,
       header: {
         kind: 'MapHeader',
         profile: {
@@ -449,6 +674,7 @@ describe('HTTP functions', () => {
     it('calls superface client correctly with scope,version and variant', async () => {
       const mockMapDocument = {
         kind: 'MapDocument',
+        astMetadata,
         header: {
           kind: 'MapHeader',
           profile: {

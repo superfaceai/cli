@@ -1,6 +1,6 @@
 import { flags as oclifFlags } from '@oclif/command';
-import { isValidDocumentName } from '@superfaceai/ast';
-import { Parser, SuperJson } from '@superfaceai/one-sdk';
+import { isValidProviderName } from '@superfaceai/ast';
+import { SuperJson } from '@superfaceai/one-sdk';
 import { parseDocumentId } from '@superfaceai/parser';
 import { join as joinPath } from 'path';
 import { Logger } from '..';
@@ -8,11 +8,13 @@ import { Logger } from '..';
 import { Command } from '../common/command.abstract';
 import { META_FILE } from '../common/document';
 import { userError } from '../common/error';
-import { exists, readFile } from '../common/io';
+import { ProfileId } from '../common/profile';
+import { compile, MapToCompile, ProfileToCompile } from '../logic/compile';
 import { detectSuperJson } from '../logic/install';
 
 export default class Compile extends Command {
-  static description = 'Compiles profile or map locally linked in super.json.';
+  static description =
+    'Compiles locally linked files in super.json. When running without --profileId flags all locally linked files are compiled. When running with --prfileId single local profile source and its local maps are compiled. When running with profileId and providerName single local profile and its single local map are compiled.';
 
   static hidden = true;
 
@@ -21,135 +23,186 @@ export default class Compile extends Command {
     //Inputs
     profileId: oclifFlags.string({
       description: 'Profile Id in format [scope/](optional)[name]',
-      required: true,
+      required: false,
     }),
     providerName: oclifFlags.string({
       description: 'Name of provider. This argument is used to compile map',
     }),
-    //What do we compile
-    profile: oclifFlags.boolean({
-      description: 'Compile a profile',
-      dependsOn: ['profileId'],
+    scan: oclifFlags.integer({
+      char: 's',
+      description:
+        'When number provided, scan for super.json outside cwd within range represented by this number.',
+      required: false,
     }),
-    map: oclifFlags.boolean({
-      description: 'Compile a map',
-      dependsOn: ['providerName', 'profileId'],
+    //What do we compile
+    onlyProfile: oclifFlags.boolean({
+      description: 'Compile only a profile/profiles',
+      exclusive: ['onlyMap'],
+    }),
+    onlyMap: oclifFlags.boolean({
+      description: 'Compile only a map/maps',
+      exclusive: ['onlyProfile'],
     }),
   };
 
-  static strict = false;
+  static strict = true;
 
   static examples = [
+    '$ superface compile',
     '$ superface compile --profileId starwars/character-information --profile',
     '$ superface compile --profileId starwars/character-information --profile -q',
-    '$ superface compile --profileId starwars/character-information --providerName swapi --map',
-    '$ superface compile --profileId starwars/character-information --providerName swapi --map --profile',
+    '$ superface compile --profileId starwars/character-information --providerName swapi --onlyMap',
+    '$ superface compile --profileId starwars/character-information --providerName swapi --onlyMap --onlyProfile',
   ];
 
   async run(): Promise<void> {
     const { flags } = this.parse(Compile);
     this.setUpLogger(flags.quiet);
 
-    const superPath = await detectSuperJson(process.cwd());
+    // Check inputs
+    if (flags.profileId) {
+      const parsedProfileId = parseDocumentId(flags.profileId);
+      if (parsedProfileId.kind == 'error') {
+        throw userError(`❌ Invalid profile id: ${parsedProfileId.message}`, 1);
+      }
+    }
+
+    if (flags.providerName) {
+      if (!isValidProviderName(flags.providerName)) {
+        throw userError(`❌ Invalid provider name: "${flags.providerName}"`, 1);
+      }
+      if (!flags.profileId) {
+        throw userError(
+          `❌ --profileId must be specified when using --providerName`,
+          1
+        );
+      }
+    }
+
+    if (flags.scan && (typeof flags.scan !== 'number' || flags.scan > 5)) {
+      throw userError(
+        '❌ --scan/-s : Number of levels to scan cannot be higher than 5',
+        1
+      );
+    }
+
+    const superPath = await detectSuperJson(process.cwd(), flags.scan);
     if (!superPath) {
-      throw userError('Unable to compile, super.json not found', 1);
+      throw userError('❌ Unable to compile, super.json not found', 1);
     }
     //Load super json
     const loadedResult = await SuperJson.load(joinPath(superPath, META_FILE));
     const superJson = loadedResult.match(
       v => v,
       err => {
-        throw userError(`Unable to load super.json: ${err.formatShort()}`, 1);
+        throw userError(
+          `❌ Unable to load super.json: ${err.formatShort()}`,
+          1
+        );
       }
     );
-    //Check flags
-    const parsedProfileId = parseDocumentId(flags.profileId);
-    if (parsedProfileId.kind == 'error') {
-      throw userError(`Invalid profile id: ${parsedProfileId.message}`, 1);
-    }
-    const profileSettings = superJson.normalized.profiles[flags.profileId];
 
-    if (!profileSettings) {
-      throw userError(
-        `Profile id: "${flags.profileId}" not found in super.json`,
-        1
-      );
-    }
-
-    //Load profile
-    if (flags.profile) {
-      Logger.info(`Compiling profile: "${flags.profileId}".`);
-      if (!('file' in profileSettings)) {
+    //Check super.json
+    if (flags.profileId) {
+      if (!superJson.normalized.profiles[flags.profileId]) {
         throw userError(
-          `Profile id: "${flags.profileId}" not locally linked in super.json`,
+          `❌ Unable to compile, profile: "${flags.profileId}" not found in super.json`,
           1
         );
       }
-      const path = superJson.resolvePath(profileSettings.file);
-
-      if (!(await exists(path))) {
-        throw userError(`Path: "${path}" does not exist`, 1);
+      if (flags.providerName) {
+        if (
+          !superJson.normalized.profiles[flags.profileId].providers[
+          flags.providerName
+          ]
+        ) {
+          throw userError(
+            `❌ Unable to compile, provider: "${flags.providerName}" not found in profile: "${flags.profileId}" in super.json`,
+            1
+          );
+        }
       }
-
-      const source = await readFile(path, { encoding: 'utf-8' });
-      await Parser.parseProfile(source, path, {
-        profileName: parsedProfileId.value.middle[0],
-        scope: parsedProfileId.value.scope,
-      });
-
-      Logger.success(`🆗 profile: "${flags.profileId}" compiled successfully.`);
     }
 
-    if (flags.map) {
-      if (!flags.providerName) {
-        throw userError(
-          `Invalid command --providerName is required when compiling map`,
-          1
-        );
-      }
-      Logger.success(
-        `Compiling map for profile: "${flags.profileId}" and provider: "${flags.providerName}".`
-      );
+    const profiles: ProfileToCompile[] = [];
 
-      if (!isValidDocumentName(flags.providerName)) {
-        throw userError(`Invalid provider name: "${flags.providerName}"`, 1);
+    //Compile every local map/profile in super.json
+    if (!flags.profileId && !flags.providerName) {
+      for (const [profile, profileSettings] of Object.entries(
+        superJson.normalized.profiles
+      )) {
+        if ('file' in profileSettings) {
+          const maps: MapToCompile[] = [];
+          for (const [provider, profileProviderSettings] of Object.entries(
+            profileSettings.providers
+          )) {
+            if ('file' in profileProviderSettings) {
+              maps.push({
+                path: superJson.resolvePath(profileProviderSettings.file),
+                provider,
+              });
+            }
+          }
+          profiles.push({
+            path: superJson.resolvePath(profileSettings.file),
+            maps,
+            id: ProfileId.fromId(profile),
+          });
+        }
       }
+    }
 
+    //Compile single local profile and its local maps
+    if (flags.profileId && !flags.providerName) {
+      const profileSettings = superJson.normalized.profiles[flags.profileId];
+      if ('file' in profileSettings) {
+        const maps: MapToCompile[] = [];
+
+        for (const [provider, profileProviderSettings] of Object.entries(
+          profileSettings.providers
+        )) {
+          if ('file' in profileProviderSettings) {
+            maps.push({
+              path: superJson.resolvePath(profileProviderSettings.file),
+              provider,
+            });
+          }
+        }
+        profiles.push({
+          path: superJson.resolvePath(profileSettings.file),
+          maps,
+          id: ProfileId.fromId(flags.profileId),
+        });
+      }
+    }
+
+    //Compile single profile and single map
+    if (flags.profileId && flags.providerName) {
+      const profileSettings = superJson.normalized.profiles[flags.profileId];
       const profileProviderSettings =
-        superJson.normalized.profiles[flags.profileId].providers[
-        flags.providerName
-        ];
+        profileSettings.providers[flags.providerName];
+      if ('file' in profileSettings) {
+        const maps: MapToCompile[] = [];
 
-      if (!profileProviderSettings) {
-        throw userError(
-          `Provider: "${flags.providerName}" not found in profile: "${flags.profileId}" in super.json`,
-          1
-        );
+        if ('file' in profileProviderSettings) {
+          maps.push({
+            path: superJson.resolvePath(profileProviderSettings.file),
+            provider: flags.providerName,
+          });
+        }
+        profiles.push({
+          path: superJson.resolvePath(profileSettings.file),
+          maps,
+          id: ProfileId.fromId(flags.profileId),
+        });
       }
-
-      if (!('file' in profileProviderSettings)) {
-        throw userError(
-          `Provider: "${flags.providerName}" not locally linked in super.json in profile: "${flags.profileId}"`,
-          1
-        );
-      }
-      const path = superJson.resolvePath(profileProviderSettings.file);
-
-      if (!(await exists(path))) {
-        throw userError(`Path: "${path}" does not exist`, 1);
-      }
-
-      const source = await readFile(path, { encoding: 'utf-8' });
-
-      await Parser.parseMap(source, path, {
-        profileName: parsedProfileId.value.middle[0],
-        scope: parsedProfileId.value.scope,
-        providerName: flags.providerName,
-      });
-
-      Logger.success(
-        `map for profile: "${flags.profileId}" and provider: "${flags.providerName}" compiled successfully.`
-      );
     }
+
+    await compile(profiles, {
+      onlyMap: flags.onlyMap,
+      onlyProfile: flags.onlyProfile,
+    });
+
+    Logger.success(`compiled successfully.`);
   }
 }

@@ -17,7 +17,7 @@ export default class Check extends Command {
   static strict = false;
 
   static description =
-    'Checks all maps and profiles locally linked in super.json. Also can be used to lint specific profile and its maps, in that case remote files can be used.\nCommand ends with non zero exit code if errors are found.';
+    'Checks all maps, profiles and providers locally linked in super.json. Also can be used to check specific profile and its maps, in that case remote files can be used.\nCommand ends with non zero exit code if errors are found.';
 
   static args = [];
 

@@ -1,5 +1,5 @@
 import { CLIError } from '@oclif/errors';
-import { ProfileDocumentNode } from '@superfaceai/ast';
+import { AstMetadata, ProfileDocumentNode } from '@superfaceai/ast';
 import { ok, Parser, SuperJson } from '@superfaceai/one-sdk';
 import { join } from 'path';
 import { mocked } from 'ts-jest/utils';
@@ -37,6 +37,19 @@ describe('Install CLI logic', () => {
   afterEach(() => {
     jest.resetAllMocks();
   });
+  const astMetadata: AstMetadata = {
+    sourceChecksum: 'check',
+    astVersion: {
+      major: 1,
+      minor: 0,
+      patch: 0,
+    },
+    parserVersion: {
+      major: 1,
+      minor: 0,
+      patch: 0,
+    },
+  };
 
   describe('when detecting super json', () => {
     let INITIAL_CWD: string;
@@ -134,41 +147,48 @@ describe('Install CLI logic', () => {
   });
 
   describe('when geting profile from store', () => {
-    it('gets profile', async () => {
-      //mock profile info
-      const mockProfileInfo = {
-        profile_id: 'starwars/character-information@1.0.1',
-        profile_name: 'starwars/character-information',
-        profile_version: '1.0.1',
-        url: 'https://superface.dev/starwars/character-information@1.0.1',
-        owner: 'freaz',
-        owner_url: '',
-        published_at: '2021-01-29T08:10:50.925Z',
-        published_by: 'Ondrej Musil <mail@ondrejmusil.cz>',
-      };
-      mocked(fetchProfileInfo).mockResolvedValue(mockProfileInfo);
-      //mock profile ast
-      const mockProfileAst: ProfileDocumentNode = {
-        kind: 'ProfileDocument',
-        header: {
-          kind: 'ProfileHeader',
-          scope: 'starwars',
-          name: 'character-information',
-          version: { major: 1, minor: 0, patch: 1 },
-          location: { line: 1, column: 1 },
-          span: { start: 0, end: 57 },
+    //mock profile info
+    const mockProfileInfo = {
+      profile_id: 'starwars/character-information@1.0.1',
+      profile_name: 'starwars/character-information',
+      profile_version: '1.0.1',
+      url: 'https://superface.dev/starwars/character-information@1.0.1',
+      owner: 'freaz',
+      owner_url: '',
+      published_at: '2021-01-29T08:10:50.925Z',
+      published_by: 'Ondrej Musil <mail@ondrejmusil.cz>',
+    };
+    //mock profile ast
+    const mockProfileAst: ProfileDocumentNode = {
+      kind: 'ProfileDocument',
+      astMetadata,
+      header: {
+        kind: 'ProfileHeader',
+        scope: 'starwars',
+        name: 'character-information',
+        version: { major: 1, minor: 0, patch: 1 },
+        location: {
+          start: { line: 1, column: 1, charIndex: 0 },
+          end: { line: 1, column: 1, charIndex: 0 },
         },
-        definitions: [
-          {
-            kind: 'UseCaseDefinition',
-            useCaseName: 'RetrieveCharacterInformation',
-            safety: 'safe',
+      },
+      definitions: [
+        {
+          kind: 'UseCaseDefinition',
+          useCaseName: 'RetrieveCharacterInformation',
+          safety: 'safe',
+          documentation: {
             title: 'Starwars',
           },
-        ],
-        location: { line: 1, column: 1 },
-        span: { start: 0, end: 228 },
-      };
+        },
+      ],
+      location: {
+        start: { line: 1, column: 1, charIndex: 0 },
+        end: { line: 1, column: 1, charIndex: 0 },
+      },
+    };
+    it('gets profile', async () => {
+      mocked(fetchProfileInfo).mockResolvedValue(mockProfileInfo);
       mocked(fetchProfileAST).mockResolvedValue(mockProfileAst);
       //mock profile
       const mockProfile = 'mock profile';
@@ -176,7 +196,9 @@ describe('Install CLI logic', () => {
 
       const profileId = 'starwars/character-information';
 
-      await expect(getProfileFromStore(profileId)).resolves.toEqual({
+      await expect(
+        getProfileFromStore(ProfileId.fromId(profileId))
+      ).resolves.toEqual({
         ast: mockProfileAst,
         info: mockProfileInfo,
         profile: mockProfile,
@@ -184,10 +206,87 @@ describe('Install CLI logic', () => {
       expect(fetchProfile).toHaveBeenCalledTimes(1);
       expect(fetchProfileAST).toHaveBeenCalledTimes(1);
       expect(fetchProfileInfo).toHaveBeenCalledTimes(1);
-      expect(fetchProfile).toHaveBeenCalledWith(profileId);
-      expect(fetchProfileInfo).toHaveBeenCalledWith(profileId);
-      expect(fetchProfileAST).toHaveBeenCalledWith(profileId);
+      expect(fetchProfile).toHaveBeenCalledWith(profileId, {
+        tryToAuthenticate: undefined,
+      });
+      expect(fetchProfileInfo).toHaveBeenCalledWith(profileId, {
+        tryToAuthenticate: undefined,
+      });
+      expect(fetchProfileAST).toHaveBeenCalledWith(profileId, {
+        tryToAuthenticate: undefined,
+      });
     }, 10000);
+
+    it('gets profile when AST validation failed', async () => {
+      mocked(fetchProfileInfo).mockResolvedValue(mockProfileInfo);
+      mocked(fetchProfileAST).mockRejectedValue(new Error('validation error'));
+      //mock profile
+      const mockProfile = 'mock profile';
+      mocked(fetchProfile).mockResolvedValue(mockProfile);
+
+      const parseProfileSpy = jest
+        .spyOn(Parser, 'parseProfile')
+        .mockResolvedValue(mockProfileAst);
+
+      const profileId = 'starwars/character-information';
+
+      await expect(
+        getProfileFromStore(ProfileId.fromId(profileId))
+      ).resolves.toEqual({
+        ast: mockProfileAst,
+        info: mockProfileInfo,
+        profile: mockProfile,
+      });
+      expect(fetchProfile).toHaveBeenCalledTimes(1);
+      expect(fetchProfileAST).toHaveBeenCalledTimes(1);
+      expect(fetchProfileInfo).toHaveBeenCalledTimes(1);
+      expect(fetchProfile).toHaveBeenCalledWith(profileId, {
+        tryToAuthenticate: undefined,
+      });
+      expect(fetchProfileInfo).toHaveBeenCalledWith(profileId, {
+        tryToAuthenticate: undefined,
+      });
+      expect(fetchProfileAST).toHaveBeenCalledWith(profileId, {
+        tryToAuthenticate: undefined,
+      });
+      expect(parseProfileSpy).toHaveBeenCalledWith(mockProfile, profileId, {
+        profileName: 'character-information',
+        scope: 'starwars',
+      });
+    }, 10000);
+
+    it('gets profile with auth', async () => {
+      mocked(fetchProfileInfo).mockResolvedValue(mockProfileInfo);
+      mocked(fetchProfileAST).mockResolvedValue(mockProfileAst);
+      //mock profile
+      const mockProfile = 'mock profile';
+      mocked(fetchProfile).mockResolvedValue(mockProfile);
+
+      const profileId = 'starwars/character-information';
+
+      await expect(
+        getProfileFromStore(ProfileId.fromId(profileId), undefined, {
+          tryToAuthenticate: true,
+        })
+      ).resolves.toEqual({
+        ast: mockProfileAst,
+        info: mockProfileInfo,
+        profile: mockProfile,
+      });
+      expect(fetchProfile).toHaveBeenCalledTimes(1);
+      expect(fetchProfileAST).toHaveBeenCalledTimes(1);
+      expect(fetchProfileInfo).toHaveBeenCalledTimes(1);
+      expect(fetchProfile).toHaveBeenCalledWith(profileId, {
+        tryToAuthenticate: true,
+      });
+      expect(fetchProfileInfo).toHaveBeenCalledWith(profileId, {
+        tryToAuthenticate: true,
+      });
+      expect(fetchProfileAST).toHaveBeenCalledWith(profileId, {
+        tryToAuthenticate: true,
+      });
+      10000;
+    });
 
     it('throws user error on invalid profileId', async () => {
       mocked(fetchProfileInfo).mockRejectedValue(
@@ -196,9 +295,13 @@ describe('Install CLI logic', () => {
 
       const profileId = 'made-up';
 
-      await expect(getProfileFromStore(profileId)).resolves.toBeUndefined();
+      await expect(
+        getProfileFromStore(ProfileId.fromId(profileId))
+      ).resolves.toBeUndefined();
       expect(fetchProfileInfo).toHaveBeenCalledTimes(1);
-      expect(fetchProfileInfo).toHaveBeenCalledWith(profileId);
+      expect(fetchProfileInfo).toHaveBeenCalledWith(profileId, {
+        tryToAuthenticate: undefined,
+      });
       expect(fetchProfile).not.toHaveBeenCalled();
       expect(fetchProfileAST).not.toHaveBeenCalled();
     }, 10000);
@@ -242,6 +345,7 @@ describe('Install CLI logic', () => {
             if (_info.profileName === 'first') {
               return Promise.resolve({
                 kind: 'ProfileDocument',
+                astMetadata,
                 header: {
                   kind: 'ProfileHeader',
                   name: 'first',
@@ -252,6 +356,7 @@ describe('Install CLI logic', () => {
             } else if (_info.profileName === 'second') {
               return Promise.resolve({
                 kind: 'ProfileDocument',
+                astMetadata,
                 header: {
                   kind: 'ProfileHeader',
                   scope: 'se',
@@ -318,6 +423,7 @@ describe('Install CLI logic', () => {
       );
       const fetchProfileASTMock = mocked(fetchProfileAST).mockResolvedValue({
         kind: 'ProfileDocument',
+        astMetadata,
         header: {
           kind: 'ProfileHeader',
           name: 'mock profile',
@@ -423,6 +529,7 @@ describe('Install CLI logic', () => {
       mocked(fetchProfile).mockResolvedValue('mock profile');
       mocked(fetchProfileAST).mockResolvedValue({
         kind: 'ProfileDocument',
+        astMetadata,
         header: {
           kind: 'ProfileHeader',
           name: 'mock profile',
@@ -460,6 +567,7 @@ describe('Install CLI logic', () => {
 
           return Promise.resolve({
             kind: 'ProfileDocument',
+            astMetadata,
             header: {
               kind: 'ProfileHeader',
               scope,
@@ -555,6 +663,7 @@ describe('Install CLI logic', () => {
           version: { major: 1, minor: 0, patch: 0 },
         },
         kind: 'ProfileDocument',
+        astMetadata,
         definitions: [],
       });
 
@@ -590,24 +699,31 @@ describe('Install CLI logic', () => {
       //mock profile ast
       const mockProfileAst: ProfileDocumentNode = {
         kind: 'ProfileDocument',
+        astMetadata,
         header: {
           kind: 'ProfileHeader',
           scope: 'starwars',
           name: 'character-information',
           version: { major: 1, minor: 0, patch: 1 },
-          location: { line: 1, column: 1 },
-          span: { start: 0, end: 57 },
+          location: {
+            start: { line: 1, column: 1, charIndex: 0 },
+            end: { line: 1, column: 1, charIndex: 0 },
+          },
         },
         definitions: [
           {
             kind: 'UseCaseDefinition',
             useCaseName: 'RetrieveCharacterInformation',
             safety: 'safe',
-            title: 'Starwars',
+            documentation: {
+              title: 'Starwars',
+            },
           },
         ],
-        location: { line: 1, column: 1 },
-        span: { start: 0, end: 228 },
+        location: {
+          start: { line: 1, column: 1, charIndex: 0 },
+          end: { line: 1, column: 1, charIndex: 0 },
+        },
       };
       //mock profile
       const mockProfile = 'mock profile';
@@ -652,9 +768,15 @@ describe('Install CLI logic', () => {
         expect(fetchProfileInfo).toHaveBeenCalledTimes(1);
         expect(fetchProfile).toHaveBeenCalledTimes(1);
         expect(fetchProfileAST).toHaveBeenCalledTimes(1);
-        expect(fetchProfile).toHaveBeenCalledWith(profileId);
-        expect(fetchProfileInfo).toHaveBeenCalledWith(profileId);
-        expect(fetchProfileAST).toHaveBeenCalledWith(profileId);
+        expect(fetchProfile).toHaveBeenCalledWith(profileId, {
+          tryToAuthenticate: undefined,
+        });
+        expect(fetchProfileInfo).toHaveBeenCalledWith(profileId, {
+          tryToAuthenticate: undefined,
+        });
+        expect(fetchProfileAST).toHaveBeenCalledWith(profileId, {
+          tryToAuthenticate: undefined,
+        });
 
         //actual path is changing
         expect(mockWrite).toHaveBeenCalledWith(expect.anything(), mockProfile, {
@@ -705,26 +827,35 @@ describe('Install CLI logic', () => {
         expect(fetchProfileInfo).toHaveBeenCalledTimes(2);
         expect(fetchProfile).toHaveBeenCalledTimes(2);
         expect(fetchProfileAST).toHaveBeenCalledTimes(2);
-        expect(fetchProfile).toHaveBeenNthCalledWith(1, 'starwars/first@1.0.0');
+        expect(fetchProfile).toHaveBeenNthCalledWith(
+          1,
+          'starwars/first@1.0.0',
+          { tryToAuthenticate: undefined }
+        );
         expect(fetchProfile).toHaveBeenNthCalledWith(
           2,
-          'starwars/second@2.0.0'
+          'starwars/second@2.0.0',
+          { tryToAuthenticate: undefined }
         );
         expect(fetchProfileInfo).toHaveBeenNthCalledWith(
           1,
-          'starwars/first@1.0.0'
+          'starwars/first@1.0.0',
+          { tryToAuthenticate: undefined }
         );
         expect(fetchProfileInfo).toHaveBeenNthCalledWith(
           2,
-          'starwars/second@2.0.0'
+          'starwars/second@2.0.0',
+          { tryToAuthenticate: undefined }
         );
         expect(fetchProfileAST).toHaveBeenNthCalledWith(
           1,
-          'starwars/first@1.0.0'
+          'starwars/first@1.0.0',
+          { tryToAuthenticate: undefined }
         );
         expect(fetchProfileAST).toHaveBeenNthCalledWith(
           2,
-          'starwars/second@2.0.0'
+          'starwars/second@2.0.0',
+          { tryToAuthenticate: undefined }
         );
 
         expect(mockWrite).toHaveBeenCalled();

@@ -116,14 +116,17 @@ describe('Configure CLI command', () => {
         '🆗 All security schemes have been configured successfully.'
       );
       expect(result.stdout).toMatch(
-        '🆗 Parameter version configured with default value "v1"'
+        `Provider azure-cognitive-services has integration parameters that must be configured. You can configure them in super.json on path: superface/super.json or set the environment variables as defined below.`
+      );
+      expect(result.stdout).toMatch(
+        '🆗 Parameter version has been configured to use value of environment value "$AZURE_COGNITIVE_SERVICES_VERSION"'
+      );
+      expect(result.stdout).toContain(
+        'Please, configure this environment value.'
       );
 
       expect(result.stdout).toContain(
-        '❌ Parameter instance with description "Instance of your azure cognitive service" has not been configured.'
-      );
-      expect(result.stdout).toContain(
-        'Please, configure this parameter manualy in super.json on path: superface/super.json'
+        'If you do not set the variable, the default value "v1" will be used.'
       );
 
       await expect(
@@ -140,14 +143,14 @@ describe('Configure CLI command', () => {
       ).toEqual([
         {
           id: 'azure-subscription-key',
-          apikey: '$AZURE_COGNITIVE-SERVICES_API_KEY',
+          apikey: '$AZURE_COGNITIVE_SERVICES_API_KEY',
         },
       ]);
       expect(
         superJson.normalized.providers[providerWithParameters].parameters
       ).toEqual({
-        instance: '',
-        version: 'v1',
+        instance: '$AZURE_COGNITIVE_SERVICES_INSTANCE',
+        version: '$AZURE_COGNITIVE_SERVICES_VERSION',
       });
       expect(superJson.document.profiles![profileId]).toEqual({
         version: profileVersion,
@@ -183,7 +186,7 @@ describe('Configure CLI command', () => {
       await mockServer
         .get('/providers/' + emptyProvider)
         .withHeaders({ 'Content-Type': ContentType.JSON })
-        .thenJson(200, mockProviderInfo);
+        .thenJson(200, { definition: mockProviderInfo });
 
       result = await execCLI(
         tempDir,
@@ -233,7 +236,7 @@ describe('Configure CLI command', () => {
       await mockServer
         .get('/providers/' + providerWithoutSecurity)
         .withHeaders({ 'Content-Type': ContentType.JSON })
-        .thenJson(200, mockProviderInfo);
+        .thenJson(200, { definition: mockProviderInfo });
 
       result = await execCLI(
         tempDir,
@@ -406,7 +409,7 @@ describe('Configure CLI command', () => {
       await mockServer
         .get('/providers/' + simpleProvider)
         .withHeaders({ 'Content-Type': ContentType.JSON })
-        .thenJson(200, mockProviderInfo);
+        .thenJson(200, { definition: mockProviderInfo });
 
       const result = await execCLI(
         tempDir,

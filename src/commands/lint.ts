@@ -212,7 +212,7 @@ export default class Lint extends Command {
     if (totals[0] > 0) {
       throw userError('❌ Errors were found', 1);
     } else if (totals[1] > 0) {
-      throw userError('❌ Warnings were found', 2);
+      this.logCallback?.('⚠️ Warnings were found');
     }
   }
 

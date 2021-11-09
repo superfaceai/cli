@@ -1,5 +1,9 @@
 import { CLIError } from '@oclif/errors';
-import { MapDocumentNode, ProfileDocumentNode } from '@superfaceai/ast';
+import {
+  AstMetadata,
+  MapDocumentNode,
+  ProfileDocumentNode,
+} from '@superfaceai/ast';
 import { Parser, SuperJson } from '@superfaceai/one-sdk';
 import { mocked } from 'ts-jest/utils';
 
@@ -47,7 +51,22 @@ describe('Publish logic utils', () => {
   const mockProfileId = 'starwars/character-information';
   const mockProfile = ProfileId.fromId(mockProfileId);
   const mockProviderName = 'unverified-swapi';
+
+  const astMetadata: AstMetadata = {
+    sourceChecksum: 'check',
+    astVersion: {
+      major: 1,
+      minor: 0,
+      patch: 0,
+    },
+    parserVersion: {
+      major: 1,
+      minor: 0,
+      patch: 0,
+    },
+  };
   const validProfileDocument: ProfileDocumentNode = {
+    astMetadata,
     kind: 'ProfileDocument',
     header: {
       kind: 'ProfileHeader',
@@ -63,6 +82,7 @@ describe('Publish logic utils', () => {
   };
 
   const invalidProfileDocument: ProfileDocumentNode = {
+    astMetadata,
     kind: 'ProfileDocument',
     header: {
       kind: 'ProfileHeader',
@@ -77,6 +97,7 @@ describe('Publish logic utils', () => {
   };
 
   const validMapDocument: MapDocumentNode = {
+    astMetadata,
     kind: 'MapDocument',
     header: {
       kind: 'MapHeader',
@@ -95,6 +116,7 @@ describe('Publish logic utils', () => {
   };
 
   const invalidMapDocument: MapDocumentNode = {
+    astMetadata,
     kind: 'MapDocument',
     header: {
       kind: 'MapHeader',
@@ -144,7 +166,13 @@ describe('Publish logic utils', () => {
 
   const mockProfileSource = 'profile source';
   const mockMapSource = 'map source';
-  const mockSuperJson = new SuperJson();
+  const mockSuperJson = new SuperJson({
+    providers: {
+      ['swapi']: {},
+      ['someName']: {},
+      [mockProviderName]: {},
+    },
+  });
 
   const mockProfileFrom: ProfileFromMetadata = {
     kind: 'local',
@@ -178,10 +206,11 @@ describe('Publish logic utils', () => {
           profileFrom: mockProfileFrom,
           providerFrom: mockProviderFrom,
           mapFrom: mockMapFrom,
+          superJson: mockSuperJson,
         })
       ).toThrow(
         new CLIError(
-          `validation failed at $: expected 'kind' in object, found: {}`
+          `Profile AST validation failed at $: expected 'astMetadata' in object, found: {}`
         )
       );
     });
@@ -196,10 +225,11 @@ describe('Publish logic utils', () => {
           profileFrom: mockProfileFrom,
           providerFrom: mockProviderFrom,
           mapFrom: mockMapFrom,
+          superJson: mockSuperJson,
         })
       ).toThrow(
         new CLIError(
-          `validation failed at $: expected 'kind' in object, found: {}`
+          `Map AST validation failed at $: expected 'astMetadata' in object, found: {}`
         )
       );
     });
@@ -214,6 +244,7 @@ describe('Publish logic utils', () => {
           profileFrom: mockProfileFrom,
           providerFrom: mockProviderFrom,
           mapFrom: mockMapFrom,
+          superJson: mockSuperJson,
         })
       ).toEqual([
         {
@@ -232,6 +263,13 @@ describe('Publish logic utils', () => {
           providerFrom: mockProviderFrom,
           mapFrom: mockMapFrom,
         },
+        {
+          issues: [],
+          kind: 'parameters',
+          provider: 'unverified-swapi',
+          providerFrom: mockProviderFrom,
+          superJsonPath: '',
+        },
       ]);
     });
 
@@ -245,6 +283,7 @@ describe('Publish logic utils', () => {
           profileFrom: mockProfileFrom,
           providerFrom: mockProviderFrom,
           mapFrom: mockMapFrom,
+          superJson: mockSuperJson,
         })
           .flatMap(checkResult => checkResult.issues)
           .filter(err => err.kind === 'error').length
@@ -271,6 +310,7 @@ describe('Publish logic utils', () => {
           profileFrom: mockProfileFrom,
           providerFrom: mockProviderFrom,
           mapFrom: mockMapFrom,
+          superJson: mockSuperJson,
         })
           .flatMap(checkResult => checkResult.issues)
           .filter(err => err.kind === 'warn').length
@@ -287,6 +327,7 @@ describe('Publish logic utils', () => {
           profileFrom: mockProfileFrom,
           providerFrom: mockProviderFrom,
           mapFrom: mockMapFrom,
+          superJson: mockSuperJson,
         })
           .flatMap(checkResult => checkResult.issues)
           .filter(err => err.kind === 'error').length
@@ -313,6 +354,7 @@ describe('Publish logic utils', () => {
           profileFrom: mockProfileFrom,
           providerFrom: mockProviderFrom,
           mapFrom: mockMapFrom,
+          superJson: mockSuperJson,
         })
           .flatMap(checkResult => checkResult.issues)
           .filter(err => err.kind === 'warn').length
@@ -329,6 +371,7 @@ describe('Publish logic utils', () => {
           profileFrom: mockProfileFrom,
           providerFrom: mockProviderFrom,
           mapFrom: mockMapFrom,
+          superJson: mockSuperJson,
         })
           .flatMap(checkResult => checkResult.issues)
           .filter(err => err.kind === 'error').length
