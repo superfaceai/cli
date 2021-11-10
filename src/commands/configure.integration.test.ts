@@ -531,7 +531,9 @@ describe('Configure CLI command', () => {
           mockServer.url
         )
       ).rejects.toEqual(
-        expect.stringContaining('Error: Local path: "some/path" does not exist')
+        expect.stringContaining(
+          'Error: ❌ Local path: "some/path" does not exist'
+        )
       );
 
       const finalSuperJson = (

@@ -308,7 +308,7 @@ describe('Lint logic', () => {
       const mockMapPath = 'testMapPath';
       expect(() =>
         isValidMapId(mockValidProfileHeader, mocValidMapHeader, mockMapPath)
-      ).toThrowError(new CLIError('parse-error'));
+      ).toThrowError(new CLIError('❌ parse-error'));
     });
   });
 

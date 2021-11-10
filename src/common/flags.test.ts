@@ -24,7 +24,7 @@ describe('Custom flags', () => {
       expect(() => {
         documentTypeFlag.parse('invalid', undefined);
       }).toThrow(
-        new CLIError('Internal error: unexpected enum variant', {
+        new CLIError('❌ Internal error: unexpected enum variant', {
           exit: -1,
         })
       );
@@ -48,7 +48,7 @@ describe('Custom flags', () => {
       expect(() => {
         skipFileFlag().parse('invalid', undefined);
       }).toThrow(
-        new CLIError('Internal error: unexpected enum variant', {
+        new CLIError('❌ Internal error: unexpected enum variant', {
           exit: -1,
         })
       );

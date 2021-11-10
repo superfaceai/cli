@@ -13,14 +13,14 @@ describe('Error functions', () => {
     it('throws user error correctly', async () => {
       expect(() => {
         throw userError('user error', 1);
-      }).toThrow(new CLIError('user error'));
+      }).toThrow(new CLIError('❌ user error'));
     });
 
     it('throws developer error on negative exit code', async () => {
       expect(() => {
         throw userError('some error', -1);
       }).toThrow(
-        new CLIError('Internal error: expected positive error code', {
+        new CLIError('❌ Internal error: expected positive error code', {
           exit: -1,
         })
       );
@@ -31,14 +31,14 @@ describe('Error functions', () => {
     it('throws developer error correctly', async () => {
       expect(() => {
         throw developerError('developer error', 1);
-      }).toThrow(new CLIError('Internal error: developer error'));
+      }).toThrow(new CLIError('❌ Internal error: developer error'));
     });
 
     it('throws developer error on negative exit code', async () => {
       expect(() => {
         throw developerError('some error', -1);
       }).toThrow(
-        new CLIError('Internal error: expected positive error code', {
+        new CLIError('❌ Internal error: expected positive error code', {
           exit: -1,
         })
       );
@@ -48,19 +48,19 @@ describe('Error functions', () => {
   describe('when asserting error is generic', () => {
     it('throws developer error correctly', async () => {
       expect(() => assertIsGenericError(null)).toThrow(
-        new CLIError('Internal error: unexpected error: null')
+        new CLIError('❌ Internal error: unexpected error: null')
       );
       expect(() => assertIsGenericError(undefined)).toThrow(
-        new CLIError('Internal error: unexpected error: undefined')
+        new CLIError('❌ Internal error: unexpected error: undefined')
       );
       expect(() => assertIsGenericError({})).toThrow(
-        new CLIError('Internal error: unexpected error: {}')
+        new CLIError('❌ Internal error: unexpected error: {}')
       );
       expect(() => assertIsGenericError({ code: 'test' })).toThrow(
-        new CLIError("Internal error: unexpected error: { code: 'test' }")
+        new CLIError("❌ Internal error: unexpected error: { code: 'test' }")
       );
       expect(() => assertIsGenericError({ message: 2 })).toThrow(
-        new CLIError('Internal error: unexpected error: { message: 2 }')
+        new CLIError('❌ Internal error: unexpected error: { message: 2 }')
       );
     });
 
@@ -72,19 +72,19 @@ describe('Error functions', () => {
   describe('when asserting error is IO error', () => {
     it('throws developer error correctly', async () => {
       expect(() => assertIsIOError(null)).toThrow(
-        new CLIError('Internal error: unexpected error: null')
+        new CLIError('❌ Internal error: unexpected error: null')
       );
       expect(() => assertIsIOError(undefined)).toThrow(
-        new CLIError('Internal error: unexpected error: undefined')
+        new CLIError('❌ Internal error: unexpected error: undefined')
       );
       expect(() => assertIsIOError({})).toThrow(
-        new CLIError('Internal error: unexpected error: {}')
+        new CLIError('❌ Internal error: unexpected error: {}')
       );
       expect(() => assertIsIOError({ code: 2 })).toThrow(
-        new CLIError('Internal error: unexpected error: { code: 2 }')
+        new CLIError('❌ Internal error: unexpected error: { code: 2 }')
       );
       expect(() => assertIsIOError({ message: 2 })).toThrow(
-        new CLIError('Internal error: unexpected error: { message: 2 }')
+        new CLIError('❌ Internal error: unexpected error: { message: 2 }')
       );
     });
 
@@ -96,25 +96,25 @@ describe('Error functions', () => {
   describe('when asserting error is exec error', () => {
     it('throws developer error correctly', async () => {
       expect(() => assertIsExecError(null)).toThrow(
-        new CLIError('Internal error: unexpected error: null')
+        new CLIError('❌ Internal error: unexpected error: null')
       );
       expect(() => assertIsExecError(undefined)).toThrow(
-        new CLIError('Internal error: unexpected error: undefined')
+        new CLIError('❌ Internal error: unexpected error: undefined')
       );
       expect(() => assertIsIOError({})).toThrow(
-        new CLIError('Internal error: unexpected error: {}')
+        new CLIError('❌ Internal error: unexpected error: {}')
       );
       expect(() => assertIsExecError({ code: 2 })).toThrow(
-        new CLIError('Internal error: unexpected error: { code: 2 }')
+        new CLIError('❌ Internal error: unexpected error: { code: 2 }')
       );
       expect(() => assertIsExecError({ message: 2 })).toThrow(
-        new CLIError('Internal error: unexpected error: { message: 2 }')
+        new CLIError('❌ Internal error: unexpected error: { message: 2 }')
       );
       expect(() => assertIsExecError({ stdout: 2 })).toThrow(
-        new CLIError('Internal error: unexpected error: { stdout: 2 }')
+        new CLIError('❌ Internal error: unexpected error: { stdout: 2 }')
       );
       expect(() => assertIsExecError({ stderr: 2 })).toThrow(
-        new CLIError('Internal error: unexpected error: { stderr: 2 }')
+        new CLIError('❌ Internal error: unexpected error: { stderr: 2 }')
       );
     });
 

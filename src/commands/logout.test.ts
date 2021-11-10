@@ -56,7 +56,9 @@ describe('Logout CLI command', () => {
         .spyOn(ServiceClient.prototype, 'signOut')
         .mockRejectedValue(mockErr);
 
-      await expect(Logout.run([])).rejects.toEqual(new CLIError('test'));
+      await expect(Logout.run([])).rejects.toEqual(
+        new CLIError('❌ Error: test')
+      );
       expect(getInfoSpy).toHaveBeenCalled();
       expect(stderr.output).toEqual('');
       expect(stdout.output).toEqual('');

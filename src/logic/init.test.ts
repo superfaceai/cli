@@ -134,7 +134,7 @@ describe('Init logic', () => {
 
       await expect(
         generateSpecifiedProfiles(mockPath, mockSuperJson, mockProfileIds)
-      ).rejects.toEqual(new CLIError('Wrong profile Id'));
+      ).rejects.toEqual(new CLIError('❌ Wrong profile Id'));
 
       expect(parseProfileId).toHaveBeenCalledTimes(1);
       expect(parseProfileId).toHaveBeenCalledWith('first-profile-id');

@@ -159,7 +159,7 @@ export async function publish(
   if (publishing === 'provider') {
     if (!providerFiles.source.name.startsWith(UNVERIFIED_PROVIDER_PREFIX)) {
       throw userError(
-        `❌ When publishing provider, provider name: "${providerFiles.source.name}" in provider.json must have prefix "${UNVERIFIED_PROVIDER_PREFIX}"`,
+        `When publishing provider, provider name: "${providerFiles.source.name}" in provider.json must have prefix "${UNVERIFIED_PROVIDER_PREFIX}"`,
         1
       );
     }

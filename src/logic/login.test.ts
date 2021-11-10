@@ -239,7 +239,7 @@ describe('Login logic', () => {
 
       await expect(login({ logCb: stdout, warnCb: stderr })).rejects.toEqual(
         new CLIError(
-          `Unable to get auth token, request ended with status: ${VerificationStatus.EXPIRED}`
+          `❌ Unable to get auth token, request ended with status: ${VerificationStatus.EXPIRED}`
         )
       );
 
@@ -280,7 +280,7 @@ describe('Login logic', () => {
 
       await expect(login({ logCb: stdout, warnCb: stderr })).rejects.toEqual(
         new CLIError(
-          `Request ended with status: ${VerificationStatus.CONFIRMED} but does not contain auth token`
+          `❌ Request ended with status: ${VerificationStatus.CONFIRMED} but does not contain auth token`
         )
       );
 
@@ -311,7 +311,7 @@ describe('Login logic', () => {
 
       await expect(login({ logCb: stdout, warnCb: stderr })).rejects.toEqual(
         new CLIError(
-          `Attempt to login ended with: ${mockInitResponse.title}: ${
+          `❌ Attempt to login ended with: ${mockInitResponse.title}: ${
             mockInitResponse.detail || ''
           }`
         )
@@ -333,7 +333,9 @@ describe('Login logic', () => {
         .mockResolvedValue(mockInitResponse);
 
       await expect(login({ logCb: stdout, warnCb: stderr })).rejects.toEqual(
-        new CLIError(`Attempt to login ended with: ${mockInitResponse.title}`)
+        new CLIError(
+          `❌ Attempt to login ended with: ${mockInitResponse.title}`
+        )
       );
 
       expect(initSpy).toHaveBeenCalledTimes(1);

@@ -66,7 +66,7 @@ describe('Document functions', () => {
       expect(trimExtension('test.suma.ast.json')).toEqual('test');
       expect(trimExtension('test.supr.ast.json')).toEqual('test');
       expect(() => trimExtension('test.json')).toThrow(
-        new CLIError('Could not infer document type')
+        new CLIError('❌ Could not infer document type')
       );
     });
   });
@@ -106,7 +106,7 @@ describe('Document functions', () => {
         message: 'test err',
       });
       expect(() => constructProfileSettings(['first'])).toThrow(
-        new CLIError('Wrong profile Id')
+        new CLIError('❌ Wrong profile Id')
       );
     });
   });

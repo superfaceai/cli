@@ -371,7 +371,7 @@ describe('Configure CLI logic', () => {
       mocked(fetchProviderInfo).mockRejectedValue(new Error('test'));
 
       await expect(getProviderFromStore(providerName)).rejects.toEqual(
-        new CLIError('test')
+        new CLIError('❌ Error: test')
       );
     });
   });
@@ -780,7 +780,7 @@ describe('Configure CLI logic', () => {
             localProvider: 'some/error/path',
           },
         })
-      ).rejects.toEqual(new CLIError('test'));
+      ).rejects.toEqual(new CLIError('❌ Error: test'));
 
       expect(fetchProviderInfo).not.toHaveBeenCalled();
 

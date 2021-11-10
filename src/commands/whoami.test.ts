@@ -86,7 +86,9 @@ describe('Whoami CLI command', () => {
         .spyOn(ServiceClient.prototype, 'getUserInfo')
         .mockRejectedValue(mockErr);
 
-      await expect(Whoami.run([])).rejects.toEqual(new CLIError('test'));
+      await expect(Whoami.run([])).rejects.toEqual(
+        new CLIError('❌ Error: test')
+      );
       expect(getInfoSpy).toHaveBeenCalled();
       expect(stderr.output).toEqual('');
       expect(stdout.output).toEqual('');

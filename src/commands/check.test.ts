@@ -189,7 +189,7 @@ describe('Check CLI command', () => {
         ])
       ).rejects.toEqual(
         new CLIError(
-          '--scan/-s : Number of levels to scan cannot be higher than 5'
+          '❌ --scan/-s : Number of levels to scan cannot be higher than 5'
         )
       );
       expect(detectSuperJson).not.toHaveBeenCalled();

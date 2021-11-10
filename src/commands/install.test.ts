@@ -199,7 +199,7 @@ describe('Install CLI command', () => {
 
       await expect(Install.run([profileName, '-s', '6'])).rejects.toEqual(
         new CLIError(
-          '--scan/-s : Number of levels to scan cannot be higher than 5'
+          '❌ --scan/-s : Number of levels to scan cannot be higher than 5'
         )
       );
       expect(installProfiles).toHaveBeenCalledTimes(0);

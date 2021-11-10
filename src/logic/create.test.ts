@@ -1009,7 +1009,7 @@ describe('Create logic', () => {
           },
         })
       ).rejects.toEqual(
-        new CLIError('Provider name must be provided when generating a map.')
+        new CLIError('❌ Provider name must be provided when generating a map.')
       );
 
       expect(loadSpy).toHaveBeenCalledTimes(1);
@@ -1059,7 +1059,7 @@ describe('Create logic', () => {
         })
       ).rejects.toEqual(
         new CLIError(
-          'Provider name must be provided when generating a provider.'
+          '❌ Provider name must be provided when generating a provider.'
         )
       );
 
@@ -1108,7 +1108,7 @@ describe('Create logic', () => {
           },
         })
       ).rejects.toEqual(
-        new CLIError('Profile name must be provided when generating a map.')
+        new CLIError('❌ Profile name must be provided when generating a map.')
       );
 
       expect(loadSpy).toHaveBeenCalledTimes(1);
@@ -1156,7 +1156,9 @@ describe('Create logic', () => {
           },
         })
       ).rejects.toEqual(
-        new CLIError('Profile name must be provided when generating a profile.')
+        new CLIError(
+          '❌ Profile name must be provided when generating a profile.'
+        )
       );
 
       expect(loadSpy).toHaveBeenCalledTimes(1);
@@ -1205,7 +1207,7 @@ describe('Create logic', () => {
           },
         })
       ).rejects.toEqual(
-        new CLIError('Provider name must be provided when generating a map.')
+        new CLIError('❌ Provider name must be provided when generating a map.')
       );
 
       expect(loadSpy).toHaveBeenCalledTimes(1);

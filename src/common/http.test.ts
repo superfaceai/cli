@@ -133,7 +133,7 @@ describe('HTTP functions', () => {
         );
 
       await expect(fetchProviders(profileId)).rejects.toEqual(
-        new CLIError(new ServiceApiError(mockErrResponse).message)
+        new CLIError(`❌ ${new ServiceApiError(mockErrResponse).message}`)
       );
 
       expect(fetchSpy).toHaveBeenCalledTimes(1);
@@ -218,7 +218,7 @@ describe('HTTP functions', () => {
         );
 
       await expect(fetchProfileInfo(profileId)).rejects.toEqual(
-        new CLIError(new ServiceApiError(mockErrResponse).message)
+        new CLIError(`❌ ${new ServiceApiError(mockErrResponse).message}`)
       );
 
       expect(fetchSpy).toHaveBeenCalledTimes(1);
@@ -287,7 +287,7 @@ describe('HTTP functions', () => {
         );
 
       await expect(fetchProfile(profileId)).rejects.toEqual(
-        new CLIError(new ServiceApiError(mockErrResponse).message)
+        new CLIError(`❌ ${new ServiceApiError(mockErrResponse).message}`)
       );
 
       expect(fetchSpy).toHaveBeenCalledTimes(1);
@@ -384,7 +384,7 @@ describe('HTTP functions', () => {
         );
 
       await expect(fetchProfileAST(profileId)).rejects.toEqual(
-        new CLIError(new ServiceApiError(mockErrResponse).message)
+        new CLIError(`❌ ${new ServiceApiError(mockErrResponse).message}`)
       );
 
       expect(fetchSpy).toHaveBeenCalledTimes(1);
@@ -728,7 +728,7 @@ describe('HTTP functions', () => {
       await expect(
         fetchMapAST(profileName, provider, scope, version)
       ).rejects.toEqual(
-        new CLIError(new ServiceApiError(mockErrResponse).message)
+        new CLIError(`❌ ${new ServiceApiError(mockErrResponse).message}`)
       );
 
       expect(fetchSpy).toHaveBeenCalledTimes(1);

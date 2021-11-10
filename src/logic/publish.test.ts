@@ -607,7 +607,7 @@ describe('Publish logic', () => {
         )
       ).rejects.toEqual(
         new CLIError(
-          `Profile: "${mockProfileId}" not found on local file system`
+          `❌ Profile: "${mockProfileId}" not found on local file system`
         )
       );
 
@@ -1023,7 +1023,7 @@ describe('Publish logic', () => {
         )
       ).rejects.toEqual(
         new CLIError(
-          `Provider: "${mockMapDocument.header.provider}" does not exist in Superface store and it does not start with: "${UNVERIFIED_PROVIDER_PREFIX}" prefix.\nPlease, rename provider: "${mockMapDocument.header.provider}" or use existing provider.`
+          `❌ Provider: "${mockMapDocument.header.provider}" does not exist in Superface store and it does not start with: "${UNVERIFIED_PROVIDER_PREFIX}" prefix.\nPlease, rename provider: "${mockMapDocument.header.provider}" or use existing provider.`
         )
       );
 
@@ -1103,7 +1103,7 @@ describe('Publish logic', () => {
         )
       ).rejects.toEqual(
         new CLIError(
-          `Map for profile: "${mockProfileId}" and provider: "${mockProviderName}" not found on local filesystem`
+          `❌ Map for profile: "${mockProfileId}" and provider: "${mockProviderName}" not found on local filesystem`
         )
       );
 
@@ -1551,7 +1551,7 @@ describe('Publish logic', () => {
         )
       ).rejects.toEqual(
         new CLIError(
-          `Provider: "${mockProviderName}" not found on local file system`
+          `❌ Provider: "${mockProviderName}" not found on local file system`
         )
       );
 

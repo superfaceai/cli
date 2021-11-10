@@ -49,7 +49,7 @@ describe('Configure CLI command', () => {
     it('does not configure on invalid provider name', async () => {
       mocked(isValidDocumentName).mockReturnValue(false);
       await expect(Configure.run(['U7!O', '-p', 'test'])).rejects.toEqual(
-        new CLIError('Invalid provider name')
+        new CLIError('❌ Invalid provider name')
       );
 
       expect(detectSuperJson).not.toHaveBeenCalled();
@@ -61,7 +61,9 @@ describe('Configure CLI command', () => {
       mocked(exists).mockResolvedValue(false);
       await expect(
         Configure.run(['swapi', '-p', 'test', '--localMap', 'some/path'])
-      ).rejects.toEqual(new CLIError('Local path: "some/path" does not exist'));
+      ).rejects.toEqual(
+        new CLIError('❌ Local path: "some/path" does not exist')
+      );
 
       expect(detectSuperJson).not.toHaveBeenCalled();
       expect(installProvider).not.toHaveBeenCalled();
@@ -72,7 +74,9 @@ describe('Configure CLI command', () => {
       mocked(exists).mockResolvedValue(false);
       await expect(
         Configure.run(['swapi', '-p', 'test', '--localProvider', 'some/path'])
-      ).rejects.toEqual(new CLIError('Local path: "some/path" does not exist'));
+      ).rejects.toEqual(
+        new CLIError('❌ Local path: "some/path" does not exist')
+      );
 
       expect(detectSuperJson).not.toHaveBeenCalled();
       expect(installProvider).not.toHaveBeenCalled();

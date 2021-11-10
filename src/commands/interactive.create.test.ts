@@ -501,26 +501,26 @@ describe('Interactive create CLI command', () => {
 
     it('throws error on invalid command', async () => {
       await expect(Create.run([])).rejects.toEqual(
-        new CLIError('Invalid command! Specify profileId or providerName')
+        new CLIError('❌ Invalid command! Specify profileId or providerName')
       );
     });
 
     it('throws error on invalid document name', async () => {
       await expect(
         Create.run(['--profileId', 'map', '--profile'])
-      ).rejects.toEqual(new CLIError('ProfileId is reserved!'));
+      ).rejects.toEqual(new CLIError('❌ ProfileId is reserved!'));
 
       await expect(
         Create.run(['--profileId', 'profile', '--profile'])
-      ).rejects.toEqual(new CLIError('ProfileId is reserved!'));
+      ).rejects.toEqual(new CLIError('❌ ProfileId is reserved!'));
 
       await expect(
         Create.run(['--providerName', 'map', '--provider'])
-      ).rejects.toEqual(new CLIError('ProviderName "map" is reserved!'));
+      ).rejects.toEqual(new CLIError('❌ ProviderName "map" is reserved!'));
 
       await expect(
         Create.run(['--providerName', 'profile', '--provider'])
-      ).rejects.toEqual(new CLIError('ProviderName "profile" is reserved!'));
+      ).rejects.toEqual(new CLIError('❌ ProviderName "profile" is reserved!'));
     });
 
     it('throws error on invalid variant', async () => {
@@ -540,7 +540,7 @@ describe('Interactive create CLI command', () => {
           '--profile',
           '--map',
         ])
-      ).rejects.toEqual(new CLIError('Invalid map variant: vT_7!'));
+      ).rejects.toEqual(new CLIError('❌ Invalid map variant: vT_7!'));
     });
 
     it('throws error on invalid provider name', async () => {
@@ -560,7 +560,7 @@ describe('Interactive create CLI command', () => {
         .mockResolvedValueOnce({ init: true });
 
       await expect(Create.run(['-i'])).rejects.toEqual(
-        new CLIError('Invalid provider name: vT_7!')
+        new CLIError('❌ Invalid provider name: vT_7!')
       );
     });
 
@@ -582,7 +582,7 @@ describe('Interactive create CLI command', () => {
         //Init
         .mockResolvedValueOnce({ init: true });
       await expect(Create.run(['-u', 'SendSMS', '-i'])).rejects.toEqual(
-        new CLIError('"vT_7!" is not a valid lowercase identifier')
+        new CLIError('❌ "vT_7!" is not a valid lowercase identifier')
       );
     });
 
@@ -606,7 +606,7 @@ describe('Interactive create CLI command', () => {
 
       await expect(
         Create.run(['-v', '', '-u', 'SendSMS', '-i'])
-      ).rejects.toEqual(new CLIError(' is not a valid version'));
+      ).rejects.toEqual(new CLIError('❌  is not a valid version'));
     });
 
     it('throws error on invalid usecase', async () => {
@@ -628,7 +628,7 @@ describe('Interactive create CLI command', () => {
         .mockResolvedValueOnce({ init: true });
 
       await expect(Create.run(['-u', '7_L§', '-i'])).rejects.toEqual(
-        new CLIError('Invalid usecase name: 7_L§')
+        new CLIError('❌ Invalid usecase name: 7_L§')
       );
     });
   });

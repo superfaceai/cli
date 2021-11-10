@@ -45,7 +45,7 @@ describe('Generate CLI command', () => {
     it('throws when super.json not found', async () => {
       mocked(detectSuperJson).mockResolvedValue(undefined);
       await expect(Generate.run(['--profileId', profileId])).rejects.toEqual(
-        new CLIError('Unable to generate, super.json not found')
+        new CLIError('❌ Unable to generate, super.json not found')
       );
     });
 
@@ -55,7 +55,7 @@ describe('Generate CLI command', () => {
         .spyOn(SuperJson, 'load')
         .mockResolvedValue(err(new SDKExecutionError('test error', [], [])));
       await expect(Generate.run(['--profileId', profileId])).rejects.toEqual(
-        new CLIError('Unable to load super.json: test error')
+        new CLIError('❌ Unable to load super.json: test error')
       );
     });
 
@@ -75,7 +75,7 @@ describe('Generate CLI command', () => {
         Generate.run(['--profileId', profileId, '-s', '6'])
       ).rejects.toEqual(
         new CLIError(
-          '--scan/-s : Number of levels to scan cannot be higher than 5'
+          '❌ --scan/-s : Number of levels to scan cannot be higher than 5'
         )
       );
       expect(detectSuperJson).not.toHaveBeenCalled();
@@ -91,7 +91,7 @@ describe('Generate CLI command', () => {
         Generate.run(['--profileId', 'U!0_', '-s', '3'])
       ).rejects.toEqual(
         new CLIError(
-          'Invalid profile id: "U!0_" is not a valid lowercase identifier'
+          '❌ Invalid profile id: "U!0_" is not a valid lowercase identifier'
         )
       );
       expect(detectSuperJson).toHaveBeenCalled();
@@ -107,7 +107,7 @@ describe('Generate CLI command', () => {
       await expect(
         Generate.run(['--profileId', profileId, '-s', '3'])
       ).rejects.toEqual(
-        new CLIError(`Profile id: "${profileId}" not found in super.json`)
+        new CLIError(`❌ Profile id: "${profileId}" not found in super.json`)
       );
       expect(detectSuperJson).toHaveBeenCalled();
       expect(loadSpy).toHaveBeenCalled();
