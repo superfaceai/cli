@@ -60,7 +60,6 @@ function extractComlinkListLiterallNode(
   numberOfTabs: number
 ): string {
   const items = [];
-  const stringified = '[';
   for (const item of input.items) {
     if (item.kind === 'ComlinkPrimitiveLiteral') {
       items.push(extractComlinkPrimitiveLiteralNode(item));
@@ -71,7 +70,7 @@ function extractComlinkListLiterallNode(
     }
   }
 
-  return stringified + items.join(',') + ']';
+  return `[${items.join(',')}]`;
 }
 /**
  * Extracts value of ComlinkObjectLiteral to be used in string
