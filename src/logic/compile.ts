@@ -1,8 +1,9 @@
 import { Parser } from '@superfaceai/one-sdk';
 
-import { LogCallback, Logger } from '..';
+import { Logger } from '..';
 import { userError } from '../common/error';
 import { exists, readFile } from '../common/io';
+import { Messages } from '../common/messages';
 import { ProfileId } from '../common/profile';
 
 export type MapToCompile = { provider: string; path: string };
@@ -24,10 +25,11 @@ export async function compile(
   for (const profile of profiles) {
     //Compile profile
     if (!options?.onlyMap) {
-      Logger.info(`Compiling profile ${profile.id.toString()}`);
+      Logger.info(Messages['compile-profile'](profile.id.toString()));
       if (!(await exists(profile.path))) {
         throw userError(
-          `❌ Path: "${profile.path
+          `❌ Path: "${
+            profile.path
           }" for profile ${profile.id.toString()} does not exist`,
           1
         );
@@ -43,12 +45,12 @@ export async function compile(
     if (!options?.onlyProfile) {
       for (const map of profile.maps) {
         Logger.info(
-          `Compiling map for profile ${profile.id.toString()} and provider ${map.provider
-          }`
+          Messages['compile-map'](profile.id.toString(), map.provider)
         );
         if (!(await exists(map.path))) {
           throw userError(
-            `❌ Path: "${map.path}" for map ${profile.id.toString()}.${map.provider
+            `❌ Path: "${map.path}" for map ${profile.id.toString()}.${
+              map.provider
             } does not exist`,
             1
           );

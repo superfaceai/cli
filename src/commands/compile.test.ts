@@ -278,7 +278,6 @@ describe('Compile CLI command', () => {
             },
           ],
           {
-            logCb: expect.anything(),
             onlyMap: undefined,
             onlyProfile: undefined,
           }
@@ -331,7 +330,7 @@ describe('Compile CLI command', () => {
               ],
             },
           ],
-          { logCb: expect.anything(), onlyMap: true, onlyProfile: undefined }
+          { onlyMap: true, onlyProfile: undefined }
         );
 
         expect(detectSuperJson).toHaveBeenCalledWith(process.cwd(), undefined);
@@ -381,7 +380,7 @@ describe('Compile CLI command', () => {
               ],
             },
           ],
-          { logCb: expect.anything(), onlyMap: undefined, onlyProfile: true }
+          { onlyMap: undefined, onlyProfile: true }
         );
 
         expect(detectSuperJson).toHaveBeenCalledWith(process.cwd(), undefined);
@@ -431,7 +430,7 @@ describe('Compile CLI command', () => {
               ],
             },
           ],
-          { logCb: undefined, onlyMap: undefined, onlyProfile: undefined }
+          { onlyMap: undefined, onlyProfile: undefined }
         );
 
         expect(detectSuperJson).toHaveBeenCalledWith(process.cwd(), undefined);
@@ -474,7 +473,6 @@ describe('Compile CLI command', () => {
             },
           ],
           {
-            logCb: expect.anything(),
             onlyMap: undefined,
             onlyProfile: undefined,
           }
@@ -517,7 +515,7 @@ describe('Compile CLI command', () => {
               ],
             },
           ],
-          { logCb: expect.anything(), onlyMap: true, onlyProfile: undefined }
+          { onlyMap: true, onlyProfile: undefined }
         );
 
         expect(detectSuperJson).toHaveBeenCalledWith(process.cwd(), undefined);
@@ -557,7 +555,7 @@ describe('Compile CLI command', () => {
               ],
             },
           ],
-          { logCb: expect.anything(), onlyMap: undefined, onlyProfile: true }
+          { onlyMap: undefined, onlyProfile: true }
         );
 
         expect(detectSuperJson).toHaveBeenCalledWith(process.cwd(), undefined);
@@ -599,7 +597,6 @@ describe('Compile CLI command', () => {
             },
           ],
           {
-            logCb: expect.anything(),
             onlyMap: undefined,
             onlyProfile: undefined,
           }
@@ -642,7 +639,7 @@ describe('Compile CLI command', () => {
               ],
             },
           ],
-          { logCb: expect.anything(), onlyMap: true, onlyProfile: undefined }
+          { onlyMap: true, onlyProfile: undefined }
         );
 
         expect(detectSuperJson).toHaveBeenCalledWith(process.cwd(), undefined);
@@ -682,7 +679,7 @@ describe('Compile CLI command', () => {
               ],
             },
           ],
-          { logCb: expect.anything(), onlyMap: undefined, onlyProfile: true }
+          { onlyMap: undefined, onlyProfile: true }
         );
 
         expect(detectSuperJson).toHaveBeenCalledWith(process.cwd(), undefined);

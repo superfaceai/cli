@@ -54,16 +54,9 @@ describe('Init CLI command', () => {
       await expect(Init.run([mockPath, '-p'])).resolves.toBeUndefined();
 
       expect(initSuperface).toHaveBeenCalledTimes(1);
-      expect(initSuperface).toHaveBeenCalledWith(
-        mockPath,
-        {
-          providers: constructProviderSettings(['twilio', 'tyntec']),
-        },
-        {
-          logCb: expect.anything(),
-          warnCb: expect.anything(),
-        }
-      );
+      expect(initSuperface).toHaveBeenCalledWith(mockPath, {
+        providers: constructProviderSettings(['twilio', 'tyntec']),
+      });
 
       expect(promptSpy).toHaveBeenCalledTimes(2);
 
@@ -89,16 +82,9 @@ describe('Init CLI command', () => {
       await expect(Init.run([mockPath, '-p'])).resolves.toBeUndefined();
 
       expect(initSuperface).toHaveBeenCalledTimes(1);
-      expect(initSuperface).toHaveBeenCalledWith(
-        mockPath,
-        {
-          providers: constructProviderSettings(['twilio']),
-        },
-        {
-          logCb: expect.anything(),
-          warnCb: expect.anything(),
-        }
-      );
+      expect(initSuperface).toHaveBeenCalledWith(mockPath, {
+        providers: constructProviderSettings(['twilio']),
+      });
 
       expect(promptSpy).toHaveBeenCalledTimes(2);
 
@@ -121,16 +107,9 @@ describe('Init CLI command', () => {
       await expect(Init.run([mockPath])).resolves.toBeUndefined();
 
       expect(initSuperface).toHaveBeenCalledTimes(1);
-      expect(initSuperface).toHaveBeenCalledWith(
-        mockPath,
-        {
-          providers: constructProviderSettings([]),
-        },
-        {
-          logCb: expect.anything(),
-          warnCb: expect.anything(),
-        }
-      );
+      expect(initSuperface).toHaveBeenCalledWith(mockPath, {
+        providers: constructProviderSettings([]),
+      });
 
       expect(promptSpy).toHaveBeenCalledTimes(0);
 
@@ -149,16 +128,9 @@ describe('Init CLI command', () => {
       await expect(Init.run([mockPath, '-q'])).resolves.toBeUndefined();
 
       expect(initSuperface).toHaveBeenCalledTimes(1);
-      expect(initSuperface).toHaveBeenCalledWith(
-        mockPath,
-        {
-          providers: constructProviderSettings([]),
-        },
-        {
-          logCb: undefined,
-          warnCb: undefined,
-        }
-      );
+      expect(initSuperface).toHaveBeenCalledWith(mockPath, {
+        providers: constructProviderSettings([]),
+      });
 
       expect(promptSpy).toHaveBeenCalledTimes(0);
 

@@ -3,8 +3,8 @@ import { isValidProviderName } from '@superfaceai/ast';
 import { SuperJson } from '@superfaceai/one-sdk';
 import { parseDocumentId } from '@superfaceai/parser';
 import { join as joinPath } from 'path';
-import { Logger } from '..';
 
+import { Logger } from '..';
 import { Command } from '../common/command.abstract';
 import { META_FILE } from '../common/document';
 import { userError } from '../common/error';
@@ -113,7 +113,7 @@ export default class Compile extends Command {
       if (flags.providerName) {
         if (
           !superJson.normalized.profiles[flags.profileId].providers[
-          flags.providerName
+            flags.providerName
           ]
         ) {
           throw userError(

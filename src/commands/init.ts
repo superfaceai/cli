@@ -10,15 +10,14 @@ import { Logger } from '../common/log';
 import { OutputStream } from '../common/output-stream';
 import { generateSpecifiedProfiles, initSuperface } from '../logic/init';
 
-const parseProfileIds = (
-  input: string
-): string[] => {
+const parseProfileIds = (input: string): string[] => {
   return input
     .split(' ')
     .filter(p => p.trim() !== '')
     .filter(p => {
       if (parseProfileId(p).kind === 'error') {
         Logger.warn('⬅ Invalid profile id');
+
         return false;
       }
 
@@ -26,9 +25,7 @@ const parseProfileIds = (
     });
 };
 
-const parseProviders = (
-  input: string
-): string[] =>
+const parseProviders = (input: string): string[] =>
   input
     .split(' ')
     .filter(i => i.trim() !== '')

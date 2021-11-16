@@ -3,6 +3,7 @@ import { ok, SuperJson } from '@superfaceai/one-sdk';
 import { parseProfileId } from '@superfaceai/parser';
 import { mocked } from 'ts-jest/utils';
 
+import { Logger } from '../common';
 import { composeUsecaseName } from '../common/document';
 import { mkdir, mkdirQuiet } from '../common/io';
 import { OutputStream } from '../common/output-stream';
@@ -28,6 +29,9 @@ jest.mock('./create', () => ({
 
 describe('Init logic', () => {
   describe('when initialing superface', () => {
+    beforeEach(() => {
+      Logger.mockLogger()
+    });
     afterEach(() => {
       jest.resetAllMocks();
     });

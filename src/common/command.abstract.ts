@@ -17,7 +17,7 @@ export abstract class Command extends OclifCommand {
    * Sets up logger for current run of oclif command
    * @param quiet - quiet flag
    */
-  public setUpLogger(quiet?: boolean) {
+  protected setUpLogger(quiet?: boolean): void {
     Logger.setup(quiet);
   }
 }

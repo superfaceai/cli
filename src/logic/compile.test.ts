@@ -2,6 +2,7 @@ import { CLIError } from '@oclif/errors';
 import { Parser } from '@superfaceai/one-sdk';
 import { mocked } from 'ts-jest/utils';
 
+import { Logger } from '..';
 import { exists, readFile } from '../common/io';
 import { ProfileId } from '../common/profile';
 import { compile, ProfileToCompile } from './compile';
@@ -16,6 +17,9 @@ jest.mock('../common/io', () => ({
 jest.mock('@superfaceai/one-sdk/dist/internal/parser');
 
 describe('Compile CLI logic', () => {
+  beforeEach(() => {
+    Logger.mockLogger()
+  });
   afterEach(() => {
     jest.resetAllMocks();
   });
