@@ -1,4 +1,3 @@
-import { CLIError } from '@oclif/errors';
 import { err, ok, SuperJson } from '@superfaceai/one-sdk';
 import { SDKExecutionError } from '@superfaceai/one-sdk/dist/internal/errors';
 import { mocked } from 'ts-jest/utils';
@@ -44,8 +43,8 @@ describe('Generate CLI command', () => {
   describe('when running generate command', () => {
     it('throws when super.json not found', async () => {
       mocked(detectSuperJson).mockResolvedValue(undefined);
-      await expect(Generate.run(['--profileId', profileId])).rejects.toEqual(
-        new CLIError('❌ Unable to generate, super.json not found')
+      await expect(Generate.run(['--profileId', profileId])).rejects.toThrow(
+        'Unable to generate, super.json not found'
       );
     });
 
@@ -54,16 +53,16 @@ describe('Generate CLI command', () => {
       jest
         .spyOn(SuperJson, 'load')
         .mockResolvedValue(err(new SDKExecutionError('test error', [], [])));
-      await expect(Generate.run(['--profileId', profileId])).rejects.toEqual(
-        new CLIError('❌ Unable to load super.json: test error')
+      await expect(Generate.run(['--profileId', profileId])).rejects.toThrow(
+        'Unable to load super.json: test error'
       );
     });
 
     it('throws error on invalid scan flag', async () => {
       mocked(detectSuperJson).mockResolvedValue('.');
 
-      await expect(Generate.run(['-s test'])).rejects.toEqual(
-        new CLIError('Expected an integer but received:  test')
+      await expect(Generate.run(['-s test'])).rejects.toThrow(
+        'Expected an integer but received:  test'
       );
       expect(detectSuperJson).not.toHaveBeenCalled();
     }, 10000);
@@ -73,10 +72,8 @@ describe('Generate CLI command', () => {
 
       await expect(
         Generate.run(['--profileId', profileId, '-s', '6'])
-      ).rejects.toEqual(
-        new CLIError(
-          '❌ --scan/-s : Number of levels to scan cannot be higher than 5'
-        )
+      ).rejects.toThrow(
+        '--scan/-s : Number of levels to scan cannot be higher than 5'
       );
       expect(detectSuperJson).not.toHaveBeenCalled();
     }, 10000);
@@ -89,10 +86,8 @@ describe('Generate CLI command', () => {
 
       await expect(
         Generate.run(['--profileId', 'U!0_', '-s', '3'])
-      ).rejects.toEqual(
-        new CLIError(
-          '❌ Invalid profile id: "U!0_" is not a valid lowercase identifier'
-        )
+      ).rejects.toThrow(
+        'Invalid profile id: "U!0_" is not a valid lowercase identifier'
       );
       expect(detectSuperJson).toHaveBeenCalled();
       expect(loadSpy).toHaveBeenCalled();
@@ -106,9 +101,7 @@ describe('Generate CLI command', () => {
 
       await expect(
         Generate.run(['--profileId', profileId, '-s', '3'])
-      ).rejects.toEqual(
-        new CLIError(`❌ Profile id: "${profileId}" not found in super.json`)
-      );
+      ).rejects.toThrow(`Profile id: "${profileId}" not found in super.json`);
       expect(detectSuperJson).toHaveBeenCalled();
       expect(loadSpy).toHaveBeenCalled();
     }, 10000);
