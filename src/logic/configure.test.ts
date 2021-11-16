@@ -1,4 +1,3 @@
-import { CLIError } from '@oclif/errors';
 import {
   ApiKeyPlacement,
   HttpScheme,
@@ -370,8 +369,8 @@ describe('Configure CLI logic', () => {
     it('throws on error', async () => {
       mocked(fetchProviderInfo).mockRejectedValue(new Error('test'));
 
-      await expect(getProviderFromStore(providerName)).rejects.toEqual(
-        new CLIError('❌ Error: test')
+      await expect(getProviderFromStore(providerName)).rejects.toThrow(
+        'Error: test'
       );
     });
   });
@@ -780,7 +779,7 @@ describe('Configure CLI logic', () => {
             localProvider: 'some/error/path',
           },
         })
-      ).rejects.toEqual(new CLIError('❌ Error: test'));
+      ).rejects.toThrow('Error: test');
 
       expect(fetchProviderInfo).not.toHaveBeenCalled();
 
@@ -806,10 +805,8 @@ describe('Configure CLI logic', () => {
           provider: providerName,
           profileId: mockProfileId,
         })
-      ).rejects.toEqual(
-        new CLIError(
-          `❌ profile ${mockProfileId.id} not found in "some/path/super.json".`
-        )
+      ).rejects.toThrow(
+        `profile ${mockProfileId.id} not found in "some/path/super.json".`
       );
 
       expect(fetchProviderInfo).not.toHaveBeenCalled();

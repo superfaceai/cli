@@ -1,4 +1,3 @@
-import { CLIError } from '@oclif/errors';
 import {
   AstMetadata,
   MapDocumentNode,
@@ -605,10 +604,8 @@ describe('Publish logic', () => {
           undefined,
           { dryRun: true }
         )
-      ).rejects.toEqual(
-        new CLIError(
-          `❌ Profile: "${mockProfileId}" not found on local file system`
-        )
+      ).rejects.toThrow(
+        `Profile: "${mockProfileId}" not found on local file system`
       );
 
       expect(loadProfile).toHaveBeenCalledWith(
@@ -1021,10 +1018,8 @@ describe('Publish logic', () => {
           {},
           DEFAULT_PROFILE_VERSION_STR
         )
-      ).rejects.toEqual(
-        new CLIError(
-          `❌ Provider: "${mockMapDocument.header.provider}" does not exist in Superface store and it does not start with: "${UNVERIFIED_PROVIDER_PREFIX}" prefix.\nPlease, rename provider: "${mockMapDocument.header.provider}" or use existing provider.`
-        )
+      ).rejects.toThrow(
+        `Provider: "${mockMapDocument.header.provider}" does not exist in Superface store and it does not start with: "${UNVERIFIED_PROVIDER_PREFIX}" prefix.\nPlease, rename provider: "${mockMapDocument.header.provider}" or use existing provider.`
       );
 
       expect(createSpy).not.toHaveBeenCalled();
@@ -1101,10 +1096,8 @@ describe('Publish logic', () => {
           DEFAULT_PROFILE_VERSION_STR,
           { dryRun: true }
         )
-      ).rejects.toEqual(
-        new CLIError(
-          `❌ Map for profile: "${mockProfileId}" and provider: "${mockProviderName}" not found on local filesystem`
-        )
+      ).rejects.toThrow(
+        `Map for profile: "${mockProfileId}" and provider: "${mockProviderName}" not found on local filesystem`
       );
 
       expect(loadProfile).toHaveBeenCalledWith(
@@ -1367,10 +1360,8 @@ describe('Publish logic', () => {
           DEFAULT_PROFILE_VERSION_STR,
           { dryRun: true }
         )
-      ).rejects.toEqual(
-        new CLIError(
-          `❌ When publishing provider, provider name: "${mockProviderName}" in provider.json must have prefix "${UNVERIFIED_PROVIDER_PREFIX}"`
-        )
+      ).rejects.toThrow(
+        `When publishing provider, provider name: "${mockProviderName}" in provider.json must have prefix "${UNVERIFIED_PROVIDER_PREFIX}"`
       );
 
       expect(createSpy).not.toHaveBeenCalled();
@@ -1549,10 +1540,8 @@ describe('Publish logic', () => {
           DEFAULT_PROFILE_VERSION_STR,
           { dryRun: true }
         )
-      ).rejects.toEqual(
-        new CLIError(
-          `❌ Provider: "${mockProviderName}" not found on local file system`
-        )
+      ).rejects.toThrow(
+        `Provider: "${mockProviderName}" not found on local file system`
       );
 
       expect(loadProfile).toHaveBeenCalledWith(

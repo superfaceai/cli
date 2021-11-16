@@ -1,4 +1,3 @@
-import { CLIError } from '@oclif/errors';
 import { EXTENSIONS } from '@superfaceai/ast';
 import { err, ok, SuperJson } from '@superfaceai/one-sdk';
 import { SDKExecutionError } from '@superfaceai/one-sdk/dist/internal/errors';
@@ -1008,8 +1007,8 @@ describe('Create logic', () => {
             superPath: mockSuperPath,
           },
         })
-      ).rejects.toEqual(
-        new CLIError('❌ Provider name must be provided when generating a map.')
+      ).rejects.toThrow(
+        'Provider name must be provided when generating a map.'
       );
 
       expect(loadSpy).toHaveBeenCalledTimes(1);
@@ -1057,10 +1056,8 @@ describe('Create logic', () => {
             superPath: mockSuperPath,
           },
         })
-      ).rejects.toEqual(
-        new CLIError(
-          '❌ Provider name must be provided when generating a provider.'
-        )
+      ).rejects.toThrow(
+        '❌ Provider name must be provided when generating a provider.'
       );
 
       expect(loadSpy).toHaveBeenCalledTimes(1);
@@ -1107,9 +1104,7 @@ describe('Create logic', () => {
             superPath: mockSuperPath,
           },
         })
-      ).rejects.toEqual(
-        new CLIError('❌ Profile name must be provided when generating a map.')
-      );
+      ).rejects.toThrow('Profile name must be provided when generating a map.');
 
       expect(loadSpy).toHaveBeenCalledTimes(1);
 
@@ -1155,10 +1150,8 @@ describe('Create logic', () => {
             superPath: mockSuperPath,
           },
         })
-      ).rejects.toEqual(
-        new CLIError(
-          '❌ Profile name must be provided when generating a profile.'
-        )
+      ).rejects.toThrow(
+        'Profile name must be provided when generating a profile.'
       );
 
       expect(loadSpy).toHaveBeenCalledTimes(1);
@@ -1206,8 +1199,8 @@ describe('Create logic', () => {
             superPath: mockSuperPath,
           },
         })
-      ).rejects.toEqual(
-        new CLIError('❌ Provider name must be provided when generating a map.')
+      ).rejects.toThrow(
+        'Provider name must be provided when generating a map.'
       );
 
       expect(loadSpy).toHaveBeenCalledTimes(1);

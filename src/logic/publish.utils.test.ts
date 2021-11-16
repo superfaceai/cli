@@ -1,4 +1,3 @@
-import { CLIError } from '@oclif/errors';
 import {
   AstMetadata,
   MapDocumentNode,
@@ -209,9 +208,7 @@ describe('Publish logic utils', () => {
           superJson: mockSuperJson,
         })
       ).toThrow(
-        new CLIError(
-          `❌ Error: Profile AST validation failed at $: expected 'astMetadata' in object, found: {}`
-        )
+        `Profile AST validation failed at $: expected 'astMetadata' in object, found: {}`
       );
     });
 
@@ -228,9 +225,7 @@ describe('Publish logic utils', () => {
           superJson: mockSuperJson,
         })
       ).toThrow(
-        new CLIError(
-          `❌ Error: Map AST validation failed at $: expected 'astMetadata' in object, found: {}`
-        )
+        `Map AST validation failed at $: expected 'astMetadata' in object, found: {}`
       );
     });
 

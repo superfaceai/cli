@@ -1,4 +1,3 @@
-import { CLIError } from '@oclif/errors';
 import {
   AstMetadata,
   MapDocumentNode,
@@ -308,7 +307,7 @@ describe('Lint logic', () => {
       const mockMapPath = 'testMapPath';
       expect(() =>
         isValidMapId(mockValidProfileHeader, mocValidMapHeader, mockMapPath)
-      ).toThrowError(new CLIError('❌ parse-error'));
+      ).toThrow('parse-error');
     });
   });
 

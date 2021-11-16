@@ -1,4 +1,3 @@
-import { CLIError } from '@oclif/errors';
 import { Parser } from '@superfaceai/one-sdk';
 import { mocked } from 'ts-jest/utils';
 
@@ -181,10 +180,8 @@ describe('Compile CLI logic', () => {
       const parseProfileSpy = jest.spyOn(Parser, 'parseProfile');
       const clearCacheSpy = jest.spyOn(Parser, 'clearCache');
 
-      await expect(compile(profiles)).rejects.toEqual(
-        new CLIError(
-          '❌ Path: "first/profile.supr" for profile first/profile does not exist'
-        )
+      await expect(compile(profiles)).rejects.toThrow(
+        'Path: "first/profile.supr" for profile first/profile does not exist'
       );
       expect(parseProfileSpy).not.toHaveBeenCalled();
 
@@ -205,10 +202,8 @@ describe('Compile CLI logic', () => {
         return Promise.resolve(mockProfileContent);
       });
 
-      await expect(compile(profiles)).rejects.toEqual(
-        new CLIError(
-          '❌ Path: "first/profile/first/map.suma" for map first/profile.first does not exist'
-        )
+      await expect(compile(profiles)).rejects.toThrow(
+        'Path: "first/profile/first/map.suma" for map first/profile.first does not exist'
       );
       expect(parseProfileSpy).toHaveBeenNthCalledWith(
         1,
