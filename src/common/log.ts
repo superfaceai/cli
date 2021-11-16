@@ -19,9 +19,9 @@ class StdoutLogger implements ILogger {
 
 class DummyLogger implements ILogger {
   // eslint-disable-next-line @typescript-eslint/no-empty-function
-  log(_input: string): void { }
+  log(_input: string): void {}
   // eslint-disable-next-line @typescript-eslint/no-empty-function
-  error(_input: string): void { }
+  error(_input: string): void {}
 }
 
 export class MockLogger implements ILogger {
@@ -70,14 +70,14 @@ export class Logger {
   }
 
   /**
-   * Sets up Logger with MockLogger instance, useful in tests of logic where Logger is used. 
+   * Sets up Logger with MockLogger instance, useful in tests of logic where Logger is used.
    * @returns instance of MockLogger
    */
   public static mockLogger(): MockLogger {
-    const mock = new MockLogger()
+    const mock = new MockLogger();
     Logger.logger = mock;
-    
-return mock
+
+    return mock;
   }
 
   private static getInstance(): ILogger {
@@ -105,28 +105,28 @@ return mock
   }
 }
 
-export function formatShellLog(
-  initial: string | undefined,
-  quoted?: string[],
-  env?: Record<string, string>
-): string {
-  let envString = '';
-  if (env !== undefined) {
-    envString =
-      Object.entries(env)
-        .map(([key, value]) => `${key}='${value}'`)
-        .join(' ') + ' ';
-  }
+// export function formatShellLog(
+//   initial: string | undefined,
+//   quoted?: string[],
+//   env?: Record<string, string>
+// ): string {
+//   let envString = '';
+//   if (env !== undefined) {
+//     envString =
+//       Object.entries(env)
+//         .map(([key, value]) => `${key}='${value}'`)
+//         .join(' ') + ' ';
+//   }
 
-  let quotedString = '';
-  if (quoted !== undefined && quoted.length !== 0) {
-    quotedString = quoted.map(q => `'${q}'`).join(' ');
-  }
+//   let quotedString = '';
+//   if (quoted !== undefined && quoted.length !== 0) {
+//     quotedString = quoted.map(q => `'${q}'`).join(' ');
+//   }
 
-  let initialString = (initial ?? '').trim();
-  if (initialString !== '' && quotedString !== '') {
-    initialString = initialString + ' ';
-  }
+//   let initialString = (initial ?? '').trim();
+//   if (initialString !== '' && quotedString !== '') {
+//     initialString = initialString + ' ';
+//   }
 
-  return `$ ${envString}${initialString}${quotedString}`;
-}
+//   return `$ ${envString}${initialString}${quotedString}`;
+// }

@@ -5,7 +5,8 @@ import { join as joinPath } from 'path';
 
 import { composeVersion, META_FILE } from '../common/document';
 import { userError } from '../common/error';
-import { formatShellLog, LogCallback } from '../common/log';
+import { LogCallback, Logger } from '../common/log';
+import { messages } from '../common/messages';
 import { OutputStream } from '../common/output-stream';
 import { resolveSuperfaceRelatedPath } from '../common/path';
 import { ProfileId } from '../common/profile';
@@ -276,8 +277,6 @@ export async function create(
   // write new information to super.json
   if (superJson) {
     await OutputStream.writeOnce(superJson.path, superJson.stringified);
-    options?.logCb?.(
-      formatShellLog("echo '<updated super.json>' >", [superJson.path])
-    );
+    Logger.info(messages.common['update-super-json'](superJson.path));
   }
 }

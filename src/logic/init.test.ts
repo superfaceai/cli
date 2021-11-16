@@ -30,7 +30,7 @@ jest.mock('./create', () => ({
 describe('Init logic', () => {
   describe('when initialing superface', () => {
     beforeEach(() => {
-      Logger.mockLogger()
+      Logger.mockLogger();
     });
     afterEach(() => {
       jest.resetAllMocks();

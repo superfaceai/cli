@@ -22,7 +22,8 @@ import {
   ProfileInfo,
 } from '../common/http';
 import { exists, isAccessible, readFile } from '../common/io';
-import { formatShellLog, LogCallback } from '../common/log';
+import { LogCallback, Logger } from '../common/log';
+import { messages } from '../common/messages';
 import { OutputStream } from '../common/output-stream';
 import { resolveSuperfaceRelatedPath } from '../common/path';
 import { ProfileId } from '../common/profile';
@@ -458,13 +459,10 @@ async function fetchStoreRequestCheckedOrDeferred(
     await OutputStream.writeOnce(request.sourcePath, fetched.profile, {
       dirs: true,
     });
-    options?.logCb?.(
-      formatShellLog("echo '<profile>' >", [request.sourcePath])
-    );
+    Logger.info(messages.common['write-profile'](request.sourcePath));
   } catch (err) {
-    options?.warnCb?.(
-      // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-      `Could not write profile ${request.profileId.id} source: ${err}`
+    Logger.warn(
+      messages.common['unable-to-write-profile'](request.profileId.id, err)
     );
 
     return undefined;
@@ -584,9 +582,7 @@ export async function installProfiles(parameters: {
   if (installed > 0) {
     // save super.json
     await OutputStream.writeOnce(superJson.path, superJson.stringified);
-    parameters.options?.logCb?.(
-      formatShellLog("echo '<updated super.json>' >", [superJson.path])
-    );
+    Logger.info(messages.common['update-super-json'](superJson.path));
   }
 
   const toInstall = parameters.requests.length;

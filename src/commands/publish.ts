@@ -10,7 +10,8 @@ import { META_FILE, UNVERIFIED_PROVIDER_PREFIX } from '../common';
 import { Command } from '../common/command.abstract';
 import { userError } from '../common/error';
 import { getServicesUrl } from '../common/http';
-import { formatShellLog } from '../common/log';
+import { Logger } from '../common/log';
+import { messages } from '../common/messages';
 import { OutputStream } from '../common/output-stream';
 import { ProfileId } from '../common/profile';
 import {
@@ -286,9 +287,7 @@ export default class Publish extends Command {
         force: flags.force,
       });
 
-      this.logCallback?.(
-        formatShellLog("echo '<updated super.json>' >", [superJson.path])
-      );
+      Logger.info(messages.common['update-super-json'](superJson.path));
     }
   }
 }

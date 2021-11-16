@@ -18,7 +18,7 @@ jest.mock('@superfaceai/one-sdk/dist/internal/parser');
 
 describe('Compile CLI logic', () => {
   beforeEach(() => {
-    Logger.mockLogger()
+    Logger.mockLogger();
   });
   afterEach(() => {
     jest.resetAllMocks();

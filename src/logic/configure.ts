@@ -16,7 +16,8 @@ import {
 import { userError } from '../common/error';
 import { fetchProviderInfo } from '../common/http';
 import { readFile, readFileQuiet } from '../common/io';
-import { formatShellLog, LogCallback } from '../common/log';
+import { LogCallback, Logger } from '../common/log';
+import { messages } from '../common/messages';
 import { OutputStream } from '../common/output-stream';
 import { ProfileId } from '../common/profile';
 import { prepareEnvVariables } from '../templates/env';
@@ -213,9 +214,7 @@ export async function installProvider(parameters: {
     superJson.stringified,
     parameters.options
   );
-  parameters.options?.logCb?.(
-    formatShellLog("echo '<updated super.json>' >", [superJson.path])
-  );
+  Logger.info(messages.common['update-super-json'](superJson.path));
 
   // update .env
   if (parameters.options?.updateEnv && providerInfo.securitySchemes) {
