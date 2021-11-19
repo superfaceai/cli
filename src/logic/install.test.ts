@@ -4,6 +4,7 @@ import { ok, Parser, SuperJson } from '@superfaceai/one-sdk';
 import { join } from 'path';
 import { mocked } from 'ts-jest/utils';
 
+import { Logger, MockLogger } from '../common';
 import {
   fetchProfile,
   fetchProfileAST,
@@ -34,6 +35,11 @@ jest.mock('../common/io', () => ({
 }));
 
 describe('Install CLI logic', () => {
+  let logger: MockLogger;
+  beforeEach(async () => {
+    logger = Logger.mockLogger();
+  });
+
   afterEach(() => {
     jest.resetAllMocks();
   });
@@ -435,35 +441,30 @@ describe('Install CLI logic', () => {
         },
         definitions: [],
       });
-      const warnCbMock = jest.fn();
 
       await expect(
-        resolveInstallationRequests(
-          stubSuperJson,
-          [
-            {
-              kind: 'store',
-              profileId: ProfileId.fromId('first'),
-              version: '1.0.1',
-            },
-            {
-              kind: 'store',
-              profileId: ProfileId.fromId('none'),
-              version: undefined,
-            },
-            {
-              kind: 'store',
-              profileId: ProfileId.fromId('se/cond'),
-              version: '2.2.0',
-            },
-            {
-              kind: 'store',
-              profileId: ProfileId.fromId('third'),
-              version: undefined,
-            },
-          ],
-          { warnCb: warnCbMock }
-        )
+        resolveInstallationRequests(stubSuperJson, [
+          {
+            kind: 'store',
+            profileId: ProfileId.fromId('first'),
+            version: '1.0.1',
+          },
+          {
+            kind: 'store',
+            profileId: ProfileId.fromId('none'),
+            version: undefined,
+          },
+          {
+            kind: 'store',
+            profileId: ProfileId.fromId('se/cond'),
+            version: '2.2.0',
+          },
+          {
+            kind: 'store',
+            profileId: ProfileId.fromId('third'),
+            version: undefined,
+          },
+        ])
       ).resolves.toEqual(1);
 
       expect(existsMock).toHaveBeenCalled();
@@ -483,19 +484,11 @@ describe('Install CLI logic', () => {
       expect(fetchProfileMock).toHaveBeenCalledTimes(2);
       expect(fetchProfileASTMock).toHaveBeenCalledTimes(2);
 
-      expect(warnCbMock).toHaveBeenNthCalledWith(
-        1,
-        expect.stringContaining('already installed from a path')
+      expect(logger.stderrOutput).toContain('already installed from a path');
+      expect(logger.stderrOutput).toContain(
+        'Could not fetch none: none does not exist'
       );
-      expect(warnCbMock).toHaveBeenNthCalledWith(
-        2,
-        expect.stringContaining('Could not fetch none: none does not exist')
-      );
-      expect(warnCbMock).toHaveBeenNthCalledWith(
-        3,
-        expect.stringContaining('Target file already exists:')
-      );
-      expect(warnCbMock).toHaveBeenCalledTimes(3);
+      expect(logger.stderrOutput).toContain('Target file already exists:');
     }, 10000);
 
     it('overrides everything with force flag', async () => {
@@ -611,7 +604,7 @@ describe('Install CLI logic', () => {
               path: 'remote-third.supr',
             },
           ],
-          { warnCb: console.log, force: true }
+          { force: true }
         )
       ).resolves.toEqual(6);
 

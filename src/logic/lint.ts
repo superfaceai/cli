@@ -20,6 +20,7 @@ import {
 import { green, red, yellow } from 'chalk';
 import { basename } from 'path';
 
+import { Logger } from '..';
 import {
   composeVersion,
   DEFAULT_PROFILE_VERSION_STR,
@@ -27,7 +28,6 @@ import {
 import { userError } from '../common/error';
 import { fetchMapAST, fetchProfileAST } from '../common/http';
 import { ListWriter } from '../common/list-writer';
-import { LogCallback } from '../common/log';
 import { MapId } from '../common/map';
 import { ProfileId } from '../common/profile';
 import {
@@ -219,10 +219,7 @@ async function prepareLintedProfile(
   superJson: SuperJson,
   profile: ProfileToValidate,
   writer: ListWriter,
-  fn: (report: ReportFormat) => string,
-  options?: {
-    logCb?: LogCallback;
-  }
+  fn: (report: ReportFormat) => string
 ): Promise<ProfileToLintWithAst> {
   const counts: [number, number][] = [];
   let profileAst: ProfileDocumentNode | undefined = undefined;
@@ -233,7 +230,7 @@ async function prepareLintedProfile(
   );
   //If we have local profile we lint it
   if (profileSource) {
-    options?.logCb?.(`Profile: "${profile.id.id}" found on local file system`);
+    Logger.info(`Profile: ${profile.id.id} found on local file system`);
 
     const report: FileReport = {
       kind: 'file',
@@ -253,9 +250,7 @@ async function prepareLintedProfile(
 
     counts.push([report.errors.length, report.warnings.length]);
   } else {
-    options?.logCb?.(
-      `Loading profile: "${profile.id.id}" from Superface store`
-    );
+    Logger.info(`Loading profile: ${profile.id.id} from Superface store`);
     profileAst = await fetchProfileAST(profile.id.id);
   }
 
@@ -272,10 +267,7 @@ async function prepareLintedMap(
   profile: ProfileToValidate,
   map: MapToValidate,
   writer: ListWriter,
-  fn: (report: ReportFormat) => string,
-  options?: {
-    logCb?: LogCallback;
-  }
+  fn: (report: ReportFormat) => string
 ): Promise<MapToLintWithAst> {
   const counts: [number, number][] = [];
   let mapAst: MapDocumentNode | undefined = undefined;
@@ -286,10 +278,10 @@ async function prepareLintedMap(
     map.provider
   );
   if (mapSource) {
-    options?.logCb?.(
-      `Map for profile: "${profile.id.withVersion(
+    Logger.info(
+      `Map for profile: ${profile.id.withVersion(
         profile.version
-      )}" and provider: "${map.provider}" found on local filesystem`
+      )} and provider: ${map.provider} found on local filesystem`
     );
     const report: FileReport = {
       kind: 'file',
@@ -307,10 +299,10 @@ async function prepareLintedMap(
 
     counts.push([report.errors.length, report.warnings.length]);
   } else {
-    options?.logCb?.(
-      `Loading map for profile: "${profile.id.withVersion(
+    Logger.info(
+      `Loading map for profile: ${profile.id.withVersion(
         profile.version
-      )}" and provider: "${map.provider}" from Superface store`
+      )} and provider: ${map.provider} from Superface store`
     );
     mapAst = await fetchMapAST(
       profile.id.name,
@@ -344,11 +336,7 @@ export async function lint(
   superJson: SuperJson,
   profiles: ProfileToValidate[],
   writer: ListWriter,
-  fn: (report: ReportFormat) => string,
-  options?: {
-    logCb?: LogCallback;
-    errCb?: LogCallback;
-  }
+  fn: (report: ReportFormat) => string
 ): Promise<[number, number][]> {
   const counts: [number, number][] = [];
 
@@ -357,8 +345,7 @@ export async function lint(
       superJson,
       profile,
       writer,
-      fn,
-      options
+      fn
     );
     //Return if we have errors or warnings
     if (!profileWithAst.ast) {
@@ -371,8 +358,7 @@ export async function lint(
         profile,
         map,
         writer,
-        fn,
-        options
+        fn
       );
       //Return if we have errors or warnings
       if (!preparedMap.ast) {
@@ -399,7 +385,7 @@ export async function lint(
         ]);
         //We catch any unexpected error from parser validator to prevent ending the loop early
       } catch (error) {
-        options?.errCb?.(
+        Logger.error(
           `\n\n\nUnexpected error during validation of map: ${preparedMap.path} to profile: ${profileWithAst.path}.\nThis error is probably not a problem in linted files but in parser itself.\nTry updating CLI and its dependencies or report an issue.\n\n\n`
         );
       }

@@ -7,6 +7,7 @@ import {
 import { Parser, SuperJson } from '@superfaceai/one-sdk';
 import { mocked } from 'ts-jest/utils';
 
+import { Logger, MockLogger } from '../common';
 import {
   fetchMapAST,
   fetchProfileAST,
@@ -45,9 +46,9 @@ jest.mock('../common/http', () => ({
   fetchProviderInfo: jest.fn(),
 }));
 
-const mockLogCb = jest.fn();
-
 describe('Publish logic utils', () => {
+  let logger: MockLogger;
+
   const mockProfileId = 'starwars/character-information';
   const mockProfile = ProfileId.fromId(mockProfileId);
   const mockProviderName = 'unverified-swapi';
@@ -190,6 +191,10 @@ describe('Publish logic utils', () => {
     kind: 'local',
     path: 'mock provider path',
   };
+
+  beforeEach(() => {
+    logger = Logger.mockLogger();
+  });
 
   afterEach(() => {
     jest.resetAllMocks();
@@ -410,7 +415,7 @@ describe('Publish logic utils', () => {
         .mockResolvedValue(validProfileDocument);
 
       await expect(
-        loadProfile(mockSuperJson, mockProfile, undefined, { logCb: mockLogCb })
+        loadProfile(mockSuperJson, mockProfile, undefined)
       ).resolves.toEqual({
         ast: validProfileDocument,
         from: {
@@ -428,8 +433,8 @@ describe('Publish logic utils', () => {
           scope: mockProfile.scope,
         }
       );
-      expect(mockLogCb).toHaveBeenCalledWith(
-        `Profile: "${mockProfile.id}" found on local file system at path: "mock profile path"`
+      expect(logger.stdoutOutput).toContain(
+        `Profile: ${mockProfile.id} found on local file system at path: mock profile path`
       );
     });
 
@@ -439,7 +444,7 @@ describe('Publish logic utils', () => {
       const parseProfileSpy = jest.spyOn(Parser, 'parseProfile');
 
       await expect(
-        loadProfile(mockSuperJson, mockProfile, undefined, { logCb: mockLogCb })
+        loadProfile(mockSuperJson, mockProfile, undefined)
       ).resolves.toEqual({
         ast: validProfileDocument,
         from: {
@@ -450,8 +455,8 @@ describe('Publish logic utils', () => {
 
       expect(parseProfileSpy).not.toHaveBeenCalled();
       expect(fetchProfileAST).toHaveBeenCalledWith(mockProfile.id);
-      expect(mockLogCb).toHaveBeenCalledWith(
-        `Loading profile: "${mockProfile.id}" in version: "1.0.0" from Superface store`
+      expect(logger.stdoutOutput).toContain(
+        `Loading profile: ${mockProfile.id} in version: 1.0.0 from Superface store`
       );
     });
   });
@@ -467,9 +472,7 @@ describe('Publish logic utils', () => {
         .mockResolvedValue(validMapDocument);
 
       await expect(
-        loadMap(mockSuperJson, mockProfile, mockProviderName, {}, undefined, {
-          logCb: mockLogCb,
-        })
+        loadMap(mockSuperJson, mockProfile, mockProviderName, {}, undefined)
       ).resolves.toEqual({
         ast: validMapDocument,
         from: {
@@ -489,8 +492,8 @@ describe('Publish logic utils', () => {
         }
       );
 
-      expect(mockLogCb).toHaveBeenCalledWith(
-        `Map for profile: "${mockProfile.id}" and provider: "${mockProviderName}" found on local filesystem at path: "mock map path"`
+      expect(logger.stdoutOutput).toContain(
+        `Map for profile: ${mockProfile.id} and provider: ${mockProviderName} found on local filesystem at path: mock map path`
       );
     });
 
@@ -500,9 +503,7 @@ describe('Publish logic utils', () => {
       const parseMapSpy = jest.spyOn(Parser, 'parseMap');
 
       await expect(
-        loadMap(mockSuperJson, mockProfile, mockProviderName, {}, undefined, {
-          logCb: mockLogCb,
-        })
+        loadMap(mockSuperJson, mockProfile, mockProviderName, {}, undefined)
       ).resolves.toEqual({
         ast: validMapDocument,
         from: {
@@ -520,8 +521,8 @@ describe('Publish logic utils', () => {
         undefined
       );
 
-      expect(mockLogCb).toHaveBeenCalledWith(
-        `Loading map for profile: "${mockProfile.id}" and provider: "${mockProviderName}" in version: "1.0.0" from Superface store`
+      expect(logger.stdoutOutput).toContain(
+        `Loading map for profile: ${mockProfile.id} and provider: ${mockProviderName} in version: 1.0.0 from Superface store`
       );
     });
   });
@@ -534,7 +535,7 @@ describe('Publish logic utils', () => {
       });
 
       await expect(
-        loadProvider(mockSuperJson, mockProviderName, { logCb: mockLogCb })
+        loadProvider(mockSuperJson, mockProviderName)
       ).resolves.toEqual({
         source: validProviderSource,
         from: {
@@ -542,8 +543,8 @@ describe('Publish logic utils', () => {
           path: 'mock provider path',
         },
       });
-      expect(mockLogCb).toHaveBeenCalledWith(
-        `Provider: "${mockProviderName}" found on local file system at path: "mock provider path"`
+      expect(logger.stdoutOutput).toContain(
+        `Provider: ${mockProviderName} found on local file system at path: mock provider path`
       );
     });
 
@@ -552,7 +553,7 @@ describe('Publish logic utils', () => {
       mocked(fetchProviderInfo).mockResolvedValue(validProviderSource);
 
       await expect(
-        loadProvider(mockSuperJson, mockProviderName, { logCb: mockLogCb })
+        loadProvider(mockSuperJson, mockProviderName)
       ).resolves.toEqual({
         source: validProviderSource,
         from: {
@@ -561,8 +562,8 @@ describe('Publish logic utils', () => {
       });
 
       expect(fetchProviderInfo).toHaveBeenCalledWith(mockProviderName);
-      expect(mockLogCb).toHaveBeenCalledWith(
-        `Loading provider: "${mockProviderName}" from Superface store`
+      expect(logger.stdoutOutput).toContain(
+        `Loading provider: ${mockProviderName} from Superface store`
       );
     });
   });

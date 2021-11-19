@@ -1,9 +1,9 @@
 import { flags as oclifFlags } from '@oclif/command';
 import { SuperJson } from '@superfaceai/one-sdk';
 import { parseDocumentId } from '@superfaceai/parser';
-import { bold, green, grey, yellow } from 'chalk';
 import { join as joinPath } from 'path';
 
+import { Logger } from '..';
 import { Command } from '../common/command.abstract';
 import { META_FILE } from '../common/document';
 import { userError } from '../common/error';
@@ -41,20 +41,9 @@ export default class Generate extends Command {
     '$ superface generate -q',
   ];
 
-  private logCallback? = (message: string) => this.log(grey(message));
-  private warnCallback? = (message: string) => this.log(yellow(message));
-
-  private successCallback? = (message: string) =>
-    this.log(bold(green(message)));
-
   async run(): Promise<void> {
     const { flags } = this.parse(Generate);
-
-    if (flags.quiet) {
-      this.logCallback = undefined;
-      this.successCallback = undefined;
-      this.warnCallback = undefined;
-    }
+    this.setUpLogger(flags.quiet);
 
     if (flags.scan && (typeof flags.scan !== 'number' || flags.scan > 5)) {
       throw userError(
@@ -108,11 +97,8 @@ export default class Generate extends Command {
       }
     }
 
-    await generate(profiles, superJson, {
-      logCb: this.logCallback,
-      warnCb: this.warnCallback,
-    });
+    await generate(profiles, superJson);
 
-    this.successCallback?.(`🆗 types generated successfully.`);
+    Logger.success(`types generated successfully.`);
   }
 }

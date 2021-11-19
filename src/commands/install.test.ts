@@ -2,12 +2,12 @@ import { CLIError } from '@oclif/errors';
 import { SuperJson } from '@superfaceai/one-sdk';
 import { mocked } from 'ts-jest/utils';
 
+import { Logger, MockLogger } from '../common';
 import { ProfileId } from '../common/profile';
 import { installProvider } from '../logic/configure';
 import { initSuperface } from '../logic/init';
 import { detectSuperJson, installProfiles } from '../logic/install';
 import { interactiveInstall } from '../logic/quickstart';
-import { MockStd, mockStd } from '../test/mock-std';
 import Install from './install';
 
 //Mock install logic
@@ -32,18 +32,10 @@ jest.mock('../logic/init', () => ({
 }));
 
 describe('Install CLI command', () => {
-  let stdout: MockStd;
-  let stderr: MockStd;
+  let logger: MockLogger;
 
   beforeEach(async () => {
-    stdout = mockStd();
-    jest
-      .spyOn(process['stdout'], 'write')
-      .mockImplementation(stdout.implementation);
-    stderr = mockStd();
-    jest
-      .spyOn(process['stderr'], 'write')
-      .mockImplementation(stderr.implementation);
+    logger = Logger.mockLogger();
   });
 
   afterEach(() => {
@@ -71,8 +63,6 @@ describe('Install CLI command', () => {
           },
         ],
         options: {
-          logCb: expect.anything(),
-          warnCb: expect.anything(),
           tryToAuthenticate: true,
           force: false,
         },
@@ -97,8 +87,6 @@ describe('Install CLI command', () => {
           },
         ],
         options: {
-          logCb: expect.anything(),
-          warnCb: expect.anything(),
           tryToAuthenticate: true,
           force: false,
         },
@@ -123,8 +111,6 @@ describe('Install CLI command', () => {
           },
         ],
         options: {
-          logCb: undefined,
-          warnCb: undefined,
           tryToAuthenticate: true,
           force: false,
         },
@@ -140,8 +126,6 @@ describe('Install CLI command', () => {
         superPath: '.',
         requests: [],
         options: {
-          logCb: expect.any(Function),
-          warnCb: expect.any(Function),
           tryToAuthenticate: true,
           force: false,
         },
@@ -215,7 +199,7 @@ describe('Install CLI command', () => {
         Install.run([profileId.id, '-p', ...mockProviders])
       ).resolves.toBeUndefined();
 
-      expect(stdout.output).toContain('Invalid provider name: made.up');
+      expect(logger.stdoutOutput).toContain('Invalid provider name: made.up');
       expect(installProfiles).toHaveBeenCalledTimes(1);
       expect(installProfiles).toHaveBeenCalledWith({
         superPath: '.',
@@ -229,8 +213,6 @@ describe('Install CLI command', () => {
           },
         ],
         options: {
-          logCb: expect.anything(),
-          warnCb: expect.anything(),
           tryToAuthenticate: true,
           force: false,
         },
@@ -242,8 +224,6 @@ describe('Install CLI command', () => {
         profileId,
         defaults: undefined,
         options: {
-          logCb: expect.anything(),
-          warnCb: expect.anything(),
           force: false,
         },
       });
@@ -253,8 +233,6 @@ describe('Install CLI command', () => {
         profileId,
         defaults: undefined,
         options: {
-          logCb: expect.anything(),
-          warnCb: expect.anything(),
           force: false,
         },
       });
@@ -273,7 +251,7 @@ describe('Install CLI command', () => {
         ])
       ).resolves.toBeUndefined();
 
-      expect(stdout.output).toContain('Invalid provider name: made.up');
+      expect(logger.stdoutOutput).toContain('Invalid provider name: made.up');
       expect(installProfiles).toHaveBeenCalledTimes(1);
       expect(installProfiles).toHaveBeenCalledWith({
         superPath: '.',
@@ -287,8 +265,6 @@ describe('Install CLI command', () => {
           },
         ],
         options: {
-          logCb: expect.anything(),
-          warnCb: expect.anything(),
           tryToAuthenticate: true,
           force: false,
         },
@@ -300,8 +276,6 @@ describe('Install CLI command', () => {
         profileId,
         defaults: undefined,
         options: {
-          logCb: expect.anything(),
-          warnCb: expect.anything(),
           force: false,
         },
       });
@@ -311,8 +285,6 @@ describe('Install CLI command', () => {
         profileId,
         defaults: undefined,
         options: {
-          logCb: expect.anything(),
-          warnCb: expect.anything(),
           force: false,
         },
       });
@@ -322,8 +294,6 @@ describe('Install CLI command', () => {
         profileId,
         defaults: undefined,
         options: {
-          logCb: expect.anything(),
-          warnCb: expect.anything(),
           force: false,
         },
       });
@@ -333,8 +303,6 @@ describe('Install CLI command', () => {
         profileId,
         defaults: undefined,
         options: {
-          logCb: expect.anything(),
-          warnCb: expect.anything(),
           force: false,
         },
       });

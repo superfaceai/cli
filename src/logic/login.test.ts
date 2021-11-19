@@ -15,6 +15,7 @@ import {
   // initLogin,
   SuperfaceClient,
 } from '../common/http';
+import { Logger, MockLogger } from '../common/log';
 import { login } from './login';
 
 jest.mock('@superfaceai/service-client');
@@ -37,11 +38,13 @@ class MockChildProcess extends EventEmitter {
   }
 }
 describe('Login logic', () => {
-  const stderr = jest.fn();
-  const stdout = jest.fn();
-
+  let logger: MockLogger;
   afterEach(() => {
     jest.resetAllMocks();
+  });
+
+  beforeEach(async () => {
+    logger = Logger.mockLogger();
   });
 
   describe('calling login', () => {
@@ -82,9 +85,7 @@ describe('Login logic', () => {
           .spyOn(open, 'default')
           .mockResolvedValue(new MockChildProcess() as ChildProcess);
 
-        await expect(
-          login({ logCb: stdout, warnCb: stderr })
-        ).resolves.toBeUndefined();
+        await expect(login()).resolves.toBeUndefined();
 
         expect(initSpy).toHaveBeenCalledTimes(1);
         expect(verifySpy).toHaveBeenCalledTimes(1);
@@ -92,8 +93,8 @@ describe('Login logic', () => {
           pollingTimeoutSeconds: 3600,
         });
 
-        expect(stderr).not.toHaveBeenCalled();
-        expect(stdout).not.toHaveBeenCalled();
+        expect(logger.stderrOutput).toEqual('');
+        expect(logger.stdoutOutput).toEqual('');
       });
 
       it('signs in user using prompt and browser - shows url on open browser error', async () => {
@@ -104,9 +105,7 @@ describe('Login logic', () => {
           .spyOn(open, 'default')
           .mockResolvedValue(childProcess as ChildProcess);
 
-        await expect(
-          login({ logCb: stdout, warnCb: stderr })
-        ).resolves.toBeUndefined();
+        await expect(login()).resolves.toBeUndefined();
 
         //Browser emits error
         childProcess.emit('error', { message: mockErrorMessage });
@@ -117,11 +116,10 @@ describe('Login logic', () => {
           pollingTimeoutSeconds: 3600,
         });
 
-        expect(stderr).toHaveBeenCalledWith(mockErrorMessage);
-        expect(stderr).toHaveBeenCalledWith(
+        expect(logger.stderrOutput).toContain(mockErrorMessage);
+        expect(logger.stdoutOutput).toContain(
           `Please open url: ${mockInitResponse.browserUrl} in your browser to continue with login.`
         );
-        expect(stdout).not.toHaveBeenCalled();
       });
 
       it('signs in user using prompt and browser - show url when browser is closed', async () => {
@@ -131,9 +129,7 @@ describe('Login logic', () => {
           .spyOn(open, 'default')
           .mockResolvedValue(childProcess as ChildProcess);
 
-        await expect(
-          login({ logCb: stdout, warnCb: stderr })
-        ).resolves.toBeUndefined();
+        await expect(login()).resolves.toBeUndefined();
 
         //Browser emits error
         childProcess.emit('close');
@@ -144,10 +140,9 @@ describe('Login logic', () => {
           pollingTimeoutSeconds: 3600,
         });
 
-        expect(stderr).toHaveBeenCalledWith(
+        expect(logger.stdoutOutput).toContain(
           `Please open url: ${mockInitResponse.browserUrl} in your browser to continue with login.`
         );
-        expect(stdout).not.toHaveBeenCalled();
       });
     });
 
@@ -168,17 +163,14 @@ describe('Login logic', () => {
         .spyOn(open, 'default')
         .mockResolvedValue(new MockChildProcess() as ChildProcess);
 
-      await expect(
-        login({ logCb: stdout, warnCb: stderr })
-      ).resolves.toBeUndefined();
+      await expect(login()).resolves.toBeUndefined();
 
       expect(initSpy).toHaveBeenCalledTimes(1);
       expect(verifySpy).toHaveBeenCalledTimes(1);
       expect(verifySpy).toHaveBeenCalledWith(mockInitResponse.verifyUrl, {
         pollingTimeoutSeconds: 3600,
       });
-      expect(stdout).not.toHaveBeenCalled();
-      expect(stderr).toHaveBeenCalledWith(
+      expect(logger.stdoutOutput).toContain(
         `Please open url: ${mockInitResponse.browserUrl} in your browser to continue with login.`
       );
     });
@@ -198,17 +190,14 @@ describe('Login logic', () => {
 
       const openSpy = jest.spyOn(open, 'default');
 
-      await expect(
-        login({ logCb: stdout, warnCb: stderr, force: true })
-      ).resolves.toBeUndefined();
+      await expect(login({ force: true })).resolves.toBeUndefined();
 
       expect(initSpy).toHaveBeenCalledTimes(1);
       expect(verifySpy).toHaveBeenCalledTimes(1);
       expect(verifySpy).toHaveBeenCalledWith(mockInitResponse.verifyUrl, {
         pollingTimeoutSeconds: 3600,
       });
-      expect(stdout).not.toHaveBeenCalled();
-      expect(stderr).toHaveBeenCalledWith(
+      expect(logger.stdoutOutput).toContain(
         `Please open url: ${mockInitResponse.browserUrl} in your browser to continue with login.`
       );
       expect(promptSpy).not.toHaveBeenCalled();
@@ -237,7 +226,7 @@ describe('Login logic', () => {
 
       const loginSpy = jest.spyOn(ServiceClient.prototype, 'login');
 
-      await expect(login({ logCb: stdout, warnCb: stderr })).rejects.toEqual(
+      await expect(login()).rejects.toEqual(
         new CLIError(
           `Unable to get auth token, request ended with status: ${VerificationStatus.EXPIRED}`
         )
@@ -249,8 +238,7 @@ describe('Login logic', () => {
         pollingTimeoutSeconds: 3600,
       });
       expect(loginSpy).not.toHaveBeenCalled();
-      expect(stdout).not.toHaveBeenCalled();
-      expect(stderr).toHaveBeenCalledWith(
+      expect(logger.stdoutOutput).toContain(
         `Please open url: ${mockInitResponse.browserUrl} in your browser to continue with login.`
       );
     });
@@ -278,7 +266,7 @@ describe('Login logic', () => {
 
       const loginSpy = jest.spyOn(ServiceClient.prototype, 'login');
 
-      await expect(login({ logCb: stdout, warnCb: stderr })).rejects.toEqual(
+      await expect(login()).rejects.toEqual(
         new CLIError(
           `Request ended with status: ${VerificationStatus.CONFIRMED} but does not contain auth token`
         )
@@ -290,8 +278,7 @@ describe('Login logic', () => {
         pollingTimeoutSeconds: 3600,
       });
       expect(loginSpy).not.toHaveBeenCalled();
-      expect(stdout).not.toHaveBeenCalled();
-      expect(stderr).toHaveBeenCalledWith(
+      expect(logger.stdoutOutput).toContain(
         `Please open url: ${mockInitResponse.browserUrl} in your browser to continue with login.`
       );
     });
@@ -309,7 +296,7 @@ describe('Login logic', () => {
         .spyOn(ServiceClient.prototype, 'cliLogin')
         .mockResolvedValue(mockInitResponse);
 
-      await expect(login({ logCb: stdout, warnCb: stderr })).rejects.toEqual(
+      await expect(login()).rejects.toEqual(
         new CLIError(
           `Attempt to login ended with: ${mockInitResponse.title}: ${
             mockInitResponse.detail || ''
@@ -332,7 +319,7 @@ describe('Login logic', () => {
         .spyOn(ServiceClient.prototype, 'cliLogin')
         .mockResolvedValue(mockInitResponse);
 
-      await expect(login({ logCb: stdout, warnCb: stderr })).rejects.toEqual(
+      await expect(login()).rejects.toEqual(
         new CLIError(`Attempt to login ended with: ${mockInitResponse.title}`)
       );
 

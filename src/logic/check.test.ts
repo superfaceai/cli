@@ -10,7 +10,7 @@ import {
 import { SuperJson } from '@superfaceai/one-sdk';
 import { mocked } from 'ts-jest/utils';
 
-import { UNVERIFIED_PROVIDER_PREFIX } from '../common';
+import { Logger, UNVERIFIED_PROVIDER_PREFIX } from '../common';
 import {
   fetchMapAST,
   fetchProfileAST,
@@ -56,6 +56,9 @@ jest.mock('../common/http', () => ({
 }));
 
 describe('Check logic', () => {
+  beforeEach(() => {
+    Logger.mockLogger();
+  });
   afterEach(() => {
     jest.resetAllMocks();
   });
@@ -320,13 +323,11 @@ describe('Check logic', () => {
 
       expect(loadProvider).toHaveBeenCalledWith(
         mockSuperJson,
-        unverifiedProvider,
-        undefined
+        unverifiedProvider
       );
       expect(loadProfile).toHaveBeenCalledWith(
         mockSuperJson,
         ProfileId.fromScopeName(undefined, mockProfile.name),
-        undefined,
         undefined
       );
       expect(loadMap).toHaveBeenCalledWith(
@@ -334,7 +335,6 @@ describe('Check logic', () => {
         ProfileId.fromScopeName(undefined, mockProfile.name),
         unverifiedProvider,
         { variant: undefined },
-        undefined,
         undefined
       );
       expect(fetchMapAST).not.toHaveBeenCalled();
@@ -409,22 +409,19 @@ describe('Check logic', () => {
 
       expect(loadProvider).toHaveBeenCalledWith(
         mockSuperJson,
-        unverifiedProvider,
-        undefined
+        unverifiedProvider
       );
       expect(loadProfile).toHaveBeenCalledWith(
         mockSuperJson,
         ProfileId.fromScopeName(profile.scope, profile.name),
-        profile.version,
-        undefined
+        profile.version
       );
       expect(loadMap).toHaveBeenCalledWith(
         mockSuperJson,
         ProfileId.fromScopeName(profile.scope, profile.name),
         unverifiedProvider,
         { variant },
-        '1.0.3',
-        undefined
+        '1.0.3'
       );
     });
 
@@ -473,16 +470,14 @@ describe('Check logic', () => {
       expect(loadProfile).toHaveBeenCalledWith(
         mockSuperJson,
         ProfileId.fromScopeName(profile.scope, profile.name),
-        profile.version,
-        undefined
+        profile.version
       );
       expect(loadMap).toHaveBeenCalledWith(
         mockSuperJson,
         ProfileId.fromScopeName(profile.scope, profile.name),
         provider,
         { variant },
-        '1.0.3',
-        undefined
+        '1.0.3'
       );
 
       expect(fetchProviderInfo).not.toHaveBeenCalled();
@@ -532,8 +527,7 @@ describe('Check logic', () => {
       expect(loadProfile).toHaveBeenCalledWith(
         mockSuperJson,
         ProfileId.fromScopeName(profile.scope, profile.name),
-        profile.version,
-        undefined
+        profile.version
       );
       expect(loadMap).not.toHaveBeenCalled();
 
@@ -584,24 +578,18 @@ describe('Check logic', () => {
         ).length
       ).not.toEqual(0);
 
-      expect(loadProvider).toHaveBeenCalledWith(
-        mockSuperJson,
-        provider,
-        undefined
-      );
+      expect(loadProvider).toHaveBeenCalledWith(mockSuperJson, provider);
       expect(loadProfile).toHaveBeenCalledWith(
         mockSuperJson,
         ProfileId.fromScopeName(profile.scope, profile.name),
-        profile.version,
-        undefined
+        profile.version
       );
       expect(loadMap).toHaveBeenCalledWith(
         mockSuperJson,
         ProfileId.fromScopeName(profile.scope, profile.name),
         provider,
         { variant },
-        '1.0.3',
-        undefined
+        '1.0.3'
       );
     });
   });

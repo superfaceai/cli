@@ -25,7 +25,7 @@ export async function compile(
   for (const profile of profiles) {
     //Compile profile
     if (!options?.onlyMap) {
-      Logger.info(messages['compile-profile'](profile.id.toString()));
+      Logger.info(messages.compileProfile(profile.id.toString()));
       if (!(await exists(profile.path))) {
         throw userError(
           `❌ Path: "${
@@ -44,9 +44,7 @@ export async function compile(
     //Compile maps
     if (!options?.onlyProfile) {
       for (const map of profile.maps) {
-        Logger.info(
-          messages['compile-map'](profile.id.toString(), map.provider)
-        );
+        Logger.info(messages.compileMap(profile.id.toString(), map.provider));
         if (!(await exists(map.path))) {
           throw userError(
             `❌ Path: "${map.path}" for map ${profile.id.toString()}.${

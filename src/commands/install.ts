@@ -1,12 +1,11 @@
 import { flags as oclifFlags } from '@oclif/command';
 import { isValidDocumentName, isValidProviderName } from '@superfaceai/ast';
-import { bold, green, grey, yellow } from 'chalk';
 import { join as joinPath } from 'path';
 
+import { Logger } from '..';
 import { Command } from '../common/command.abstract';
 import { META_FILE, SUPERFACE_DIR } from '../common/document';
 import { userError } from '../common/error';
-import { LogCallback } from '../common/log';
 import { NORMALIZED_CWD_PATH } from '../common/path';
 import { ProfileId } from '../common/profile';
 import { installProvider } from '../logic/configure';
@@ -19,10 +18,7 @@ import {
 } from '../logic/install';
 import { interactiveInstall } from '../logic/quickstart';
 
-const parseProviders = (
-  providers?: string[],
-  options?: { warnCb?: LogCallback }
-): string[] => {
+const parseProviders = (providers?: string[]): string[] => {
   if (!providers) {
     return [];
   }
@@ -35,7 +31,7 @@ const parseProviders = (
         return false;
       }
       if (!isValidProviderName(p)) {
-        options?.warnCb?.(`Invalid provider name: ${p}`);
+        Logger.warn(`Invalid provider name: ${p}`);
 
         return false;
       }
@@ -102,21 +98,9 @@ export default class Install extends Command {
     '$ superface install --local sms/service.supr',
   ];
 
-  private warnCallback? = (message: string) =>
-    this.log('⚠️  ' + yellow(message));
-
-  private logCallback? = (message: string) => this.log(grey(message));
-
-  private successCallback? = (message: string) =>
-    this.log(bold(green(message)));
-
   async run(): Promise<void> {
     const { args, flags } = this.parse(Install);
-
-    if (flags.quiet) {
-      this.logCallback = undefined;
-      this.warnCallback = undefined;
-    }
+    this.setUpLogger(flags.quiet);
 
     if (flags.scan && (typeof flags.scan !== 'number' || flags.scan > 5)) {
       throw userError(
@@ -127,39 +111,25 @@ export default class Install extends Command {
 
     if (flags.interactive) {
       if (!args.profileId) {
-        this.warnCallback?.(
-          `Profile ID argument must be used with interactive flag`
-        );
+        Logger.warn(`Profile ID argument must be used with interactive flag`);
         this.exit(0);
       }
 
-      await interactiveInstall(args.profileId, {
-        logCb: this.logCallback,
-        warnCb: this.warnCallback,
-        successCb: this.successCallback,
-      });
+      await interactiveInstall(args.profileId);
 
       return;
     }
 
     let superPath = await detectSuperJson(process.cwd(), flags.scan);
     if (!superPath) {
-      this.logCallback?.(
-        "Initializing superface directory with empty 'super.json'"
-      );
-      await initSuperface(
-        NORMALIZED_CWD_PATH,
-        { profiles: {}, providers: {} },
-        { logCb: this.logCallback }
-      );
+      Logger.info("Initializing superface directory with empty 'super.json'");
+      await initSuperface(NORMALIZED_CWD_PATH, { profiles: {}, providers: {} });
       superPath = SUPERFACE_DIR;
     }
 
-    const providers = parseProviders(flags.providers, {
-      warnCb: this.warnCallback,
-    });
+    const providers = parseProviders(flags.providers);
 
-    this.logCallback?.(
+    Logger.info(
       `Installing profiles according to 'super.json' on path '${joinPath(
         superPath,
         META_FILE
@@ -179,7 +149,7 @@ export default class Install extends Command {
         const profileId = ProfileId.fromId(id);
 
         if (!isValidDocumentName(profileId.name)) {
-          this.warnCallback?.(`Invalid profile name: ${profileId.name}`);
+          Logger.warn(`Invalid profile name: ${profileId.name}`);
           this.exit();
         }
 
@@ -192,7 +162,7 @@ export default class Install extends Command {
     } else {
       //Do not install providers without profile
       if (providers.length > 0) {
-        this.warnCallback?.(
+        Logger.warn(
           'Unable to install providers without a profile. Please, specify a profile id.'
         );
         this.exit();
@@ -203,14 +173,12 @@ export default class Install extends Command {
       superPath,
       requests,
       options: {
-        logCb: this.logCallback,
-        warnCb: this.warnCallback,
         force: flags.force,
         tryToAuthenticate: true,
       },
     });
 
-    this.logCallback?.(`\n\nConfiguring providers`);
+    Logger.info(`Configuring providers`);
     for (const provider of providers) {
       await installProvider({
         superPath,
@@ -218,8 +186,6 @@ export default class Install extends Command {
         profileId: ProfileId.fromId(profileArg as string),
         defaults: undefined,
         options: {
-          logCb: this.logCallback,
-          warnCb: this.warnCallback,
           force: flags.force,
         },
       });

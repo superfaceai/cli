@@ -20,6 +20,7 @@ import { SyntaxErrorCategory } from '@superfaceai/parser/dist/language/error';
 import { MatchAttempts } from '@superfaceai/parser/dist/language/syntax/rule';
 import { mocked } from 'ts-jest/utils';
 
+import { Logger } from '../common';
 import { fetchMapAST, fetchProfileAST } from '../common/http';
 import { ListWriter } from '../common/list-writer';
 import { OutputStream } from '../common/output-stream';
@@ -66,6 +67,9 @@ jest.mock('@superfaceai/parser', () => ({
 describe('Lint logic', () => {
   const mockMapPath = 'mockMapPath';
   const mockProfilePath = 'mockProfilePath';
+  beforeEach(() => {
+    Logger.mockLogger();
+  });
   afterEach(() => {
     jest.resetAllMocks();
   });

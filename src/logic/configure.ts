@@ -16,7 +16,7 @@ import {
 import { userError } from '../common/error';
 import { fetchProviderInfo } from '../common/http';
 import { readFile, readFileQuiet } from '../common/io';
-import { LogCallback, Logger } from '../common/log';
+import { Logger } from '../common/log';
 import { messages } from '../common/messages';
 import { OutputStream } from '../common/output-stream';
 import { ProfileId } from '../common/profile';
@@ -24,8 +24,7 @@ import { prepareEnvVariables } from '../templates/env';
 
 export async function updateEnv(
   provider: string,
-  securitySchemes: SecurityScheme[],
-  options?: { warnCb?: LogCallback }
+  securitySchemes: SecurityScheme[]
 ): Promise<void> {
   //Get .env file
   let envContent = (await readFileQuiet('.env')) || '';
@@ -35,9 +34,7 @@ export async function updateEnv(
   envContent += values
     .filter((value: string | undefined) => {
       if (!value) {
-        options?.warnCb?.(
-          `⚠️  Provider: "${provider}" contains unknown security scheme`
-        );
+        Logger.warn(`Provider: "${provider}" contains unknown security scheme`);
 
         return false;
       }
@@ -64,13 +61,11 @@ export function handleProviderResponse(
   response: ProviderJson,
   defaults?: ProfileProviderDefaults,
   options?: {
-    logCb?: LogCallback;
-    warnCb?: LogCallback;
     localMap?: string;
     localProvider?: string;
   }
 ): number {
-  options?.logCb?.(`Installing provider: "${response.name}"`);
+  Logger.info(messages.install.provider(response.name));
 
   let parameters: { [key: string]: string } | undefined = undefined;
   if (response.parameters) {
@@ -115,16 +110,12 @@ export function handleProviderResponse(
  * Query the provider info
  */
 export async function getProviderFromStore(
-  providerName: string,
-  options?: {
-    logCb?: LogCallback;
-  }
+  providerName: string
 ): Promise<ProviderJson> {
-  options?.logCb?.(`Fetching provider ${providerName} from the Store`);
+  Logger.info(messages.fetch.provider(providerName));
 
   try {
     const info = await fetchProviderInfo(providerName);
-    options?.logCb?.('GET Provider Info');
 
     return info;
   } catch (error) {
@@ -143,8 +134,6 @@ export async function installProvider(parameters: {
   profileId: ProfileId;
   defaults?: ProfileProviderDefaults;
   options?: {
-    logCb?: LogCallback;
-    warnCb?: LogCallback;
     force?: boolean;
     localMap?: string;
     localProvider?: string;
@@ -156,7 +145,7 @@ export async function installProvider(parameters: {
   const superJson = loadedResult.match(
     v => v,
     err => {
-      parameters.options?.warnCb?.(err.formatLong());
+      Logger.warn(err.formatLong());
 
       return new SuperJson({});
     }
@@ -192,8 +181,8 @@ export async function installProvider(parameters: {
     parameters.options?.force !== true &&
     superJson.normalized.providers[providerInfo.name]
   ) {
-    parameters.options?.warnCb?.(
-      `⚠️  Provider already exists: "${providerInfo.name}" (Use flag \`--force/-f\` for overwriting profiles)`
+    Logger.warn(
+      `Provider ${providerInfo.name} already exists (Use flag \`--force/-f\` for overwriting profiles)`
     );
 
     return;
@@ -214,35 +203,29 @@ export async function installProvider(parameters: {
     superJson.stringified,
     parameters.options
   );
-  Logger.info(messages.common['update-super-json'](superJson.path));
+  Logger.info(messages.common.updateSuperJson(superJson.path));
 
   // update .env
   if (parameters.options?.updateEnv && providerInfo.securitySchemes) {
-    await updateEnv(providerInfo.name, providerInfo.securitySchemes, {
-      warnCb: parameters.options.warnCb,
-    });
+    await updateEnv(providerInfo.name, providerInfo.securitySchemes);
   }
   if (providerInfo.securitySchemes && providerInfo.securitySchemes.length > 0) {
     // inform user about instlaled security schemes
     if (numOfConfigured === 0) {
-      parameters.options?.logCb?.(
-        `❌ No security schemes have been configured.`
-      );
+      Logger.warn(`No security schemes have been configured.`);
     } else if (numOfConfigured < providerInfo.securitySchemes.length) {
-      parameters.options?.logCb?.(
-        `⚠️ Some security schemes have been configured. Configured ${numOfConfigured} out of ${providerInfo.securitySchemes.length}.`
+      Logger.warn(
+        `Some security schemes have been configured. Configured ${numOfConfigured} out of ${providerInfo.securitySchemes.length}.`
       );
     } else {
-      parameters.options?.logCb?.(
-        `🆗 All security schemes have been configured successfully.`
-      );
+      Logger.success(`All security schemes have been configured successfully.`);
     }
   } else {
-    parameters.options?.logCb?.(`No security schemes found to configure.`);
+    Logger.info(`No security schemes found to configure.`);
   }
   // inform user about configured parameters
   if (providerInfo.parameters && providerInfo.parameters.length > 0) {
-    parameters.options?.logCb?.(
+    Logger.info(
       `Provider ${providerInfo.name} has integration parameters that must be configured. You can configure them in super.json on path: ${superJson.path} or set the environment variables as defined below.`
     );
     for (const parameter of providerInfo.parameters) {
@@ -256,16 +239,16 @@ export async function installProvider(parameters: {
           parameter.name
         ];
       if (superJsonValue === undefined) {
-        parameters.options?.logCb?.(
-          `❌ Parameter ${parameter.name}${description} has not been configured.\nPlease, configure this parameter manualy in super.json on path: ${superJson.path}`
+        Logger.warn(
+          `Parameter ${parameter.name}${description} has not been configured.\nPlease, configure this parameter manualy in super.json on path: ${superJson.path}`
         );
       } else {
-        parameters.options?.logCb?.(
-          `🆗 Parameter ${parameter.name}${description} has been configured to use value of environment value "${superJsonValue}".\nPlease, configure this environment value.`
+        Logger.success(
+          `Parameter ${parameter.name}${description} has been configured to use value of environment value "${superJsonValue}".\nPlease, configure this environment value.`
         );
       }
       if (parameter.default) {
-        parameters.options?.logCb?.(
+        Logger.info(
           `If you do not set the variable, the default value "${parameter.default}" will be used.`
         );
       }
@@ -279,11 +262,7 @@ export async function installProvider(parameters: {
 export async function reconfigureProvider(
   superJson: SuperJson,
   providerName: string,
-  target: { kind: 'local'; file: string } | { kind: 'remote' },
-  _options?: {
-    logCb?: LogCallback;
-    warnCb?: LogCallback;
-  }
+  target: { kind: 'local'; file: string } | { kind: 'remote' }
 ): Promise<void> {
   // TODO: Possibly do checks whether the remote file exists?
   superJson.swapProviderVariant(providerName, target);
@@ -298,11 +277,7 @@ export async function reconfigureProfileProvider(
   providerName: string,
   target:
     | { kind: 'local'; file: string }
-    | { kind: 'remote'; mapVariant?: string; mapRevision?: string },
-  _options?: {
-    logCb?: LogCallback;
-    warnCb?: LogCallback;
-  }
+    | { kind: 'remote'; mapVariant?: string; mapRevision?: string }
 ): Promise<void> {
   // TODO: Possibly do checks whether the remote file exists?
   superJson.swapProfileProviderVariant(profileId.id, providerName, target);

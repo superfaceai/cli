@@ -12,7 +12,7 @@ import {
 } from '../common/document';
 import { userError } from '../common/error';
 import { mkdir, mkdirQuiet } from '../common/io';
-import { LogCallback, Logger } from '../common/log';
+import { Logger } from '../common/log';
 import { messages } from '../common/messages';
 import { OutputStream } from '../common/output-stream';
 import { ProfileId } from '../common/profile';
@@ -39,8 +39,6 @@ export async function initSuperface(
   initialDocument?: SuperJsonDocument,
   options?: {
     force?: boolean;
-    logCb?: LogCallback;
-    warnCb?: LogCallback;
   }
 ): Promise<SuperJson> {
   // create the base path
@@ -69,7 +67,7 @@ export async function initSuperface(
     );
 
     if (created) {
-      Logger.info(messages.common['init-super-json'](superJsonPath));
+      Logger.info(messages.common['initSuperJson'](superJsonPath));
     }
   }
 
@@ -102,8 +100,7 @@ export async function initSuperface(
 export async function generateSpecifiedProfiles(
   path: string,
   superJson: SuperJson,
-  profileIds: string[],
-  logCb?: LogCallback
+  profileIds: string[]
 ): Promise<void> {
   for (const profileId of profileIds) {
     const parsedProfile = parseProfileId(profileId);
@@ -120,8 +117,7 @@ export async function generateSpecifiedProfiles(
       version,
       [composeUsecaseName(name)],
       superJson,
-      undefined,
-      { logCb }
+      undefined
     );
   }
 }

@@ -1,23 +1,21 @@
 import { join, normalize, relative } from 'path';
 
+import { Logger } from '.';
 import { execShell, exists } from './io';
-import { LogCallback } from './log';
 
 export class PackageManager {
   private static usedPackageManager: 'npm' | 'yarn' | undefined = undefined;
   private static path: string | undefined = undefined;
 
-  private static async getPath(options?: {
-    warnCb?: LogCallback;
-  }): Promise<string | undefined> {
+  private static async getPath(): Promise<string | undefined> {
     if (PackageManager.path) {
       return PackageManager.path;
     }
     const npmPrefix = await execShell(`npm prefix`);
 
     if (npmPrefix.stderr !== '') {
-      options?.warnCb?.(
-        `Shell command "npm prefix" responded with: "${npmPrefix.stderr}"`
+      Logger.error(
+        `Shell command npm prefix responded with: ${npmPrefix.stderr}`
       );
 
       return;
@@ -28,10 +26,8 @@ export class PackageManager {
     return PackageManager.path;
   }
 
-  public static async packageJsonExists(options?: {
-    warnCb?: LogCallback;
-  }): Promise<boolean> {
-    const path = await PackageManager.getPath(options);
+  public static async packageJsonExists(): Promise<boolean> {
+    const path = await PackageManager.getPath();
     if (path && (await exists(join(path, 'package.json')))) {
       return true;
     }
@@ -39,13 +35,11 @@ export class PackageManager {
     return false;
   }
 
-  public static async getUsedPm(options?: {
-    warnCb?: LogCallback;
-  }): Promise<'npm' | 'yarn' | undefined> {
+  public static async getUsedPm(): Promise<'npm' | 'yarn' | undefined> {
     if (PackageManager.usedPackageManager) {
       return PackageManager.usedPackageManager;
     }
-    const path = await PackageManager.getPath(options);
+    const path = await PackageManager.getPath();
     if (!path) {
       return;
     }
@@ -67,31 +61,25 @@ export class PackageManager {
     return;
   }
 
-  public static async init(
-    initPm: 'yarn' | 'npm',
-    options?: {
-      logCb?: LogCallback;
-      warnCb?: LogCallback;
-    }
-  ): Promise<boolean> {
-    const pm = await PackageManager.getUsedPm({ warnCb: options?.warnCb });
+  public static async init(initPm: 'yarn' | 'npm'): Promise<boolean> {
+    const pm = await PackageManager.getUsedPm();
     if (pm && pm === initPm) {
-      options?.warnCb?.(`${pm} already initialized.`);
+      Logger.error(`${pm} already initialized.`);
 
       return false;
     }
     const command = initPm === 'yarn' ? `yarn init -y` : `npm init -y`;
 
-    options?.logCb?.(`Initializing ${initPm} on path: "${process.cwd()}"`);
+    Logger.info(`Initializing ${initPm} on path: ${process.cwd()}`);
     const result = await execShell(command);
     if (result.stderr !== '') {
-      options?.warnCb?.(
-        `Shell command "${command}" responded with: "${result.stderr.trimEnd()}"`
+      Logger.error(
+        `Shell command ${command} responded with: ${result.stderr.trimEnd()}`
       );
     }
 
     if (result.stdout !== '') {
-      options?.logCb?.(result.stdout.trimEnd());
+      Logger.info(result.stdout.trimEnd());
     }
 
     //Set used PM after init
@@ -100,41 +88,33 @@ export class PackageManager {
     return true;
   }
 
-  public static async installPackage(
-    packageName: string,
-    options?: {
-      logCb?: LogCallback;
-      warnCb?: LogCallback;
-    }
-  ): Promise<boolean> {
-    if (
-      !(await PackageManager.packageJsonExists({ warnCb: options?.warnCb }))
-    ) {
-      options?.warnCb?.(
+  public static async installPackage(packageName: string): Promise<boolean> {
+    if (!(await PackageManager.packageJsonExists())) {
+      Logger.error(
         `Unable to install package ${packageName} without initialized package.json`
       );
 
       return false;
     }
-    const pm = await PackageManager.getUsedPm({ warnCb: options?.warnCb });
+    const pm = await PackageManager.getUsedPm();
 
     const command =
       pm === 'yarn' ? `yarn add ${packageName}` : `npm install ${packageName}`;
 
-    const path = (await PackageManager.getPath(options)) || process.cwd();
+    const path = (await PackageManager.getPath()) || process.cwd();
     //Install package to package.json on discovered path or on cwd
-    options?.logCb?.(
-      `Installing package ${packageName} on path: "${path}" with: "${command}"`
+    Logger.info(
+      `Installing package ${packageName} on path: ${path} with: ${command}`
     );
     const result = await execShell(command, { cwd: path });
     if (result.stderr !== '') {
-      options?.warnCb?.(
-        `Shell command "${command}" responded with: "${result.stderr.trimEnd()}"`
+      Logger.error(
+        `Shell command ${command} responded with: ${result.stderr.trimEnd()}`
       );
     }
 
     if (result.stdout !== '') {
-      options?.logCb?.(result.stdout.trimEnd());
+      Logger.info(result.stdout.trimEnd());
     }
 
     return true;

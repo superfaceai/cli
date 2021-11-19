@@ -11,6 +11,7 @@ import { mocked } from 'ts-jest/utils';
 
 import {
   DEFAULT_PROFILE_VERSION_STR,
+  Logger,
   UNVERIFIED_PROVIDER_PREFIX,
 } from '../common';
 import { fetchProviderInfo, getServicesUrl } from '../common/http';
@@ -233,6 +234,10 @@ describe('Publish logic', () => {
       warnings: [],
     };
 
+    beforeEach(() => {
+      Logger.mockLogger();
+    });
+
     afterEach(() => {
       jest.resetAllMocks();
     });
@@ -289,7 +294,6 @@ describe('Publish logic', () => {
       expect(loadProfile).toHaveBeenCalledWith(
         mockSuperJson,
         ProfileId.fromId(mockProfileId),
-        undefined,
         undefined
       );
       expect(loadMap).toHaveBeenCalledWith(
@@ -297,13 +301,11 @@ describe('Publish logic', () => {
         ProfileId.fromId(mockProfileId),
         mockProviderName,
         {},
-        undefined,
         undefined
       );
       expect(loadProvider).toHaveBeenCalledWith(
         mockSuperJson,
-        mockProviderName,
-        undefined
+        mockProviderName
       );
       expect(prePublishCheck).toHaveBeenCalledWith({
         publishing: 'profile',
@@ -375,7 +377,6 @@ describe('Publish logic', () => {
       expect(loadProfile).toHaveBeenCalledWith(
         mockSuperJson,
         ProfileId.fromId(mockProfileId),
-        undefined,
         undefined
       );
       expect(loadMap).toHaveBeenCalledWith(
@@ -383,13 +384,11 @@ describe('Publish logic', () => {
         ProfileId.fromId(mockProfileId),
         mockProviderName,
         { variant },
-        undefined,
         undefined
       );
       expect(loadProvider).toHaveBeenCalledWith(
         mockSuperJson,
-        mockProviderName,
-        undefined
+        mockProviderName
       );
       expect(prePublishCheck).toHaveBeenCalledWith({
         publishing: 'profile',
@@ -458,7 +457,6 @@ describe('Publish logic', () => {
       expect(loadProfile).toHaveBeenCalledWith(
         mockSuperJson,
         ProfileId.fromId(mockProfileId),
-        undefined,
         undefined
       );
       expect(loadMap).toHaveBeenCalledWith(
@@ -466,13 +464,11 @@ describe('Publish logic', () => {
         ProfileId.fromId(mockProfileId),
         mockProviderName,
         {},
-        undefined,
         undefined
       );
       expect(loadProvider).toHaveBeenCalledWith(
         mockSuperJson,
-        mockProviderName,
-        undefined
+        mockProviderName
       );
       expect(prePublishCheck).toHaveBeenCalledWith({
         publishing: 'profile',
@@ -543,21 +539,18 @@ describe('Publish logic', () => {
       expect(loadProfile).toHaveBeenCalledWith(
         mockSuperJson,
         ProfileId.fromId(mockProfileId),
-        undefined,
-        { dryRun: true }
+        undefined
       );
       expect(loadMap).toHaveBeenCalledWith(
         mockSuperJson,
         ProfileId.fromId(mockProfileId),
         mockProviderName,
         {},
-        undefined,
-        { dryRun: true }
+        undefined
       );
       expect(loadProvider).toHaveBeenCalledWith(
         mockSuperJson,
-        mockProviderName,
-        { dryRun: true }
+        mockProviderName
       );
       expect(prePublishCheck).toHaveBeenCalledWith({
         publishing: 'profile',
@@ -614,8 +607,7 @@ describe('Publish logic', () => {
       expect(loadProfile).toHaveBeenCalledWith(
         mockSuperJson,
         ProfileId.fromId(mockProfileId),
-        undefined,
-        { dryRun: true }
+        undefined
       );
     });
 
@@ -672,7 +664,6 @@ describe('Publish logic', () => {
       expect(loadProfile).toHaveBeenCalledWith(
         mockSuperJson,
         ProfileId.fromId(mockProfileId),
-        undefined,
         undefined
       );
       expect(loadMap).toHaveBeenCalledWith(
@@ -680,13 +671,11 @@ describe('Publish logic', () => {
         ProfileId.fromId(mockProfileId),
         mockProviderName,
         {},
-        undefined,
         undefined
       );
       expect(loadProvider).toHaveBeenCalledWith(
         mockSuperJson,
-        mockProviderName,
-        undefined
+        mockProviderName
       );
       expect(prePublishCheck).toHaveBeenCalledWith({
         publishing: 'map',
@@ -760,21 +749,18 @@ describe('Publish logic', () => {
       expect(loadProfile).toHaveBeenCalledWith(
         mockSuperJson,
         ProfileId.fromId(mockProfileId),
-        version,
-        undefined
+        version
       );
       expect(loadMap).toHaveBeenCalledWith(
         mockSuperJson,
         ProfileId.fromId(mockProfileId),
         mockProviderName,
         {},
-        version,
-        undefined
+        version
       );
       expect(loadProvider).toHaveBeenCalledWith(
         mockSuperJson,
-        mockProviderName,
-        undefined
+        mockProviderName
       );
       expect(prePublishCheck).toHaveBeenCalledWith({
         publishing: 'map',
@@ -846,21 +832,18 @@ describe('Publish logic', () => {
       expect(loadProfile).toHaveBeenCalledWith(
         mockSuperJson,
         ProfileId.fromId(mockProfileId),
-        DEFAULT_PROFILE_VERSION_STR,
-        undefined
+        DEFAULT_PROFILE_VERSION_STR
       );
       expect(loadMap).toHaveBeenCalledWith(
         mockSuperJson,
         ProfileId.fromId(mockProfileId),
         mockProviderName,
         {},
-        DEFAULT_PROFILE_VERSION_STR,
-        undefined
+        DEFAULT_PROFILE_VERSION_STR
       );
       expect(loadProvider).toHaveBeenCalledWith(
         mockSuperJson,
-        mockProviderName,
-        undefined
+        mockProviderName
       );
       expect(prePublishCheck).toHaveBeenCalledWith({
         publishing: 'map',
@@ -933,21 +916,18 @@ describe('Publish logic', () => {
       expect(loadProfile).toHaveBeenCalledWith(
         mockSuperJson,
         ProfileId.fromId(mockProfileId),
-        DEFAULT_PROFILE_VERSION_STR,
-        { dryRun: true }
+        DEFAULT_PROFILE_VERSION_STR
       );
       expect(loadMap).toHaveBeenCalledWith(
         mockSuperJson,
         ProfileId.fromId(mockProfileId),
         mockProviderName,
         {},
-        DEFAULT_PROFILE_VERSION_STR,
-        { dryRun: true }
+        DEFAULT_PROFILE_VERSION_STR
       );
       expect(loadProvider).toHaveBeenCalledWith(
         mockSuperJson,
-        mockProviderName,
-        { dryRun: true }
+        mockProviderName
       );
       expect(prePublishCheck).toHaveBeenCalledWith({
         publishing: 'map',
@@ -1023,7 +1003,7 @@ describe('Publish logic', () => {
         )
       ).rejects.toEqual(
         new CLIError(
-          `Provider: "${mockMapDocument.header.provider}" does not exist in Superface store and it does not start with: "${UNVERIFIED_PROVIDER_PREFIX}" prefix.\nPlease, rename provider: "${mockMapDocument.header.provider}" or use existing provider.`
+          `Provider: ${mockMapDocument.header.provider} does not exist in Superface store and it does not start with: ${UNVERIFIED_PROVIDER_PREFIX} prefix.\nPlease, rename provider: ${mockMapDocument.header.provider} or use existing provider.`
         )
       );
 
@@ -1031,21 +1011,18 @@ describe('Publish logic', () => {
       expect(loadProfile).toHaveBeenCalledWith(
         mockSuperJson,
         ProfileId.fromId(mockProfileId),
-        DEFAULT_PROFILE_VERSION_STR,
-        undefined
+        DEFAULT_PROFILE_VERSION_STR
       );
       expect(loadMap).toHaveBeenCalledWith(
         mockSuperJson,
         ProfileId.fromId(mockProfileId),
         mockProviderName,
         {},
-        DEFAULT_PROFILE_VERSION_STR,
-        undefined
+        DEFAULT_PROFILE_VERSION_STR
       );
       expect(loadProvider).toHaveBeenCalledWith(
         mockSuperJson,
-        mockProviderName,
-        undefined
+        mockProviderName
       );
       expect(fetchProviderInfo).toHaveBeenCalled();
       expect(prePublishCheck).toHaveBeenCalledWith({
@@ -1110,8 +1087,7 @@ describe('Publish logic', () => {
       expect(loadProfile).toHaveBeenCalledWith(
         mockSuperJson,
         ProfileId.fromId(mockProfileId),
-        DEFAULT_PROFILE_VERSION_STR,
-        { dryRun: true }
+        DEFAULT_PROFILE_VERSION_STR
       );
     });
 
@@ -1182,22 +1158,16 @@ describe('Publish logic', () => {
       expect(loadProfile).toHaveBeenCalledWith(
         mockSuperJson,
         ProfileId.fromId(mockProfileId),
-        DEFAULT_PROFILE_VERSION_STR,
-        undefined
+        DEFAULT_PROFILE_VERSION_STR
       );
       expect(loadMap).toHaveBeenCalledWith(
         mockSuperJson,
         ProfileId.fromId(mockProfileId),
         provider,
         {},
-        DEFAULT_PROFILE_VERSION_STR,
-        undefined
+        DEFAULT_PROFILE_VERSION_STR
       );
-      expect(loadProvider).toHaveBeenCalledWith(
-        mockSuperJson,
-        provider,
-        undefined
-      );
+      expect(loadProvider).toHaveBeenCalledWith(mockSuperJson, provider);
       expect(fetchProviderInfo).not.toHaveBeenCalled();
       expect(prePublishCheck).toHaveBeenCalledWith({
         publishing: 'provider',
@@ -1285,22 +1255,16 @@ describe('Publish logic', () => {
       expect(loadProfile).toHaveBeenCalledWith(
         mockSuperJson,
         ProfileId.fromId(mockProfileId),
-        DEFAULT_PROFILE_VERSION_STR,
-        undefined
+        DEFAULT_PROFILE_VERSION_STR
       );
       expect(loadMap).toHaveBeenCalledWith(
         mockSuperJson,
         ProfileId.fromId(mockProfileId),
         provider,
         { variant },
-        DEFAULT_PROFILE_VERSION_STR,
-        undefined
+        DEFAULT_PROFILE_VERSION_STR
       );
-      expect(loadProvider).toHaveBeenCalledWith(
-        mockSuperJson,
-        provider,
-        undefined
-      );
+      expect(loadProvider).toHaveBeenCalledWith(mockSuperJson, provider);
       expect(fetchProviderInfo).not.toHaveBeenCalled();
       expect(prePublishCheck).toHaveBeenCalledWith({
         publishing: 'provider',
@@ -1377,21 +1341,18 @@ describe('Publish logic', () => {
       expect(loadProfile).toHaveBeenCalledWith(
         mockSuperJson,
         ProfileId.fromId(mockProfileId),
-        DEFAULT_PROFILE_VERSION_STR,
-        { dryRun: true }
+        DEFAULT_PROFILE_VERSION_STR
       );
       expect(loadMap).toHaveBeenCalledWith(
         mockSuperJson,
         ProfileId.fromId(mockProfileId),
         mockProviderName,
         {},
-        DEFAULT_PROFILE_VERSION_STR,
-        { dryRun: true }
+        DEFAULT_PROFILE_VERSION_STR
       );
       expect(loadProvider).toHaveBeenCalledWith(
         mockSuperJson,
-        mockProviderName,
-        { dryRun: true }
+        mockProviderName
       );
       expect(fetchProviderInfo).not.toHaveBeenCalled();
       expect(prePublishCheck).toHaveBeenCalledWith({
@@ -1476,20 +1437,16 @@ describe('Publish logic', () => {
       expect(loadProfile).toHaveBeenCalledWith(
         mockSuperJson,
         ProfileId.fromId(mockProfileId),
-        DEFAULT_PROFILE_VERSION_STR,
-        { dryRun: true }
+        DEFAULT_PROFILE_VERSION_STR
       );
       expect(loadMap).toHaveBeenCalledWith(
         mockSuperJson,
         ProfileId.fromId(mockProfileId),
         provider,
         {},
-        DEFAULT_PROFILE_VERSION_STR,
-        { dryRun: true }
+        DEFAULT_PROFILE_VERSION_STR
       );
-      expect(loadProvider).toHaveBeenCalledWith(mockSuperJson, provider, {
-        dryRun: true,
-      });
+      expect(loadProvider).toHaveBeenCalledWith(mockSuperJson, provider);
       expect(fetchProviderInfo).not.toHaveBeenCalled();
       expect(prePublishCheck).toHaveBeenCalledWith({
         publishing: 'provider',
@@ -1558,8 +1515,7 @@ describe('Publish logic', () => {
       expect(loadProfile).toHaveBeenCalledWith(
         mockSuperJson,
         ProfileId.fromId(mockProfileId),
-        DEFAULT_PROFILE_VERSION_STR,
-        { dryRun: true }
+        DEFAULT_PROFILE_VERSION_STR
       );
     });
 
@@ -1621,21 +1577,18 @@ describe('Publish logic', () => {
       expect(loadProfile).toHaveBeenCalledWith(
         mockSuperJson,
         ProfileId.fromId(mockProfileId),
-        DEFAULT_PROFILE_VERSION_STR,
-        { dryRun: true }
+        DEFAULT_PROFILE_VERSION_STR
       );
       expect(loadMap).toHaveBeenCalledWith(
         mockSuperJson,
         ProfileId.fromId(mockProfileId),
         mockProviderName,
         {},
-        DEFAULT_PROFILE_VERSION_STR,
-        { dryRun: true }
+        DEFAULT_PROFILE_VERSION_STR
       );
       expect(loadProvider).toHaveBeenCalledWith(
         mockSuperJson,
-        mockProviderName,
-        { dryRun: true }
+        mockProviderName
       );
       expect(prePublishCheck).toHaveBeenCalledWith({
         publishing: 'provider',
@@ -1734,21 +1687,18 @@ describe('Publish logic', () => {
       expect(loadProfile).toHaveBeenCalledWith(
         mockSuperJson,
         ProfileId.fromId(mockProfileId),
-        DEFAULT_PROFILE_VERSION_STR,
-        { dryRun: true }
+        DEFAULT_PROFILE_VERSION_STR
       );
       expect(loadMap).toHaveBeenCalledWith(
         mockSuperJson,
         ProfileId.fromId(mockProfileId),
         mockProviderName,
         {},
-        DEFAULT_PROFILE_VERSION_STR,
-        { dryRun: true }
+        DEFAULT_PROFILE_VERSION_STR
       );
       expect(loadProvider).toHaveBeenCalledWith(
         mockSuperJson,
-        mockProviderName,
-        { dryRun: true }
+        mockProviderName
       );
       expect(prePublishCheck).toHaveBeenCalledWith({
         publishing: 'provider',
@@ -1835,21 +1785,18 @@ describe('Publish logic', () => {
       expect(loadProfile).toHaveBeenCalledWith(
         mockSuperJson,
         ProfileId.fromId(mockProfileId),
-        DEFAULT_PROFILE_VERSION_STR,
-        { dryRun: true, json: true }
+        DEFAULT_PROFILE_VERSION_STR
       );
       expect(loadMap).toHaveBeenCalledWith(
         mockSuperJson,
         ProfileId.fromId(mockProfileId),
         mockProviderName,
         {},
-        DEFAULT_PROFILE_VERSION_STR,
-        { dryRun: true, json: true }
+        DEFAULT_PROFILE_VERSION_STR
       );
       expect(loadProvider).toHaveBeenCalledWith(
         mockSuperJson,
-        mockProviderName,
-        { dryRun: true, json: true }
+        mockProviderName
       );
       expect(fetchProviderInfo).not.toHaveBeenCalled();
       expect(prePublishCheck).toHaveBeenCalledWith({

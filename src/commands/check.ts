@@ -2,7 +2,6 @@ import { flags as oclifFlags } from '@oclif/command';
 import { isValidProviderName } from '@superfaceai/ast';
 import { SuperJson } from '@superfaceai/one-sdk';
 import { parseDocumentId } from '@superfaceai/parser';
-import { grey, yellow } from 'chalk';
 import { join as joinPath } from 'path';
 
 import { META_FILE } from '../common';
@@ -58,16 +57,9 @@ export default class Check extends Command {
     '$ superface check --profileId starwars/character-information --providerName swapi -q',
   ];
 
-  private logCallback? = (message: string) => this.log(grey(message));
-  private warnCallback? = (message: string) => this.log(yellow(message));
-
   async run(): Promise<void> {
     const { flags } = this.parse(Check);
-
-    if (flags.quiet) {
-      this.logCallback = undefined;
-      this.warnCallback = undefined;
-    }
+    this.setUpLogger(flags.quiet);
 
     // Check inputs
     if (flags.profileId) {
@@ -145,10 +137,7 @@ export default class Check extends Command {
       flags.providerName
     );
 
-    const result = await check(superJson, profilesToValidate, {
-      logCb: this.logCallback,
-      warnCb: this.warnCallback,
-    });
+    const result = await check(superJson, profilesToValidate);
     if (flags.json) {
       this.log(formatJson(result));
     } else {

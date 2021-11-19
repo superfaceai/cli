@@ -380,22 +380,18 @@ describe('Check CLI command', () => {
       );
       expect(detectSuperJson).toHaveBeenCalled();
       expect(loadSpy).toHaveBeenCalled();
-      expect(check).toHaveBeenCalledWith(
-        mockSuperJson,
-        [
-          {
-            id: ProfileId.fromScopeName('starwars', 'character-information'),
-            maps: [
-              {
-                provider: provider,
-                variant: undefined,
-              },
-            ],
-            version: undefined,
-          },
-        ],
-        { logCb: expect.anything(), warnCb: expect.anything() }
-      );
+      expect(check).toHaveBeenCalledWith(mockSuperJson, [
+        {
+          id: ProfileId.fromScopeName('starwars', 'character-information'),
+          maps: [
+            {
+              provider: provider,
+              variant: undefined,
+            },
+          ],
+          version: undefined,
+        },
+      ]);
       expect(stdout.output).toEqual('format-human\n');
       expect(formatHuman).toHaveBeenCalledWith(mockResult);
     });
@@ -437,22 +433,18 @@ describe('Check CLI command', () => {
 
       expect(detectSuperJson).toHaveBeenCalled();
       expect(loadSpy).toHaveBeenCalled();
-      expect(check).toHaveBeenCalledWith(
-        mockSuperJson,
-        [
-          {
-            id: ProfileId.fromScopeName('starwars', 'character-information'),
-            maps: [
-              {
-                provider,
-                variant: undefined,
-              },
-            ],
-            version: undefined,
-          },
-        ],
-        { logCb: undefined, warnCb: undefined }
-      );
+      expect(check).toHaveBeenCalledWith(mockSuperJson, [
+        {
+          id: ProfileId.fromScopeName('starwars', 'character-information'),
+          maps: [
+            {
+              provider,
+              variant: undefined,
+            },
+          ],
+          version: undefined,
+        },
+      ]);
       expect(stdout.output).toEqual('format-human\n');
       expect(formatHuman).toHaveBeenCalledWith(mockResult);
     });
@@ -496,23 +488,18 @@ describe('Check CLI command', () => {
       );
       expect(detectSuperJson).toHaveBeenCalled();
       expect(loadSpy).toHaveBeenCalled();
-      expect(check).toHaveBeenCalledWith(
-        mockSuperJson,
-        [
-          {
-            id: ProfileId.fromScopeName('starwars', 'character-information'),
-            maps: [
-              {
-                provider,
-                variant: undefined,
-              },
-            ],
-            version: undefined,
-          },
-        ],
-
-        { logCb: undefined, warnCb: undefined }
-      );
+      expect(check).toHaveBeenCalledWith(mockSuperJson, [
+        {
+          id: ProfileId.fromScopeName('starwars', 'character-information'),
+          maps: [
+            {
+              provider,
+              variant: undefined,
+            },
+          ],
+          version: undefined,
+        },
+      ]);
       expect(stdout.output).toContain('[{"kind": "error", "message": "test"}]');
       expect(formatJson).toHaveBeenCalledWith(mockResult);
       expect(formatHuman).not.toHaveBeenCalled();

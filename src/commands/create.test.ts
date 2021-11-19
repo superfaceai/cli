@@ -3,6 +3,7 @@ import { SuperJson } from '@superfaceai/one-sdk';
 import inquirer from 'inquirer';
 import { mocked } from 'ts-jest/utils';
 
+import { Logger } from '../common';
 import { exists, mkdirQuiet } from '../common/io';
 import { create } from '../logic/create';
 import { initSuperface } from '../logic/init';
@@ -37,6 +38,7 @@ describe('Create CLI command', () => {
   });
 
   beforeEach(() => {
+    Logger.mockLogger();
     mocked(create).mockResolvedValue(undefined);
   });
 
@@ -51,26 +53,23 @@ describe('Create CLI command', () => {
         Create.run(['--profileId', documentName, '--profile', '--no-init'])
       ).resolves.toBeUndefined();
       expect(create).toHaveBeenCalledTimes(1);
-      expect(create).toHaveBeenCalledWith(
-        {
-          profile: true,
-          map: false,
-          provider: false,
-          document: {
-            name: 'sendsms',
-            scope: undefined,
-            usecases: ['Sendsms'],
-            version: { label: undefined, major: 1, minor: 0, patch: 0 },
-          },
-          paths: { basePath: undefined, superPath: undefined },
-          fileNames: {
-            map: undefined,
-            profile: undefined,
-            provider: undefined,
-          },
+      expect(create).toHaveBeenCalledWith({
+        profile: true,
+        map: false,
+        provider: false,
+        document: {
+          name: 'sendsms',
+          scope: undefined,
+          usecases: ['Sendsms'],
+          version: { label: undefined, major: 1, minor: 0, patch: 0 },
         },
-        { logCb: expect.anything(), warnCb: expect.anything() }
-      );
+        paths: { basePath: undefined, superPath: undefined },
+        fileNames: {
+          map: undefined,
+          profile: undefined,
+          provider: undefined,
+        },
+      });
       expect(promptSpy).not.toHaveBeenCalled();
       expect(initSuperface).not.toHaveBeenCalled();
     });
@@ -90,28 +89,25 @@ describe('Create CLI command', () => {
         ])
       ).resolves.toBeUndefined();
       expect(create).toHaveBeenCalledTimes(1);
-      expect(create).toHaveBeenCalledWith(
-        {
-          profile: true,
-          map: false,
-          provider: false,
-          document: {
-            name: 'sendsms',
-            scope: undefined,
-            usecases: ['SendSMS'],
-            version: { label: undefined, major: 1, minor: 0, patch: 0 },
-          },
-          paths:
-            //Pass the super path
-            { basePath: undefined, superPath: 'superface' },
-          fileNames: {
-            map: undefined,
-            profile: undefined,
-            provider: undefined,
-          },
+      expect(create).toHaveBeenCalledWith({
+        profile: true,
+        map: false,
+        provider: false,
+        document: {
+          name: 'sendsms',
+          scope: undefined,
+          usecases: ['SendSMS'],
+          version: { label: undefined, major: 1, minor: 0, patch: 0 },
         },
-        { logCb: expect.anything(), warnCb: expect.anything() }
-      );
+        paths:
+          //Pass the super path
+          { basePath: undefined, superPath: 'superface' },
+        fileNames: {
+          map: undefined,
+          profile: undefined,
+          provider: undefined,
+        },
+      });
       expect(promptSpy).not.toHaveBeenCalled();
       expect(initSuperface).toHaveBeenCalledTimes(1);
     });
@@ -136,29 +132,26 @@ describe('Create CLI command', () => {
         ])
       ).resolves.toBeUndefined();
       expect(create).toHaveBeenCalledTimes(1);
-      expect(create).toHaveBeenCalledWith(
-        {
-          profile: false,
-          map: true,
-          provider: false,
-          document: {
-            name: 'sendsms',
-            providerNames: [provider],
-            usecases: ['SendSMS'],
-            scope: undefined,
-            version: { label: undefined, major: 1, minor: 0, patch: 0 },
-          },
-          paths:
-            //Pass the super path
-            { basePath: undefined, superPath: 'superface' },
-          fileNames: {
-            map: undefined,
-            profile: undefined,
-            provider: undefined,
-          },
+      expect(create).toHaveBeenCalledWith({
+        profile: false,
+        map: true,
+        provider: false,
+        document: {
+          name: 'sendsms',
+          providerNames: [provider],
+          usecases: ['SendSMS'],
+          scope: undefined,
+          version: { label: undefined, major: 1, minor: 0, patch: 0 },
         },
-        { logCb: expect.anything(), warnCb: expect.anything() }
-      );
+        paths:
+          //Pass the super path
+          { basePath: undefined, superPath: 'superface' },
+        fileNames: {
+          map: undefined,
+          profile: undefined,
+          provider: undefined,
+        },
+      });
       expect(promptSpy).toHaveBeenCalledTimes(1);
       expect(initSuperface).toHaveBeenCalledTimes(1);
     });
@@ -182,27 +175,24 @@ describe('Create CLI command', () => {
         ])
       ).resolves.toBeUndefined();
       expect(create).toHaveBeenCalledTimes(1);
-      expect(create).toHaveBeenCalledWith(
-        {
-          profile: false,
-          map: true,
-          provider: false,
-          document: {
-            name: 'sendsms',
-            providerNames: [provider],
-            usecases: ['SendSMS'],
-            scope: undefined,
-            version: { label: undefined, major: 1, minor: 0, patch: 0 },
-          },
-          paths: { basePath: undefined, superPath: undefined },
-          fileNames: {
-            map: undefined,
-            profile: undefined,
-            provider: undefined,
-          },
+      expect(create).toHaveBeenCalledWith({
+        profile: false,
+        map: true,
+        provider: false,
+        document: {
+          name: 'sendsms',
+          providerNames: [provider],
+          usecases: ['SendSMS'],
+          scope: undefined,
+          version: { label: undefined, major: 1, minor: 0, patch: 0 },
         },
-        { logCb: expect.anything(), warnCb: expect.anything() }
-      );
+        paths: { basePath: undefined, superPath: undefined },
+        fileNames: {
+          map: undefined,
+          profile: undefined,
+          provider: undefined,
+        },
+      });
       expect(promptSpy).toHaveBeenCalledTimes(1);
       expect(initSuperface).not.toHaveBeenCalled();
     });
@@ -228,27 +218,24 @@ describe('Create CLI command', () => {
         ])
       ).resolves.toBeUndefined();
       expect(create).toHaveBeenCalledTimes(1);
-      expect(create).toHaveBeenCalledWith(
-        {
-          profile: false,
-          map: true,
-          provider: false,
-          document: {
-            name: 'sendsms',
-            providerNames: [provider],
-            usecases: ['SendSMS'],
-            scope: undefined,
-            version: { label: undefined, major: 1, minor: 0, patch: 0 },
-          },
-          paths: { basePath: undefined, superPath: undefined },
-          fileNames: {
-            map: undefined,
-            profile: undefined,
-            provider: undefined,
-          },
+      expect(create).toHaveBeenCalledWith({
+        profile: false,
+        map: true,
+        provider: false,
+        document: {
+          name: 'sendsms',
+          providerNames: [provider],
+          usecases: ['SendSMS'],
+          scope: undefined,
+          version: { label: undefined, major: 1, minor: 0, patch: 0 },
         },
-        { logCb: expect.anything(), warnCb: expect.anything() }
-      );
+        paths: { basePath: undefined, superPath: undefined },
+        fileNames: {
+          map: undefined,
+          profile: undefined,
+          provider: undefined,
+        },
+      });
       //We prompt user and init SF but not pass path to create logic
       expect(promptSpy).toHaveBeenCalledTimes(1);
       expect(initSuperface).toHaveBeenCalled();
@@ -263,26 +250,23 @@ describe('Create CLI command', () => {
         Create.run(['--profileId', documentName, '--profile', '-q'])
       ).resolves.toBeUndefined();
       expect(create).toHaveBeenCalledTimes(1);
-      expect(create).toHaveBeenCalledWith(
-        {
-          profile: true,
-          map: false,
-          provider: false,
-          document: {
-            name: 'sendsms',
-            usecases: ['Sendsms'],
-            scope: undefined,
-            version: { label: undefined, major: 1, minor: 0, patch: 0 },
-          },
-          paths: { basePath: undefined, superPath: 'superface' },
-          fileNames: {
-            map: undefined,
-            profile: undefined,
-            provider: undefined,
-          },
+      expect(create).toHaveBeenCalledWith({
+        profile: true,
+        map: false,
+        provider: false,
+        document: {
+          name: 'sendsms',
+          usecases: ['Sendsms'],
+          scope: undefined,
+          version: { label: undefined, major: 1, minor: 0, patch: 0 },
         },
-        { logCb: undefined, warnCb: undefined }
-      );
+        paths: { basePath: undefined, superPath: 'superface' },
+        fileNames: {
+          map: undefined,
+          profile: undefined,
+          provider: undefined,
+        },
+      });
     });
 
     it('creates profile with one usecase', async () => {
@@ -295,26 +279,23 @@ describe('Create CLI command', () => {
       ).resolves.toBeUndefined();
 
       expect(create).toHaveBeenCalledTimes(1);
-      expect(create).toHaveBeenCalledWith(
-        {
-          profile: true,
-          map: false,
-          provider: false,
-          document: {
-            name: 'service',
-            usecases: ['SendSMS'],
-            scope: 'sms',
-            version: { label: undefined, major: 1, minor: 0, patch: 0 },
-          },
-          paths: { basePath: undefined, superPath: 'superface' },
-          fileNames: {
-            map: undefined,
-            profile: undefined,
-            provider: undefined,
-          },
+      expect(create).toHaveBeenCalledWith({
+        profile: true,
+        map: false,
+        provider: false,
+        document: {
+          name: 'service',
+          usecases: ['SendSMS'],
+          scope: 'sms',
+          version: { label: undefined, major: 1, minor: 0, patch: 0 },
         },
-        { logCb: expect.anything(), warnCb: expect.anything() }
-      );
+        paths: { basePath: undefined, superPath: 'superface' },
+        fileNames: {
+          map: undefined,
+          profile: undefined,
+          provider: undefined,
+        },
+      });
     });
 
     it('creates profile with multiple usecases', async () => {
@@ -334,26 +315,23 @@ describe('Create CLI command', () => {
       ).resolves.toBeUndefined();
 
       expect(create).toHaveBeenCalledTimes(1);
-      expect(create).toHaveBeenCalledWith(
-        {
-          profile: true,
-          map: false,
-          provider: false,
-          document: {
-            name: 'service',
-            usecases: ['ReceiveSMS', 'SendSMS'],
-            scope: 'sms',
-            version: { label: undefined, major: 1, minor: 0, patch: 0 },
-          },
-          paths: { basePath: undefined, superPath: 'superface' },
-          fileNames: {
-            map: undefined,
-            profile: undefined,
-            provider: undefined,
-          },
+      expect(create).toHaveBeenCalledWith({
+        profile: true,
+        map: false,
+        provider: false,
+        document: {
+          name: 'service',
+          usecases: ['ReceiveSMS', 'SendSMS'],
+          scope: 'sms',
+          version: { label: undefined, major: 1, minor: 0, patch: 0 },
         },
-        { logCb: expect.anything(), warnCb: expect.anything() }
-      );
+        paths: { basePath: undefined, superPath: 'superface' },
+        fileNames: {
+          map: undefined,
+          profile: undefined,
+          provider: undefined,
+        },
+      });
     });
 
     it('creates profile with multiple usecases and version and basePath', async () => {
@@ -378,26 +356,23 @@ describe('Create CLI command', () => {
       ).resolves.toBeUndefined();
 
       expect(create).toHaveBeenCalledTimes(1);
-      expect(create).toHaveBeenCalledWith(
-        {
-          profile: true,
-          map: false,
-          provider: false,
-          document: {
-            name: 'service',
-            usecases: ['ReceiveSMS', 'SendSMS'],
-            scope: 'sms',
-            version: { label: 'rev133', major: 1, minor: 1, patch: undefined },
-          },
-          paths: { basePath: 'test', superPath: 'superface' },
-          fileNames: {
-            map: undefined,
-            profile: undefined,
-            provider: undefined,
-          },
+      expect(create).toHaveBeenCalledWith({
+        profile: true,
+        map: false,
+        provider: false,
+        document: {
+          name: 'service',
+          usecases: ['ReceiveSMS', 'SendSMS'],
+          scope: 'sms',
+          version: { label: 'rev133', major: 1, minor: 1, patch: undefined },
         },
-        { logCb: expect.anything(), warnCb: expect.anything() }
-      );
+        paths: { basePath: 'test', superPath: 'superface' },
+        fileNames: {
+          map: undefined,
+          profile: undefined,
+          provider: undefined,
+        },
+      });
     });
 
     //Map
@@ -418,27 +393,24 @@ describe('Create CLI command', () => {
       ).resolves.toBeUndefined();
 
       expect(create).toHaveBeenCalledTimes(1);
-      expect(create).toHaveBeenCalledWith(
-        {
-          profile: false,
-          map: true,
-          provider: false,
-          document: {
-            name: 'service',
-            providerNames: [provider],
-            usecases: ['Service'],
-            scope: 'sms',
-            version: { label: undefined, major: 1, minor: 0, patch: 0 },
-          },
-          paths: { basePath: undefined, superPath: 'superface' },
-          fileNames: {
-            map: undefined,
-            profile: undefined,
-            provider: undefined,
-          },
+      expect(create).toHaveBeenCalledWith({
+        profile: false,
+        map: true,
+        provider: false,
+        document: {
+          name: 'service',
+          providerNames: [provider],
+          usecases: ['Service'],
+          scope: 'sms',
+          version: { label: undefined, major: 1, minor: 0, patch: 0 },
         },
-        { logCb: expect.anything(), warnCb: expect.anything() }
-      );
+        paths: { basePath: undefined, superPath: 'superface' },
+        fileNames: {
+          map: undefined,
+          profile: undefined,
+          provider: undefined,
+        },
+      });
     });
 
     it('creates two maps with multiple usecases', async () => {
@@ -463,27 +435,24 @@ describe('Create CLI command', () => {
       ).resolves.toBeUndefined();
 
       expect(create).toHaveBeenCalledTimes(1);
-      expect(create).toHaveBeenCalledWith(
-        {
-          profile: false,
-          map: true,
-          provider: false,
-          document: {
-            name: 'service',
-            usecases: ['ReceiveSMS', 'SendSMS'],
-            providerNames: [provider, secondProvider],
-            scope: 'sms',
-            version: { label: undefined, major: 1, minor: 0, patch: 0 },
-          },
-          paths: { basePath: undefined, superPath: 'superface' },
-          fileNames: {
-            map: undefined,
-            profile: undefined,
-            provider: undefined,
-          },
+      expect(create).toHaveBeenCalledWith({
+        profile: false,
+        map: true,
+        provider: false,
+        document: {
+          name: 'service',
+          usecases: ['ReceiveSMS', 'SendSMS'],
+          providerNames: [provider, secondProvider],
+          scope: 'sms',
+          version: { label: undefined, major: 1, minor: 0, patch: 0 },
         },
-        { logCb: expect.anything(), warnCb: expect.anything() }
-      );
+        paths: { basePath: undefined, superPath: 'superface' },
+        fileNames: {
+          map: undefined,
+          profile: undefined,
+          provider: undefined,
+        },
+      });
     });
     //Provider
     it('creates one provider', async () => {
@@ -496,26 +465,23 @@ describe('Create CLI command', () => {
       ).resolves.toBeUndefined();
 
       expect(create).toHaveBeenCalledTimes(1);
-      expect(create).toHaveBeenCalledWith(
-        {
-          profile: false,
-          map: false,
-          provider: true,
-          document: {
-            providerNames: [provider],
-            usecases: [],
-            scope: undefined,
-            version: { label: undefined, major: 1, minor: 0, patch: 0 },
-          },
-          paths: { basePath: undefined, superPath: 'superface' },
-          fileNames: {
-            map: undefined,
-            profile: undefined,
-            provider: undefined,
-          },
+      expect(create).toHaveBeenCalledWith({
+        profile: false,
+        map: false,
+        provider: true,
+        document: {
+          providerNames: [provider],
+          usecases: [],
+          scope: undefined,
+          version: { label: undefined, major: 1, minor: 0, patch: 0 },
         },
-        { logCb: expect.anything(), warnCb: expect.anything() }
-      );
+        paths: { basePath: undefined, superPath: 'superface' },
+        fileNames: {
+          map: undefined,
+          profile: undefined,
+          provider: undefined,
+        },
+      });
     });
 
     it('creates two providers', async () => {
@@ -529,26 +495,23 @@ describe('Create CLI command', () => {
       ).resolves.toBeUndefined();
 
       expect(create).toHaveBeenCalledTimes(1);
-      expect(create).toHaveBeenCalledWith(
-        {
-          profile: false,
-          map: false,
-          provider: true,
-          document: {
-            providerNames: [provider, secondProvider],
-            usecases: [],
-            scope: undefined,
-            version: { label: undefined, major: 1, minor: 0, patch: 0 },
-          },
-          paths: { basePath: undefined, superPath: 'superface' },
-          fileNames: {
-            map: undefined,
-            profile: undefined,
-            provider: undefined,
-          },
+      expect(create).toHaveBeenCalledWith({
+        profile: false,
+        map: false,
+        provider: true,
+        document: {
+          providerNames: [provider, secondProvider],
+          usecases: [],
+          scope: undefined,
+          version: { label: undefined, major: 1, minor: 0, patch: 0 },
         },
-        { logCb: expect.anything(), warnCb: expect.anything() }
-      );
+        paths: { basePath: undefined, superPath: 'superface' },
+        fileNames: {
+          map: undefined,
+          profile: undefined,
+          provider: undefined,
+        },
+      });
     });
     //Profile and provider
     it('creates profile and provider with one usecase', async () => {
@@ -571,27 +534,24 @@ describe('Create CLI command', () => {
       ).resolves.toBeUndefined();
 
       expect(create).toHaveBeenCalledTimes(1);
-      expect(create).toHaveBeenCalledWith(
-        {
-          profile: true,
-          map: false,
-          provider: true,
-          document: {
-            name: 'service',
-            providerNames: [provider],
-            usecases: ['SendSMS'],
-            scope: 'sms',
-            version: { label: undefined, major: 1, minor: 0, patch: 0 },
-          },
-          paths: { basePath: undefined, superPath: 'superface' },
-          fileNames: {
-            map: undefined,
-            profile: undefined,
-            provider: undefined,
-          },
+      expect(create).toHaveBeenCalledWith({
+        profile: true,
+        map: false,
+        provider: true,
+        document: {
+          name: 'service',
+          providerNames: [provider],
+          usecases: ['SendSMS'],
+          scope: 'sms',
+          version: { label: undefined, major: 1, minor: 0, patch: 0 },
         },
-        { logCb: expect.anything(), warnCb: expect.anything() }
-      );
+        paths: { basePath: undefined, superPath: 'superface' },
+        fileNames: {
+          map: undefined,
+          profile: undefined,
+          provider: undefined,
+        },
+      });
     });
 
     it('creates profile with mutiple usecases and two providers', async () => {
@@ -617,27 +577,24 @@ describe('Create CLI command', () => {
       ).resolves.toBeUndefined();
 
       expect(create).toHaveBeenCalledTimes(1);
-      expect(create).toHaveBeenCalledWith(
-        {
-          profile: true,
-          map: false,
-          provider: true,
-          document: {
-            name: 'service',
-            providerNames: [provider, secondProvider],
-            usecases: ['SendSMS', 'ReciveSMS'],
-            scope: 'sms',
-            version: { label: undefined, major: 1, minor: 0, patch: 0 },
-          },
-          paths: { basePath: undefined, superPath: 'superface' },
-          fileNames: {
-            map: undefined,
-            profile: undefined,
-            provider: undefined,
-          },
+      expect(create).toHaveBeenCalledWith({
+        profile: true,
+        map: false,
+        provider: true,
+        document: {
+          name: 'service',
+          providerNames: [provider, secondProvider],
+          usecases: ['SendSMS', 'ReciveSMS'],
+          scope: 'sms',
+          version: { label: undefined, major: 1, minor: 0, patch: 0 },
         },
-        { logCb: expect.anything(), warnCb: expect.anything() }
-      );
+        paths: { basePath: undefined, superPath: 'superface' },
+        fileNames: {
+          map: undefined,
+          profile: undefined,
+          provider: undefined,
+        },
+      });
     });
 
     it('creates profile with mutiple usecases, version flag and two providers', async () => {
@@ -665,27 +622,24 @@ describe('Create CLI command', () => {
       ).resolves.toBeUndefined();
 
       expect(create).toHaveBeenCalledTimes(1);
-      expect(create).toHaveBeenCalledWith(
-        {
-          profile: true,
-          map: false,
-          provider: true,
-          document: {
-            name: 'service',
-            providerNames: [provider, secondProvider],
-            usecases: ['SendSMS', 'ReciveSMS'],
-            scope: 'sms',
-            version: { label: 'rev133', major: 1, minor: 1, patch: undefined },
-          },
-          paths: { basePath: undefined, superPath: 'superface' },
-          fileNames: {
-            map: undefined,
-            profile: undefined,
-            provider: undefined,
-          },
+      expect(create).toHaveBeenCalledWith({
+        profile: true,
+        map: false,
+        provider: true,
+        document: {
+          name: 'service',
+          providerNames: [provider, secondProvider],
+          usecases: ['SendSMS', 'ReciveSMS'],
+          scope: 'sms',
+          version: { label: 'rev133', major: 1, minor: 1, patch: undefined },
         },
-        { logCb: expect.anything(), warnCb: expect.anything() }
-      );
+        paths: { basePath: undefined, superPath: 'superface' },
+        fileNames: {
+          map: undefined,
+          profile: undefined,
+          provider: undefined,
+        },
+      });
     });
     //Profile and map
     it('creates profile & map with one usecase', async () => {
@@ -708,27 +662,24 @@ describe('Create CLI command', () => {
       ).resolves.toBeUndefined();
 
       expect(create).toHaveBeenCalledTimes(1);
-      expect(create).toHaveBeenCalledWith(
-        {
-          profile: true,
-          map: true,
-          provider: false,
-          document: {
-            name: 'service',
-            providerNames: [provider],
-            usecases: ['SendSMS'],
-            scope: 'sms',
-            version: { label: undefined, major: 1, minor: 0, patch: 0 },
-          },
-          paths: { basePath: undefined, superPath: 'superface' },
-          fileNames: {
-            map: undefined,
-            profile: undefined,
-            provider: undefined,
-          },
+      expect(create).toHaveBeenCalledWith({
+        profile: true,
+        map: true,
+        provider: false,
+        document: {
+          name: 'service',
+          providerNames: [provider],
+          usecases: ['SendSMS'],
+          scope: 'sms',
+          version: { label: undefined, major: 1, minor: 0, patch: 0 },
         },
-        { logCb: expect.anything(), warnCb: expect.anything() }
-      );
+        paths: { basePath: undefined, superPath: 'superface' },
+        fileNames: {
+          map: undefined,
+          profile: undefined,
+          provider: undefined,
+        },
+      });
     });
 
     it('creates profile & map with multiple usecases', async () => {
@@ -751,27 +702,24 @@ describe('Create CLI command', () => {
         ])
       ).resolves.toBeUndefined();
       expect(create).toHaveBeenCalledTimes(1);
-      expect(create).toHaveBeenCalledWith(
-        {
-          profile: true,
-          map: true,
-          provider: false,
-          document: {
-            name: 'service',
-            providerNames: [provider],
-            usecases: ['SendSMS', 'ReceiveSMS'],
-            scope: 'sms',
-            version: { label: undefined, major: 1, minor: 0, patch: 0 },
-          },
-          paths: { basePath: undefined, superPath: 'superface' },
-          fileNames: {
-            map: undefined,
-            profile: undefined,
-            provider: undefined,
-          },
+      expect(create).toHaveBeenCalledWith({
+        profile: true,
+        map: true,
+        provider: false,
+        document: {
+          name: 'service',
+          providerNames: [provider],
+          usecases: ['SendSMS', 'ReceiveSMS'],
+          scope: 'sms',
+          version: { label: undefined, major: 1, minor: 0, patch: 0 },
         },
-        { logCb: expect.anything(), warnCb: expect.anything() }
-      );
+        paths: { basePath: undefined, superPath: 'superface' },
+        fileNames: {
+          map: undefined,
+          profile: undefined,
+          provider: undefined,
+        },
+      });
     });
 
     it('creates profile & multiple maps with multiple usecases', async () => {
@@ -796,27 +744,24 @@ describe('Create CLI command', () => {
         ])
       ).resolves.toBeUndefined();
       expect(create).toHaveBeenCalledTimes(1);
-      expect(create).toHaveBeenCalledWith(
-        {
-          profile: true,
-          map: true,
-          provider: false,
-          document: {
-            name: 'service',
-            providerNames: [provider, secondProvider],
-            usecases: ['SendSMS', 'ReceiveSMS'],
-            scope: 'sms',
-            version: { label: undefined, major: 1, minor: 0, patch: 0 },
-          },
-          paths: { basePath: undefined, superPath: 'superface' },
-          fileNames: {
-            map: undefined,
-            profile: undefined,
-            provider: undefined,
-          },
+      expect(create).toHaveBeenCalledWith({
+        profile: true,
+        map: true,
+        provider: false,
+        document: {
+          name: 'service',
+          providerNames: [provider, secondProvider],
+          usecases: ['SendSMS', 'ReceiveSMS'],
+          scope: 'sms',
+          version: { label: undefined, major: 1, minor: 0, patch: 0 },
         },
-        { logCb: expect.anything(), warnCb: expect.anything() }
-      );
+        paths: { basePath: undefined, superPath: 'superface' },
+        fileNames: {
+          map: undefined,
+          profile: undefined,
+          provider: undefined,
+        },
+      });
     });
     //Map and provider
     it('creates map with one provider (with provider name from cli) and variant', async () => {
@@ -838,28 +783,25 @@ describe('Create CLI command', () => {
       ).resolves.toBeUndefined();
 
       expect(create).toHaveBeenCalledTimes(1);
-      expect(create).toHaveBeenCalledWith(
-        {
-          profile: false,
-          map: true,
-          provider: false,
-          document: {
-            name: 'service',
-            providerNames: [provider],
-            usecases: ['Service'],
-            variant: 'bugfix',
-            scope: 'sms',
-            version: { label: undefined, major: 1, minor: 0, patch: 0 },
-          },
-          paths: { basePath: undefined, superPath: 'superface' },
-          fileNames: {
-            map: undefined,
-            profile: undefined,
-            provider: undefined,
-          },
+      expect(create).toHaveBeenCalledWith({
+        profile: false,
+        map: true,
+        provider: false,
+        document: {
+          name: 'service',
+          providerNames: [provider],
+          usecases: ['Service'],
+          variant: 'bugfix',
+          scope: 'sms',
+          version: { label: undefined, major: 1, minor: 0, patch: 0 },
         },
-        { logCb: expect.anything(), warnCb: expect.anything() }
-      );
+        paths: { basePath: undefined, superPath: 'superface' },
+        fileNames: {
+          map: undefined,
+          profile: undefined,
+          provider: undefined,
+        },
+      });
     });
 
     it('creates map with one usecase and provider', async () => {
@@ -882,27 +824,24 @@ describe('Create CLI command', () => {
       ).resolves.toBeUndefined();
 
       expect(create).toHaveBeenCalledTimes(1);
-      expect(create).toHaveBeenCalledWith(
-        {
-          profile: false,
-          map: true,
-          provider: true,
-          document: {
-            name: 'service',
-            providerNames: [provider],
-            usecases: ['SendSMS'],
-            scope: 'sms',
-            version: { label: undefined, major: 1, minor: 0, patch: 0 },
-          },
-          paths: { basePath: undefined, superPath: 'superface' },
-          fileNames: {
-            map: undefined,
-            profile: undefined,
-            provider: undefined,
-          },
+      expect(create).toHaveBeenCalledWith({
+        profile: false,
+        map: true,
+        provider: true,
+        document: {
+          name: 'service',
+          providerNames: [provider],
+          usecases: ['SendSMS'],
+          scope: 'sms',
+          version: { label: undefined, major: 1, minor: 0, patch: 0 },
         },
-        { logCb: expect.anything(), warnCb: expect.anything() }
-      );
+        paths: { basePath: undefined, superPath: 'superface' },
+        fileNames: {
+          map: undefined,
+          profile: undefined,
+          provider: undefined,
+        },
+      });
     });
 
     it('creates map with mutiple usecases and one provider', async () => {
@@ -925,27 +864,24 @@ describe('Create CLI command', () => {
         ])
       ).resolves.toBeUndefined();
       expect(create).toHaveBeenCalledTimes(1);
-      expect(create).toHaveBeenCalledWith(
-        {
-          profile: false,
-          map: true,
-          provider: true,
-          document: {
-            name: 'service',
-            providerNames: [provider],
-            usecases: ['ReceiveSMS', 'SendSMS'],
-            scope: 'sms',
-            version: { label: undefined, major: 1, minor: 0, patch: 0 },
-          },
-          paths: { basePath: undefined, superPath: 'superface' },
-          fileNames: {
-            map: undefined,
-            profile: undefined,
-            provider: undefined,
-          },
+      expect(create).toHaveBeenCalledWith({
+        profile: false,
+        map: true,
+        provider: true,
+        document: {
+          name: 'service',
+          providerNames: [provider],
+          usecases: ['ReceiveSMS', 'SendSMS'],
+          scope: 'sms',
+          version: { label: undefined, major: 1, minor: 0, patch: 0 },
         },
-        { logCb: expect.anything(), warnCb: expect.anything() }
-      );
+        paths: { basePath: undefined, superPath: 'superface' },
+        fileNames: {
+          map: undefined,
+          profile: undefined,
+          provider: undefined,
+        },
+      });
     });
     //Map, profile and provider
     it('creates profile & map with one provider (with provider name from cli)', async () => {
@@ -967,27 +903,24 @@ describe('Create CLI command', () => {
       ).resolves.toBeUndefined();
 
       expect(create).toHaveBeenCalledTimes(1);
-      expect(create).toHaveBeenCalledWith(
-        {
-          profile: true,
-          map: true,
-          provider: true,
-          document: {
-            name: 'service',
-            providerNames: ['twilio'],
-            usecases: ['Service'],
-            scope: 'sms',
-            version: { label: undefined, major: 1, minor: 0, patch: 0 },
-          },
-          paths: { basePath: undefined, superPath: 'superface' },
-          fileNames: {
-            map: undefined,
-            profile: undefined,
-            provider: undefined,
-          },
+      expect(create).toHaveBeenCalledWith({
+        profile: true,
+        map: true,
+        provider: true,
+        document: {
+          name: 'service',
+          providerNames: ['twilio'],
+          usecases: ['Service'],
+          scope: 'sms',
+          version: { label: undefined, major: 1, minor: 0, patch: 0 },
         },
-        { logCb: expect.anything(), warnCb: expect.anything() }
-      );
+        paths: { basePath: undefined, superPath: 'superface' },
+        fileNames: {
+          map: undefined,
+          profile: undefined,
+          provider: undefined,
+        },
+      });
     });
 
     it('creates profile & map with one provider and file names flags', async () => {
@@ -1019,27 +952,24 @@ describe('Create CLI command', () => {
       ).resolves.toBeUndefined();
 
       expect(create).toHaveBeenCalledTimes(1);
-      expect(create).toHaveBeenCalledWith(
-        {
-          profile: true,
-          map: true,
-          provider: true,
-          document: {
-            name: 'service',
-            providerNames: ['twilio'],
-            usecases: ['Service'],
-            scope: 'sms',
-            version: { label: undefined, major: 1, minor: 0, patch: 0 },
-          },
-          paths: { basePath: undefined, superPath: 'superface' },
-          fileNames: {
-            map: mockMapFileName,
-            profile: mockProfileFileName,
-            provider: mockProviderFileName,
-          },
+      expect(create).toHaveBeenCalledWith({
+        profile: true,
+        map: true,
+        provider: true,
+        document: {
+          name: 'service',
+          providerNames: ['twilio'],
+          usecases: ['Service'],
+          scope: 'sms',
+          version: { label: undefined, major: 1, minor: 0, patch: 0 },
         },
-        { logCb: expect.anything(), warnCb: expect.anything() }
-      );
+        paths: { basePath: undefined, superPath: 'superface' },
+        fileNames: {
+          map: mockMapFileName,
+          profile: mockProfileFileName,
+          provider: mockProviderFileName,
+        },
+      });
     });
 
     it('does not create scope folder in root with path flag', async () => {
@@ -1065,27 +995,24 @@ describe('Create CLI command', () => {
       ).resolves.toBeUndefined();
 
       expect(create).toHaveBeenCalledTimes(1);
-      expect(create).toHaveBeenCalledWith(
-        {
-          profile: true,
-          map: true,
-          provider: true,
-          document: {
-            name: 'service',
-            providerNames: ['twilio'],
-            usecases: ['Service'],
-            scope: 'sms',
-            version: { label: undefined, major: 1, minor: 0, patch: 0 },
-          },
-          paths: { basePath: path, superPath: 'superface' },
-          fileNames: {
-            map: undefined,
-            profile: undefined,
-            provider: undefined,
-          },
+      expect(create).toHaveBeenCalledWith({
+        profile: true,
+        map: true,
+        provider: true,
+        document: {
+          name: 'service',
+          providerNames: ['twilio'],
+          usecases: ['Service'],
+          scope: 'sms',
+          version: { label: undefined, major: 1, minor: 0, patch: 0 },
         },
-        { logCb: expect.anything(), warnCb: expect.anything() }
-      );
+        paths: { basePath: path, superPath: 'superface' },
+        fileNames: {
+          map: undefined,
+          profile: undefined,
+          provider: undefined,
+        },
+      });
       expect(mkdirQuiet).not.toHaveBeenCalled();
     });
 

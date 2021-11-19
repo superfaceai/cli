@@ -2,15 +2,11 @@ import { VerificationStatus } from '@superfaceai/service-client';
 import inquirer from 'inquirer';
 import * as open from 'open';
 
+import { Logger } from '..';
 import { userError } from '../common/error';
 import { SuperfaceClient } from '../common/http';
-import { LogCallback } from '../common/log';
 
-export async function login(options?: {
-  logCb?: LogCallback;
-  warnCb?: LogCallback;
-  force?: boolean;
-}): Promise<void> {
+export async function login(options?: { force?: boolean }): Promise<void> {
   const client = SuperfaceClient.getClient();
   //get verification url, browser url and expiresAt
   const initResponse = await client.cliLogin();
@@ -36,7 +32,7 @@ export async function login(options?: {
     openBrowser = prompt.open;
   }
   const showUrl = () => {
-    options?.warnCb?.(
+    Logger.warn(
       `Please open url: ${initResponse.browserUrl} in your browser to continue with login.`
     );
   };
@@ -45,7 +41,7 @@ export async function login(options?: {
       wait: false,
     });
     childProcess.on('error', err => {
-      options?.warnCb?.(err.message);
+      Logger.error(err.message);
       showUrl();
     });
     childProcess.on('close', code => {

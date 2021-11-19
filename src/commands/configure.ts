@@ -1,12 +1,13 @@
 import { flags as oclifFlags } from '@oclif/command';
 import { isValidProviderName } from '@superfaceai/ast';
-import { grey, yellow } from 'chalk';
 import { join as joinPath } from 'path';
 
+import { Logger } from '..';
 import { Command } from '../common/command.abstract';
 import { META_FILE, SUPERFACE_DIR } from '../common/document';
 import { userError } from '../common/error';
 import { exists } from '../common/io';
+import { messages } from '../common/messages';
 import { ProfileId } from '../common/profile';
 import { installProvider } from '../logic/configure';
 import { initSuperface } from '../logic/init';
@@ -58,16 +59,9 @@ export default class Configure extends Command {
     '$ superface configure twilio -p send-sms --localMap maps/send-sms.twilio.suma',
   ];
 
-  private warnCallback? = (message: string) => this.log(yellow(message));
-  private logCallback? = (message: string) => this.log(grey(message));
-
   async run(): Promise<void> {
     const { args, flags } = this.parse(Configure);
-
-    if (flags.quiet) {
-      this.warnCallback = undefined;
-      this.logCallback = undefined;
-    }
+    this.setUpLogger(flags.quiet);
 
     if (!isValidProviderName(args.providerName)) {
       throw userError('Invalid provider name', 1);
@@ -84,18 +78,13 @@ export default class Configure extends Command {
     let superPath = await detectSuperJson(process.cwd());
 
     if (!superPath) {
-      this.logCallback?.(
-        "Initializing superface directory with empty 'super.json'"
-      );
-      await initSuperface(
-        './',
-        { profiles: {}, providers: {} },
-        { logCb: this.logCallback }
-      );
+      Logger.info(messages.common.initSuperface());
+
+      await initSuperface('./', { profiles: {}, providers: {} });
       superPath = SUPERFACE_DIR;
     }
 
-    this.logCallback?.(
+    Logger.info(
       `Installing provider to 'super.json' on path '${joinPath(
         superPath,
         META_FILE
@@ -107,8 +96,6 @@ export default class Configure extends Command {
       profileId: ProfileId.fromId(flags.profile.trim()),
       defaults: undefined,
       options: {
-        logCb: this.logCallback,
-        warnCb: this.warnCallback,
         force: flags.force,
         localMap: flags.localMap,
         localProvider: flags.localProvider,

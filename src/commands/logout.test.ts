@@ -46,7 +46,7 @@ describe('Logout CLI command', () => {
       expect(getInfoSpy).toHaveBeenCalled();
       expect(stderr.output).toEqual('');
       expect(stdout.output).toEqual(
-        `Superface server responded with: No session found, couldn't log out\n`
+        `⚠️ Superface server responded with: No session found, couldn't log out\n`
       );
     });
 

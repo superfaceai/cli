@@ -3,6 +3,7 @@ import { EXTENSIONS } from '@superfaceai/ast';
 import { err, ok, SuperJson } from '@superfaceai/one-sdk';
 import { SDKExecutionError } from '@superfaceai/one-sdk/dist/internal/errors';
 
+import { Logger } from '../common';
 import { OutputStream } from '../common/output-stream';
 import { ProfileId } from '../common/profile';
 import { empty as emptyMap } from '../templates/map';
@@ -13,6 +14,10 @@ import { create, createMap, createProfile, createProviderJson } from './create';
 describe('Create logic', () => {
   afterEach(() => {
     jest.resetAllMocks();
+  });
+
+  beforeEach(async () => {
+    Logger.mockLogger();
   });
 
   describe('when creating profile', () => {

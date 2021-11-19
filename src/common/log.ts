@@ -1,7 +1,7 @@
 import { CLIError } from '@oclif/errors';
 import { green, grey, red, yellow } from 'chalk';
 
-export type LogCallback = (message: string) => void;
+// export type LogCallback = (message: string) => void;
 
 interface ILogger {
   log(input: string): void;
@@ -33,12 +33,12 @@ export class MockLogger implements ILogger {
     this.stderr = [];
   }
 
-  get stdoutOutput(): string[] {
-    return this.stdout;
+  get stdoutOutput(): string {
+    return this.stdout.join(' ');
   }
 
-  get stderrOutput(): string[] {
-    return this.stderr;
+  get stderrOutput(): string {
+    return this.stderr.join(' ');
   }
 
   log(input: string): void {
@@ -104,29 +104,3 @@ export class Logger {
     Logger.getInstance().log(green(`${Logger.successPrefix} ${input}`) + '\n');
   }
 }
-
-// export function formatShellLog(
-//   initial: string | undefined,
-//   quoted?: string[],
-//   env?: Record<string, string>
-// ): string {
-//   let envString = '';
-//   if (env !== undefined) {
-//     envString =
-//       Object.entries(env)
-//         .map(([key, value]) => `${key}='${value}'`)
-//         .join(' ') + ' ';
-//   }
-
-//   let quotedString = '';
-//   if (quoted !== undefined && quoted.length !== 0) {
-//     quotedString = quoted.map(q => `'${q}'`).join(' ');
-//   }
-
-//   let initialString = (initial ?? '').trim();
-//   if (initialString !== '' && quotedString !== '') {
-//     initialString = initialString + ' ';
-//   }
-
-//   return `$ ${envString}${initialString}${quotedString}`;
-// }

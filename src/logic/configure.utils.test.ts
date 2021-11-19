@@ -5,9 +5,13 @@ import {
   SecurityType,
 } from '@superfaceai/ast';
 
+import { Logger } from '../common';
 import { prepareSecurityValues } from '.';
 
 describe('Configure CLI logic', () => {
+  beforeEach(() => {
+    Logger.mockLogger();
+  });
   const providerName = 'test-provider';
   const mockSecuritySchemes: SecurityScheme[] = [
     {

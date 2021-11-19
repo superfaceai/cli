@@ -2,15 +2,13 @@ import { flags as oclifFlags } from '@oclif/command';
 import { isValidProviderName } from '@superfaceai/ast';
 import { SuperJson } from '@superfaceai/one-sdk';
 import { parseDocumentId } from '@superfaceai/parser';
-import { bold, grey, red } from 'chalk';
 import { join as joinPath } from 'path';
 
-import { META_FILE } from '../common';
+import { Logger, META_FILE } from '../common';
 import { Command } from '../common/command.abstract';
 import { developerError, userError } from '../common/error';
 import { formatWordPlurality } from '../common/format';
 import { ListWriter } from '../common/list-writer';
-import { LogCallback } from '../common/log';
 import { OutputStream } from '../common/output-stream';
 import { ReportFormat } from '../common/report.interfaces';
 import { detectSuperJson } from '../logic/install';
@@ -85,16 +83,9 @@ export default class Lint extends Command {
     '$ superface lint -s 3',
   ];
 
-  private logCallback? = (message: string) => this.log(grey(message));
-  private errCallback? = (message: string) => this.log(red(bold(message)));
-
   async run(): Promise<void> {
     const { flags } = this.parse(Lint);
-
-    if (flags.quiet) {
-      this.logCallback = undefined;
-      this.errCallback = undefined;
-    }
+    this.setUpLogger(flags.quiet);
 
     // Check inputs
     if (flags.profileId) {
@@ -178,8 +169,7 @@ export default class Lint extends Command {
             superJson,
             profiles,
             report =>
-              formatHuman(report, flags.quiet, flags.outputFormat === 'short'),
-            { logCb: this.logCallback, errCb: this.errCallback }
+              formatHuman(report, flags.quiet, flags.outputFormat === 'short')
           );
           await outputStream.write(
             `\nDetected ${formatWordPlurality(
@@ -197,8 +187,7 @@ export default class Lint extends Command {
             new ListWriter(outputStream, ','),
             superJson,
             profiles,
-            report => formatJson(report),
-            { logCb: undefined, errCb: this.errCallback }
+            report => formatJson(report)
           );
           await outputStream.write(
             `],"total":{"errors":${totals[0]},"warnings":${totals[1]}}}\n`
@@ -212,7 +201,7 @@ export default class Lint extends Command {
     if (totals[0] > 0) {
       throw userError('❌ Errors were found', 1);
     } else if (totals[1] > 0) {
-      this.logCallback?.('⚠️ Warnings were found');
+      Logger.warn('Warnings were found');
     }
   }
 
@@ -220,18 +209,13 @@ export default class Lint extends Command {
     writer: ListWriter,
     superJson: SuperJson,
     profiles: ProfileToValidate[],
-    fn: (report: ReportFormat) => string,
-    options?: {
-      logCb?: LogCallback;
-      errCb?: LogCallback;
-    }
+    fn: (report: ReportFormat) => string
   ): Promise<[errors: number, warnings: number]> {
     const counts: [number, number][] = await lint(
       superJson,
       profiles,
       writer,
-      fn,
-      options
+      fn
     );
 
     return counts.reduce((acc, curr) => [acc[0] + curr[0], acc[1] + curr[1]], [

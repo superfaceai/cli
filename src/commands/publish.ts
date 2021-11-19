@@ -2,7 +2,6 @@ import { flags } from '@oclif/command';
 import { EXTENSIONS, isValidProviderName } from '@superfaceai/ast';
 import { SuperJson } from '@superfaceai/one-sdk';
 import { parseDocumentId } from '@superfaceai/parser';
-import { green, grey, yellow } from 'chalk';
 import inquirer from 'inquirer';
 import { join as joinPath } from 'path';
 
@@ -77,20 +76,11 @@ export default class Publish extends Command {
     '$ superface publish profile --profileId starwars/characeter-information --providerName swapi --dryRun',
   ];
 
-  private logCallback? = (message: string) => this.log(grey(message));
-  private warnCallback? = (message: string) => this.log(yellow(message));
-  private successCallback? = (message: string) => this.log(green(message));
-
   async run(): Promise<void> {
     const { argv, flags } = this.parse(Publish);
+    this.setUpLogger(flags.quiet);
 
     const documentType = argv[0];
-
-    if (flags.quiet) {
-      this.logCallback = undefined;
-      this.successCallback = undefined;
-      this.warnCallback = undefined;
-    }
 
     // Check inputs
     const parsedProfileId = parseDocumentId(flags.profileId);
@@ -236,22 +226,19 @@ export default class Publish extends Command {
       map,
       version,
       {
-        logCb: this.logCallback,
         dryRun: flags.dryRun,
         json: flags.json,
         quiet: flags.quiet,
       }
     );
     if (result) {
-      this.warnCallback?.('❌ Publishing command ended up with errors:\n');
+      Logger.warn('Publishing command ended up with errors:\n');
       this.log(result);
 
       return;
     }
 
-    this.successCallback?.(
-      `🆗 ${documentType} has been published successfully.`
-    );
+    Logger.success(`${documentType} has been published successfully.`);
     let transition = true;
     if (!flags.force) {
       const prompt: { continue: boolean } = await inquirer.prompt({
@@ -287,7 +274,7 @@ export default class Publish extends Command {
         force: flags.force,
       });
 
-      Logger.info(messages.common['update-super-json'](superJson.path));
+      Logger.info(messages.common.updateSuperJson(superJson.path));
     }
   }
 }

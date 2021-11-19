@@ -99,8 +99,6 @@ describe('Configure CLI command', () => {
           localMap: undefined,
           localProvider: undefined,
           updateEnv: false,
-          logCb: expect.anything(),
-          warnCb: expect.anything(),
         },
       });
     });
@@ -126,8 +124,6 @@ describe('Configure CLI command', () => {
           localMap: undefined,
           localProvider: undefined,
           updateEnv: true,
-          logCb: expect.anything(),
-          warnCb: expect.anything(),
         },
       });
     });
@@ -144,11 +140,10 @@ describe('Configure CLI command', () => {
       expect(detectSuperJson).toHaveBeenCalledTimes(1);
 
       expect(initSuperface).toHaveBeenCalledTimes(1);
-      expect(initSuperface).toHaveBeenCalledWith(
-        './',
-        { profiles: {}, providers: {} },
-        { logCb: undefined }
-      );
+      expect(initSuperface).toHaveBeenCalledWith('./', {
+        profiles: {},
+        providers: {},
+      });
 
       expect(installProvider).toHaveBeenCalledTimes(1);
       expect(installProvider).toHaveBeenCalledWith({
@@ -161,8 +156,6 @@ describe('Configure CLI command', () => {
           updateEnv: false,
           localMap: undefined,
           localProvider: undefined,
-          logCb: undefined,
-          warnCb: undefined,
         },
       });
     });

@@ -111,8 +111,7 @@ describe('Init logic', () => {
         { major: 1 },
         [composeUsecaseName('first-test-name')],
         mockSuperJson,
-        undefined,
-        { logCb: undefined }
+        undefined
       );
       expect(createProfile).toHaveBeenNthCalledWith(
         2,
@@ -121,8 +120,7 @@ describe('Init logic', () => {
         { major: 2 },
         [composeUsecaseName('second-test-name')],
         mockSuperJson,
-        undefined,
-        { logCb: undefined }
+        undefined
       );
     });
 

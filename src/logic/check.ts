@@ -11,8 +11,7 @@ import {
 import { SuperJson } from '@superfaceai/one-sdk';
 import { green, red, yellow } from 'chalk';
 
-import { composeVersion } from '..';
-import { LogCallback } from '../common/log';
+import { composeVersion, Logger } from '..';
 import { isProviderParseError } from './check.utils';
 import { ProfileToValidate } from './lint';
 import {
@@ -74,8 +73,7 @@ export type CheckIssue = { kind: 'error' | 'warn'; message: string };
 
 export async function check(
   superJson: SuperJson,
-  profiles: ProfileToValidate[],
-  options?: { logCb?: LogCallback; warnCb?: LogCallback }
+  profiles: ProfileToValidate[]
 ): Promise<CheckResult[]> {
   const finalResults: CheckResult[] = [];
 
@@ -84,8 +82,7 @@ export async function check(
     const profileFiles = await loadProfile(
       superJson,
       profile.id,
-      profile.version,
-      options
+      profile.version
     );
     assertProfileDocumentNode(profileFiles.ast);
 
@@ -96,32 +93,27 @@ export async function check(
         profile.id,
         map.provider,
         { variant: map.variant },
-        profile.version,
-        options
+        profile.version
       );
       assertMapDocumentNode(mapFiles.ast);
 
       //Load provider.json
-      const providerFiles = await loadProvider(
-        superJson,
-        map.provider,
-        options
-      );
+      const providerFiles = await loadProvider(superJson, map.provider);
 
-      options?.logCb?.(
+      Logger.info(
         `Checking profile: "${profile.id.toString()}" and map for provider: "${
           map.provider
         }"`
       );
       //Check map and profile
       finalResults.push({
-        ...checkMapAndProfile(profileFiles.ast, mapFiles.ast, options),
+        ...checkMapAndProfile(profileFiles.ast, mapFiles.ast),
         mapFrom: mapFiles.from,
         profileFrom: profileFiles.from,
       });
 
       //Check map and provider
-      options?.logCb?.(`Checking provider: "${map.provider}"`);
+      Logger.info(`Checking provider: "${map.provider}"`);
       finalResults.push({
         ...checkMapAndProvider(providerFiles.source, mapFiles.ast),
         mapFrom: mapFiles.from,
@@ -129,7 +121,7 @@ export async function check(
       });
 
       //Check integration parameters
-      options?.logCb?.(
+      Logger.info(
         `Checking integration parameters of provider: "${map.provider}"`
       );
       finalResults.push({
@@ -238,11 +230,10 @@ export function checkMapAndProfile(
   map: MapDocumentNode,
   options?: {
     strict?: boolean;
-    logCb?: LogCallback;
   }
 ): CheckMapProfileResult {
   const results: CheckIssue[] = [];
-  options?.logCb?.(
+  Logger.info(
     `Checking versions of profile: "${profile.header.name}" and map for provider: "${map.header.provider}"`
   );
   //Header
@@ -277,7 +268,7 @@ export function checkMapAndProfile(
       message: `Profile "${profile.header.name}" has map for provider "${map.header.provider}" with different LABEL version`,
     });
   }
-  options?.logCb?.(
+  Logger.info(
     `Checking usecase definitions in profile: "${profile.header.name}" and map for provider: "${map.header.provider}"`
   );
 

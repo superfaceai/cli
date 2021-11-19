@@ -1,6 +1,6 @@
 import { ServiceApiError } from '@superfaceai/service-client';
-import { bold, gray, green, yellow } from 'chalk';
 
+import { Logger } from '../common';
 import { Command } from '../common/command.abstract';
 import { userError } from '../common/error';
 import { SuperfaceClient } from '../common/http';
@@ -12,28 +12,24 @@ export default class Whoami extends Command {
 
   static examples = ['$ superface whoami', '$ sf whoami'];
 
-  private logCallback = (message: string) => this.log(gray(message));
-  private warnCallback = (message: string) => this.log(yellow(message));
-
   async run(): Promise<void> {
+    const { flags } = this.parse(Whoami);
+    this.setUpLogger(flags.quiet);
+
     try {
       const userInfo = await SuperfaceClient.getClient().getUserInfo();
-      this.logCallback(
-        `🆗 You are logged in as: ${bold(green(userInfo.name))} (${bold(
-          green(userInfo.email)
-        )})`
+      Logger.success(
+        `You are logged in as: ${userInfo.name} (${userInfo.email})`
       );
     } catch (error) {
       if (!(error instanceof ServiceApiError)) {
         throw userError(error, 1);
       }
       if (error.status === 401) {
-        this.warnCallback(
-          `❌ You are not logged in. Please try running "sf login"`
-        );
+        Logger.warn(`You are not logged in. Please try running "sf login"`);
       } else {
-        this.warnCallback(
-          `⚠️ Superface server responded with error: ${error.name}: ${error.message}`
+        Logger.warn(
+          `Superface server responded with error: ${error.name}: ${error.message}`
         );
       }
     }

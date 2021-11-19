@@ -3,6 +3,7 @@ import { ok, Parser, SuperJson } from '@superfaceai/one-sdk';
 import inquirer from 'inquirer';
 import { mocked } from 'ts-jest/utils';
 
+import { Logger, MockLogger } from '..';
 import { fetchProviders, getServicesUrl } from '../common/http';
 import { exists, readFile } from '../common/io';
 import { OutputStream } from '../common/output-stream';
@@ -40,9 +41,7 @@ jest.mock('../common/io');
 jest.mock('inquirer');
 
 describe('Quickstart logic', () => {
-  const logCb = jest.fn();
-  const warnCb = jest.fn();
-  const successCb = jest.fn();
+  let logger: MockLogger;
   // eslint-disable-next-line @typescript-eslint/unbound-method
   const originalLoad = SuperJson.load;
   let mockLoad = jest.fn();
@@ -52,6 +51,7 @@ describe('Quickstart logic', () => {
   });
 
   beforeEach(() => {
+    logger = Logger.mockLogger();
     mockLoad = jest.fn();
     SuperJson.load = mockLoad;
   });
@@ -303,11 +303,7 @@ describe('Quickstart logic', () => {
             'sfs_bb064dd57c302911602dd097bc29bedaea6a021c25a66992d475ed959aa526c7_37bce8b5',
         });
 
-      await interactiveInstall(`${profile.scope}/${profile.profile}`, {
-        logCb,
-        warnCb,
-        successCb,
-      });
+      await interactiveInstall(`${profile.scope}/${profile.profile}`);
 
       expect(detectSuperJson).toHaveBeenCalled();
       expect(initSuperface).toHaveBeenCalled();
@@ -319,24 +315,20 @@ describe('Quickstart logic', () => {
         'SENDGRID_TOKEN=sendgridBearer\nTEST_DIGEST=testDigest\nMAILGUN_USERNAME=mailgunUsername\nMAILGUN_PASSWORD=mailgunPassword\nSUPERFACE_SDK_TOKEN=sfs_bb064dd57c302911602dd097bc29bedaea6a021c25a66992d475ed959aa526c7_37bce8b5\n'
       );
 
-      expect(successCb).toHaveBeenCalledWith(
-        'Initializing superface directory'
+      expect(logger.stdoutOutput).toMatch('Initializing superface directory');
+      expect(logger.stdoutOutput).toMatch('Installing providers');
+      expect(logger.stdoutOutput).toMatch('Configuring providers security');
+      expect(logger.stdoutOutput).toMatch('Configuring sendgrid security');
+      expect(logger.stdoutOutput).toMatch('Configuring mailgun security');
+      expect(logger.stdoutOutput).toMatch('Configuring test security');
+      expect(logger.stdoutOutput).toMatch(
+        'Installing package "@superfaceai/one-sdk"'
       );
-      expect(successCb).toHaveBeenCalledWith('\nInstalling providers');
-      expect(successCb).toHaveBeenCalledWith(
-        '\nConfiguring providers security'
+      expect(logger.stdoutOutput).toMatch(
+        '🆗 Superface have been configured successfully!'
       );
-      expect(logCb).toHaveBeenCalledWith('\nConfiguring "sendgrid" security');
-      expect(logCb).toHaveBeenCalledWith('\nConfiguring "mailgun" security');
-      expect(logCb).toHaveBeenCalledWith('\nConfiguring "test" security');
-      expect(successCb).toHaveBeenCalledWith(
-        '\nInstalling package "@superfaceai/one-sdk"'
-      );
-      expect(successCb).toHaveBeenCalledWith(
-        '\n🆗 Superface have been configured successfully!'
-      );
-      expect(successCb).toHaveBeenCalledWith(
-        `\nNow you can follow our documentation to use installed capability: "https://superface.ai/${profile.scope}/${profile.profile}"`
+      expect(logger.stdoutOutput).toMatch(
+        `Now you can follow our documentation to use installed capability: "https://superface.ai/${profile.scope}/${profile.profile}"`
       );
     });
 
@@ -466,8 +458,7 @@ describe('Quickstart logic', () => {
         });
 
       await interactiveInstall(
-        `${profile.scope}/${profile.profile}@${profile.version}`,
-        { logCb, warnCb, successCb }
+        `${profile.scope}/${profile.profile}@${profile.version}`
       );
 
       expect(detectSuperJson).toHaveBeenCalled();
@@ -479,24 +470,20 @@ describe('Quickstart logic', () => {
         'SOME=env\nSENDGRID_TOKEN=sendgridBearer\nTEST_API_KEY=testApiKey\nMAILGUN_USERNAME=mailgunUsername\nMAILGUN_PASSWORD=mailgunPassword\nSUPERFACE_SDK_TOKEN=sfs_bb064dd57c302911602dd097bc29bedaea6a021c25a66992d475ed959aa526c7_37bce8b5\n'
       );
 
-      expect(successCb).toHaveBeenCalledWith(
-        'Initializing superface directory'
+      expect(logger.stdoutOutput).toMatch('Initializing superface directory');
+      expect(logger.stdoutOutput).toMatch('Installing providers');
+      expect(logger.stdoutOutput).toMatch('Configuring providers security');
+      expect(logger.stdoutOutput).toMatch('Configuring sendgrid security');
+      expect(logger.stdoutOutput).toMatch('Configuring mailgun security');
+      expect(logger.stdoutOutput).toMatch('Configuring test security');
+      expect(logger.stdoutOutput).toMatch(
+        'Installing package "@superfaceai/one-sdk"'
       );
-      expect(successCb).toHaveBeenCalledWith('\nInstalling providers');
-      expect(successCb).toHaveBeenCalledWith(
-        '\nConfiguring providers security'
+      expect(logger.stdoutOutput).toMatch(
+        '🆗 Superface have been configured successfully!'
       );
-      expect(logCb).toHaveBeenCalledWith('\nConfiguring "sendgrid" security');
-      expect(logCb).toHaveBeenCalledWith('\nConfiguring "mailgun" security');
-      expect(logCb).toHaveBeenCalledWith('\nConfiguring "test" security');
-      expect(successCb).toHaveBeenCalledWith(
-        '\nInstalling package "@superfaceai/one-sdk"'
-      );
-      expect(successCb).toHaveBeenCalledWith(
-        '\n🆗 Superface have been configured successfully!'
-      );
-      expect(successCb).toHaveBeenCalledWith(
-        `\nNow you can follow our documentation to use installed capability: "https://superface.ai/${profile.scope}/${profile.profile}"`
+      expect(logger.stdoutOutput).toMatch(
+        `Now you can follow our documentation to use installed capability: "https://superface.ai/${profile.scope}/${profile.profile}"`
       );
     });
 
@@ -609,11 +596,7 @@ describe('Quickstart logic', () => {
             'sfs_bb064dd57c302911602dd097bc29bedaea6a021c25a66992d475ed959aa526c7_37bce8b5',
         });
 
-      await interactiveInstall(`${profile.scope}/${profile.profile}`, {
-        logCb,
-        warnCb,
-        successCb,
-      });
+      await interactiveInstall(`${profile.scope}/${profile.profile}`);
 
       expect(detectSuperJson).toHaveBeenCalled();
       expect(initSuperface).toHaveBeenCalled();
@@ -629,23 +612,19 @@ describe('Quickstart logic', () => {
         'TEST_API_KEY=env\nMAILGUN_USERNAME=mailgunUsername\nMAILGUN_PASSWORD=mailgunPassword\nSUPERFACE_SDK_TOKEN=sfs_bb064dd57c302911602dd097bc29bedaea6a021c25a66992d475ed959aa526c7_37bce8b5\n'
       );
 
-      expect(successCb).toHaveBeenCalledWith(
-        'Initializing superface directory'
+      expect(logger.stdoutOutput).toMatch('Initializing superface directory');
+      expect(logger.stdoutOutput).toMatch('Installing providers');
+      expect(logger.stdoutOutput).toMatch('Configuring providers security');
+      expect(logger.stdoutOutput).toMatch('Configuring sendgrid security');
+      expect(logger.stdoutOutput).toMatch(
+        'Value of SENDGRID_TOKEN in sendgrid bearer security schema does not start with $ character.'
       );
-      expect(successCb).toHaveBeenCalledWith('\nInstalling providers');
-      expect(successCb).toHaveBeenCalledWith(
-        '\nConfiguring providers security'
+      expect(logger.stdoutOutput).toMatch('Configuring mailgun security');
+      expect(logger.stdoutOutput).toMatch(
+        'Installing package "@superfaceai/one-sdk"'
       );
-      expect(logCb).toHaveBeenCalledWith('\nConfiguring "sendgrid" security');
-      expect(warnCb).toHaveBeenCalledWith(
-        'Value of SENDGRID_TOKEN in "sendgrid" "bearer" security schema does not start with $ character.'
-      );
-      expect(logCb).toHaveBeenCalledWith('\nConfiguring "mailgun" security');
-      expect(successCb).toHaveBeenCalledWith(
-        '\nInstalling package "@superfaceai/one-sdk"'
-      );
-      expect(successCb).toHaveBeenCalledWith(
-        '\n🆗 Superface have been configured successfully!'
+      expect(logger.stdoutOutput).toMatch(
+        '🆗 Superface have been configured successfully!'
       );
     });
 
@@ -782,11 +761,7 @@ describe('Quickstart logic', () => {
           token:
             'sfs_bb064dd57c302911602dd097bc29bedaea6a021c25a66992d475ed959aa526c7_37bce8b5',
         });
-      await interactiveInstall(`${profile.scope}/${profile.profile}`, {
-        logCb,
-        warnCb,
-        successCb,
-      });
+      await interactiveInstall(`${profile.scope}/${profile.profile}`);
 
       expect(detectSuperJson).toHaveBeenCalled();
       expect(initSuperface).not.toHaveBeenCalled();
@@ -801,24 +776,22 @@ describe('Quickstart logic', () => {
         'test=test\nSENDGRID_TOKEN=t\ntest2=test2\nMAILGUN_USERNAME=mailgunUsername\nMAILGUN_PASSWORD=mailgunPassword\nTEST_DIGEST=testDigest\nSUPERFACE_SDK_TOKEN=sfs_bb064dd57c302911602dd097bc29bedaea6a021c25a66992d475ed959aa526c7_37bce8b5\n'
       );
 
-      expect(successCb).toHaveBeenCalledWith('\nInstalling providers');
-      expect(successCb).toHaveBeenCalledWith(
-        '\nConfiguring providers security'
-      );
+      expect(logger.stdoutOutput).toMatch('Installing providers');
+      expect(logger.stdoutOutput).toMatch('Configuring providers security');
       //User dont want to override sendgrid
-      expect(logCb).not.toHaveBeenCalledWith(
-        '\nConfiguring "sendgrid" security'
+      expect(logger.stdoutOutput).not.toContain(
+        'Configuring sendgrid security'
       );
-      expect(logCb).toHaveBeenCalledWith('\nConfiguring "mailgun" security');
-      expect(logCb).toHaveBeenCalledWith('\nConfiguring "test" security');
-      expect(successCb).toHaveBeenCalledWith(
-        '\nInstalling package "@superfaceai/one-sdk"'
+      expect(logger.stdoutOutput).toMatch('Configuring mailgun security');
+      expect(logger.stdoutOutput).toMatch('Configuring test security');
+      expect(logger.stdoutOutput).toMatch(
+        'Installing package "@superfaceai/one-sdk"'
       );
-      expect(successCb).toHaveBeenCalledWith(
-        '\n🆗 Superface have been configured successfully!'
+      expect(logger.stdoutOutput).toMatch(
+        '🆗 Superface have been configured successfully!'
       );
-      expect(successCb).toHaveBeenCalledWith(
-        `\nNow you can follow our documentation to use installed capability: "https://superface.ai/${profile.scope}/${profile.profile}"`
+      expect(logger.stdoutOutput).toMatch(
+        `Now you can follow our documentation to use installed capability: "https://superface.ai/${profile.scope}/${profile.profile}"`
       );
     });
   });

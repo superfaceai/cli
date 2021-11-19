@@ -5,13 +5,13 @@ import {
   isValidProviderName,
 } from '@superfaceai/ast';
 import { parseProfileId, VersionRange } from '@superfaceai/parser';
-import { grey, yellow } from 'chalk';
 import inquirer from 'inquirer';
 
 import {
   composeUsecaseName,
   DEFAULT_PROFILE_VERSION,
   DEFAULT_PROFILE_VERSION_STR,
+  Logger,
   SUPERFACE_DIR,
   UNVERIFIED_PROVIDER_PREFIX,
 } from '../common';
@@ -121,11 +121,9 @@ export default class Create extends Command {
     '$ superface create -i',
   ];
 
-  private warnCallback? = (message: string) => this.log(yellow(message));
-  private logCallback? = (message: string) => this.log(grey(message));
-
   async run(): Promise<void> {
     const { flags } = this.parse(Create);
+    this.setUpLogger(flags.quiet);
 
     if (!flags.profileId && !flags.providerName && !flags.interactive) {
       throw userError('Invalid command! Specify profileId or providerName', 1);
@@ -199,11 +197,6 @@ export default class Create extends Command {
         }
       }
     }
-
-    if (flags.quiet) {
-      this.logCallback = undefined;
-      this.warnCallback = undefined;
-    }
     let profileId: string | undefined = undefined;
     let providerNames: string[] = [];
 
@@ -238,7 +231,7 @@ export default class Create extends Command {
           !provider.startsWith(UNVERIFIED_PROVIDER_PREFIX) &&
           (flags.map || flags.provider)
         ) {
-          this.warnCallback?.(
+          Logger.warn(
             `Published provider name must have prefix "${UNVERIFIED_PROVIDER_PREFIX}".\nIf you are planning to publish this map or provider consider renaming it to eg: "${UNVERIFIED_PROVIDER_PREFIX}${provider}"`
           );
         }
@@ -336,14 +329,14 @@ export default class Create extends Command {
     //We do want to init
     if (flags.init) {
       if (superPath) {
-        this.warnCallback?.('Superface has been already initialized');
+        Logger.warn('Superface has been already initialized');
       } else {
         initSf = true;
       }
     }
     //We prompt user
     if (!flags['no-init'] && !flags.init && !superPath) {
-      this.warnCallback?.("File 'super.json' has not been found.");
+      Logger.warn("File 'super.json' has not been found.");
 
       const response: { init: boolean } = await inquirer.prompt({
         name: 'init',
@@ -356,14 +349,8 @@ export default class Create extends Command {
 
     //Init SF
     if (initSf) {
-      this.logCallback?.(
-        "Initializing superface directory with empty 'super.json'"
-      );
-      await initSuperface(
-        NORMALIZED_CWD_PATH,
-        { profiles: {}, providers: {} },
-        { logCb: this.logCallback }
-      );
+      Logger.info("Initializing superface directory with empty 'super.json'");
+      await initSuperface(NORMALIZED_CWD_PATH, { profiles: {}, providers: {} });
       superPath = SUPERFACE_DIR;
     }
 
@@ -372,34 +359,28 @@ export default class Create extends Command {
       superPath = undefined;
     }
 
-    await create(
-      {
-        provider: !!flags.provider,
-        map: !!flags.map,
-        profile: !!flags.profile,
-        fileNames: {
-          map: flags.mapFileName,
-          profile: flags.profileFileName,
-          provider: flags.providerFileName,
-        },
-        paths: {
-          superPath,
-          basePath: flags.path,
-        },
-        document: {
-          scope,
-          version,
-          providerNames,
-          usecases,
-          name,
-          variant: flags.variant,
-        },
+    await create({
+      provider: !!flags.provider,
+      map: !!flags.map,
+      profile: !!flags.profile,
+      fileNames: {
+        map: flags.mapFileName,
+        profile: flags.profileFileName,
+        provider: flags.providerFileName,
       },
-      {
-        logCb: this.logCallback,
-        warnCb: this.warnCallback,
-      }
-    );
+      paths: {
+        superPath,
+        basePath: flags.path,
+      },
+      document: {
+        scope,
+        version,
+        providerNames,
+        usecases,
+        name,
+        variant: flags.variant,
+      },
+    });
   }
 
   async inputPrompt(message: string): Promise<string | undefined> {

@@ -21,10 +21,11 @@ import { bold } from 'chalk';
 import inquirer from 'inquirer';
 import { join as joinPath } from 'path';
 
+import { Logger } from '..';
 import { developerError, userError } from '../common/error';
 import { fetchProviders, getServicesUrl } from '../common/http';
 import { exists, readFile } from '../common/io';
-import { LogCallback } from '../common/log';
+import { messages } from '../common/messages';
 import { OutputStream } from '../common/output-stream';
 import { PackageManager } from '../common/package-manager';
 import { NORMALIZED_CWD_PATH } from '../common/path';
@@ -36,14 +37,7 @@ import { initSuperface } from './init';
 import { detectSuperJson, installProfiles } from './install';
 import { profileExists, providerExists } from './quickstart.utils';
 
-export async function interactiveInstall(
-  profileArg: string,
-  options?: {
-    logCb?: LogCallback;
-    warnCb?: LogCallback;
-    successCb?: LogCallback;
-  }
-): Promise<void> {
+export async function interactiveInstall(profileArg: string): Promise<void> {
   const [profileIdStr, version] = profileArg.split('@');
   const profilePathParts = profileIdStr.split('/');
   const profileId = ProfileId.fromScopeName(
@@ -52,12 +46,12 @@ export async function interactiveInstall(
   );
 
   if (!isValidDocumentName(profileId.name)) {
-    options?.warnCb?.(`Invalid profile name: ${profileId.name}`);
+    Logger.error(`Invalid profile name: ${profileId.name}`);
 
     return;
   }
   if (version && !isValidVersionString(version)) {
-    options?.warnCb?.(`Invalid profile version: ${version}`);
+    Logger.error(`Invalid profile version: ${version}`);
 
     return;
   }
@@ -66,12 +60,8 @@ export async function interactiveInstall(
   let superPath = await detectSuperJson(process.cwd());
   if (!superPath) {
     //Init SF
-    options?.successCb?.('Initializing superface directory');
-    await initSuperface(
-      NORMALIZED_CWD_PATH,
-      { profiles: {}, providers: {} },
-      { logCb: options?.logCb }
-    );
+    Logger.success(messages.common.initSuperface());
+    await initSuperface(NORMALIZED_CWD_PATH, { profiles: {}, providers: {} });
     superPath = SUPERFACE_DIR;
   }
 
@@ -80,7 +70,7 @@ export async function interactiveInstall(
     await SuperJson.load(joinPath(superPath, META_FILE))
   ).unwrap();
 
-  options?.successCb?.(`\nInitializing ${profileArg}`);
+  Logger.success(`Initializing ${profileArg}\n`);
 
   let installProfile = true;
   //Override existing profile
@@ -104,8 +94,6 @@ export async function interactiveInstall(
         },
       ],
       options: {
-        logCb: options?.logCb,
-        warnCb: options?.warnCb,
         force: true,
       },
     });
@@ -178,7 +166,7 @@ export async function interactiveInstall(
   }
 
   //Configure providers
-  options?.successCb?.(`\nInstalling providers`);
+  Logger.success(`Installing providers\n`);
   const providersToInstall: string[] = [];
   for (const provider of providersWithPriority) {
     //Override existing provider
@@ -272,8 +260,6 @@ export async function interactiveInstall(
         },
       },
       options: {
-        logCb: options?.logCb,
-        warnCb: options?.warnCb,
         force: true,
       },
     });
@@ -284,7 +270,7 @@ export async function interactiveInstall(
   //Get installed providers
   const installedProviders = superJson.normalized.providers;
   //Ask for provider security
-  options?.successCb?.(`\nConfiguring providers security`);
+  Logger.success(`Configuring providers security\n`);
 
   //Get .env file
   if (await exists('.env')) {
@@ -296,7 +282,7 @@ export async function interactiveInstall(
     if (!providersToInstall.includes(provider)) {
       continue;
     }
-    options?.logCb?.(`\nConfiguring "${provider}" security`);
+    Logger.info(`Configuring ${provider} security\n`);
     //Select security schema
     if (
       installedProviders[provider].security &&
@@ -317,23 +303,17 @@ export async function interactiveInstall(
       envContent = await resolveSecurityEnvValues(
         provider,
         selectedSchema,
-        envContent,
-        {
-          logCb: options?.logCb,
-          warnCb: options?.warnCb,
-        }
+        envContent
       );
     } else {
-      options?.successCb?.(
-        `\nProvider "${provider}" can be used without authentication`
+      Logger.success(
+        `Provider ${provider} can be used without authentication\n`
       );
     }
   }
   //Check/init package-manager
-  if (!(await PackageManager.packageJsonExists({ warnCb: options?.warnCb }))) {
-    options?.warnCb?.(
-      `Package.json not found in current directory "${process.cwd()}".`
-    );
+  if (!(await PackageManager.packageJsonExists())) {
+    Logger.warn(`Package.json not found in current directory ${process.cwd()}`);
     //Prompt user for package manager initialization
     const response: {
       pm: 'yarn' | 'npm' | 'exit';
@@ -352,19 +332,13 @@ export async function interactiveInstall(
     if (response.pm === 'exit') {
       return;
     }
-    options?.successCb?.(`\nInitializing package manager "${response.pm}"`);
+    Logger.success(`Initializing package manager ${response.pm}\n`);
 
-    await PackageManager.init(response.pm, {
-      logCb: options?.logCb,
-      warnCb: options?.warnCb,
-    });
+    await PackageManager.init(response.pm);
   }
   //Install SDK
-  options?.successCb?.(`\nInstalling package "@superfaceai/one-sdk"`);
-  await PackageManager.installPackage('@superfaceai/one-sdk', {
-    logCb: options?.logCb,
-    warnCb: options?.warnCb,
-  });
+  Logger.success(`Installing package "@superfaceai/one-sdk"`);
+  await PackageManager.installPackage('@superfaceai/one-sdk');
 
   //Prompt user for dotenv installation
   if (
@@ -373,15 +347,12 @@ export async function interactiveInstall(
       { default: true }
     )
   ) {
-    options?.successCb?.(`\nInstalling package "dotenv"`);
-    await PackageManager.installPackage('dotenv', {
-      logCb: options?.logCb,
-      warnCb: options?.warnCb,
-    });
+    Logger.success(`Installing package "dotenv"\n`);
+    await PackageManager.installPackage('dotenv');
   }
 
   //Prompt user for optional SDK token
-  options?.successCb?.(`\nConfiguring package "@superfaceai/one-sdk"`);
+  Logger.success(`Configuring package "@superfaceai/one-sdk"\n`);
 
   const tokenEnvName = 'SUPERFACE_SDK_TOKEN';
 
@@ -406,22 +377,22 @@ export async function interactiveInstall(
 
     if (tokenResponse.token) {
       envContent += envVariable(tokenEnvName, tokenResponse.token);
-      options?.successCb?.(
+      Logger.success(
         `Your SDK token was saved to ${tokenEnvName} variable in .env file. You can use it for authentization during SDK usage by loading it to your enviroment.`
       );
     } else {
-      options?.successCb?.('Continuing without SDK token');
+      Logger.success('Continuing without SDK token');
     }
   }
 
   //Write .env file
   await OutputStream.writeOnce('.env', envContent);
 
-  options?.successCb?.(`\n🆗 Superface have been configured successfully!`);
+  Logger.success(`Superface have been configured successfully!`);
 
   //Lead to docs page
-  options?.successCb?.(
-    `\nNow you can follow our documentation to use installed capability: "${
+  Logger.success(
+    `Now you can follow our documentation to use installed capability: "${
       new URL(profileId.id, getServicesUrl()).href
     }"`
   );
@@ -434,7 +405,7 @@ async function selectRetryPolicy(
   //Select retry policy
   const policyResponse: { policy: OnFail } = await inquirer.prompt({
     name: 'policy',
-    message: `Select a failure policy for provider "${provider}" and use case: "${selectedUseCase}":`,
+    message: `Select a failure policy for provider ${provider} and use case: ${selectedUseCase}:`,
     type: 'list',
     choices: [
       { name: 'None', value: OnFail.NONE },
@@ -482,12 +453,12 @@ async function selectCircuitBreakerValues(
     maxContiguousRetries: number;
   } = await inquirer.prompt({
     name: 'maxContiguousRetries',
-    message: `Enter value of maximum contiguous retries for provider "${provider}" and use case: ${useCase}:`,
+    message: `Enter value of maximum contiguous retries for provider ${provider} and use case: ${useCase}:`,
     type: 'number',
   });
   const requestTimeout: { requestTimeout: number } = await inquirer.prompt({
     name: 'requestTimeout',
-    message: `Enter request timeout for provider "${provider}" and use case: ${useCase} (in miliseconds):`,
+    message: `Enter request timeout for provider ${provider} and use case: ${useCase} (in miliseconds):`,
     type: 'number',
   });
 
@@ -506,12 +477,12 @@ async function selectExponentialBackoffValues(
 ): Promise<{ kind: BackoffKind.EXPONENTIAL; start: number; factor: number }> {
   const start: { start: number } = await inquirer.prompt({
     name: 'start',
-    message: `Enter initial value of exponential backoff for provider "${provider}" and use case: ${useCase} (in miliseconds):`,
+    message: `Enter initial value of exponential backoff for provider ${provider} and use case: ${useCase} (in miliseconds):`,
     type: 'number',
   });
   const factor: { factor: number } = await inquirer.prompt({
     name: 'factor',
-    message: `Enter value of exponent in exponential backoff for provider "${provider}" and use case: ${useCase} (in miliseconds):`,
+    message: `Enter value of exponent in exponential backoff for provider ${provider} and use case: ${useCase} (in miliseconds):`,
     type: 'number',
   });
 
@@ -527,15 +498,11 @@ async function getPromptedValue(
   authType: 'api key' | 'basic' | 'digest' | 'bearer',
   name: string,
   envVariableName: string,
-  envContent: string,
-  options?: {
-    logCb?: LogCallback;
-    warnCb?: LogCallback;
-  }
+  envContent: string
 ): Promise<string> {
   if (!envVariableName.startsWith('$')) {
-    options?.warnCb?.(
-      `Value of ${envVariableName} in "${provider}" "${authType}" security schema does not start with $ character.`
+    Logger.warn(
+      `Value of ${envVariableName} in ${provider} ${authType} security schema does not start with $ character.`
     );
 
     return envContent;
@@ -545,7 +512,7 @@ async function getPromptedValue(
     //Do we want to override?
     if (
       await confirmPrompt(
-        `Value of "${variableName}" for "${provider}" is already set.\nDo you want to override it?:`
+        `Value of ${variableName} for ${provider} is already set.\nDo you want to override it?:`
       )
     ) {
       //Delete set row
@@ -560,7 +527,7 @@ async function getPromptedValue(
 
   const response: { value: string } = await inquirer.prompt({
     name: 'value',
-    message: `Enter ${name} of ${authType} security for "${provider}". This value will be stored locally in .env file:`,
+    message: `Enter ${name} of ${authType} security for ${provider}. This value will be stored locally in .env file:`,
     type: 'password',
   });
 
@@ -570,11 +537,7 @@ async function getPromptedValue(
 async function resolveSecurityEnvValues(
   provider: string,
   schema: SecurityValues,
-  envFile: string,
-  options?: {
-    logCb?: LogCallback;
-    warnCb?: LogCallback;
-  }
+  envFile: string
 ): Promise<string> {
   let newEnvContent = envFile;
   if (isApiKeySecurityValues(schema)) {
@@ -583,8 +546,7 @@ async function resolveSecurityEnvValues(
       'api key',
       'apikey',
       schema.apikey,
-      newEnvContent,
-      options
+      newEnvContent
     );
   } else if (isBasicAuthSecurityValues(schema)) {
     newEnvContent = await getPromptedValue(
@@ -592,16 +554,14 @@ async function resolveSecurityEnvValues(
       'basic',
       'username',
       schema.username,
-      newEnvContent,
-      options
+      newEnvContent
     );
     newEnvContent = await getPromptedValue(
       provider,
       'basic',
       'password',
       schema.password,
-      newEnvContent,
-      options
+      newEnvContent
     );
   } else if (isBearerTokenSecurityValues(schema)) {
     newEnvContent = await getPromptedValue(
@@ -609,8 +569,7 @@ async function resolveSecurityEnvValues(
       'bearer',
       'token',
       schema.token,
-      newEnvContent,
-      options
+      newEnvContent
     );
   } else if (isDigestSecurityValues(schema)) {
     newEnvContent = await getPromptedValue(
@@ -618,11 +577,10 @@ async function resolveSecurityEnvValues(
       'bearer',
       'digest',
       schema.digest,
-      newEnvContent,
-      options
+      newEnvContent
     );
   } else {
-    options?.warnCb?.(`Unable to resolve security type for "${provider}"`);
+    Logger.warn(`Unable to resolve security type for "${provider}"`);
   }
 
   return newEnvContent;
@@ -634,7 +592,7 @@ async function selectSecuritySchema(
 ): Promise<SecurityValues> {
   const schemaResponse: { schema: SecurityValues } = await inquirer.prompt({
     name: 'schema',
-    message: `Select a security schema for "${provider}":`,
+    message: `Select a security schema for ${provider}:`,
     type: 'list',
     choices: schemas.map(s => {
       return { name: s.id, value: s };

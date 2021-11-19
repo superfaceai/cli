@@ -22,7 +22,7 @@ import {
   ProfileInfo,
 } from '../common/http';
 import { exists, isAccessible, readFile } from '../common/io';
-import { LogCallback, Logger } from '../common/log';
+import { Logger } from '../common/log';
 import { messages } from '../common/messages';
 import { OutputStream } from '../common/output-stream';
 import { resolveSuperfaceRelatedPath } from '../common/path';
@@ -68,8 +68,6 @@ export async function detectSuperJson(
 }
 
 type InstallOptions = {
-  logCb?: LogCallback;
-  warnCb?: LogCallback;
   force?: boolean;
   tryToAuthenticate?: boolean;
 };
@@ -144,7 +142,7 @@ export async function resolveInstallationRequests(
     requests.map(async request => {
       installDebug('Install phase 1:', request);
       if (request.kind === 'local') {
-        return readLocalRequest(superJson, request, options);
+        return readLocalRequest(superJson, request);
       }
 
       return request;
@@ -206,8 +204,7 @@ export async function resolveInstallationRequests(
  */
 async function readLocalRequest(
   _superJson: SuperJson,
-  request: LocalRequest,
-  options?: InstallOptions
+  request: LocalRequest
 ): Promise<LocalRequestRead | undefined> {
   try {
     const profileSource = await readFile(request.path, { encoding: 'utf-8' });
@@ -232,7 +229,7 @@ async function readLocalRequest(
     };
   } catch (err) {
     // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-    options?.warnCb?.(`Could not read profile file ${request.path}: ${err}`);
+    Logger.warn(`Could not read profile file ${request.path}: ${err}`);
 
     return undefined;
   }
@@ -256,7 +253,7 @@ async function checkLocalRequestRead(
 
   if ('file' in profileSettings) {
     if (relativePath(profileSettings.file, request.path) === '') {
-      options?.warnCb?.(
+      Logger.warn(
         `Profile ${request.profileId.id} already installed from the same path: "${request.path}". Skipping.`
       );
 
@@ -265,7 +262,7 @@ async function checkLocalRequestRead(
   }
 
   if (options?.force !== true) {
-    options?.warnCb?.(
+    Logger.warn(
       `Profile ${request.profileId.id} already installed from a different path: "${request.path}". Pass \`--force\` to override.`
     );
 
@@ -316,7 +313,7 @@ async function checkStoreRequest(
   // check if we aren't overwriting something in super.json
   if (profileSettings !== undefined && options?.force !== true) {
     if ('file' in profileSettings) {
-      options?.warnCb?.(
+      Logger.error(
         `Profile ${request.profileId.id} already installed from a path: "${profileSettings.file}". Pass \`--force\` to override.`
       );
 
@@ -327,7 +324,7 @@ async function checkStoreRequest(
       'version' in profileSettings &&
       request.version !== profileSettings.version
     ) {
-      options?.warnCb?.(
+      Logger.error(
         `Profile ${request.profileId.id} already installed with version: ${profileSettings.version}. Pass \`--force\` to override.`
       );
 
@@ -344,7 +341,7 @@ async function checkStoreRequest(
   );
   if (await exists(sourcePath)) {
     if (options?.force !== true) {
-      options?.warnCb?.(
+      Logger.error(
         `Target file already exists: "${sourcePath}". Pass \`--force\` to override.`
       );
 
@@ -368,8 +365,6 @@ export async function getProfileFromStore(
   profileId: ProfileId,
   version?: string,
   options?: {
-    logCb?: LogCallback;
-    warnCb?: LogCallback;
     tryToAuthenticate?: boolean;
   }
 ): Promise<ProfileResponse | undefined> {
@@ -379,27 +374,27 @@ export async function getProfileFromStore(
   let info: ProfileInfo;
   let profile: string;
   let ast: ProfileDocumentNode;
-  options?.logCb?.(`\nFetching profile ${profileIdStr} from the Store`);
+  Logger.info(`Fetching profile ${profileIdStr} from the Store`);
 
   try {
     info = await fetchProfileInfo(profileIdStr, {
       tryToAuthenticate: options?.tryToAuthenticate,
     });
-    options?.logCb?.(`Fetching profile info of profile ${profileIdStr}`);
+    Logger.info(`Fetching profile info of profile ${profileIdStr}`);
 
     profile = await fetchProfile(profileIdStr, {
       tryToAuthenticate: options?.tryToAuthenticate,
     });
-    options?.logCb?.(`Fetching profile source file for ${profileIdStr}`);
+    Logger.info(`Fetching profile source file for ${profileIdStr}`);
 
     try {
       //This can fail due to validation issues, ast and parser version issues
       ast = await fetchProfileAST(profileIdStr, {
         tryToAuthenticate: options?.tryToAuthenticate,
       });
-      options?.logCb?.(`Fetching compiled profile for ${profileIdStr}`);
+      Logger.info(`Fetching compiled profile for ${profileIdStr}`);
     } catch (error) {
-      options?.warnCb?.(
+      Logger.warn(
         `Fetching compiled profile for ${profileIdStr} failed, trying to parse source file`
       );
       //We try to parse profile on our own
@@ -410,7 +405,7 @@ export async function getProfileFromStore(
     }
   } catch (error) {
     // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-    options?.warnCb?.(`Could not fetch ${profileId}: ${error}`);
+    Logger.error(`Could not fetch ${profileId}: ${error}`);
 
     return undefined;
   }
@@ -459,10 +454,10 @@ async function fetchStoreRequestCheckedOrDeferred(
     await OutputStream.writeOnce(request.sourcePath, fetched.profile, {
       dirs: true,
     });
-    Logger.info(messages.common['write-profile'](request.sourcePath));
+    Logger.info(messages.common.writeProfile(request.sourcePath));
   } catch (err) {
-    Logger.warn(
-      messages.common['unable-to-write-profile'](request.profileId.id, err)
+    Logger.error(
+      messages.common.unableToWriteProfile(request.profileId.id, err)
     );
 
     return undefined;
@@ -486,10 +481,7 @@ async function fetchStoreRequestCheckedOrDeferred(
  * Extracts profile ids from `super.json`.
  */
 export async function getExistingProfileIds(
-  superJson: SuperJson,
-  options?: {
-    warnCb?: LogCallback;
-  }
+  superJson: SuperJson
 ): Promise<{ profileId: ProfileId; version: string }[]> {
   return Promise.all(
     Object.entries(superJson.normalized.profiles).map(
@@ -517,7 +509,7 @@ export async function getExistingProfileIds(
               version: composeVersion(header.version),
             };
           } catch (err) {
-            options?.warnCb?.(
+            Logger.error(
               `No version for profile ${profileId.id} was found, returning default version 1.0.0`
             );
           }
@@ -552,7 +544,7 @@ export async function installProfiles(parameters: {
   const superJson = loadedResult.match(
     v => v,
     err => {
-      parameters.options?.warnCb?.(err.formatLong());
+      Logger.error(err.formatLong());
 
       return new SuperJson({});
     }
@@ -560,10 +552,7 @@ export async function installProfiles(parameters: {
 
   // gather requests if empty
   if (parameters.requests.length === 0) {
-    const existingProfileIds = await getExistingProfileIds(
-      superJson,
-      parameters.options
-    );
+    const existingProfileIds = await getExistingProfileIds(superJson);
     parameters.requests = existingProfileIds.map<StoreRequest>(
       ({ profileId, version }) => ({
         kind: 'store',
@@ -582,23 +571,21 @@ export async function installProfiles(parameters: {
   if (installed > 0) {
     // save super.json
     await OutputStream.writeOnce(superJson.path, superJson.stringified);
-    Logger.info(messages.common['update-super-json'](superJson.path));
+    Logger.info(messages.common.updateSuperJson(superJson.path));
   }
 
   const toInstall = parameters.requests.length;
   if (toInstall > 0) {
     if (installed === 0) {
-      parameters.options?.logCb?.(`❌ No profiles have been installed`);
+      Logger.warn(`No profiles have been installed`);
     } else if (installed < toInstall) {
-      parameters.options?.logCb?.(
-        `⚠️ Installed ${installed} out of ${toInstall} profiles`
-      );
+      Logger.warn(`Installed ${installed} out of ${toInstall} profiles`);
     } else {
-      parameters.options?.logCb?.(
-        `🆗 All profiles (${installed}) have been installed successfully.`
+      Logger.success(
+        `All profiles (${installed}) have been installed successfully.`
       );
     }
   } else {
-    parameters.options?.logCb?.(`No profiles found to install`);
+    Logger.info(`No profiles found to install`);
   }
 }

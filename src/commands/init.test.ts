@@ -2,10 +2,11 @@ import { SuperJson } from '@superfaceai/one-sdk';
 import inquirer from 'inquirer';
 import { mocked } from 'ts-jest/utils';
 
+import { Logger } from '..';
 import { constructProviderSettings } from '../common/document';
 import { OutputStream } from '../common/output-stream';
 import { generateSpecifiedProfiles, initSuperface } from '../logic/init';
-import { MockStd, mockStd } from '../test/mock-std';
+// import { MockStd, mockStd } from '../test/mock-std';
 import Init from './init';
 
 //Mock init logic
@@ -19,18 +20,8 @@ jest.mock('inquirer');
 
 describe('Init CLI command', () => {
   describe('when running init command', () => {
-    let stdout: MockStd;
-    let stderr: MockStd;
-
     beforeEach(async () => {
-      stdout = mockStd();
-      jest
-        .spyOn(process['stdout'], 'write')
-        .mockImplementation(stdout.implementation);
-      stderr = mockStd();
-      jest
-        .spyOn(process['stderr'], 'write')
-        .mockImplementation(stderr.implementation);
+      Logger.mockLogger();
     });
 
     afterEach(() => {

@@ -12,13 +12,13 @@ import {
   validateMap,
 } from '@superfaceai/parser';
 
+import { Logger } from '..';
 import { userError } from '../common/error';
 import {
   fetchMapAST,
   fetchProfileAST,
   fetchProviderInfo,
 } from '../common/http';
-import { LogCallback } from '../common/log';
 import { ProfileId } from '../common/profile';
 import { ProfileMapReport } from '../common/report.interfaces';
 import {
@@ -34,27 +34,24 @@ import {
 } from './check.utils';
 import { createProfileMapReport } from './lint';
 
-export function prePublishCheck(
-  params: {
-    publishing: 'map' | 'profile' | 'provider';
-    profileAst: ProfileDocumentNode;
-    mapAst: MapDocumentNode;
-    providerJson: ProviderJson;
-    profileFrom: ProfileFromMetadata;
-    mapFrom: MapFromMetadata;
-    providerFrom: ProviderFromMetadata;
-    superJson: SuperJson;
-  },
-  options?: { logCb?: LogCallback; warnCb?: LogCallback }
-): CheckResult[] {
+export function prePublishCheck(params: {
+  publishing: 'map' | 'profile' | 'provider';
+  profileAst: ProfileDocumentNode;
+  mapAst: MapDocumentNode;
+  providerJson: ProviderJson;
+  profileFrom: ProfileFromMetadata;
+  mapFrom: MapFromMetadata;
+  providerFrom: ProviderFromMetadata;
+  superJson: SuperJson;
+}): CheckResult[] {
   try {
-    options?.logCb?.('Asserting profile document');
+    Logger.info('Asserting profile document');
     assertProfileDocumentNode(params.profileAst);
   } catch (error) {
     throw userError(error, 1);
   }
   try {
-    options?.logCb?.('Asserting map document');
+    Logger.info('Asserting map document');
     assertMapDocumentNode(params.mapAst);
   } catch (error) {
     throw userError(error, 1);
@@ -66,7 +63,6 @@ export function prePublishCheck(
     ...checkMapAndProfile(params.profileAst, params.mapAst, {
       //strict when we are publishing profile or map
       strict: params.publishing !== 'provider',
-      logCb: options?.logCb,
     }),
     profileFrom: params.profileFrom,
     mapFrom: params.mapFrom,
@@ -112,10 +108,7 @@ export type ProfileFromMetadata =
 export async function loadProfile(
   superJson: SuperJson,
   profile: ProfileId,
-  version?: string,
-  options?: {
-    logCb?: LogCallback;
-  }
+  version?: string
 ): Promise<{
   ast: ProfileDocumentNode;
   from: ProfileFromMetadata;
@@ -131,8 +124,8 @@ export async function loadProfile(
       profileName: profile.name,
       scope: profile.scope,
     });
-    options?.logCb?.(
-      `Profile: "${profileId}" found on local file system at path: "${source.path}"`
+    Logger.info(
+      `Profile: ${profileId} found on local file system at path: ${source.path}`
     );
 
     return { ast, from: { kind: 'local', ...source } };
@@ -140,8 +133,8 @@ export async function loadProfile(
     //Load from store
     ast = await fetchProfileAST(profileId);
     const version = composeVersion(ast.header.version);
-    options?.logCb?.(
-      `Loading profile: "${profile.id}" in version: "${version}" from Superface store`
+    Logger.info(
+      `Loading profile: ${profile.id} in version: ${version} from Superface store`
     );
 
     return {
@@ -167,10 +160,7 @@ export async function loadMap(
   map: {
     variant?: string;
   },
-  version?: string,
-  options?: {
-    logCb?: LogCallback;
-  }
+  version?: string
 ): Promise<{
   ast: MapDocumentNode;
   from: MapFromMetadata;
@@ -186,12 +176,12 @@ export async function loadMap(
         providerName: provider,
       }
     );
-    options?.logCb?.(
-      `Map for profile: "${profile.withVersion(
+    Logger.info(
+      `Map for profile: ${profile.withVersion(
         version
-      )}" and provider: "${provider}" found on local filesystem at path: "${
+      )} and provider: ${provider} found on local filesystem at path: ${
         source.path
-      }"`
+      }`
     );
 
     return {
@@ -211,10 +201,10 @@ export async function loadMap(
       map.variant
     );
     const astVersion = composeVersion(ast.header.profile.version);
-    options?.logCb?.(
-      `Loading map for profile: "${profile.withVersion(
+    Logger.info(
+      `Loading map for profile: ${profile.withVersion(
         version
-      )}" and provider: "${provider}" in version: "${astVersion}" from Superface store`
+      )} and provider: ${provider} in version: ${astVersion} from Superface store`
     );
 
     return {
@@ -238,18 +228,15 @@ export type ProviderFromMetadata =
  */
 export async function loadProvider(
   superJson: SuperJson,
-  provider: string,
-  options?: {
-    logCb?: LogCallback;
-  }
+  provider: string
 ): Promise<{
   source: ProviderJson;
   from: ProviderFromMetadata;
 }> {
   const providerSource = await findLocalProviderSource(superJson, provider);
   if (providerSource) {
-    options?.logCb?.(
-      `Provider: "${provider}" found on local file system at path: "${providerSource.path}"`
+    Logger.info(
+      `Provider: ${provider} found on local file system at path: ${providerSource.path}`
     );
 
     return {
@@ -257,7 +244,7 @@ export async function loadProvider(
       from: { kind: 'local', path: providerSource.path },
     };
   }
-  options?.logCb?.(`Loading provider: "${provider}" from Superface store`);
+  Logger.info(`Loading provider: ${provider} from Superface store`);
 
   return {
     source: await fetchProviderInfo(provider),

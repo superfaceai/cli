@@ -3,10 +3,10 @@ import { err, ok, SuperJson } from '@superfaceai/one-sdk';
 import { SDKExecutionError } from '@superfaceai/one-sdk/dist/internal/errors';
 import { mocked } from 'ts-jest/utils';
 
+import { Logger, MockLogger } from '..';
 import { ProfileId } from '../common/profile';
 import { generate } from '../logic/generate';
 import { detectSuperJson } from '../logic/install';
-import { MockStd, mockStd } from '../test/mock-std';
 import Generate from './generate';
 
 //Mock install logic
@@ -22,19 +22,10 @@ jest.mock('../logic/generate', () => ({
 describe('Generate CLI command', () => {
   const profileId = 'starwars/character-information';
 
-  let stderr: MockStd;
-  let stdout: MockStd;
+  let logger: MockLogger;
 
   beforeEach(() => {
-    stdout = mockStd();
-    stderr = mockStd();
-
-    jest
-      .spyOn(process['stdout'], 'write')
-      .mockImplementation(stdout.implementation);
-    jest
-      .spyOn(process['stderr'], 'write')
-      .mockImplementation(stderr.implementation);
+    logger = Logger.mockLogger();
   });
 
   afterEach(() => {
@@ -135,10 +126,9 @@ describe('Generate CLI command', () => {
       expect(loadSpy).toHaveBeenCalled();
       expect(generate).toHaveBeenCalledWith(
         [{ id: ProfileId.fromId(profileId), version: undefined }],
-        mockSuperJson,
-        { logCb: expect.anything(), warnCb: expect.anything() }
+        mockSuperJson
       );
-      expect(stdout.output).toEqual('🆗 types generated successfully.\n');
+      expect(logger.stdoutOutput).toContain('🆗 types generated successfully.');
     });
 
     it('generates types for specified remote profile', async () => {
@@ -163,10 +153,9 @@ describe('Generate CLI command', () => {
       expect(loadSpy).toHaveBeenCalled();
       expect(generate).toHaveBeenCalledWith(
         [{ id: ProfileId.fromId(profileId), version }],
-        mockSuperJson,
-        { logCb: expect.anything(), warnCb: expect.anything() }
+        mockSuperJson
       );
-      expect(stdout.output).toEqual('🆗 types generated successfully.\n');
+      expect(logger.stdoutOutput).toContain('🆗 types generated successfully.');
     });
 
     it('generates types for super json with remote and local profiles', async () => {
@@ -196,10 +185,9 @@ describe('Generate CLI command', () => {
           { id: ProfileId.fromId(profileId), version },
           { id: ProfileId.fromId('other') },
         ],
-        mockSuperJson,
-        { logCb: expect.anything(), warnCb: expect.anything() }
+        mockSuperJson
       );
-      expect(stdout.output).toEqual(`🆗 types generated successfully.\n`);
+      expect(logger.stdoutOutput).toContain(`🆗 types generated successfully.`);
     });
 
     it('generates types for super json with remote and local profiles and quiet flag', async () => {
@@ -229,10 +217,9 @@ describe('Generate CLI command', () => {
           { id: ProfileId.fromId(profileId), version },
           { id: ProfileId.fromId('other'), version: undefined },
         ],
-        mockSuperJson,
-        { logCb: undefined, warnCb: undefined }
+        mockSuperJson
       );
-      expect(stdout.output).toEqual('');
+      expect(logger.stdoutOutput).toContain('');
     });
   });
 });

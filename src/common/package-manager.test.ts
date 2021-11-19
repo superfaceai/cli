@@ -9,8 +9,6 @@ describe('Package manager', () => {
   });
 
   describe('when checking package.json existence', () => {
-    const mockStderr = jest.fn();
-
     it('return true when package.json exists', async () => {
       //Scope imports for every test run to ensure PackageManager isolation
       const { PackageManager } = await import('./package-manager');
@@ -21,6 +19,8 @@ describe('Package manager', () => {
         ...jest.requireActual<Record<string, unknown>>('path'),
         join: jest.fn(),
       }));
+      const logger = (await import('../common/log')).Logger.mockLogger();
+
       mocked(execShell).mockResolvedValue({
         stderr: '',
         stdout: 'some/path\n',
@@ -29,16 +29,12 @@ describe('Package manager', () => {
       mocked(join).mockReturnValue('some/path/package.json');
       mocked(exists).mockResolvedValueOnce(true);
 
-      await expect(
-        PackageManager.packageJsonExists({
-          warnCb: mockStderr,
-        })
-      ).resolves.toEqual(true);
+      await expect(PackageManager.packageJsonExists()).resolves.toEqual(true);
 
       expect(exists).toHaveBeenCalledWith('some/path/package.json');
       expect(execShell).toHaveBeenCalledWith('npm prefix');
 
-      expect(mockStderr).not.toHaveBeenCalled();
+      expect(logger.stderrOutput).toEqual('');
     });
 
     it('return false when package.json does not exist', async () => {
@@ -51,6 +47,8 @@ describe('Package manager', () => {
         ...jest.requireActual<Record<string, unknown>>('path'),
         join: jest.fn(),
       }));
+      const logger = (await import('../common/log')).Logger.mockLogger();
+
       mocked(execShell).mockResolvedValue({
         stderr: '',
         stdout: 'some/path\n',
@@ -59,16 +57,12 @@ describe('Package manager', () => {
       mocked(join).mockReturnValue('some/path/package.json');
       mocked(exists).mockResolvedValueOnce(false);
 
-      await expect(
-        PackageManager.packageJsonExists({
-          warnCb: mockStderr,
-        })
-      ).resolves.toEqual(false);
+      await expect(PackageManager.packageJsonExists()).resolves.toEqual(false);
 
       expect(exists).toHaveBeenCalledWith('some/path/package.json');
       expect(execShell).toHaveBeenCalledWith('npm prefix');
 
-      expect(mockStderr).not.toHaveBeenCalled();
+      expect(logger.stderrOutput).toEqual('');
     });
 
     it('return false when path does not exist', async () => {
@@ -81,6 +75,8 @@ describe('Package manager', () => {
         ...jest.requireActual<Record<string, unknown>>('path'),
         join: jest.fn(),
       }));
+      const logger = (await import('../common/log')).Logger.mockLogger();
+
       mocked(execShell).mockResolvedValue({
         stderr: 'some-error',
         stdout: 'some/path\n',
@@ -89,25 +85,18 @@ describe('Package manager', () => {
       mocked(join).mockReturnValue('some/path/package.json');
       mocked(exists).mockResolvedValueOnce(true);
 
-      await expect(
-        PackageManager.packageJsonExists({
-          warnCb: mockStderr,
-        })
-      ).resolves.toEqual(false);
+      await expect(PackageManager.packageJsonExists()).resolves.toEqual(false);
 
       expect(exists).not.toHaveBeenCalled();
       expect(execShell).toHaveBeenCalledWith('npm prefix');
 
-      expect(mockStderr).toHaveBeenCalledWith(
-        'Shell command "npm prefix" responded with: "some-error"'
+      expect(logger.stderrOutput).toContain(
+        'Shell command npm prefix responded with: some-error'
       );
     });
   });
 
   describe('when initializing package manager', () => {
-    const mockStderr = jest.fn();
-    const mockStdout = jest.fn();
-
     it('returns true for npm', async () => {
       //Scope imports for every test run to ensure PackageManager isolation
       const { PackageManager } = await import('./package-manager');
@@ -118,6 +107,8 @@ describe('Package manager', () => {
         ...jest.requireActual<Record<string, unknown>>('path'),
         join: jest.fn(),
       }));
+      const logger = (await import('../common/log')).Logger.mockLogger();
+
       mocked(execShell)
         .mockResolvedValueOnce({ stderr: '', stdout: 'some/path\n' })
         .mockResolvedValueOnce({ stderr: '', stdout: 'some-logs' });
@@ -126,19 +117,14 @@ describe('Package manager', () => {
       //Package.lock does not exist
       mocked(exists).mockResolvedValue(false);
 
-      await expect(
-        PackageManager.init('npm', {
-          logCb: mockStdout,
-          warnCb: mockStderr,
-        })
-      ).resolves.toEqual(true);
+      await expect(PackageManager.init('npm')).resolves.toEqual(true);
 
       expect(exists).toHaveBeenCalledWith('some/path/package-lock.json');
       expect(execShell).toHaveBeenCalledWith('npm prefix');
       expect(execShell).toHaveBeenCalledWith('npm init -y');
 
-      expect(mockStderr).not.toHaveBeenCalled();
-      expect(mockStdout).toHaveBeenCalledWith('some-logs');
+      expect(logger.stderrOutput).toEqual('');
+      expect(logger.stdoutOutput).toContain('some-logs');
     });
 
     it('returns true for yarn', async () => {
@@ -151,6 +137,8 @@ describe('Package manager', () => {
         ...jest.requireActual<Record<string, unknown>>('path'),
         join: jest.fn(),
       }));
+      const logger = (await import('../common/log')).Logger.mockLogger();
+
       mocked(execShell)
         .mockResolvedValueOnce({ stderr: '', stdout: 'some/path\n' })
         .mockResolvedValueOnce({ stderr: 'some warning', stdout: '' });
@@ -159,22 +147,17 @@ describe('Package manager', () => {
       //Package.lock does not exist
       mocked(exists).mockResolvedValue(false);
 
-      await expect(
-        PackageManager.init('yarn', {
-          logCb: mockStdout,
-          warnCb: mockStderr,
-        })
-      ).resolves.toEqual(true);
+      await expect(PackageManager.init('yarn')).resolves.toEqual(true);
 
       expect(exists).toHaveBeenCalledWith('some/path/yarn.lock');
       expect(execShell).toHaveBeenCalledWith('npm prefix');
       expect(execShell).toHaveBeenCalledWith('yarn init -y');
 
-      expect(mockStderr).toHaveBeenCalledWith(
-        'Shell command "yarn init -y" responded with: "some warning"'
+      expect(logger.stderrOutput).toContain(
+        'Shell command yarn init -y responded with: some warning'
       );
-      expect(mockStdout).toHaveBeenCalledWith(
-        `Initializing yarn on path: "${process.cwd()}"`
+      expect(logger.stdoutOutput).toContain(
+        `Initializing yarn on path: ${process.cwd()}`
       );
     });
 
@@ -188,6 +171,8 @@ describe('Package manager', () => {
         ...jest.requireActual<Record<string, unknown>>('path'),
         join: jest.fn(),
       }));
+      const logger = (await import('../common/log')).Logger.mockLogger();
+
       mocked(execShell)
         .mockResolvedValueOnce({ stderr: '', stdout: 'some/path\n' })
         .mockResolvedValueOnce({ stderr: '', stdout: '' });
@@ -198,23 +183,16 @@ describe('Package manager', () => {
         //Yarn.lock exist
         .mockResolvedValue(true);
 
-      await expect(
-        PackageManager.init('yarn', {
-          logCb: mockStdout,
-          warnCb: mockStderr,
-        })
-      ).resolves.toEqual(false);
+      await expect(PackageManager.init('yarn')).resolves.toEqual(false);
 
       expect(exists).toHaveBeenCalledWith('some/path/yarn.lock');
       expect(execShell).toHaveBeenCalledWith('npm prefix');
 
-      expect(mockStderr).toHaveBeenCalledWith('yarn already initialized.');
-      expect(mockStdout).not.toHaveBeenCalled();
+      expect(logger.stderrOutput).toContain('yarn already initialized.');
+      expect(logger.stdoutOutput).toEqual('');
     });
   });
   describe('when getting used package manager', () => {
-    const mockStderr = jest.fn();
-
     it('returns undefined - err on npm prefix', async () => {
       //Scope imports for every test run to ensure PackageManager isolation
       const { PackageManager } = await import('./package-manager');
@@ -224,21 +202,19 @@ describe('Package manager', () => {
         ...jest.requireActual<Record<string, unknown>>('path'),
         join: jest.fn(),
       }));
+      const logger = (await import('../common/log')).Logger.mockLogger();
+
       mocked(execShell).mockResolvedValue({
         stderr: 'npm prefix err',
         stdout: 'some/path\n',
       });
 
-      await expect(
-        PackageManager.getUsedPm({
-          warnCb: mockStderr,
-        })
-      ).resolves.toBeUndefined();
+      await expect(PackageManager.getUsedPm()).resolves.toBeUndefined();
 
       expect(execShell).toHaveBeenCalledWith('npm prefix');
 
-      expect(mockStderr).toHaveBeenCalledWith(
-        'Shell command "npm prefix" responded with: "npm prefix err"'
+      expect(logger.stderrOutput).toContain(
+        'Shell command npm prefix responded with: npm prefix err'
       );
     });
 
@@ -252,6 +228,8 @@ describe('Package manager', () => {
         ...jest.requireActual<Record<string, unknown>>('path'),
         join: jest.fn(),
       }));
+      const logger = (await import('../common/log')).Logger.mockLogger();
+
       mocked(execShell).mockResolvedValue({
         stderr: '',
         stdout: process.cwd(),
@@ -259,21 +237,14 @@ describe('Package manager', () => {
       mocked(join).mockReturnValue('some/path/yarn.lock');
       mocked(exists).mockResolvedValueOnce(true);
 
-      await expect(
-        PackageManager.getUsedPm({
-          warnCb: mockStderr,
-        })
-      ).resolves.toEqual('yarn');
+      await expect(PackageManager.getUsedPm()).resolves.toEqual('yarn');
 
       expect(execShell).toHaveBeenCalledWith('npm prefix');
 
-      expect(mockStderr).not.toHaveBeenCalled();
+      expect(logger.stderrOutput).toEqual('');
     });
   });
   describe('when installing package', () => {
-    const mockStdout = jest.fn();
-    const mockStderr = jest.fn();
-
     it('installs package with yarn and empty stdout, stderror', async () => {
       //Scope imports for every test run to ensure PackageManager isolation
       const { PackageManager } = await import('./package-manager');
@@ -284,6 +255,8 @@ describe('Package manager', () => {
         ...jest.requireActual<Record<string, unknown>>('path'),
         join: jest.fn(),
       }));
+      const logger = (await import('../common/log')).Logger.mockLogger();
+
       mocked(execShell)
         .mockResolvedValueOnce({ stderr: '', stdout: 'some/path\n' })
         .mockResolvedValueOnce({ stderr: '', stdout: '' });
@@ -291,10 +264,7 @@ describe('Package manager', () => {
       mocked(exists).mockResolvedValueOnce(true).mockResolvedValueOnce(true);
 
       await expect(
-        PackageManager.installPackage('@superfaceai/one-sdk', {
-          logCb: mockStdout,
-          warnCb: mockStderr,
-        })
+        PackageManager.installPackage('@superfaceai/one-sdk')
       ).resolves.toEqual(true);
 
       expect(exists).toHaveBeenCalledWith('some/path/yarn.lock');
@@ -303,10 +273,10 @@ describe('Package manager', () => {
         cwd: 'some/path',
       });
 
-      expect(mockStdout).toHaveBeenCalledWith(
-        `Installing package @superfaceai/one-sdk on path: "some/path" with: "yarn add @superfaceai/one-sdk"`
+      expect(logger.stdoutOutput).toContain(
+        `Installing package @superfaceai/one-sdk on path: some/path with: yarn add @superfaceai/one-sdk`
       );
-      expect(mockStderr).not.toHaveBeenCalled();
+      expect(logger.stderrOutput).toEqual('');
     });
 
     it('installs package with yarn and empty stdout, stderror, cached used package manager', async () => {
@@ -319,6 +289,8 @@ describe('Package manager', () => {
         ...jest.requireActual<Record<string, unknown>>('path'),
         join: jest.fn(),
       }));
+      const logger = (await import('../common/log')).Logger.mockLogger();
+
       mocked(execShell)
         .mockResolvedValueOnce({ stderr: '', stdout: 'some/path\n' })
         .mockResolvedValueOnce({ stderr: '', stdout: '' })
@@ -328,10 +300,7 @@ describe('Package manager', () => {
       mocked(exists).mockResolvedValue(true);
 
       await expect(
-        PackageManager.installPackage('@superfaceai/one-sdk', {
-          logCb: mockStdout,
-          warnCb: mockStderr,
-        })
+        PackageManager.installPackage('@superfaceai/one-sdk')
       ).resolves.toEqual(true);
 
       expect(exists).toHaveBeenCalledWith('some/path/yarn.lock');
@@ -343,17 +312,14 @@ describe('Package manager', () => {
         { cwd: 'some/path' }
       );
 
-      expect(mockStdout).toHaveBeenCalledWith(
-        `Installing package @superfaceai/one-sdk on path: "some/path" with: "yarn add @superfaceai/one-sdk"`
+      expect(logger.stdoutOutput).toContain(
+        `Installing package @superfaceai/one-sdk on path: some/path with: yarn add @superfaceai/one-sdk`
       );
-      expect(mockStderr).not.toHaveBeenCalled();
+      expect(logger.stderrOutput).toEqual('');
 
       //Second install to check caching
       await expect(
-        PackageManager.installPackage('@superfaceai/one-sdk', {
-          logCb: mockStdout,
-          warnCb: mockStderr,
-        })
+        PackageManager.installPackage('@superfaceai/one-sdk')
       ).resolves.toEqual(true);
 
       //execShell is called three times (it only calls npm prefix once)
@@ -375,6 +341,8 @@ describe('Package manager', () => {
         ...jest.requireActual<Record<string, unknown>>('path'),
         join: jest.fn(),
       }));
+      const logger = (await import('../common/log')).Logger.mockLogger();
+
       mocked(execShell)
         .mockResolvedValueOnce({ stderr: '', stdout: 'some/path\n' })
         .mockResolvedValueOnce({
@@ -385,10 +353,7 @@ describe('Package manager', () => {
       mocked(exists).mockResolvedValueOnce(true).mockResolvedValueOnce(true);
 
       await expect(
-        PackageManager.installPackage('@superfaceai/one-sdk', {
-          logCb: mockStdout,
-          warnCb: mockStderr,
-        })
+        PackageManager.installPackage('@superfaceai/one-sdk')
       ).resolves.toEqual(true);
 
       expect(exists).toHaveBeenCalledWith('some/path/yarn.lock');
@@ -396,9 +361,11 @@ describe('Package manager', () => {
         cwd: 'some/path',
       });
 
-      expect(mockStdout).not.toHaveBeenCalledWith();
-      expect(mockStderr).toHaveBeenCalledWith(
-        'Shell command "yarn add @superfaceai/one-sdk" responded with: "test err"'
+      expect(logger.stdoutOutput).toContain(
+        `Installing package @superfaceai/one-sdk on path: some/path with: yarn add @superfaceai/one-sdk`
+      );
+      expect(logger.stderrOutput).toContain(
+        'Shell command yarn add @superfaceai/one-sdk responded with: test err'
       );
     });
 
@@ -412,6 +379,8 @@ describe('Package manager', () => {
         ...jest.requireActual<Record<string, unknown>>('path'),
         join: jest.fn(),
       }));
+      const logger = (await import('../common/log')).Logger.mockLogger();
+
       mocked(execShell)
         .mockResolvedValueOnce({
           stderr: 'npm prefix err',
@@ -425,10 +394,7 @@ describe('Package manager', () => {
       mocked(exists).mockResolvedValueOnce(true);
 
       await expect(
-        PackageManager.installPackage('@superfaceai/one-sdk', {
-          logCb: mockStdout,
-          warnCb: mockStderr,
-        })
+        PackageManager.installPackage('@superfaceai/one-sdk')
       ).resolves.toEqual(false);
 
       expect(exists).not.toHaveBeenCalled();
@@ -436,8 +402,8 @@ describe('Package manager', () => {
         'yarn add @superfaceai/one-sdk'
       );
 
-      expect(mockStderr).toHaveBeenCalledWith(
-        'Shell command "npm prefix" responded with: "npm prefix err"'
+      expect(logger.stderrOutput).toContain(
+        'Shell command npm prefix responded with: npm prefix err'
       );
     });
 
@@ -451,6 +417,8 @@ describe('Package manager', () => {
         ...jest.requireActual<Record<string, unknown>>('path'),
         join: jest.fn(),
       }));
+      const logger = (await import('../common/log')).Logger.mockLogger();
+
       mocked(execShell)
         .mockResolvedValueOnce({ stderr: '', stdout: 'some/path\n' })
         .mockResolvedValueOnce({ stderr: '', stdout: '' });
@@ -461,10 +429,7 @@ describe('Package manager', () => {
         .mockResolvedValueOnce(true);
 
       await expect(
-        PackageManager.installPackage('@superfaceai/one-sdk', {
-          logCb: mockStdout,
-          warnCb: mockStderr,
-        })
+        PackageManager.installPackage('@superfaceai/one-sdk')
       ).resolves.toEqual(true);
 
       expect(exists).toHaveBeenCalledWith('some/path/package-lock.json');
@@ -474,10 +439,10 @@ describe('Package manager', () => {
         { cwd: 'some/path' }
       );
 
-      expect(mockStdout).toHaveBeenCalledWith(
-        `Installing package @superfaceai/one-sdk on path: "some/path" with: "npm install @superfaceai/one-sdk"`
+      expect(logger.stdoutOutput).toContain(
+        `Installing package @superfaceai/one-sdk on path: some/path with: npm install @superfaceai/one-sdk`
       );
-      expect(mockStderr).not.toHaveBeenCalled();
+      expect(logger.stderrOutput).toEqual('');
     });
 
     it('installs package with npm', async () => {
@@ -490,6 +455,8 @@ describe('Package manager', () => {
         ...jest.requireActual<Record<string, unknown>>('path'),
         join: jest.fn(),
       }));
+      const logger = (await import('../common/log')).Logger.mockLogger();
+
       mocked(execShell)
         .mockResolvedValueOnce({ stderr: '', stdout: 'some/path\n' })
         .mockResolvedValueOnce({
@@ -503,10 +470,7 @@ describe('Package manager', () => {
         .mockResolvedValueOnce(true);
 
       await expect(
-        PackageManager.installPackage('@superfaceai/one-sdk', {
-          logCb: mockStdout,
-          warnCb: mockStderr,
-        })
+        PackageManager.installPackage('@superfaceai/one-sdk')
       ).resolves.toEqual(true);
 
       expect(exists).toHaveBeenCalledWith('some/path/package-lock.json');
@@ -516,9 +480,9 @@ describe('Package manager', () => {
         { cwd: 'some/path' }
       );
 
-      expect(mockStdout).toHaveBeenCalledWith('test out');
-      expect(mockStderr).toHaveBeenCalledWith(
-        'Shell command "npm install @superfaceai/one-sdk" responded with: "test err"'
+      expect(logger.stdoutOutput).toContain('test out');
+      expect(logger.stderrOutput).toContain(
+        'Shell command npm install @superfaceai/one-sdk responded with: test err'
       );
     });
 
@@ -532,6 +496,8 @@ describe('Package manager', () => {
         ...jest.requireActual<Record<string, unknown>>('path'),
         join: jest.fn(),
       }));
+      const logger = (await import('../common/log')).Logger.mockLogger();
+
       mocked(execShell)
         .mockResolvedValueOnce({ stderr: '', stdout: 'some/path\n' })
         .mockResolvedValueOnce({
@@ -548,10 +514,7 @@ describe('Package manager', () => {
         .mockResolvedValueOnce(false);
 
       await expect(
-        PackageManager.installPackage('@superfaceai/one-sdk', {
-          logCb: mockStdout,
-          warnCb: mockStderr,
-        })
+        PackageManager.installPackage('@superfaceai/one-sdk')
       ).resolves.toEqual(true);
 
       expect(exists).toHaveBeenCalledWith('some/path/package-lock.json');
@@ -561,9 +524,9 @@ describe('Package manager', () => {
         { cwd: 'some/path' }
       );
 
-      expect(mockStdout).toHaveBeenCalledWith('test out');
-      expect(mockStderr).toHaveBeenCalledWith(
-        'Shell command "npm install @superfaceai/one-sdk" responded with: "test err"'
+      expect(logger.stdoutOutput).toContain('test out');
+      expect(logger.stderrOutput).toContain(
+        'Shell command npm install @superfaceai/one-sdk responded with: test err'
       );
     });
 
@@ -577,6 +540,8 @@ describe('Package manager', () => {
         ...jest.requireActual<Record<string, unknown>>('path'),
         join: jest.fn(),
       }));
+      const logger = (await import('../common/log')).Logger.mockLogger();
+
       mocked(execShell)
         .mockResolvedValueOnce({ stderr: '', stdout: 'some/path\n' })
         .mockResolvedValueOnce({
@@ -593,16 +558,13 @@ describe('Package manager', () => {
         .mockResolvedValueOnce(false);
 
       await expect(
-        PackageManager.installPackage('@superfaceai/one-sdk', {
-          logCb: mockStdout,
-          warnCb: mockStderr,
-        })
+        PackageManager.installPackage('@superfaceai/one-sdk')
       ).resolves.toEqual(false);
 
       expect(exists).toHaveBeenCalledWith('some/path/package.json');
       expect(execShell).toHaveBeenCalledWith('npm prefix');
 
-      expect(mockStderr).toHaveBeenCalledWith(
+      expect(logger.stderrOutput).toContain(
         'Unable to install package @superfaceai/one-sdk without initialized package.json'
       );
     });

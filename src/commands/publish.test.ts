@@ -7,6 +7,7 @@ import { mocked } from 'ts-jest/utils';
 
 import {
   DEFAULT_PROFILE_VERSION_STR,
+  Logger,
   UNVERIFIED_PROVIDER_PREFIX,
 } from '../common';
 import { OutputStream } from '../common/output-stream';
@@ -39,6 +40,10 @@ jest.mock('../logic/install', () => ({
 describe('Publish CLI command', () => {
   afterEach(() => {
     jest.resetAllMocks();
+  });
+
+  beforeEach(async () => {
+    Logger.mockLogger();
   });
 
   describe('running publish command', () => {
@@ -689,7 +694,6 @@ describe('Publish CLI command', () => {
         },
         undefined,
         {
-          logCb: expect.anything(),
           dryRun: false,
           quiet: false,
         }
@@ -753,7 +757,6 @@ describe('Publish CLI command', () => {
         },
         DEFAULT_PROFILE_VERSION_STR,
         {
-          logCb: expect.anything(),
           dryRun: false,
           quiet: false,
         }
@@ -826,7 +829,6 @@ describe('Publish CLI command', () => {
         },
         DEFAULT_PROFILE_VERSION_STR,
         {
-          logCb: expect.anything(),
           dryRun: false,
           quiet: false,
         }
@@ -891,7 +893,6 @@ describe('Publish CLI command', () => {
         { variant: undefined },
         DEFAULT_PROFILE_VERSION_STR,
         {
-          logCb: expect.anything(),
           dryRun: false,
           quiet: false,
         }
@@ -956,7 +957,6 @@ describe('Publish CLI command', () => {
         { variant: undefined },
         DEFAULT_PROFILE_VERSION_STR,
         {
-          logCb: expect.anything(),
           dryRun: false,
           quiet: false,
         }
@@ -1027,7 +1027,6 @@ describe('Publish CLI command', () => {
         },
         DEFAULT_PROFILE_VERSION_STR,
         {
-          logCb: expect.anything(),
           dryRun: true,
           quiet: false,
         }
@@ -1100,7 +1099,6 @@ describe('Publish CLI command', () => {
         },
         DEFAULT_PROFILE_VERSION_STR,
         {
-          logCb: expect.anything(),
           quiet: false,
           dryRun: false,
         }
@@ -1173,7 +1171,6 @@ describe('Publish CLI command', () => {
         },
         undefined,
         {
-          logCb: undefined,
           dryRun: false,
           quiet: true,
         }
@@ -1235,7 +1232,6 @@ describe('Publish CLI command', () => {
         },
         undefined,
         {
-          logCb: undefined,
           dryRun: false,
           quiet: true,
         }

@@ -10,6 +10,7 @@ import {
 import { ok, SuperJson } from '@superfaceai/one-sdk';
 import { mocked } from 'ts-jest/utils';
 
+import { Logger } from '../common';
 import { fetchProviderInfo } from '../common/http';
 import { readFile, readFileQuiet } from '../common/io';
 import { OutputStream } from '../common/output-stream';
@@ -65,6 +66,9 @@ describe('Configure CLI logic', () => {
     ],
     defaultService: 'swapidev',
   };
+  beforeEach(async () => {
+    Logger.mockLogger();
+  });
   afterEach(() => {
     jest.resetAllMocks();
   });
