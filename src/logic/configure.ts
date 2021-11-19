@@ -164,7 +164,7 @@ export async function installProvider(parameters: {
   //Check profile existance
   if (!superJson.normalized.profiles[parameters.profileId.id]) {
     throw userError(
-      `❌ profile ${parameters.profileId.id} not found in "${superJsonPath}".`,
+      `profile ${parameters.profileId.id} not found in "${superJsonPath}".`,
       1
     );
   }
@@ -226,9 +226,7 @@ export async function installProvider(parameters: {
   if (providerInfo.securitySchemes && providerInfo.securitySchemes.length > 0) {
     // inform user about instlaled security schemes
     if (numOfConfigured === 0) {
-      parameters.options?.logCb?.(
-        `❌ No security schemes have been configured.`
-      );
+      parameters.options?.logCb?.(`No security schemes have been configured.`);
     } else if (numOfConfigured < providerInfo.securitySchemes.length) {
       parameters.options?.logCb?.(
         `⚠️ Some security schemes have been configured. Configured ${numOfConfigured} out of ${providerInfo.securitySchemes.length}.`
@@ -258,7 +256,7 @@ export async function installProvider(parameters: {
         ];
       if (superJsonValue === undefined) {
         parameters.options?.logCb?.(
-          `❌ Parameter ${parameter.name}${description} has not been configured.\nPlease, configure this parameter manualy in super.json on path: ${superJson.path}`
+          `Parameter ${parameter.name}${description} has not been configured.\nPlease, configure this parameter manualy in super.json on path: ${superJson.path}`
         );
       } else {
         parameters.options?.logCb?.(

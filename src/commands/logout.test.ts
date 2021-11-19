@@ -1,4 +1,3 @@
-import { CLIError } from '@oclif/errors';
 import { ServiceClient, ServiceClientError } from '@superfaceai/service-client';
 
 import { MockStd, mockStd } from '../test/mock-std';
@@ -56,7 +55,7 @@ describe('Logout CLI command', () => {
         .spyOn(ServiceClient.prototype, 'signOut')
         .mockRejectedValue(mockErr);
 
-      await expect(Logout.run([])).rejects.toEqual(new CLIError('test'));
+      await expect(Logout.run([])).rejects.toThrow(' Error: test');
       expect(getInfoSpy).toHaveBeenCalled();
       expect(stderr.output).toEqual('');
       expect(stdout.output).toEqual('');

@@ -1,4 +1,3 @@
-import { CLIError } from '@oclif/errors';
 import { err, ok, SuperJson } from '@superfaceai/one-sdk';
 import { SDKExecutionError } from '@superfaceai/one-sdk/dist/internal/errors';
 import { mocked } from 'ts-jest/utils';
@@ -33,8 +32,8 @@ describe('lint CLI command', () => {
   describe('lint CLI command', () => {
     it('throws when super.json not found', async () => {
       mocked(detectSuperJson).mockResolvedValue(undefined);
-      await expect(Lint.run([])).rejects.toEqual(
-        new CLIError('❌ Unable to lint, super.json not found')
+      await expect(Lint.run([])).rejects.toThrow(
+        'Unable to lint, super.json not found'
       );
     });
 
@@ -43,16 +42,16 @@ describe('lint CLI command', () => {
       jest
         .spyOn(SuperJson, 'load')
         .mockResolvedValue(err(new SDKExecutionError('test error', [], [])));
-      await expect(Lint.run([])).rejects.toEqual(
-        new CLIError('❌ Unable to load super.json: test error')
+      await expect(Lint.run([])).rejects.toThrow(
+        'Unable to load super.json: test error'
       );
     });
 
     it('throws error on invalid scan flag', async () => {
       mocked(detectSuperJson).mockResolvedValue('.');
 
-      await expect(Lint.run(['-s test'])).rejects.toEqual(
-        new CLIError('Expected an integer but received:  test')
+      await expect(Lint.run(['-s test'])).rejects.toThrow(
+        'Expected an integer but received:  test'
       );
       expect(detectSuperJson).not.toHaveBeenCalled();
     }, 10000);
@@ -60,10 +59,8 @@ describe('lint CLI command', () => {
     it('throws error on scan flag higher than 5', async () => {
       mocked(detectSuperJson).mockResolvedValue('.');
 
-      await expect(Lint.run(['-s', '6'])).rejects.toEqual(
-        new CLIError(
-          '❌ --scan/-s : Number of levels to scan cannot be higher than 5'
-        )
+      await expect(Lint.run(['-s', '6'])).rejects.toThrow(
+        '--scan/-s : Number of levels to scan cannot be higher than 5'
       );
       expect(detectSuperJson).not.toHaveBeenCalled();
     }, 10000);
@@ -76,10 +73,8 @@ describe('lint CLI command', () => {
 
       await expect(
         Lint.run(['--profileId', 'U!0_', '--providerName', provider, '-s', '3'])
-      ).rejects.toEqual(
-        new CLIError(
-          '❌ Invalid profile id: "U!0_" is not a valid lowercase identifier'
-        )
+      ).rejects.toThrow(
+        'Invalid profile id: "U!0_" is not a valid lowercase identifier'
       );
       expect(detectSuperJson).not.toHaveBeenCalled();
       expect(loadSpy).not.toHaveBeenCalled();
@@ -100,7 +95,7 @@ describe('lint CLI command', () => {
           '-s',
           '3',
         ])
-      ).rejects.toEqual(new CLIError('❌ Invalid provider name: "U!0_"'));
+      ).rejects.toThrow('Invalid provider name: "U!0_"');
       expect(detectSuperJson).not.toHaveBeenCalled();
       expect(loadSpy).not.toHaveBeenCalled();
     }, 10000);
@@ -120,10 +115,8 @@ describe('lint CLI command', () => {
           '-s',
           '3',
         ])
-      ).rejects.toEqual(
-        new CLIError(
-          `❌ Unable to lint, profile: "${profileId}" not found in super.json`
-        )
+      ).rejects.toThrow(
+        `Unable to lint, profile: "${profileId}" not found in super.json`
       );
       expect(detectSuperJson).toHaveBeenCalled();
       expect(loadSpy).toHaveBeenCalled();
@@ -154,10 +147,8 @@ describe('lint CLI command', () => {
           '-s',
           '3',
         ])
-      ).rejects.toEqual(
-        new CLIError(
-          `❌ Unable to lint, provider: "${provider}" not found in profile: "${profileId}" in super.json`
-        )
+      ).rejects.toThrow(
+        `Unable to lint, provider: "${provider}" not found in profile: "${profileId}" in super.json`
       );
       expect(detectSuperJson).toHaveBeenCalled();
       expect(loadSpy).toHaveBeenCalled();
@@ -734,7 +725,7 @@ describe('lint CLI command', () => {
             '-s',
             '4',
           ])
-        ).rejects.toEqual(new CLIError('❌ Errors were found'));
+        ).rejects.toThrow('Errors were found');
 
         expect(lint).toHaveBeenCalledTimes(1);
         expect(lint).toHaveBeenCalledWith(

@@ -1,4 +1,3 @@
-import { CLIError } from '@oclif/errors';
 import { ok, SuperJson } from '@superfaceai/one-sdk';
 import { parseProfileId } from '@superfaceai/parser';
 import { mocked } from 'ts-jest/utils';
@@ -134,7 +133,7 @@ describe('Init logic', () => {
 
       await expect(
         generateSpecifiedProfiles(mockPath, mockSuperJson, mockProfileIds)
-      ).rejects.toEqual(new CLIError('Wrong profile Id'));
+      ).rejects.toThrow('Wrong profile Id');
 
       expect(parseProfileId).toHaveBeenCalledTimes(1);
       expect(parseProfileId).toHaveBeenCalledWith('first-profile-id');
