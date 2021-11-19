@@ -78,7 +78,7 @@ export default class Configure extends Command {
     let superPath = await detectSuperJson(process.cwd());
 
     if (!superPath) {
-      Logger.info(messages.common.initSuperface());
+      Logger.info(messages.initSuperface());
 
       await initSuperface('./', { profiles: {}, providers: {} });
       superPath = SUPERFACE_DIR;

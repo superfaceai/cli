@@ -1,25 +1,47 @@
 import { CLIError } from '@oclif/errors';
 import { green, grey, red, yellow } from 'chalk';
 
-// export type LogCallback = (message: string) => void;
+import { messages } from './messages';
 
 interface ILogger {
-  log(input: string): void;
+  info(input: string): void;
+  warn(input: string): void;
+  success(input: string): void;
   error(input: string): void;
 }
 class StdoutLogger implements ILogger {
-  log(input: string): void {
-    process.stdout.write(input);
+  public static readonly successPrefix = '🆗';
+  public static readonly errorPrefix = '❌';
+  public static readonly warningPrefix = '⚠️';
+
+  info(input: string): void {
+    process.stdout.write(grey(input) + '\n');
+  }
+
+  success(input: string): void {
+    process.stdout.write(
+      green(`${StdoutLogger.successPrefix} ${input}`) + '\n'
+    );
+  }
+
+  warn(input: string): void {
+    process.stdout.write(
+      yellow(`${StdoutLogger.warningPrefix} ${input}`) + '\n'
+    );
   }
 
   error(input: string): void {
-    process.stdout.write(input);
+    process.stdout.write(red(`${StdoutLogger.errorPrefix} ${input}`) + '\n');
   }
 }
 
 class DummyLogger implements ILogger {
   // eslint-disable-next-line @typescript-eslint/no-empty-function
-  log(_input: string): void {}
+  info(_input: string): void {}
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  success(_input: string): void {}
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  warn(_input: string): void {}
   // eslint-disable-next-line @typescript-eslint/no-empty-function
   error(_input: string): void {}
 }
@@ -41,8 +63,16 @@ export class MockLogger implements ILogger {
     return this.stderr.join(' ');
   }
 
-  log(input: string): void {
+  info(input: string): void {
     this.stdout.push(input);
+  }
+
+  success(input: string): void {
+    this.stdout.push(input);
+  }
+
+  warn(input: string): void {
+    this.stderr.push(input);
   }
 
   error(input: string): void {
@@ -54,9 +84,6 @@ export class MockLogger implements ILogger {
  * Represents logger used in one command lifecycle. For every command run new ILogger instance is created.
  */
 export class Logger {
-  public static readonly successPrefix = '🆗';
-  public static readonly errorPrefix = '❌';
-  public static readonly warningPrefix = '⚠️';
   private static logger: ILogger | undefined = undefined;
 
   public static setup(quiet?: boolean): void {
@@ -88,19 +115,40 @@ export class Logger {
     return Logger.logger;
   }
 
-  public static error(input: string): void {
-    Logger.getInstance().error(red(`${Logger.errorPrefix} ${input}`) + '\n');
+  private static getMessage<K extends keyof typeof messages>(
+    messsageTemplate: K,
+    ...args: Parameters<typeof messages[K]>
+  ): string {
+    return (messages[messsageTemplate] as (
+      ...args: (string | unknown)[]
+    ) => string)(...args);
   }
 
-  public static info(input: string): void {
-    Logger.getInstance().log(grey(input) + '\n');
+  public static error<K extends keyof typeof messages>(
+    messsageTemplate: K,
+    ...args: Parameters<typeof messages[K]>
+  ): void {
+    Logger.getInstance().error(Logger.getMessage(messsageTemplate, ...args));
   }
 
-  public static warn(input: string): void {
-    Logger.getInstance().log(yellow(`${Logger.warningPrefix} ${input}`) + '\n');
+  public static info<K extends keyof typeof messages>(
+    messsageTemplate: K,
+    ...args: Parameters<typeof messages[K]>
+  ): void {
+    Logger.getInstance().info(Logger.getMessage(messsageTemplate, ...args));
   }
 
-  public static success(input: string): void {
-    Logger.getInstance().log(green(`${Logger.successPrefix} ${input}`) + '\n');
+  public static warn<K extends keyof typeof messages>(
+    messsageTemplate: K,
+    ...args: Parameters<typeof messages[K]>
+  ): void {
+    Logger.getInstance().warn(Logger.getMessage(messsageTemplate, ...args));
+  }
+
+  public static success<K extends keyof typeof messages>(
+    messsageTemplate: K,
+    ...args: Parameters<typeof messages[K]>
+  ): void {
+    Logger.getInstance().success(Logger.getMessage(messsageTemplate, ...args));
   }
 }

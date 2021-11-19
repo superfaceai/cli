@@ -274,7 +274,7 @@ export default class Publish extends Command {
         force: flags.force,
       });
 
-      Logger.info(messages.common.updateSuperJson(superJson.path));
+      Logger.info(messages.updateSuperJson(superJson.path));
     }
   }
 }

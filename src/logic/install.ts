@@ -454,11 +454,9 @@ async function fetchStoreRequestCheckedOrDeferred(
     await OutputStream.writeOnce(request.sourcePath, fetched.profile, {
       dirs: true,
     });
-    Logger.info(messages.common.writeProfile(request.sourcePath));
+    Logger.info(messages.writeProfile(request.sourcePath));
   } catch (err) {
-    Logger.error(
-      messages.common.unableToWriteProfile(request.profileId.id, err)
-    );
+    Logger.error(messages.unableToWriteProfile(request.profileId.id, err));
 
     return undefined;
   }
@@ -571,7 +569,7 @@ export async function installProfiles(parameters: {
   if (installed > 0) {
     // save super.json
     await OutputStream.writeOnce(superJson.path, superJson.stringified);
-    Logger.info(messages.common.updateSuperJson(superJson.path));
+    Logger.info(messages.updateSuperJson(superJson.path));
   }
 
   const toInstall = parameters.requests.length;

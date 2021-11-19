@@ -60,7 +60,7 @@ export async function interactiveInstall(profileArg: string): Promise<void> {
   let superPath = await detectSuperJson(process.cwd());
   if (!superPath) {
     //Init SF
-    Logger.success(messages.common.initSuperface());
+    Logger.success(messages.initSuperface());
     await initSuperface(NORMALIZED_CWD_PATH, { profiles: {}, providers: {} });
     superPath = SUPERFACE_DIR;
   }

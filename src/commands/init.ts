@@ -16,7 +16,7 @@ const parseProfileIds = (input: string): string[] => {
     .filter(p => p.trim() !== '')
     .filter(p => {
       if (parseProfileId(p).kind === 'error') {
-        Logger.warn('⬅ Invalid profile id');
+        Logger.warn('invalidProfileId');
 
         return false;
       }
@@ -31,7 +31,7 @@ const parseProviders = (input: string): string[] =>
     .filter(i => i.trim() !== '')
     .filter(p => {
       if (!isValidProviderName(p)) {
-        Logger.warn('⬅ Invalid provider name');
+        Logger.warn('invalidProviderName');
 
         return false;
       }
@@ -125,12 +125,13 @@ export default class Init extends Command {
     this.setUpLogger(flags.quiet);
 
     if (flags.prompt) {
-      Logger.info(`This command will walk you through initializing superface folder structure ( mainly super.json structure ).
-      If no value is specified, the default will be taken in place ( empty super.json ).
-      
-      ${hints.flags} ${hints.help}
-      ${hints.quietMode}
-      ${hints.quiet}`);
+      Logger.info(
+        'initPrompt',
+        hints.flags,
+        hints.help,
+        hints.quiet,
+        hints.quietMode
+      );
     }
 
     let profiles = flags.profiles;

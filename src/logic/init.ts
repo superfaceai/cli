@@ -45,7 +45,7 @@ export async function initSuperface(
   {
     const created = await mkdir(appPath, { recursive: true });
     if (created) {
-      Logger.info(messages.common['mkdir'](appPath));
+      Logger.info(messages['mkdir'](appPath));
     }
   }
 
@@ -54,7 +54,7 @@ export async function initSuperface(
   {
     const created = await mkdirQuiet(superPath);
     if (created) {
-      Logger.info(messages.common.mkdir(superPath));
+      Logger.info(messages.mkdir(superPath));
     }
   }
 
@@ -67,7 +67,7 @@ export async function initSuperface(
     );
 
     if (created) {
-      Logger.info(messages.common['initSuperJson'](superJsonPath));
+      Logger.info(messages['initSuperJson'](superJsonPath));
     }
   }
 
@@ -76,14 +76,14 @@ export async function initSuperface(
     const gridPath = joinPath(appPath, GRID_DIR);
     const created = await mkdirQuiet(gridPath);
     if (created) {
-      Logger.info(messages.common.mkdir(gridPath));
+      Logger.info(messages.mkdir(gridPath));
     }
   }
   {
     const typesPath = joinPath(appPath, TYPES_DIR);
     const created = await mkdirQuiet(typesPath);
     if (created) {
-      Logger.info(messages.common.mkdir(typesPath));
+      Logger.info(messages.mkdir(typesPath));
     }
   }
 

@@ -65,7 +65,7 @@ export function handleProviderResponse(
     localProvider?: string;
   }
 ): number {
-  Logger.info(messages.install.provider(response.name));
+  Logger.info(messages.provider(response.name));
 
   let parameters: { [key: string]: string } | undefined = undefined;
   if (response.parameters) {
@@ -112,7 +112,7 @@ export function handleProviderResponse(
 export async function getProviderFromStore(
   providerName: string
 ): Promise<ProviderJson> {
-  Logger.info(messages.fetch.provider(providerName));
+  Logger.info(messages.provider(providerName));
 
   try {
     const info = await fetchProviderInfo(providerName);
@@ -203,7 +203,7 @@ export async function installProvider(parameters: {
     superJson.stringified,
     parameters.options
   );
-  Logger.info(messages.common.updateSuperJson(superJson.path));
+  Logger.info(messages.updateSuperJson(superJson.path));
 
   // update .env
   if (parameters.options?.updateEnv && providerInfo.securitySchemes) {

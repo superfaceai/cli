@@ -258,6 +258,6 @@ export async function create(create: {
   // write new information to super.json
   if (superJson) {
     await OutputStream.writeOnce(superJson.path, superJson.stringified);
-    Logger.info(messages.common.updateSuperJson(superJson.path));
+    Logger.info(messages.updateSuperJson(superJson.path));
   }
 }
