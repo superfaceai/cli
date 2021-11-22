@@ -11,6 +11,7 @@ import {
   fetchProfileInfo,
 } from '../common/http';
 import { exists, mkdirQuiet, readFile, rimraf } from '../common/io';
+import { messages } from '../common/messages';
 import { OutputStream } from '../common/output-stream';
 import { ProfileId } from '../common/profile';
 import {
@@ -484,11 +485,13 @@ describe('Install CLI logic', () => {
       expect(fetchProfileMock).toHaveBeenCalledTimes(2);
       expect(fetchProfileASTMock).toHaveBeenCalledTimes(2);
 
-      expect(logger.stderrOutput).toContain('already installed from a path');
       expect(logger.stderrOutput).toContain(
-        'Could not fetch none: none does not exist'
+        messages.profileInstalledFromPath('se/cond', 'second.supr')
       );
-      expect(logger.stderrOutput).toContain('Target file already exists:');
+      expect(logger.stderrOutput).toContain(
+        messages.couldNotFetch('none', 'none does not exist')
+      );
+      expect(logger.stderrOutput).toContain('Target file already exists');
     }, 10000);
 
     it('overrides everything with force flag', async () => {

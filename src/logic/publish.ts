@@ -157,12 +157,12 @@ export async function publish(
   const client = SuperfaceClient.getClient();
 
   if (publishing === 'provider') {
-    Logger.info('publisProvider', provider);
+    Logger.info('publishProvider', provider);
     if (!options?.dryRun) {
       await client.createProvider(JSON.stringify(providerFiles.source));
     }
   } else if (publishing === 'profile' && profileFiles.from.kind === 'local') {
-    Logger.info('publisProfile', profile.id);
+    Logger.info('publishProfile', profile.id);
     if (!options?.dryRun) {
       await client.createProfile(profileFiles.from.source);
     }

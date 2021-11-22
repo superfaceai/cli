@@ -2,6 +2,7 @@ import { CLIError } from '@oclif/errors';
 import { ServiceApiError, ServiceClient } from '@superfaceai/service-client';
 
 import { Logger, MockLogger } from '../common';
+import { messages } from '../common/messages';
 import Whoami from './whoami';
 
 describe('Whoami CLI command', () => {
@@ -30,7 +31,7 @@ describe('Whoami CLI command', () => {
       expect(getInfoSpy).toHaveBeenCalled();
       expect(logger.stderrOutput).toEqual('');
       expect(logger.stdoutOutput).toContain(
-        `🆗 You are logged in as: ${mockUserInfo.name} (${mockUserInfo.email})`
+        messages.loggedInAs(mockUserInfo.name, mockUserInfo.email)
       );
     });
 
@@ -48,9 +49,7 @@ describe('Whoami CLI command', () => {
       await expect(Whoami.run([])).resolves.toBeUndefined();
       expect(getInfoSpy).toHaveBeenCalled();
       expect(logger.stderrOutput).toEqual('');
-      expect(logger.stdoutOutput).toContain(
-        '⚠️ You are not logged in. Please try running "sf login"'
-      );
+      expect(logger.stdoutOutput).toContain(messages.notLoggedIn());
     });
 
     it('calls getUserInfo correctly, unknown Superface response', async () => {
@@ -68,7 +67,10 @@ describe('Whoami CLI command', () => {
       expect(getInfoSpy).toHaveBeenCalled();
       expect(logger.stderrOutput).toEqual('');
       expect(logger.stdoutOutput).toContain(
-        `⚠️ Superface server responded with error: ${mockServerResponse.name}: ${mockServerResponse.message}`
+        messages.superfaceServerError(
+          mockServerResponse.name,
+          mockServerResponse.message
+        )
       );
     });
 

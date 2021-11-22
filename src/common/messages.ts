@@ -39,8 +39,8 @@ const load = {
 const publish = {
   publishMap: (profile: string, provider: string): string =>
     `Publishing map for profile ${profile} and provider ${provider}`,
-  publisProfile: (profile: string): string => `Publishing profile ${profile}`,
-  publisProvider: (provider: string): string =>
+  publishProfile: (profile: string): string => `Publishing profile ${profile}`,
+  publishProvider: (provider: string): string =>
     `Publishing provider ${provider}`,
   localAndRemoteProvider: (provider: string): string =>
     `Provider: ${provider} found localy linked in super.json and also in Superface server. Consider using provider from Superface store.`,
@@ -92,13 +92,13 @@ const fetch = {
     astVersion?: string
   ): string => {
     if (astVersion) {
-      return `Loading map for profile: ${profile} and provider: ${provider} in version: ${astVersion} from Superface store`;
+      return `Fetching map for profile: ${profile} and provider: ${provider} in version: ${astVersion} from Superface store`;
     }
 
-    return `Loading map for profile: ${profile} and provider: ${provider} from Superface store`;
+    return `Fetching map for profile: ${profile} and provider: ${provider} from Superface store`;
   },
   fetchProvider: (provider: string): string =>
-    `Fetching provider ${provider} from the Store`,
+    `Fetching provider ${provider} from the Superface Store`,
 
   couldNotFetch: (entitiy: string, error: unknown): string =>
     // eslint-disable-next-line @typescript-eslint/restrict-template-expressions

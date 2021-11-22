@@ -1,6 +1,7 @@
 import { CLIError } from '@oclif/errors';
 import { ServiceClient, ServiceClientError } from '@superfaceai/service-client';
 
+import { messages } from '../common/messages';
 import { MockStd, mockStd } from '../test/mock-std';
 import Logout from './logout';
 
@@ -31,8 +32,8 @@ describe('Logout CLI command', () => {
 
       await expect(Logout.run([])).resolves.toBeUndefined();
       expect(getInfoSpy).toHaveBeenCalled();
-      expect(stderr.output).toEqual('');
-      expect(stdout.output).toEqual(`🆗 You have been logged out\n`);
+      expect(stderr.output).toContain('');
+      expect(stdout.output).toContain(messages.loggoutSuccessfull());
     });
 
     it('calls getUserInfo correctly, user logged out', async () => {
@@ -45,8 +46,11 @@ describe('Logout CLI command', () => {
       await expect(Logout.run([])).resolves.toBeUndefined();
       expect(getInfoSpy).toHaveBeenCalled();
       expect(stderr.output).toEqual('');
-      expect(stdout.output).toEqual(
-        `⚠️ Superface server responded with: No session found, couldn't log out\n`
+      expect(stdout.output).toContain(
+        messages.superfaceServerError(
+          'Error',
+          `No session found, couldn't log out`
+        )
       );
     });
 

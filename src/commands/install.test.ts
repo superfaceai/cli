@@ -3,6 +3,7 @@ import { SuperJson } from '@superfaceai/one-sdk';
 import { mocked } from 'ts-jest/utils';
 
 import { Logger, MockLogger } from '../common';
+import { messages } from '../common/messages';
 import { ProfileId } from '../common/profile';
 import { installProvider } from '../logic/configure';
 import { initSuperface } from '../logic/init';
@@ -199,7 +200,7 @@ describe('Install CLI command', () => {
         Install.run([profileId.id, '-p', ...mockProviders])
       ).resolves.toBeUndefined();
 
-      expect(logger.stdoutOutput).toContain('Invalid provider name: made.up');
+      expect(logger.stdoutOutput).toContain(messages.invalidProviderName());
       expect(installProfiles).toHaveBeenCalledTimes(1);
       expect(installProfiles).toHaveBeenCalledWith({
         superPath: '.',
@@ -251,7 +252,7 @@ describe('Install CLI command', () => {
         ])
       ).resolves.toBeUndefined();
 
-      expect(logger.stdoutOutput).toContain('Invalid provider name: made.up');
+      expect(logger.stdoutOutput).toContain(messages.invalidProviderName());
       expect(installProfiles).toHaveBeenCalledTimes(1);
       expect(installProfiles).toHaveBeenCalledWith({
         superPath: '.',

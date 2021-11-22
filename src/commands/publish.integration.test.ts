@@ -1,10 +1,11 @@
 import { SuperJson } from '@superfaceai/one-sdk';
 import { getLocal } from 'mockttp';
 import { Netrc } from 'netrc-parser';
-import { join as joinPath } from 'path';
+import { join as joinPath, resolve } from 'path';
 
 import { UNVERIFIED_PROVIDER_PREFIX } from '../common';
 import { mkdir, rimraf } from '../common/io';
+import { messages } from '../common/messages';
 import { OutputStream } from '../common/output-stream';
 import { ProfileId } from '../common/profile';
 import {
@@ -183,18 +184,23 @@ describe('Publish CLI command', () => {
         }
       );
       expect(result.stdout).toContain(
-        `Profile: "${profileId.id}" found on local file system`
+        messages.localProfileFound(profileId.id, resolve(sourceFixture.profile))
       );
       expect(result.stdout).toContain(
-        `Map for profile: "${profileId.id}" and provider: "${unverifiedProvider}" found on local filesystem`
+        messages.localMapFound(
+          profileId.id,
+          unverifiedProvider,
+          resolve(sourceFixture.mapWithUnverifiedProvider)
+        )
       );
       expect(result.stdout).toContain(
-        `Provider: "${unverifiedProvider}" found on local file system`
+        messages.localProviderFound(
+          unverifiedProvider,
+          resolve(sourceFixture.unverifiedProvider)
+        )
       );
-      expect(result.stdout).toContain(`Publishing profile "${profileId.name}"`);
-      expect(result.stdout).toContain(
-        `🆗 profile has been published successfully.`
-      );
+      expect(result.stdout).toContain(messages.publishProfile(profileId.id));
+      expect(result.stdout).toContain(messages.publishSuccessfull('profile'));
 
       //Check super.json
       const superJson = (
@@ -265,18 +271,16 @@ describe('Publish CLI command', () => {
         }
       );
       expect(result.stdout).toContain(
-        `Profile: "${profileId.id}" found on local file system`
+        messages.localProfileFound(profileId.id, resolve(sourceFixture.profile))
       );
       expect(result.stdout).toContain(
-        `Loading map for profile: "${profileId.id}" and provider: "${unverifiedProvider}" in version: "1.0.0" from Superface store`
+        messages.fetchMap(profileId.id, unverifiedProvider, '1.0.0')
       );
       expect(result.stdout).toContain(
-        `Loading provider: "${unverifiedProvider}" from Superface store`
+        messages.fetchProvider(unverifiedProvider)
       );
-      expect(result.stdout).toContain(`Publishing profile "${profileId.name}"`);
-      expect(result.stdout).toContain(
-        `🆗 profile has been published successfully.`
-      );
+      expect(result.stdout).toContain(messages.publishProfile(profileId.id));
+      expect(result.stdout).toContain(messages.publishSuccessfull('profile'));
 
       //Check super.json
       const superJson = (
@@ -347,20 +351,25 @@ describe('Publish CLI command', () => {
         }
       );
       expect(result.stdout).toContain(
-        `Profile: "${profileId.id}" found on local file system`
+        messages.localProfileFound(profileId.id, resolve(sourceFixture.profile))
       );
       expect(result.stdout).toContain(
-        `Map for profile: "${profileId.id}" and provider: "${unverifiedProvider}" found on local filesystem`
+        messages.localMapFound(
+          profileId.id,
+          unverifiedProvider,
+          resolve(sourceFixture.mapWithUnverifiedProvider)
+        )
       );
       expect(result.stdout).toContain(
-        `Provider: "${unverifiedProvider}" found on local file system`
+        messages.localProviderFound(
+          unverifiedProvider,
+          resolve(sourceFixture.unverifiedProvider)
+        )
       );
       expect(result.stdout).toContain(
-        `Publishing map for profile "${profileId.name}" and provider "${unverifiedProvider}"`
+        messages.publishMap(profileId.id, unverifiedProvider)
       );
-      expect(result.stdout).toContain(
-        `🆗 map has been published successfully.`
-      );
+      expect(result.stdout).toContain(messages.publishSuccessfull('map'));
 
       //Check super.json
       const superJson = (
@@ -432,20 +441,22 @@ describe('Publish CLI command', () => {
         }
       );
       expect(result.stdout).toContain(
-        `Loading profile: "${profileId.id}" in version: "${profileVersion}" from Superface store`
+        messages.fetchProfile(profileId.id, profileVersion)
       );
       expect(result.stdout).toContain(
-        `Map for profile: "${profileId.id}@${profileVersion}" and provider: "${unverifiedProvider}" found on local filesystem`
+        messages.localMapFound(
+          `${profileId.id}@${profileVersion}`,
+          unverifiedProvider,
+          resolve(sourceFixture.mapWithUnverifiedProvider)
+        )
       );
       expect(result.stdout).toContain(
-        `Loading provider: "${unverifiedProvider}" from Superface store`
+        messages.fetchProvider(unverifiedProvider)
       );
       expect(result.stdout).toContain(
-        `Publishing map for profile "${profileId.name}" and provider "${unverifiedProvider}"`
+        messages.publishMap(profileId.id, unverifiedProvider)
       );
-      expect(result.stdout).toContain(
-        `🆗 map has been published successfully.`
-      );
+      expect(result.stdout).toContain(messages.publishSuccessfull('map'));
 
       //Check super.json
       const superJson = (
@@ -517,20 +528,25 @@ describe('Publish CLI command', () => {
         }
       );
       expect(result.stdout).toContain(
-        `Profile: "${profileId.id}" found on local file system`
+        messages.localProfileFound(profileId.id, resolve(sourceFixture.profile))
       );
       expect(result.stdout).toContain(
-        `Map for profile: "${profileId.id}" and provider: "${unverifiedProvider}" found on local filesystem`
+        messages.localMapFound(
+          profileId.id,
+          unverifiedProvider,
+          resolve(sourceFixture.mapWithUnverifiedProvider)
+        )
       );
       expect(result.stdout).toContain(
-        `Provider: "${unverifiedProvider}" found on local file system`
+        messages.localProviderFound(
+          unverifiedProvider,
+          resolve(sourceFixture.unverifiedProvider)
+        )
       );
       expect(result.stdout).toContain(
-        `Publishing provider "${unverifiedProvider}"`
+        messages.publishProvider(unverifiedProvider)
       );
-      expect(result.stdout).toContain(
-        `🆗 provider has been published successfully.`
-      );
+      expect(result.stdout).toContain(messages.publishSuccessfull('provider'));
 
       //Check super.json
       const superJson = (
@@ -602,20 +618,25 @@ describe('Publish CLI command', () => {
         }
       );
       expect(result.stdout).toContain(
-        `Loading profile: "${profileId.id}" in version: "${profileVersion}" from Superface store`
+        messages.fetchProfile(profileId.id, profileVersion)
       );
       expect(result.stdout).toContain(
-        `Loading map for profile: "${profileId.id}@${profileVersion}" and provider: "${unverifiedProvider}" in version: "1.0.0" from Superface store`
+        messages.fetchMap(
+          `${profileId.id}@${profileVersion}`,
+          unverifiedProvider,
+          '1.0.0'
+        )
       );
       expect(result.stdout).toContain(
-        `Provider: "${unverifiedProvider}" found on local file system`
+        messages.localProviderFound(
+          unverifiedProvider,
+          resolve(sourceFixture.unverifiedProvider)
+        )
       );
       expect(result.stdout).toContain(
-        `Publishing provider "${unverifiedProvider}"`
+        messages.publishProvider(unverifiedProvider)
       );
-      expect(result.stdout).toContain(
-        `🆗 provider has been published successfully.`
-      );
+      expect(result.stdout).toContain(messages.publishSuccessfull('provider'));
 
       //Check super.json
       const superJson = (

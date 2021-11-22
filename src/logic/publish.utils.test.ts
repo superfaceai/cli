@@ -13,6 +13,7 @@ import {
   fetchProfileAST,
   fetchProviderInfo,
 } from '../common/http';
+import { messages } from '../common/messages';
 import { ProfileId } from '../common/profile';
 import { ProfileMapReport } from '../common/report.interfaces';
 import {
@@ -434,7 +435,7 @@ describe('Publish logic utils', () => {
         }
       );
       expect(logger.stdoutOutput).toContain(
-        `Profile: ${mockProfile.id} found on local file system at path: mock profile path`
+        messages.localProfileFound(mockProfile.id, 'mock profile path')
       );
     });
 
@@ -456,7 +457,7 @@ describe('Publish logic utils', () => {
       expect(parseProfileSpy).not.toHaveBeenCalled();
       expect(fetchProfileAST).toHaveBeenCalledWith(mockProfile.id);
       expect(logger.stdoutOutput).toContain(
-        `Loading profile: ${mockProfile.id} in version: 1.0.0 from Superface store`
+        messages.fetchProfile(mockProfile.id, '1.0.0')
       );
     });
   });
@@ -493,7 +494,11 @@ describe('Publish logic utils', () => {
       );
 
       expect(logger.stdoutOutput).toContain(
-        `Map for profile: ${mockProfile.id} and provider: ${mockProviderName} found on local filesystem at path: mock map path`
+        messages.localMapFound(
+          mockProfile.id,
+          mockProviderName,
+          'mock map path'
+        )
       );
     });
 
@@ -522,7 +527,7 @@ describe('Publish logic utils', () => {
       );
 
       expect(logger.stdoutOutput).toContain(
-        `Loading map for profile: ${mockProfile.id} and provider: ${mockProviderName} in version: 1.0.0 from Superface store`
+        messages.fetchMap(mockProfile.id, mockProviderName, '1.0.0')
       );
     });
   });
@@ -544,7 +549,7 @@ describe('Publish logic utils', () => {
         },
       });
       expect(logger.stdoutOutput).toContain(
-        `Provider: ${mockProviderName} found on local file system at path: mock provider path`
+        messages.localProviderFound(mockProviderName, 'mock provider path')
       );
     });
 
@@ -563,7 +568,7 @@ describe('Publish logic utils', () => {
 
       expect(fetchProviderInfo).toHaveBeenCalledWith(mockProviderName);
       expect(logger.stdoutOutput).toContain(
-        `Loading provider: ${mockProviderName} from Superface store`
+        messages.fetchProvider(mockProviderName)
       );
     });
   });

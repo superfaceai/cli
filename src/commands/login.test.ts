@@ -3,6 +3,7 @@ import { mocked } from 'ts-jest/utils';
 
 import { Logger, MockLogger } from '..';
 import { getServicesUrl } from '../common/http';
+import { messages } from '../common/messages';
 import { login } from '../logic/login';
 import Login from './login';
 
@@ -65,7 +66,7 @@ describe('Login CLI command', () => {
       });
 
       expect(logoutSpy).not.toHaveBeenCalled();
-      expect(logger.stdoutOutput).toContain('Logged in');
+      expect(logger.stdoutOutput).toContain(messages.loggedInSuccessfully());
     });
 
     it('calls login correctly - non existing record in netrc and quiet flag', async () => {
@@ -78,7 +79,7 @@ describe('Login CLI command', () => {
       });
 
       expect(logoutSpy).not.toHaveBeenCalled();
-      expect(logger.stdoutOutput).toContain('Logged in');
+      expect(logger.stdoutOutput).toContain(messages.loggedInSuccessfully());
     });
     it('calls login correctly - existing record in netrc and force flag', async () => {
       mocked(getServicesUrl).mockReturnValue(mockBaseUrlWithExistingRecord);
@@ -90,8 +91,8 @@ describe('Login CLI command', () => {
         force: true,
       });
 
-      expect(logger.stdoutOutput).toContain('Already logged in, logging out');
-      expect(logger.stdoutOutput).toContain('Logged in');
+      expect(logger.stdoutOutput).toContain(messages.alreadyLoggedIn());
+      expect(logger.stdoutOutput).toContain(messages.loggedInSuccessfully());
       expect(logoutSpy).toHaveBeenCalled();
     });
 
@@ -105,10 +106,8 @@ describe('Login CLI command', () => {
         force: false,
       });
 
-      expect(logger.stdoutOutput).toContain(
-        `Using value from SUPERFACE_REFRESH_TOKEN environment variable`
-      );
-      expect(logger.stdoutOutput).toContain('Logged in');
+      expect(logger.stdoutOutput).toContain(messages.usinfSfRefreshToken());
+      expect(logger.stdoutOutput).toContain(messages.loggedInSuccessfully());
       expect(logoutSpy).not.toHaveBeenCalled();
     });
   });

@@ -6,6 +6,7 @@ import { mocked } from 'ts-jest/utils';
 import { Logger, MockLogger } from '..';
 import { fetchProviders, getServicesUrl } from '../common/http';
 import { exists, readFile } from '../common/io';
+import { messages } from '../common/messages';
 import { OutputStream } from '../common/output-stream';
 import { findLocalProfileSource } from './check.utils';
 import { initSuperface } from './init';
@@ -315,20 +316,28 @@ describe('Quickstart logic', () => {
         'SENDGRID_TOKEN=sendgridBearer\nTEST_DIGEST=testDigest\nMAILGUN_USERNAME=mailgunUsername\nMAILGUN_PASSWORD=mailgunPassword\nSUPERFACE_SDK_TOKEN=sfs_bb064dd57c302911602dd097bc29bedaea6a021c25a66992d475ed959aa526c7_37bce8b5\n'
       );
 
-      expect(logger.stdoutOutput).toMatch('Initializing superface directory');
-      expect(logger.stdoutOutput).toMatch('Installing providers');
-      expect(logger.stdoutOutput).toMatch('Configuring providers security');
-      expect(logger.stdoutOutput).toMatch('Configuring sendgrid security');
-      expect(logger.stdoutOutput).toMatch('Configuring mailgun security');
-      expect(logger.stdoutOutput).toMatch('Configuring test security');
+      expect(logger.stdoutOutput).toMatch(messages.initSuperface());
+      expect(logger.stdoutOutput).toMatch(messages.installMultipleProviders());
       expect(logger.stdoutOutput).toMatch(
-        'Installing package "@superfaceai/one-sdk"'
+        messages.configureMultipleProviderSecurity()
       );
       expect(logger.stdoutOutput).toMatch(
-        '🆗 Superface have been configured successfully!'
+        messages.configureProviderSecurity('sendgrid')
       );
       expect(logger.stdoutOutput).toMatch(
-        `Now you can follow our documentation to use installed capability: "https://superface.ai/${profile.scope}/${profile.profile}"`
+        messages.configureProviderSecurity('mailgun')
+      );
+      expect(logger.stdoutOutput).toMatch(
+        messages.configureProviderSecurity('test')
+      );
+      expect(logger.stdoutOutput).toMatch(
+        messages.installPackage('@superfaceai/one-sdk')
+      );
+      expect(logger.stdoutOutput).toMatch(messages.superfaceConfigureSuccess());
+      expect(logger.stdoutOutput).toMatch(
+        messages.capabilityDocsUrl(
+          `https://superface.ai/${profile.scope}/${profile.profile}`
+        )
       );
     });
 
@@ -470,20 +479,28 @@ describe('Quickstart logic', () => {
         'SOME=env\nSENDGRID_TOKEN=sendgridBearer\nTEST_API_KEY=testApiKey\nMAILGUN_USERNAME=mailgunUsername\nMAILGUN_PASSWORD=mailgunPassword\nSUPERFACE_SDK_TOKEN=sfs_bb064dd57c302911602dd097bc29bedaea6a021c25a66992d475ed959aa526c7_37bce8b5\n'
       );
 
-      expect(logger.stdoutOutput).toMatch('Initializing superface directory');
-      expect(logger.stdoutOutput).toMatch('Installing providers');
-      expect(logger.stdoutOutput).toMatch('Configuring providers security');
-      expect(logger.stdoutOutput).toMatch('Configuring sendgrid security');
-      expect(logger.stdoutOutput).toMatch('Configuring mailgun security');
-      expect(logger.stdoutOutput).toMatch('Configuring test security');
+      expect(logger.stdoutOutput).toMatch(messages.initSuperface());
+      expect(logger.stdoutOutput).toMatch(messages.installMultipleProviders());
       expect(logger.stdoutOutput).toMatch(
-        'Installing package "@superfaceai/one-sdk"'
+        messages.configureMultipleProviderSecurity()
       );
       expect(logger.stdoutOutput).toMatch(
-        '🆗 Superface have been configured successfully!'
+        messages.configureProviderSecurity('sendgrid')
       );
       expect(logger.stdoutOutput).toMatch(
-        `Now you can follow our documentation to use installed capability: "https://superface.ai/${profile.scope}/${profile.profile}"`
+        messages.configureProviderSecurity('mailgun')
+      );
+      expect(logger.stdoutOutput).toMatch(
+        messages.configureProviderSecurity('test')
+      );
+      expect(logger.stdoutOutput).toMatch(
+        messages.installPackage('@superfaceai/one-sdk')
+      );
+      expect(logger.stdoutOutput).toMatch(messages.superfaceConfigureSuccess());
+      expect(logger.stdoutOutput).toMatch(
+        messages.capabilityDocsUrl(
+          `https://superface.ai/${profile.scope}/${profile.profile}`
+        )
       );
     });
 
@@ -612,20 +629,24 @@ describe('Quickstart logic', () => {
         'TEST_API_KEY=env\nMAILGUN_USERNAME=mailgunUsername\nMAILGUN_PASSWORD=mailgunPassword\nSUPERFACE_SDK_TOKEN=sfs_bb064dd57c302911602dd097bc29bedaea6a021c25a66992d475ed959aa526c7_37bce8b5\n'
       );
 
-      expect(logger.stdoutOutput).toMatch('Initializing superface directory');
-      expect(logger.stdoutOutput).toMatch('Installing providers');
-      expect(logger.stdoutOutput).toMatch('Configuring providers security');
-      expect(logger.stdoutOutput).toMatch('Configuring sendgrid security');
+      expect(logger.stdoutOutput).toMatch(messages.initSuperface());
+      expect(logger.stdoutOutput).toMatch(messages.installMultipleProviders());
       expect(logger.stdoutOutput).toMatch(
-        'Value of SENDGRID_TOKEN in sendgrid bearer security schema does not start with $ character.'
-      );
-      expect(logger.stdoutOutput).toMatch('Configuring mailgun security');
-      expect(logger.stdoutOutput).toMatch(
-        'Installing package "@superfaceai/one-sdk"'
+        messages.configureMultipleProviderSecurity()
       );
       expect(logger.stdoutOutput).toMatch(
-        '🆗 Superface have been configured successfully!'
+        messages.configureProviderSecurity('sendgrid')
       );
+      expect(logger.stdoutOutput).toMatch(
+        messages.unexpectedSecurityValue('SENDGRID_TOKEN', 'sendgrid', 'bearer')
+      );
+      expect(logger.stdoutOutput).toMatch(
+        messages.configureProviderSecurity('mailgun')
+      );
+      expect(logger.stdoutOutput).toMatch(
+        messages.installPackage('@superfaceai/one-sdk')
+      );
+      expect(logger.stdoutOutput).toMatch(messages.superfaceConfigureSuccess());
     });
 
     it('sets up sf correctly - existing super.json and existing .env', async () => {
@@ -776,22 +797,28 @@ describe('Quickstart logic', () => {
         'test=test\nSENDGRID_TOKEN=t\ntest2=test2\nMAILGUN_USERNAME=mailgunUsername\nMAILGUN_PASSWORD=mailgunPassword\nTEST_DIGEST=testDigest\nSUPERFACE_SDK_TOKEN=sfs_bb064dd57c302911602dd097bc29bedaea6a021c25a66992d475ed959aa526c7_37bce8b5\n'
       );
 
-      expect(logger.stdoutOutput).toMatch('Installing providers');
-      expect(logger.stdoutOutput).toMatch('Configuring providers security');
+      expect(logger.stdoutOutput).toMatch(messages.installMultipleProviders());
+      expect(logger.stdoutOutput).toMatch(
+        messages.configureMultipleProviderSecurity()
+      );
       //User dont want to override sendgrid
       expect(logger.stdoutOutput).not.toContain(
-        'Configuring sendgrid security'
-      );
-      expect(logger.stdoutOutput).toMatch('Configuring mailgun security');
-      expect(logger.stdoutOutput).toMatch('Configuring test security');
-      expect(logger.stdoutOutput).toMatch(
-        'Installing package "@superfaceai/one-sdk"'
+        messages.configureProviderSecurity('sendgrid')
       );
       expect(logger.stdoutOutput).toMatch(
-        '🆗 Superface have been configured successfully!'
+        messages.configureProviderSecurity('mailgun')
       );
       expect(logger.stdoutOutput).toMatch(
-        `Now you can follow our documentation to use installed capability: "https://superface.ai/${profile.scope}/${profile.profile}"`
+        messages.configureProviderSecurity('test')
+      );
+      expect(logger.stdoutOutput).toMatch(
+        messages.installPackage('@superfaceai/one-sdk')
+      );
+      expect(logger.stdoutOutput).toMatch(messages.superfaceConfigureSuccess());
+      expect(logger.stdoutOutput).toMatch(
+        messages.capabilityDocsUrl(
+          `https://superface.ai/${profile.scope}/${profile.profile}`
+        )
       );
     });
   });

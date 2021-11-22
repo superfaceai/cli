@@ -15,31 +15,31 @@ class StdoutLogger implements ILogger {
   public static readonly warningPrefix = '⚠️';
 
   protected formatInfo(input: string): string {
-    return grey(input) + '\n'
+    return grey(input) + '\n';
   }
+
   protected formatSuccess(input: string): string {
-    return green(`${StdoutLogger.successPrefix} ${input}`) + '\n'
+    return green(`${StdoutLogger.successPrefix} ${input}`) + '\n';
   }
+
   protected formatWarn(input: string): string {
-    return yellow(`${StdoutLogger.warningPrefix} ${input}`) + '\n'
+    return yellow(`${StdoutLogger.warningPrefix} ${input}`) + '\n';
   }
+
   protected formatError(input: string): string {
-    return red(`${StdoutLogger.errorPrefix} ${input}`) + '\n'
+    return red(`${StdoutLogger.errorPrefix} ${input}`) + '\n';
   }
+
   info(input: string): void {
     process.stdout.write(this.formatInfo(input));
   }
 
   success(input: string): void {
-    process.stdout.write(
-      this.formatSuccess(input)
-    );
+    process.stdout.write(this.formatSuccess(input));
   }
 
   warn(input: string): void {
-    process.stdout.write(
-      this.formatWarn(input)
-    );
+    process.stdout.write(this.formatWarn(input));
   }
 
   error(input: string): void {
@@ -49,13 +49,13 @@ class StdoutLogger implements ILogger {
 
 class DummyLogger implements ILogger {
   // eslint-disable-next-line @typescript-eslint/no-empty-function
-  info(_input: string): void { }
+  info(_input: string): void {}
   // eslint-disable-next-line @typescript-eslint/no-empty-function
-  success(_input: string): void { }
+  success(_input: string): void {}
   // eslint-disable-next-line @typescript-eslint/no-empty-function
-  warn(_input: string): void { }
+  warn(_input: string): void {}
   // eslint-disable-next-line @typescript-eslint/no-empty-function
-  error(_input: string): void { }
+  error(_input: string): void {}
 }
 
 export class MockLogger extends StdoutLogger {
@@ -63,7 +63,7 @@ export class MockLogger extends StdoutLogger {
   private stderr: string[];
 
   constructor() {
-    super()
+    super();
     this.stdout = [];
     this.stderr = [];
   }
@@ -85,7 +85,7 @@ export class MockLogger extends StdoutLogger {
   }
 
   warn(input: string): void {
-    this.stderr.push(this.formatWarn(input));
+    this.stdout.push(this.formatWarn(input));
   }
 
   error(input: string): void {

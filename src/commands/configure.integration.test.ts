@@ -5,6 +5,7 @@ import { join as joinPath } from 'path';
 
 import { ContentType } from '../common/http';
 import { exists, mkdir, mkdirQuiet, rimraf } from '../common/io';
+import { messages } from '../common/messages';
 import { OutputStream } from '../common/output-stream';
 import {
   execCLI,
@@ -351,7 +352,7 @@ describe('Configure CLI command', () => {
         mockServer.url
       );
 
-      expect(result.stdout).toContain(`Provider already exists: "${provider}"`);
+      expect(result.stdout).toContain(messages.providerAlreadyExists(provider));
 
       const superJson = (
         await SuperJson.load(joinPath(tempDir, 'superface', 'super.json'))
@@ -418,7 +419,7 @@ describe('Configure CLI command', () => {
       );
 
       expect(result.stdout).not.toContain(
-        `Provider already exists: "${simpleProvider}"`
+        messages.providerAlreadyExists(simpleProvider)
       );
 
       const superJson = (

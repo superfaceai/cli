@@ -4,6 +4,7 @@ import { join as joinPath } from 'path';
 
 import { composeUsecaseName, DEFAULT_PROFILE_VERSION_STR } from '../common';
 import { mkdir, readFile, rimraf } from '../common/io';
+import { messages } from '../common/messages';
 import * as mapTemplate from '../templates/map';
 import * as profileTemplate from '../templates/profile';
 import * as providerTemplate from '../templates/provider';
@@ -66,7 +67,7 @@ describe('Interactive create CLI command', () => {
       });
 
       expect(result.stdout).toMatch(
-        `-> Created ${documentName}.supr (name = "${documentName}", version = "1.0.0")`
+        messages.createProfile(`${documentName}@1.0.0`, `${documentName}.supr`)
       );
 
       const profileFile = await readFile(
@@ -120,7 +121,7 @@ describe('Interactive create CLI command', () => {
         }
       );
       expect(result.stdout).toContain(
-        `-> Created ${documentName}.supr (name = "${documentName}", version = "1.0.0")`
+        messages.createProfile(`${documentName}@1.0.0`, `${documentName}.supr`)
       );
       const profileFile = await readFile(
         joinPath(tempDir, `${documentName}.supr`),
@@ -173,7 +174,7 @@ describe('Interactive create CLI command', () => {
         }
       );
       expect(result.stdout).toContain(
-        `-> Created ${documentName}.supr (name = "${documentName}", version = "1.0.0")`
+        messages.createProfile(`${documentName}@1.0.0`, `${documentName}.supr`)
       );
 
       const profileFile = await readFile(
@@ -230,10 +231,14 @@ describe('Interactive create CLI command', () => {
         ],
       });
       expect(result.stdout).toContain(
-        `-> Created ${documentName}.${provider}.suma (profile = "${documentName}@1.0", provider = "${provider}")`
+        messages.createMap(
+          `${documentName}@1.0`,
+          provider,
+          `${documentName}.${provider}.suma`
+        )
       );
       expect(result.stdout).not.toContain(
-        `-> Created ${provider}.provider.json`
+        messages.createProvider(provider, `${provider}.provider.json`)
       );
       const createdFile = await readFile(
         joinPath(tempDir, `${documentName}.${provider}.suma`),
@@ -297,9 +302,15 @@ describe('Interactive create CLI command', () => {
         }
       );
       expect(result.stdout).toContain(
-        `-> Created ${documentName}.${provider}.suma (profile = "${documentName}@1.0", provider = "${provider}")`
+        messages.createMap(
+          `${documentName}@1.0`,
+          provider,
+          `${documentName}.${provider}.suma`
+        )
       );
-      expect(result.stdout).toContain(`-> Created ${provider}.provider.json`);
+      expect(result.stdout).toContain(
+        messages.createProvider(provider, `${provider}.provider.json`)
+      );
 
       let createdFile = await readFile(
         joinPath(tempDir, `${documentName}.${provider}.suma`),
@@ -377,10 +388,14 @@ describe('Interactive create CLI command', () => {
         }
       );
       expect(result.stdout).toContain(
-        `-> Created ${documentName}.${provider}.suma (profile = "${documentName}@1.0", provider = "${provider}")`
+        messages.createMap(
+          `${documentName}@1.0`,
+          provider,
+          `${documentName}.${provider}.suma`
+        )
       );
       expect(result.stdout).not.toContain(
-        `-> Created ${provider}.provider.json`
+        messages.createProvider(provider, `${provider}.provider.json`)
       );
 
       const createdFile = await readFile(
@@ -441,13 +456,17 @@ describe('Interactive create CLI command', () => {
         ],
       });
       expect(result.stdout).toContain(
-        `-> Created ${documentName}.supr (name = "${documentName}", version = "1.0.0")`
+        messages.createProfile(`${documentName}@1.0.0`, `${documentName}.supr`)
       );
       expect(result.stdout).toContain(
-        `-> Created ${documentName}.${provider}.suma (profile = "${documentName}@1.0", provider = "${provider}")`
+        messages.createMap(
+          `${documentName}@1.0`,
+          provider,
+          `${documentName}.${provider}.suma`
+        )
       );
       expect(result.stdout).not.toContain(
-        `-> Created ${provider}.provider.json`
+        messages.createProvider(provider, `${provider}.provider.json`)
       );
       let createdFile = await readFile(
         joinPath(tempDir, `${documentName}.supr`),
@@ -523,13 +542,17 @@ describe('Interactive create CLI command', () => {
         }
       );
       expect(result.stdout).toContain(
-        `-> Created ${documentName}.supr (name = "${documentName}", version = "1.0.0")`
+        messages.createProfile(`${documentName}@1.0.0`, `${documentName}.supr`)
       );
       expect(result.stdout).toContain(
-        `-> Created ${documentName}.${provider}.suma (profile = "${documentName}@1.0", provider = "${provider}")`
+        messages.createMap(
+          `${documentName}@1.0`,
+          provider,
+          `${documentName}.${provider}.suma`
+        )
       );
       expect(result.stdout).not.toContain(
-        `-> Created ${provider}.provider.json`
+        messages.createProvider(provider, `${provider}.provider.json`)
       );
 
       let createdFile = await readFile(
@@ -606,12 +629,18 @@ describe('Interactive create CLI command', () => {
         }
       );
       expect(result.stdout).toMatch(
-        `-> Created ${documentName}.supr (name = "${documentName}", version = "1.0.0")`
+        messages.createProfile(`${documentName}@1.0.0`, `${documentName}.supr`)
       );
       expect(result.stdout).toMatch(
-        `-> Created ${documentName}.${provider}.suma (profile = "${documentName}@1.0", provider = "${provider}")`
+        messages.createMap(
+          `${documentName}@1.0`,
+          provider,
+          `${documentName}.${provider}.suma`
+        )
       );
-      expect(result.stdout).not.toMatch(`-> Created ${provider}.provider.json`);
+      expect(result.stdout).not.toMatch(
+        messages.createProvider(provider, `${provider}.provider.json`)
+      );
 
       let createdFile = await readFile(
         joinPath(tempDir, `${documentName}.supr`),
