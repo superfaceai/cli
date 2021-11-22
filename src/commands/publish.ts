@@ -10,7 +10,6 @@ import { Command } from '../common/command.abstract';
 import { userError } from '../common/error';
 import { getServicesUrl } from '../common/http';
 import { Logger } from '../common/log';
-import { messages } from '../common/messages';
 import { OutputStream } from '../common/output-stream';
 import { ProfileId } from '../common/profile';
 import {
@@ -232,13 +231,13 @@ export default class Publish extends Command {
       }
     );
     if (result) {
-      Logger.warn('Publishing command ended up with errors:\n');
+      Logger.warn('publishEndedWithErrors');
       this.log(result);
 
       return;
     }
 
-    Logger.success(`${documentType} has been published successfully.`);
+    Logger.success('publishSuccessfull', documentType);
     let transition = true;
     if (!flags.force) {
       const prompt: { continue: boolean } = await inquirer.prompt({
@@ -274,7 +273,7 @@ export default class Publish extends Command {
         force: flags.force,
       });
 
-      Logger.info(messages.updateSuperJson(superJson.path));
+      Logger.info('updateSuperJson', superJson.path);
     }
   }
 }

@@ -201,7 +201,7 @@ export default class Lint extends Command {
     if (totals[0] > 0) {
       throw userError('❌ Errors were found', 1);
     } else if (totals[1] > 0) {
-      Logger.warn('Warnings were found');
+      Logger.warn('warningsWereFound');
     }
   }
 

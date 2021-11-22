@@ -13,7 +13,6 @@ import {
 import { userError } from '../common/error';
 import { mkdir, mkdirQuiet } from '../common/io';
 import { Logger } from '../common/log';
-import { messages } from '../common/messages';
 import { OutputStream } from '../common/output-stream';
 import { ProfileId } from '../common/profile';
 import { createProfile } from './create';
@@ -45,7 +44,7 @@ export async function initSuperface(
   {
     const created = await mkdir(appPath, { recursive: true });
     if (created) {
-      Logger.info(messages['mkdir'](appPath));
+      Logger.info('mkdir', appPath);
     }
   }
 
@@ -54,7 +53,7 @@ export async function initSuperface(
   {
     const created = await mkdirQuiet(superPath);
     if (created) {
-      Logger.info(messages.mkdir(superPath));
+      Logger.info('mkdir', superPath);
     }
   }
 
@@ -67,7 +66,7 @@ export async function initSuperface(
     );
 
     if (created) {
-      Logger.info(messages['initSuperJson'](superJsonPath));
+      Logger.info('initSuperJson', superJsonPath);
     }
   }
 
@@ -76,14 +75,14 @@ export async function initSuperface(
     const gridPath = joinPath(appPath, GRID_DIR);
     const created = await mkdirQuiet(gridPath);
     if (created) {
-      Logger.info(messages.mkdir(gridPath));
+      Logger.info('mkdir', gridPath);
     }
   }
   {
     const typesPath = joinPath(appPath, TYPES_DIR);
     const created = await mkdirQuiet(typesPath);
     if (created) {
-      Logger.info(messages.mkdir(typesPath));
+      Logger.info('mkdir', typesPath);
     }
   }
 

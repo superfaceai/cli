@@ -45,13 +45,13 @@ export function prePublishCheck(params: {
   superJson: SuperJson;
 }): CheckResult[] {
   try {
-    Logger.info('Asserting profile document');
+    Logger.info('assertProfile');
     assertProfileDocumentNode(params.profileAst);
   } catch (error) {
     throw userError(error, 1);
   }
   try {
-    Logger.info('Asserting map document');
+    Logger.info('assertMap');
     assertMapDocumentNode(params.mapAst);
   } catch (error) {
     throw userError(error, 1);
@@ -124,18 +124,14 @@ export async function loadProfile(
       profileName: profile.name,
       scope: profile.scope,
     });
-    Logger.info(
-      `Profile: ${profileId} found on local file system at path: ${source.path}`
-    );
+    Logger.info('localProfileFound', profileId, source.path);
 
     return { ast, from: { kind: 'local', ...source } };
   } else {
     //Load from store
     ast = await fetchProfileAST(profileId);
     const version = composeVersion(ast.header.version);
-    Logger.info(
-      `Loading profile: ${profile.id} in version: ${version} from Superface store`
-    );
+    Logger.info('fetchProfile', profile.id, version);
 
     return {
       ast,
@@ -177,11 +173,10 @@ export async function loadMap(
       }
     );
     Logger.info(
-      `Map for profile: ${profile.withVersion(
-        version
-      )} and provider: ${provider} found on local filesystem at path: ${
-        source.path
-      }`
+      'localMapFound',
+      profile.withVersion(version),
+      provider,
+      source.path
     );
 
     return {
@@ -201,11 +196,7 @@ export async function loadMap(
       map.variant
     );
     const astVersion = composeVersion(ast.header.profile.version);
-    Logger.info(
-      `Loading map for profile: ${profile.withVersion(
-        version
-      )} and provider: ${provider} in version: ${astVersion} from Superface store`
-    );
+    Logger.info('fetchMap', profile.withVersion(version), provider, astVersion);
 
     return {
       ast,
@@ -235,16 +226,14 @@ export async function loadProvider(
 }> {
   const providerSource = await findLocalProviderSource(superJson, provider);
   if (providerSource) {
-    Logger.info(
-      `Provider: ${provider} found on local file system at path: ${providerSource.path}`
-    );
+    Logger.info('localProviderFound', provider, providerSource.path);
 
     return {
       source: providerSource.source,
       from: { kind: 'local', path: providerSource.path },
     };
   }
-  Logger.info(`Loading provider: ${provider} from Superface store`);
+  Logger.info('fetchProvider', provider);
 
   return {
     source: await fetchProviderInfo(provider),

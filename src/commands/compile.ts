@@ -203,6 +203,6 @@ export default class Compile extends Command {
       onlyProfile: flags.onlyProfile,
     });
 
-    Logger.success(`compiled successfully.`);
+    Logger.success('compiledSuccessfully');
   }
 }

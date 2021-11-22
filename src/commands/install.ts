@@ -31,7 +31,7 @@ const parseProviders = (providers?: string[]): string[] => {
         return false;
       }
       if (!isValidProviderName(p)) {
-        Logger.warn(`Invalid provider name: ${p}`);
+        Logger.warn('invalidProviderName');
 
         return false;
       }
@@ -111,7 +111,7 @@ export default class Install extends Command {
 
     if (flags.interactive) {
       if (!args.profileId) {
-        Logger.warn(`Profile ID argument must be used with interactive flag`);
+        Logger.warn('missingInteractiveFlag');
         this.exit(0);
       }
 
@@ -122,19 +122,14 @@ export default class Install extends Command {
 
     let superPath = await detectSuperJson(process.cwd(), flags.scan);
     if (!superPath) {
-      Logger.info("Initializing superface directory with empty 'super.json'");
+      Logger.info('initSuperface');
       await initSuperface(NORMALIZED_CWD_PATH, { profiles: {}, providers: {} });
       superPath = SUPERFACE_DIR;
     }
 
     const providers = parseProviders(flags.providers);
 
-    Logger.info(
-      `Installing profiles according to 'super.json' on path '${joinPath(
-        superPath,
-        META_FILE
-      )}'`
-    );
+    Logger.info('installProfilesToSuperJson', joinPath(superPath, META_FILE));
 
     const requests: (LocalInstallRequest | StoreInstallRequest)[] = [];
     const profileArg = args.profileId as string | undefined;
@@ -149,7 +144,7 @@ export default class Install extends Command {
         const profileId = ProfileId.fromId(id);
 
         if (!isValidDocumentName(profileId.name)) {
-          Logger.warn(`Invalid profile name: ${profileId.name}`);
+          Logger.warn('invalidProfileName', profileId.name);
           this.exit();
         }
 
@@ -162,9 +157,7 @@ export default class Install extends Command {
     } else {
       //Do not install providers without profile
       if (providers.length > 0) {
-        Logger.warn(
-          'Unable to install providers without a profile. Please, specify a profile id.'
-        );
+        Logger.warn('unableToInstallWithoutProfile');
         this.exit();
       }
     }
@@ -178,7 +171,7 @@ export default class Install extends Command {
       },
     });
 
-    Logger.info(`Configuring providers`);
+    Logger.info('configuringProviders');
     for (const provider of providers) {
       await installProvider({
         superPath,

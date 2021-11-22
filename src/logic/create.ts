@@ -6,7 +6,6 @@ import { join as joinPath } from 'path';
 import { composeVersion, META_FILE } from '../common/document';
 import { userError } from '../common/error';
 import { Logger } from '../common/log';
-import { messages } from '../common/messages';
 import { OutputStream } from '../common/output-stream';
 import { resolveSuperfaceRelatedPath } from '../common/path';
 import { ProfileId } from '../common/profile';
@@ -47,9 +46,7 @@ export async function createProfile(
   );
 
   if (created) {
-    Logger.success(
-      messages.createProfile(profile.withVersion(versionStr), filePath)
-    );
+    Logger.success('createProfile', profile.withVersion(versionStr), filePath);
     if (superJson) {
       superJson.mergeProfile(profile.id, {
         file: resolveSuperfaceRelatedPath(filePath, superJson),
@@ -101,7 +98,10 @@ export async function createMap(
 
   if (created) {
     Logger.success(
-      messages.createMap(id.profile.withVersion(version), id.provider, filePath)
+      'createMap',
+      id.profile.withVersion(version),
+      id.provider,
+      filePath
     );
     if (superJson) {
       superJson.mergeProfileProvider(id.profile.id, id.provider, {
@@ -135,7 +135,7 @@ export async function createProviderJson(
   );
 
   if (created) {
-    Logger.success(messages.createProvider(provider, filePath));
+    Logger.success('createProvider', provider, filePath);
     if (superJson) {
       superJson.mergeProvider(provider, {
         file: resolveSuperfaceRelatedPath(filePath, superJson),
@@ -178,7 +178,7 @@ export async function create(create: {
     superJson = loadedResult.match(
       v => v,
       err => {
-        Logger.warn(err.formatLong());
+        Logger.warn('errorMessage', err.formatLong());
 
         return new SuperJson({});
       }
@@ -258,6 +258,6 @@ export async function create(create: {
   // write new information to super.json
   if (superJson) {
     await OutputStream.writeOnce(superJson.path, superJson.stringified);
-    Logger.info(messages.updateSuperJson(superJson.path));
+    Logger.info('updateSuperJson', superJson.path);
   }
 }

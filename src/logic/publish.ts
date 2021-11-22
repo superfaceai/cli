@@ -131,9 +131,7 @@ export async function publish(
       try {
         await fetchProviderInfo(mapFiles.ast.header.provider);
         //Log if provider exists in SF and user is using local one
-        Logger.info(
-          `Provider: ${mapFiles.ast.header.provider} found localy linked in super.json and also in Superface server. Consider using provider from Superface store.`
-        );
+        Logger.info('localAndRemoteProvider', mapFiles.ast.header.provider);
       } catch (error) {
         //If provider does not exists in SF register (is not verified) it must start with unverified
         if (error instanceof ServiceApiError && error.status === 404) {
@@ -159,19 +157,17 @@ export async function publish(
   const client = SuperfaceClient.getClient();
 
   if (publishing === 'provider') {
-    Logger.info(`Publishing provider ${provider}`);
+    Logger.info('publisProvider', provider);
     if (!options?.dryRun) {
       await client.createProvider(JSON.stringify(providerFiles.source));
     }
   } else if (publishing === 'profile' && profileFiles.from.kind === 'local') {
-    Logger.info(`Publishing profile ${profile.name}`);
+    Logger.info('publisProfile', profile.id);
     if (!options?.dryRun) {
       await client.createProfile(profileFiles.from.source);
     }
   } else if (publishing === 'map' && mapFiles.from.kind === 'local') {
-    Logger.info(
-      `Publishing map for profile ${profile.name} and provider ${provider}`
-    );
+    Logger.info('publishMap', profile.id, provider);
 
     if (!options?.dryRun) {
       await client.createMap(mapFiles.from.source);

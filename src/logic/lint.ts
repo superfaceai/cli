@@ -230,7 +230,7 @@ async function prepareLintedProfile(
   );
   //If we have local profile we lint it
   if (profileSource) {
-    Logger.info(`Profile: ${profile.id.id} found on local file system`);
+    Logger.info('localProfileFound', profile.id.id, profileSource.path);
 
     const report: FileReport = {
       kind: 'file',
@@ -250,7 +250,7 @@ async function prepareLintedProfile(
 
     counts.push([report.errors.length, report.warnings.length]);
   } else {
-    Logger.info(`Loading profile: ${profile.id.id} from Superface store`);
+    Logger.info('fetchProfile', profile.id.id, profile.version);
     profileAst = await fetchProfileAST(profile.id.id);
   }
 
@@ -279,9 +279,10 @@ async function prepareLintedMap(
   );
   if (mapSource) {
     Logger.info(
-      `Map for profile: ${profile.id.withVersion(
-        profile.version
-      )} and provider: ${map.provider} found on local filesystem`
+      'localMapFound',
+      profile.id.withVersion(profile.version),
+      map.provider,
+      mapSource.path
     );
     const report: FileReport = {
       kind: 'file',
@@ -300,9 +301,9 @@ async function prepareLintedMap(
     counts.push([report.errors.length, report.warnings.length]);
   } else {
     Logger.info(
-      `Loading map for profile: ${profile.id.withVersion(
-        profile.version
-      )} and provider: ${map.provider} from Superface store`
+      'fetchMap',
+      profile.id.withVersion(profile.version),
+      map.provider
     );
     mapAst = await fetchMapAST(
       profile.id.name,
@@ -386,7 +387,9 @@ export async function lint(
         //We catch any unexpected error from parser validator to prevent ending the loop early
       } catch (error) {
         Logger.error(
-          `\n\n\nUnexpected error during validation of map: ${preparedMap.path} to profile: ${profileWithAst.path}.\nThis error is probably not a problem in linted files but in parser itself.\nTry updating CLI and its dependencies or report an issue.\n\n\n`
+          'unexpectedLintError',
+          preparedMap.path,
+          profileWithAst.path
         );
       }
     }

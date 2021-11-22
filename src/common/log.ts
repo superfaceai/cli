@@ -120,7 +120,7 @@ export class Logger {
     ...args: Parameters<typeof messages[K]>
   ): string {
     return (messages[messsageTemplate] as (
-      ...args: (string | unknown)[]
+      ...args: (string | unknown | number)[]
     ) => string)(...args);
   }
 

@@ -100,11 +100,7 @@ export async function check(
       //Load provider.json
       const providerFiles = await loadProvider(superJson, map.provider);
 
-      Logger.info(
-        `Checking profile: "${profile.id.toString()}" and map for provider: "${
-          map.provider
-        }"`
-      );
+      Logger.info('checkProfileAndMap', profile.id.toString(), map.provider);
       //Check map and profile
       finalResults.push({
         ...checkMapAndProfile(profileFiles.ast, mapFiles.ast),
@@ -113,7 +109,7 @@ export async function check(
       });
 
       //Check map and provider
-      Logger.info(`Checking provider: "${map.provider}"`);
+      Logger.info('checkProvider', map.provider);
       finalResults.push({
         ...checkMapAndProvider(providerFiles.source, mapFiles.ast),
         mapFrom: mapFiles.from,
@@ -121,9 +117,7 @@ export async function check(
       });
 
       //Check integration parameters
-      Logger.info(
-        `Checking integration parameters of provider: "${map.provider}"`
-      );
+      Logger.info('checkIntegrationParameters', map.provider);
       finalResults.push({
         ...checkIntegrationParameters(providerFiles.source, superJson),
         providerFrom: providerFiles.from,
@@ -233,9 +227,7 @@ export function checkMapAndProfile(
   }
 ): CheckMapProfileResult {
   const results: CheckIssue[] = [];
-  Logger.info(
-    `Checking versions of profile: "${profile.header.name}" and map for provider: "${map.header.provider}"`
-  );
+  Logger.info('checkVersions', profile.header.name, map.header.provider);
   //Header
   if (profile.header.scope !== map.header.profile.scope) {
     results.push({
@@ -268,9 +260,7 @@ export function checkMapAndProfile(
       message: `Profile "${profile.header.name}" has map for provider "${map.header.provider}" with different LABEL version`,
     });
   }
-  Logger.info(
-    `Checking usecase definitions in profile: "${profile.header.name}" and map for provider: "${map.header.provider}"`
-  );
+  Logger.info('checkUsecases', profile.header.name, map.header.provider);
 
   //Definitions
   const mapUsecases: string[] = [];

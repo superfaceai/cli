@@ -17,7 +17,6 @@ import { userError } from '../common/error';
 import { fetchProviderInfo } from '../common/http';
 import { readFile, readFileQuiet } from '../common/io';
 import { Logger } from '../common/log';
-import { messages } from '../common/messages';
 import { OutputStream } from '../common/output-stream';
 import { ProfileId } from '../common/profile';
 import { prepareEnvVariables } from '../templates/env';
@@ -34,7 +33,7 @@ export async function updateEnv(
   envContent += values
     .filter((value: string | undefined) => {
       if (!value) {
-        Logger.warn(`Provider: "${provider}" contains unknown security scheme`);
+        Logger.warn('unknownSecurityScheme', provider);
 
         return false;
       }
@@ -65,7 +64,7 @@ export function handleProviderResponse(
     localProvider?: string;
   }
 ): number {
-  Logger.info(messages.provider(response.name));
+  Logger.info('configureProviderSecurity', response.name);
 
   let parameters: { [key: string]: string } | undefined = undefined;
   if (response.parameters) {
@@ -112,7 +111,7 @@ export function handleProviderResponse(
 export async function getProviderFromStore(
   providerName: string
 ): Promise<ProviderJson> {
-  Logger.info(messages.provider(providerName));
+  Logger.info('fetchProvider', providerName);
 
   try {
     const info = await fetchProviderInfo(providerName);
@@ -145,7 +144,7 @@ export async function installProvider(parameters: {
   const superJson = loadedResult.match(
     v => v,
     err => {
-      Logger.warn(err.formatLong());
+      Logger.warn('errorMessage', err.formatLong());
 
       return new SuperJson({});
     }
@@ -181,9 +180,7 @@ export async function installProvider(parameters: {
     parameters.options?.force !== true &&
     superJson.normalized.providers[providerInfo.name]
   ) {
-    Logger.warn(
-      `Provider ${providerInfo.name} already exists (Use flag \`--force/-f\` for overwriting profiles)`
-    );
+    Logger.warn('providerAlreadyExists', providerInfo.name);
 
     return;
   }
@@ -203,7 +200,7 @@ export async function installProvider(parameters: {
     superJson.stringified,
     parameters.options
   );
-  Logger.info(messages.updateSuperJson(superJson.path));
+  Logger.info('updateSuperJson', superJson.path);
 
   // update .env
   if (parameters.options?.updateEnv && providerInfo.securitySchemes) {
@@ -212,22 +209,22 @@ export async function installProvider(parameters: {
   if (providerInfo.securitySchemes && providerInfo.securitySchemes.length > 0) {
     // inform user about instlaled security schemes
     if (numOfConfigured === 0) {
-      Logger.warn(`No security schemes have been configured.`);
+      Logger.warn('noSecurityConfigured');
     } else if (numOfConfigured < providerInfo.securitySchemes.length) {
       Logger.warn(
-        `Some security schemes have been configured. Configured ${numOfConfigured} out of ${providerInfo.securitySchemes.length}.`
+        'xOutOfYConfigured',
+        numOfConfigured,
+        providerInfo.securitySchemes.length
       );
     } else {
-      Logger.success(`All security schemes have been configured successfully.`);
+      Logger.success('allSecurityConfigured');
     }
   } else {
-    Logger.info(`No security schemes found to configure.`);
+    Logger.info('noSecurityFound');
   }
   // inform user about configured parameters
   if (providerInfo.parameters && providerInfo.parameters.length > 0) {
-    Logger.info(
-      `Provider ${providerInfo.name} has integration parameters that must be configured. You can configure them in super.json on path: ${superJson.path} or set the environment variables as defined below.`
-    );
+    Logger.info('providerHasParameters', providerInfo.name, superJson.path);
     for (const parameter of providerInfo.parameters) {
       let description = '';
       if (parameter.description) {
@@ -240,17 +237,21 @@ export async function installProvider(parameters: {
         ];
       if (superJsonValue === undefined) {
         Logger.warn(
-          `Parameter ${parameter.name}${description} has not been configured.\nPlease, configure this parameter manualy in super.json on path: ${superJson.path}`
+          'parameterNotConfigured',
+          parameter.name,
+          description,
+          superJson.path
         );
       } else {
         Logger.success(
-          `Parameter ${parameter.name}${description} has been configured to use value of environment value "${superJsonValue}".\nPlease, configure this environment value.`
+          'parameterConfigured',
+          parameter.name,
+          description,
+          superJsonValue
         );
       }
       if (parameter.default) {
-        Logger.info(
-          `If you do not set the variable, the default value "${parameter.default}" will be used.`
-        );
+        Logger.info('parameterHasDefault', parameter.default);
       }
     }
   }

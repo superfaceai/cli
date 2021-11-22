@@ -20,10 +20,10 @@ export default class Logout extends Command {
 
     try {
       await SuperfaceClient.getClient().signOut();
-      Logger.success(`You have been logged out`);
+      Logger.success('loggoutSuccessfull');
     } catch (error) {
       if (error instanceof ServiceClientError) {
-        Logger.warn(`Superface server responded with: ${error.message}`);
+        Logger.warn('superfaceServerError', error.name, error.message);
 
         return;
       }

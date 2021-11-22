@@ -14,9 +14,7 @@ export class PackageManager {
     const npmPrefix = await execShell(`npm prefix`);
 
     if (npmPrefix.stderr !== '') {
-      Logger.error(
-        `Shell command npm prefix responded with: ${npmPrefix.stderr}`
-      );
+      Logger.error('shellCommandError', 'npm prefix', npmPrefix.stderr);
 
       return;
     }
@@ -64,22 +62,20 @@ export class PackageManager {
   public static async init(initPm: 'yarn' | 'npm'): Promise<boolean> {
     const pm = await PackageManager.getUsedPm();
     if (pm && pm === initPm) {
-      Logger.error(`${pm} already initialized.`);
+      Logger.error('pmAlreadyInitialized', pm);
 
       return false;
     }
     const command = initPm === 'yarn' ? `yarn init -y` : `npm init -y`;
 
-    Logger.info(`Initializing ${initPm} on path: ${process.cwd()}`);
+    Logger.info('initPmOnPath', initPm, process.cwd());
     const result = await execShell(command);
     if (result.stderr !== '') {
-      Logger.error(
-        `Shell command ${command} responded with: ${result.stderr.trimEnd()}`
-      );
+      Logger.error('shellCommandError', command, result.stderr.trimEnd());
     }
 
     if (result.stdout !== '') {
-      Logger.info(result.stdout.trimEnd());
+      Logger.info('stdout', result.stdout.trimEnd());
     }
 
     //Set used PM after init
@@ -90,9 +86,7 @@ export class PackageManager {
 
   public static async installPackage(packageName: string): Promise<boolean> {
     if (!(await PackageManager.packageJsonExists())) {
-      Logger.error(
-        `Unable to install package ${packageName} without initialized package.json`
-      );
+      Logger.error('pmNotInitialized', packageName);
 
       return false;
     }
@@ -103,18 +97,14 @@ export class PackageManager {
 
     const path = (await PackageManager.getPath()) || process.cwd();
     //Install package to package.json on discovered path or on cwd
-    Logger.info(
-      `Installing package ${packageName} on path: ${path} with: ${command}`
-    );
+    Logger.info('installPackageOnPath', packageName, path, command);
     const result = await execShell(command, { cwd: path });
     if (result.stderr !== '') {
-      Logger.error(
-        `Shell command ${command} responded with: ${result.stderr.trimEnd()}`
-      );
+      Logger.error('shellCommandError', command, result.stderr.trimEnd());
     }
 
     if (result.stdout !== '') {
-      Logger.info(result.stdout.trimEnd());
+      Logger.info('stdout', result.stdout.trimEnd());
     }
 
     return true;

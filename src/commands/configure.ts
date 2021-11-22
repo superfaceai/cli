@@ -7,7 +7,6 @@ import { Command } from '../common/command.abstract';
 import { META_FILE, SUPERFACE_DIR } from '../common/document';
 import { userError } from '../common/error';
 import { exists } from '../common/io';
-import { messages } from '../common/messages';
 import { ProfileId } from '../common/profile';
 import { installProvider } from '../logic/configure';
 import { initSuperface } from '../logic/init';
@@ -78,18 +77,13 @@ export default class Configure extends Command {
     let superPath = await detectSuperJson(process.cwd());
 
     if (!superPath) {
-      Logger.info(messages.initSuperface());
+      Logger.info('initSuperface');
 
       await initSuperface('./', { profiles: {}, providers: {} });
       superPath = SUPERFACE_DIR;
     }
 
-    Logger.info(
-      `Installing provider to 'super.json' on path '${joinPath(
-        superPath,
-        META_FILE
-      )}'`
-    );
+    Logger.info('configureProviderToSuperJson', joinPath(superPath, META_FILE));
     await installProvider({
       superPath,
       provider: args.providerName as string,

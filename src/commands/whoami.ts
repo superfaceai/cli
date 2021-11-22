@@ -18,19 +18,15 @@ export default class Whoami extends Command {
 
     try {
       const userInfo = await SuperfaceClient.getClient().getUserInfo();
-      Logger.success(
-        `You are logged in as: ${userInfo.name} (${userInfo.email})`
-      );
+      Logger.success('loggedInAs', userInfo.name, userInfo.email);
     } catch (error) {
       if (!(error instanceof ServiceApiError)) {
         throw userError(error, 1);
       }
       if (error.status === 401) {
-        Logger.warn(`You are not logged in. Please try running "sf login"`);
+        Logger.warn('notLoggedIn');
       } else {
-        Logger.warn(
-          `Superface server responded with error: ${error.name}: ${error.message}`
-        );
+        Logger.warn('superfaceServerError', error.name, error.message);
       }
     }
   }

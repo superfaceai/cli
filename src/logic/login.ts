@@ -32,16 +32,14 @@ export async function login(options?: { force?: boolean }): Promise<void> {
     openBrowser = prompt.open;
   }
   const showUrl = () => {
-    Logger.warn(
-      `Please open url: ${initResponse.browserUrl} in your browser to continue with login.`
-    );
+    Logger.warn('openUrl', initResponse.browserUrl);
   };
   if (openBrowser && !options?.force) {
     const childProcess = await open.default(initResponse.browserUrl, {
       wait: false,
     });
     childProcess.on('error', err => {
-      Logger.error(err.message);
+      Logger.error('errorMessage', err.message);
       showUrl();
     });
     childProcess.on('close', code => {

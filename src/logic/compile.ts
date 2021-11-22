@@ -3,7 +3,6 @@ import { Parser } from '@superfaceai/one-sdk';
 import { Logger } from '..';
 import { userError } from '../common/error';
 import { exists, readFile } from '../common/io';
-import { messages } from '../common/messages';
 import { ProfileId } from '../common/profile';
 
 export type MapToCompile = { provider: string; path: string };
@@ -25,7 +24,7 @@ export async function compile(
   for (const profile of profiles) {
     //Compile profile
     if (!options?.onlyMap) {
-      Logger.info(messages.compileProfile(profile.id.toString()));
+      Logger.info('compileProfile', profile.id.toString());
       if (!(await exists(profile.path))) {
         throw userError(
           `❌ Path: "${
@@ -44,7 +43,7 @@ export async function compile(
     //Compile maps
     if (!options?.onlyProfile) {
       for (const map of profile.maps) {
-        Logger.info(messages.compileMap(profile.id.toString(), map.provider));
+        Logger.info('compileMap', profile.id.toString(), map.provider);
         if (!(await exists(map.path))) {
           throw userError(
             `❌ Path: "${map.path}" for map ${profile.id.toString()}.${

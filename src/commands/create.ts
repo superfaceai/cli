@@ -231,9 +231,7 @@ export default class Create extends Command {
           !provider.startsWith(UNVERIFIED_PROVIDER_PREFIX) &&
           (flags.map || flags.provider)
         ) {
-          Logger.warn(
-            `Published provider name must have prefix "${UNVERIFIED_PROVIDER_PREFIX}".\nIf you are planning to publish this map or provider consider renaming it to eg: "${UNVERIFIED_PROVIDER_PREFIX}${provider}"`
-          );
+          Logger.warn('unverfiedPrefix', provider, UNVERIFIED_PROVIDER_PREFIX);
         }
       }
     }
@@ -329,14 +327,14 @@ export default class Create extends Command {
     //We do want to init
     if (flags.init) {
       if (superPath) {
-        Logger.warn('Superface has been already initialized');
+        Logger.warn('superfaceAlreadyInitialized');
       } else {
         initSf = true;
       }
     }
     //We prompt user
     if (!flags['no-init'] && !flags.init && !superPath) {
-      Logger.warn("File 'super.json' has not been found.");
+      Logger.warn('superJsonNotFound');
 
       const response: { init: boolean } = await inquirer.prompt({
         name: 'init',
@@ -349,7 +347,7 @@ export default class Create extends Command {
 
     //Init SF
     if (initSf) {
-      Logger.info("Initializing superface directory with empty 'super.json'");
+      Logger.info('initSuperface');
       await initSuperface(NORMALIZED_CWD_PATH, { profiles: {}, providers: {} });
       superPath = SUPERFACE_DIR;
     }

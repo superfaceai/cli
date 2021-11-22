@@ -99,6 +99,6 @@ export default class Generate extends Command {
 
     await generate(profiles, superJson);
 
-    Logger.success(`types generated successfully.`);
+    Logger.success('generatedSuccessfully');
   }
 }

@@ -25,9 +25,7 @@ export default class Login extends Command {
     this.setUpLogger(flags.quiet);
 
     if (process.env.SUPERFACE_REFRESH_TOKEN) {
-      Logger.warn(
-        `Using value from SUPERFACE_REFRESH_TOKEN environment variable`
-      );
+      Logger.warn('usinfSfRefreshToken');
     } else {
       const storeUrl = getServicesUrl();
       //environment variable for specific netrc file
@@ -37,12 +35,12 @@ export default class Login extends Command {
       try {
         //check if already logged in and logout
         if (previousEntry && previousEntry.password) {
-          Logger.info('Already logged in, logging out');
+          Logger.info('alreadyLoggedIn');
           //logout from service client
           await SuperfaceClient.getClient().logout();
         }
       } catch (err) {
-        Logger.error(err);
+        Logger.error('unknownError', err);
       }
     }
 
@@ -50,6 +48,6 @@ export default class Login extends Command {
       force: flags.force,
     });
 
-    Logger.success('Logged in');
+    Logger.success('loggedInSuccessfully');
   }
 }

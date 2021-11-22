@@ -17,7 +17,9 @@ export function prepareSecurityValues(
 
   for (const scheme of schemes) {
     Logger.info(
-      `Configuring ${security.length + 1}/${schemes.length} security schemes`
+      'configuringSecuritySchemes',
+      security.length + 1,
+      schemes.length
     );
     // Char "-" is not allowed in env variables so replace it with "_"
     const envProviderName = providerName.replace('-', '_').toUpperCase();
@@ -43,9 +45,7 @@ export function prepareSecurityValues(
         digest: `$${envProviderName}_DIGEST`,
       });
     } else {
-      Logger.warn(
-        `⚠️  Provider: "${providerName}" contains unknown security scheme`
-      );
+      Logger.warn('unknownSecurityScheme', providerName);
     }
   }
 

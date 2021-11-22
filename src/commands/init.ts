@@ -16,7 +16,7 @@ const parseProfileIds = (input: string): string[] => {
     .filter(p => p.trim() !== '')
     .filter(p => {
       if (parseProfileId(p).kind === 'error') {
-        Logger.warn('invalidProfileId');
+        Logger.warn('invalidProfileId', p);
 
         return false;
       }

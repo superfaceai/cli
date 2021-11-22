@@ -25,7 +25,6 @@ import { Logger } from '..';
 import { developerError, userError } from '../common/error';
 import { fetchProviders, getServicesUrl } from '../common/http';
 import { exists, readFile } from '../common/io';
-import { messages } from '../common/messages';
 import { OutputStream } from '../common/output-stream';
 import { PackageManager } from '../common/package-manager';
 import { NORMALIZED_CWD_PATH } from '../common/path';
@@ -46,12 +45,12 @@ export async function interactiveInstall(profileArg: string): Promise<void> {
   );
 
   if (!isValidDocumentName(profileId.name)) {
-    Logger.error(`Invalid profile name: ${profileId.name}`);
+    Logger.error('invalidProfileName', profileId.name);
 
     return;
   }
   if (version && !isValidVersionString(version)) {
-    Logger.error(`Invalid profile version: ${version}`);
+    Logger.error('invalidProfileVersion', version);
 
     return;
   }
@@ -60,7 +59,7 @@ export async function interactiveInstall(profileArg: string): Promise<void> {
   let superPath = await detectSuperJson(process.cwd());
   if (!superPath) {
     //Init SF
-    Logger.success(messages.initSuperface());
+    Logger.success('initSuperface');
     await initSuperface(NORMALIZED_CWD_PATH, { profiles: {}, providers: {} });
     superPath = SUPERFACE_DIR;
   }
@@ -70,7 +69,7 @@ export async function interactiveInstall(profileArg: string): Promise<void> {
     await SuperJson.load(joinPath(superPath, META_FILE))
   ).unwrap();
 
-  Logger.success(`Initializing ${profileArg}\n`);
+  Logger.success('installProfile', profileArg);
 
   let installProfile = true;
   //Override existing profile
@@ -166,7 +165,7 @@ export async function interactiveInstall(profileArg: string): Promise<void> {
   }
 
   //Configure providers
-  Logger.success(`Installing providers\n`);
+  Logger.success('installMultipleProviders');
   const providersToInstall: string[] = [];
   for (const provider of providersWithPriority) {
     //Override existing provider
@@ -270,7 +269,7 @@ export async function interactiveInstall(profileArg: string): Promise<void> {
   //Get installed providers
   const installedProviders = superJson.normalized.providers;
   //Ask for provider security
-  Logger.success(`Configuring providers security\n`);
+  Logger.success('configureMultipleProviderSecurity');
 
   //Get .env file
   if (await exists('.env')) {
@@ -282,7 +281,7 @@ export async function interactiveInstall(profileArg: string): Promise<void> {
     if (!providersToInstall.includes(provider)) {
       continue;
     }
-    Logger.info(`Configuring ${provider} security\n`);
+    Logger.info('configureProviderSecurity', provider);
     //Select security schema
     if (
       installedProviders[provider].security &&
@@ -306,14 +305,12 @@ export async function interactiveInstall(profileArg: string): Promise<void> {
         envContent
       );
     } else {
-      Logger.success(
-        `Provider ${provider} can be used without authentication\n`
-      );
+      Logger.success('noAuthProvider', provider);
     }
   }
   //Check/init package-manager
   if (!(await PackageManager.packageJsonExists())) {
-    Logger.warn(`Package.json not found in current directory ${process.cwd()}`);
+    Logger.warn('packageJsonNotFound');
     //Prompt user for package manager initialization
     const response: {
       pm: 'yarn' | 'npm' | 'exit';
@@ -332,12 +329,12 @@ export async function interactiveInstall(profileArg: string): Promise<void> {
     if (response.pm === 'exit') {
       return;
     }
-    Logger.success(`Initializing package manager ${response.pm}\n`);
+    Logger.success('initPm', response.pm);
 
     await PackageManager.init(response.pm);
   }
   //Install SDK
-  Logger.success(`Installing package "@superfaceai/one-sdk"`);
+  Logger.success('installPackage', '@superfaceai/one-sdk');
   await PackageManager.installPackage('@superfaceai/one-sdk');
 
   //Prompt user for dotenv installation
@@ -347,12 +344,12 @@ export async function interactiveInstall(profileArg: string): Promise<void> {
       { default: true }
     )
   ) {
-    Logger.success(`Installing package "dotenv"\n`);
+    Logger.success('installPackage', 'dotenv');
     await PackageManager.installPackage('dotenv');
   }
 
   //Prompt user for optional SDK token
-  Logger.success(`Configuring package "@superfaceai/one-sdk"\n`);
+  Logger.success('configurePackage', '@superfaceai/one-sdk');
 
   const tokenEnvName = 'SUPERFACE_SDK_TOKEN';
 
@@ -377,24 +374,21 @@ export async function interactiveInstall(profileArg: string): Promise<void> {
 
     if (tokenResponse.token) {
       envContent += envVariable(tokenEnvName, tokenResponse.token);
-      Logger.success(
-        `Your SDK token was saved to ${tokenEnvName} variable in .env file. You can use it for authentization during SDK usage by loading it to your enviroment.`
-      );
+      Logger.success('configuredWithSdkToken', tokenEnvName);
     } else {
-      Logger.success('Continuing without SDK token');
+      Logger.success('configuredWithoutSdkToken');
     }
   }
 
   //Write .env file
   await OutputStream.writeOnce('.env', envContent);
 
-  Logger.success(`Superface have been configured successfully!`);
+  Logger.success('superfaceConfigureSuccess');
 
   //Lead to docs page
   Logger.success(
-    `Now you can follow our documentation to use installed capability: "${
-      new URL(profileId.id, getServicesUrl()).href
-    }"`
+    'capabilityDocsUrl',
+    new URL(profileId.id, getServicesUrl()).href
   );
 }
 
@@ -501,9 +495,7 @@ async function getPromptedValue(
   envContent: string
 ): Promise<string> {
   if (!envVariableName.startsWith('$')) {
-    Logger.warn(
-      `Value of ${envVariableName} in ${provider} ${authType} security schema does not start with $ character.`
-    );
+    Logger.warn('unexpectedSecurityValue', envVariableName, provider, authType);
 
     return envContent;
   }
@@ -580,7 +572,7 @@ async function resolveSecurityEnvValues(
       newEnvContent
     );
   } else {
-    Logger.warn(`Unable to resolve security type for "${provider}"`);
+    Logger.warn('unknownSecurityType', provider);
   }
 
   return newEnvContent;
