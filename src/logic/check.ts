@@ -11,7 +11,8 @@ import {
 import { SuperJson } from '@superfaceai/one-sdk';
 import { green, red, yellow } from 'chalk';
 
-import { composeVersion, Logger } from '..';
+import { composeVersion } from '../common/document';
+import { ILogger } from '../common/log';
 import { isProviderParseError } from './check.utils';
 import { ProfileToValidate } from './lint';
 import {
@@ -73,43 +74,52 @@ export type CheckIssue = { kind: 'error' | 'warn'; message: string };
 
 export async function check(
   superJson: SuperJson,
-  profiles: ProfileToValidate[]
+  profiles: ProfileToValidate[],
+  { logger }: { logger: ILogger }
 ): Promise<CheckResult[]> {
   const finalResults: CheckResult[] = [];
 
   for (const profile of profiles) {
     //Load profile AST
     const profileFiles = await loadProfile(
-      superJson,
-      profile.id,
-      profile.version
+      {
+        superJson,
+        profile: profile.id,
+        version: profile.version,
+      },
+      { logger }
     );
     assertProfileDocumentNode(profileFiles.ast);
 
     for (const map of profile.maps) {
       //Load map AST
       const mapFiles = await loadMap(
-        superJson,
-        profile.id,
-        map.provider,
-        { variant: map.variant },
-        profile.version
+        {
+          superJson,
+          profile: profile.id,
+          provider: map.provider,
+          map: { variant: map.variant },
+          version: profile.version,
+        },
+        { logger }
       );
       assertMapDocumentNode(mapFiles.ast);
 
       //Load provider.json
-      const providerFiles = await loadProvider(superJson, map.provider);
+      const providerFiles = await loadProvider(superJson, map.provider, {
+        logger,
+      });
 
-      Logger.info('checkProfileAndMap', profile.id.toString(), map.provider);
+      logger.info('checkProfileAndMap', profile.id.toString(), map.provider);
       //Check map and profile
       finalResults.push({
-        ...checkMapAndProfile(profileFiles.ast, mapFiles.ast),
+        ...checkMapAndProfile(profileFiles.ast, mapFiles.ast, { logger }),
         mapFrom: mapFiles.from,
         profileFrom: profileFiles.from,
       });
 
       //Check map and provider
-      Logger.info('checkProvider', map.provider);
+      logger.info('checkProvider', map.provider);
       finalResults.push({
         ...checkMapAndProvider(providerFiles.source, mapFiles.ast),
         mapFrom: mapFiles.from,
@@ -117,7 +127,7 @@ export async function check(
       });
 
       //Check integration parameters
-      Logger.info('checkIntegrationParameters', map.provider);
+      logger.info('checkIntegrationParameters', map.provider);
       finalResults.push({
         ...checkIntegrationParameters(providerFiles.source, superJson),
         providerFrom: providerFiles.from,
@@ -222,12 +232,17 @@ export function checkMapAndProvider(
 export function checkMapAndProfile(
   profile: ProfileDocumentNode,
   map: MapDocumentNode,
-  options?: {
+  options: {
     strict?: boolean;
+    logger: ILogger;
   }
 ): CheckMapProfileResult {
   const results: CheckIssue[] = [];
-  Logger.info('checkVersions', profile.header.name, map.header.provider);
+  options.logger.info(
+    'checkVersions',
+    profile.header.name,
+    map.header.provider
+  );
   //Header
   if (profile.header.scope !== map.header.profile.scope) {
     results.push({
@@ -260,7 +275,11 @@ export function checkMapAndProfile(
       message: `Profile "${profile.header.name}" has map for provider "${map.header.provider}" with different LABEL version`,
     });
   }
-  Logger.info('checkUsecases', profile.header.name, map.header.provider);
+  options.logger.info(
+    'checkUsecases',
+    profile.header.name,
+    map.header.provider
+  );
 
   //Definitions
   const mapUsecases: string[] = [];

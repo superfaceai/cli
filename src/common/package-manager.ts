@@ -1,7 +1,7 @@
 import { join, normalize, relative } from 'path';
 
-import { Logger } from '.';
 import { execShell, exists } from './io';
+import { StdoutLogger } from './log';
 
 export class PackageManager {
   private static usedPackageManager: 'npm' | 'yarn' | undefined = undefined;
@@ -14,7 +14,11 @@ export class PackageManager {
     const npmPrefix = await execShell(`npm prefix`);
 
     if (npmPrefix.stderr !== '') {
-      Logger.error('shellCommandError', 'npm prefix', npmPrefix.stderr);
+      new StdoutLogger().error(
+        'shellCommandError',
+        'npm prefix',
+        npmPrefix.stderr
+      );
 
       return;
     }
@@ -62,20 +66,24 @@ export class PackageManager {
   public static async init(initPm: 'yarn' | 'npm'): Promise<boolean> {
     const pm = await PackageManager.getUsedPm();
     if (pm && pm === initPm) {
-      Logger.error('pmAlreadyInitialized', pm);
+      new StdoutLogger().error('pmAlreadyInitialized', pm);
 
       return false;
     }
     const command = initPm === 'yarn' ? `yarn init -y` : `npm init -y`;
 
-    Logger.info('initPmOnPath', initPm, process.cwd());
+    new StdoutLogger().info('initPmOnPath', initPm, process.cwd());
     const result = await execShell(command);
     if (result.stderr !== '') {
-      Logger.error('shellCommandError', command, result.stderr.trimEnd());
+      new StdoutLogger().error(
+        'shellCommandError',
+        command,
+        result.stderr.trimEnd()
+      );
     }
 
     if (result.stdout !== '') {
-      Logger.info('stdout', result.stdout.trimEnd());
+      new StdoutLogger().info('stdout', result.stdout.trimEnd());
     }
 
     //Set used PM after init
@@ -86,7 +94,7 @@ export class PackageManager {
 
   public static async installPackage(packageName: string): Promise<boolean> {
     if (!(await PackageManager.packageJsonExists())) {
-      Logger.error('pmNotInitialized', packageName);
+      new StdoutLogger().error('pmNotInitialized', packageName);
 
       return false;
     }
@@ -97,14 +105,18 @@ export class PackageManager {
 
     const path = (await PackageManager.getPath()) || process.cwd();
     //Install package to package.json on discovered path or on cwd
-    Logger.info('installPackageOnPath', packageName, path, command);
+    new StdoutLogger().info('installPackageOnPath', packageName, path, command);
     const result = await execShell(command, { cwd: path });
     if (result.stderr !== '') {
-      Logger.error('shellCommandError', command, result.stderr.trimEnd());
+      new StdoutLogger().error(
+        'shellCommandError',
+        command,
+        result.stderr.trimEnd()
+      );
     }
 
     if (result.stdout !== '') {
-      Logger.info('stdout', result.stdout.trimEnd());
+      new StdoutLogger().info('stdout', result.stdout.trimEnd());
     }
 
     return true;

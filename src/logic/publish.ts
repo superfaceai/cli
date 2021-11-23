@@ -2,7 +2,7 @@ import { SuperJson } from '@superfaceai/one-sdk';
 import { ServiceApiError } from '@superfaceai/service-client';
 import { yellow } from 'chalk';
 
-import { Logger, UNVERIFIED_PROVIDER_PREFIX } from '../common';
+import { ILogger, UNVERIFIED_PROVIDER_PREFIX } from '../common';
 import { userError } from '../common/error';
 import { fetchProviderInfo, SuperfaceClient } from '../common/http';
 import { loadNetrc } from '../common/netrc';
@@ -24,22 +24,37 @@ import {
 } from './publish.utils';
 
 export async function publish(
-  publishing: 'map' | 'profile' | 'provider',
-  superJson: SuperJson,
-  profile: ProfileId,
-  provider: string,
-  map: {
-    variant?: string;
+  {
+    publishing,
+    superJson,
+    profile,
+    provider,
+    map,
+    version,
+    options,
+  }: {
+    publishing: 'map' | 'profile' | 'provider';
+
+    superJson: SuperJson;
+    profile: ProfileId;
+    provider: string;
+    map: {
+      variant?: string;
+    };
+    version?: string;
+    options?: {
+      dryRun?: boolean;
+      json?: boolean;
+      quiet?: boolean;
+    };
   },
-  version?: string,
-  options?: {
-    dryRun?: boolean;
-    json?: boolean;
-    quiet?: boolean;
-  }
+  { logger }: { logger: ILogger }
 ): Promise<string | undefined> {
   //Profile
-  const profileFiles = await loadProfile(superJson, profile, version);
+  const profileFiles = await loadProfile(
+    { superJson, profile, version },
+    { logger }
+  );
   if (profileFiles.from.kind !== 'local' && publishing === 'profile') {
     throw userError(
       `Profile: "${profile.id}" not found on local file system`,
@@ -47,7 +62,10 @@ export async function publish(
     );
   }
   //Map
-  const mapFiles = await loadMap(superJson, profile, provider, map, version);
+  const mapFiles = await loadMap(
+    { superJson, profile, provider, map, version },
+    { logger }
+  );
   if (mapFiles.from.kind !== 'local' && publishing == 'map') {
     throw userError(
       `Map for profile: "${profile.id}" and provider: "${provider}" not found on local filesystem`,
@@ -56,7 +74,7 @@ export async function publish(
   }
 
   //Provider
-  const providerFiles = await loadProvider(superJson, provider);
+  const providerFiles = await loadProvider(superJson, provider, { logger });
 
   if (providerFiles.from.kind === 'remote' && publishing === 'provider') {
     throw userError(
@@ -65,16 +83,19 @@ export async function publish(
     );
   }
   //Check
-  const checkReports = prePublishCheck({
-    publishing,
-    profileAst: profileFiles.ast,
-    mapAst: mapFiles.ast,
-    providerJson: providerFiles.source,
-    providerFrom: providerFiles.from,
-    mapFrom: mapFiles.from,
-    profileFrom: profileFiles.from,
-    superJson,
-  });
+  const checkReports = prePublishCheck(
+    {
+      publishing,
+      profileAst: profileFiles.ast,
+      mapAst: mapFiles.ast,
+      providerJson: providerFiles.source,
+      providerFrom: providerFiles.from,
+      mapFrom: mapFiles.from,
+      profileFrom: profileFiles.from,
+      superJson,
+    },
+    { logger }
+  );
   const checkIssues = checkReports.flatMap(c => c.issues);
   //Lint
   const lintReport = prePublishLint(profileFiles.ast, mapFiles.ast);
@@ -131,7 +152,7 @@ export async function publish(
       try {
         await fetchProviderInfo(mapFiles.ast.header.provider);
         //Log if provider exists in SF and user is using local one
-        Logger.info('localAndRemoteProvider', mapFiles.ast.header.provider);
+        logger.info('localAndRemoteProvider', mapFiles.ast.header.provider);
       } catch (error) {
         //If provider does not exists in SF register (is not verified) it must start with unverified
         if (error instanceof ServiceApiError && error.status === 404) {
@@ -157,17 +178,17 @@ export async function publish(
   const client = SuperfaceClient.getClient();
 
   if (publishing === 'provider') {
-    Logger.info('publishProvider', provider);
+    logger.info('publishProvider', provider);
     if (!options?.dryRun) {
       await client.createProvider(JSON.stringify(providerFiles.source));
     }
   } else if (publishing === 'profile' && profileFiles.from.kind === 'local') {
-    Logger.info('publishProfile', profile.id);
+    logger.info('publishProfile', profile.id);
     if (!options?.dryRun) {
       await client.createProfile(profileFiles.from.source);
     }
   } else if (publishing === 'map' && mapFiles.from.kind === 'local') {
-    Logger.info('publishMap', profile.id, provider);
+    logger.info('publishMap', profile.id, provider);
 
     if (!options?.dryRun) {
       await client.createMap(mapFiles.from.source);

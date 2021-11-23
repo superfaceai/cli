@@ -12,7 +12,7 @@ import {
 } from '../common/document';
 import { userError } from '../common/error';
 import { mkdir, mkdirQuiet } from '../common/io';
-import { Logger } from '../common/log';
+import { ILogger } from '../common/log';
 import { OutputStream } from '../common/output-stream';
 import { ProfileId } from '../common/profile';
 import { createProfile } from './create';
@@ -34,17 +34,24 @@ import { createProfile } from './create';
  * For convenience, returns SuperJson instance read from the super.json path.
  */
 export async function initSuperface(
-  appPath: string,
-  initialDocument?: SuperJsonDocument,
-  options?: {
-    force?: boolean;
-  }
+  {
+    appPath,
+    initialDocument,
+    options,
+  }: {
+    appPath: string;
+    initialDocument?: SuperJsonDocument;
+    options?: {
+      force?: boolean;
+    };
+  },
+  { logger }: { logger: ILogger }
 ): Promise<SuperJson> {
   // create the base path
   {
     const created = await mkdir(appPath, { recursive: true });
     if (created) {
-      Logger.info('mkdir', appPath);
+      logger.info('mkdir', appPath);
     }
   }
 
@@ -53,7 +60,7 @@ export async function initSuperface(
   {
     const created = await mkdirQuiet(superPath);
     if (created) {
-      Logger.info('mkdir', superPath);
+      logger.info('mkdir', superPath);
     }
   }
 
@@ -66,7 +73,7 @@ export async function initSuperface(
     );
 
     if (created) {
-      Logger.info('initSuperJson', superJsonPath);
+      logger.info('initSuperJson', superJsonPath);
     }
   }
 
@@ -75,14 +82,14 @@ export async function initSuperface(
     const gridPath = joinPath(appPath, GRID_DIR);
     const created = await mkdirQuiet(gridPath);
     if (created) {
-      Logger.info('mkdir', gridPath);
+      logger.info('mkdir', gridPath);
     }
   }
   {
     const typesPath = joinPath(appPath, TYPES_DIR);
     const created = await mkdirQuiet(typesPath);
     if (created) {
-      Logger.info('mkdir', typesPath);
+      logger.info('mkdir', typesPath);
     }
   }
 
@@ -97,9 +104,16 @@ export async function initSuperface(
  * @param logCb - logging function
  */
 export async function generateSpecifiedProfiles(
-  path: string,
-  superJson: SuperJson,
-  profileIds: string[]
+  {
+    path,
+    superJson,
+    profileIds,
+  }: {
+    path: string;
+    superJson: SuperJson;
+    profileIds: string[];
+  },
+  { logger }: { logger: ILogger }
 ): Promise<void> {
   for (const profileId of profileIds) {
     const parsedProfile = parseProfileId(profileId);
@@ -111,12 +125,14 @@ export async function generateSpecifiedProfiles(
     const { scope, name, version } = parsedProfile.value;
 
     await createProfile(
-      joinPath(path, GRID_DIR),
-      ProfileId.fromScopeName(scope, name),
-      version,
-      [composeUsecaseName(name)],
-      superJson,
-      undefined
+      {
+        basePath: joinPath(path, GRID_DIR),
+        profile: ProfileId.fromScopeName(scope, name),
+        version,
+        usecaseNames: [composeUsecaseName(name)],
+        superJson,
+      },
+      { logger }
     );
   }
 }

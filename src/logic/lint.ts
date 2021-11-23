@@ -20,7 +20,6 @@ import {
 import { green, red, yellow } from 'chalk';
 import { basename } from 'path';
 
-import { Logger } from '..';
 import {
   composeVersion,
   DEFAULT_PROFILE_VERSION_STR,
@@ -28,6 +27,7 @@ import {
 import { userError } from '../common/error';
 import { fetchMapAST, fetchProfileAST } from '../common/http';
 import { ListWriter } from '../common/list-writer';
+import { ILogger } from '../common/log';
 import { MapId } from '../common/map';
 import { ProfileId } from '../common/profile';
 import {
@@ -216,10 +216,18 @@ type ProfileToLintWithAst = ProfileToValidate & {
 };
 
 async function prepareLintedProfile(
-  superJson: SuperJson,
-  profile: ProfileToValidate,
-  writer: ListWriter,
-  fn: (report: ReportFormat) => string
+  {
+    superJson,
+    profile,
+    writer,
+    fn,
+  }: {
+    superJson: SuperJson;
+    profile: ProfileToValidate;
+    writer: ListWriter;
+    fn: (report: ReportFormat) => string;
+  },
+  { logger }: { logger: ILogger }
 ): Promise<ProfileToLintWithAst> {
   const counts: [number, number][] = [];
   let profileAst: ProfileDocumentNode | undefined = undefined;
@@ -230,7 +238,7 @@ async function prepareLintedProfile(
   );
   //If we have local profile we lint it
   if (profileSource) {
-    Logger.info('localProfileFound', profile.id.id, profileSource.path);
+    logger.info('localProfileFound', profile.id.id, profileSource.path);
 
     const report: FileReport = {
       kind: 'file',
@@ -250,7 +258,7 @@ async function prepareLintedProfile(
 
     counts.push([report.errors.length, report.warnings.length]);
   } else {
-    Logger.info('fetchProfile', profile.id.id, profile.version);
+    logger.info('fetchProfile', profile.id.id, profile.version);
     profileAst = await fetchProfileAST(profile.id.id);
   }
 
@@ -263,11 +271,20 @@ async function prepareLintedProfile(
 }
 
 async function prepareLintedMap(
-  superJson: SuperJson,
-  profile: ProfileToValidate,
-  map: MapToValidate,
-  writer: ListWriter,
-  fn: (report: ReportFormat) => string
+  {
+    superJson,
+    profile,
+    map,
+    writer,
+    fn,
+  }: {
+    superJson: SuperJson;
+    profile: ProfileToValidate;
+    map: MapToValidate;
+    writer: ListWriter;
+    fn: (report: ReportFormat) => string;
+  },
+  { logger }: { logger: ILogger }
 ): Promise<MapToLintWithAst> {
   const counts: [number, number][] = [];
   let mapAst: MapDocumentNode | undefined = undefined;
@@ -278,7 +295,7 @@ async function prepareLintedMap(
     map.provider
   );
   if (mapSource) {
-    Logger.info(
+    logger.info(
       'localMapFound',
       profile.id.withVersion(profile.version),
       map.provider,
@@ -300,7 +317,7 @@ async function prepareLintedMap(
 
     counts.push([report.errors.length, report.warnings.length]);
   } else {
-    Logger.info(
+    logger.info(
       'fetchMap',
       profile.id.withVersion(profile.version),
       map.provider
@@ -334,19 +351,30 @@ async function prepareLintedMap(
 }
 
 export async function lint(
-  superJson: SuperJson,
-  profiles: ProfileToValidate[],
-  writer: ListWriter,
-  fn: (report: ReportFormat) => string
+  {
+    superJson,
+    profiles,
+    writer,
+    fn,
+  }: {
+    superJson: SuperJson;
+    profiles: ProfileToValidate[];
+    writer: ListWriter;
+    fn: (report: ReportFormat) => string;
+  },
+  { logger }: { logger: ILogger }
 ): Promise<[number, number][]> {
   const counts: [number, number][] = [];
 
   for (const profile of profiles) {
     const profileWithAst = await prepareLintedProfile(
-      superJson,
-      profile,
-      writer,
-      fn
+      {
+        superJson,
+        profile,
+        writer,
+        fn,
+      },
+      { logger }
     );
     //Return if we have errors or warnings
     if (!profileWithAst.ast) {
@@ -355,11 +383,14 @@ export async function lint(
 
     for (const map of profile.maps) {
       const preparedMap = await prepareLintedMap(
-        superJson,
-        profile,
-        map,
-        writer,
-        fn
+        {
+          superJson,
+          profile,
+          map,
+          writer,
+          fn,
+        },
+        { logger }
       );
       //Return if we have errors or warnings
       if (!preparedMap.ast) {
@@ -386,7 +417,7 @@ export async function lint(
         ]);
         //We catch any unexpected error from parser validator to prevent ending the loop early
       } catch (error) {
-        Logger.error(
+        logger.error(
           'unexpectedLintError',
           preparedMap.path,
           profileWithAst.path

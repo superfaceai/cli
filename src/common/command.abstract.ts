@@ -1,6 +1,14 @@
 import { Command as OclifCommand, flags } from '@oclif/command';
+import * as Parser from '@oclif/parser';
 
-import { Logger } from '.';
+import { DummyLogger, ILogger, StdoutLogger } from './log';
+
+type FlagType<T> = T extends Parser.flags.IOptionFlag<infer V>
+  ? V
+  : T extends Parser.flags.IBooleanFlag<infer V>
+  ? V | undefined
+  : never;
+export type Flags<T> = { [key in keyof T]: FlagType<T[key]> };
 
 export abstract class Command extends OclifCommand {
   static flags = {
@@ -13,11 +21,11 @@ export abstract class Command extends OclifCommand {
     help: flags.help({ char: 'h' }),
   };
 
-  /**
-   * Sets up logger for current run of oclif command
-   * @param quiet - quiet flag
-   */
-  protected setUpLogger(quiet?: boolean): void {
-    Logger.setup(quiet);
+  protected logger: ILogger = new StdoutLogger();
+
+  async initialize(flags: Flags<typeof Command.flags>): Promise<void> {
+    if (flags.quiet) {
+      this.logger = new DummyLogger();
+    }
   }
 }

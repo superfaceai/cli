@@ -299,3 +299,6 @@ export const messages = {
   ...loggout,
   ...generate,
 };
+
+export type MessageKeys = keyof typeof messages;
+export type MessageArgs<K extends MessageKeys> = Parameters<typeof messages[K]>;

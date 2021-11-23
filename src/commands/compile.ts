@@ -4,10 +4,10 @@ import { SuperJson } from '@superfaceai/one-sdk';
 import { parseDocumentId } from '@superfaceai/parser';
 import { join as joinPath } from 'path';
 
-import { Logger } from '..';
-import { Command } from '../common/command.abstract';
+import { Command, Flags } from '../common/command.abstract';
 import { META_FILE } from '../common/document';
 import { userError } from '../common/error';
+import { ILogger } from '../common/log';
 import { ProfileId } from '../common/profile';
 import { compile, MapToCompile, ProfileToCompile } from '../logic/compile';
 import { detectSuperJson } from '../logic/install';
@@ -57,8 +57,20 @@ export default class Compile extends Command {
 
   async run(): Promise<void> {
     const { flags } = this.parse(Compile);
-    this.setUpLogger(flags.quiet);
+    await super.initialize(flags);
+    await this.execute({
+      logger: this.logger,
+      flags,
+    });
+  }
 
+  async execute({
+    logger,
+    flags,
+  }: {
+    logger: ILogger;
+    flags: Flags<typeof Compile.flags>;
+  }): Promise<void> {
     // Check inputs
     if (flags.profileId) {
       const parsedProfileId = parseDocumentId(flags.profileId);
@@ -198,11 +210,17 @@ export default class Compile extends Command {
       }
     }
 
-    await compile(profiles, {
-      onlyMap: flags.onlyMap,
-      onlyProfile: flags.onlyProfile,
-    });
+    await compile(
+      {
+        profiles,
+        options: {
+          onlyMap: flags.onlyMap,
+          onlyProfile: flags.onlyProfile,
+        },
+      },
+      { logger }
+    );
 
-    Logger.success('compiledSuccessfully');
+    logger.success('compiledSuccessfully');
   }
 }

@@ -2,10 +2,10 @@ import { flags as oclifFlags } from '@oclif/command';
 import { isValidDocumentName, isValidProviderName } from '@superfaceai/ast';
 import { join as joinPath } from 'path';
 
-import { Logger } from '..';
-import { Command } from '../common/command.abstract';
+import { Command, Flags } from '../common/command.abstract';
 import { META_FILE, SUPERFACE_DIR } from '../common/document';
 import { userError } from '../common/error';
+import { ILogger } from '../common/log';
 import { NORMALIZED_CWD_PATH } from '../common/path';
 import { ProfileId } from '../common/profile';
 import { installProvider } from '../logic/configure';
@@ -18,7 +18,7 @@ import {
 } from '../logic/install';
 import { interactiveInstall } from '../logic/quickstart';
 
-const parseProviders = (providers?: string[]): string[] => {
+const parseProviders = (logger: ILogger, providers?: string[]): string[] => {
   if (!providers) {
     return [];
   }
@@ -31,7 +31,7 @@ const parseProviders = (providers?: string[]): string[] => {
         return false;
       }
       if (!isValidProviderName(p)) {
-        Logger.warn('invalidProviderName');
+        logger.warn('invalidProviderName');
 
         return false;
       }
@@ -99,9 +99,24 @@ export default class Install extends Command {
   ];
 
   async run(): Promise<void> {
-    const { args, flags } = this.parse(Install);
-    this.setUpLogger(flags.quiet);
+    const { flags, args } = this.parse(Install);
+    await super.initialize(flags);
+    await this.execute({
+      logger: this.logger,
+      flags,
+      args,
+    });
+  }
 
+  async execute({
+    logger,
+    flags,
+    args,
+  }: {
+    logger: ILogger;
+    flags: Flags<typeof Install.flags>;
+    args: { profileId?: string };
+  }): Promise<void> {
     if (flags.scan && (typeof flags.scan !== 'number' || flags.scan > 5)) {
       throw userError(
         '--scan/-s : Number of levels to scan cannot be higher than 5',
@@ -111,28 +126,34 @@ export default class Install extends Command {
 
     if (flags.interactive) {
       if (!args.profileId) {
-        Logger.warn('missingInteractiveFlag');
+        logger.warn('missingInteractiveFlag');
         this.exit(0);
       }
 
-      await interactiveInstall(args.profileId);
+      await interactiveInstall(args.profileId, { logger });
 
       return;
     }
 
     let superPath = await detectSuperJson(process.cwd(), flags.scan);
     if (!superPath) {
-      Logger.info('initSuperface');
-      await initSuperface(NORMALIZED_CWD_PATH, { profiles: {}, providers: {} });
+      logger.info('initSuperface');
+      await initSuperface(
+        {
+          appPath: NORMALIZED_CWD_PATH,
+          initialDocument: { profiles: {}, providers: {} },
+        },
+        { logger }
+      );
       superPath = SUPERFACE_DIR;
     }
 
-    const providers = parseProviders(flags.providers);
+    const providers = parseProviders(logger, flags.providers);
 
-    Logger.info('installProfilesToSuperJson', joinPath(superPath, META_FILE));
+    logger.info('installProfilesToSuperJson', joinPath(superPath, META_FILE));
 
     const requests: (LocalInstallRequest | StoreInstallRequest)[] = [];
-    const profileArg = args.profileId as string | undefined;
+    const profileArg = args.profileId;
     if (profileArg !== undefined) {
       if (flags.local) {
         requests.push({
@@ -144,7 +165,7 @@ export default class Install extends Command {
         const profileId = ProfileId.fromId(id);
 
         if (!isValidDocumentName(profileId.name)) {
-          Logger.warn('invalidProfileName', profileId.name);
+          logger.warn('invalidProfileName', profileId.name);
           this.exit();
         }
 
@@ -157,31 +178,37 @@ export default class Install extends Command {
     } else {
       //Do not install providers without profile
       if (providers.length > 0) {
-        Logger.warn('unableToInstallWithoutProfile');
+        logger.warn('unableToInstallWithoutProfile');
         this.exit();
       }
     }
 
-    await installProfiles({
-      superPath,
-      requests,
-      options: {
-        force: flags.force,
-        tryToAuthenticate: true,
-      },
-    });
-
-    Logger.info('configuringProviders');
-    for (const provider of providers) {
-      await installProvider({
+    await installProfiles(
+      {
         superPath,
-        provider,
-        profileId: ProfileId.fromId(profileArg as string),
-        defaults: undefined,
+        requests,
         options: {
           force: flags.force,
+          tryToAuthenticate: true,
         },
-      });
+      },
+      { logger }
+    );
+
+    logger.info('configuringProviders');
+    for (const provider of providers) {
+      await installProvider(
+        {
+          superPath,
+          provider,
+          profileId: ProfileId.fromId(profileArg as string),
+          defaults: undefined,
+          options: {
+            force: flags.force,
+          },
+        },
+        { logger }
+      );
     }
   }
 }

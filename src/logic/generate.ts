@@ -13,6 +13,7 @@ import {
 
 import { UNCOMPILED_SDK_FILE } from '../common/document';
 import { rimraf } from '../common/io';
+import { ILogger } from '../common/log';
 import { OutputStream } from '../common/output-stream';
 import { ProfileId } from '../common/profile';
 import {
@@ -29,15 +30,24 @@ import {
 import { loadProfile } from './publish.utils';
 
 export async function generate(
-  profiles: { id: ProfileId; version?: string }[],
-  superJson: SuperJson
+  {
+    profiles,
+    superJson,
+  }: {
+    profiles: { id: ProfileId; version?: string }[];
+    superJson: SuperJson;
+  },
+  { logger }: { logger: ILogger }
 ): Promise<void> {
   const sources: Record<string, string> = {};
   for (const profile of profiles) {
     const loadedProfile = await loadProfile(
-      superJson,
-      profile.id,
-      profile.version
+      {
+        superJson,
+        profile: profile.id,
+        version: profile.version,
+      },
+      { logger }
     );
     const typing = generateTypingsForProfile(loadedProfile.ast);
     sources[joinPath('types', profile.id.id + '.ts')] = typing;

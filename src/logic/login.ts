@@ -2,11 +2,14 @@ import { VerificationStatus } from '@superfaceai/service-client';
 import inquirer from 'inquirer';
 import * as open from 'open';
 
-import { Logger } from '..';
 import { userError } from '../common/error';
 import { SuperfaceClient } from '../common/http';
+import { ILogger } from '../common/log';
 
-export async function login(options?: { force?: boolean }): Promise<void> {
+export async function login(
+  { force }: { force?: boolean },
+  { logger }: { logger: ILogger }
+): Promise<void> {
   const client = SuperfaceClient.getClient();
   //get verification url, browser url and expiresAt
   const initResponse = await client.cliLogin();
@@ -22,7 +25,7 @@ export async function login(options?: { force?: boolean }): Promise<void> {
   //open browser on browser url /auth/cli/browser
 
   let openBrowser = true;
-  if (!options?.force) {
+  if (!force) {
     const prompt: { open: boolean } = await inquirer.prompt({
       name: 'open',
       message: `Do you want to open browser with Superface login page?`,
@@ -32,14 +35,14 @@ export async function login(options?: { force?: boolean }): Promise<void> {
     openBrowser = prompt.open;
   }
   const showUrl = () => {
-    Logger.warn('openUrl', initResponse.browserUrl);
+    logger.warn('openUrl', initResponse.browserUrl);
   };
-  if (openBrowser && !options?.force) {
+  if (openBrowser && !force) {
     const childProcess = await open.default(initResponse.browserUrl, {
       wait: false,
     });
     childProcess.on('error', err => {
-      Logger.error('errorMessage', err.message);
+      logger.error('errorMessage', err.message);
       showUrl();
     });
     childProcess.on('close', code => {

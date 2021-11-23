@@ -4,19 +4,19 @@ import { parseProfileId } from '@superfaceai/parser';
 import inquirer from 'inquirer';
 import { join as joinPath } from 'path';
 
-import { Command } from '../common/command.abstract';
+import { Command, Flags } from '../common/command.abstract';
 import { constructProviderSettings } from '../common/document';
-import { Logger } from '../common/log';
+import { ILogger } from '../common/log';
 import { OutputStream } from '../common/output-stream';
 import { generateSpecifiedProfiles, initSuperface } from '../logic/init';
 
-const parseProfileIds = (input: string): string[] => {
+const parseProfileIds = (input: string, logger: ILogger): string[] => {
   return input
     .split(' ')
     .filter(p => p.trim() !== '')
     .filter(p => {
       if (parseProfileId(p).kind === 'error') {
-        Logger.warn('invalidProfileId', p);
+        logger.warn('invalidProfileId', p);
 
         return false;
       }
@@ -25,13 +25,13 @@ const parseProfileIds = (input: string): string[] => {
     });
 };
 
-const parseProviders = (input: string): string[] =>
+const parseProviders = (input: string, logger: ILogger): string[] =>
   input
     .split(' ')
     .filter(i => i.trim() !== '')
     .filter(p => {
       if (!isValidProviderName(p)) {
-        Logger.warn('invalidProviderName');
+        logger.warn('invalidProviderName');
 
         return false;
       }
@@ -39,7 +39,7 @@ const parseProviders = (input: string): string[] =>
       return true;
     });
 
-async function promptProfiles(): Promise<string[]> {
+async function promptProfiles(logger: ILogger): Promise<string[]> {
   const response: { profiles: string } = await inquirer.prompt({
     name: 'profiles',
     message: 'Input space separated list of profile ids to initialize.',
@@ -50,14 +50,14 @@ async function promptProfiles(): Promise<string[]> {
         return true;
       }
 
-      return parseProfileIds(input).length > 0;
+      return parseProfileIds(input, logger).length > 0;
     },
   });
 
-  return parseProfileIds(response.profiles);
+  return parseProfileIds(response.profiles, logger);
 }
 
-async function promptProviders(): Promise<string[]> {
+async function promptProviders(logger: ILogger): Promise<string[]> {
   const response: { providers: string } = await inquirer.prompt({
     name: 'providers',
     message: 'Input space separated list of providers to initialize.',
@@ -68,11 +68,11 @@ async function promptProviders(): Promise<string[]> {
         return true;
       }
 
-      return parseProviders(input).length > 0;
+      return parseProviders(input, logger).length > 0;
     },
   });
 
-  return parseProviders(response.providers);
+  return parseProviders(response.providers, logger);
 }
 
 export default class Init extends Command {
@@ -114,7 +114,24 @@ export default class Init extends Command {
   };
 
   async run(): Promise<void> {
-    const { args, flags } = this.parse(Init);
+    const { flags, args } = this.parse(Init);
+    await super.initialize(flags);
+    await this.execute({
+      logger: this.logger,
+      flags,
+      args,
+    });
+  }
+
+  async execute({
+    logger,
+    flags,
+    args,
+  }: {
+    logger: ILogger;
+    flags: Flags<typeof Init.flags>;
+    args: { name?: string };
+  }): Promise<void> {
     const hints: Record<string, string> = {
       flags: 'You can use flags instead of prompt.',
       help: '`Use superface init --help` for more informations.',
@@ -122,10 +139,8 @@ export default class Init extends Command {
       quiet: '',
     };
 
-    this.setUpLogger(flags.quiet);
-
     if (flags.prompt) {
-      Logger.info(
+      logger.info(
         'initPrompt',
         hints.flags,
         hints.help,
@@ -139,11 +154,11 @@ export default class Init extends Command {
 
     if (flags.prompt) {
       if (!flags.profiles || flags.profiles.length === 0) {
-        profiles = await promptProfiles();
+        profiles = await promptProfiles(logger);
       }
 
       if (!flags.providers || flags.providers.length === 0) {
-        providers = await promptProviders();
+        providers = await promptProviders(logger);
       }
     } else {
       profiles ??= [];
@@ -152,12 +167,21 @@ export default class Init extends Command {
 
     const path = args.name ? joinPath('.', args.name) : '.';
 
-    const superJson = await initSuperface(path, {
-      providers: constructProviderSettings(providers),
-    });
+    const superJson = await initSuperface(
+      {
+        appPath: path,
+        initialDocument: {
+          providers: constructProviderSettings(providers),
+        },
+      },
+      { logger }
+    );
 
     if (profiles.length > 0) {
-      await generateSpecifiedProfiles(path, superJson, profiles);
+      await generateSpecifiedProfiles(
+        { path, superJson, profileIds: profiles },
+        { logger }
+      );
       await OutputStream.writeOnce(superJson.path, superJson.stringified);
     }
   }

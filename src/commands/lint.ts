@@ -4,11 +4,12 @@ import { SuperJson } from '@superfaceai/one-sdk';
 import { parseDocumentId } from '@superfaceai/parser';
 import { join as joinPath } from 'path';
 
-import { Logger, META_FILE } from '../common';
-import { Command } from '../common/command.abstract';
+import { Command, Flags } from '../common/command.abstract';
+import { META_FILE } from '../common/document';
 import { developerError, userError } from '../common/error';
 import { formatWordPlurality } from '../common/format';
 import { ListWriter } from '../common/list-writer';
+import { ILogger } from '../common/log';
 import { OutputStream } from '../common/output-stream';
 import { ReportFormat } from '../common/report.interfaces';
 import { detectSuperJson } from '../logic/install';
@@ -85,8 +86,20 @@ export default class Lint extends Command {
 
   async run(): Promise<void> {
     const { flags } = this.parse(Lint);
-    this.setUpLogger(flags.quiet);
+    await super.initialize(flags);
+    await this.execute({
+      logger: this.logger,
+      flags,
+    });
+  }
 
+  async execute({
+    logger,
+    flags,
+  }: {
+    logger: ILogger;
+    flags: Flags<typeof Lint.flags>;
+  }): Promise<void> {
     // Check inputs
     if (flags.profileId) {
       const parsedProfileId = parseDocumentId(flags.profileId);
@@ -169,7 +182,12 @@ export default class Lint extends Command {
             superJson,
             profiles,
             report =>
-              formatHuman(report, flags.quiet, flags.outputFormat === 'short')
+              formatHuman(
+                report,
+                !!flags.quiet,
+                flags.outputFormat === 'short'
+              ),
+            { logger }
           );
           await outputStream.write(
             `\nDetected ${formatWordPlurality(
@@ -187,7 +205,8 @@ export default class Lint extends Command {
             new ListWriter(outputStream, ','),
             superJson,
             profiles,
-            report => formatJson(report)
+            report => formatJson(report),
+            { logger }
           );
           await outputStream.write(
             `],"total":{"errors":${totals[0]},"warnings":${totals[1]}}}\n`
@@ -201,7 +220,7 @@ export default class Lint extends Command {
     if (totals[0] > 0) {
       throw userError('❌ Errors were found', 1);
     } else if (totals[1] > 0) {
-      Logger.warn('warningsWereFound');
+      logger.warn('warningsWereFound');
     }
   }
 
@@ -209,13 +228,17 @@ export default class Lint extends Command {
     writer: ListWriter,
     superJson: SuperJson,
     profiles: ProfileToValidate[],
-    fn: (report: ReportFormat) => string
+    fn: (report: ReportFormat) => string,
+    { logger }: { logger: ILogger }
   ): Promise<[errors: number, warnings: number]> {
     const counts: [number, number][] = await lint(
-      superJson,
-      profiles,
-      writer,
-      fn
+      {
+        superJson,
+        profiles,
+        writer,
+        fn,
+      },
+      { logger }
     );
 
     return counts.reduce((acc, curr) => [acc[0] + curr[0], acc[1] + curr[1]], [
