@@ -8,7 +8,17 @@ type FlagType<T> = T extends Parser.flags.IOptionFlag<infer V>
   : T extends Parser.flags.IBooleanFlag<infer V>
   ? V | undefined
   : never;
-export type Flags<T> = { [key in keyof T]: FlagType<T[key]> };
+
+type KeysOfType<T, SelectedType> = {
+  [key in keyof T]: SelectedType extends T[key] ? key : never;
+}[keyof T];
+type Optional<T> = Partial<Pick<T, KeysOfType<T, undefined>>>;
+type NonOptional<T> = Omit<T, KeysOfType<T, undefined>>;
+export type OptionalUndefined<T> = Optional<T> & NonOptional<T>;
+
+export type Flags<T> = OptionalUndefined<
+  { [key in keyof T]: FlagType<T[key]> }
+>;
 
 export abstract class Command extends OclifCommand {
   static flags = {

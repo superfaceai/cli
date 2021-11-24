@@ -6,6 +6,7 @@ import { Command, Flags } from '../common/command.abstract';
 import { META_FILE, SUPERFACE_DIR } from '../common/document';
 import { userError } from '../common/error';
 import { ILogger } from '../common/log';
+import { IPackageManager, PackageManager } from '../common/package-manager';
 import { NORMALIZED_CWD_PATH } from '../common/path';
 import { ProfileId } from '../common/profile';
 import { installProvider } from '../logic/configure';
@@ -101,8 +102,10 @@ export default class Install extends Command {
   async run(): Promise<void> {
     const { flags, args } = this.parse(Install);
     await super.initialize(flags);
+    const pm = new PackageManager(this.logger);
     await this.execute({
       logger: this.logger,
+      pm,
       flags,
       args,
     });
@@ -110,10 +113,12 @@ export default class Install extends Command {
 
   async execute({
     logger,
+    pm,
     flags,
     args,
   }: {
     logger: ILogger;
+    pm: IPackageManager;
     flags: Flags<typeof Install.flags>;
     args: { profileId?: string };
   }): Promise<void> {
@@ -130,7 +135,7 @@ export default class Install extends Command {
         this.exit(0);
       }
 
-      await interactiveInstall(args.profileId, { logger });
+      await interactiveInstall(args.profileId, { logger, pm });
 
       return;
     }

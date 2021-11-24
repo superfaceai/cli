@@ -7,7 +7,7 @@ import { mocked } from 'ts-jest/utils';
 
 import {
   DEFAULT_PROFILE_VERSION_STR,
-  Logger,
+  MockLogger,
   UNVERIFIED_PROVIDER_PREFIX,
 } from '../common';
 import { OutputStream } from '../common/output-stream';
@@ -18,6 +18,7 @@ import {
 } from '../logic/configure';
 import { detectSuperJson } from '../logic/install';
 import { publish } from '../logic/publish';
+import { CommandInstance } from '../test/utils';
 import Install from './install';
 import Publish from './publish';
 
@@ -38,12 +39,16 @@ jest.mock('../logic/install', () => ({
 }));
 
 describe('Publish CLI command', () => {
+  let logger: MockLogger;
+  let instance: Publish;
+
   afterEach(() => {
     jest.resetAllMocks();
   });
 
   beforeEach(async () => {
-    Logger.mockLogger();
+    logger = new MockLogger();
+    instance = CommandInstance(Publish);
   });
 
   describe('running publish command', () => {
@@ -79,15 +84,15 @@ describe('Publish CLI command', () => {
         .mockResolvedValue(ok(mockSuperJson));
 
       await expect(
-        Publish.run([
-          'map',
-          '--profileId',
-          profileId,
-          '--providerName',
-          provider,
-          '-s',
-          '3',
-        ])
+        instance.execute({
+          logger,
+          argv: ['map'],
+          flags: {
+            profileId,
+            providerName: provider,
+            scan: 3,
+          },
+        })
       ).rejects.toEqual(new CLIError('EEXIT: 0'));
       expect(detectSuperJson).toHaveBeenCalled();
       expect(loadSpy).toHaveBeenCalled();
@@ -104,15 +109,15 @@ describe('Publish CLI command', () => {
         .mockResolvedValue(ok(new SuperJson()));
 
       await expect(
-        Publish.run([
-          'map',
-          '--profileId',
-          'U!0_',
-          '--providerName',
-          provider,
-          '-s',
-          '3',
-        ])
+        instance.execute({
+          logger,
+          argv: ['map'],
+          flags: {
+            profileId: 'U!0_',
+            providerName: provider,
+            scan: 3,
+          },
+        })
       ).rejects.toEqual(
         new CLIError(
           '❌ Invalid profile id: "U!0_" is not a valid lowercase identifier'
@@ -133,15 +138,15 @@ describe('Publish CLI command', () => {
         .mockResolvedValue(ok(new SuperJson()));
 
       await expect(
-        Publish.run([
-          'profile',
-          '--profileId',
-          profileId,
-          '--providerName',
-          'U!0_',
-          '-s',
-          '3',
-        ])
+        instance.execute({
+          logger,
+          argv: ['profile'],
+          flags: {
+            profileId,
+            providerName: 'U!0_',
+            scan: 3,
+          },
+        })
       ).rejects.toEqual(new CLIError('❌ Invalid provider name: "U!0_"'));
       expect(detectSuperJson).not.toHaveBeenCalled();
       expect(loadSpy).not.toHaveBeenCalled();

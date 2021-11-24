@@ -1,35 +1,23 @@
 import { join, normalize, relative } from 'path';
 
 import { execShell, exists } from './io';
-import { StdoutLogger } from './log';
+import { ILogger } from './log';
 
-export class PackageManager {
-  private static usedPackageManager: 'npm' | 'yarn' | undefined = undefined;
-  private static path: string | undefined = undefined;
+export interface IPackageManager {
+  packageJsonExists(): Promise<boolean>;
+  getUsedPm(): Promise<'npm' | 'yarn' | undefined>;
+  init(initPm: 'npm' | 'yarn'): Promise<boolean>;
+  installPackage(packageName: string): Promise<boolean>;
+}
 
-  private static async getPath(): Promise<string | undefined> {
-    if (PackageManager.path) {
-      return PackageManager.path;
-    }
-    const npmPrefix = await execShell(`npm prefix`);
+export class PackageManager implements IPackageManager {
+  private usedPackageManager: 'npm' | 'yarn' | undefined = undefined;
+  private path: string | undefined = undefined;
 
-    if (npmPrefix.stderr !== '') {
-      new StdoutLogger().error(
-        'shellCommandError',
-        'npm prefix',
-        npmPrefix.stderr
-      );
+  constructor(private readonly logger: ILogger) {}
 
-      return;
-    }
-    PackageManager.path =
-      relative(process.cwd(), npmPrefix.stdout.trim()) || normalize('./');
-
-    return PackageManager.path;
-  }
-
-  public static async packageJsonExists(): Promise<boolean> {
-    const path = await PackageManager.getPath();
+  public async packageJsonExists(): Promise<boolean> {
+    const path = await this.getPath();
     if (path && (await exists(join(path, 'package.json')))) {
       return true;
     }
@@ -37,25 +25,25 @@ export class PackageManager {
     return false;
   }
 
-  public static async getUsedPm(): Promise<'npm' | 'yarn' | undefined> {
-    if (PackageManager.usedPackageManager) {
-      return PackageManager.usedPackageManager;
+  public async getUsedPm(): Promise<'npm' | 'yarn' | undefined> {
+    if (this.usedPackageManager) {
+      return this.usedPackageManager;
     }
-    const path = await PackageManager.getPath();
+    const path = await this.getPath();
     if (!path) {
       return;
     }
 
-    //Try to find yarn.lock
+    // Try to find yarn.lock
     if (await exists(join(path, 'yarn.lock'))) {
-      PackageManager.usedPackageManager = 'yarn';
+      this.usedPackageManager = 'yarn';
 
       return 'yarn';
     }
 
-    //Try to find package-lock.json
+    // Try to find package-lock.json
     if (await exists(join(path, 'package-lock.json'))) {
-      PackageManager.usedPackageManager = 'npm';
+      this.usedPackageManager = 'npm';
 
       return 'npm';
     }
@@ -63,62 +51,72 @@ export class PackageManager {
     return;
   }
 
-  public static async init(initPm: 'yarn' | 'npm'): Promise<boolean> {
-    const pm = await PackageManager.getUsedPm();
+  public async init(initPm: 'yarn' | 'npm'): Promise<boolean> {
+    const pm = await this.getUsedPm();
     if (pm && pm === initPm) {
-      new StdoutLogger().error('pmAlreadyInitialized', pm);
+      this.logger.error('pmAlreadyInitialized', pm);
 
       return false;
     }
     const command = initPm === 'yarn' ? `yarn init -y` : `npm init -y`;
 
-    new StdoutLogger().info('initPmOnPath', initPm, process.cwd());
+    this.logger.info('initPmOnPath', initPm, process.cwd());
     const result = await execShell(command);
     if (result.stderr !== '') {
-      new StdoutLogger().error(
-        'shellCommandError',
-        command,
-        result.stderr.trimEnd()
-      );
+      this.logger.error('shellCommandError', command, result.stderr.trimEnd());
     }
 
     if (result.stdout !== '') {
-      new StdoutLogger().info('stdout', result.stdout.trimEnd());
+      this.logger.info('stdout', result.stdout.trimEnd());
     }
 
-    //Set used PM after init
-    PackageManager.usedPackageManager = initPm;
+    // Set used PM after init
+    this.usedPackageManager = initPm;
 
     return true;
   }
 
-  public static async installPackage(packageName: string): Promise<boolean> {
-    if (!(await PackageManager.packageJsonExists())) {
-      new StdoutLogger().error('pmNotInitialized', packageName);
+  public async installPackage(packageName: string): Promise<boolean> {
+    if (!(await this.packageJsonExists())) {
+      this.logger.error('pmNotInitialized', packageName);
 
       return false;
     }
-    const pm = await PackageManager.getUsedPm();
+    const pm = await this.getUsedPm();
 
     const command =
       pm === 'yarn' ? `yarn add ${packageName}` : `npm install ${packageName}`;
 
-    const path = (await PackageManager.getPath()) || process.cwd();
-    //Install package to package.json on discovered path or on cwd
-    new StdoutLogger().info('installPackageOnPath', packageName, path, command);
+    const path = (await this.getPath()) || process.cwd();
+    // Install package to package.json on discovered path or on cwd
+    this.logger.info('installPackageOnPath', packageName, path, command);
     const result = await execShell(command, { cwd: path });
     if (result.stderr !== '') {
-      new StdoutLogger().error(
-        'shellCommandError',
-        command,
-        result.stderr.trimEnd()
-      );
+      this.logger.error('shellCommandError', command, result.stderr.trimEnd());
     }
 
     if (result.stdout !== '') {
-      new StdoutLogger().info('stdout', result.stdout.trimEnd());
+      this.logger.info('stdout', result.stdout.trimEnd());
     }
 
     return true;
+  }
+
+  private async getPath(): Promise<string | undefined> {
+    if (this.path) {
+      return this.path;
+    }
+
+    const npmPrefix = await execShell(`npm prefix`);
+
+    if (npmPrefix.stderr !== '') {
+      this.logger.error('shellCommandError', 'npm prefix', npmPrefix.stderr);
+
+      return;
+    }
+    this.path =
+      relative(process.cwd(), npmPrefix.stdout.trim()) || normalize('./');
+
+    return this.path;
   }
 }

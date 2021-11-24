@@ -26,7 +26,7 @@ import { fetchProviders, getServicesUrl } from '../common/http';
 import { exists, readFile } from '../common/io';
 import { ILogger } from '../common/log';
 import { OutputStream } from '../common/output-stream';
-import { PackageManager } from '../common/package-manager';
+import { IPackageManager } from '../common/package-manager';
 import { NORMALIZED_CWD_PATH } from '../common/path';
 import { ProfileId } from '../common/profile';
 import { envVariable } from '../templates/env';
@@ -38,7 +38,7 @@ import { profileExists, providerExists } from './quickstart.utils';
 
 export async function interactiveInstall(
   profileArg: string,
-  { logger }: { logger: ILogger }
+  { logger, pm }: { logger: ILogger; pm: IPackageManager }
 ): Promise<void> {
   const [profileIdStr, version] = profileArg.split('@');
   const profilePathParts = profileIdStr.split('/');
@@ -325,7 +325,7 @@ export async function interactiveInstall(
     }
   }
   //Check/init package-manager
-  if (!(await PackageManager.packageJsonExists())) {
+  if (!(await pm.packageJsonExists())) {
     logger.warn('packageJsonNotFound');
     //Prompt user for package manager initialization
     const response: {
@@ -347,11 +347,11 @@ export async function interactiveInstall(
     }
     logger.success('initPm', response.pm);
 
-    await PackageManager.init(response.pm);
+    await pm.init(response.pm);
   }
   //Install SDK
   logger.success('installPackage', '@superfaceai/one-sdk');
-  await PackageManager.installPackage('@superfaceai/one-sdk');
+  await pm.installPackage('@superfaceai/one-sdk');
 
   //Prompt user for dotenv installation
   if (
@@ -361,7 +361,7 @@ export async function interactiveInstall(
     )
   ) {
     logger.success('installPackage', 'dotenv');
-    await PackageManager.installPackage('dotenv');
+    await pm.installPackage('dotenv');
   }
 
   //Prompt user for optional SDK token
