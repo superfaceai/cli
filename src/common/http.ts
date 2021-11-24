@@ -94,21 +94,11 @@ export function getServicesUrl(): string {
 }
 
 export async function fetchProviders(profile: string): Promise<ProviderJson[]> {
-  const response = await SuperfaceClient.getClient().fetch(
-    `/providers?profile=${encodeURIComponent(profile)}`,
-    {
-      //TODO: enable auth
-      authenticate: false,
-      method: 'GET',
-      headers: {
-        'Content-Type': ContentType.JSON,
-      },
-    }
-  );
+  const response = await SuperfaceClient.getClient().getProvidersList({
+    profile,
+  });
 
-  await checkSuperfaceResponse(response);
-
-  return ((await response.json()) as { data: ProviderJson[] }).data;
+  return response.data.map(data => assertProviderJson(data.definition));
 }
 
 export async function fetchProfileInfo(

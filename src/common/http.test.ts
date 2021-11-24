@@ -166,7 +166,9 @@ describe('HTTP functions', () => {
       const fetchSpy = jest
         .spyOn(ServiceClient.prototype, 'fetch')
         .mockResolvedValue(
-          mockResponse(200, 'OK', undefined, { data: [mockProviderJson] })
+          mockResponse(200, 'OK', undefined, {
+            data: [{ definition: mockProviderJson }],
+          })
         );
 
       await expect(fetchProviders(profileId)).resolves.toEqual([
@@ -174,16 +176,13 @@ describe('HTTP functions', () => {
       ]);
 
       expect(fetchSpy).toHaveBeenCalledTimes(1);
-      expect(fetchSpy).toHaveBeenCalledWith(
-        `/providers?profile=${encodeURIComponent(profileId)}`,
-        {
-          authenticate: false,
-          method: 'GET',
-          headers: {
-            'Content-Type': ContentType.JSON,
-          },
-        }
-      );
+      expect(fetchSpy).toHaveBeenCalledWith(`/providers?profile=${profileId}`, {
+        authenticate: false,
+        method: 'GET',
+        headers: {
+          'Content-Type': ContentType.JSON,
+        },
+      });
     }, 10000);
 
     it('throws error when request fails', async () => {
@@ -204,16 +203,13 @@ describe('HTTP functions', () => {
       );
 
       expect(fetchSpy).toHaveBeenCalledTimes(1);
-      expect(fetchSpy).toHaveBeenCalledWith(
-        `/providers?profile=${encodeURIComponent(profileId)}`,
-        {
-          authenticate: false,
-          method: 'GET',
-          headers: {
-            'Content-Type': ContentType.JSON,
-          },
-        }
-      );
+      expect(fetchSpy).toHaveBeenCalledWith(`/providers?profile=${profileId}`, {
+        authenticate: false,
+        method: 'GET',
+        headers: {
+          'Content-Type': ContentType.JSON,
+        },
+      });
     }, 10000);
   });
 
