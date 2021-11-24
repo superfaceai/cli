@@ -138,15 +138,15 @@ export async function loadProfile(
     return { ast, from: { kind: 'local', ...source } };
   } else {
     //Load from store
-    ast = await fetchProfileAST(profileId);
-    const version = composeVersion(ast.header.version);
+    ast = await fetchProfileAST(profile, version);
+    const versionString = composeVersion(ast.header.version);
     options?.logCb?.(
-      `Loading profile: "${profile.id}" in version: "${version}" from Superface store`
+      `Loading profile: "${profile.id}" in version: "${versionString}" from Superface store`
     );
 
     return {
       ast,
-      from: { kind: 'remote', version },
+      from: { kind: 'remote', version: versionString },
     };
   }
 }

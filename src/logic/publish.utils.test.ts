@@ -449,7 +449,7 @@ describe('Publish logic utils', () => {
       });
 
       expect(parseProfileSpy).not.toHaveBeenCalled();
-      expect(fetchProfileAST).toHaveBeenCalledWith(mockProfile.id);
+      expect(fetchProfileAST).toHaveBeenCalledWith(mockProfile, undefined);
       expect(mockLogCb).toHaveBeenCalledWith(
         `Loading profile: "${mockProfile.id}" in version: "1.0.0" from Superface store`
       );

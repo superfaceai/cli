@@ -23,6 +23,7 @@ import {
 import { mockResponse } from '../test/utils';
 import { DEFAULT_PROFILE_VERSION_STR } from './document';
 import { loadNetrc } from './netrc';
+import { ProfileId } from './profile';
 
 jest.mock('./netrc');
 
@@ -65,13 +66,15 @@ describe('SuperfaceClient', () => {
 
       const clinet = sfClient.getClient();
 
-      expect((clinet as any)._STORAGE).toEqual({
-        baseUrl: expect.any(String),
-        refreshToken: 'RT',
-        commonHeaders: {
-          ['User-Agent']: expect.any(String),
+      expect(clinet).toEqual({
+        _STORAGE: {
+          baseUrl: expect.any(String),
+          refreshToken: 'RT',
+          commonHeaders: {
+            ['User-Agent']: expect.any(String),
+          },
+          refreshTokenUpdatedHandler: undefined,
         },
-        refreshTokenUpdatedHandler: undefined,
       });
       if (originalValue) {
         process.env.SUPERFACE_REFRESH_TOKEN = originalValue;
@@ -82,6 +85,12 @@ describe('SuperfaceClient', () => {
 
 describe('HTTP functions', () => {
   const profileId = 'starwars/character-information';
+
+  // const profileWithVersion = {
+  //   scope: 'starwars',
+  //   name: 'character-information',
+  //   version: '1.1.1'
+  // }
 
   const astMetadata: AstMetadata = {
     sourceChecksum: 'check',
@@ -225,9 +234,9 @@ describe('HTTP functions', () => {
         .spyOn(ServiceClient.prototype, 'fetch')
         .mockResolvedValue(mockResponse(200, 'OK', undefined, mockProfileInfo));
 
-      await expect(fetchProfileInfo(profileId)).resolves.toEqual(
-        mockProfileInfo
-      );
+      await expect(
+        fetchProfileInfo(ProfileId.fromId(profileId))
+      ).resolves.toEqual(mockProfileInfo);
 
       expect(fetchSpy).toHaveBeenCalledTimes(1);
       expect(fetchSpy).toHaveBeenCalledWith(`/${profileId}`, {
@@ -245,7 +254,9 @@ describe('HTTP functions', () => {
         .mockResolvedValue(mockResponse(200, 'OK', undefined, mockProfileInfo));
 
       await expect(
-        fetchProfileInfo(profileId, { tryToAuthenticate: true })
+        fetchProfileInfo(ProfileId.fromId(profileId), undefined, {
+          tryToAuthenticate: true,
+        })
       ).resolves.toEqual(mockProfileInfo);
 
       expect(fetchSpy).toHaveBeenCalledTimes(1);
@@ -272,7 +283,9 @@ describe('HTTP functions', () => {
           mockResponse(404, 'Not Found', undefined, mockErrResponse)
         );
 
-      await expect(fetchProfileInfo(profileId)).rejects.toEqual(
+      await expect(
+        fetchProfileInfo(ProfileId.fromId(profileId))
+      ).rejects.toEqual(
         new CLIError(new ServiceApiError(mockErrResponse).message)
       );
 
@@ -293,7 +306,9 @@ describe('HTTP functions', () => {
         .spyOn(ServiceClient.prototype, 'fetch')
         .mockResolvedValue(mockResponse(200, 'OK', undefined, 'mock profile'));
 
-      await expect(fetchProfile(profileId)).resolves.toEqual(`"mock profile"`);
+      await expect(fetchProfile(ProfileId.fromId(profileId))).resolves.toEqual(
+        `"mock profile"`
+      );
 
       expect(fetchSpy).toHaveBeenCalledTimes(1);
       expect(fetchSpy).toHaveBeenCalledWith(`/${profileId}`, {
@@ -311,7 +326,9 @@ describe('HTTP functions', () => {
         .mockResolvedValue(mockResponse(200, 'OK', undefined, 'mock profile'));
 
       await expect(
-        fetchProfile(profileId, { tryToAuthenticate: true })
+        fetchProfile(ProfileId.fromId(profileId), undefined, {
+          tryToAuthenticate: true,
+        })
       ).resolves.toEqual(`"mock profile"`);
 
       expect(fetchSpy).toHaveBeenCalledTimes(1);
@@ -338,7 +355,7 @@ describe('HTTP functions', () => {
           mockResponse(404, 'Not Found', undefined, mockErrResponse)
         );
 
-      await expect(fetchProfile(profileId)).rejects.toEqual(
+      await expect(fetchProfile(ProfileId.fromId(profileId))).rejects.toEqual(
         new CLIError(new ServiceApiError(mockErrResponse).message)
       );
 
@@ -389,7 +406,9 @@ describe('HTTP functions', () => {
         .spyOn(ServiceClient.prototype, 'fetch')
         .mockResolvedValue(mockResponse(200, 'OK', undefined, mockProfileAst));
 
-      await expect(fetchProfileAST(profileId)).resolves.toEqual(mockProfileAst);
+      await expect(
+        fetchProfileAST(ProfileId.fromId(profileId))
+      ).resolves.toEqual(mockProfileAst);
       expect(fetchSpy).toHaveBeenCalledTimes(1);
       expect(fetchSpy).toHaveBeenCalledWith(`/${profileId}`, {
         authenticate: false,
@@ -405,7 +424,9 @@ describe('HTTP functions', () => {
         .mockResolvedValue(mockResponse(200, 'OK', undefined, mockProfileAst));
 
       await expect(
-        fetchProfileAST(profileId, { tryToAuthenticate: true })
+        fetchProfileAST(ProfileId.fromId(profileId), undefined, {
+          tryToAuthenticate: true,
+        })
       ).resolves.toEqual(mockProfileAst);
 
       expect(fetchSpy).toHaveBeenCalledTimes(1);
@@ -432,7 +453,9 @@ describe('HTTP functions', () => {
           mockResponse(404, 'Not Found', undefined, mockErrResponse)
         );
 
-      await expect(fetchProfileAST(profileId)).rejects.toEqual(
+      await expect(
+        fetchProfileAST(ProfileId.fromId(profileId))
+      ).rejects.toEqual(
         new CLIError(new ServiceApiError(mockErrResponse).message)
       );
 

@@ -381,19 +381,19 @@ export async function getProfileFromStore(
   options?.logCb?.(`\nFetching profile ${profileIdStr} from the Store`);
 
   try {
-    info = await fetchProfileInfo(profileIdStr, {
+    info = await fetchProfileInfo(profileId, version, {
       tryToAuthenticate: options?.tryToAuthenticate,
     });
     options?.logCb?.(`Fetching profile info of profile ${profileIdStr}`);
 
-    profile = await fetchProfile(profileIdStr, {
+    profile = await fetchProfile(profileId, version, {
       tryToAuthenticate: options?.tryToAuthenticate,
     });
     options?.logCb?.(`Fetching profile source file for ${profileIdStr}`);
 
     try {
       //This can fail due to validation issues, ast and parser version issues
-      ast = await fetchProfileAST(profileIdStr, {
+      ast = await fetchProfileAST(profileId, version, {
         tryToAuthenticate: options?.tryToAuthenticate,
       });
       options?.logCb?.(`Fetching compiled profile for ${profileIdStr}`);

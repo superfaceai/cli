@@ -23,6 +23,7 @@ import {
 import { userError } from './error';
 import { MapId } from './map';
 import { loadNetrc, saveNetrc } from './netrc';
+import { ProfileId } from './profile';
 
 export interface ProfileInfo {
   owner: string;
@@ -30,7 +31,7 @@ export interface ProfileInfo {
   profile_id: string;
   profile_name: string;
   profile_version: string;
-  published_at: string;
+  published_at: Date;
   published_by: string;
   url: string;
 }
@@ -110,68 +111,56 @@ export async function fetchProviders(profile: string): Promise<ProviderJson[]> {
   return ((await response.json()) as { data: ProviderJson[] }).data;
 }
 
-//Unable to reuse service client getProfile due to profile ID resolution - version is always defined in service client
 export async function fetchProfileInfo(
-  profileId: string,
+  profile: ProfileId,
+  version?: string,
   options?: {
     tryToAuthenticate?: boolean;
   }
 ): Promise<ProfileInfo> {
-  const response = await SuperfaceClient.getClient().fetch(`/${profileId}`, {
-    authenticate: options?.tryToAuthenticate || false,
-    method: 'GET',
-    headers: {
-      Accept: ContentType.JSON,
-    },
-  });
-
-  await checkSuperfaceResponse(response);
-
-  return (await response.json()) as ProfileInfo;
+  return SuperfaceClient.getClient().getProfile(
+    { name: profile.name, scope: profile.scope, version },
+    {
+      authenticate: options?.tryToAuthenticate,
+    }
+  );
 }
 
 export async function fetchProfile(
-  profileId: string,
+  profile: ProfileId,
+  version?: string,
   options?: {
     tryToAuthenticate?: boolean;
   }
 ): Promise<string> {
-  const response = await SuperfaceClient.getClient().fetch(`/${profileId}`, {
-    authenticate: options?.tryToAuthenticate || false,
-    method: 'GET',
-    headers: {
-      Accept: ContentType.PROFILE_SOURCE,
-    },
-  });
-
-  await checkSuperfaceResponse(response);
-
-  return response.text();
+  return SuperfaceClient.getClient().getProfileSource(
+    { name: profile.name, scope: profile.scope, version },
+    {
+      authenticate: options?.tryToAuthenticate,
+    }
+  );
 }
 
 export async function fetchProfileAST(
-  profileId: string,
+  profile: ProfileId,
+  version?: string,
   options?: {
     tryToAuthenticate?: boolean;
   }
 ): Promise<ProfileDocumentNode> {
-  const response = await SuperfaceClient.getClient().fetch(`/${profileId}`, {
-    authenticate: options?.tryToAuthenticate || false,
-    method: 'GET',
-    headers: {
-      Accept: ContentType.PROFILE_AST,
-    },
-  });
+  const response = await SuperfaceClient.getClient().getProfileAST(
+    { name: profile.name, scope: profile.scope, version },
+    {
+      authenticate: options?.tryToAuthenticate,
+    }
+  );
 
-  await checkSuperfaceResponse(response);
-
-  return assertProfileDocumentNode(await response.json());
+  return assertProfileDocumentNode(JSON.parse(response));
 }
 
 export async function fetchProviderInfo(
   providerName: string
 ): Promise<ProviderJson> {
-  //TODO: user agent? Control authenticate?
   const response = await SuperfaceClient.getClient().getProvider(providerName);
 
   return assertProviderJson(response.definition);

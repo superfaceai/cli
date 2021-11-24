@@ -256,7 +256,7 @@ async function prepareLintedProfile(
     options?.logCb?.(
       `Loading profile: "${profile.id.id}" from Superface store`
     );
-    profileAst = await fetchProfileAST(profile.id.id);
+    profileAst = await fetchProfileAST(profile.id, profile.version);
   }
 
   return {
