@@ -721,9 +721,9 @@ describe('HTTP functions', () => {
         .spyOn(ServiceClient.prototype, 'fetch')
         .mockResolvedValue(mockResponse(200, 'OK', undefined, mockMapDocument));
 
-      await expect(fetchMapAST(profileName, provider)).resolves.toEqual(
-        mockMapDocument
-      );
+      await expect(
+        fetchMapAST({ name: profileName, provider })
+      ).resolves.toEqual(mockMapDocument);
       expect(fetchSpy).toHaveBeenCalledTimes(1);
       expect(fetchSpy).toHaveBeenCalledWith(
         `/${profileName}.${provider}@${DEFAULT_PROFILE_VERSION_STR}`,
@@ -761,7 +761,7 @@ describe('HTTP functions', () => {
         .mockResolvedValue(mockResponse(200, 'OK', undefined, mockMapDocument));
 
       await expect(
-        fetchMapAST(profileName, provider, scope, version, variant)
+        fetchMapAST({ name: profileName, provider, scope, version, variant })
       ).resolves.toEqual(mockMapDocument);
       expect(fetchSpy).toHaveBeenCalledTimes(1);
       expect(fetchSpy).toHaveBeenCalledWith(
@@ -791,7 +791,7 @@ describe('HTTP functions', () => {
         );
 
       await expect(
-        fetchMapAST(profileName, provider, scope, version)
+        fetchMapAST({ name: profileName, provider, scope, version })
       ).rejects.toEqual(
         new CLIError(new ServiceApiError(mockErrResponse).message)
       );

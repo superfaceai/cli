@@ -8,11 +8,7 @@ import {
 } from '@superfaceai/ast';
 import { VERSION as SDK_VERSION } from '@superfaceai/one-sdk';
 import { VERSION as PARSER_VERSION } from '@superfaceai/parser';
-import {
-  ServiceApiError,
-  ServiceApiErrorResponse,
-  ServiceClient,
-} from '@superfaceai/service-client';
+import { ServiceClient } from '@superfaceai/service-client';
 
 import { VERSION } from '..';
 import {
@@ -20,8 +16,6 @@ import {
   SF_API_URL_VARIABLE,
   SF_PRODUCTION,
 } from './document';
-import { userError } from './error';
-import { MapId } from './map';
 import { loadNetrc, saveNetrc } from './netrc';
 import { ProfileId } from './profile';
 
@@ -156,42 +150,17 @@ export async function fetchProviderInfo(
   return assertProviderJson(response.definition);
 }
 
-async function checkSuperfaceResponse(response: Response): Promise<Response> {
-  if (!response.ok) {
-    const errorResponse = (await response.json()) as ServiceApiErrorResponse;
-    throw userError(new ServiceApiError(errorResponse).message, 1);
-  }
-
-  return response;
-}
-
-export async function fetchMapAST(
-  profile: string,
-  provider: string,
-  scope?: string,
-  version?: string,
-  variant?: string
-): Promise<MapDocumentNode> {
-  const mapId = MapId.fromName({
-    profile: {
-      name: profile,
-      scope,
-    },
-    provider,
-    variant,
-  });
-  const path = '/' + mapId.withVersion(version || DEFAULT_PROFILE_VERSION_STR);
-
-  const response = await SuperfaceClient.getClient().fetch(path, {
-    //TODO: enable auth
-    authenticate: false,
-    method: 'GET',
-    headers: {
-      Accept: ContentType.MAP_AST,
-    },
+export async function fetchMapAST(id: {
+  name: string;
+  provider: string;
+  scope?: string;
+  version?: string;
+  variant?: string;
+}): Promise<MapDocumentNode> {
+  const response = await SuperfaceClient.getClient().getMapAST({
+    ...id,
+    version: id.version || DEFAULT_PROFILE_VERSION_STR,
   });
 
-  await checkSuperfaceResponse(response);
-
-  return assertMapDocumentNode(await response.json());
+  return assertMapDocumentNode(JSON.parse(response));
 }

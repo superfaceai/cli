@@ -203,13 +203,13 @@ export async function loadMap(
     };
   } else {
     //Load from store
-    const ast = await fetchMapAST(
-      profile.name,
+    const ast = await fetchMapAST({
+      name: profile.name,
       provider,
-      profile.scope,
+      scope: profile.scope,
       version,
-      map.variant
-    );
+      variant: map.variant,
+    });
     const astVersion = composeVersion(ast.header.profile.version);
     options?.logCb?.(
       `Loading map for profile: "${profile.withVersion(
