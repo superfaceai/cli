@@ -1,4 +1,3 @@
-import { CLIError } from '@oclif/errors';
 import { err, ok, SuperJson } from '@superfaceai/one-sdk';
 import { SDKExecutionError } from '@superfaceai/one-sdk/dist/internal/errors';
 import { mocked } from 'ts-jest/utils';
@@ -79,8 +78,8 @@ describe('Compile CLI command', () => {
     });
     it('throws when super.json not found', async () => {
       mocked(detectSuperJson).mockResolvedValue(undefined);
-      await expect(Compile.run([])).rejects.toEqual(
-        new CLIError('❌ Unable to compile, super.json not found')
+      await expect(Compile.run([])).rejects.toThrow(
+        'Unable to compile, super.json not found'
       );
     });
 
@@ -89,16 +88,16 @@ describe('Compile CLI command', () => {
       jest
         .spyOn(SuperJson, 'load')
         .mockResolvedValue(err(new SDKExecutionError('test error', [], [])));
-      await expect(Compile.run([])).rejects.toEqual(
-        new CLIError('❌ Unable to load super.json: test error')
+      await expect(Compile.run([])).rejects.toThrow(
+        'Unable to load super.json: test error'
       );
     });
 
     it('throws error on invalid scan flag', async () => {
       mocked(detectSuperJson).mockResolvedValue('.');
 
-      await expect(Compile.run(['-s test'])).rejects.toEqual(
-        new CLIError('Expected an integer but received:  test')
+      await expect(Compile.run(['-s test'])).rejects.toThrow(
+        'Expected an integer but received:  test'
       );
       expect(detectSuperJson).not.toHaveBeenCalled();
     }, 10000);
@@ -106,10 +105,8 @@ describe('Compile CLI command', () => {
     it('throws error on scan flag higher than 5', async () => {
       mocked(detectSuperJson).mockResolvedValue('.');
 
-      await expect(Compile.run(['-s', '6'])).rejects.toEqual(
-        new CLIError(
-          '❌ --scan/-s : Number of levels to scan cannot be higher than 5'
-        )
+      await expect(Compile.run(['-s', '6'])).rejects.toThrow(
+        '--scan/-s : Number of levels to scan cannot be higher than 5'
       );
       expect(detectSuperJson).not.toHaveBeenCalled();
     }, 10000);
@@ -129,10 +126,8 @@ describe('Compile CLI command', () => {
           '-s',
           '3',
         ])
-      ).rejects.toEqual(
-        new CLIError(
-          '❌ Invalid profile id: "U!0_" is not a valid lowercase identifier'
-        )
+      ).rejects.toThrow(
+        '❌ Invalid profile id: "U!0_" is not a valid lowercase identifier'
       );
       expect(detectSuperJson).not.toHaveBeenCalled();
       expect(loadSpy).not.toHaveBeenCalled();
@@ -153,7 +148,7 @@ describe('Compile CLI command', () => {
           '-s',
           '3',
         ])
-      ).rejects.toEqual(new CLIError('❌ Invalid provider name: "U!0_"'));
+      ).rejects.toThrow('Invalid provider name: "U!0_"');
       expect(detectSuperJson).not.toHaveBeenCalled();
       expect(loadSpy).not.toHaveBeenCalled();
     }, 10000);
@@ -166,10 +161,8 @@ describe('Compile CLI command', () => {
 
       await expect(
         Compile.run(['--providerName', mockProvider, '-s', '3'])
-      ).rejects.toEqual(
-        new CLIError(
-          '❌ --profileId must be specified when using --providerName'
-        )
+      ).rejects.toThrow(
+        '--profileId must be specified when using --providerName'
       );
       expect(detectSuperJson).not.toHaveBeenCalled();
       expect(loadSpy).not.toHaveBeenCalled();
@@ -190,10 +183,8 @@ describe('Compile CLI command', () => {
           '-s',
           '3',
         ])
-      ).rejects.toEqual(
-        new CLIError(
-          `❌ Unable to compile, profile: "${mockProfile}" not found in super.json`
-        )
+      ).rejects.toThrow(
+        `❌ Unable to compile, profile: "${mockProfile}" not found in super.json`
       );
       expect(detectSuperJson).toHaveBeenCalled();
       expect(loadSpy).toHaveBeenCalled();
@@ -224,10 +215,8 @@ describe('Compile CLI command', () => {
           '-s',
           '3',
         ])
-      ).rejects.toEqual(
-        new CLIError(
-          `❌ Unable to compile, provider: "${mockProvider}" not found in profile: "${mockProfile}" in super.json`
-        )
+      ).rejects.toThrow(
+        `Unable to compile, provider: "${mockProvider}" not found in profile: "${mockProfile}" in super.json`
       );
       expect(detectSuperJson).toHaveBeenCalled();
       expect(loadSpy).toHaveBeenCalled();

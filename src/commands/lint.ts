@@ -100,17 +100,17 @@ export default class Lint extends Command {
     if (flags.profileId) {
       const parsedProfileId = parseDocumentId(flags.profileId);
       if (parsedProfileId.kind == 'error') {
-        throw userError(`❌ Invalid profile id: ${parsedProfileId.message}`, 1);
+        throw userError(`Invalid profile id: ${parsedProfileId.message}`, 1);
       }
     }
 
     if (flags.providerName) {
       if (!isValidProviderName(flags.providerName)) {
-        throw userError(`❌ Invalid provider name: "${flags.providerName}"`, 1);
+        throw userError(`Invalid provider name: "${flags.providerName}"`, 1);
       }
       if (!flags.profileId) {
         throw userError(
-          `❌ --profileId must be specified when using --providerName`,
+          `--profileId must be specified when using --providerName`,
           1
         );
       }
@@ -118,30 +118,27 @@ export default class Lint extends Command {
 
     if (flags.scan && (typeof flags.scan !== 'number' || flags.scan > 5)) {
       throw userError(
-        '❌ --scan/-s : Number of levels to scan cannot be higher than 5',
+        '--scan/-s : Number of levels to scan cannot be higher than 5',
         1
       );
     }
     const superPath = await detectSuperJson(process.cwd(), flags.scan);
     if (!superPath) {
-      throw userError('❌ Unable to lint, super.json not found', 1);
+      throw userError('Unable to lint, super.json not found', 1);
     }
     //Load super json
     const loadedResult = await SuperJson.load(joinPath(superPath, META_FILE));
     const superJson = loadedResult.match(
       v => v,
       err => {
-        throw userError(
-          `❌ Unable to load super.json: ${err.formatShort()}`,
-          1
-        );
+        throw userError(`Unable to load super.json: ${err.formatShort()}`, 1);
       }
     );
     //Check super.json
     if (flags.profileId) {
       if (!superJson.normalized.profiles[flags.profileId]) {
         throw userError(
-          `❌ Unable to lint, profile: "${flags.profileId}" not found in super.json`,
+          `Unable to lint, profile: "${flags.profileId}" not found in super.json`,
           1
         );
       }
@@ -152,7 +149,7 @@ export default class Lint extends Command {
           ]
         ) {
           throw userError(
-            `❌ Unable to lint, provider: "${flags.providerName}" not found in profile: "${flags.profileId}" in super.json`,
+            `Unable to lint, provider: "${flags.providerName}" not found in profile: "${flags.profileId}" in super.json`,
             1
           );
         }
@@ -210,7 +207,7 @@ export default class Lint extends Command {
     await outputStream.cleanup();
 
     if (totals[0] > 0) {
-      throw userError('❌ Errors were found', 1);
+      throw userError('Errors were found', 1);
     } else if (totals[1] > 0) {
       this.logCallback?.('⚠️ Warnings were found');
     }

@@ -210,7 +210,9 @@ export default class Install extends Command {
       },
     });
 
-    this.logCallback?.(`\n\nConfiguring providers`);
+    if (providers.length > 0) {
+      this.logCallback?.(`\n\nConfiguring providers`);
+    }
     for (const provider of providers) {
       await installProvider({
         superPath,

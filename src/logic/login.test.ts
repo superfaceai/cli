@@ -1,4 +1,3 @@
-import { CLIError } from '@oclif/errors';
 import {
   CLILoginResponse,
   ServiceClient,
@@ -237,10 +236,8 @@ describe('Login logic', () => {
 
       const loginSpy = jest.spyOn(ServiceClient.prototype, 'login');
 
-      await expect(login({ logCb: stdout, warnCb: stderr })).rejects.toEqual(
-        new CLIError(
-          `Unable to get auth token, request ended with status: ${VerificationStatus.EXPIRED}`
-        )
+      await expect(login({ logCb: stdout, warnCb: stderr })).rejects.toThrow(
+        `Unable to get auth token, request ended with status: ${VerificationStatus.EXPIRED}`
       );
 
       expect(initSpy).toHaveBeenCalledTimes(1);
@@ -278,10 +275,8 @@ describe('Login logic', () => {
 
       const loginSpy = jest.spyOn(ServiceClient.prototype, 'login');
 
-      await expect(login({ logCb: stdout, warnCb: stderr })).rejects.toEqual(
-        new CLIError(
-          `Request ended with status: ${VerificationStatus.CONFIRMED} but does not contain auth token`
-        )
+      await expect(login({ logCb: stdout, warnCb: stderr })).rejects.toThrow(
+        `Request ended with status: ${VerificationStatus.CONFIRMED} but does not contain auth token`
       );
 
       expect(initSpy).toHaveBeenCalledTimes(1);
@@ -309,12 +304,10 @@ describe('Login logic', () => {
         .spyOn(ServiceClient.prototype, 'cliLogin')
         .mockResolvedValue(mockInitResponse);
 
-      await expect(login({ logCb: stdout, warnCb: stderr })).rejects.toEqual(
-        new CLIError(
-          `Attempt to login ended with: ${mockInitResponse.title}: ${
-            mockInitResponse.detail || ''
-          }`
-        )
+      await expect(login({ logCb: stdout, warnCb: stderr })).rejects.toThrow(
+        `Attempt to login ended with: ${mockInitResponse.title}: ${
+          mockInitResponse.detail || ''
+        }`
       );
 
       expect(initSpy).toHaveBeenCalledTimes(1);
@@ -332,8 +325,8 @@ describe('Login logic', () => {
         .spyOn(ServiceClient.prototype, 'cliLogin')
         .mockResolvedValue(mockInitResponse);
 
-      await expect(login({ logCb: stdout, warnCb: stderr })).rejects.toEqual(
-        new CLIError(`Attempt to login ended with: ${mockInitResponse.title}`)
+      await expect(login({ logCb: stdout, warnCb: stderr })).rejects.toThrow(
+        `Attempt to login ended with: ${mockInitResponse.title}`
       );
 
       expect(initSpy).toHaveBeenCalledTimes(1);

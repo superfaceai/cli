@@ -28,7 +28,7 @@ export async function compile(
       options?.logCb?.(`Compiling profile ${profile.id.toString()}`);
       if (!(await exists(profile.path))) {
         throw userError(
-          `❌ Path: "${
+          `Path: "${
             profile.path
           }" for profile ${profile.id.toString()} does not exist`,
           1
@@ -51,7 +51,7 @@ export async function compile(
         );
         if (!(await exists(map.path))) {
           throw userError(
-            `❌ Path: "${map.path}" for map ${profile.id.toString()}.${
+            `Path: "${map.path}" for map ${profile.id.toString()}.${
               map.provider
             } does not exist`,
             1

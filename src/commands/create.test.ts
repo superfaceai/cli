@@ -1,4 +1,3 @@
-import { CLIError } from '@oclif/errors';
 import { SuperJson } from '@superfaceai/one-sdk';
 import inquirer from 'inquirer';
 import { mocked } from 'ts-jest/utils';
@@ -1109,10 +1108,8 @@ describe('Create CLI command', () => {
           '--providerFileName',
           'test',
         ])
-      ).rejects.toEqual(
-        new CLIError(
-          'Unable to create mutiple providers with same file name: "test"'
-        )
+      ).rejects.toThrow(
+        'Unable to create mutiple providers with same file name: "test"'
       );
 
       expect(create).not.toHaveBeenCalled();
@@ -1141,10 +1138,8 @@ describe('Create CLI command', () => {
           '--mapFileName',
           'test',
         ])
-      ).rejects.toEqual(
-        new CLIError(
-          'Unable to create mutiple maps with same file name: "test"'
-        )
+      ).rejects.toThrow(
+        'Unable to create mutiple maps with same file name: "test"'
       );
 
       expect(create).not.toHaveBeenCalled();
@@ -1154,24 +1149,24 @@ describe('Create CLI command', () => {
     it('throws error on invalid document name', async () => {
       await expect(
         Create.run(['--profileId', 'map', '--profile'])
-      ).rejects.toEqual(new CLIError('ProfileId is reserved!'));
+      ).rejects.toThrow('ProfileId is reserved!');
 
       await expect(
         Create.run(['--profileId', 'profile', '--profile'])
-      ).rejects.toEqual(new CLIError('ProfileId is reserved!'));
+      ).rejects.toThrow('ProfileId is reserved!');
 
       await expect(
         Create.run(['--providerName', 'map', '--provider'])
-      ).rejects.toEqual(new CLIError('ProviderName "map" is reserved!'));
+      ).rejects.toThrow('ProviderName "map" is reserved!');
 
       await expect(
         Create.run(['--providerName', 'profile', '--provider'])
-      ).rejects.toEqual(new CLIError('ProviderName "profile" is reserved!'));
+      ).rejects.toThrow('ProviderName "profile" is reserved!');
     });
 
     it('throws error on missing profileId and providerNamse', async () => {
-      await expect(Create.run([])).rejects.toEqual(
-        new CLIError('Invalid command! Specify profileId or providerName')
+      await expect(Create.run([])).rejects.toThrow(
+        'Invalid command! Specify profileId or providerName'
       );
     });
 
@@ -1186,7 +1181,7 @@ describe('Create CLI command', () => {
           '-t',
           'vT_7!',
         ])
-      ).rejects.toEqual(new CLIError('Invalid map variant: vT_7!'));
+      ).rejects.toThrow('Invalid map variant: vT_7!');
     });
 
     it('throws error on invalid provider name', async () => {
@@ -1198,7 +1193,7 @@ describe('Create CLI command', () => {
           'vT_7!',
           '--map',
         ])
-      ).rejects.toEqual(new CLIError('Invalid provider name: vT_7!'));
+      ).rejects.toThrow('Invalid provider name: vT_7!');
     });
 
     it('throws error on invalid document', async () => {
@@ -1208,9 +1203,7 @@ describe('Create CLI command', () => {
 
       await expect(
         Create.run(['--profileId', documentName, '-u', 'SendSMS', '--profile'])
-      ).rejects.toEqual(
-        new CLIError('"vT_7!" is not a valid lowercase identifier')
-      );
+      ).rejects.toThrow('"vT_7!" is not a valid lowercase identifier');
     });
 
     it('throws error on invalid version', async () => {
@@ -1228,7 +1221,7 @@ describe('Create CLI command', () => {
           'SendSMS',
           '--profile',
         ])
-      ).rejects.toEqual(new CLIError(' is not a valid version'));
+      ).rejects.toThrow('is not a valid version');
     });
 
     it('throws error on invalid usecase', async () => {
@@ -1238,7 +1231,7 @@ describe('Create CLI command', () => {
 
       await expect(
         Create.run(['--profileId', documentName, '-u', '7_L§', '--profile'])
-      ).rejects.toEqual(new CLIError('Invalid usecase name: 7_L§'));
+      ).rejects.toThrow('Invalid usecase name: 7_L§');
     });
   });
 });

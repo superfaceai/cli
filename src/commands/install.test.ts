@@ -1,4 +1,3 @@
-import { CLIError } from '@oclif/errors';
 import { SuperJson } from '@superfaceai/one-sdk';
 import { mocked } from 'ts-jest/utils';
 
@@ -151,9 +150,10 @@ describe('Install CLI command', () => {
     it('throws error on empty profileId argument with providers flag', async () => {
       mocked(detectSuperJson).mockResolvedValue('.');
 
-      await expect(Install.run(['--providers', 'twilio'])).rejects.toEqual(
-        new CLIError('EEXIT: 0')
+      await expect(Install.run(['--providers', 'twilio'])).rejects.toThrow(
+        'EEXIT: 0'
       );
+
       expect(installProfiles).not.toHaveBeenCalled();
     }, 10000);
 
@@ -177,8 +177,8 @@ describe('Install CLI command', () => {
       mocked(detectSuperJson).mockResolvedValue('.');
       const profileName = 'starwars/character-information';
 
-      await expect(Install.run([profileName, '-p'])).rejects.toEqual(
-        new CLIError('Flag --providers expects a value')
+      await expect(Install.run([profileName, '-p'])).rejects.toThrow(
+        'Flag --providers expects a value'
       );
       expect(installProfiles).toHaveBeenCalledTimes(0);
     }, 10000);
@@ -187,8 +187,8 @@ describe('Install CLI command', () => {
       mocked(detectSuperJson).mockResolvedValue('.');
       const profileName = 'starwars/character-information';
 
-      await expect(Install.run([profileName, '-s test'])).rejects.toEqual(
-        new CLIError('Expected an integer but received:  test')
+      await expect(Install.run([profileName, '-s test'])).rejects.toThrow(
+        'Expected an integer but received:  test'
       );
       expect(installProfiles).toHaveBeenCalledTimes(0);
     }, 10000);
@@ -197,12 +197,38 @@ describe('Install CLI command', () => {
       mocked(detectSuperJson).mockResolvedValue('.');
       const profileName = 'starwars/character-information';
 
-      await expect(Install.run([profileName, '-s', '6'])).rejects.toEqual(
-        new CLIError(
-          '--scan/-s : Number of levels to scan cannot be higher than 5'
-        )
+      await expect(Install.run([profileName, '-s', '6'])).rejects.toThrow(
+        '--scan/-s : Number of levels to scan cannot be higher than 5'
       );
       expect(installProfiles).toHaveBeenCalledTimes(0);
+    }, 10000);
+
+    it('calls install profiles correctly - without providers', async () => {
+      mocked(detectSuperJson).mockResolvedValue('.');
+      const profileId = ProfileId.fromId('starwars/character-information');
+
+      await expect(Install.run([profileId.id])).resolves.toBeUndefined();
+
+      expect(stdout.output).not.toContain('Configuring providers');
+      expect(installProfiles).toHaveBeenCalledTimes(1);
+      expect(installProfiles).toHaveBeenCalledWith({
+        superPath: '.',
+        requests: [
+          {
+            kind: 'store',
+            profileId: ProfileId.fromScopeName(
+              'starwars',
+              'character-information'
+            ),
+          },
+        ],
+        options: {
+          logCb: expect.anything(),
+          warnCb: expect.anything(),
+          tryToAuthenticate: true,
+          force: false,
+        },
+      });
     }, 10000);
 
     it('calls install profiles correctly - one invalid provider', async () => {
@@ -216,6 +242,7 @@ describe('Install CLI command', () => {
       ).resolves.toBeUndefined();
 
       expect(stdout.output).toContain('Invalid provider name: made.up');
+      expect(stdout.output).toContain('Configuring providers');
       expect(installProfiles).toHaveBeenCalledTimes(1);
       expect(installProfiles).toHaveBeenCalledWith({
         superPath: '.',

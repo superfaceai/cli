@@ -1,4 +1,3 @@
-import { CLIError } from '@oclif/errors';
 import {
   ApiKeyPlacement,
   AstMetadata,
@@ -198,8 +197,8 @@ describe('HTTP functions', () => {
           mockResponse(404, 'Not Found', undefined, mockErrResponse)
         );
 
-      await expect(fetchProviders(profileId)).rejects.toEqual(
-        new CLIError(new ServiceApiError(mockErrResponse).message)
+      await expect(fetchProviders(profileId)).rejects.toThrow(
+        new ServiceApiError(mockErrResponse).message
       );
 
       expect(fetchSpy).toHaveBeenCalledTimes(1);
@@ -281,9 +280,7 @@ describe('HTTP functions', () => {
 
       await expect(
         fetchProfileInfo(ProfileId.fromId(profileId))
-      ).rejects.toEqual(
-        new CLIError(new ServiceApiError(mockErrResponse).message)
-      );
+      ).rejects.toThrow(new ServiceApiError(mockErrResponse).message);
 
       expect(fetchSpy).toHaveBeenCalledTimes(1);
       expect(fetchSpy).toHaveBeenCalledWith(`/${profileId}`, {
@@ -351,8 +348,8 @@ describe('HTTP functions', () => {
           mockResponse(404, 'Not Found', undefined, mockErrResponse)
         );
 
-      await expect(fetchProfile(ProfileId.fromId(profileId))).rejects.toEqual(
-        new CLIError(new ServiceApiError(mockErrResponse).message)
+      await expect(fetchProfile(ProfileId.fromId(profileId))).rejects.toThrow(
+        new ServiceApiError(mockErrResponse).message
       );
 
       expect(fetchSpy).toHaveBeenCalledTimes(1);
@@ -451,9 +448,7 @@ describe('HTTP functions', () => {
 
       await expect(
         fetchProfileAST(ProfileId.fromId(profileId))
-      ).rejects.toEqual(
-        new CLIError(new ServiceApiError(mockErrResponse).message)
-      );
+      ).rejects.toThrow(new ServiceApiError(mockErrResponse).message);
 
       expect(fetchSpy).toHaveBeenCalledTimes(1);
       expect(fetchSpy).toHaveBeenCalledWith(`/${profileId}`, {
@@ -792,9 +787,7 @@ describe('HTTP functions', () => {
 
       await expect(
         fetchMapAST({ name: profileName, provider, scope, version })
-      ).rejects.toEqual(
-        new CLIError(new ServiceApiError(mockErrResponse).message)
-      );
+      ).rejects.toThrow(new ServiceApiError(mockErrResponse).message);
 
       expect(fetchSpy).toHaveBeenCalledTimes(1);
       expect(fetchSpy).toHaveBeenCalledWith(
