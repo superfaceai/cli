@@ -22,7 +22,7 @@ import {
   ProfileInfo,
 } from '../common/http';
 import { exists, isAccessible, readFile } from '../common/io';
-import { Logger } from '../common/log';
+import { ILogger } from '../common/log';
 import { OutputStream } from '../common/output-stream';
 import { resolveSuperfaceRelatedPath } from '../common/path';
 import { ProfileId } from '../common/profile';
@@ -132,16 +132,23 @@ type StoreRequestFetched = StoreRequestChecked & {
  *   - generate types and write then to superface/sdk.js/.d.ts and superface/types/
  */
 export async function resolveInstallationRequests(
-  superJson: SuperJson,
-  requests: (LocalRequest | StoreRequest)[],
-  options?: InstallOptions
+  {
+    superJson,
+    requests,
+    options,
+  }: {
+    superJson: SuperJson;
+    requests: (LocalRequest | StoreRequest)[];
+    options?: InstallOptions;
+  },
+  { logger }: { logger: ILogger }
 ): Promise<number> {
   // phase 1 - read local requests
   const phase1 = await Promise.all(
     requests.map(async request => {
       installDebug('Install phase 1:', request);
       if (request.kind === 'local') {
-        return readLocalRequest(superJson, request);
+        return readLocalRequest(superJson, request, { logger });
       }
 
       return request;
@@ -161,9 +168,12 @@ export async function resolveInstallationRequests(
       > => {
         installDebug('Install phase 2:', request);
         if (request.kind === 'local') {
-          return checkLocalRequestRead(superJson, request, options);
+          return checkLocalRequestRead(
+            { superJson, request, options },
+            { logger }
+          );
         } else {
-          return checkStoreRequest(superJson, request, options);
+          return checkStoreRequest({ superJson, request, options }, { logger });
         }
       }
     )
@@ -174,7 +184,10 @@ export async function resolveInstallationRequests(
     phase2.map(async request => {
       installDebug('Install phase 3:', request);
       if (request.kind === 'store') {
-        return fetchStoreRequestCheckedOrDeferred(superJson, request, options);
+        return fetchStoreRequestCheckedOrDeferred(
+          { superJson, request, options },
+          { logger }
+        );
       }
 
       return request;
@@ -203,7 +216,8 @@ export async function resolveInstallationRequests(
  */
 async function readLocalRequest(
   _superJson: SuperJson,
-  request: LocalRequest
+  request: LocalRequest,
+  { logger }: { logger: ILogger }
 ): Promise<LocalRequestRead | undefined> {
   try {
     const profileSource = await readFile(request.path, { encoding: 'utf-8' });
@@ -228,7 +242,7 @@ async function readLocalRequest(
     };
   } catch (err) {
     // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-    Logger.warn('couldNotReadProfile', request.path, err);
+    logger.warn('couldNotReadProfile', request.path, err);
 
     return undefined;
   }
@@ -241,9 +255,16 @@ async function readLocalRequest(
  * Requires force flag to overwrite an existing installed profile.
  */
 async function checkLocalRequestRead(
-  superJson: SuperJson,
-  request: LocalRequestRead,
-  options?: InstallOptions
+  {
+    superJson,
+    request,
+    options,
+  }: {
+    superJson: SuperJson;
+    request: LocalRequestRead;
+    options?: InstallOptions;
+  },
+  { logger }: { logger: ILogger }
 ): Promise<LocalRequestChecked | undefined> {
   const profileSettings = superJson.normalized.profiles[request.profileId.id];
   if (profileSettings === undefined) {
@@ -252,7 +273,7 @@ async function checkLocalRequestRead(
 
   if ('file' in profileSettings) {
     if (relativePath(profileSettings.file, request.path) === '') {
-      Logger.warn(
+      logger.warn(
         'profileInstalledFromSamePath',
         request.profileId.id,
         request.path
@@ -263,7 +284,7 @@ async function checkLocalRequestRead(
   }
 
   if (options?.force !== true) {
-    Logger.warn('profileInstalledFromPath', request.profileId.id, request.path);
+    logger.warn('profileInstalledFromPath', request.profileId.id, request.path);
 
     return undefined;
   }
@@ -280,24 +301,52 @@ async function checkLocalRequestRead(
  * If the save path can be deduced because version was provided or if super.json specifies a file then require force flag to override.
  */
 async function checkStoreRequest(
-  superJson: SuperJson,
-  request: StoreRequestVersionKnown,
-  options?: InstallOptions
+  {
+    superJson,
+    request,
+    options,
+  }: {
+    superJson: SuperJson;
+    request: StoreRequestVersionKnown;
+    options?: InstallOptions;
+  },
+  { logger }: { logger: ILogger }
 ): Promise<StoreRequestChecked | undefined>;
 async function checkStoreRequest(
-  superJson: SuperJson,
-  request: StoreRequestVersionUnknown,
-  options?: InstallOptions
+  {
+    superJson,
+    request,
+    options,
+  }: {
+    superJson: SuperJson;
+    request: StoreRequestVersionUnknown;
+    options?: InstallOptions;
+  },
+  { logger }: { logger: ILogger }
 ): Promise<StoreRequestDeferredCheck | undefined>;
 async function checkStoreRequest(
-  superJson: SuperJson,
-  request: StoreRequest,
-  options?: InstallOptions
+  {
+    superJson,
+    request,
+    options,
+  }: {
+    superJson: SuperJson;
+    request: StoreRequest;
+    options?: InstallOptions;
+  },
+  { logger }: { logger: ILogger }
 ): Promise<StoreRequestChecked | StoreRequestDeferredCheck | undefined>;
 async function checkStoreRequest(
-  superJson: SuperJson,
-  request: StoreRequest,
-  options?: InstallOptions
+  {
+    superJson,
+    request,
+    options,
+  }: {
+    superJson: SuperJson;
+    request: StoreRequest;
+    options?: InstallOptions;
+  },
+  { logger }: { logger: ILogger }
 ): Promise<StoreRequestChecked | StoreRequestDeferredCheck | undefined> {
   const profileSettings = superJson.normalized.profiles[request.profileId.id];
 
@@ -312,7 +361,7 @@ async function checkStoreRequest(
   // check if we aren't overwriting something in super.json
   if (profileSettings !== undefined && options?.force !== true) {
     if ('file' in profileSettings) {
-      Logger.error(
+      logger.error(
         'profileInstalledFromPath',
         request.profileId.id,
         profileSettings.file
@@ -325,7 +374,7 @@ async function checkStoreRequest(
       'version' in profileSettings &&
       request.version !== profileSettings.version
     ) {
-      Logger.error(
+      logger.error(
         'profileInstalledWithVersion',
         request.profileId.id,
         request.version
@@ -344,7 +393,7 @@ async function checkStoreRequest(
   );
   if (await exists(sourcePath)) {
     if (options?.force !== true) {
-      Logger.error('fileAlreadyExists', sourcePath);
+      logger.error('fileAlreadyExists', sourcePath);
 
       return undefined;
     }
@@ -363,11 +412,18 @@ export type ProfileResponse = {
   ast: ProfileDocumentNode;
 };
 export async function getProfileFromStore(
-  profileId: ProfileId,
-  version?: string,
-  options?: {
-    tryToAuthenticate?: boolean;
-  }
+  {
+    profileId,
+    version,
+    options,
+  }: {
+    profileId: ProfileId;
+    version?: string;
+    options?: {
+      tryToAuthenticate?: boolean;
+    };
+  },
+  { logger }: { logger: ILogger }
 ): Promise<ProfileResponse | undefined> {
   const profileIdStr = profileId.withVersion(version);
 
@@ -375,27 +431,27 @@ export async function getProfileFromStore(
   let info: ProfileInfo;
   let profile: string;
   let ast: ProfileDocumentNode;
-  Logger.info('fetchProfile', profileIdStr);
+  logger.info('fetchProfile', profileIdStr);
 
   try {
     info = await fetchProfileInfo(profileIdStr, {
       tryToAuthenticate: options?.tryToAuthenticate,
     });
-    Logger.info('fetchProfileInfo', profileIdStr);
+    logger.info('fetchProfileInfo', profileIdStr);
 
     profile = await fetchProfile(profileIdStr, {
       tryToAuthenticate: options?.tryToAuthenticate,
     });
-    Logger.info('fetchProfileSource', profileIdStr);
+    logger.info('fetchProfileSource', profileIdStr);
 
     try {
       //This can fail due to validation issues, ast and parser version issues
       ast = await fetchProfileAST(profileIdStr, {
         tryToAuthenticate: options?.tryToAuthenticate,
       });
-      Logger.info('fetchProfileAst', profileIdStr);
+      logger.info('fetchProfileAst', profileIdStr);
     } catch (error) {
-      Logger.warn('fetchProfileAstFailed', profileIdStr);
+      logger.warn('fetchProfileAstFailed', profileIdStr);
       //We try to parse profile on our own
       ast = await Parser.parseProfile(profile, profileIdStr, {
         profileName: profileId.name,
@@ -403,7 +459,7 @@ export async function getProfileFromStore(
       });
     }
   } catch (error) {
-    Logger.error('couldNotFetch', profileIdStr, error);
+    logger.error('couldNotFetch', profileIdStr, error);
 
     return undefined;
   }
@@ -416,14 +472,24 @@ export async function getProfileFromStore(
 }
 
 async function fetchStoreRequestCheckedOrDeferred(
-  superJson: SuperJson,
-  request: StoreRequestChecked | StoreRequestDeferredCheck,
-  options?: InstallOptions
+  {
+    superJson,
+    request,
+    options,
+  }: {
+    superJson: SuperJson;
+    request: StoreRequestChecked | StoreRequestDeferredCheck;
+    options?: InstallOptions;
+  },
+  { logger }: { logger: ILogger }
 ): Promise<StoreRequestFetched | undefined> {
   const fetched = await getProfileFromStore(
-    request.profileId,
-    request.version,
-    options
+    {
+      profileId: request.profileId,
+      version: request.version,
+      options,
+    },
+    { logger }
   );
   if (fetched === undefined) {
     return undefined;
@@ -432,12 +498,15 @@ async function fetchStoreRequestCheckedOrDeferred(
   // run the deferred check, resolve paths
   if (!('sourcePath' in request)) {
     const checked = await checkStoreRequest(
-      superJson,
       {
-        ...request,
-        version: fetched.info.profile_version,
+        superJson,
+        request: {
+          ...request,
+          version: fetched.info.profile_version,
+        },
+        options,
       },
-      options
+      { logger }
     );
 
     if (checked === undefined) {
@@ -452,9 +521,9 @@ async function fetchStoreRequestCheckedOrDeferred(
     await OutputStream.writeOnce(request.sourcePath, fetched.profile, {
       dirs: true,
     });
-    Logger.info('writeProfile', request.sourcePath);
+    logger.info('writeProfile', request.sourcePath);
   } catch (err) {
-    Logger.error('unableToWriteProfile', request.profileId.id, err);
+    logger.error('unableToWriteProfile', request.profileId.id, err);
 
     return undefined;
   }
@@ -477,7 +546,8 @@ async function fetchStoreRequestCheckedOrDeferred(
  * Extracts profile ids from `super.json`.
  */
 export async function getExistingProfileIds(
-  superJson: SuperJson
+  superJson: SuperJson,
+  { logger }: { logger: ILogger }
 ): Promise<{ profileId: ProfileId; version: string }[]> {
   return Promise.all(
     Object.entries(superJson.normalized.profiles).map(
@@ -505,7 +575,7 @@ export async function getExistingProfileIds(
               version: composeVersion(header.version),
             };
           } catch (err) {
-            Logger.error('noVersionForProfile', profileId.id);
+            logger.error('noVersionForProfile', profileId.id);
           }
         }
 
@@ -527,27 +597,34 @@ export async function getExistingProfileIds(
  * If `request` is undefined store requests are generated for each profile in super.json and
  * then resolved as normal (i.e. redownloads all profiles from the store).
  */
-export async function installProfiles(parameters: {
-  superPath: string;
-  requests: (LocalRequest | StoreRequest)[];
-  options?: InstallOptions;
-}): Promise<void> {
-  const loadedResult = await SuperJson.load(
-    joinPath(parameters.superPath, META_FILE)
-  );
+export async function installProfiles(
+  {
+    superPath,
+    requests,
+    options,
+  }: {
+    superPath: string;
+    requests: (LocalRequest | StoreRequest)[];
+    options?: InstallOptions;
+  },
+  { logger }: { logger: ILogger }
+): Promise<void> {
+  const loadedResult = await SuperJson.load(joinPath(superPath, META_FILE));
   const superJson = loadedResult.match(
     v => v,
     err => {
-      Logger.error('errorMessage', err.formatLong());
+      logger.error('errorMessage', err.formatLong());
 
       return new SuperJson({});
     }
   );
 
   // gather requests if empty
-  if (parameters.requests.length === 0) {
-    const existingProfileIds = await getExistingProfileIds(superJson);
-    parameters.requests = existingProfileIds.map<StoreRequest>(
+  if (requests.length === 0) {
+    const existingProfileIds = await getExistingProfileIds(superJson, {
+      logger,
+    });
+    requests = existingProfileIds.map<StoreRequest>(
       ({ profileId, version }) => ({
         kind: 'store',
         profileId,
@@ -557,31 +634,34 @@ export async function installProfiles(parameters: {
   }
 
   const installed = await resolveInstallationRequests(
-    superJson,
-    parameters.requests,
-    parameters.options
+    {
+      superJson,
+      requests,
+      options,
+    },
+    { logger }
   );
 
   if (installed > 0) {
     // save super.json
     await OutputStream.writeOnce(superJson.path, superJson.stringified);
-    Logger.info('updateSuperJson', superJson.path);
+    logger.info('updateSuperJson', superJson.path);
   }
 
-  const toInstall = parameters.requests.length;
+  const toInstall = requests.length;
   if (toInstall > 0) {
     if (installed === 0) {
-      Logger.warn('noProfilesInstalled');
+      logger.warn('noProfilesInstalled');
     } else if (installed < toInstall) {
-      Logger.warn(
+      logger.warn(
         'xOutOfYInsatlled',
         installed.toString(),
         toInstall.toString()
       );
     } else {
-      Logger.success('allProfilesInstalled', installed.toString());
+      logger.success('allProfilesInstalled', installed.toString());
     }
   } else {
-    Logger.info('noProfilesFound');
+    logger.info('noProfilesFound');
   }
 }

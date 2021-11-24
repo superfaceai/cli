@@ -21,12 +21,12 @@ import { bold } from 'chalk';
 import inquirer from 'inquirer';
 import { join as joinPath } from 'path';
 
-import { Logger } from '..';
 import { developerError, userError } from '../common/error';
 import { fetchProviders, getServicesUrl } from '../common/http';
 import { exists, readFile } from '../common/io';
+import { ILogger } from '../common/log';
 import { OutputStream } from '../common/output-stream';
-import { PackageManager } from '../common/package-manager';
+import { IPackageManager } from '../common/package-manager';
 import { NORMALIZED_CWD_PATH } from '../common/path';
 import { ProfileId } from '../common/profile';
 import { envVariable } from '../templates/env';
@@ -36,7 +36,10 @@ import { initSuperface } from './init';
 import { detectSuperJson, installProfiles } from './install';
 import { profileExists, providerExists } from './quickstart.utils';
 
-export async function interactiveInstall(profileArg: string): Promise<void> {
+export async function interactiveInstall(
+  profileArg: string,
+  { logger, pm }: { logger: ILogger; pm: IPackageManager }
+): Promise<void> {
   const [profileIdStr, version] = profileArg.split('@');
   const profilePathParts = profileIdStr.split('/');
   const profileId = ProfileId.fromScopeName(
@@ -45,12 +48,12 @@ export async function interactiveInstall(profileArg: string): Promise<void> {
   );
 
   if (!isValidDocumentName(profileId.name)) {
-    Logger.error('invalidProfileName', profileId.name);
+    logger.error('invalidProfileName', profileId.name);
 
     return;
   }
   if (version && !isValidVersionString(version)) {
-    Logger.error('invalidProfileVersion', version);
+    logger.error('invalidProfileVersion', version);
 
     return;
   }
@@ -59,8 +62,14 @@ export async function interactiveInstall(profileArg: string): Promise<void> {
   let superPath = await detectSuperJson(process.cwd());
   if (!superPath) {
     //Init SF
-    Logger.success('initSuperface');
-    await initSuperface(NORMALIZED_CWD_PATH, { profiles: {}, providers: {} });
+    logger.success('initSuperface');
+    await initSuperface(
+      {
+        appPath: NORMALIZED_CWD_PATH,
+        initialDocument: { profiles: {}, providers: {} },
+      },
+      { logger }
+    );
     superPath = SUPERFACE_DIR;
   }
 
@@ -69,7 +78,7 @@ export async function interactiveInstall(profileArg: string): Promise<void> {
     await SuperJson.load(joinPath(superPath, META_FILE))
   ).unwrap();
 
-  Logger.success('installProfile', profileArg);
+  logger.success('installProfile', profileArg);
 
   let installProfile = true;
   //Override existing profile
@@ -83,19 +92,22 @@ export async function interactiveInstall(profileArg: string): Promise<void> {
   }
   //Install profile
   if (installProfile) {
-    await installProfiles({
-      superPath,
-      requests: [
-        {
-          kind: 'store',
-          profileId,
-          version: version,
+    await installProfiles(
+      {
+        superPath,
+        requests: [
+          {
+            kind: 'store',
+            profileId,
+            version: version,
+          },
+        ],
+        options: {
+          force: true,
         },
-      ],
-      options: {
-        force: true,
       },
-    });
+      { logger }
+    );
     //Reload super.json
     superJson = (await SuperJson.load(joinPath(superPath, META_FILE))).unwrap();
   }
@@ -165,7 +177,7 @@ export async function interactiveInstall(profileArg: string): Promise<void> {
   }
 
   //Configure providers
-  Logger.success('installMultipleProviders');
+  logger.success('installMultipleProviders');
   const providersToInstall: string[] = [];
   for (const provider of providersWithPriority) {
     //Override existing provider
@@ -249,19 +261,22 @@ export async function interactiveInstall(profileArg: string): Promise<void> {
   //Configure retry policies && install providers
   for (const provider of providersToInstall) {
     //Install provider
-    await installProvider({
-      superPath,
-      provider,
-      profileId,
-      defaults: {
-        [selectedUseCase]: {
-          retryPolicy: await selectRetryPolicy(provider, selectedUseCase),
+    await installProvider(
+      {
+        superPath,
+        provider,
+        profileId,
+        defaults: {
+          [selectedUseCase]: {
+            retryPolicy: await selectRetryPolicy(provider, selectedUseCase),
+          },
+        },
+        options: {
+          force: true,
         },
       },
-      options: {
-        force: true,
-      },
-    });
+      { logger }
+    );
   }
 
   //Reload super.json
@@ -269,7 +284,7 @@ export async function interactiveInstall(profileArg: string): Promise<void> {
   //Get installed providers
   const installedProviders = superJson.normalized.providers;
   //Ask for provider security
-  Logger.success('configureMultipleProviderSecurity');
+  logger.success('configureMultipleProviderSecurity');
 
   //Get .env file
   if (await exists('.env')) {
@@ -281,7 +296,7 @@ export async function interactiveInstall(profileArg: string): Promise<void> {
     if (!providersToInstall.includes(provider)) {
       continue;
     }
-    Logger.info('configureProviderSecurity', provider);
+    logger.info('configureProviderSecurity', provider);
     //Select security schema
     if (
       installedProviders[provider].security &&
@@ -302,15 +317,16 @@ export async function interactiveInstall(profileArg: string): Promise<void> {
       envContent = await resolveSecurityEnvValues(
         provider,
         selectedSchema,
-        envContent
+        envContent,
+        { logger }
       );
     } else {
-      Logger.success('noAuthProvider', provider);
+      logger.success('noAuthProvider', provider);
     }
   }
   //Check/init package-manager
-  if (!(await PackageManager.packageJsonExists())) {
-    Logger.warn('packageJsonNotFound');
+  if (!(await pm.packageJsonExists())) {
+    logger.warn('packageJsonNotFound');
     //Prompt user for package manager initialization
     const response: {
       pm: 'yarn' | 'npm' | 'exit';
@@ -329,13 +345,13 @@ export async function interactiveInstall(profileArg: string): Promise<void> {
     if (response.pm === 'exit') {
       return;
     }
-    Logger.success('initPm', response.pm);
+    logger.success('initPm', response.pm);
 
-    await PackageManager.init(response.pm);
+    await pm.init(response.pm);
   }
   //Install SDK
-  Logger.success('installPackage', '@superfaceai/one-sdk');
-  await PackageManager.installPackage('@superfaceai/one-sdk');
+  logger.success('installPackage', '@superfaceai/one-sdk');
+  await pm.installPackage('@superfaceai/one-sdk');
 
   //Prompt user for dotenv installation
   if (
@@ -344,12 +360,12 @@ export async function interactiveInstall(profileArg: string): Promise<void> {
       { default: true }
     )
   ) {
-    Logger.success('installPackage', 'dotenv');
-    await PackageManager.installPackage('dotenv');
+    logger.success('installPackage', 'dotenv');
+    await pm.installPackage('dotenv');
   }
 
   //Prompt user for optional SDK token
-  Logger.success('configurePackage', '@superfaceai/one-sdk');
+  logger.success('configurePackage', '@superfaceai/one-sdk');
 
   const tokenEnvName = 'SUPERFACE_SDK_TOKEN';
 
@@ -374,19 +390,19 @@ export async function interactiveInstall(profileArg: string): Promise<void> {
 
     if (tokenResponse.token) {
       envContent += envVariable(tokenEnvName, tokenResponse.token);
-      Logger.success('configuredWithSdkToken', tokenEnvName);
+      logger.success('configuredWithSdkToken', tokenEnvName);
     } else {
-      Logger.success('configuredWithoutSdkToken');
+      logger.success('configuredWithoutSdkToken');
     }
   }
 
   //Write .env file
   await OutputStream.writeOnce('.env', envContent);
 
-  Logger.success('superfaceConfigureSuccess');
+  logger.success('superfaceConfigureSuccess');
 
   //Lead to docs page
-  Logger.success(
+  logger.success(
     'capabilityDocsUrl',
     new URL(profileId.id, getServicesUrl()).href
   );
@@ -488,14 +504,23 @@ async function selectExponentialBackoffValues(
 }
 
 async function getPromptedValue(
-  provider: string,
-  authType: 'api key' | 'basic' | 'digest' | 'bearer',
-  name: string,
-  envVariableName: string,
-  envContent: string
+  {
+    provider,
+    authType,
+    name,
+    envVariableName,
+    envContent,
+  }: {
+    provider: string;
+    authType: 'api key' | 'basic' | 'digest' | 'bearer';
+    name: string;
+    envVariableName: string;
+    envContent: string;
+  },
+  { logger }: { logger: ILogger }
 ): Promise<string> {
   if (!envVariableName.startsWith('$')) {
-    Logger.warn('unexpectedSecurityValue', envVariableName, provider, authType);
+    logger.warn('unexpectedSecurityValue', envVariableName, provider, authType);
 
     return envContent;
   }
@@ -529,50 +554,68 @@ async function getPromptedValue(
 async function resolveSecurityEnvValues(
   provider: string,
   schema: SecurityValues,
-  envFile: string
+  envFile: string,
+  { logger }: { logger: ILogger }
 ): Promise<string> {
   let newEnvContent = envFile;
   if (isApiKeySecurityValues(schema)) {
     newEnvContent = await getPromptedValue(
-      provider,
-      'api key',
-      'apikey',
-      schema.apikey,
-      newEnvContent
+      {
+        provider,
+        authType: 'api key',
+        name: 'apikey',
+        envVariableName: schema.apikey,
+        envContent: newEnvContent,
+      },
+      {
+        logger,
+      }
     );
   } else if (isBasicAuthSecurityValues(schema)) {
     newEnvContent = await getPromptedValue(
-      provider,
-      'basic',
-      'username',
-      schema.username,
-      newEnvContent
+      {
+        provider,
+        authType: 'basic',
+        name: 'username',
+        envVariableName: schema.username,
+        envContent: newEnvContent,
+      },
+      { logger }
     );
     newEnvContent = await getPromptedValue(
-      provider,
-      'basic',
-      'password',
-      schema.password,
-      newEnvContent
+      {
+        provider,
+        authType: 'basic',
+        name: 'password',
+        envVariableName: schema.password,
+        envContent: newEnvContent,
+      },
+      { logger }
     );
   } else if (isBearerTokenSecurityValues(schema)) {
     newEnvContent = await getPromptedValue(
-      provider,
-      'bearer',
-      'token',
-      schema.token,
-      newEnvContent
+      {
+        provider,
+        authType: 'bearer',
+        name: 'token',
+        envVariableName: schema.token,
+        envContent: newEnvContent,
+      },
+      { logger }
     );
   } else if (isDigestSecurityValues(schema)) {
     newEnvContent = await getPromptedValue(
-      provider,
-      'bearer',
-      'digest',
-      schema.digest,
-      newEnvContent
+      {
+        provider,
+        authType: 'bearer',
+        name: 'digest',
+        envVariableName: schema.digest,
+        envContent: newEnvContent,
+      },
+      { logger }
     );
   } else {
-    Logger.warn('unknownSecurityType', provider);
+    logger.warn('unknownSecurityType', provider);
   }
 
   return newEnvContent;

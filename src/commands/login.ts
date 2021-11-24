@@ -1,9 +1,9 @@
 import { flags as oclifFlags } from '@oclif/command';
 import { Netrc } from 'netrc-parser';
 
-import { Command } from '../common/command.abstract';
+import { Command, Flags } from '../common/command.abstract';
 import { getServicesUrl, SuperfaceClient } from '../common/http';
-import { Logger } from '../common/log';
+import { ILogger } from '../common/log';
 import { login } from '../logic/login';
 
 export default class Login extends Command {
@@ -22,10 +22,22 @@ export default class Login extends Command {
 
   async run(): Promise<void> {
     const { flags } = this.parse(Login);
-    this.setUpLogger(flags.quiet);
+    await super.initialize(flags);
+    await this.execute({
+      logger: this.logger,
+      flags,
+    });
+  }
 
+  async execute({
+    logger,
+    flags,
+  }: {
+    logger: ILogger;
+    flags: Flags<typeof Login.flags>;
+  }): Promise<void> {
     if (process.env.SUPERFACE_REFRESH_TOKEN) {
-      Logger.warn('usinfSfRefreshToken');
+      logger.warn('usinfSfRefreshToken');
     } else {
       const storeUrl = getServicesUrl();
       //environment variable for specific netrc file
@@ -35,19 +47,22 @@ export default class Login extends Command {
       try {
         //check if already logged in and logout
         if (previousEntry && previousEntry.password) {
-          Logger.info('alreadyLoggedIn');
+          logger.info('alreadyLoggedIn');
           //logout from service client
           await SuperfaceClient.getClient().logout();
         }
       } catch (err) {
-        Logger.error('unknownError', err);
+        logger.error('unknownError', err);
       }
     }
 
-    await login({
-      force: flags.force,
-    });
+    await login(
+      {
+        force: flags.force,
+      },
+      { logger }
+    );
 
-    Logger.success('loggedInSuccessfully');
+    logger.success('loggedInSuccessfully');
   }
 }

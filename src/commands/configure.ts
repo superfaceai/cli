@@ -2,11 +2,11 @@ import { flags as oclifFlags } from '@oclif/command';
 import { isValidProviderName } from '@superfaceai/ast';
 import { join as joinPath } from 'path';
 
-import { Logger } from '..';
-import { Command } from '../common/command.abstract';
+import { Command, Flags } from '../common/command.abstract';
 import { META_FILE, SUPERFACE_DIR } from '../common/document';
 import { userError } from '../common/error';
 import { exists } from '../common/io';
+import { ILogger } from '../common/log';
 import { ProfileId } from '../common/profile';
 import { installProvider } from '../logic/configure';
 import { initSuperface } from '../logic/init';
@@ -59,10 +59,28 @@ export default class Configure extends Command {
   ];
 
   async run(): Promise<void> {
-    const { args, flags } = this.parse(Configure);
-    this.setUpLogger(flags.quiet);
+    const { flags, args } = this.parse(Configure);
+    await super.initialize(flags);
+    await this.execute({
+      logger: this.logger,
+      flags,
+      args,
+    });
+  }
 
-    if (!isValidProviderName(args.providerName)) {
+  async execute({
+    logger,
+    flags,
+    args,
+  }: {
+    logger: ILogger;
+    flags: Flags<typeof Configure.flags>;
+    args: { providerName?: string };
+  }): Promise<void> {
+    if (
+      args.providerName === undefined ||
+      !isValidProviderName(args.providerName)
+    ) {
       throw userError('Invalid provider name', 1);
     }
 
@@ -77,24 +95,30 @@ export default class Configure extends Command {
     let superPath = await detectSuperJson(process.cwd());
 
     if (!superPath) {
-      Logger.info('initSuperface');
+      logger.info('initSuperface');
 
-      await initSuperface('./', { profiles: {}, providers: {} });
+      await initSuperface(
+        { appPath: './', initialDocument: { profiles: {}, providers: {} } },
+        { logger }
+      );
       superPath = SUPERFACE_DIR;
     }
 
-    Logger.info('configureProviderToSuperJson', joinPath(superPath, META_FILE));
-    await installProvider({
-      superPath,
-      provider: args.providerName as string,
-      profileId: ProfileId.fromId(flags.profile.trim()),
-      defaults: undefined,
-      options: {
-        force: flags.force,
-        localMap: flags.localMap,
-        localProvider: flags.localProvider,
-        updateEnv: flags['write-env'],
+    logger.info('configureProviderToSuperJson', joinPath(superPath, META_FILE));
+    await installProvider(
+      {
+        superPath,
+        provider: args.providerName,
+        profileId: ProfileId.fromId(flags.profile.trim()),
+        defaults: undefined,
+        options: {
+          force: flags.force,
+          localMap: flags.localMap,
+          localProvider: flags.localProvider,
+          updateEnv: flags['write-env'],
+        },
       },
-    });
+      { logger }
+    );
   }
 }

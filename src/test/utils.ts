@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-explicit-any */
 import { EXTENSIONS, ProviderJson } from '@superfaceai/ast';
 import { AuthToken, CLILoginResponse } from '@superfaceai/service-client';
 import { execFile } from 'child_process';
@@ -371,6 +371,7 @@ export function mockResponse(
 
   return new Response(data ? JSON.stringify(data) : undefined, ResponseInit);
 }
+
 /**
  * Creates a random directory in `path` and returns the path
  */
@@ -387,4 +388,13 @@ export async function setUpTempDir(
   }
 
   return directory;
+}
+
+/**
+ * Creates a command instance
+ */
+export function CommandInstance<T>(command: new (...args: any[]) => T): T {
+  const instance = new command([], {} as any);
+
+  return instance;
 }

@@ -7,17 +7,17 @@ import {
 import { parseProfileId, VersionRange } from '@superfaceai/parser';
 import inquirer from 'inquirer';
 
+import { Command, Flags } from '../common/command.abstract';
 import {
   composeUsecaseName,
   DEFAULT_PROFILE_VERSION,
   DEFAULT_PROFILE_VERSION_STR,
-  Logger,
   SUPERFACE_DIR,
   UNVERIFIED_PROVIDER_PREFIX,
-} from '../common';
-import { Command } from '../common/command.abstract';
+} from '../common/document';
 import { developerError, userError } from '../common/error';
 import { exists, mkdirQuiet } from '../common/io';
+import { ILogger } from '../common/log';
 import { NORMALIZED_CWD_PATH } from '../common/path';
 import { create } from '../logic/create';
 import { initSuperface } from '../logic/init';
@@ -123,8 +123,20 @@ export default class Create extends Command {
 
   async run(): Promise<void> {
     const { flags } = this.parse(Create);
-    this.setUpLogger(flags.quiet);
+    await super.initialize(flags);
+    await this.execute({
+      logger: this.logger,
+      flags,
+    });
+  }
 
+  async execute({
+    logger,
+    flags,
+  }: {
+    logger: ILogger;
+    flags: Flags<typeof Create.flags>;
+  }): Promise<void> {
     if (!flags.profileId && !flags.providerName && !flags.interactive) {
       throw userError('Invalid command! Specify profileId or providerName', 1);
     }
@@ -231,7 +243,7 @@ export default class Create extends Command {
           !provider.startsWith(UNVERIFIED_PROVIDER_PREFIX) &&
           (flags.map || flags.provider)
         ) {
-          Logger.warn('unverfiedPrefix', provider, UNVERIFIED_PROVIDER_PREFIX);
+          logger.warn('unverfiedPrefix', provider, UNVERIFIED_PROVIDER_PREFIX);
         }
       }
     }
@@ -327,14 +339,14 @@ export default class Create extends Command {
     //We do want to init
     if (flags.init) {
       if (superPath) {
-        Logger.warn('superfaceAlreadyInitialized');
+        logger.warn('superfaceAlreadyInitialized');
       } else {
         initSf = true;
       }
     }
     //We prompt user
     if (!flags['no-init'] && !flags.init && !superPath) {
-      Logger.warn('superJsonNotFound');
+      logger.warn('superJsonNotFound');
 
       const response: { init: boolean } = await inquirer.prompt({
         name: 'init',
@@ -347,8 +359,14 @@ export default class Create extends Command {
 
     //Init SF
     if (initSf) {
-      Logger.info('initSuperface');
-      await initSuperface(NORMALIZED_CWD_PATH, { profiles: {}, providers: {} });
+      logger.info('initSuperface');
+      await initSuperface(
+        {
+          appPath: NORMALIZED_CWD_PATH,
+          initialDocument: { profiles: {}, providers: {} },
+        },
+        { logger }
+      );
       superPath = SUPERFACE_DIR;
     }
 
@@ -357,28 +375,31 @@ export default class Create extends Command {
       superPath = undefined;
     }
 
-    await create({
-      provider: !!flags.provider,
-      map: !!flags.map,
-      profile: !!flags.profile,
-      fileNames: {
-        map: flags.mapFileName,
-        profile: flags.profileFileName,
-        provider: flags.providerFileName,
+    await create(
+      {
+        provider: !!flags.provider,
+        map: !!flags.map,
+        profile: !!flags.profile,
+        fileNames: {
+          map: flags.mapFileName,
+          profile: flags.profileFileName,
+          provider: flags.providerFileName,
+        },
+        paths: {
+          superPath,
+          basePath: flags.path,
+        },
+        document: {
+          scope,
+          version,
+          providerNames,
+          usecases,
+          name,
+          variant: flags.variant,
+        },
       },
-      paths: {
-        superPath,
-        basePath: flags.path,
-      },
-      document: {
-        scope,
-        version,
-        providerNames,
-        usecases,
-        name,
-        variant: flags.variant,
-      },
-    });
+      { logger }
+    );
   }
 
   async inputPrompt(message: string): Promise<string | undefined> {

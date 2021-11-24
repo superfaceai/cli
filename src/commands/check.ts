@@ -4,8 +4,8 @@ import { SuperJson } from '@superfaceai/one-sdk';
 import { parseDocumentId } from '@superfaceai/parser';
 import { join as joinPath } from 'path';
 
-import { META_FILE } from '../common';
-import { Command } from '../common/command.abstract';
+import { ILogger, META_FILE } from '../common';
+import { Command, Flags } from '../common/command.abstract';
 import { userError } from '../common/error';
 import { ProfileId } from '../common/profile';
 import { check, formatHuman, formatJson } from '../logic/check';
@@ -22,7 +22,7 @@ export default class Check extends Command {
 
   static flags = {
     ...Command.flags,
-    //Inputs
+    // Inputs
     profileId: oclifFlags.string({
       description: 'Profile Id in format [scope/](optional)[name]',
       required: false,
@@ -59,7 +59,18 @@ export default class Check extends Command {
 
   async run(): Promise<void> {
     const { flags } = this.parse(Check);
-    this.setUpLogger(flags.quiet);
+    await super.initialize(flags);
+    await this.execute({ logger: this.logger, flags });
+  }
+
+  async execute({
+    logger,
+    flags,
+  }: {
+    logger: ILogger;
+    flags: Flags<typeof Check.flags>;
+  }): Promise<void> {
+    // const { flags } = this.parse(Check);
 
     // Check inputs
     if (flags.profileId) {
@@ -137,7 +148,7 @@ export default class Check extends Command {
       flags.providerName
     );
 
-    const result = await check(superJson, profilesToValidate);
+    const result = await check(superJson, profilesToValidate, { logger });
     if (flags.json) {
       this.log(formatJson(result));
     } else {

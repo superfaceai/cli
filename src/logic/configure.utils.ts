@@ -7,16 +7,17 @@ import {
   SecurityValues,
 } from '@superfaceai/ast';
 
-import { Logger } from '..';
+import { ILogger } from '../common/log';
 
 export function prepareSecurityValues(
   providerName: string,
-  schemes: SecurityScheme[]
+  schemes: SecurityScheme[],
+  { logger }: { logger: ILogger }
 ): SecurityValues[] {
   const security: SecurityValues[] = [];
 
   for (const scheme of schemes) {
-    Logger.info(
+    logger.info(
       'configuringSecuritySchemes',
       security.length + 1,
       schemes.length
@@ -45,7 +46,7 @@ export function prepareSecurityValues(
         digest: `$${envProviderName}_DIGEST`,
       });
     } else {
-      Logger.warn('unknownSecurityScheme', providerName);
+      logger.warn('unknownSecurityScheme', providerName);
     }
   }
 

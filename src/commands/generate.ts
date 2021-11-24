@@ -3,10 +3,10 @@ import { SuperJson } from '@superfaceai/one-sdk';
 import { parseDocumentId } from '@superfaceai/parser';
 import { join as joinPath } from 'path';
 
-import { Logger } from '..';
-import { Command } from '../common/command.abstract';
+import { Command, Flags } from '../common/command.abstract';
 import { META_FILE } from '../common/document';
 import { userError } from '../common/error';
+import { ILogger } from '../common/log';
 import { ProfileId } from '../common/profile';
 import { generate } from '../logic/generate';
 import { detectSuperJson } from '../logic/install';
@@ -43,8 +43,20 @@ export default class Generate extends Command {
 
   async run(): Promise<void> {
     const { flags } = this.parse(Generate);
-    this.setUpLogger(flags.quiet);
+    await super.initialize(flags);
+    await this.execute({
+      logger: this.logger,
+      flags,
+    });
+  }
 
+  async execute({
+    logger,
+    flags,
+  }: {
+    logger: ILogger;
+    flags: Flags<typeof Generate.flags>;
+  }): Promise<void> {
     if (flags.scan && (typeof flags.scan !== 'number' || flags.scan > 5)) {
       throw userError(
         '--scan/-s : Number of levels to scan cannot be higher than 5',
@@ -56,7 +68,7 @@ export default class Generate extends Command {
     if (!superPath) {
       throw userError('Unable to generate, super.json not found', 1);
     }
-    //Load super json
+    // Load super json
     const loadedResult = await SuperJson.load(joinPath(superPath, META_FILE));
     const superJson = loadedResult.match(
       v => v,
@@ -65,7 +77,7 @@ export default class Generate extends Command {
       }
     );
     const profiles: { id: ProfileId; version?: string }[] = [];
-    //Creat generate requests
+    // Create generate requests
     if (flags.profileId) {
       const parsedProfileId = parseDocumentId(flags.profileId);
       if (parsedProfileId.kind == 'error') {
@@ -97,8 +109,8 @@ export default class Generate extends Command {
       }
     }
 
-    await generate(profiles, superJson);
+    await generate({ profiles, superJson }, { logger });
 
-    Logger.success('generatedSuccessfully');
+    logger.success('generatedSuccessfully');
   }
 }

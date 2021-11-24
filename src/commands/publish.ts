@@ -6,10 +6,10 @@ import inquirer from 'inquirer';
 import { join as joinPath } from 'path';
 
 import { META_FILE, UNVERIFIED_PROVIDER_PREFIX } from '../common';
-import { Command } from '../common/command.abstract';
+import { Command, Flags } from '../common/command.abstract';
 import { userError } from '../common/error';
 import { getServicesUrl } from '../common/http';
-import { Logger } from '../common/log';
+import { ILogger } from '../common/log';
 import { OutputStream } from '../common/output-stream';
 import { ProfileId } from '../common/profile';
 import {
@@ -77,8 +77,24 @@ export default class Publish extends Command {
 
   async run(): Promise<void> {
     const { argv, flags } = this.parse(Publish);
-    this.setUpLogger(flags.quiet);
+    await super.initialize(flags);
 
+    await this.execute({
+      logger: this.logger,
+      flags,
+      argv,
+    });
+  }
+
+  async execute({
+    logger,
+    flags,
+    argv,
+  }: {
+    logger: ILogger;
+    flags: Flags<typeof Publish.flags>;
+    argv: string[];
+  }): Promise<void> {
     const documentType = argv[0];
 
     // Check inputs
@@ -218,26 +234,29 @@ export default class Publish extends Command {
     };
 
     const result = await publish(
-      documentType,
-      superJson,
-      ProfileId.fromId(flags.profileId),
-      flags.providerName,
-      map,
-      version,
       {
-        dryRun: flags.dryRun,
-        json: flags.json,
-        quiet: flags.quiet,
-      }
+        publishing: documentType,
+        superJson,
+        profile: ProfileId.fromId(flags.profileId),
+        provider: flags.providerName,
+        map,
+        version,
+        options: {
+          dryRun: flags.dryRun,
+          json: flags.json,
+          quiet: flags.quiet,
+        },
+      },
+      { logger }
     );
     if (result) {
-      Logger.warn('publishEndedWithErrors');
+      logger.warn('publishEndedWithErrors');
       this.log(result);
 
       return;
     }
 
-    Logger.success('publishSuccessfull', documentType);
+    logger.success('publishSuccessfull', documentType);
     let transition = true;
     if (!flags.force) {
       const prompt: { continue: boolean } = await inquirer.prompt({
@@ -273,7 +292,7 @@ export default class Publish extends Command {
         force: flags.force,
       });
 
-      Logger.info('updateSuperJson', superJson.path);
+      logger.info('updateSuperJson', superJson.path);
     }
   }
 }
