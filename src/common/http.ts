@@ -93,8 +93,6 @@ export function getServicesUrl(): string {
 }
 
 export async function fetchProviders(profile: string): Promise<ProviderJson[]> {
-  const userAgent = `superface cli/${VERSION} (${process.platform}-${process.arch}) ${process.release.name}-${process.version} (with @superfaceai/one-sdk@${SDK_VERSION}, @superfaceai/parser@${PARSER_VERSION})`;
-
   const response = await SuperfaceClient.getClient().fetch(
     `/providers?profile=${encodeURIComponent(profile)}`,
     {
@@ -103,7 +101,6 @@ export async function fetchProviders(profile: string): Promise<ProviderJson[]> {
       method: 'GET',
       headers: {
         'Content-Type': ContentType.JSON,
-        'User-Agent': userAgent,
       },
     }
   );
@@ -124,7 +121,6 @@ export async function fetchProfileInfo(
     authenticate: options?.tryToAuthenticate || false,
     method: 'GET',
     headers: {
-      ...commonHeaders(),
       Accept: ContentType.JSON,
     },
   });
@@ -144,7 +140,6 @@ export async function fetchProfile(
     authenticate: options?.tryToAuthenticate || false,
     method: 'GET',
     headers: {
-      ...commonHeaders(),
       Accept: ContentType.PROFILE_SOURCE,
     },
   });
@@ -164,7 +159,6 @@ export async function fetchProfileAST(
     authenticate: options?.tryToAuthenticate || false,
     method: 'GET',
     headers: {
-      ...commonHeaders(),
       Accept: ContentType.PROFILE_AST,
     },
   });
@@ -192,11 +186,6 @@ async function checkSuperfaceResponse(response: Response): Promise<Response> {
   return response;
 }
 
-function commonHeaders(): Record<string, string> {
-  return {
-    'User-Agent': `superface cli/${VERSION} (${process.platform}-${process.arch}) ${process.release.name}-${process.version} (with @superfaceai/one-sdk@${SDK_VERSION}, @superfaceai/parser@${PARSER_VERSION})`,
-  };
-}
 export async function fetchMapAST(
   profile: string,
   provider: string,
@@ -219,7 +208,6 @@ export async function fetchMapAST(
     authenticate: false,
     method: 'GET',
     headers: {
-      ...commonHeaders(),
       Accept: ContentType.MAP_AST,
     },
   });
