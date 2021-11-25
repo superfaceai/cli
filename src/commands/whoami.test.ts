@@ -1,15 +1,17 @@
 import { CLIError } from '@oclif/errors';
 import { ServiceApiError, ServiceClient } from '@superfaceai/service-client';
 
-import { Logger, MockLogger } from '../common';
-import { messages } from '../common/messages';
+import { MockLogger } from '../common';
+import { CommandInstance } from '../test/utils';
 import Whoami from './whoami';
 
 describe('Whoami CLI command', () => {
   let logger: MockLogger;
+  let instance: Whoami;
 
   beforeEach(async () => {
-    logger = Logger.mockLogger();
+    logger = new MockLogger();
+    instance = CommandInstance(Whoami);
   });
 
   afterEach(async () => {
@@ -27,12 +29,15 @@ describe('Whoami CLI command', () => {
         .spyOn(ServiceClient.prototype, 'getUserInfo')
         .mockResolvedValue(mockUserInfo);
 
-      await expect(Whoami.run([])).resolves.toBeUndefined();
+      await expect(
+        instance.execute({ logger, flags: {} })
+      ).resolves.toBeUndefined();
       expect(getInfoSpy).toHaveBeenCalled();
-      expect(logger.stderrOutput).toEqual('');
-      expect(logger.stdoutOutput).toContain(
-        messages.loggedInAs(mockUserInfo.name, mockUserInfo.email)
-      );
+      expect(logger.stderr).toEqual([]);
+      expect(logger.stdout).toContainEqual([
+        'loggedInAs',
+        [mockUserInfo.name, mockUserInfo.email],
+      ]);
     });
 
     it('calls getUserInfo correctly, user logged out', async () => {
@@ -46,10 +51,12 @@ describe('Whoami CLI command', () => {
         .spyOn(ServiceClient.prototype, 'getUserInfo')
         .mockRejectedValue(mockServerResponse);
 
-      await expect(Whoami.run([])).resolves.toBeUndefined();
+      await expect(
+        instance.execute({ logger, flags: {} })
+      ).resolves.toBeUndefined();
       expect(getInfoSpy).toHaveBeenCalled();
-      expect(logger.stderrOutput).toEqual('');
-      expect(logger.stdoutOutput).toContain(messages.notLoggedIn());
+      expect(logger.stderr).toEqual([]);
+      expect(logger.stdout).toContainEqual(['notLoggedIn', []]);
     });
 
     it('calls getUserInfo correctly, unknown Superface response', async () => {
@@ -63,15 +70,15 @@ describe('Whoami CLI command', () => {
         .spyOn(ServiceClient.prototype, 'getUserInfo')
         .mockRejectedValue(mockServerResponse);
 
-      await expect(Whoami.run([])).resolves.toBeUndefined();
+      await expect(
+        instance.execute({ logger, flags: {} })
+      ).resolves.toBeUndefined();
       expect(getInfoSpy).toHaveBeenCalled();
-      expect(logger.stderrOutput).toEqual('');
-      expect(logger.stdoutOutput).toContain(
-        messages.superfaceServerError(
-          mockServerResponse.name,
-          mockServerResponse.message
-        )
-      );
+      expect(logger.stderr).toEqual([]);
+      expect(logger.stdout).toContainEqual([
+        'superfaceServerError',
+        [mockServerResponse.name, mockServerResponse.message],
+      ]);
     });
 
     it('calls getUserInfo correctly, unknown error', async () => {
@@ -80,10 +87,12 @@ describe('Whoami CLI command', () => {
         .spyOn(ServiceClient.prototype, 'getUserInfo')
         .mockRejectedValue(mockErr);
 
-      await expect(Whoami.run([])).rejects.toEqual(new CLIError('test'));
+      await expect(instance.execute({ logger, flags: {} })).rejects.toEqual(
+        new CLIError('test')
+      );
       expect(getInfoSpy).toHaveBeenCalled();
-      expect(logger.stderrOutput).toEqual('');
-      expect(logger.stdoutOutput).toEqual('');
+      expect(logger.stderr).toEqual([]);
+      expect(logger.stdout).toEqual([]);
     });
   });
 });
