@@ -97,7 +97,7 @@ describe('Package manager', () => {
       expect(logger.stderr).toEqual([]);
       expect(logger.stdout).toContainEqual([
         'initPmOnPath',
-        ['npm', '/Users/jakubvacek/superface/cli'],
+        ['npm', process.cwd()],
       ]);
       expect(logger.stdout).toContainEqual(['stdout', ['some-logs']]);
     });
