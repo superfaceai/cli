@@ -9,6 +9,7 @@ import {
   ProviderJson,
 } from '@superfaceai/ast';
 import { SuperJson } from '@superfaceai/one-sdk';
+import { ProfileId } from '@superfaceai/parser';
 import { green, red, yellow } from 'chalk';
 
 import { composeVersion } from '../common/document';
@@ -336,42 +337,44 @@ export function formatHuman(checkResults: CheckResult[]): string {
 
   const formatCheckResultTitle = (result: CheckResult): string => {
     let message = '';
-    //Map&Profile
+    // Map&Profile
     if (result.kind === 'profileMap') {
-      //Profile
+      // Profile
       if (result.profileFrom.kind === 'local') {
-        message += `Checking local profile ${result.profileId} at path\n${result.profileFrom.path}\n`;
+        message += `Checking local profile "${result.profileId}" at path\n"${result.profileFrom.path}"`;
       } else {
-        message += `Checking remote profile ${result.profileId} with version ${result.profileFrom.version} `;
+        message += `Checking remote profile "${
+          ProfileId.fromId(result.profileId).withoutVersion
+        }" with version "${result.profileFrom.version}" `;
       }
-      //Map
+      // Map
       if (result.mapFrom.kind === 'local') {
-        message += `and local map for provider ${result.provider} at path\n${result.mapFrom.path}`;
+        message += `and local map for provider "${result.provider}" at path\n"${result.mapFrom.path}"`;
       } else {
-        message += `and remote map with version ${result.mapFrom.version} for provider ${result.provider}`;
+        message += `and remote map with version "${result.mapFrom.version}" for provider "${result.provider}"`;
       }
-      //Map&Provider
+      // Map&Provider
     } else if (result.kind === 'mapProvider') {
-      //Map
+      // Map
       if (result.mapFrom.kind === 'local') {
-        message += `Checking local map at path\n${result.mapFrom.path}\nfor profile ${result.profileId} `;
+        message += `Checking local map at path\n"${result.mapFrom.path}"\nfor profile "${result.profileId}" `;
       } else {
-        message += `Checking remote map with version ${result.mapFrom.version} for profile ${result.profileId} `;
+        message += `Checking remote map with version "${result.mapFrom.version}" for profile "${result.profileId}" `;
       }
-      //Provider
+      // Provider
       if (result.providerFrom.kind === 'local') {
-        message += `and local provider ${result.provider} at path\n${result.providerFrom.path}`;
+        message += `and local provider "${result.provider}" at path\n"${result.providerFrom.path}" `;
       } else {
-        message += `and remote provider ${result.provider}`;
+        message += `and remote provider "${result.provider}" `;
       }
-      //Parameters
+      // Parameters
     } else {
       if (result.providerFrom.kind === 'local') {
-        message += `Checking integration parameters of local provider at path\n${result.providerFrom.path}`;
+        message += `Checking integration parameters of local provider at path\n"${result.providerFrom.path}" `;
       } else {
-        message += `Checking integration parameters of remote provider ${result.provider} `;
+        message += `Checking integration parameters of remote provider "${result.provider}" `;
       }
-      message += `and super.json at path\n${result.superJsonPath}`;
+      message += `and super.json at path\n"${result.superJsonPath}"`;
     }
     if (result.issues.length === 0) {
       return green(`${REPORT_OK} ${message}\n`);
