@@ -11,7 +11,7 @@ import { mocked } from 'ts-jest/utils';
 
 import {
   DEFAULT_PROFILE_VERSION_STR,
-  Logger,
+  MockLogger,
   UNVERIFIED_PROVIDER_PREFIX,
 } from '../common';
 import { fetchProviderInfo, getServicesUrl } from '../common/http';
@@ -67,6 +67,7 @@ jest.mock('./publish.utils', () => ({
 }));
 
 describe('Publish logic', () => {
+  let logger: MockLogger;
   describe('when publishing', () => {
     const mockProfileId = 'starwars/character-information';
     const mockProviderName = 'swapi';
@@ -235,7 +236,7 @@ describe('Publish logic', () => {
     };
 
     beforeEach(() => {
-      Logger.mockLogger();
+      logger = new MockLogger();
     });
 
     afterEach(() => {
@@ -282,41 +283,54 @@ describe('Publish logic', () => {
 
       await expect(
         publish(
-          'profile',
-          mockSuperJson,
-          ProfileId.fromId(mockProfileId),
-          mockProviderName,
-          {}
+          {
+            publishing: 'profile',
+            superJson: mockSuperJson,
+            profile: ProfileId.fromId(mockProfileId),
+            provider: mockProviderName,
+            map: {},
+          },
+          { logger }
         )
       ).resolves.toBeUndefined();
 
       expect(createSpy).toHaveBeenCalledWith(mockProfileSource);
       expect(loadProfile).toHaveBeenCalledWith(
-        mockSuperJson,
-        ProfileId.fromId(mockProfileId),
-        undefined
+        {
+          superJson: mockSuperJson,
+          profile: ProfileId.fromId(mockProfileId),
+          version: undefined,
+        },
+        { logger }
       );
       expect(loadMap).toHaveBeenCalledWith(
-        mockSuperJson,
-        ProfileId.fromId(mockProfileId),
-        mockProviderName,
-        {},
-        undefined
+        {
+          superJson: mockSuperJson,
+          profile: ProfileId.fromId(mockProfileId),
+          provider: mockProviderName,
+          map: {},
+          version: undefined,
+        },
+        { logger }
       );
       expect(loadProvider).toHaveBeenCalledWith(
         mockSuperJson,
-        mockProviderName
+        mockProviderName,
+        { logger }
       );
-      expect(prePublishCheck).toHaveBeenCalledWith({
-        publishing: 'profile',
-        profileAst: mockProfileDocument,
-        mapAst: mockMapDocument,
-        providerJson: mockProviderSource,
-        profileFrom: mockLocalProfileFrom,
-        mapFrom: mockLocalMapFrom,
-        providerFrom: mockLocalProviderFrom,
-        superJson: mockSuperJson,
-      });
+      expect(prePublishCheck).toHaveBeenCalledWith(
+        {
+          publishing: 'profile',
+          profileAst: mockProfileDocument,
+          mapAst: mockMapDocument,
+          providerJson: mockProviderSource,
+          profileFrom: mockLocalProfileFrom,
+          mapFrom: mockLocalMapFrom,
+          providerFrom: mockLocalProviderFrom,
+          superJson: mockSuperJson,
+        },
+        { logger }
+      );
       expect(prePublishLint).toHaveBeenCalledWith(
         mockProfileDocument,
         mockMapDocument
@@ -365,41 +379,54 @@ describe('Publish logic', () => {
 
       await expect(
         publish(
-          'profile',
-          mockSuperJson,
-          ProfileId.fromId(mockProfileId),
-          mockProviderName,
-          { variant }
+          {
+            publishing: 'profile',
+            superJson: mockSuperJson,
+            profile: ProfileId.fromId(mockProfileId),
+            provider: mockProviderName,
+            map: { variant },
+          },
+          { logger }
         )
       ).resolves.toBeUndefined();
 
       expect(createSpy).toHaveBeenCalledWith(mockProfileSource);
       expect(loadProfile).toHaveBeenCalledWith(
-        mockSuperJson,
-        ProfileId.fromId(mockProfileId),
-        undefined
+        {
+          superJson: mockSuperJson,
+          profile: ProfileId.fromId(mockProfileId),
+          version: undefined,
+        },
+        { logger }
       );
       expect(loadMap).toHaveBeenCalledWith(
-        mockSuperJson,
-        ProfileId.fromId(mockProfileId),
-        mockProviderName,
-        { variant },
-        undefined
+        {
+          superJson: mockSuperJson,
+          profile: ProfileId.fromId(mockProfileId),
+          provider: mockProviderName,
+          map: { variant },
+          version: undefined,
+        },
+        { logger }
       );
       expect(loadProvider).toHaveBeenCalledWith(
         mockSuperJson,
-        mockProviderName
+        mockProviderName,
+        { logger }
       );
-      expect(prePublishCheck).toHaveBeenCalledWith({
-        publishing: 'profile',
-        profileAst: mockProfileDocument,
-        mapAst: mockMapDocument,
-        providerJson: mockProviderSource,
-        profileFrom: mockLocalProfileFrom,
-        mapFrom: mockRemoteMapFrom,
-        providerFrom: mockRemoteProviderFrom,
-        superJson: mockSuperJson,
-      });
+      expect(prePublishCheck).toHaveBeenCalledWith(
+        {
+          publishing: 'profile',
+          profileAst: mockProfileDocument,
+          mapAst: mockMapDocument,
+          providerJson: mockProviderSource,
+          profileFrom: mockLocalProfileFrom,
+          mapFrom: mockRemoteMapFrom,
+          providerFrom: mockRemoteProviderFrom,
+          superJson: mockSuperJson,
+        },
+        { logger }
+      );
       expect(prePublishLint).toHaveBeenCalledWith(
         mockProfileDocument,
         mockMapDocument
@@ -445,41 +472,54 @@ describe('Publish logic', () => {
 
       await expect(
         publish(
-          'profile',
-          mockSuperJson,
-          ProfileId.fromId(mockProfileId),
-          mockProviderName,
-          {}
+          {
+            publishing: 'profile',
+            superJson: mockSuperJson,
+            profile: ProfileId.fromId(mockProfileId),
+            provider: mockProviderName,
+            map: {},
+          },
+          { logger }
         )
       ).resolves.toBeUndefined();
 
       expect(createSpy).toHaveBeenCalledWith(mockProfileSource);
       expect(loadProfile).toHaveBeenCalledWith(
-        mockSuperJson,
-        ProfileId.fromId(mockProfileId),
-        undefined
+        {
+          superJson: mockSuperJson,
+          profile: ProfileId.fromId(mockProfileId),
+          version: undefined,
+        },
+        { logger }
       );
       expect(loadMap).toHaveBeenCalledWith(
-        mockSuperJson,
-        ProfileId.fromId(mockProfileId),
-        mockProviderName,
-        {},
-        undefined
+        {
+          superJson: mockSuperJson,
+          profile: ProfileId.fromId(mockProfileId),
+          provider: mockProviderName,
+          map: {},
+          version: undefined,
+        },
+        { logger }
       );
       expect(loadProvider).toHaveBeenCalledWith(
         mockSuperJson,
-        mockProviderName
+        mockProviderName,
+        { logger }
       );
-      expect(prePublishCheck).toHaveBeenCalledWith({
-        publishing: 'profile',
-        profileAst: mockProfileDocument,
-        mapAst: mockMapDocument,
-        providerJson: mockProviderSource,
-        profileFrom: mockLocalProfileFrom,
-        mapFrom: mockLocalMapFrom,
-        providerFrom: mockRemoteProviderFrom,
-        superJson: mockSuperJson,
-      });
+      expect(prePublishCheck).toHaveBeenCalledWith(
+        {
+          publishing: 'profile',
+          profileAst: mockProfileDocument,
+          mapAst: mockMapDocument,
+          providerJson: mockProviderSource,
+          profileFrom: mockLocalProfileFrom,
+          mapFrom: mockLocalMapFrom,
+          providerFrom: mockRemoteProviderFrom,
+          superJson: mockSuperJson,
+        },
+        { logger }
+      );
       expect(prePublishLint).toHaveBeenCalledWith(
         mockProfileDocument,
         mockMapDocument
@@ -525,43 +565,56 @@ describe('Publish logic', () => {
 
       await expect(
         publish(
-          'profile',
-          mockSuperJson,
-          ProfileId.fromId(mockProfileId),
-          mockProviderName,
-          {},
-          undefined,
-          { dryRun: true }
+          {
+            publishing: 'profile',
+            superJson: mockSuperJson,
+            profile: ProfileId.fromId(mockProfileId),
+            provider: mockProviderName,
+            map: {},
+            version: undefined,
+            options: { dryRun: true },
+          },
+          { logger }
         )
       ).resolves.toBeUndefined();
 
       expect(createSpy).not.toHaveBeenCalled();
       expect(loadProfile).toHaveBeenCalledWith(
-        mockSuperJson,
-        ProfileId.fromId(mockProfileId),
-        undefined
+        {
+          superJson: mockSuperJson,
+          profile: ProfileId.fromId(mockProfileId),
+          version: undefined,
+        },
+        { logger }
       );
       expect(loadMap).toHaveBeenCalledWith(
-        mockSuperJson,
-        ProfileId.fromId(mockProfileId),
-        mockProviderName,
-        {},
-        undefined
+        {
+          superJson: mockSuperJson,
+          profile: ProfileId.fromId(mockProfileId),
+          provider: mockProviderName,
+          map: {},
+          version: undefined,
+        },
+        { logger }
       );
       expect(loadProvider).toHaveBeenCalledWith(
         mockSuperJson,
-        mockProviderName
+        mockProviderName,
+        { logger }
       );
-      expect(prePublishCheck).toHaveBeenCalledWith({
-        publishing: 'profile',
-        profileAst: mockProfileDocument,
-        mapAst: mockMapDocument,
-        providerJson: mockProviderSource,
-        profileFrom: mockLocalProfileFrom,
-        mapFrom: mockLocalMapFrom,
-        providerFrom: mockLocalProviderFrom,
-        superJson: mockSuperJson,
-      });
+      expect(prePublishCheck).toHaveBeenCalledWith(
+        {
+          publishing: 'profile',
+          profileAst: mockProfileDocument,
+          mapAst: mockMapDocument,
+          providerJson: mockProviderSource,
+          profileFrom: mockLocalProfileFrom,
+          mapFrom: mockLocalMapFrom,
+          providerFrom: mockLocalProviderFrom,
+          superJson: mockSuperJson,
+        },
+        { logger }
+      );
       expect(prePublishLint).toHaveBeenCalledWith(
         mockProfileDocument,
         mockMapDocument
@@ -590,13 +643,16 @@ describe('Publish logic', () => {
 
       await expect(
         publish(
-          'profile',
-          mockSuperJson,
-          ProfileId.fromId(mockProfileId),
-          mockProviderName,
-          {},
-          undefined,
-          { dryRun: true }
+          {
+            publishing: 'profile',
+            superJson: mockSuperJson,
+            profile: ProfileId.fromId(mockProfileId),
+            provider: mockProviderName,
+            map: {},
+            version: undefined,
+            options: { dryRun: true },
+          },
+          { logger }
         )
       ).rejects.toEqual(
         new CLIError(
@@ -605,9 +661,12 @@ describe('Publish logic', () => {
       );
 
       expect(loadProfile).toHaveBeenCalledWith(
-        mockSuperJson,
-        ProfileId.fromId(mockProfileId),
-        undefined
+        {
+          superJson: mockSuperJson,
+          profile: ProfileId.fromId(mockProfileId),
+          version: undefined,
+        },
+        { logger }
       );
     });
 
@@ -652,41 +711,54 @@ describe('Publish logic', () => {
 
       await expect(
         publish(
-          'map',
-          mockSuperJson,
-          ProfileId.fromId(mockProfileId),
-          mockProviderName,
-          {}
+          {
+            publishing: 'map',
+            superJson: mockSuperJson,
+            profile: ProfileId.fromId(mockProfileId),
+            provider: mockProviderName,
+            map: {},
+          },
+          { logger }
         )
       ).resolves.toBeUndefined();
 
       expect(createSpy).toHaveBeenCalledWith(mockMapSource);
       expect(loadProfile).toHaveBeenCalledWith(
-        mockSuperJson,
-        ProfileId.fromId(mockProfileId),
-        undefined
+        {
+          superJson: mockSuperJson,
+          profile: ProfileId.fromId(mockProfileId),
+          version: undefined,
+        },
+        { logger }
       );
       expect(loadMap).toHaveBeenCalledWith(
-        mockSuperJson,
-        ProfileId.fromId(mockProfileId),
-        mockProviderName,
-        {},
-        undefined
+        {
+          superJson: mockSuperJson,
+          profile: ProfileId.fromId(mockProfileId),
+          provider: mockProviderName,
+          map: {},
+          version: undefined,
+        },
+        { logger }
       );
       expect(loadProvider).toHaveBeenCalledWith(
         mockSuperJson,
-        mockProviderName
+        mockProviderName,
+        { logger }
       );
-      expect(prePublishCheck).toHaveBeenCalledWith({
-        publishing: 'map',
-        profileAst: mockProfileDocument,
-        mapAst: mockMapDocument,
-        providerJson: mockProviderSource,
-        profileFrom: mockRemoteProfileFrom,
-        mapFrom: mockLocalMapFrom,
-        providerFrom: mockRemoteProviderFrom,
-        superJson: mockSuperJson,
-      });
+      expect(prePublishCheck).toHaveBeenCalledWith(
+        {
+          publishing: 'map',
+          profileAst: mockProfileDocument,
+          mapAst: mockMapDocument,
+          providerJson: mockProviderSource,
+          profileFrom: mockRemoteProfileFrom,
+          mapFrom: mockLocalMapFrom,
+          providerFrom: mockRemoteProviderFrom,
+          superJson: mockSuperJson,
+        },
+        { logger }
+      );
 
       expect(prePublishLint).toHaveBeenCalledWith(
         mockProfileDocument,
@@ -736,42 +808,55 @@ describe('Publish logic', () => {
 
       await expect(
         publish(
-          'map',
-          mockSuperJson,
-          ProfileId.fromId(mockProfileId),
-          mockProviderName,
-          {},
-          version
+          {
+            publishing: 'map',
+            superJson: mockSuperJson,
+            profile: ProfileId.fromId(mockProfileId),
+            provider: mockProviderName,
+            map: {},
+            version,
+          },
+          { logger }
         )
       ).resolves.toBeUndefined();
 
       expect(createSpy).toHaveBeenCalledWith(mockMapSource);
       expect(loadProfile).toHaveBeenCalledWith(
-        mockSuperJson,
-        ProfileId.fromId(mockProfileId),
-        version
+        {
+          superJson: mockSuperJson,
+          profile: ProfileId.fromId(mockProfileId),
+          version,
+        },
+        { logger }
       );
       expect(loadMap).toHaveBeenCalledWith(
-        mockSuperJson,
-        ProfileId.fromId(mockProfileId),
-        mockProviderName,
-        {},
-        version
+        {
+          superJson: mockSuperJson,
+          profile: ProfileId.fromId(mockProfileId),
+          provider: mockProviderName,
+          map: {},
+          version,
+        },
+        { logger }
       );
       expect(loadProvider).toHaveBeenCalledWith(
         mockSuperJson,
-        mockProviderName
+        mockProviderName,
+        { logger }
       );
-      expect(prePublishCheck).toHaveBeenCalledWith({
-        publishing: 'map',
-        profileAst: mockProfileDocument,
-        mapAst: mockMapDocument,
-        providerJson: mockProviderSource,
-        profileFrom: mockLocalProfileFrom,
-        mapFrom: mockLocalMapFrom,
-        providerFrom: mockRemoteProviderFrom,
-        superJson: mockSuperJson,
-      });
+      expect(prePublishCheck).toHaveBeenCalledWith(
+        {
+          publishing: 'map',
+          profileAst: mockProfileDocument,
+          mapAst: mockMapDocument,
+          providerJson: mockProviderSource,
+          profileFrom: mockLocalProfileFrom,
+          mapFrom: mockLocalMapFrom,
+          providerFrom: mockRemoteProviderFrom,
+          superJson: mockSuperJson,
+        },
+        { logger }
+      );
       expect(prePublishLint).toHaveBeenCalledWith(
         mockProfileDocument,
         mockMapDocument
@@ -819,42 +904,55 @@ describe('Publish logic', () => {
 
       await expect(
         publish(
-          'map',
-          mockSuperJson,
-          ProfileId.fromId(mockProfileId),
-          mockProviderName,
-          {},
-          DEFAULT_PROFILE_VERSION_STR
+          {
+            publishing: 'map',
+            superJson: mockSuperJson,
+            profile: ProfileId.fromId(mockProfileId),
+            provider: mockProviderName,
+            map: {},
+            version: DEFAULT_PROFILE_VERSION_STR,
+          },
+          { logger }
         )
       ).resolves.toBeUndefined();
 
       expect(createSpy).toHaveBeenCalledWith(mockMapSource);
       expect(loadProfile).toHaveBeenCalledWith(
-        mockSuperJson,
-        ProfileId.fromId(mockProfileId),
-        DEFAULT_PROFILE_VERSION_STR
+        {
+          superJson: mockSuperJson,
+          profile: ProfileId.fromId(mockProfileId),
+          version: DEFAULT_PROFILE_VERSION_STR,
+        },
+        { logger }
       );
       expect(loadMap).toHaveBeenCalledWith(
-        mockSuperJson,
-        ProfileId.fromId(mockProfileId),
-        mockProviderName,
-        {},
-        DEFAULT_PROFILE_VERSION_STR
+        {
+          superJson: mockSuperJson,
+          profile: ProfileId.fromId(mockProfileId),
+          provider: mockProviderName,
+          map: {},
+          version: DEFAULT_PROFILE_VERSION_STR,
+        },
+        { logger }
       );
       expect(loadProvider).toHaveBeenCalledWith(
         mockSuperJson,
-        mockProviderName
+        mockProviderName,
+        { logger }
       );
-      expect(prePublishCheck).toHaveBeenCalledWith({
-        publishing: 'map',
-        profileAst: mockProfileDocument,
-        mapAst: mockMapDocument,
-        providerJson: mockProviderSource,
-        profileFrom: mockRemoteProfileFrom,
-        mapFrom: mockLocalMapFrom,
-        providerFrom: mockLocalProviderFrom,
-        superJson: mockSuperJson,
-      });
+      expect(prePublishCheck).toHaveBeenCalledWith(
+        {
+          publishing: 'map',
+          profileAst: mockProfileDocument,
+          mapAst: mockMapDocument,
+          providerJson: mockProviderSource,
+          profileFrom: mockRemoteProfileFrom,
+          mapFrom: mockLocalMapFrom,
+          providerFrom: mockLocalProviderFrom,
+          superJson: mockSuperJson,
+        },
+        { logger }
+      );
       expect(prePublishLint).toHaveBeenCalledWith(
         mockProfileDocument,
         mockMapDocument
@@ -902,43 +1000,56 @@ describe('Publish logic', () => {
 
       await expect(
         publish(
-          'map',
-          mockSuperJson,
-          ProfileId.fromId(mockProfileId),
-          mockProviderName,
-          {},
-          DEFAULT_PROFILE_VERSION_STR,
-          { dryRun: true }
+          {
+            publishing: 'map',
+            superJson: mockSuperJson,
+            profile: ProfileId.fromId(mockProfileId),
+            provider: mockProviderName,
+            map: {},
+            version: DEFAULT_PROFILE_VERSION_STR,
+            options: { dryRun: true },
+          },
+          { logger }
         )
       ).resolves.toBeUndefined();
 
       expect(createSpy).not.toHaveBeenCalled();
       expect(loadProfile).toHaveBeenCalledWith(
-        mockSuperJson,
-        ProfileId.fromId(mockProfileId),
-        DEFAULT_PROFILE_VERSION_STR
+        {
+          superJson: mockSuperJson,
+          profile: ProfileId.fromId(mockProfileId),
+          version: DEFAULT_PROFILE_VERSION_STR,
+        },
+        { logger }
       );
       expect(loadMap).toHaveBeenCalledWith(
-        mockSuperJson,
-        ProfileId.fromId(mockProfileId),
-        mockProviderName,
-        {},
-        DEFAULT_PROFILE_VERSION_STR
+        {
+          superJson: mockSuperJson,
+          profile: ProfileId.fromId(mockProfileId),
+          provider: mockProviderName,
+          map: {},
+          version: DEFAULT_PROFILE_VERSION_STR,
+        },
+        { logger }
       );
       expect(loadProvider).toHaveBeenCalledWith(
         mockSuperJson,
-        mockProviderName
+        mockProviderName,
+        { logger }
       );
-      expect(prePublishCheck).toHaveBeenCalledWith({
-        publishing: 'map',
-        profileAst: mockProfileDocument,
-        mapAst: mockMapDocument,
-        providerJson: mockProviderSource,
-        profileFrom: mockRemoteProfileFrom,
-        mapFrom: mockLocalMapFrom,
-        providerFrom: mockLocalProviderFrom,
-        superJson: mockSuperJson,
-      });
+      expect(prePublishCheck).toHaveBeenCalledWith(
+        {
+          publishing: 'map',
+          profileAst: mockProfileDocument,
+          mapAst: mockMapDocument,
+          providerJson: mockProviderSource,
+          profileFrom: mockRemoteProfileFrom,
+          mapFrom: mockLocalMapFrom,
+          providerFrom: mockLocalProviderFrom,
+          superJson: mockSuperJson,
+        },
+        { logger }
+      );
       expect(prePublishLint).toHaveBeenCalledWith(
         mockProfileDocument,
         mockMapDocument
@@ -994,12 +1105,15 @@ describe('Publish logic', () => {
 
       await expect(
         publish(
-          'map',
-          mockSuperJson,
-          ProfileId.fromId(mockProfileId),
-          mockProviderName,
-          {},
-          DEFAULT_PROFILE_VERSION_STR
+          {
+            publishing: 'map',
+            superJson: mockSuperJson,
+            profile: ProfileId.fromId(mockProfileId),
+            provider: mockProviderName,
+            map: {},
+            version: DEFAULT_PROFILE_VERSION_STR,
+          },
+          { logger }
         )
       ).rejects.toEqual(
         new CLIError(
@@ -1009,32 +1123,42 @@ describe('Publish logic', () => {
 
       expect(createSpy).not.toHaveBeenCalled();
       expect(loadProfile).toHaveBeenCalledWith(
-        mockSuperJson,
-        ProfileId.fromId(mockProfileId),
-        DEFAULT_PROFILE_VERSION_STR
+        {
+          superJson: mockSuperJson,
+          profile: ProfileId.fromId(mockProfileId),
+          version: DEFAULT_PROFILE_VERSION_STR,
+        },
+        { logger }
       );
       expect(loadMap).toHaveBeenCalledWith(
-        mockSuperJson,
-        ProfileId.fromId(mockProfileId),
-        mockProviderName,
-        {},
-        DEFAULT_PROFILE_VERSION_STR
+        {
+          superJson: mockSuperJson,
+          profile: ProfileId.fromId(mockProfileId),
+          provider: mockProviderName,
+          map: {},
+          version: DEFAULT_PROFILE_VERSION_STR,
+        },
+        { logger }
       );
       expect(loadProvider).toHaveBeenCalledWith(
         mockSuperJson,
-        mockProviderName
+        mockProviderName,
+        { logger }
       );
       expect(fetchProviderInfo).toHaveBeenCalled();
-      expect(prePublishCheck).toHaveBeenCalledWith({
-        publishing: 'map',
-        profileAst: mockProfileDocument,
-        mapAst: mockMapDocument,
-        providerJson: mockProviderSource,
-        profileFrom: mockRemoteProfileFrom,
-        mapFrom: mockLocalMapFrom,
-        providerFrom: mockLocalProviderFrom,
-        superJson: mockSuperJson,
-      });
+      expect(prePublishCheck).toHaveBeenCalledWith(
+        {
+          publishing: 'map',
+          profileAst: mockProfileDocument,
+          mapAst: mockMapDocument,
+          providerJson: mockProviderSource,
+          profileFrom: mockRemoteProfileFrom,
+          mapFrom: mockLocalMapFrom,
+          providerFrom: mockLocalProviderFrom,
+          superJson: mockSuperJson,
+        },
+        { logger }
+      );
 
       expect(prePublishLint).toHaveBeenCalledWith(
         mockProfileDocument,
@@ -1070,13 +1194,16 @@ describe('Publish logic', () => {
 
       await expect(
         publish(
-          'map',
-          mockSuperJson,
-          ProfileId.fromId(mockProfileId),
-          mockProviderName,
-          {},
-          DEFAULT_PROFILE_VERSION_STR,
-          { dryRun: true }
+          {
+            publishing: 'map',
+            superJson: mockSuperJson,
+            profile: ProfileId.fromId(mockProfileId),
+            provider: mockProviderName,
+            map: {},
+            version: DEFAULT_PROFILE_VERSION_STR,
+            options: { dryRun: true },
+          },
+          { logger }
         )
       ).rejects.toEqual(
         new CLIError(
@@ -1085,9 +1212,12 @@ describe('Publish logic', () => {
       );
 
       expect(loadProfile).toHaveBeenCalledWith(
-        mockSuperJson,
-        ProfileId.fromId(mockProfileId),
-        DEFAULT_PROFILE_VERSION_STR
+        {
+          superJson: mockSuperJson,
+          profile: ProfileId.fromId(mockProfileId),
+          version: DEFAULT_PROFILE_VERSION_STR,
+        },
+        { logger }
       );
     });
 
@@ -1143,12 +1273,15 @@ describe('Publish logic', () => {
 
       await expect(
         publish(
-          'provider',
-          mockSuperJson,
-          ProfileId.fromId(mockProfileId),
-          provider,
-          {},
-          DEFAULT_PROFILE_VERSION_STR
+          {
+            publishing: 'provider',
+            superJson: mockSuperJson,
+            profile: ProfileId.fromId(mockProfileId),
+            provider,
+            map: {},
+            version: DEFAULT_PROFILE_VERSION_STR,
+          },
+          { logger }
         )
       ).resolves.toBeUndefined();
 
@@ -1156,29 +1289,40 @@ describe('Publish logic', () => {
         JSON.stringify(mockProviderSource)
       );
       expect(loadProfile).toHaveBeenCalledWith(
-        mockSuperJson,
-        ProfileId.fromId(mockProfileId),
-        DEFAULT_PROFILE_VERSION_STR
+        {
+          superJson: mockSuperJson,
+          profile: ProfileId.fromId(mockProfileId),
+          version: DEFAULT_PROFILE_VERSION_STR,
+        },
+        { logger }
       );
       expect(loadMap).toHaveBeenCalledWith(
-        mockSuperJson,
-        ProfileId.fromId(mockProfileId),
-        provider,
-        {},
-        DEFAULT_PROFILE_VERSION_STR
+        {
+          superJson: mockSuperJson,
+          profile: ProfileId.fromId(mockProfileId),
+          provider,
+          map: {},
+          version: DEFAULT_PROFILE_VERSION_STR,
+        },
+        { logger }
       );
-      expect(loadProvider).toHaveBeenCalledWith(mockSuperJson, provider);
-      expect(fetchProviderInfo).not.toHaveBeenCalled();
-      expect(prePublishCheck).toHaveBeenCalledWith({
-        publishing: 'provider',
-        profileAst: mockProfileDocument,
-        mapAst: mockMapDocument,
-        providerJson: mockProviderSource,
-        profileFrom: mockLocalProfileFrom,
-        mapFrom: mockRemoteMapFrom,
-        providerFrom: mockLocalProviderFrom,
-        superJson: mockSuperJson,
+      expect(loadProvider).toHaveBeenCalledWith(mockSuperJson, provider, {
+        logger,
       });
+      expect(fetchProviderInfo).not.toHaveBeenCalled();
+      expect(prePublishCheck).toHaveBeenCalledWith(
+        {
+          publishing: 'provider',
+          profileAst: mockProfileDocument,
+          mapAst: mockMapDocument,
+          providerJson: mockProviderSource,
+          profileFrom: mockLocalProfileFrom,
+          mapFrom: mockRemoteMapFrom,
+          providerFrom: mockLocalProviderFrom,
+          superJson: mockSuperJson,
+        },
+        { logger }
+      );
       expect(prePublishLint).toHaveBeenCalledWith(
         mockProfileDocument,
         mockMapDocument
@@ -1240,12 +1384,15 @@ describe('Publish logic', () => {
 
       await expect(
         publish(
-          'provider',
-          mockSuperJson,
-          ProfileId.fromId(mockProfileId),
-          provider,
-          { variant },
-          DEFAULT_PROFILE_VERSION_STR
+          {
+            publishing: 'provider',
+            superJson: mockSuperJson,
+            profile: ProfileId.fromId(mockProfileId),
+            provider,
+            map: { variant },
+            version: DEFAULT_PROFILE_VERSION_STR,
+          },
+          { logger }
         )
       ).resolves.toBeUndefined();
 
@@ -1253,29 +1400,40 @@ describe('Publish logic', () => {
         JSON.stringify(mockProviderSource)
       );
       expect(loadProfile).toHaveBeenCalledWith(
-        mockSuperJson,
-        ProfileId.fromId(mockProfileId),
-        DEFAULT_PROFILE_VERSION_STR
+        {
+          superJson: mockSuperJson,
+          profile: ProfileId.fromId(mockProfileId),
+          version: DEFAULT_PROFILE_VERSION_STR,
+        },
+        { logger }
       );
       expect(loadMap).toHaveBeenCalledWith(
-        mockSuperJson,
-        ProfileId.fromId(mockProfileId),
-        provider,
-        { variant },
-        DEFAULT_PROFILE_VERSION_STR
+        {
+          superJson: mockSuperJson,
+          profile: ProfileId.fromId(mockProfileId),
+          provider,
+          map: { variant },
+          version: DEFAULT_PROFILE_VERSION_STR,
+        },
+        { logger }
       );
-      expect(loadProvider).toHaveBeenCalledWith(mockSuperJson, provider);
-      expect(fetchProviderInfo).not.toHaveBeenCalled();
-      expect(prePublishCheck).toHaveBeenCalledWith({
-        publishing: 'provider',
-        profileAst: mockProfileDocument,
-        mapAst: mockMapDocument,
-        providerJson: mockProviderSource,
-        profileFrom: mockRemoteProfileFrom,
-        mapFrom: mockRemoteMapFrom,
-        providerFrom: mockLocalProviderFrom,
-        superJson: mockSuperJson,
+      expect(loadProvider).toHaveBeenCalledWith(mockSuperJson, provider, {
+        logger,
       });
+      expect(fetchProviderInfo).not.toHaveBeenCalled();
+      expect(prePublishCheck).toHaveBeenCalledWith(
+        {
+          publishing: 'provider',
+          profileAst: mockProfileDocument,
+          mapAst: mockMapDocument,
+          providerJson: mockProviderSource,
+          profileFrom: mockRemoteProfileFrom,
+          mapFrom: mockRemoteMapFrom,
+          providerFrom: mockLocalProviderFrom,
+          superJson: mockSuperJson,
+        },
+        { logger }
+      );
       expect(prePublishLint).toHaveBeenCalledWith(
         mockProfileDocument,
         mockMapDocument
@@ -1323,13 +1481,16 @@ describe('Publish logic', () => {
 
       await expect(
         publish(
-          'provider',
-          mockSuperJson,
-          ProfileId.fromId(mockProfileId),
-          mockProviderName,
-          {},
-          DEFAULT_PROFILE_VERSION_STR,
-          { dryRun: true }
+          {
+            publishing: 'provider',
+            superJson: mockSuperJson,
+            profile: ProfileId.fromId(mockProfileId),
+            provider: mockProviderName,
+            map: {},
+            version: DEFAULT_PROFILE_VERSION_STR,
+            options: { dryRun: true },
+          },
+          { logger }
         )
       ).rejects.toEqual(
         new CLIError(
@@ -1339,32 +1500,42 @@ describe('Publish logic', () => {
 
       expect(createSpy).not.toHaveBeenCalled();
       expect(loadProfile).toHaveBeenCalledWith(
-        mockSuperJson,
-        ProfileId.fromId(mockProfileId),
-        DEFAULT_PROFILE_VERSION_STR
+        {
+          superJson: mockSuperJson,
+          profile: ProfileId.fromId(mockProfileId),
+          version: DEFAULT_PROFILE_VERSION_STR,
+        },
+        { logger }
       );
       expect(loadMap).toHaveBeenCalledWith(
-        mockSuperJson,
-        ProfileId.fromId(mockProfileId),
-        mockProviderName,
-        {},
-        DEFAULT_PROFILE_VERSION_STR
+        {
+          superJson: mockSuperJson,
+          profile: ProfileId.fromId(mockProfileId),
+          provider: mockProviderName,
+          map: {},
+          version: DEFAULT_PROFILE_VERSION_STR,
+        },
+        { logger }
       );
       expect(loadProvider).toHaveBeenCalledWith(
         mockSuperJson,
-        mockProviderName
+        mockProviderName,
+        { logger }
       );
       expect(fetchProviderInfo).not.toHaveBeenCalled();
-      expect(prePublishCheck).toHaveBeenCalledWith({
-        publishing: 'provider',
-        profileAst: mockProfileDocument,
-        mapAst: mockMapDocument,
-        providerJson: mockProviderSource,
-        profileFrom: mockRemoteProfileFrom,
-        mapFrom: mockRemoteMapFrom,
-        providerFrom: mockLocalProviderFrom,
-        superJson: mockSuperJson,
-      });
+      expect(prePublishCheck).toHaveBeenCalledWith(
+        {
+          publishing: 'provider',
+          profileAst: mockProfileDocument,
+          mapAst: mockMapDocument,
+          providerJson: mockProviderSource,
+          profileFrom: mockRemoteProfileFrom,
+          mapFrom: mockRemoteMapFrom,
+          providerFrom: mockLocalProviderFrom,
+          superJson: mockSuperJson,
+        },
+        { logger }
+      );
       expect(prePublishLint).toHaveBeenCalledWith(
         mockProfileDocument,
         mockMapDocument
@@ -1423,41 +1594,55 @@ describe('Publish logic', () => {
 
       await expect(
         publish(
-          'provider',
-          mockSuperJson,
-          ProfileId.fromId(mockProfileId),
-          provider,
-          {},
-          DEFAULT_PROFILE_VERSION_STR,
-          { dryRun: true }
+          {
+            publishing: 'provider',
+            superJson: mockSuperJson,
+            profile: ProfileId.fromId(mockProfileId),
+            provider,
+            map: {},
+            version: DEFAULT_PROFILE_VERSION_STR,
+            options: { dryRun: true },
+          },
+          { logger }
         )
       ).resolves.toBeUndefined();
 
       expect(createSpy).not.toHaveBeenCalled();
       expect(loadProfile).toHaveBeenCalledWith(
-        mockSuperJson,
-        ProfileId.fromId(mockProfileId),
-        DEFAULT_PROFILE_VERSION_STR
+        {
+          superJson: mockSuperJson,
+          profile: ProfileId.fromId(mockProfileId),
+          version: DEFAULT_PROFILE_VERSION_STR,
+        },
+        { logger }
       );
       expect(loadMap).toHaveBeenCalledWith(
-        mockSuperJson,
-        ProfileId.fromId(mockProfileId),
-        provider,
-        {},
-        DEFAULT_PROFILE_VERSION_STR
+        {
+          superJson: mockSuperJson,
+          profile: ProfileId.fromId(mockProfileId),
+          provider,
+          map: {},
+          version: DEFAULT_PROFILE_VERSION_STR,
+        },
+        { logger }
       );
-      expect(loadProvider).toHaveBeenCalledWith(mockSuperJson, provider);
-      expect(fetchProviderInfo).not.toHaveBeenCalled();
-      expect(prePublishCheck).toHaveBeenCalledWith({
-        publishing: 'provider',
-        profileAst: mockProfileDocument,
-        mapAst: mockMapDocument,
-        providerJson: mockProviderSource,
-        profileFrom: mockRemoteProfileFrom,
-        mapFrom: mockRemoteMapFrom,
-        providerFrom: mockLocalProviderFrom,
-        superJson: mockSuperJson,
+      expect(loadProvider).toHaveBeenCalledWith(mockSuperJson, provider, {
+        logger,
       });
+      expect(fetchProviderInfo).not.toHaveBeenCalled();
+      expect(prePublishCheck).toHaveBeenCalledWith(
+        {
+          publishing: 'provider',
+          profileAst: mockProfileDocument,
+          mapAst: mockMapDocument,
+          providerJson: mockProviderSource,
+          profileFrom: mockRemoteProfileFrom,
+          mapFrom: mockRemoteMapFrom,
+          providerFrom: mockLocalProviderFrom,
+          superJson: mockSuperJson,
+        },
+        { logger }
+      );
       expect(prePublishLint).toHaveBeenCalledWith(
         mockProfileDocument,
         mockMapDocument
@@ -1498,13 +1683,16 @@ describe('Publish logic', () => {
 
       await expect(
         publish(
-          'provider',
-          mockSuperJson,
-          ProfileId.fromId(mockProfileId),
-          mockProviderName,
-          {},
-          DEFAULT_PROFILE_VERSION_STR,
-          { dryRun: true }
+          {
+            publishing: 'provider',
+            superJson: mockSuperJson,
+            profile: ProfileId.fromId(mockProfileId),
+            provider: mockProviderName,
+            map: {},
+            version: DEFAULT_PROFILE_VERSION_STR,
+            options: { dryRun: true },
+          },
+          { logger }
         )
       ).rejects.toEqual(
         new CLIError(
@@ -1513,9 +1701,12 @@ describe('Publish logic', () => {
       );
 
       expect(loadProfile).toHaveBeenCalledWith(
-        mockSuperJson,
-        ProfileId.fromId(mockProfileId),
-        DEFAULT_PROFILE_VERSION_STR
+        {
+          superJson: mockSuperJson,
+          profile: ProfileId.fromId(mockProfileId),
+          version: DEFAULT_PROFILE_VERSION_STR,
+        },
+        { logger }
       );
     });
 
@@ -1556,13 +1747,16 @@ describe('Publish logic', () => {
         .mockResolvedValue(undefined);
 
       const result = await publish(
-        'provider',
-        mockSuperJson,
-        ProfileId.fromId(mockProfileId),
-        mockProviderName,
-        {},
-        DEFAULT_PROFILE_VERSION_STR,
-        { dryRun: true }
+        {
+          publishing: 'provider',
+          superJson: mockSuperJson,
+          profile: ProfileId.fromId(mockProfileId),
+          provider: mockProviderName,
+          map: {},
+          version: DEFAULT_PROFILE_VERSION_STR,
+          options: { dryRun: true },
+        },
+        { logger }
       );
 
       expect(result).toMatch('Check results:');
@@ -1575,31 +1769,41 @@ describe('Publish logic', () => {
 
       expect(createSpy).not.toHaveBeenCalled();
       expect(loadProfile).toHaveBeenCalledWith(
-        mockSuperJson,
-        ProfileId.fromId(mockProfileId),
-        DEFAULT_PROFILE_VERSION_STR
+        {
+          superJson: mockSuperJson,
+          profile: ProfileId.fromId(mockProfileId),
+          version: DEFAULT_PROFILE_VERSION_STR,
+        },
+        { logger }
       );
       expect(loadMap).toHaveBeenCalledWith(
-        mockSuperJson,
-        ProfileId.fromId(mockProfileId),
-        mockProviderName,
-        {},
-        DEFAULT_PROFILE_VERSION_STR
+        {
+          superJson: mockSuperJson,
+          profile: ProfileId.fromId(mockProfileId),
+          provider: mockProviderName,
+          map: {},
+          version: DEFAULT_PROFILE_VERSION_STR,
+        },
+        { logger }
       );
       expect(loadProvider).toHaveBeenCalledWith(
         mockSuperJson,
-        mockProviderName
+        mockProviderName,
+        { logger }
       );
-      expect(prePublishCheck).toHaveBeenCalledWith({
-        publishing: 'provider',
-        profileAst: mockProfileDocument,
-        mapAst: mockMapDocument,
-        providerJson: mockProviderSource,
-        profileFrom: mockRemoteProfileFrom,
-        mapFrom: mockRemoteMapFrom,
-        providerFrom: mockLocalProviderFrom,
-        superJson: mockSuperJson,
-      });
+      expect(prePublishCheck).toHaveBeenCalledWith(
+        {
+          publishing: 'provider',
+          profileAst: mockProfileDocument,
+          mapAst: mockMapDocument,
+          providerJson: mockProviderSource,
+          profileFrom: mockRemoteProfileFrom,
+          mapFrom: mockRemoteMapFrom,
+          providerFrom: mockLocalProviderFrom,
+          superJson: mockSuperJson,
+        },
+        { logger }
+      );
       expect(prePublishLint).toHaveBeenCalledWith(
         mockProfileDocument,
         mockMapDocument
@@ -1667,13 +1871,16 @@ describe('Publish logic', () => {
         .mockResolvedValue(undefined);
 
       const result = await publish(
-        'provider',
-        mockSuperJson,
-        ProfileId.fromId(mockProfileId),
-        mockProviderName,
-        {},
-        DEFAULT_PROFILE_VERSION_STR,
-        { dryRun: true }
+        {
+          publishing: 'provider',
+          superJson: mockSuperJson,
+          profile: ProfileId.fromId(mockProfileId),
+          provider: mockProviderName,
+          map: {},
+          version: DEFAULT_PROFILE_VERSION_STR,
+          options: { dryRun: true },
+        },
+        { logger }
       );
       expect(result).toMatch('Check results:');
 
@@ -1685,31 +1892,41 @@ describe('Publish logic', () => {
 
       expect(createSpy).not.toHaveBeenCalled();
       expect(loadProfile).toHaveBeenCalledWith(
-        mockSuperJson,
-        ProfileId.fromId(mockProfileId),
-        DEFAULT_PROFILE_VERSION_STR
+        {
+          superJson: mockSuperJson,
+          profile: ProfileId.fromId(mockProfileId),
+          version: DEFAULT_PROFILE_VERSION_STR,
+        },
+        { logger }
       );
       expect(loadMap).toHaveBeenCalledWith(
-        mockSuperJson,
-        ProfileId.fromId(mockProfileId),
-        mockProviderName,
-        {},
-        DEFAULT_PROFILE_VERSION_STR
+        {
+          superJson: mockSuperJson,
+          profile: ProfileId.fromId(mockProfileId),
+          provider: mockProviderName,
+          map: {},
+          version: DEFAULT_PROFILE_VERSION_STR,
+        },
+        { logger }
       );
       expect(loadProvider).toHaveBeenCalledWith(
         mockSuperJson,
-        mockProviderName
+        mockProviderName,
+        { logger }
       );
-      expect(prePublishCheck).toHaveBeenCalledWith({
-        publishing: 'provider',
-        profileAst: mockProfileDocument,
-        mapAst: mockMapDocument,
-        providerJson: mockProviderSource,
-        profileFrom: mockRemoteProfileFrom,
-        mapFrom: mockRemoteMapFrom,
-        providerFrom: mockLocalProviderFrom,
-        superJson: mockSuperJson,
-      });
+      expect(prePublishCheck).toHaveBeenCalledWith(
+        {
+          publishing: 'provider',
+          profileAst: mockProfileDocument,
+          mapAst: mockMapDocument,
+          providerJson: mockProviderSource,
+          profileFrom: mockRemoteProfileFrom,
+          mapFrom: mockRemoteMapFrom,
+          providerFrom: mockLocalProviderFrom,
+          superJson: mockSuperJson,
+        },
+        { logger }
+      );
       expect(prePublishLint).toHaveBeenCalledWith(
         mockProfileDocument,
         mockMapDocument
@@ -1754,13 +1971,16 @@ describe('Publish logic', () => {
 
       await expect(
         publish(
-          'provider',
-          mockSuperJson,
-          ProfileId.fromId(mockProfileId),
-          mockProviderName,
-          {},
-          DEFAULT_PROFILE_VERSION_STR,
-          { dryRun: true, json: true }
+          {
+            publishing: 'provider',
+            superJson: mockSuperJson,
+            profile: ProfileId.fromId(mockProfileId),
+            provider: mockProviderName,
+            map: {},
+            version: DEFAULT_PROFILE_VERSION_STR,
+            options: { dryRun: true, json: true },
+          },
+          { logger }
         )
       ).resolves.toEqual(
         JSON.stringify({
@@ -1783,32 +2003,42 @@ describe('Publish logic', () => {
 
       expect(createSpy).not.toHaveBeenCalled();
       expect(loadProfile).toHaveBeenCalledWith(
-        mockSuperJson,
-        ProfileId.fromId(mockProfileId),
-        DEFAULT_PROFILE_VERSION_STR
+        {
+          superJson: mockSuperJson,
+          profile: ProfileId.fromId(mockProfileId),
+          version: DEFAULT_PROFILE_VERSION_STR,
+        },
+        { logger }
       );
       expect(loadMap).toHaveBeenCalledWith(
-        mockSuperJson,
-        ProfileId.fromId(mockProfileId),
-        mockProviderName,
-        {},
-        DEFAULT_PROFILE_VERSION_STR
+        {
+          superJson: mockSuperJson,
+          profile: ProfileId.fromId(mockProfileId),
+          provider: mockProviderName,
+          map: {},
+          version: DEFAULT_PROFILE_VERSION_STR,
+        },
+        { logger }
       );
       expect(loadProvider).toHaveBeenCalledWith(
         mockSuperJson,
-        mockProviderName
+        mockProviderName,
+        { logger }
       );
       expect(fetchProviderInfo).not.toHaveBeenCalled();
-      expect(prePublishCheck).toHaveBeenCalledWith({
-        publishing: 'provider',
-        profileAst: mockProfileDocument,
-        mapAst: mockMapDocument,
-        providerJson: mockProviderSource,
-        profileFrom: mockRemoteProfileFrom,
-        mapFrom: mockRemoteMapFrom,
-        providerFrom: mockLocalProviderFrom,
-        superJson: mockSuperJson,
-      });
+      expect(prePublishCheck).toHaveBeenCalledWith(
+        {
+          publishing: 'provider',
+          profileAst: mockProfileDocument,
+          mapAst: mockMapDocument,
+          providerJson: mockProviderSource,
+          profileFrom: mockRemoteProfileFrom,
+          mapFrom: mockRemoteMapFrom,
+          providerFrom: mockLocalProviderFrom,
+          superJson: mockSuperJson,
+        },
+        { logger }
+      );
       expect(prePublishLint).toHaveBeenCalledWith(
         mockProfileDocument,
         mockMapDocument

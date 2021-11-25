@@ -1,10 +1,10 @@
 import { ServiceClient } from '@superfaceai/service-client';
 import { mocked } from 'ts-jest/utils';
 
-import { Logger, MockLogger } from '..';
+import { MockLogger } from '..';
 import { getServicesUrl } from '../common/http';
-import { messages } from '../common/messages';
 import { login } from '../logic/login';
+import { CommandInstance } from '../test/utils';
 import Login from './login';
 
 const mockRefreshToken = 'RT';
@@ -43,10 +43,12 @@ jest.mock('netrc-parser', () => {
 describe('Login CLI command', () => {
   const originalValue = process.env.SUPERFACE_REFRESH_TOKEN;
   let logger: MockLogger;
+  let instance: Login;
 
   beforeEach(async () => {
     jest.restoreAllMocks();
-    logger = Logger.mockLogger();
+    logger = new MockLogger();
+    instance = CommandInstance(Login);
   });
 
   afterAll(() => {
@@ -60,39 +62,60 @@ describe('Login CLI command', () => {
       mocked(getServicesUrl).mockReturnValue(mockBaseUrlWithEmptyRecord);
       const logoutSpy = jest.spyOn(ServiceClient.prototype, 'logout');
 
-      await expect(Login.run([])).resolves.toBeUndefined();
-      expect(login).toHaveBeenCalledWith({
-        force: false,
-      });
+      await expect(
+        instance.execute({ logger, flags: { force: false } })
+      ).resolves.toBeUndefined();
+      expect(login).toHaveBeenCalledWith(
+        {
+          force: false,
+        },
+        { logger }
+      );
 
       expect(logoutSpy).not.toHaveBeenCalled();
-      expect(logger.stdoutOutput).toContain(messages.loggedInSuccessfully());
+      expect(logger.stdout).toContainEqual(['loggedInSuccessfully', []]);
     });
 
     it('calls login correctly - non existing record in netrc and quiet flag', async () => {
       mocked(getServicesUrl).mockReturnValue(mockBaseUrlWithEmptyRecord);
       const logoutSpy = jest.spyOn(ServiceClient.prototype, 'logout');
 
-      await expect(Login.run(['-q'])).resolves.toBeUndefined();
-      expect(login).toHaveBeenCalledWith({
-        force: false,
-      });
+      await expect(
+        instance.execute({
+          logger,
+          flags: {
+            force: false,
+            quiet: true,
+          },
+        })
+      ).resolves.toBeUndefined();
+      expect(login).toHaveBeenCalledWith(
+        {
+          force: false,
+        },
+        { logger }
+      );
 
       expect(logoutSpy).not.toHaveBeenCalled();
-      expect(logger.stdoutOutput).toContain(messages.loggedInSuccessfully());
+      expect(logger.stdout).toContainEqual(['loggedInSuccessfully', []]);
     });
     it('calls login correctly - existing record in netrc and force flag', async () => {
       mocked(getServicesUrl).mockReturnValue(mockBaseUrlWithExistingRecord);
       const logoutSpy = jest.spyOn(ServiceClient.prototype, 'logout');
 
-      await expect(Login.run(['-f'])).resolves.toBeUndefined();
+      await expect(
+        instance.execute({ logger, flags: { force: true } })
+      ).resolves.toBeUndefined();
 
-      expect(login).toHaveBeenCalledWith({
-        force: true,
-      });
+      expect(login).toHaveBeenCalledWith(
+        {
+          force: true,
+        },
+        { logger }
+      );
 
-      expect(logger.stdoutOutput).toContain(messages.alreadyLoggedIn());
-      expect(logger.stdoutOutput).toContain(messages.loggedInSuccessfully());
+      expect(logger.stdout).toContainEqual(['alreadyLoggedIn', []]);
+      expect(logger.stdout).toContainEqual(['loggedInSuccessfully', []]);
       expect(logoutSpy).toHaveBeenCalled();
     });
 
@@ -101,13 +124,18 @@ describe('Login CLI command', () => {
       mocked(getServicesUrl).mockReturnValue(mockBaseUrlWithExistingRecord);
       const logoutSpy = jest.spyOn(ServiceClient.prototype, 'logout');
 
-      await expect(Login.run([])).resolves.toBeUndefined();
-      expect(login).toHaveBeenCalledWith({
-        force: false,
-      });
+      await expect(
+        instance.execute({ logger, flags: { force: false } })
+      ).resolves.toBeUndefined();
+      expect(login).toHaveBeenCalledWith(
+        {
+          force: false,
+        },
+        { logger }
+      );
 
-      expect(logger.stdoutOutput).toContain(messages.usinfSfRefreshToken());
-      expect(logger.stdoutOutput).toContain(messages.loggedInSuccessfully());
+      expect(logger.stdout).toContainEqual(['usinfSfRefreshToken', []]);
+      expect(logger.stdout).toContainEqual(['loggedInSuccessfully', []]);
       expect(logoutSpy).not.toHaveBeenCalled();
     });
   });
