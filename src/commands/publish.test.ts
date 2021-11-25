@@ -687,7 +687,7 @@ describe('Publish CLI command', () => {
             quiet: false,
           },
         },
-        { logger }
+        expect.anything()
       );
       expect(installSpy).toHaveBeenCalledWith([profileId, '-f']);
       expect(writeOnceSpy).not.toHaveBeenCalled();
@@ -755,7 +755,7 @@ describe('Publish CLI command', () => {
             quiet: false,
           },
         },
-        { logger }
+        expect.anything()
       );
       expect(reconfigureProfileProvider).toHaveBeenCalledWith(
         mockSuperJson,
@@ -827,7 +827,7 @@ describe('Publish CLI command', () => {
           version: DEFAULT_PROFILE_VERSION_STR,
           options: {},
         },
-        { logger }
+        expect.anything()
       );
       expect(detectSuperJson).toHaveBeenCalledWith(process.cwd(), 3);
       expect(reconfigureProvider).toHaveBeenCalledWith(
@@ -892,7 +892,7 @@ describe('Publish CLI command', () => {
           version: DEFAULT_PROFILE_VERSION_STR,
           options: {},
         },
-        { logger }
+        expect.anything()
       );
       expect(writeOnceSpy).toHaveBeenCalledWith(
         mockSuperJson.path,
@@ -957,7 +957,7 @@ describe('Publish CLI command', () => {
           version: DEFAULT_PROFILE_VERSION_STR,
           options: {},
         },
-        { logger }
+        expect.anything()
       );
       expect(reconfigureProfileProvider).toHaveBeenCalledWith(
         mockSuperJson,
@@ -1031,7 +1031,7 @@ describe('Publish CLI command', () => {
             dryRun: true,
           },
         },
-        { logger }
+        expect.anything()
       );
 
       expect(reconfigureProvider).toHaveBeenCalledWith(
@@ -1105,7 +1105,7 @@ describe('Publish CLI command', () => {
           version: DEFAULT_PROFILE_VERSION_STR,
           options: {},
         },
-        { logger }
+        expect.anything()
       );
 
       expect(reconfigureProvider).toHaveBeenCalledWith(
@@ -1180,7 +1180,7 @@ describe('Publish CLI command', () => {
             quiet: true,
           },
         },
-        { logger }
+        expect.anything()
       );
       expect(installSpy).toHaveBeenCalledWith([profileId, '-f']);
       expect(writeOnceSpy).not.toHaveBeenCalled();
@@ -1244,7 +1244,7 @@ describe('Publish CLI command', () => {
             quiet: true,
           },
         },
-        { logger }
+        expect.anything()
       );
       expect(installSpy).not.toHaveBeenCalled();
       expect(writeOnceSpy).not.toHaveBeenCalled();
