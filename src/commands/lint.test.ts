@@ -3,10 +3,12 @@ import { err, ok, SuperJson } from '@superfaceai/one-sdk';
 import { SDKExecutionError } from '@superfaceai/one-sdk/dist/internal/errors';
 import { mocked } from 'ts-jest/utils';
 
+import { MockLogger } from '../common/log';
 import { OutputStream } from '../common/output-stream';
 import { ProfileId } from '../common/profile';
 import { detectSuperJson } from '../logic/install';
 import { lint } from '../logic/lint';
+import { CommandInstance } from '../test/utils';
 import Lint from './lint';
 
 //Mock output stream
@@ -24,16 +26,33 @@ jest.mock('../logic/lint', () => ({
 }));
 
 describe('lint CLI command', () => {
+  let logger: MockLogger;
+  let instance: Lint;
   const profileId = 'starwars/character-information';
   const provider = 'swapi';
+  const defaultFlags = {
+    output: '-',
+    outputFormat: 'long' as 'long' | 'json' | 'short',
+  };
+
+  beforeEach(() => {
+    logger = new MockLogger();
+    instance = CommandInstance(Lint);
+  });
 
   afterEach(() => {
     jest.resetAllMocks();
   });
+
   describe('lint CLI command', () => {
     it('throws when super.json not found', async () => {
       mocked(detectSuperJson).mockResolvedValue(undefined);
-      await expect(Lint.run([])).rejects.toEqual(
+      await expect(
+        instance.execute({
+          logger,
+          flags: defaultFlags,
+        })
+      ).rejects.toEqual(
         new CLIError('❌ Unable to lint, super.json not found')
       );
     });
@@ -43,24 +62,25 @@ describe('lint CLI command', () => {
       jest
         .spyOn(SuperJson, 'load')
         .mockResolvedValue(err(new SDKExecutionError('test error', [], [])));
-      await expect(Lint.run([])).rejects.toEqual(
+      await expect(
+        instance.execute({
+          logger,
+          flags: defaultFlags,
+        })
+      ).rejects.toEqual(
         new CLIError('❌ Unable to load super.json: test error')
       );
     });
 
-    it('throws error on invalid scan flag', async () => {
-      mocked(detectSuperJson).mockResolvedValue('.');
-
-      await expect(Lint.run(['-s test'])).rejects.toEqual(
-        new CLIError('Expected an integer but received:  test')
-      );
-      expect(detectSuperJson).not.toHaveBeenCalled();
-    }, 10000);
-
     it('throws error on scan flag higher than 5', async () => {
       mocked(detectSuperJson).mockResolvedValue('.');
 
-      await expect(Lint.run(['-s', '6'])).rejects.toEqual(
+      await expect(
+        instance.execute({
+          logger,
+          flags: { ...defaultFlags, scan: 6 },
+        })
+      ).rejects.toEqual(
         new CLIError(
           '❌ --scan/-s : Number of levels to scan cannot be higher than 5'
         )
@@ -75,7 +95,15 @@ describe('lint CLI command', () => {
         .mockResolvedValue(ok(new SuperJson()));
 
       await expect(
-        Lint.run(['--profileId', 'U!0_', '--providerName', provider, '-s', '3'])
+        instance.execute({
+          logger,
+          flags: {
+            ...defaultFlags,
+            profileId: 'U!0_',
+            providerName: provider,
+            scan: 3,
+          },
+        })
       ).rejects.toEqual(
         new CLIError(
           '❌ Invalid profile id: "U!0_" is not a valid lowercase identifier'
@@ -92,14 +120,15 @@ describe('lint CLI command', () => {
         .mockResolvedValue(ok(new SuperJson()));
 
       await expect(
-        Lint.run([
-          '--profileId',
-          profileId,
-          '--providerName',
-          'U!0_',
-          '-s',
-          '3',
-        ])
+        instance.execute({
+          logger,
+          flags: {
+            ...defaultFlags,
+            profileId,
+            providerName: 'U!0_',
+            scan: 3,
+          },
+        })
       ).rejects.toEqual(new CLIError('❌ Invalid provider name: "U!0_"'));
       expect(detectSuperJson).not.toHaveBeenCalled();
       expect(loadSpy).not.toHaveBeenCalled();
@@ -112,14 +141,15 @@ describe('lint CLI command', () => {
         .mockResolvedValue(ok(new SuperJson()));
 
       await expect(
-        Lint.run([
-          '--profileId',
-          profileId,
-          '--providerName',
-          provider,
-          '-s',
-          '3',
-        ])
+        instance.execute({
+          logger,
+          flags: {
+            ...defaultFlags,
+            profileId,
+            providerName: provider,
+            scan: 3,
+          },
+        })
       ).rejects.toEqual(
         new CLIError(
           `❌ Unable to lint, profile: "${profileId}" not found in super.json`
@@ -146,14 +176,15 @@ describe('lint CLI command', () => {
       );
 
       await expect(
-        Lint.run([
-          '--profileId',
-          profileId,
-          '--providerName',
-          provider,
-          '-s',
-          '3',
-        ])
+        instance.execute({
+          logger,
+          flags: {
+            ...defaultFlags,
+            profileId,
+            providerName: provider,
+            scan: 3,
+          },
+        })
       ).rejects.toEqual(
         new CLIError(
           `❌ Unable to lint, provider: "${provider}" not found in profile: "${profileId}" in super.json`
@@ -217,25 +248,36 @@ describe('lint CLI command', () => {
           .spyOn(OutputStream.prototype, 'cleanup')
           .mockResolvedValue(undefined);
 
-        await expect(Lint.run(['-s', '4'])).resolves.toBeUndefined();
+        await expect(
+          instance.execute({
+            logger,
+            flags: {
+              ...defaultFlags,
+              scan: 4,
+            },
+          })
+        ).resolves.toBeUndefined();
 
         expect(lint).toHaveBeenCalledTimes(1);
         expect(lint).toHaveBeenCalledWith(
-          mockSuperJson,
-          [
-            {
-              id: ProfileId.fromId(mockLocalProfile),
-              maps: [
-                {
-                  provider: mockLocalProvider,
-                },
-                {
-                  provider: secondMockLocalProvider,
-                },
-              ],
-            },
-          ],
-          expect.anything(),
+          {
+            superJson: mockSuperJson,
+            profiles: [
+              {
+                id: ProfileId.fromId(mockLocalProfile),
+                maps: [
+                  {
+                    provider: mockLocalProvider,
+                  },
+                  {
+                    provider: secondMockLocalProvider,
+                  },
+                ],
+              },
+            ],
+            writer: expect.anything(),
+            reportFn: expect.anything(),
+          },
           expect.anything()
         );
 
@@ -292,24 +334,34 @@ describe('lint CLI command', () => {
           .mockResolvedValue(undefined);
 
         await expect(
-          Lint.run(['--profileId', mockLocalProfile, '-s', '4'])
+          instance.execute({
+            logger,
+            flags: {
+              ...defaultFlags,
+              profileId: mockLocalProfile,
+              scan: 4,
+            },
+          })
         ).resolves.toBeUndefined();
 
         expect(lint).toHaveBeenCalledTimes(1);
         expect(lint).toHaveBeenCalledWith(
-          mockSuperJson,
-          [
-            {
-              id: ProfileId.fromId(mockLocalProfile),
-              maps: [
-                {
-                  provider: mockLocalProvider,
-                },
-                { provider: mockProvider, variant: 'test' },
-              ],
-            },
-          ],
-          expect.anything(),
+          {
+            superJson: mockSuperJson,
+            profiles: [
+              {
+                id: ProfileId.fromId(mockLocalProfile),
+                maps: [
+                  {
+                    provider: mockLocalProvider,
+                  },
+                  { provider: mockProvider, variant: 'test' },
+                ],
+              },
+            ],
+            writer: expect.anything(),
+            reportFn: expect.anything(),
+          },
           expect.anything()
         );
 
@@ -365,25 +417,35 @@ describe('lint CLI command', () => {
           .mockResolvedValue(undefined);
 
         await expect(
-          Lint.run(['--profileId', mockProfile, '-s', '4'])
+          instance.execute({
+            logger,
+            flags: {
+              ...defaultFlags,
+              profileId: mockProfile,
+              scan: 4,
+            },
+          })
         ).resolves.toBeUndefined();
 
         expect(lint).toHaveBeenCalledTimes(1);
         expect(lint).toHaveBeenCalledWith(
-          mockSuperJson,
-          [
-            {
-              id: ProfileId.fromId(mockProfile),
-              maps: [
-                {
-                  provider: mockLocalProvider,
-                },
-                { provider: mockProvider, variant: 'test' },
-              ],
-              version,
-            },
-          ],
-          expect.anything(),
+          {
+            superJson: mockSuperJson,
+            profiles: [
+              {
+                id: ProfileId.fromId(mockProfile),
+                maps: [
+                  {
+                    provider: mockLocalProvider,
+                  },
+                  { provider: mockProvider, variant: 'test' },
+                ],
+                version,
+              },
+            ],
+            writer: expect.anything(),
+            reportFn: expect.anything(),
+          },
           expect.anything()
         );
 
@@ -433,30 +495,34 @@ describe('lint CLI command', () => {
           .mockResolvedValue(undefined);
 
         await expect(
-          Lint.run([
-            '--profileId',
-            mockLocalProfile,
-            '--providerName',
-            mockLocalProvider,
-            '-s',
-            '4',
-          ])
+          instance.execute({
+            logger,
+            flags: {
+              ...defaultFlags,
+              profileId: mockLocalProfile,
+              providerName: mockLocalProvider,
+              scan: 4,
+            },
+          })
         ).resolves.toBeUndefined();
 
         expect(lint).toHaveBeenCalledTimes(1);
         expect(lint).toHaveBeenCalledWith(
-          mockSuperJson,
-          [
-            {
-              id: ProfileId.fromId(mockLocalProfile),
-              maps: [
-                {
-                  provider: mockLocalProvider,
-                },
-              ],
-            },
-          ],
-          expect.anything(),
+          {
+            superJson: mockSuperJson,
+            profiles: [
+              {
+                id: ProfileId.fromId(mockLocalProfile),
+                maps: [
+                  {
+                    provider: mockLocalProvider,
+                  },
+                ],
+              },
+            ],
+            writer: expect.anything(),
+            reportFn: expect.anything(),
+          },
           expect.anything()
         );
 
@@ -505,31 +571,35 @@ describe('lint CLI command', () => {
           .mockResolvedValue(undefined);
 
         await expect(
-          Lint.run([
-            '--profileId',
-            mockProfile,
-            '--providerName',
-            mockLocalProvider,
-            '-s',
-            '4',
-          ])
+          instance.execute({
+            logger,
+            flags: {
+              ...defaultFlags,
+              profileId: mockProfile,
+              providerName: mockLocalProvider,
+              scan: 4,
+            },
+          })
         ).resolves.toBeUndefined();
 
         expect(lint).toHaveBeenCalledTimes(1);
         expect(lint).toHaveBeenCalledWith(
-          mockSuperJson,
-          [
-            {
-              id: ProfileId.fromId(mockProfile),
-              maps: [
-                {
-                  provider: mockLocalProvider,
-                },
-              ],
-              version,
-            },
-          ],
-          expect.anything(),
+          {
+            superJson: mockSuperJson,
+            profiles: [
+              {
+                id: ProfileId.fromId(mockProfile),
+                maps: [
+                  {
+                    provider: mockLocalProvider,
+                  },
+                ],
+                version,
+              },
+            ],
+            writer: expect.anything(),
+            reportFn: expect.anything(),
+          },
           expect.anything()
         );
 
@@ -579,28 +649,31 @@ describe('lint CLI command', () => {
           .mockResolvedValue(undefined);
 
         await expect(
-          Lint.run([
-            '--profileId',
-            mockProfile,
-            '--providerName',
-            mockProvider,
-            '-s',
-            '4',
-            '-q',
-          ])
+          instance.execute({
+            logger,
+            flags: {
+              ...defaultFlags,
+              profileId: mockProfile,
+              providerName: mockProvider,
+              scan: 4,
+            },
+          })
         ).resolves.toBeUndefined();
 
         expect(lint).toHaveBeenCalledTimes(1);
         expect(lint).toHaveBeenCalledWith(
-          mockSuperJson,
-          [
-            {
-              id: ProfileId.fromId(mockProfile),
-              maps: [{ provider: mockProvider, variant: mapVariant }],
-              version,
-            },
-          ],
-          expect.anything(),
+          {
+            superJson: mockSuperJson,
+            profiles: [
+              {
+                id: ProfileId.fromId(mockProfile),
+                maps: [{ provider: mockProvider, variant: mapVariant }],
+                version,
+              },
+            ],
+            writer: expect.anything(),
+            reportFn: expect.anything(),
+          },
           expect.anything()
         );
 
@@ -650,27 +723,31 @@ describe('lint CLI command', () => {
           .mockResolvedValue(undefined);
 
         await expect(
-          Lint.run([
-            '--profileId',
-            mockProfile,
-            '--providerName',
-            mockProvider,
-            '-s',
-            '4',
-          ])
+          instance.execute({
+            logger,
+            flags: {
+              ...defaultFlags,
+              profileId: mockProfile,
+              providerName: mockProvider,
+              scan: 4,
+            },
+          })
         ).resolves.toBeUndefined();
 
         expect(lint).toHaveBeenCalledTimes(1);
         expect(lint).toHaveBeenCalledWith(
-          mockSuperJson,
-          [
-            {
-              id: ProfileId.fromId(mockProfile),
-              maps: [{ provider: mockProvider, variant: mapVariant }],
-              version,
-            },
-          ],
-          expect.anything(),
+          {
+            superJson: mockSuperJson,
+            profiles: [
+              {
+                id: ProfileId.fromId(mockProfile),
+                maps: [{ provider: mockProvider, variant: mapVariant }],
+                version,
+              },
+            ],
+            writer: expect.anything(),
+            reportFn: expect.anything(),
+          },
           expect.anything()
         );
 
@@ -681,6 +758,7 @@ describe('lint CLI command', () => {
 
         expect(cleanupSpy).toHaveBeenCalledTimes(1);
       });
+
       it('throws on error', async () => {
         const mockProfile = 'starwars/character-information';
         const mockProvider = 'swapi';
@@ -719,27 +797,31 @@ describe('lint CLI command', () => {
           .mockResolvedValue(undefined);
 
         await expect(
-          Lint.run([
-            '--profileId',
-            mockProfile,
-            '--providerName',
-            mockProvider,
-            '-s',
-            '4',
-          ])
+          instance.execute({
+            logger,
+            flags: {
+              ...defaultFlags,
+              profileId: mockProfile,
+              providerName: mockProvider,
+              scan: 4,
+            },
+          })
         ).rejects.toEqual(new CLIError('❌ Errors were found'));
 
         expect(lint).toHaveBeenCalledTimes(1);
         expect(lint).toHaveBeenCalledWith(
-          mockSuperJson,
-          [
-            {
-              id: ProfileId.fromId(mockProfile),
-              maps: [{ provider: mockProvider, variant: mapVariant }],
-              version,
-            },
-          ],
-          expect.anything(),
+          {
+            superJson: mockSuperJson,
+            profiles: [
+              {
+                id: ProfileId.fromId(mockProfile),
+                maps: [{ provider: mockProvider, variant: mapVariant }],
+                version,
+              },
+            ],
+            writer: expect.anything(),
+            reportFn: expect.anything(),
+          },
           expect.anything()
         );
 

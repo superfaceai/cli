@@ -220,12 +220,12 @@ async function prepareLintedProfile(
     superJson,
     profile,
     writer,
-    fn,
+    reportFn,
   }: {
     superJson: SuperJson;
     profile: ProfileToValidate;
     writer: ListWriter;
-    fn: (report: ReportFormat) => string;
+    reportFn: (report: ReportFormat) => string;
   },
   { logger }: { logger: ILogger }
 ): Promise<ProfileToLintWithAst> {
@@ -254,7 +254,7 @@ async function prepareLintedProfile(
     } catch (e) {
       report.errors.push(e);
     }
-    await writer.writeElement(fn(report));
+    await writer.writeElement(reportFn(report));
 
     counts.push([report.errors.length, report.warnings.length]);
   } else {
@@ -355,12 +355,12 @@ export async function lint(
     superJson,
     profiles,
     writer,
-    fn,
+    reportFn,
   }: {
     superJson: SuperJson;
     profiles: ProfileToValidate[];
     writer: ListWriter;
-    fn: (report: ReportFormat) => string;
+    reportFn: (report: ReportFormat) => string;
   },
   { logger }: { logger: ILogger }
 ): Promise<[number, number][]> {
@@ -372,7 +372,7 @@ export async function lint(
         superJson,
         profile,
         writer,
-        fn,
+        reportFn: reportFn,
       },
       { logger }
     );
@@ -388,7 +388,7 @@ export async function lint(
           profile,
           map,
           writer,
-          fn,
+          fn: reportFn,
         },
         { logger }
       );
@@ -409,7 +409,7 @@ export async function lint(
           preparedMap.path
         );
 
-        await writer.writeElement(fn(report));
+        await writer.writeElement(reportFn(report));
 
         counts.push([
           result.pass ? 0 : result.errors.length,

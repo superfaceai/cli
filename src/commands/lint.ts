@@ -228,7 +228,7 @@ export default class Lint extends Command {
     writer: ListWriter,
     superJson: SuperJson,
     profiles: ProfileToValidate[],
-    fn: (report: ReportFormat) => string,
+    reportFn: (report: ReportFormat) => string,
     { logger }: { logger: ILogger }
   ): Promise<[errors: number, warnings: number]> {
     const counts: [number, number][] = await lint(
@@ -236,7 +236,7 @@ export default class Lint extends Command {
         superJson,
         profiles,
         writer,
-        fn,
+        reportFn,
       },
       { logger }
     );
