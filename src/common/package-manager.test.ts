@@ -1,9 +1,9 @@
-import { mocked } from 'ts-jest/utils';
-import { MockLogger } from '.';
-import { PackageManager } from './package-manager';
-
-import { execShell, exists } from './io';
 import { join } from 'path';
+import { mocked } from 'ts-jest/utils';
+
+import { MockLogger } from '.';
+import { execShell, exists } from './io';
+import { PackageManager } from './package-manager';
 
 jest.mock('../common/io');
 jest.mock('path', () => ({
