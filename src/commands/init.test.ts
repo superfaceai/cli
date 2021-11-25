@@ -1,11 +1,12 @@
 import { SuperJson } from '@superfaceai/one-sdk';
 import inquirer from 'inquirer';
 import { mocked } from 'ts-jest/utils';
+import { MockLogger } from '..';
 
-import { Logger } from '..';
 import { constructProviderSettings } from '../common/document';
 import { OutputStream } from '../common/output-stream';
 import { generateSpecifiedProfiles, initSuperface } from '../logic/init';
+import { CommandInstance } from '../test/utils';
 // import { MockStd, mockStd } from '../test/mock-std';
 import Init from './init';
 
@@ -19,9 +20,13 @@ jest.mock('../logic/init', () => ({
 jest.mock('inquirer');
 
 describe('Init CLI command', () => {
+  let logger: MockLogger;
+  let instance: Init;
+
   describe('when running init command', () => {
     beforeEach(async () => {
-      Logger.mockLogger();
+      logger = new MockLogger();
+      instance = CommandInstance(Init);
     });
 
     afterEach(() => {
@@ -42,12 +47,24 @@ describe('Init CLI command', () => {
         .mockResolvedValueOnce({ profiles: 'first@1.0.0 second@1.0.0' })
         .mockResolvedValueOnce({ providers: 'twilio tyntec' });
 
-      await expect(Init.run([mockPath, '-p'])).resolves.toBeUndefined();
+      await expect(
+        instance.execute({
+          logger,
+          flags: { profiles: [], providers: [], prompt: true },
+          args: { name: mockPath },
+        })
+      ).resolves.toBeUndefined();
 
       expect(initSuperface).toHaveBeenCalledTimes(1);
-      expect(initSuperface).toHaveBeenCalledWith(mockPath, {
-        providers: constructProviderSettings(['twilio', 'tyntec']),
-      });
+      expect(initSuperface).toHaveBeenCalledWith(
+        {
+          appPath: mockPath,
+          initialDocument: {
+            providers: constructProviderSettings(['twilio', 'tyntec']),
+          },
+        },
+        expect.anything()
+      );
 
       expect(promptSpy).toHaveBeenCalledTimes(2);
 
@@ -70,12 +87,24 @@ describe('Init CLI command', () => {
         .mockResolvedValueOnce({ profiles: 'first second@1.0.0' })
         .mockResolvedValueOnce({ providers: 'twilio t7!c' });
 
-      await expect(Init.run([mockPath, '-p'])).resolves.toBeUndefined();
+      await expect(
+        instance.execute({
+          logger,
+          flags: { profiles: [], providers: [], prompt: true },
+          args: { name: mockPath },
+        })
+      ).resolves.toBeUndefined();
 
       expect(initSuperface).toHaveBeenCalledTimes(1);
-      expect(initSuperface).toHaveBeenCalledWith(mockPath, {
-        providers: constructProviderSettings(['twilio']),
-      });
+      expect(initSuperface).toHaveBeenCalledWith(
+        {
+          appPath: mockPath,
+          initialDocument: {
+            providers: constructProviderSettings(['twilio']),
+          },
+        },
+        expect.anything()
+      );
 
       expect(promptSpy).toHaveBeenCalledTimes(2);
 
@@ -95,12 +124,24 @@ describe('Init CLI command', () => {
 
       const promptSpy = jest.spyOn(inquirer, 'prompt');
 
-      await expect(Init.run([mockPath])).resolves.toBeUndefined();
+      await expect(
+        instance.execute({
+          logger,
+          flags: { profiles: [], providers: [] },
+          args: { name: mockPath },
+        })
+      ).resolves.toBeUndefined();
 
       expect(initSuperface).toHaveBeenCalledTimes(1);
-      expect(initSuperface).toHaveBeenCalledWith(mockPath, {
-        providers: constructProviderSettings([]),
-      });
+      expect(initSuperface).toHaveBeenCalledWith(
+        {
+          appPath: mockPath,
+          initialDocument: {
+            providers: constructProviderSettings([]),
+          },
+        },
+        expect.anything()
+      );
 
       expect(promptSpy).toHaveBeenCalledTimes(0);
 
@@ -116,12 +157,24 @@ describe('Init CLI command', () => {
 
       const promptSpy = jest.spyOn(inquirer, 'prompt');
 
-      await expect(Init.run([mockPath, '-q'])).resolves.toBeUndefined();
+      await expect(
+        instance.execute({
+          logger,
+          flags: { profiles: [], providers: [], quiet: true },
+          args: { name: mockPath },
+        })
+      ).resolves.toBeUndefined();
 
       expect(initSuperface).toHaveBeenCalledTimes(1);
-      expect(initSuperface).toHaveBeenCalledWith(mockPath, {
-        providers: constructProviderSettings([]),
-      });
+      expect(initSuperface).toHaveBeenCalledWith(
+        {
+          appPath: mockPath,
+          initialDocument: {
+            providers: constructProviderSettings([]),
+          },
+        },
+        expect.anything()
+      );
 
       expect(promptSpy).toHaveBeenCalledTimes(0);
 
