@@ -152,15 +152,13 @@ describe('Install CLI command', () => {
         JSON.stringify(localSuperJson, undefined, 2)
       );
 
-      const result = await execCLI(
-        tempDir,
-        ['install', 'starwars/character-information'],
-        mockServer.url
-      );
-
-      expect(result.stdout).toMatch('already installed from a different path');
-
-      expect(result.stdout).toMatch('No profiles have been installed');
+      await expect(
+        execCLI(
+          tempDir,
+          ['install', 'starwars/character-information'],
+          mockServer.url
+        )
+      ).rejects.toMatch('already installed from a different path');
     }, 20000);
   });
 });
