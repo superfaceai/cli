@@ -27,7 +27,7 @@ import { ProfileId } from './profile';
 jest.mock('./netrc');
 
 describe('SuperfaceClient', () => {
-  describe('getClinet', () => {
+  describe('getClient', () => {
     let sfClient: typeof SuperfaceClient;
 
     beforeEach(async () => {
@@ -38,15 +38,15 @@ describe('SuperfaceClient', () => {
       jest.resetModules();
     });
 
-    it('should return clinet', async () => {
+    it('should return client', async () => {
       const mockNetRcRecord = {
         baseUrl: 'baseUrl',
         refreshToken: 'RT',
       };
       mocked(loadNetrc).mockReturnValue(mockNetRcRecord);
-      const clinet = sfClient.getClient();
+      const client = sfClient.getClient();
 
-      expect(clinet).toEqual({
+      expect(client).toEqual({
         _STORAGE: {
           baseUrl: mockNetRcRecord.baseUrl,
           refreshToken: mockNetRcRecord.refreshToken,
@@ -58,14 +58,14 @@ describe('SuperfaceClient', () => {
       });
     });
 
-    it('should return clinet - refresh token from env', async () => {
+    it('should return client - refresh token from env', async () => {
       const originalValue = process.env.SUPERFACE_REFRESH_TOKEN;
 
       process.env.SUPERFACE_REFRESH_TOKEN = 'RT';
 
-      const clinet = sfClient.getClient();
+      const client = sfClient.getClient();
 
-      expect(clinet).toEqual({
+      expect(client).toEqual({
         _STORAGE: {
           baseUrl: expect.any(String),
           refreshToken: 'RT',
@@ -84,12 +84,6 @@ describe('SuperfaceClient', () => {
 
 describe('HTTP functions', () => {
   const profileId = 'starwars/character-information';
-
-  // const profileWithVersion = {
-  //   scope: 'starwars',
-  //   name: 'character-information',
-  //   version: '1.1.1'
-  // }
 
   const astMetadata: AstMetadata = {
     sourceChecksum: 'check',
