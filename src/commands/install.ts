@@ -132,7 +132,7 @@ export default class Install extends Command {
     if (flags.interactive) {
       if (!args.profileId) {
         logger.warn('missingInteractiveFlag');
-        this.exit(0);
+        this.exit(1);
       }
 
       await interactiveInstall(args.profileId, { logger, pm });
@@ -193,7 +193,7 @@ export default class Install extends Command {
         superPath,
         requests,
         options: {
-          force: flags.force,
+          force: !!flags.force,
           tryToAuthenticate: true,
         },
       },
@@ -209,7 +209,7 @@ export default class Install extends Command {
           profileId: ProfileId.fromId(profileArg as string),
           defaults: undefined,
           options: {
-            force: flags.force,
+            force: !!flags.force,
           },
         },
         { logger }

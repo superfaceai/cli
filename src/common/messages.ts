@@ -159,10 +159,11 @@ const configure = {
 const install = {
   installMultipleProviders: (): string => `Installing providers`,
   installProvider: (provider: string): string =>
-    `Installing provider ${provider}`,
+    `Installing provider "${provider}"`,
   installProfilesToSuperJson: (path: string): string =>
-    `Installing profiles according to 'super.json' on path ${path}`,
-  installProfile: (profile: string): string => `Installing profile ${profile}`,
+    `Installing profiles according to "super.json" to path "${path}"`,
+  installProfile: (profile: string): string =>
+    `Installing profile "${profile}"`,
   xOutOfYInsatlled: (x: string, y: string): string =>
     `Installed ${x} out of ${y} profiles`,
   allProfilesInstalled: (count: string): string =>
@@ -170,18 +171,18 @@ const install = {
   noProfilesInstalled: (): string => `No profiles have been installed`,
   noProfilesFound: (): string => `No profiles found to install`,
   noVersionForProfile: (profileId: string): string =>
-    `No version for profile ${profileId} was found, returning default version 1.0.0`,
+    `No version for profile "${profileId}" was found, returning default version "1.0.0"`,
   couldNotReadProfile: (path: string, err: unknown): string =>
     // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-    `Could not read profile file ${path}: ${err}`,
+    `Could not read profile file "${path}": ${err}`,
   profileInstalledFromSamePath: (profile: string, path: string): string =>
-    `Profile ${profile} already installed from the same path ${path}. Skipping.`,
+    `Profile "${profile}" already installed from the same path "${path}". Skipping.`,
   profileInstalledFromPath: (profile: string, path: string): string =>
-    `Profile ${profile} already installed from a different path ${path}. Pass \`--force\` to override.`,
+    `Profile "${profile}" already installed from a different path "${path}". Pass \`--force\` to override.`,
   profileInstalledWithVersion: (profile: string, version: string): string =>
-    `Profile ${profile} already installed with version ${version}. Pass \`--force\` to override.`,
+    `Profile "${profile}" already installed with version "${version}". Pass \`--force\` to override.`,
   fileAlreadyExists: (path: string): string =>
-    `Target file already exists ${path}. Pass \`--force\` to override.`,
+    `Target file already exists "${path}". Pass \`--force\` to override.`,
   unableToInstallWithoutProfile: (): string =>
     'Unable to install providers without a profile. Please, specify a profile id.',
   missingInteractiveFlag: (): string =>
