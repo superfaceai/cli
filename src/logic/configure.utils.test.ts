@@ -5,13 +5,11 @@ import {
   SecurityType,
 } from '@superfaceai/ast';
 
-import { Logger } from '../common';
+import { MockLogger } from '../common';
 import { prepareSecurityValues } from '.';
 
 describe('Configure CLI logic', () => {
-  beforeEach(() => {
-    Logger.mockLogger();
-  });
+  let logger: MockLogger;
   const providerName = 'test-provider';
   const mockSecuritySchemes: SecurityScheme[] = [
     {
@@ -37,8 +35,14 @@ describe('Configure CLI logic', () => {
     },
   ];
 
+  beforeEach(() => {
+    logger = new MockLogger();
+  });
+
   it('prepares security values', async () => {
-    expect(prepareSecurityValues(providerName, mockSecuritySchemes)).toEqual([
+    expect(
+      prepareSecurityValues(providerName, mockSecuritySchemes, { logger })
+    ).toEqual([
       {
         id: 'api',
         apikey: `$TEST_PROVIDER_API_KEY`,
@@ -62,9 +66,11 @@ describe('Configure CLI logic', () => {
   it('does not prepare unknown security values', async () => {
     const mockSecurityScheme = { id: 'unknown' };
     expect(
-      prepareSecurityValues(providerName, [
-        mockSecurityScheme as SecurityScheme,
-      ])
+      prepareSecurityValues(
+        providerName,
+        [mockSecurityScheme as SecurityScheme],
+        { logger }
+      )
     ).toEqual([]);
   });
 });

@@ -10,7 +10,7 @@ import {
 import { ok, SuperJson } from '@superfaceai/one-sdk';
 import { mocked } from 'ts-jest/utils';
 
-import { Logger } from '../common';
+import { MockLogger } from '../common';
 import { fetchProviderInfo } from '../common/http';
 import { readFile, readFileQuiet } from '../common/io';
 import { OutputStream } from '../common/output-stream';
@@ -32,6 +32,7 @@ jest.mock('../common/io');
 jest.mock('@superfaceai/one-sdk/dist/internal/superjson');
 
 describe('Configure CLI logic', () => {
+  let logger: MockLogger;
   const providerName = 'test';
   const mockProviderJson: ProviderJson = {
     name: providerName,
@@ -66,9 +67,11 @@ describe('Configure CLI logic', () => {
     ],
     defaultService: 'swapidev',
   };
+
   beforeEach(async () => {
-    Logger.mockLogger();
+    logger = new MockLogger();
   });
+
   afterEach(() => {
     jest.resetAllMocks();
   });
@@ -81,7 +84,7 @@ describe('Configure CLI logic', () => {
         .mockResolvedValue(undefined);
 
       await expect(
-        updateEnv(providerName, mockProviderJson.securitySchemes!)
+        updateEnv(providerName, mockProviderJson.securitySchemes!, { logger })
       ).resolves.toBeUndefined();
       expect(writeOnceSpy).toHaveBeenCalledTimes(1);
       expect(writeOnceSpy).toHaveBeenCalledWith(
@@ -97,7 +100,7 @@ describe('Configure CLI logic', () => {
         .mockResolvedValue(undefined);
 
       await expect(
-        updateEnv(providerName, mockProviderJson.securitySchemes!)
+        updateEnv(providerName, mockProviderJson.securitySchemes!, { logger })
       ).resolves.toBeUndefined();
       expect(writeOnceSpy).toHaveBeenCalledTimes(1);
       expect(writeOnceSpy).toHaveBeenCalledWith(
@@ -113,13 +116,17 @@ describe('Configure CLI logic', () => {
         .mockResolvedValue(undefined);
 
       await expect(
-        updateEnv(providerName, [
-          {
-            id: 'api',
-            type: SecurityType.APIKEY,
-            name: 'X-API-Key',
-          },
-        ] as SecurityScheme[])
+        updateEnv(
+          providerName,
+          [
+            {
+              id: 'api',
+              type: SecurityType.APIKEY,
+              name: 'X-API-Key',
+            },
+          ] as SecurityScheme[],
+          { logger }
+        )
       ).resolves.toBeUndefined();
 
       expect(writeOnceSpy).toHaveBeenCalledTimes(1);
@@ -137,7 +144,14 @@ describe('Configure CLI logic', () => {
       );
 
       expect(
-        handleProviderResponse(mockSuperJson, mockProfileId, mockProviderJson)
+        handleProviderResponse(
+          {
+            superJson: mockSuperJson,
+            profileId: mockProfileId,
+            response: mockProviderJson,
+          },
+          { logger }
+        )
       ).toEqual(4);
 
       expect(setProviderSpy).toHaveBeenCalledTimes(1);
@@ -204,7 +218,14 @@ describe('Configure CLI logic', () => {
       };
 
       expect(
-        handleProviderResponse(mockSuperJson, mockProfileId, customProviderJson)
+        handleProviderResponse(
+          {
+            superJson: mockSuperJson,
+            profileId: mockProfileId,
+            response: customProviderJson,
+          },
+          { logger }
+        )
       ).toEqual(4);
 
       expect(setProviderSpy).toHaveBeenCalledTimes(1);
@@ -285,7 +306,14 @@ describe('Configure CLI logic', () => {
       };
 
       expect(
-        handleProviderResponse(mockSuperJson, mockProfileId, customProviderJson)
+        handleProviderResponse(
+          {
+            superJson: mockSuperJson,
+            profileId: mockProfileId,
+            response: customProviderJson,
+          },
+          { logger }
+        )
       ).toEqual(4);
 
       expect(setProviderSpy).toHaveBeenCalledTimes(1);
@@ -342,9 +370,12 @@ describe('Configure CLI logic', () => {
 
       expect(
         handleProviderResponse(
-          mockSuperJson,
-          mockProfileId,
-          mockProviderJsonWithSingleSchema
+          {
+            superJson: mockSuperJson,
+            profileId: mockProfileId,
+            response: mockProviderJsonWithSingleSchema,
+          },
+          { logger }
         )
       ).toEqual(0);
 
@@ -366,17 +397,17 @@ describe('Configure CLI logic', () => {
     it('returns correct result', async () => {
       mocked(fetchProviderInfo).mockResolvedValue(mockProviderJson);
 
-      await expect(getProviderFromStore(providerName)).resolves.toEqual(
-        mockProviderJson
-      );
+      await expect(
+        getProviderFromStore(providerName, { logger })
+      ).resolves.toEqual(mockProviderJson);
     });
 
     it('throws on error', async () => {
       mocked(fetchProviderInfo).mockRejectedValue(new Error('test'));
 
-      await expect(getProviderFromStore(providerName)).rejects.toEqual(
-        new CLIError('test')
-      );
+      await expect(
+        getProviderFromStore(providerName, { logger })
+      ).rejects.toEqual(new CLIError('test'));
     });
   });
 
@@ -424,14 +455,17 @@ describe('Configure CLI logic', () => {
         .mockResolvedValue(undefined);
 
       await expect(
-        installProvider({
-          superPath: 'some/path',
-          provider: providerName,
-          profileId: mockProfileId,
-          defaults: {
-            testUseCase: { retryPolicy: OnFail.CIRCUIT_BREAKER },
+        installProvider(
+          {
+            superPath: 'some/path',
+            provider: providerName,
+            profileId: mockProfileId,
+            defaults: {
+              testUseCase: { retryPolicy: OnFail.CIRCUIT_BREAKER },
+            },
           },
-        })
+          { logger }
+        )
       ).resolves.toBeUndefined();
 
       expect(loadSpy).toHaveBeenCalledTimes(1);
@@ -493,15 +527,18 @@ describe('Configure CLI logic', () => {
         .mockResolvedValue(undefined);
 
       await expect(
-        installProvider({
-          superPath: 'some/path',
-          provider: providerName,
-          profileId: mockProfileId,
-          defaults: {
-            testUseCase: { retryPolicy: OnFail.CIRCUIT_BREAKER },
+        installProvider(
+          {
+            superPath: 'some/path',
+            provider: providerName,
+            profileId: mockProfileId,
+            defaults: {
+              testUseCase: { retryPolicy: OnFail.CIRCUIT_BREAKER },
+            },
+            options: { updateEnv: true },
           },
-          options: { updateEnv: true },
-        })
+          { logger }
+        )
       ).resolves.toBeUndefined();
 
       expect(loadSpy).toHaveBeenCalledTimes(1);
@@ -568,15 +605,18 @@ describe('Configure CLI logic', () => {
       mocked(fetchProviderInfo).mockResolvedValue(mockProviderJson);
 
       await expect(
-        installProvider({
-          superPath: 'some/path',
-          provider: providerName,
-          profileId: mockProfileId,
-          defaults: undefined,
-          options: {
-            localMap: 'maps/send-sms.twilio.suma',
+        installProvider(
+          {
+            superPath: 'some/path',
+            provider: providerName,
+            profileId: mockProfileId,
+            defaults: undefined,
+            options: {
+              localMap: 'maps/send-sms.twilio.suma',
+            },
           },
-        })
+          { logger }
+        )
       ).resolves.toBeUndefined();
 
       expect(loadSpy).toHaveBeenCalledTimes(1);
@@ -639,15 +679,18 @@ describe('Configure CLI logic', () => {
       mocked(readFile).mockResolvedValue(JSON.stringify(mockProviderJson));
 
       await expect(
-        installProvider({
-          superPath: 'some/path',
-          provider: providerName,
-          profileId: mockProfileId,
-          defaults: undefined,
-          options: {
-            localProvider: 'providers/twilio.provider.json',
+        installProvider(
+          {
+            superPath: 'some/path',
+            provider: providerName,
+            profileId: mockProfileId,
+            defaults: undefined,
+            options: {
+              localProvider: 'providers/twilio.provider.json',
+            },
           },
-        })
+          { logger }
+        )
       ).resolves.toBeUndefined();
 
       expect(loadSpy).toHaveBeenCalledTimes(1);
@@ -710,16 +753,19 @@ describe('Configure CLI logic', () => {
       mocked(fetchProviderInfo).mockResolvedValue(mockProviderJson);
 
       await expect(
-        installProvider({
-          superPath: 'some/path',
-          provider: providerName,
-          profileId: mockProfileId,
-          defaults: undefined,
-          options: {
-            localMap: 'maps/send-sms.twilio.suma',
-            updateEnv: true,
+        installProvider(
+          {
+            superPath: 'some/path',
+            provider: providerName,
+            profileId: mockProfileId,
+            defaults: undefined,
+            options: {
+              localMap: 'maps/send-sms.twilio.suma',
+              updateEnv: true,
+            },
           },
-        })
+          { logger }
+        )
       ).resolves.toBeUndefined();
 
       expect(loadSpy).toHaveBeenCalledTimes(1);
@@ -775,15 +821,18 @@ describe('Configure CLI logic', () => {
       mocked(readFile).mockRejectedValue(new Error('test'));
 
       await expect(
-        installProvider({
-          superPath: 'some/path',
-          provider: providerName,
-          profileId: mockProfileId,
-          defaults: undefined,
-          options: {
-            localProvider: 'some/error/path',
+        installProvider(
+          {
+            superPath: 'some/path',
+            provider: providerName,
+            profileId: mockProfileId,
+            defaults: undefined,
+            options: {
+              localProvider: 'some/error/path',
+            },
           },
-        })
+          { logger }
+        )
       ).rejects.toEqual(new CLIError('test'));
 
       expect(fetchProviderInfo).not.toHaveBeenCalled();
@@ -805,11 +854,14 @@ describe('Configure CLI logic', () => {
         .mockResolvedValue(ok(mockSuperJson));
 
       await expect(
-        installProvider({
-          superPath: 'some/path',
-          provider: providerName,
-          profileId: mockProfileId,
-        })
+        installProvider(
+          {
+            superPath: 'some/path',
+            provider: providerName,
+            profileId: mockProfileId,
+          },
+          { logger }
+        )
       ).rejects.toEqual(
         new CLIError(
           `❌ profile ${mockProfileId.id} not found in "some/path/super.json".`
@@ -855,11 +907,14 @@ describe('Configure CLI logic', () => {
         .mockResolvedValue(undefined);
 
       await expect(
-        installProvider({
-          superPath: 'some/path',
-          provider: providerName,
-          profileId: mockProfileId,
-        })
+        installProvider(
+          {
+            superPath: 'some/path',
+            provider: providerName,
+            profileId: mockProfileId,
+          },
+          { logger }
+        )
       ).resolves.toBeUndefined();
 
       expect(loadSpy).toHaveBeenCalledTimes(1);
