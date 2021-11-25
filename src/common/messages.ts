@@ -29,11 +29,11 @@ const common = {
 
 const load = {
   localProfileFound: (profileId: string, path: string): string =>
-    `Profile ${profileId} found on local file system at path: ${path}`,
+    `Profile "${profileId}" found on local file system at path "${path}"`,
   localMapFound: (profile: string, provider: string, path: string): string =>
-    `Map for profile: ${profile} and provider ${provider} found on local filesystem at path: ${path}`,
+    `Map for profile "${profile}" and provider "${provider}" found on local file system at path "${path}"`,
   localProviderFound: (provider: string, path: string): string =>
-    `Provider ${provider} found on local file system at path: ${path}`,
+    `Provider "${provider}" found on local file system at path "${path}"`,
 };
 
 const publish = {
@@ -71,20 +71,20 @@ const lint = {
 
 const fetch = {
   fetchProfileInfo: (profile: string) =>
-    `Fetching profile info of profile ${profile} from Superface store`,
+    `Fetching profile info of profile "${profile}" from Superface store`,
   fetchProfileSource: (profile: string) =>
-    `Fetching profile source for ${profile} from Superface store`,
+    `Fetching profile source for "${profile}" from Superface store`,
   fetchProfileAst: (profile: string) =>
-    `Fetching compiled profile for ${profile} from Superface store`,
+    `Fetching compiled profile for "${profile}" from Superface store`,
   fetchProfileAstFailed: (profile: string) =>
-    `Fetching compiled profile for ${profile} failed, trying to parse source file`,
+    `Fetching compiled profile for "${profile}" failed, trying to parse source file`,
 
   fetchProfile: (profile: string, version?: string) => {
     if (version) {
-      return `Fetching profile: ${profile} in version: ${version} from Superface store`;
+      return `Fetching profile "${profile}" with version "${version}" from Superface store`;
     }
 
-    return `Fetching profile: ${profile} from Superface store`;
+    return `Fetching profile "${profile}" from Superface store`;
   },
   fetchMap: (
     profile: string,
@@ -92,17 +92,17 @@ const fetch = {
     astVersion?: string
   ): string => {
     if (astVersion) {
-      return `Fetching map for profile: ${profile} and provider: ${provider} in version: ${astVersion} from Superface store`;
+      return `Fetching map for profile "${profile}" and provider "${provider}" with version "${astVersion}" from Superface store`;
     }
 
-    return `Fetching map for profile: ${profile} and provider: ${provider} from Superface store`;
+    return `Fetching map for profile "${profile}" and provider "${provider}" from Superface store`;
   },
   fetchProvider: (provider: string): string =>
-    `Fetching provider ${provider} from the Superface Store`,
+    `Fetching provider "${provider}" from Superface store`,
 
   couldNotFetch: (entitiy: string, error: unknown): string =>
     // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-    `Could not fetch ${entitiy}: ${error}`,
+    `Could not fetch "${entitiy}": "${error}"`,
 };
 
 const configure = {
@@ -190,15 +190,16 @@ const install = {
 
 const check = {
   checkProfileAndMap: (profile: string, provider: string): string =>
-    `Checking profile ${profile} and map for provider ${provider}`,
+    `Checking profile "${profile}" and map for provider "${provider}"`,
 
-  checkProvider: (provider: string): string => `Checking provider ${provider}`,
+  checkProvider: (provider: string): string =>
+    `Checking provider "${provider}"`,
   checkIntegrationParameters: (provider: string): string =>
-    `Checking integration parameters of provider ${provider}`,
+    `Checking integration parameters of provider "${provider}"`,
   checkVersions: (profile: string, provider: string): string =>
-    `Checking versions of profile ${profile} and map for provider ${provider}`,
+    `Checking versions of profile "${profile}" and map for provider "${provider}"`,
   checkUsecases: (profile: string, provider: string): string =>
-    `Checking usecase definitions in profile ${profile} and map for provider ${provider}`,
+    `Checking usecase definitions in profile "${profile}" and map for provider "${provider}"`,
 };
 
 const packageManager = {

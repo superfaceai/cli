@@ -116,32 +116,32 @@ describe('Check CLI command', () => {
         mockServer.url
       );
       expect(result.stdout).toContain(
-        `Profile: "${profileId}" found on local file system`
+        `Profile "${profileId}" found on local file system`
       );
       expect(result.stdout).toContain(
-        `Map for profile: "${profileId}" and provider: "${provider}" found on local filesystem`
+        `Map for profile "${profileId}" and provider "${provider}" found on local file system`
       );
       expect(result.stdout).toContain(
-        `Provider: "${provider}" found on local file system`
+        `Provider "${provider}" found on local file system`
       );
       expect(result.stdout).toContain(
-        'Checking profile: "starwars/character-information" and map for provider: "unverified-swapi"'
+        'Checking profile "starwars/character-information" and map for provider "unverified-swapi"'
       );
-      //Map and profile
+      // Map and profile
       expect(result.stdout).toMatch(
-        `🆗 Checking local profile ${profileId}@1.0.1 at path`
+        `🆗 Checking local profile "${profileId}@1.0.1" at path`
       );
       expect(result.stdout).toMatch(sourceFixture.profile);
       expect(result.stdout).toMatch(
-        `and local map for provider ${provider} at path`
+        `and local map for provider "${provider}" at path`
       );
       expect(result.stdout).toMatch(sourceFixture.map);
 
-      //Map and provider
+      // Map and provider
       expect(result.stdout).toMatch(`🆗 Checking local map at path`);
       expect(result.stdout).toMatch(sourceFixture.map);
       expect(result.stdout).toMatch(
-        `for profile ${profileId} and local provider unverified-swapi at path`
+        `for profile "${profileId}" and local provider "unverified-swapi" at path`
       );
       expect(result.stdout).toMatch(sourceFixture.provider);
     });
@@ -175,24 +175,24 @@ describe('Check CLI command', () => {
         mockServer.url
       );
       expect(result.stdout).toContain(
-        `Loading profile: "${profileId}" in version: "${profileVersion}" from Superface store`
+        `Fetching profile "${profileId}" with version "${profileVersion}" from Superface store`
       );
       expect(result.stdout).toContain(
-        `Map for profile: "${profileId}@${profileVersion}" and provider: "${provider}" found on local filesystem`
+        `Map for profile "${profileId}@${profileVersion}" and provider "${provider}" found on local file system`
       );
       expect(result.stdout).toContain(
-        `Loading provider: "${provider}" from Superface store`
+        `Fetching provider "${provider}" from Superface store`
       );
-      //Map and profile
+      // Map and profile
       expect(result.stdout).toMatch(
-        `🆗 Checking remote profile ${profileId}@${profileVersion} with version ${profileVersion} and local map for provider ${provider} at path`
+        `🆗 Checking remote profile "${profileId}" with version "${profileVersion}" and local map for provider "${provider}" at path`
       );
       expect(result.stdout).toMatch(sourceFixture.map);
-      //Map and provider
+      // Map and provider
       expect(result.stdout).toMatch(`🆗 Checking local map at path`);
 
       expect(result.stdout).toMatch(
-        `for profile ${profileId} and remote provider ${provider}`
+        `for profile "${profileId}" and remote provider "${provider}"`
       );
     });
 
@@ -223,28 +223,28 @@ describe('Check CLI command', () => {
         mockServer.url
       );
       expect(result.stdout).toContain(
-        `Profile: "${profileId}" found on local file system`
+        `Profile "${profileId}" found on local file system`
       );
       expect(result.stdout).toContain(
-        `Loading map for profile: "${profileId}" and provider: "${provider}" in version: "1.0.0" from Superface store`
+        `Fetching map for profile "${profileId}" and provider "${provider}" with version "1.0.0" from Superface store`
       );
       expect(result.stdout).toContain(
-        `Loading provider: "${provider}" from Superface store`
+        `Fetching provider "${provider}" from Superface store`
       );
       //Map and profile
       expect(result.stdout).toMatch(
-        `🆗 Checking local profile ${profileId}@1.0.1 at path`
+        `🆗 Checking local profile "${profileId}@1.0.1" at path`
       );
 
       expect(result.stdout).toMatch(sourceFixture.profile);
 
       expect(result.stdout).toMatch(
-        `and remote map with version 1.0.0 for provider ${provider}`
+        `and remote map with version "1.0.0" for provider "${provider}"`
       );
 
       //Map and provider
       expect(result.stdout).toMatch(
-        `🆗 Checking remote map with version 1.0.0 for profile ${profileId} and remote provider ${provider}`
+        `🆗 Checking remote map with version "1.0.0" for profile "${profileId}" and remote provider "${provider}"`
       );
     });
 
@@ -277,21 +277,21 @@ describe('Check CLI command', () => {
         mockServer.url
       );
       expect(result.stdout).toContain(
-        `Loading profile: "${profileId}" in version: "${profileVersion}" from Superface store`
+        `Fetching profile "${profileId}" with version "${profileVersion}" from Superface store`
       );
       expect(result.stdout).toContain(
-        `Loading map for profile: "${profileId}@${profileVersion}" and provider: "${provider}" in version: "1.0.0" from Superface store`
+        `Fetching map for profile "${profileId}@${profileVersion}" and provider "${provider}" with version "1.0.0" from Superface store`
       );
       expect(result.stdout).toContain(
-        `Provider: "${provider}" found on local file system`
+        `Provider "${provider}" found on local file system`
       );
-      //Map and profile
+      // Map and profile
       expect(result.stdout).toMatch(
-        `🆗 Checking remote profile ${profileId}@${profileVersion} with version ${profileVersion} and remote map with version 1.0.0 for provider ${provider}`
+        `🆗 Checking remote profile "${profileId}" with version "${profileVersion}" and remote map with version "1.0.0" for provider "${provider}"`
       );
-      //Map and provider
+      // Map and provider
       expect(result.stdout).toMatch(
-        `🆗 Checking remote map with version 1.0.0 for profile ${profileId} and local provider ${provider} at path`
+        `🆗 Checking remote map with version "1.0.0" for profile "${profileId}" and local provider "${provider}" at path`
       );
       expect(result.stdout).toMatch(sourceFixture.provider);
     });
@@ -327,13 +327,13 @@ describe('Check CLI command', () => {
         mockServer.url
       );
       expect(result.stdout).toContain(
-        `Profile: "${profileId}" found on local file system`
+        `Profile "${profileId}" found on local file system`
       );
       expect(result.stdout).toContain(
-        `Map for profile: "${profileId}" and provider: "${provider}" found on local filesystem`
+        `Map for profile "${profileId}" and provider "${provider}" found on local file system`
       );
       expect(result.stdout).toContain(
-        `Provider: "${provider}" found on local file system`
+        `Provider "${provider}" found on local file system`
       );
       expect(result.stdout).toContain(JSON.stringify([]));
     });
