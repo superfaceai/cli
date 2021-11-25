@@ -137,7 +137,11 @@ export default class Create extends Command {
     logger: ILogger;
     flags: Flags<typeof Create.flags>;
   }): Promise<void> {
-    if (!flags.profileId && !flags.providerName && !flags.interactive) {
+    if (
+      !flags.profileId &&
+      (!flags.providerName || flags.providerName.length === 0) &&
+      !flags.interactive
+    ) {
       throw userError('Invalid command! Specify profileId or providerName', 1);
     }
     if (flags.path && !(await exists(flags.path))) {
@@ -176,7 +180,10 @@ export default class Create extends Command {
         flags.profileId = profileInput;
       }
       //We need provider name
-      if (!flags.providerName && (flags.provider || flags.map)) {
+      if (
+        (!flags.providerName || flags.providerName.length === 0) &&
+        (flags.provider || flags.map)
+      ) {
         flags.providerName = [];
         let priority = 1;
         let exit = false;

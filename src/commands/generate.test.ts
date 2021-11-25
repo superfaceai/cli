@@ -3,10 +3,11 @@ import { err, ok, SuperJson } from '@superfaceai/one-sdk';
 import { SDKExecutionError } from '@superfaceai/one-sdk/dist/internal/errors';
 import { mocked } from 'ts-jest/utils';
 
-import { Logger, MockLogger } from '..';
+import { MockLogger } from '..';
 import { ProfileId } from '../common/profile';
 import { generate } from '../logic/generate';
 import { detectSuperJson } from '../logic/install';
+import { CommandInstance } from '../test/utils';
 import Generate from './generate';
 
 //Mock install logic
@@ -23,9 +24,11 @@ describe('Generate CLI command', () => {
   const profileId = 'starwars/character-information';
 
   let logger: MockLogger;
+  let instance: Generate;
 
   beforeEach(() => {
-    logger = Logger.mockLogger();
+    logger = new MockLogger();
+    instance = CommandInstance(Generate);
   });
 
   afterEach(() => {
@@ -35,7 +38,14 @@ describe('Generate CLI command', () => {
   describe('when running generate command', () => {
     it('throws when super.json not found', async () => {
       mocked(detectSuperJson).mockResolvedValue(undefined);
-      await expect(Generate.run(['--profileId', profileId])).rejects.toEqual(
+      await expect(
+        instance.execute({
+          logger,
+          flags: {
+            profileId,
+          },
+        })
+      ).rejects.toEqual(
         new CLIError('Unable to generate, super.json not found')
       );
     });
@@ -45,25 +55,27 @@ describe('Generate CLI command', () => {
       jest
         .spyOn(SuperJson, 'load')
         .mockResolvedValue(err(new SDKExecutionError('test error', [], [])));
-      await expect(Generate.run(['--profileId', profileId])).rejects.toEqual(
-        new CLIError('Unable to load super.json: test error')
-      );
+      await expect(
+        instance.execute({
+          logger,
+          flags: {
+            profileId,
+          },
+        })
+      ).rejects.toEqual(new CLIError('Unable to load super.json: test error'));
     });
-
-    it('throws error on invalid scan flag', async () => {
-      mocked(detectSuperJson).mockResolvedValue('.');
-
-      await expect(Generate.run(['-s test'])).rejects.toEqual(
-        new CLIError('Expected an integer but received:  test')
-      );
-      expect(detectSuperJson).not.toHaveBeenCalled();
-    }, 10000);
 
     it('throws error on scan flag higher than 5', async () => {
       mocked(detectSuperJson).mockResolvedValue('.');
 
       await expect(
-        Generate.run(['--profileId', profileId, '-s', '6'])
+        instance.execute({
+          logger,
+          flags: {
+            profileId,
+            scan: 6,
+          },
+        })
       ).rejects.toEqual(
         new CLIError(
           '--scan/-s : Number of levels to scan cannot be higher than 5'
@@ -79,7 +91,13 @@ describe('Generate CLI command', () => {
         .mockResolvedValue(ok(new SuperJson()));
 
       await expect(
-        Generate.run(['--profileId', 'U!0_', '-s', '3'])
+        instance.execute({
+          logger,
+          flags: {
+            profileId: 'U!0_',
+            scan: 3,
+          },
+        })
       ).rejects.toEqual(
         new CLIError(
           'Invalid profile id: "U!0_" is not a valid lowercase identifier'
@@ -96,7 +114,13 @@ describe('Generate CLI command', () => {
         .mockResolvedValue(ok(new SuperJson()));
 
       await expect(
-        Generate.run(['--profileId', profileId, '-s', '3'])
+        instance.execute({
+          logger,
+          flags: {
+            profileId,
+            scan: 3,
+          },
+        })
       ).rejects.toEqual(
         new CLIError(`Profile id: "${profileId}" not found in super.json`)
       );
@@ -120,15 +144,24 @@ describe('Generate CLI command', () => {
         .mockResolvedValue(ok(mockSuperJson));
 
       await expect(
-        Generate.run(['--profileId', profileId, '-s', '3'])
+        instance.execute({
+          logger,
+          flags: {
+            profileId,
+            scan: 3,
+          },
+        })
       ).resolves.toBeUndefined();
       expect(detectSuperJson).toHaveBeenCalled();
       expect(loadSpy).toHaveBeenCalled();
       expect(generate).toHaveBeenCalledWith(
-        [{ id: ProfileId.fromId(profileId), version: undefined }],
-        mockSuperJson
+        {
+          profiles: [{ id: ProfileId.fromId(profileId), version: undefined }],
+          superJson: mockSuperJson,
+        },
+        expect.anything()
       );
-      expect(logger.stdoutOutput).toContain('🆗 types generated successfully.');
+      expect(logger.stdout).toContainEqual(['generatedSuccessfully', []]);
     });
 
     it('generates types for specified remote profile', async () => {
@@ -147,15 +180,24 @@ describe('Generate CLI command', () => {
         .mockResolvedValue(ok(mockSuperJson));
 
       await expect(
-        Generate.run(['--profileId', profileId, '-s', '3'])
+        instance.execute({
+          logger,
+          flags: {
+            profileId,
+            scan: 3,
+          },
+        })
       ).resolves.toBeUndefined();
       expect(detectSuperJson).toHaveBeenCalled();
       expect(loadSpy).toHaveBeenCalled();
       expect(generate).toHaveBeenCalledWith(
-        [{ id: ProfileId.fromId(profileId), version }],
-        mockSuperJson
+        {
+          profiles: [{ id: ProfileId.fromId(profileId), version }],
+          superJson: mockSuperJson,
+        },
+        expect.anything()
       );
-      expect(logger.stdoutOutput).toContain('🆗 types generated successfully.');
+      expect(logger.stdout).toContainEqual(['generatedSuccessfully', []]);
     });
 
     it('generates types for super json with remote and local profiles', async () => {
@@ -177,17 +219,27 @@ describe('Generate CLI command', () => {
         .spyOn(SuperJson, 'load')
         .mockResolvedValue(ok(mockSuperJson));
 
-      await expect(Generate.run(['-s', '3'])).resolves.toBeUndefined();
+      await expect(
+        instance.execute({
+          logger,
+          flags: {
+            scan: 3,
+          },
+        })
+      ).resolves.toBeUndefined();
       expect(detectSuperJson).toHaveBeenCalled();
       expect(loadSpy).toHaveBeenCalled();
       expect(generate).toHaveBeenCalledWith(
-        [
-          { id: ProfileId.fromId(profileId), version },
-          { id: ProfileId.fromId('other') },
-        ],
-        mockSuperJson
+        {
+          profiles: [
+            { id: ProfileId.fromId(profileId), version },
+            { id: ProfileId.fromId('other') },
+          ],
+          superJson: mockSuperJson,
+        },
+        expect.anything()
       );
-      expect(logger.stdoutOutput).toContain(`🆗 types generated successfully.`);
+      expect(logger.stdout).toContainEqual(['generatedSuccessfully', []]);
     });
 
     it('generates types for super json with remote and local profiles and quiet flag', async () => {
@@ -209,17 +261,28 @@ describe('Generate CLI command', () => {
         .spyOn(SuperJson, 'load')
         .mockResolvedValue(ok(mockSuperJson));
 
-      await expect(Generate.run(['-q', '-s', '3'])).resolves.toBeUndefined();
+      await expect(
+        instance.execute({
+          logger,
+          flags: {
+            quiet: true,
+            scan: 3,
+          },
+        })
+      ).resolves.toBeUndefined();
       expect(detectSuperJson).toHaveBeenCalled();
       expect(loadSpy).toHaveBeenCalled();
       expect(generate).toHaveBeenCalledWith(
-        [
-          { id: ProfileId.fromId(profileId), version },
-          { id: ProfileId.fromId('other'), version: undefined },
-        ],
-        mockSuperJson
+        {
+          profiles: [
+            { id: ProfileId.fromId(profileId), version },
+            { id: ProfileId.fromId('other'), version: undefined },
+          ],
+          superJson: mockSuperJson,
+        },
+        expect.anything()
       );
-      expect(logger.stdoutOutput).toContain('');
+      expect(logger.stdout).toContainEqual(['generatedSuccessfully', []]);
     });
   });
 });
