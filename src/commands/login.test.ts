@@ -69,7 +69,7 @@ describe('Login CLI command', () => {
         {
           force: false,
         },
-        { logger }
+        expect.anything()
       );
 
       expect(logoutSpy).not.toHaveBeenCalled();
@@ -93,7 +93,7 @@ describe('Login CLI command', () => {
         {
           force: false,
         },
-        { logger }
+        expect.anything()
       );
 
       expect(logoutSpy).not.toHaveBeenCalled();
@@ -111,7 +111,7 @@ describe('Login CLI command', () => {
         {
           force: true,
         },
-        { logger }
+        expect.anything()
       );
 
       expect(logger.stdout).toContainEqual(['alreadyLoggedIn', []]);
@@ -131,7 +131,7 @@ describe('Login CLI command', () => {
         {
           force: false,
         },
-        { logger }
+        expect.anything()
       );
 
       expect(logger.stdout).toContainEqual(['usinfSfRefreshToken', []]);

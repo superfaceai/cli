@@ -301,7 +301,7 @@ describe('Publish logic', () => {
           profile: ProfileId.fromId(mockProfileId),
           version: undefined,
         },
-        { logger }
+        expect.anything()
       );
       expect(loadMap).toHaveBeenCalledWith(
         {
@@ -311,12 +311,12 @@ describe('Publish logic', () => {
           map: {},
           version: undefined,
         },
-        { logger }
+        expect.anything()
       );
       expect(loadProvider).toHaveBeenCalledWith(
         mockSuperJson,
         mockProviderName,
-        { logger }
+        expect.anything()
       );
       expect(prePublishCheck).toHaveBeenCalledWith(
         {
@@ -329,7 +329,7 @@ describe('Publish logic', () => {
           providerFrom: mockLocalProviderFrom,
           superJson: mockSuperJson,
         },
-        { logger }
+        expect.anything()
       );
       expect(prePublishLint).toHaveBeenCalledWith(
         mockProfileDocument,
@@ -397,7 +397,7 @@ describe('Publish logic', () => {
           profile: ProfileId.fromId(mockProfileId),
           version: undefined,
         },
-        { logger }
+        expect.anything()
       );
       expect(loadMap).toHaveBeenCalledWith(
         {
@@ -407,12 +407,12 @@ describe('Publish logic', () => {
           map: { variant },
           version: undefined,
         },
-        { logger }
+        expect.anything()
       );
       expect(loadProvider).toHaveBeenCalledWith(
         mockSuperJson,
         mockProviderName,
-        { logger }
+        expect.anything()
       );
       expect(prePublishCheck).toHaveBeenCalledWith(
         {
@@ -425,7 +425,7 @@ describe('Publish logic', () => {
           providerFrom: mockRemoteProviderFrom,
           superJson: mockSuperJson,
         },
-        { logger }
+        expect.anything()
       );
       expect(prePublishLint).toHaveBeenCalledWith(
         mockProfileDocument,
@@ -490,7 +490,7 @@ describe('Publish logic', () => {
           profile: ProfileId.fromId(mockProfileId),
           version: undefined,
         },
-        { logger }
+        expect.anything()
       );
       expect(loadMap).toHaveBeenCalledWith(
         {
@@ -500,12 +500,12 @@ describe('Publish logic', () => {
           map: {},
           version: undefined,
         },
-        { logger }
+        expect.anything()
       );
       expect(loadProvider).toHaveBeenCalledWith(
         mockSuperJson,
         mockProviderName,
-        { logger }
+        expect.anything()
       );
       expect(prePublishCheck).toHaveBeenCalledWith(
         {
@@ -518,7 +518,7 @@ describe('Publish logic', () => {
           providerFrom: mockRemoteProviderFrom,
           superJson: mockSuperJson,
         },
-        { logger }
+        expect.anything()
       );
       expect(prePublishLint).toHaveBeenCalledWith(
         mockProfileDocument,
@@ -585,7 +585,7 @@ describe('Publish logic', () => {
           profile: ProfileId.fromId(mockProfileId),
           version: undefined,
         },
-        { logger }
+        expect.anything()
       );
       expect(loadMap).toHaveBeenCalledWith(
         {
@@ -595,12 +595,12 @@ describe('Publish logic', () => {
           map: {},
           version: undefined,
         },
-        { logger }
+        expect.anything()
       );
       expect(loadProvider).toHaveBeenCalledWith(
         mockSuperJson,
         mockProviderName,
-        { logger }
+        expect.anything()
       );
       expect(prePublishCheck).toHaveBeenCalledWith(
         {
@@ -613,7 +613,7 @@ describe('Publish logic', () => {
           providerFrom: mockLocalProviderFrom,
           superJson: mockSuperJson,
         },
-        { logger }
+        expect.anything()
       );
       expect(prePublishLint).toHaveBeenCalledWith(
         mockProfileDocument,
@@ -652,7 +652,7 @@ describe('Publish logic', () => {
             version: undefined,
             options: { dryRun: true },
           },
-          { logger }
+          expect.anything()
         )
       ).rejects.toEqual(
         new CLIError(
@@ -666,7 +666,7 @@ describe('Publish logic', () => {
           profile: ProfileId.fromId(mockProfileId),
           version: undefined,
         },
-        { logger }
+        expect.anything()
       );
     });
 
@@ -729,7 +729,7 @@ describe('Publish logic', () => {
           profile: ProfileId.fromId(mockProfileId),
           version: undefined,
         },
-        { logger }
+        expect.anything()
       );
       expect(loadMap).toHaveBeenCalledWith(
         {
@@ -739,12 +739,12 @@ describe('Publish logic', () => {
           map: {},
           version: undefined,
         },
-        { logger }
+        expect.anything()
       );
       expect(loadProvider).toHaveBeenCalledWith(
         mockSuperJson,
         mockProviderName,
-        { logger }
+        expect.anything()
       );
       expect(prePublishCheck).toHaveBeenCalledWith(
         {
@@ -757,7 +757,7 @@ describe('Publish logic', () => {
           providerFrom: mockRemoteProviderFrom,
           superJson: mockSuperJson,
         },
-        { logger }
+        expect.anything()
       );
 
       expect(prePublishLint).toHaveBeenCalledWith(
@@ -827,7 +827,7 @@ describe('Publish logic', () => {
           profile: ProfileId.fromId(mockProfileId),
           version,
         },
-        { logger }
+        expect.anything()
       );
       expect(loadMap).toHaveBeenCalledWith(
         {
@@ -837,12 +837,12 @@ describe('Publish logic', () => {
           map: {},
           version,
         },
-        { logger }
+        expect.anything()
       );
       expect(loadProvider).toHaveBeenCalledWith(
         mockSuperJson,
         mockProviderName,
-        { logger }
+        expect.anything()
       );
       expect(prePublishCheck).toHaveBeenCalledWith(
         {
@@ -855,7 +855,7 @@ describe('Publish logic', () => {
           providerFrom: mockRemoteProviderFrom,
           superJson: mockSuperJson,
         },
-        { logger }
+        expect.anything()
       );
       expect(prePublishLint).toHaveBeenCalledWith(
         mockProfileDocument,
@@ -923,7 +923,7 @@ describe('Publish logic', () => {
           profile: ProfileId.fromId(mockProfileId),
           version: DEFAULT_PROFILE_VERSION_STR,
         },
-        { logger }
+        expect.anything()
       );
       expect(loadMap).toHaveBeenCalledWith(
         {
@@ -933,12 +933,12 @@ describe('Publish logic', () => {
           map: {},
           version: DEFAULT_PROFILE_VERSION_STR,
         },
-        { logger }
+        expect.anything()
       );
       expect(loadProvider).toHaveBeenCalledWith(
         mockSuperJson,
         mockProviderName,
-        { logger }
+        expect.anything()
       );
       expect(prePublishCheck).toHaveBeenCalledWith(
         {
@@ -951,7 +951,7 @@ describe('Publish logic', () => {
           providerFrom: mockLocalProviderFrom,
           superJson: mockSuperJson,
         },
-        { logger }
+        expect.anything()
       );
       expect(prePublishLint).toHaveBeenCalledWith(
         mockProfileDocument,
@@ -1020,7 +1020,7 @@ describe('Publish logic', () => {
           profile: ProfileId.fromId(mockProfileId),
           version: DEFAULT_PROFILE_VERSION_STR,
         },
-        { logger }
+        expect.anything()
       );
       expect(loadMap).toHaveBeenCalledWith(
         {
@@ -1030,12 +1030,12 @@ describe('Publish logic', () => {
           map: {},
           version: DEFAULT_PROFILE_VERSION_STR,
         },
-        { logger }
+        expect.anything()
       );
       expect(loadProvider).toHaveBeenCalledWith(
         mockSuperJson,
         mockProviderName,
-        { logger }
+        expect.anything()
       );
       expect(prePublishCheck).toHaveBeenCalledWith(
         {
@@ -1048,7 +1048,7 @@ describe('Publish logic', () => {
           providerFrom: mockLocalProviderFrom,
           superJson: mockSuperJson,
         },
-        { logger }
+        expect.anything()
       );
       expect(prePublishLint).toHaveBeenCalledWith(
         mockProfileDocument,
@@ -1113,7 +1113,7 @@ describe('Publish logic', () => {
             map: {},
             version: DEFAULT_PROFILE_VERSION_STR,
           },
-          { logger }
+          expect.anything()
         )
       ).rejects.toEqual(
         new CLIError(
@@ -1128,7 +1128,7 @@ describe('Publish logic', () => {
           profile: ProfileId.fromId(mockProfileId),
           version: DEFAULT_PROFILE_VERSION_STR,
         },
-        { logger }
+        expect.anything()
       );
       expect(loadMap).toHaveBeenCalledWith(
         {
@@ -1138,12 +1138,12 @@ describe('Publish logic', () => {
           map: {},
           version: DEFAULT_PROFILE_VERSION_STR,
         },
-        { logger }
+        expect.anything()
       );
       expect(loadProvider).toHaveBeenCalledWith(
         mockSuperJson,
         mockProviderName,
-        { logger }
+        expect.anything()
       );
       expect(fetchProviderInfo).toHaveBeenCalled();
       expect(prePublishCheck).toHaveBeenCalledWith(
@@ -1157,7 +1157,7 @@ describe('Publish logic', () => {
           providerFrom: mockLocalProviderFrom,
           superJson: mockSuperJson,
         },
-        { logger }
+        expect.anything()
       );
 
       expect(prePublishLint).toHaveBeenCalledWith(
@@ -1203,7 +1203,7 @@ describe('Publish logic', () => {
             version: DEFAULT_PROFILE_VERSION_STR,
             options: { dryRun: true },
           },
-          { logger }
+          expect.anything()
         )
       ).rejects.toEqual(
         new CLIError(
@@ -1217,7 +1217,7 @@ describe('Publish logic', () => {
           profile: ProfileId.fromId(mockProfileId),
           version: DEFAULT_PROFILE_VERSION_STR,
         },
-        { logger }
+        expect.anything()
       );
     });
 
@@ -1294,7 +1294,7 @@ describe('Publish logic', () => {
           profile: ProfileId.fromId(mockProfileId),
           version: DEFAULT_PROFILE_VERSION_STR,
         },
-        { logger }
+        expect.anything()
       );
       expect(loadMap).toHaveBeenCalledWith(
         {
@@ -1304,7 +1304,7 @@ describe('Publish logic', () => {
           map: {},
           version: DEFAULT_PROFILE_VERSION_STR,
         },
-        { logger }
+        expect.anything()
       );
       expect(loadProvider).toHaveBeenCalledWith(mockSuperJson, provider, {
         logger,
@@ -1321,7 +1321,7 @@ describe('Publish logic', () => {
           providerFrom: mockLocalProviderFrom,
           superJson: mockSuperJson,
         },
-        { logger }
+        expect.anything()
       );
       expect(prePublishLint).toHaveBeenCalledWith(
         mockProfileDocument,
@@ -1405,7 +1405,7 @@ describe('Publish logic', () => {
           profile: ProfileId.fromId(mockProfileId),
           version: DEFAULT_PROFILE_VERSION_STR,
         },
-        { logger }
+        expect.anything()
       );
       expect(loadMap).toHaveBeenCalledWith(
         {
@@ -1415,7 +1415,7 @@ describe('Publish logic', () => {
           map: { variant },
           version: DEFAULT_PROFILE_VERSION_STR,
         },
-        { logger }
+        expect.anything()
       );
       expect(loadProvider).toHaveBeenCalledWith(mockSuperJson, provider, {
         logger,
@@ -1432,7 +1432,7 @@ describe('Publish logic', () => {
           providerFrom: mockLocalProviderFrom,
           superJson: mockSuperJson,
         },
-        { logger }
+        expect.anything()
       );
       expect(prePublishLint).toHaveBeenCalledWith(
         mockProfileDocument,
@@ -1490,7 +1490,7 @@ describe('Publish logic', () => {
             version: DEFAULT_PROFILE_VERSION_STR,
             options: { dryRun: true },
           },
-          { logger }
+          expect.anything()
         )
       ).rejects.toEqual(
         new CLIError(
@@ -1505,7 +1505,7 @@ describe('Publish logic', () => {
           profile: ProfileId.fromId(mockProfileId),
           version: DEFAULT_PROFILE_VERSION_STR,
         },
-        { logger }
+        expect.anything()
       );
       expect(loadMap).toHaveBeenCalledWith(
         {
@@ -1515,12 +1515,12 @@ describe('Publish logic', () => {
           map: {},
           version: DEFAULT_PROFILE_VERSION_STR,
         },
-        { logger }
+        expect.anything()
       );
       expect(loadProvider).toHaveBeenCalledWith(
         mockSuperJson,
         mockProviderName,
-        { logger }
+        expect.anything()
       );
       expect(fetchProviderInfo).not.toHaveBeenCalled();
       expect(prePublishCheck).toHaveBeenCalledWith(
@@ -1534,7 +1534,7 @@ describe('Publish logic', () => {
           providerFrom: mockLocalProviderFrom,
           superJson: mockSuperJson,
         },
-        { logger }
+        expect.anything()
       );
       expect(prePublishLint).toHaveBeenCalledWith(
         mockProfileDocument,
@@ -1614,7 +1614,7 @@ describe('Publish logic', () => {
           profile: ProfileId.fromId(mockProfileId),
           version: DEFAULT_PROFILE_VERSION_STR,
         },
-        { logger }
+        expect.anything()
       );
       expect(loadMap).toHaveBeenCalledWith(
         {
@@ -1624,7 +1624,7 @@ describe('Publish logic', () => {
           map: {},
           version: DEFAULT_PROFILE_VERSION_STR,
         },
-        { logger }
+        expect.anything()
       );
       expect(loadProvider).toHaveBeenCalledWith(mockSuperJson, provider, {
         logger,
@@ -1641,7 +1641,7 @@ describe('Publish logic', () => {
           providerFrom: mockLocalProviderFrom,
           superJson: mockSuperJson,
         },
-        { logger }
+        expect.anything()
       );
       expect(prePublishLint).toHaveBeenCalledWith(
         mockProfileDocument,
@@ -1692,7 +1692,7 @@ describe('Publish logic', () => {
             version: DEFAULT_PROFILE_VERSION_STR,
             options: { dryRun: true },
           },
-          { logger }
+          expect.anything()
         )
       ).rejects.toEqual(
         new CLIError(
@@ -1706,7 +1706,7 @@ describe('Publish logic', () => {
           profile: ProfileId.fromId(mockProfileId),
           version: DEFAULT_PROFILE_VERSION_STR,
         },
-        { logger }
+        expect.anything()
       );
     });
 
@@ -1756,7 +1756,7 @@ describe('Publish logic', () => {
           version: DEFAULT_PROFILE_VERSION_STR,
           options: { dryRun: true },
         },
-        { logger }
+        expect.anything()
       );
 
       expect(result).toMatch('Check results:');
@@ -1774,7 +1774,7 @@ describe('Publish logic', () => {
           profile: ProfileId.fromId(mockProfileId),
           version: DEFAULT_PROFILE_VERSION_STR,
         },
-        { logger }
+        expect.anything()
       );
       expect(loadMap).toHaveBeenCalledWith(
         {
@@ -1784,12 +1784,12 @@ describe('Publish logic', () => {
           map: {},
           version: DEFAULT_PROFILE_VERSION_STR,
         },
-        { logger }
+        expect.anything()
       );
       expect(loadProvider).toHaveBeenCalledWith(
         mockSuperJson,
         mockProviderName,
-        { logger }
+        expect.anything()
       );
       expect(prePublishCheck).toHaveBeenCalledWith(
         {
@@ -1802,7 +1802,7 @@ describe('Publish logic', () => {
           providerFrom: mockLocalProviderFrom,
           superJson: mockSuperJson,
         },
-        { logger }
+        expect.anything()
       );
       expect(prePublishLint).toHaveBeenCalledWith(
         mockProfileDocument,
@@ -1880,7 +1880,7 @@ describe('Publish logic', () => {
           version: DEFAULT_PROFILE_VERSION_STR,
           options: { dryRun: true },
         },
-        { logger }
+        expect.anything()
       );
       expect(result).toMatch('Check results:');
 
@@ -1897,7 +1897,7 @@ describe('Publish logic', () => {
           profile: ProfileId.fromId(mockProfileId),
           version: DEFAULT_PROFILE_VERSION_STR,
         },
-        { logger }
+        expect.anything()
       );
       expect(loadMap).toHaveBeenCalledWith(
         {
@@ -1907,12 +1907,12 @@ describe('Publish logic', () => {
           map: {},
           version: DEFAULT_PROFILE_VERSION_STR,
         },
-        { logger }
+        expect.anything()
       );
       expect(loadProvider).toHaveBeenCalledWith(
         mockSuperJson,
         mockProviderName,
-        { logger }
+        expect.anything()
       );
       expect(prePublishCheck).toHaveBeenCalledWith(
         {
@@ -1925,7 +1925,7 @@ describe('Publish logic', () => {
           providerFrom: mockLocalProviderFrom,
           superJson: mockSuperJson,
         },
-        { logger }
+        expect.anything()
       );
       expect(prePublishLint).toHaveBeenCalledWith(
         mockProfileDocument,
@@ -1980,7 +1980,7 @@ describe('Publish logic', () => {
             version: DEFAULT_PROFILE_VERSION_STR,
             options: { dryRun: true, json: true },
           },
-          { logger }
+          expect.anything()
         )
       ).resolves.toEqual(
         JSON.stringify({
@@ -2008,7 +2008,7 @@ describe('Publish logic', () => {
           profile: ProfileId.fromId(mockProfileId),
           version: DEFAULT_PROFILE_VERSION_STR,
         },
-        { logger }
+        expect.anything()
       );
       expect(loadMap).toHaveBeenCalledWith(
         {
@@ -2018,12 +2018,12 @@ describe('Publish logic', () => {
           map: {},
           version: DEFAULT_PROFILE_VERSION_STR,
         },
-        { logger }
+        expect.anything()
       );
       expect(loadProvider).toHaveBeenCalledWith(
         mockSuperJson,
         mockProviderName,
-        { logger }
+        expect.anything()
       );
       expect(fetchProviderInfo).not.toHaveBeenCalled();
       expect(prePublishCheck).toHaveBeenCalledWith(
@@ -2037,7 +2037,7 @@ describe('Publish logic', () => {
           providerFrom: mockLocalProviderFrom,
           superJson: mockSuperJson,
         },
-        { logger }
+        expect.anything()
       );
       expect(prePublishLint).toHaveBeenCalledWith(
         mockProfileDocument,
