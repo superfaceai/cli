@@ -1,7 +1,7 @@
 import { CLIError } from '@oclif/errors';
 import { ServiceClient, ServiceClientError } from '@superfaceai/service-client';
-import { MockLogger } from '../common';
 
+import { MockLogger } from '../common';
 import { CommandInstance } from '../test/utils';
 import Logout from './logout';
 

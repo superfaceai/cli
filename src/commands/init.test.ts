@@ -1,8 +1,8 @@
 import { SuperJson } from '@superfaceai/one-sdk';
 import inquirer from 'inquirer';
 import { mocked } from 'ts-jest/utils';
-import { MockLogger } from '..';
 
+import { MockLogger } from '..';
 import { constructProviderSettings } from '../common/document';
 import { OutputStream } from '../common/output-stream';
 import { generateSpecifiedProfiles, initSuperface } from '../logic/init';
