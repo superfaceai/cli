@@ -173,9 +173,9 @@ describe('lint CLI command', () => {
     await expect(
       execCLI(
         tempDir,
-        ['lint', '--profileId', profileId, '--outputFormat', 'json'],
+        ['lint', '--profileId', profileId, '--outputFormat', 'json', '--quiet'],
         '',
-        //Expose child process stdout to mocked stdout
+        // Expose child process stdout to mocked stdout
         { debug: true }
       )
     ).rejects.toContain('❌ Errors were found');

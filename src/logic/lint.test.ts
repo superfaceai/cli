@@ -20,9 +20,9 @@ import { SyntaxErrorCategory } from '@superfaceai/parser/dist/language/error';
 import { MatchAttempts } from '@superfaceai/parser/dist/language/syntax/rule';
 import { mocked } from 'ts-jest/utils';
 
-import { Logger } from '../common';
 import { fetchMapAST, fetchProfileAST } from '../common/http';
 import { ListWriter } from '../common/list-writer';
+import { MockLogger } from '../common/log';
 import { OutputStream } from '../common/output-stream';
 import { ProfileId } from '../common/profile';
 import { ReportFormat } from '../common/report.interfaces';
@@ -65,11 +65,14 @@ jest.mock('@superfaceai/parser', () => ({
 }));
 
 describe('Lint logic', () => {
+  let logger: MockLogger;
   const mockMapPath = 'mockMapPath';
   const mockProfilePath = 'mockProfilePath';
+
   beforeEach(() => {
-    Logger.mockLogger();
+    logger = new MockLogger();
   });
+
   afterEach(() => {
     jest.resetAllMocks();
   });
@@ -504,7 +507,15 @@ describe('Lint logic', () => {
         .mockResolvedValue(undefined);
 
       await expect(
-        lint(mockSuperJson, mockProfiles, mockListWriter, mockReportFn)
+        lint(
+          {
+            superJson: mockSuperJson,
+            profiles: mockProfiles,
+            writer: mockListWriter,
+            reportFn: mockReportFn,
+          },
+          { logger }
+        )
       ).resolves.toEqual([
         [1, 0],
         [0, 0],
@@ -611,7 +622,15 @@ describe('Lint logic', () => {
         .mockResolvedValue(undefined);
 
       await expect(
-        lint(mockSuperJson, mockProfiles, mockListWriter, mockReportFn)
+        lint(
+          {
+            superJson: mockSuperJson,
+            profiles: mockProfiles,
+            writer: mockListWriter,
+            reportFn: mockReportFn,
+          },
+          { logger }
+        )
       ).resolves.toEqual([
         [1, 0],
         [0, 0],
@@ -696,7 +715,15 @@ describe('Lint logic', () => {
         .mockResolvedValue(undefined);
 
       await expect(
-        lint(mockSuperJson, mockProfiles, mockListWriter, mockReportFn)
+        lint(
+          {
+            superJson: mockSuperJson,
+            profiles: mockProfiles,
+            writer: mockListWriter,
+            reportFn: mockReportFn,
+          },
+          { logger }
+        )
       ).resolves.toEqual([
         [1, 0],
         [0, 0],
@@ -791,7 +818,15 @@ describe('Lint logic', () => {
         .mockResolvedValue(undefined);
 
       await expect(
-        lint(mockSuperJson, mockProfiles, mockListWriter, mockReportFn)
+        lint(
+          {
+            superJson: mockSuperJson,
+            profiles: mockProfiles,
+            writer: mockListWriter,
+            reportFn: mockReportFn,
+          },
+          { logger }
+        )
       ).resolves.toEqual([[1, 0]]);
 
       expect(writeElementSpy).toHaveBeenCalledTimes(1);
@@ -861,7 +896,16 @@ describe('Lint logic', () => {
         .mockResolvedValue(undefined);
 
       await expect(
-        lint(mockSuperJson, mockProfiles, mockListWriter, mockReportFn)
+        // lint(mockSuperJson, mockProfiles, mockListWriter, mockReportFn)
+        lint(
+          {
+            superJson: mockSuperJson,
+            profiles: mockProfiles,
+            writer: mockListWriter,
+            reportFn: mockReportFn,
+          },
+          { logger }
+        )
       ).resolves.toEqual([[1, 0]]);
 
       expect(writeElementSpy).toHaveBeenCalledTimes(2);
