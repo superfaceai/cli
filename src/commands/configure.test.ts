@@ -4,10 +4,12 @@ import { SuperJson } from '@superfaceai/one-sdk';
 import { mocked } from 'ts-jest/utils';
 
 import { exists } from '../common/io';
+import { ILogger, MockLogger } from '../common/log';
 import { ProfileId } from '../common/profile';
 import { installProvider } from '../logic/configure';
 import { initSuperface } from '../logic/init';
 import { detectSuperJson } from '../logic/install';
+import { CommandInstance } from '../test/utils';
 import Configure from './configure';
 
 //Mock io
@@ -37,6 +39,14 @@ jest.mock('../logic/configure', () => ({
 }));
 
 describe('Configure CLI command', () => {
+  let instance: Configure;
+  let logger: ILogger;
+
+  beforeEach(() => {
+    instance = CommandInstance(Configure);
+    logger = new MockLogger();
+  });
+
   afterEach(() => {
     jest.resetAllMocks();
   });
@@ -48,9 +58,18 @@ describe('Configure CLI command', () => {
 
     it('does not configure on invalid provider name', async () => {
       mocked(isValidDocumentName).mockReturnValue(false);
-      await expect(Configure.run(['U7!O', '-p', 'test'])).rejects.toEqual(
-        new CLIError('Invalid provider name')
-      );
+
+      await expect(
+        instance.execute({
+          logger,
+          args: {
+            providerName: 'U7!O',
+          },
+          flags: {
+            profile: 'test',
+          },
+        })
+      ).rejects.toEqual(new CLIError('Invalid provider name'));
 
       expect(detectSuperJson).not.toHaveBeenCalled();
       expect(installProvider).not.toHaveBeenCalled();
@@ -60,7 +79,16 @@ describe('Configure CLI command', () => {
       mocked(isValidDocumentName).mockReturnValue(false);
       mocked(exists).mockResolvedValue(false);
       await expect(
-        Configure.run(['swapi', '-p', 'test', '--localMap', 'some/path'])
+        instance.execute({
+          logger,
+          args: {
+            providerName: 'swapi',
+          },
+          flags: {
+            profile: 'test',
+            localMap: 'some/path',
+          },
+        })
       ).rejects.toEqual(new CLIError('Local path: "some/path" does not exist'));
 
       expect(detectSuperJson).not.toHaveBeenCalled();
@@ -71,7 +99,11 @@ describe('Configure CLI command', () => {
       mocked(isValidDocumentName).mockReturnValue(false);
       mocked(exists).mockResolvedValue(false);
       await expect(
-        Configure.run(['swapi', '-p', 'test', '--localProvider', 'some/path'])
+        instance.execute({
+          logger,
+          args: { providerName: 'swapi' },
+          flags: { profile: 'test', localMap: 'some/path' },
+        })
       ).rejects.toEqual(new CLIError('Local path: "some/path" does not exist'));
 
       expect(detectSuperJson).not.toHaveBeenCalled();
@@ -83,24 +115,31 @@ describe('Configure CLI command', () => {
       mocked(detectSuperJson).mockResolvedValue(superPath);
 
       await expect(
-        Configure.run([provider, '-p', profileId.id])
+        instance.execute({
+          logger,
+          args: { providerName: provider },
+          flags: { profile: profileId.id, force: false, 'write-env': false },
+        })
       ).resolves.toBeUndefined();
 
       expect(detectSuperJson).toHaveBeenCalledTimes(1);
 
       expect(installProvider).toHaveBeenCalledTimes(1);
-      expect(installProvider).toHaveBeenCalledWith({
-        superPath,
-        provider,
-        profileId,
-        defaults: undefined,
-        options: {
-          force: false,
-          localMap: undefined,
-          localProvider: undefined,
-          updateEnv: false,
+      expect(installProvider).toHaveBeenCalledWith(
+        {
+          superPath,
+          provider,
+          profileId,
+          defaults: undefined,
+          options: {
+            force: false,
+            localMap: undefined,
+            localProvider: undefined,
+            updateEnv: false,
+          },
         },
-      });
+        expect.anything()
+      );
     });
 
     it('configures provider with env flag', async () => {
@@ -108,24 +147,31 @@ describe('Configure CLI command', () => {
       mocked(detectSuperJson).mockResolvedValue(superPath);
 
       await expect(
-        Configure.run([provider, '-p', profileId.id, '--write-env'])
+        instance.execute({
+          logger,
+          args: { providerName: provider },
+          flags: { profile: profileId.id, force: false, 'write-env': true },
+        })
       ).resolves.toBeUndefined();
 
       expect(detectSuperJson).toHaveBeenCalledTimes(1);
 
       expect(installProvider).toHaveBeenCalledTimes(1);
-      expect(installProvider).toHaveBeenCalledWith({
-        superPath,
-        provider,
-        profileId,
-        defaults: undefined,
-        options: {
-          force: false,
-          localMap: undefined,
-          localProvider: undefined,
-          updateEnv: true,
+      expect(installProvider).toHaveBeenCalledWith(
+        {
+          superPath,
+          provider,
+          profileId,
+          defaults: undefined,
+          options: {
+            force: false,
+            localMap: undefined,
+            localProvider: undefined,
+            updateEnv: true,
+          },
         },
-      });
+        expect.anything()
+      );
     });
 
     it('configures provider with superface initialization', async () => {
@@ -134,30 +180,43 @@ describe('Configure CLI command', () => {
       mocked(initSuperface).mockResolvedValue(new SuperJson());
 
       await expect(
-        Configure.run([provider, '-p', profileId.id, '-q'])
+        instance.execute({
+          logger,
+          args: { providerName: provider },
+          flags: { profile: profileId.id, force: false, 'write-env': false },
+        })
       ).resolves.toBeUndefined();
 
       expect(detectSuperJson).toHaveBeenCalledTimes(1);
 
       expect(initSuperface).toHaveBeenCalledTimes(1);
-      expect(initSuperface).toHaveBeenCalledWith('./', {
-        profiles: {},
-        providers: {},
-      });
+      expect(initSuperface).toHaveBeenCalledWith(
+        {
+          appPath: './',
+          initialDocument: {
+            profiles: {},
+            providers: {},
+          },
+        },
+        expect.anything()
+      );
 
       expect(installProvider).toHaveBeenCalledTimes(1);
-      expect(installProvider).toHaveBeenCalledWith({
-        superPath: 'superface',
-        provider,
-        profileId,
-        defaults: undefined,
-        options: {
-          force: false,
-          updateEnv: false,
-          localMap: undefined,
-          localProvider: undefined,
+      expect(installProvider).toHaveBeenCalledWith(
+        {
+          superPath: 'superface',
+          provider,
+          profileId,
+          defaults: undefined,
+          options: {
+            force: false,
+            updateEnv: false,
+            localMap: undefined,
+            localProvider: undefined,
+          },
         },
-      });
+        expect.anything()
+      );
     });
   });
 });
