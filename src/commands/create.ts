@@ -247,7 +247,7 @@ export default class Create extends Command {
         }
       }
     }
-    providerNames = flags.providerName;
+    providerNames = flags.providerName !== undefined ? flags.providerName : [];
 
     if (flags.providerFileName && providerNames.length > 1) {
       throw userError(
@@ -263,7 +263,13 @@ export default class Create extends Command {
       );
     }
     // output a warning when generating profile only and provider is specified
-    if (flags.profile && !flags.map && !flags.provider && flags.providerName) {
+    if (
+      flags.profile &&
+      !flags.map &&
+      !flags.provider &&
+      flags.providerName &&
+      flags.providerName.length > 0
+    ) {
       this.warn(
         'Provider should not be specified when generating profile only'
       );
@@ -318,7 +324,10 @@ export default class Create extends Command {
       }
 
       // if there is no specified usecase - create usecase with same name as profile name
-      usecases = flags.usecase ?? [composeUsecaseName(name)];
+      usecases =
+        flags.usecase !== undefined && flags.usecase.length > 0
+          ? flags.usecase
+          : [composeUsecaseName(name)];
       for (const usecase of usecases) {
         if (!isValidIdentifier(usecase)) {
           throw userError(`Invalid usecase name: ${usecase}`, 1);
