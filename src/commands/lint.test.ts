@@ -11,15 +11,10 @@ import { lint } from '../logic/lint';
 import { CommandInstance } from '../test/utils';
 import Lint from './lint';
 
-//Mock output stream
 jest.mock('../common/output-stream');
-
-//Mock install logic
 jest.mock('../logic/install', () => ({
   detectSuperJson: jest.fn(),
 }));
-
-//Mock lint logic
 jest.mock('../logic/lint', () => ({
   ...jest.requireActual<Record<string, unknown>>('../logic/lint'),
   lint: jest.fn(),

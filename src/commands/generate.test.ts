@@ -10,12 +10,9 @@ import { detectSuperJson } from '../logic/install';
 import { CommandInstance } from '../test/utils';
 import Generate from './generate';
 
-//Mock install logic
 jest.mock('../logic/install', () => ({
   detectSuperJson: jest.fn(),
 }));
-
-//Mock generate logic
 jest.mock('../logic/generate', () => ({
   generate: jest.fn(),
 }));

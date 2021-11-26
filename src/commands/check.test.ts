@@ -16,12 +16,9 @@ import { MockStd, mockStd } from '../test/mock-std';
 import { CommandInstance } from '../test/utils';
 import Check from './check';
 
-//Mock install logic
 jest.mock('../logic/install', () => ({
   detectSuperJson: jest.fn(),
 }));
-
-//Mock check logic
 jest.mock('../logic/check', () => ({
   check: jest.fn(),
   formatHuman: jest.fn(),

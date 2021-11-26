@@ -32,7 +32,7 @@ export function developerError(message: string, code: number): CLIError {
     throw developerError('expected positive error code', 1);
   }
 
-  return new CLIError(`Internal error: ${message}`, { exit: -code });
+  return new CLIError(`❌ Internal error: ${message}`, { exit: -code });
 }
 
 export function assertIsGenericError(

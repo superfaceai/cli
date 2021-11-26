@@ -10,24 +10,17 @@ import { initSuperface } from '../logic/init';
 import { CommandInstance } from '../test/utils';
 import Create from './create';
 
-//Mock io
 jest.mock('../common/io', () => ({
   ...jest.requireActual<Record<string, unknown>>('../common/io'),
   exists: jest.fn(),
   mkdirQuiet: jest.fn(),
 }));
-
-//Mock create logic
 jest.mock('../logic/create', () => ({
   create: jest.fn(),
 }));
-
-//Mock init logic
 jest.mock('../logic/init', () => ({
   initSuperface: jest.fn(),
 }));
-
-//Mock inquirer
 jest.mock('inquirer');
 
 describe('Create CLI command', () => {

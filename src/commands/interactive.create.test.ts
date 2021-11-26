@@ -10,17 +10,12 @@ import { initSuperface } from '../logic/init';
 import { CommandInstance } from '../test/utils';
 import Create from './create';
 
-//Mock create logic
 jest.mock('../logic/create', () => ({
   create: jest.fn(),
 }));
-
-//Mock init logic
 jest.mock('../logic/init', () => ({
   initSuperface: jest.fn(),
 }));
-
-//Mock inquirer
 jest.mock('inquirer');
 
 describe('Interactive create CLI command', () => {

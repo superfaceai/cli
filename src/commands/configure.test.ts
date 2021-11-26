@@ -12,28 +12,19 @@ import { detectSuperJson } from '../logic/install';
 import { CommandInstance } from '../test/utils';
 import Configure from './configure';
 
-//Mock io
 jest.mock('../common/io', () => ({
   exists: jest.fn(),
 }));
-
-//Mock ast
 jest.mock('@superfaceai/ast', () => ({
   ...jest.requireActual('@superfaceai/ast'),
   isValidDocumentName: jest.fn(),
 }));
-
-//Mock init logic
 jest.mock('../logic/init', () => ({
   initSuperface: jest.fn(),
 }));
-
-//Mock install logic
 jest.mock('../logic/install', () => ({
   detectSuperJson: jest.fn(),
 }));
-
-//Mock configure logic
 jest.mock('../logic/configure', () => ({
   installProvider: jest.fn(),
 }));
@@ -59,7 +50,6 @@ describe('Configure CLI command', () => {
 
     it('does not configure on invalid provider name', async () => {
       mocked(isValidDocumentName).mockReturnValue(false);
-
       await expect(
         instance.execute({
           logger,

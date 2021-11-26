@@ -240,6 +240,50 @@ describe('Install CLI command', () => {
       expect(installProfiles).toHaveBeenCalledTimes(0);
     }, 10000);
 
+    it('calls install profiles correctly - without providers', async () => {
+      mocked(detectSuperJson).mockResolvedValue('.');
+      const profileId = ProfileId.fromId('starwars/character-information', {
+        userError,
+      });
+
+      await expect(
+        instance.execute({
+          logger,
+          pm,
+          userError,
+          flags: {
+            providers: [],
+          },
+          args: {
+            profileId: profileId.id,
+          },
+        })
+      ).resolves.toBeUndefined();
+
+      expect(logger.stdout).toContainEqual(['configuringProviders', []]);
+      expect(installProfiles).toHaveBeenCalledTimes(1);
+      expect(installProfiles).toHaveBeenCalledWith(
+        {
+          superPath: '.',
+          requests: [
+            {
+              kind: 'store',
+              profileId: ProfileId.fromScopeName(
+                'starwars',
+                'character-information'
+              ),
+              version: undefined,
+            },
+          ],
+          options: {
+            tryToAuthenticate: true,
+            force: false,
+          },
+        },
+        expect.anything()
+      );
+    }, 10000);
+
     it('calls install profiles correctly - one invalid provider', async () => {
       mocked(detectSuperJson).mockResolvedValue('.');
       mocked(installProvider).mockResolvedValue(undefined);
