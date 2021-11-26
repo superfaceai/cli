@@ -1,8 +1,8 @@
-import { CLIError } from '@oclif/errors';
 import { isValidDocumentName } from '@superfaceai/ast';
 import { SuperJson } from '@superfaceai/one-sdk';
 import { mocked } from 'ts-jest/utils';
 
+import { createUserError } from '../common/error';
 import { exists } from '../common/io';
 import { ILogger, MockLogger } from '../common/log';
 import { ProfileId } from '../common/profile';
@@ -41,6 +41,7 @@ jest.mock('../logic/configure', () => ({
 describe('Configure CLI command', () => {
   let instance: Configure;
   let logger: ILogger;
+  const userError = createUserError(false);
 
   beforeEach(() => {
     instance = CommandInstance(Configure);
@@ -62,6 +63,7 @@ describe('Configure CLI command', () => {
       await expect(
         instance.execute({
           logger,
+          userError,
           args: {
             providerName: 'U7!O',
           },
@@ -69,7 +71,7 @@ describe('Configure CLI command', () => {
             profile: 'test',
           },
         })
-      ).rejects.toEqual(new CLIError('Invalid provider name'));
+      ).rejects.toThrow('Invalid provider name');
 
       expect(detectSuperJson).not.toHaveBeenCalled();
       expect(installProvider).not.toHaveBeenCalled();
@@ -81,6 +83,7 @@ describe('Configure CLI command', () => {
       await expect(
         instance.execute({
           logger,
+          userError,
           args: {
             providerName: 'swapi',
           },
@@ -89,7 +92,7 @@ describe('Configure CLI command', () => {
             localMap: 'some/path',
           },
         })
-      ).rejects.toEqual(new CLIError('Local path: "some/path" does not exist'));
+      ).rejects.toThrow('Local path: "some/path" does not exist');
 
       expect(detectSuperJson).not.toHaveBeenCalled();
       expect(installProvider).not.toHaveBeenCalled();
@@ -101,10 +104,11 @@ describe('Configure CLI command', () => {
       await expect(
         instance.execute({
           logger,
+          userError,
           args: { providerName: 'swapi' },
           flags: { profile: 'test', localMap: 'some/path' },
         })
-      ).rejects.toEqual(new CLIError('Local path: "some/path" does not exist'));
+      ).rejects.toThrow('Local path: "some/path" does not exist');
 
       expect(detectSuperJson).not.toHaveBeenCalled();
       expect(installProvider).not.toHaveBeenCalled();
@@ -117,6 +121,7 @@ describe('Configure CLI command', () => {
       await expect(
         instance.execute({
           logger,
+          userError,
           args: { providerName: provider },
           flags: { profile: profileId.id, force: false, 'write-env': false },
         })
@@ -149,6 +154,7 @@ describe('Configure CLI command', () => {
       await expect(
         instance.execute({
           logger,
+          userError,
           args: { providerName: provider },
           flags: { profile: profileId.id, force: false, 'write-env': true },
         })
@@ -182,6 +188,7 @@ describe('Configure CLI command', () => {
       await expect(
         instance.execute({
           logger,
+          userError,
           args: { providerName: provider },
           flags: { profile: profileId.id, force: false, 'write-env': false },
         })

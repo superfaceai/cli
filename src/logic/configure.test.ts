@@ -1,4 +1,3 @@
-import { CLIError } from '@oclif/errors';
 import {
   ApiKeyPlacement,
   HttpScheme,
@@ -11,6 +10,7 @@ import { ok, SuperJson } from '@superfaceai/one-sdk';
 import { mocked } from 'ts-jest/utils';
 
 import { MockLogger } from '../common';
+import { createUserError } from '../common/error';
 import { fetchProviderInfo } from '../common/http';
 import { readFile, readFileQuiet } from '../common/io';
 import { OutputStream } from '../common/output-stream';
@@ -22,17 +22,15 @@ import {
   updateEnv,
 } from './configure';
 
-//Mock http
 jest.mock('../common/http', () => ({
   fetchProviderInfo: jest.fn(),
 }));
-
 jest.mock('../common/io');
-
 jest.mock('@superfaceai/one-sdk/dist/internal/superjson');
 
 describe('Configure CLI logic', () => {
   let logger: MockLogger;
+  const userError = createUserError(false);
   const providerName = 'test';
   const mockProviderJson: ProviderJson = {
     name: providerName,
@@ -135,7 +133,7 @@ describe('Configure CLI logic', () => {
   });
   describe('when handling provider response', () => {
     const mockSuperJson = new SuperJson();
-    const mockProfileId = ProfileId.fromId('test-profile');
+    const mockProfileId = ProfileId.fromId('test-profile', { userError });
     it('add providers to super json', async () => {
       const setProviderSpy = jest.spyOn(SuperJson.prototype, 'setProvider');
       const setProfileProviderSpy = jest.spyOn(
@@ -398,7 +396,7 @@ describe('Configure CLI logic', () => {
       mocked(fetchProviderInfo).mockResolvedValue(mockProviderJson);
 
       await expect(
-        getProviderFromStore(providerName, { logger })
+        getProviderFromStore(providerName, { logger, userError })
       ).resolves.toEqual(mockProviderJson);
     });
 
@@ -406,13 +404,13 @@ describe('Configure CLI logic', () => {
       mocked(fetchProviderInfo).mockRejectedValue(new Error('test'));
 
       await expect(
-        getProviderFromStore(providerName, { logger })
-      ).rejects.toEqual(new CLIError('test'));
+        getProviderFromStore(providerName, { logger, userError })
+      ).rejects.toThrow('test');
     });
   });
 
   describe('when instaling provider', () => {
-    const mockProfileId = ProfileId.fromId('test-profile');
+    const mockProfileId = ProfileId.fromId('test-profile', { userError });
     const mockSuperJson = new SuperJson({
       profiles: {
         [mockProfileId.id]: {
@@ -464,7 +462,7 @@ describe('Configure CLI logic', () => {
               testUseCase: { retryPolicy: OnFail.CIRCUIT_BREAKER },
             },
           },
-          { logger }
+          { logger, userError }
         )
       ).resolves.toBeUndefined();
 
@@ -537,7 +535,7 @@ describe('Configure CLI logic', () => {
             },
             options: { updateEnv: true },
           },
-          { logger }
+          { logger, userError }
         )
       ).resolves.toBeUndefined();
 
@@ -615,7 +613,7 @@ describe('Configure CLI logic', () => {
               localMap: 'maps/send-sms.twilio.suma',
             },
           },
-          { logger }
+          { logger, userError }
         )
       ).resolves.toBeUndefined();
 
@@ -689,7 +687,7 @@ describe('Configure CLI logic', () => {
               localProvider: 'providers/twilio.provider.json',
             },
           },
-          { logger }
+          { logger, userError }
         )
       ).resolves.toBeUndefined();
 
@@ -764,7 +762,7 @@ describe('Configure CLI logic', () => {
               updateEnv: true,
             },
           },
-          { logger }
+          { logger, userError }
         )
       ).resolves.toBeUndefined();
 
@@ -831,9 +829,9 @@ describe('Configure CLI logic', () => {
               localProvider: 'some/error/path',
             },
           },
-          { logger }
+          { logger, userError }
         )
-      ).rejects.toEqual(new CLIError('test'));
+      ).rejects.toThrow('test');
 
       expect(fetchProviderInfo).not.toHaveBeenCalled();
 
@@ -860,12 +858,10 @@ describe('Configure CLI logic', () => {
             provider: providerName,
             profileId: mockProfileId,
           },
-          { logger }
+          { logger, userError }
         )
-      ).rejects.toEqual(
-        new CLIError(
-          `❌ profile ${mockProfileId.id} not found in "some/path/super.json".`
-        )
+      ).rejects.toThrow(
+        `profile ${mockProfileId.id} not found in "some/path/super.json".`
       );
 
       expect(fetchProviderInfo).not.toHaveBeenCalled();
@@ -913,7 +909,7 @@ describe('Configure CLI logic', () => {
             provider: providerName,
             profileId: mockProfileId,
           },
-          { logger }
+          { logger, userError }
         )
       ).resolves.toBeUndefined();
 

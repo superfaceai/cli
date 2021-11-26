@@ -4,7 +4,7 @@ import { join as joinPath } from 'path';
 
 import { Command, Flags } from '../common/command.abstract';
 import { META_FILE, SUPERFACE_DIR } from '../common/document';
-import { userError } from '../common/error';
+import { UserError } from '../common/error';
 import { exists } from '../common/io';
 import { ILogger } from '../common/log';
 import { ProfileId } from '../common/profile';
@@ -63,6 +63,7 @@ export default class Configure extends Command {
     await super.initialize(flags);
     await this.execute({
       logger: this.logger,
+      userError: this.userError,
       flags,
       args,
     });
@@ -70,10 +71,12 @@ export default class Configure extends Command {
 
   async execute({
     logger,
+    userError,
     flags,
     args,
   }: {
     logger: ILogger;
+    userError: UserError;
     flags: Flags<typeof Configure.flags>;
     args: { providerName?: string };
   }): Promise<void> {
@@ -109,7 +112,7 @@ export default class Configure extends Command {
       {
         superPath,
         provider: args.providerName,
-        profileId: ProfileId.fromId(flags.profile.trim()),
+        profileId: ProfileId.fromId(flags.profile.trim(), { userError }),
         defaults: undefined,
         options: {
           force: flags.force,
@@ -118,7 +121,7 @@ export default class Configure extends Command {
           updateEnv: flags['write-env'],
         },
       },
-      { logger }
+      { logger, userError }
     );
   }
 }

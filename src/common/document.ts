@@ -14,7 +14,7 @@ import {
 } from '@superfaceai/parser';
 import { basename, join as joinPath } from 'path';
 
-import { userError } from './error';
+import { UserError } from './error';
 import { DocumentTypeFlag } from './flags';
 
 export const DEFAULT_PROFILE_VERSION = {
@@ -78,7 +78,10 @@ export const composeUsecaseName = (documentId: string): string =>
 /**
  * Returns a path without extension.
  */
-export function trimExtension(path: string): string {
+export function trimExtension(
+  path: string,
+  { userError }: { userError: UserError }
+): string {
   const documentType = inferDocumentType(path);
 
   switch (documentType) {
@@ -100,7 +103,8 @@ export function trimExtension(path: string): string {
  * @param profileIds - list of profile ids
  */
 export const constructProfileSettings = (
-  profileIds: string[]
+  profileIds: string[],
+  { userError }: { userError: UserError }
 ): Record<string, ProfileEntry> =>
   profileIds.reduce<Record<string, ProfileEntry>>((acc, profileId) => {
     const profile = parseProfileId(profileId);

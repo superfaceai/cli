@@ -8,13 +8,17 @@ import { inspect } from 'util';
  *
  * Has a positive exit code.
  */
-export function userError(message: string, code: number): CLIError {
+export const createUserError = (emoji: boolean) => (
+  message: string,
+  code: number
+): CLIError => {
   if (code <= 0) {
     throw developerError('expected positive error code', 1);
   }
 
-  return new CLIError(message, { exit: code });
-}
+  return new CLIError(emoji ? '❌ ' + message : message, { exit: code });
+};
+export type UserError = ReturnType<typeof createUserError>;
 
 /**
  * Developer error.

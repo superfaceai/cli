@@ -1,4 +1,3 @@
-import { CLIError } from '@oclif/errors';
 import {
   CLILoginResponse,
   ServiceClient,
@@ -10,11 +9,8 @@ import { EventEmitter } from 'events';
 import inquirer from 'inquirer';
 import * as open from 'open';
 
-import {
-  // fetchVerificationUrl,
-  // initLogin,
-  SuperfaceClient,
-} from '../common/http';
+import { createUserError } from '../common/error';
+import { SuperfaceClient } from '../common/http';
 import { MockLogger } from '../common/log';
 import { login } from './login';
 
@@ -26,10 +22,8 @@ jest.mock('../common/http', () => ({
   fetchVerificationUrl: jest.fn(),
 }));
 
-//Mock inquirer
 jest.mock('inquirer');
 
-//Mock open
 jest.mock('open');
 
 class MockChildProcess extends EventEmitter {
@@ -37,8 +31,11 @@ class MockChildProcess extends EventEmitter {
     super();
   }
 }
+
 describe('Login logic', () => {
   let logger: MockLogger;
+  const userError = createUserError(false);
+
   afterEach(() => {
     jest.resetAllMocks();
   });
@@ -67,7 +64,6 @@ describe('Login logic', () => {
 
     describe('signing in using browser', () => {
       const initSpy = jest.spyOn(ServiceClient.prototype, 'cliLogin');
-
       const verifySpy = jest.spyOn(ServiceClient.prototype, 'verifyCliLogin');
 
       beforeEach(() => {
@@ -85,7 +81,7 @@ describe('Login logic', () => {
           .spyOn(open, 'default')
           .mockResolvedValue(new MockChildProcess() as ChildProcess);
 
-        await expect(login({}, { logger })).resolves.toBeUndefined();
+        await expect(login({}, { logger, userError })).resolves.toBeUndefined();
 
         expect(initSpy).toHaveBeenCalledTimes(1);
         expect(verifySpy).toHaveBeenCalledTimes(1);
@@ -105,7 +101,7 @@ describe('Login logic', () => {
           .spyOn(open, 'default')
           .mockResolvedValue(childProcess as ChildProcess);
 
-        await expect(login({}, { logger })).resolves.toBeUndefined();
+        await expect(login({}, { logger, userError })).resolves.toBeUndefined();
 
         //Browser emits error
         childProcess.emit('error', { message: mockErrorMessage });
@@ -133,7 +129,7 @@ describe('Login logic', () => {
           .spyOn(open, 'default')
           .mockResolvedValue(childProcess as ChildProcess);
 
-        await expect(login({}, { logger })).resolves.toBeUndefined();
+        await expect(login({}, { logger, userError })).resolves.toBeUndefined();
 
         //Browser emits error
         childProcess.emit('close');
@@ -168,7 +164,7 @@ describe('Login logic', () => {
         .spyOn(open, 'default')
         .mockResolvedValue(new MockChildProcess() as ChildProcess);
 
-      await expect(login({}, { logger })).resolves.toBeUndefined();
+      await expect(login({}, { logger, userError })).resolves.toBeUndefined();
 
       expect(initSpy).toHaveBeenCalledTimes(1);
       expect(verifySpy).toHaveBeenCalledTimes(1);
@@ -196,7 +192,9 @@ describe('Login logic', () => {
 
       const openSpy = jest.spyOn(open, 'default');
 
-      await expect(login({ force: true }, { logger })).resolves.toBeUndefined();
+      await expect(
+        login({ force: true }, { logger, userError })
+      ).resolves.toBeUndefined();
 
       expect(initSpy).toHaveBeenCalledTimes(1);
       expect(verifySpy).toHaveBeenCalledTimes(1);
@@ -233,10 +231,8 @@ describe('Login logic', () => {
 
       const loginSpy = jest.spyOn(ServiceClient.prototype, 'login');
 
-      await expect(login({}, { logger })).rejects.toEqual(
-        new CLIError(
-          `Unable to get auth token, request ended with status: ${VerificationStatus.EXPIRED}`
-        )
+      await expect(login({}, { logger, userError })).rejects.toThrow(
+        `Unable to get auth token, request ended with status: ${VerificationStatus.EXPIRED}`
       );
 
       expect(initSpy).toHaveBeenCalledTimes(1);
@@ -274,10 +270,8 @@ describe('Login logic', () => {
 
       const loginSpy = jest.spyOn(ServiceClient.prototype, 'login');
 
-      await expect(login({}, { logger })).rejects.toEqual(
-        new CLIError(
-          `Request ended with status: ${VerificationStatus.CONFIRMED} but does not contain auth token`
-        )
+      await expect(login({}, { logger, userError })).rejects.toThrow(
+        `Request ended with status: ${VerificationStatus.CONFIRMED} but does not contain auth token`
       );
 
       expect(initSpy).toHaveBeenCalledTimes(1);
@@ -305,12 +299,10 @@ describe('Login logic', () => {
         .spyOn(ServiceClient.prototype, 'cliLogin')
         .mockResolvedValue(mockInitResponse);
 
-      await expect(login({}, { logger })).rejects.toEqual(
-        new CLIError(
-          `Attempt to login ended with: ${mockInitResponse.title}: ${
-            mockInitResponse.detail || ''
-          }`
-        )
+      await expect(login({}, { logger, userError })).rejects.toThrow(
+        `Attempt to login ended with: ${mockInitResponse.title}: ${
+          mockInitResponse.detail || ''
+        }`
       );
 
       expect(initSpy).toHaveBeenCalledTimes(1);
@@ -328,8 +320,8 @@ describe('Login logic', () => {
         .spyOn(ServiceClient.prototype, 'cliLogin')
         .mockResolvedValue(mockInitResponse);
 
-      await expect(login({}, { logger })).rejects.toEqual(
-        new CLIError(`Attempt to login ended with: ${mockInitResponse.title}`)
+      await expect(login({}, { logger, userError })).rejects.toThrow(
+        `Attempt to login ended with: ${mockInitResponse.title}`
       );
 
       expect(initSpy).toHaveBeenCalledTimes(1);

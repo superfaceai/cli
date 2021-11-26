@@ -1,9 +1,9 @@
-import { CLIError } from '@oclif/errors';
 import { err, ok, SuperJson } from '@superfaceai/one-sdk';
 import { SDKExecutionError } from '@superfaceai/one-sdk/dist/internal/errors';
 import { mocked } from 'ts-jest/utils';
 
 import { MockLogger } from '..';
+import { createUserError } from '../common/error';
 import { ProfileId } from '../common/profile';
 import { generate } from '../logic/generate';
 import { detectSuperJson } from '../logic/install';
@@ -25,6 +25,7 @@ describe('Generate CLI command', () => {
 
   let logger: MockLogger;
   let instance: Generate;
+  const userError = createUserError(false);
 
   beforeEach(() => {
     logger = new MockLogger();
@@ -41,13 +42,12 @@ describe('Generate CLI command', () => {
       await expect(
         instance.execute({
           logger,
+          userError,
           flags: {
             profileId,
           },
         })
-      ).rejects.toEqual(
-        new CLIError('Unable to generate, super.json not found')
-      );
+      ).rejects.toThrow('Unable to generate, super.json not found');
     });
 
     it('throws when super.json not loaded correctly', async () => {
@@ -58,11 +58,12 @@ describe('Generate CLI command', () => {
       await expect(
         instance.execute({
           logger,
+          userError,
           flags: {
             profileId,
           },
         })
-      ).rejects.toEqual(new CLIError('Unable to load super.json: test error'));
+      ).rejects.toThrow('Unable to load super.json: test error');
     });
 
     it('throws error on scan flag higher than 5', async () => {
@@ -71,15 +72,14 @@ describe('Generate CLI command', () => {
       await expect(
         instance.execute({
           logger,
+          userError,
           flags: {
             profileId,
             scan: 6,
           },
         })
-      ).rejects.toEqual(
-        new CLIError(
-          '--scan/-s : Number of levels to scan cannot be higher than 5'
-        )
+      ).rejects.toThrow(
+        '--scan/-s : Number of levels to scan cannot be higher than 5'
       );
       expect(detectSuperJson).not.toHaveBeenCalled();
     }, 10000);
@@ -93,15 +93,14 @@ describe('Generate CLI command', () => {
       await expect(
         instance.execute({
           logger,
+          userError,
           flags: {
             profileId: 'U!0_',
             scan: 3,
           },
         })
-      ).rejects.toEqual(
-        new CLIError(
-          'Invalid profile id: "U!0_" is not a valid lowercase identifier'
-        )
+      ).rejects.toThrow(
+        'Invalid profile id: "U!0_" is not a valid lowercase identifier'
       );
       expect(detectSuperJson).toHaveBeenCalled();
       expect(loadSpy).toHaveBeenCalled();
@@ -116,14 +115,13 @@ describe('Generate CLI command', () => {
       await expect(
         instance.execute({
           logger,
+          userError,
           flags: {
             profileId,
             scan: 3,
           },
         })
-      ).rejects.toEqual(
-        new CLIError(`Profile id: "${profileId}" not found in super.json`)
-      );
+      ).rejects.toThrow(`Profile id: "${profileId}" not found in super.json`);
       expect(detectSuperJson).toHaveBeenCalled();
       expect(loadSpy).toHaveBeenCalled();
     }, 10000);
@@ -146,6 +144,7 @@ describe('Generate CLI command', () => {
       await expect(
         instance.execute({
           logger,
+          userError,
           flags: {
             profileId,
             scan: 3,
@@ -156,7 +155,12 @@ describe('Generate CLI command', () => {
       expect(loadSpy).toHaveBeenCalled();
       expect(generate).toHaveBeenCalledWith(
         {
-          profiles: [{ id: ProfileId.fromId(profileId), version: undefined }],
+          profiles: [
+            {
+              id: ProfileId.fromId(profileId, { userError }),
+              version: undefined,
+            },
+          ],
           superJson: mockSuperJson,
         },
         expect.anything()
@@ -182,6 +186,7 @@ describe('Generate CLI command', () => {
       await expect(
         instance.execute({
           logger,
+          userError,
           flags: {
             profileId,
             scan: 3,
@@ -192,7 +197,9 @@ describe('Generate CLI command', () => {
       expect(loadSpy).toHaveBeenCalled();
       expect(generate).toHaveBeenCalledWith(
         {
-          profiles: [{ id: ProfileId.fromId(profileId), version }],
+          profiles: [
+            { id: ProfileId.fromId(profileId, { userError }), version },
+          ],
           superJson: mockSuperJson,
         },
         expect.anything()
@@ -222,6 +229,7 @@ describe('Generate CLI command', () => {
       await expect(
         instance.execute({
           logger,
+          userError,
           flags: {
             scan: 3,
           },
@@ -232,8 +240,8 @@ describe('Generate CLI command', () => {
       expect(generate).toHaveBeenCalledWith(
         {
           profiles: [
-            { id: ProfileId.fromId(profileId), version },
-            { id: ProfileId.fromId('other') },
+            { id: ProfileId.fromId(profileId, { userError }), version },
+            { id: ProfileId.fromId('other', { userError }) },
           ],
           superJson: mockSuperJson,
         },
@@ -264,6 +272,7 @@ describe('Generate CLI command', () => {
       await expect(
         instance.execute({
           logger,
+          userError,
           flags: {
             quiet: true,
             scan: 3,
@@ -275,8 +284,11 @@ describe('Generate CLI command', () => {
       expect(generate).toHaveBeenCalledWith(
         {
           profiles: [
-            { id: ProfileId.fromId(profileId), version },
-            { id: ProfileId.fromId('other'), version: undefined },
+            { id: ProfileId.fromId(profileId, { userError }), version },
+            {
+              id: ProfileId.fromId('other', { userError }),
+              version: undefined,
+            },
           ],
           superJson: mockSuperJson,
         },

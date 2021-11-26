@@ -4,6 +4,7 @@ import inquirer from 'inquirer';
 import { mocked } from 'ts-jest/utils';
 
 import { MockLogger } from '..';
+import { createUserError } from '../common/error';
 import { fetchProviders, getServicesUrl } from '../common/http';
 import { exists, readFile } from '../common/io';
 import { OutputStream } from '../common/output-stream';
@@ -14,36 +15,20 @@ import { detectSuperJson } from './install';
 import { interactiveInstall } from './quickstart';
 import { profileExists, providerExists } from './quickstart.utils';
 
-//Mock package manager
 jest.mock('../common/package-manager');
-
-//Mock install logic
 jest.mock('./install');
-
-//Mock configure logic
 jest.mock('./configure');
-
-//Mock init logic
 jest.mock('./init');
-
-//Mock check.utils logic
 jest.mock('./check.utils');
-
-//Mock quickstart logic
 jest.mock('./quickstart.utils');
-
-//Mock http
 jest.mock('../common/http');
-
-//Mock IO
 jest.mock('../common/io');
-
-//Mock inquirer
 jest.mock('inquirer');
 
 describe('Quickstart logic', () => {
   let logger: MockLogger;
   let pm: PackageManager;
+  const userError = createUserError(false);
   // eslint-disable-next-line @typescript-eslint/unbound-method
   const originalLoad = SuperJson.load;
   let mockLoad = jest.fn();
@@ -309,6 +294,7 @@ describe('Quickstart logic', () => {
       await interactiveInstall(`${profile.scope}/${profile.profile}`, {
         logger,
         pm,
+        userError,
       });
 
       expect(detectSuperJson).toHaveBeenCalled();
@@ -477,7 +463,7 @@ describe('Quickstart logic', () => {
 
       await interactiveInstall(
         `${profile.scope}/${profile.profile}@${profile.version}`,
-        { logger, pm }
+        { logger, pm, userError }
       );
 
       expect(detectSuperJson).toHaveBeenCalled();
@@ -630,6 +616,7 @@ describe('Quickstart logic', () => {
       await interactiveInstall(`${profile.scope}/${profile.profile}`, {
         logger,
         pm,
+        userError,
       });
 
       expect(detectSuperJson).toHaveBeenCalled();
@@ -808,6 +795,7 @@ describe('Quickstart logic', () => {
       await interactiveInstall(`${profile.scope}/${profile.profile}`, {
         logger,
         pm,
+        userError,
       });
 
       expect(detectSuperJson).toHaveBeenCalled();

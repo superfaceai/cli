@@ -13,7 +13,7 @@ import {
   constructProfileProviderSettings,
   META_FILE,
 } from '../common/document';
-import { userError } from '../common/error';
+import { UserError } from '../common/error';
 import { fetchProviderInfo } from '../common/http';
 import { readFile, readFileQuiet } from '../common/io';
 import { ILogger } from '../common/log';
@@ -120,7 +120,7 @@ export function handleProviderResponse(
  */
 export async function getProviderFromStore(
   providerName: string,
-  { logger }: { logger: ILogger }
+  { logger, userError }: { logger: ILogger; userError: UserError }
 ): Promise<ProviderJson> {
   logger.info('fetchProvider', providerName);
 
@@ -157,7 +157,7 @@ export async function installProvider(
       updateEnv?: boolean;
     };
   },
-  { logger }: { logger: ILogger }
+  { logger, userError }: { logger: ILogger; userError: UserError }
 ): Promise<void> {
   const superJsonPath = joinPath(superPath, META_FILE);
   const loadedResult = await SuperJson.load(superJsonPath);
@@ -173,7 +173,7 @@ export async function installProvider(
   //Check profile existance
   if (!superJson.normalized.profiles[profileId.id]) {
     throw userError(
-      `❌ profile ${profileId.id} not found in "${superJsonPath}".`,
+      `profile ${profileId.id} not found in "${superJsonPath}".`,
       1
     );
   }
@@ -192,7 +192,7 @@ export async function installProvider(
     }
   } else {
     //Load from server
-    providerInfo = await getProviderFromStore(provider, { logger });
+    providerInfo = await getProviderFromStore(provider, { logger, userError });
   }
 
   // Check existence and warn

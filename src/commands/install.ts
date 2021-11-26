@@ -4,7 +4,7 @@ import { join as joinPath } from 'path';
 
 import { Command, Flags } from '../common/command.abstract';
 import { META_FILE, SUPERFACE_DIR } from '../common/document';
-import { userError } from '../common/error';
+import { UserError } from '../common/error';
 import { ILogger } from '../common/log';
 import { IPackageManager, PackageManager } from '../common/package-manager';
 import { NORMALIZED_CWD_PATH } from '../common/path';
@@ -106,6 +106,7 @@ export default class Install extends Command {
     const pm = new PackageManager(this.logger);
     await this.execute({
       logger: this.logger,
+      userError: this.userError,
       pm,
       flags,
       args,
@@ -114,11 +115,13 @@ export default class Install extends Command {
 
   async execute({
     logger,
+    userError,
     pm,
     flags,
     args,
   }: {
     logger: ILogger;
+    userError: UserError;
     pm: IPackageManager;
     flags: Flags<typeof Install.flags>;
     args: { profileId?: string };
@@ -136,7 +139,7 @@ export default class Install extends Command {
         this.exit(1);
       }
 
-      await interactiveInstall(args.profileId, { logger, pm });
+      await interactiveInstall(args.profileId, { logger, pm, userError });
 
       return;
     }
@@ -168,7 +171,7 @@ export default class Install extends Command {
         });
       } else {
         const [id, version] = profileArg.split('@');
-        const profileId = ProfileId.fromId(id);
+        const profileId = ProfileId.fromId(id, { userError });
 
         if (!isValidDocumentName(profileId.name)) {
           logger.warn('invalidProfileName', profileId.name);
@@ -198,7 +201,7 @@ export default class Install extends Command {
           tryToAuthenticate: true,
         },
       },
-      { logger }
+      { logger, userError }
     );
 
     logger.info('configuringProviders');
@@ -207,13 +210,13 @@ export default class Install extends Command {
         {
           superPath,
           provider,
-          profileId: ProfileId.fromId(profileArg as string),
+          profileId: ProfileId.fromId(profileArg as string, { userError }),
           defaults: undefined,
           options: {
             force: !!flags.force,
           },
         },
-        { logger }
+        { logger, userError }
       );
     }
   }

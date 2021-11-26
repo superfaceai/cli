@@ -1,8 +1,8 @@
-import { CLIError } from '@oclif/errors';
 import { err, ok, SuperJson } from '@superfaceai/one-sdk';
 import { SDKExecutionError } from '@superfaceai/one-sdk/dist/internal/errors';
 import { mocked } from 'ts-jest/utils';
 
+import { createUserError } from '../common/error';
 import { MockLogger } from '../common/log';
 import { ProfileId } from '../common/profile';
 import { check, CheckResult, formatHuman, formatJson } from '../logic/check';
@@ -33,6 +33,8 @@ describe('Check CLI command', () => {
   let logger: MockLogger;
   let stderr: MockStd;
   let stdout: MockStd;
+
+  const userError = createUserError(false);
 
   const profileId = 'starwars/character-information';
   const provider = 'swapi';
@@ -137,11 +139,10 @@ describe('Check CLI command', () => {
       await expect(
         instance.execute({
           logger,
+          userError,
           flags: { profileId, providerName: provider },
         })
-      ).rejects.toEqual(
-        new CLIError('❌ Unable to check, super.json not found')
-      );
+      ).rejects.toThrow('Unable to check, super.json not found');
     });
 
     it('throws when super.json not loaded correctly', async () => {
@@ -152,11 +153,10 @@ describe('Check CLI command', () => {
       await expect(
         instance.execute({
           logger,
+          userError,
           flags: { profileId, providerName: provider },
         })
-      ).rejects.toEqual(
-        new CLIError('❌ Unable to load super.json: test error')
-      );
+      ).rejects.toThrow('Unable to load super.json: test error');
     });
 
     it('throws error on scan flag higher than 5', async () => {
@@ -165,16 +165,15 @@ describe('Check CLI command', () => {
       await expect(
         instance.execute({
           logger,
+          userError,
           flags: {
             profileId,
             providerName: provider,
             scan: 6,
           },
         })
-      ).rejects.toEqual(
-        new CLIError(
-          '--scan/-s : Number of levels to scan cannot be higher than 5'
-        )
+      ).rejects.toThrow(
+        '--scan/-s : Number of levels to scan cannot be higher than 5'
       );
       expect(detectSuperJson).not.toHaveBeenCalled();
     }, 10000);
@@ -188,16 +187,15 @@ describe('Check CLI command', () => {
       await expect(
         instance.execute({
           logger,
+          userError,
           flags: {
             profileId: 'U!0_',
             providerName: provider,
             scan: 3,
           },
         })
-      ).rejects.toEqual(
-        new CLIError(
-          '❌ Invalid profile id: "U!0_" is not a valid lowercase identifier'
-        )
+      ).rejects.toThrow(
+        'Invalid profile id: "U!0_" is not a valid lowercase identifier'
       );
       expect(detectSuperJson).not.toHaveBeenCalled();
       expect(loadSpy).not.toHaveBeenCalled();
@@ -212,13 +210,14 @@ describe('Check CLI command', () => {
       await expect(
         instance.execute({
           logger,
+          userError,
           flags: {
             profileId,
             providerName: 'U!0_',
             scan: 3,
           },
         })
-      ).rejects.toEqual(new CLIError('❌ Invalid provider name: "U!0_"'));
+      ).rejects.toThrow('Invalid provider name: "U!0_"');
       expect(detectSuperJson).not.toHaveBeenCalled();
       expect(loadSpy).not.toHaveBeenCalled();
     }, 10000);
@@ -232,15 +231,14 @@ describe('Check CLI command', () => {
       await expect(
         instance.execute({
           logger,
+          userError,
           flags: {
             providerName: provider,
             scan: 3,
           },
         })
-      ).rejects.toEqual(
-        new CLIError(
-          '❌ --profileId must be specified when using --providerName'
-        )
+      ).rejects.toThrow(
+        '--profileId must be specified when using --providerName'
       );
       expect(detectSuperJson).not.toHaveBeenCalled();
       expect(loadSpy).not.toHaveBeenCalled();
@@ -255,16 +253,15 @@ describe('Check CLI command', () => {
       await expect(
         instance.execute({
           logger,
+          userError,
           flags: {
             profileId,
             providerName: provider,
             scan: 3,
           },
         })
-      ).rejects.toEqual(
-        new CLIError(
-          `❌ Unable to check, profile: "${profileId}" not found in super.json`
-        )
+      ).rejects.toThrow(
+        `Unable to check, profile: "${profileId}" not found in super.json`
       );
       expect(detectSuperJson).toHaveBeenCalled();
       expect(loadSpy).toHaveBeenCalled();
@@ -286,16 +283,15 @@ describe('Check CLI command', () => {
       await expect(
         instance.execute({
           logger,
+          userError,
           flags: {
             profileId,
             providerName: provider,
             scan: 3,
           },
         })
-      ).rejects.toEqual(
-        new CLIError(
-          `❌ Unable to check, provider: "${provider}" not found in profile: "${profileId}" in super.json`
-        )
+      ).rejects.toThrow(
+        `Unable to check, provider: "${provider}" not found in profile: "${profileId}" in super.json`
       );
       expect(detectSuperJson).toHaveBeenCalled();
       expect(loadSpy).toHaveBeenCalled();
@@ -320,16 +316,15 @@ describe('Check CLI command', () => {
       await expect(
         instance.execute({
           logger,
+          userError,
           flags: {
             profileId,
             providerName: provider,
             scan: 3,
           },
         })
-      ).rejects.toEqual(
-        new CLIError(
-          `❌ Unable to check, provider: "${provider}" not found in super.json`
-        )
+      ).rejects.toThrow(
+        `Unable to check, provider: "${provider}" not found in super.json`
       );
       expect(detectSuperJson).toHaveBeenCalled();
       expect(loadSpy).toHaveBeenCalled();
@@ -359,15 +354,14 @@ describe('Check CLI command', () => {
       await expect(
         instance.execute({
           logger,
+          userError,
           flags: {
             profileId,
             providerName: provider,
             scan: 3,
           },
         })
-      ).rejects.toEqual(
-        new CLIError('❌ Command found 4 errors and 4 warnings')
-      );
+      ).rejects.toThrow('Command found 4 errors and 4 warnings');
       expect(detectSuperJson).toHaveBeenCalled();
       expect(loadSpy).toHaveBeenCalled();
       expect(check).toHaveBeenCalledWith(
@@ -387,7 +381,11 @@ describe('Check CLI command', () => {
         expect.anything()
       );
       expect(stdout.output).toEqual('format-human\n');
-      expect(formatHuman).toHaveBeenCalledWith(mockResult);
+      expect(formatHuman).toHaveBeenCalledWith({
+        checkResults: mockResult,
+        emoji: true,
+        color: true,
+      });
     });
 
     it('formats result to human readable format with quiet flag', async () => {
@@ -414,15 +412,14 @@ describe('Check CLI command', () => {
       await expect(
         instance.execute({
           logger,
+          userError,
           flags: {
             profileId,
             providerName: provider,
             scan: 3,
           },
         })
-      ).rejects.toEqual(
-        new CLIError('❌ Command found 4 errors and 4 warnings')
-      );
+      ).rejects.toThrow('Command found 4 errors and 4 warnings');
 
       expect(detectSuperJson).toHaveBeenCalled();
       expect(loadSpy).toHaveBeenCalled();
@@ -443,7 +440,11 @@ describe('Check CLI command', () => {
         expect.anything()
       );
       expect(stdout.output).toEqual('format-human\n');
-      expect(formatHuman).toHaveBeenCalledWith(mockResult);
+      expect(formatHuman).toHaveBeenCalledWith({
+        checkResults: mockResult,
+        color: true,
+        emoji: true,
+      });
     });
 
     it('formats result to json with quiet flag', async () => {
@@ -472,6 +473,7 @@ describe('Check CLI command', () => {
       await expect(
         instance.execute({
           logger,
+          userError,
           flags: {
             profileId,
             providerName: provider,
@@ -480,9 +482,7 @@ describe('Check CLI command', () => {
             json: true,
           },
         })
-      ).rejects.toEqual(
-        new CLIError('❌ Command found 4 errors and 4 warnings')
-      );
+      ).rejects.toThrow('Command found 4 errors and 4 warnings');
       expect(detectSuperJson).toHaveBeenCalled();
       expect(loadSpy).toHaveBeenCalled();
       expect(check).toHaveBeenCalledWith(
@@ -549,9 +549,14 @@ describe('Check CLI command', () => {
     });
 
     it('prepares every local capability in super.json', async () => {
-      expect(Check.prepareProfilesToValidate(mockSuperJson)).toEqual([
+      expect(
+        Check.prepareProfilesToValidate(
+          { superJson: mockSuperJson },
+          { userError }
+        )
+      ).toEqual([
         {
-          id: ProfileId.fromId(localProfile),
+          id: ProfileId.fromId(localProfile, { userError }),
           maps: [
             {
               provider: localProvider,
@@ -563,10 +568,13 @@ describe('Check CLI command', () => {
 
     it('prepares specific profile id in super.json', async () => {
       expect(
-        Check.prepareProfilesToValidate(mockSuperJson, localProfile)
+        Check.prepareProfilesToValidate(
+          { superJson: mockSuperJson, profileId: localProfile },
+          { userError }
+        )
       ).toEqual([
         {
-          id: ProfileId.fromId(localProfile),
+          id: ProfileId.fromId(localProfile, { userError }),
           maps: [
             {
               provider: localProvider,
@@ -583,10 +591,13 @@ describe('Check CLI command', () => {
       ]);
 
       expect(
-        Check.prepareProfilesToValidate(mockSuperJson, remoteProfile)
+        Check.prepareProfilesToValidate(
+          { superJson: mockSuperJson, profileId: remoteProfile },
+          { userError }
+        )
       ).toEqual([
         {
-          id: ProfileId.fromId(remoteProfile),
+          id: ProfileId.fromId(remoteProfile, { userError }),
           maps: [
             {
               provider: localProvider,
@@ -607,13 +618,16 @@ describe('Check CLI command', () => {
     it('prepares specific profile and map in super.json', async () => {
       expect(
         Check.prepareProfilesToValidate(
-          mockSuperJson,
-          localProfile,
-          localProvider
+          {
+            superJson: mockSuperJson,
+            profileId: localProfile,
+            providerName: localProvider,
+          },
+          { userError }
         )
       ).toEqual([
         {
-          id: ProfileId.fromId(localProfile),
+          id: ProfileId.fromId(localProfile, { userError }),
           maps: [
             {
               provider: localProvider,
@@ -624,13 +638,16 @@ describe('Check CLI command', () => {
 
       expect(
         Check.prepareProfilesToValidate(
-          mockSuperJson,
-          remoteProfile,
-          localProvider
+          {
+            superJson: mockSuperJson,
+            profileId: remoteProfile,
+            providerName: localProvider,
+          },
+          { userError }
         )
       ).toEqual([
         {
-          id: ProfileId.fromId(remoteProfile),
+          id: ProfileId.fromId(remoteProfile, { userError }),
           maps: [
             {
               provider: localProvider,
@@ -641,13 +658,16 @@ describe('Check CLI command', () => {
       ]);
       expect(
         Check.prepareProfilesToValidate(
-          mockSuperJson,
-          localProfile,
-          remoteProvider
+          {
+            superJson: mockSuperJson,
+            profileId: localProfile,
+            providerName: remoteProvider,
+          },
+          { userError }
         )
       ).toEqual([
         {
-          id: ProfileId.fromId(localProfile),
+          id: ProfileId.fromId(localProfile, { userError }),
           maps: [
             {
               provider: remoteProvider,
@@ -658,13 +678,16 @@ describe('Check CLI command', () => {
 
       expect(
         Check.prepareProfilesToValidate(
-          mockSuperJson,
-          remoteProfile,
-          remoteProvider
+          {
+            superJson: mockSuperJson,
+            profileId: remoteProfile,
+            providerName: remoteProvider,
+          },
+          { userError }
         )
       ).toEqual([
         {
-          id: ProfileId.fromId(remoteProfile),
+          id: ProfileId.fromId(remoteProfile, { userError }),
           maps: [
             {
               provider: remoteProvider,
@@ -676,13 +699,16 @@ describe('Check CLI command', () => {
 
       expect(
         Check.prepareProfilesToValidate(
-          mockSuperJson,
-          localProfile,
-          remoteProviderWithVarinat
+          {
+            superJson: mockSuperJson,
+            profileId: localProfile,
+            providerName: remoteProviderWithVarinat,
+          },
+          { userError }
         )
       ).toEqual([
         {
-          id: ProfileId.fromId(localProfile),
+          id: ProfileId.fromId(localProfile, { userError }),
           maps: [
             {
               provider: remoteProviderWithVarinat,
@@ -694,13 +720,16 @@ describe('Check CLI command', () => {
 
       expect(
         Check.prepareProfilesToValidate(
-          mockSuperJson,
-          remoteProfile,
-          remoteProviderWithVarinat
+          {
+            superJson: mockSuperJson,
+            profileId: remoteProfile,
+            providerName: remoteProviderWithVarinat,
+          },
+          { userError }
         )
       ).toEqual([
         {
-          id: ProfileId.fromId(remoteProfile),
+          id: ProfileId.fromId(remoteProfile, { userError }),
           maps: [
             {
               provider: remoteProviderWithVarinat,

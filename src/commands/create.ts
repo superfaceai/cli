@@ -15,7 +15,7 @@ import {
   SUPERFACE_DIR,
   UNVERIFIED_PROVIDER_PREFIX,
 } from '../common/document';
-import { developerError, userError } from '../common/error';
+import { developerError, UserError } from '../common/error';
 import { exists, mkdirQuiet } from '../common/io';
 import { ILogger } from '../common/log';
 import { NORMALIZED_CWD_PATH } from '../common/path';
@@ -126,15 +126,18 @@ export default class Create extends Command {
     await super.initialize(flags);
     await this.execute({
       logger: this.logger,
+      userError: this.userError,
       flags,
     });
   }
 
   async execute({
     logger,
+    userError,
     flags,
   }: {
     logger: ILogger;
+    userError: UserError;
     flags: Flags<typeof Create.flags>;
   }): Promise<void> {
     if (
@@ -414,7 +417,7 @@ export default class Create extends Command {
           variant: flags.variant,
         },
       },
-      { logger }
+      { logger, userError }
     );
   }
 

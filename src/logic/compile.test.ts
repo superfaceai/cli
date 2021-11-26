@@ -1,23 +1,21 @@
-import { CLIError } from '@oclif/errors';
 import { Parser } from '@superfaceai/one-sdk';
 import { mocked } from 'ts-jest/utils';
 
 import { MockLogger } from '..';
+import { createUserError } from '../common/error';
 import { exists, readFile } from '../common/io';
 import { ProfileId } from '../common/profile';
 import { compile, ProfileToCompile } from './compile';
 
-//Mock io
 jest.mock('../common/io', () => ({
   readFile: jest.fn(),
   exists: jest.fn(),
 }));
-
-//Mock parser
 jest.mock('@superfaceai/one-sdk/dist/internal/parser');
 
 describe('Compile CLI logic', () => {
   let logger: MockLogger;
+  const userError = createUserError(false);
 
   beforeEach(() => {
     logger = new MockLogger();
@@ -63,7 +61,9 @@ describe('Compile CLI logic', () => {
       const parseMapSpy = jest.spyOn(Parser, 'parseMap');
       const parseProfileSpy = jest.spyOn(Parser, 'parseProfile');
 
-      await expect(compile({ profiles }, { logger })).resolves.toBeUndefined();
+      await expect(
+        compile({ profiles }, { logger, userError })
+      ).resolves.toBeUndefined();
       expect(parseProfileSpy).toHaveBeenNthCalledWith(
         1,
         mockProfileContent,
@@ -118,7 +118,7 @@ describe('Compile CLI logic', () => {
       const parseProfileSpy = jest.spyOn(Parser, 'parseProfile');
 
       await expect(
-        compile({ profiles, options: { onlyMap: true } }, { logger })
+        compile({ profiles, options: { onlyMap: true } }, { logger, userError })
       ).resolves.toBeUndefined();
       expect(parseProfileSpy).not.toHaveBeenCalled();
 
@@ -163,7 +163,10 @@ describe('Compile CLI logic', () => {
       const parseProfileSpy = jest.spyOn(Parser, 'parseProfile');
 
       await expect(
-        compile({ profiles, options: { onlyProfile: true } }, { logger })
+        compile(
+          { profiles, options: { onlyProfile: true } },
+          { logger, userError }
+        )
       ).resolves.toBeUndefined();
       expect(parseProfileSpy).toHaveBeenNthCalledWith(
         1,
@@ -188,10 +191,10 @@ describe('Compile CLI logic', () => {
       const parseProfileSpy = jest.spyOn(Parser, 'parseProfile');
       const clearCacheSpy = jest.spyOn(Parser, 'clearCache');
 
-      await expect(compile({ profiles }, { logger })).rejects.toEqual(
-        new CLIError(
-          '❌ Path: "first/profile.supr" for profile first/profile does not exist'
-        )
+      await expect(
+        compile({ profiles }, { logger, userError })
+      ).rejects.toThrow(
+        'Path: "first/profile.supr" for profile first/profile does not exist'
       );
       expect(parseProfileSpy).not.toHaveBeenCalled();
 
@@ -212,10 +215,10 @@ describe('Compile CLI logic', () => {
         return Promise.resolve(mockProfileContent);
       });
 
-      await expect(compile({ profiles }, { logger })).rejects.toEqual(
-        new CLIError(
-          '❌ Path: "first/profile/first/map.suma" for map first/profile.first does not exist'
-        )
+      await expect(
+        compile({ profiles }, { logger, userError })
+      ).rejects.toThrow(
+        'Path: "first/profile/first/map.suma" for map first/profile.first does not exist'
       );
       expect(parseProfileSpy).toHaveBeenNthCalledWith(
         1,

@@ -6,7 +6,7 @@ import { join as joinPath } from 'path';
 
 import { ILogger, META_FILE } from '../common';
 import { Command, Flags } from '../common/command.abstract';
-import { userError } from '../common/error';
+import { UserError } from '../common/error';
 import { ProfileId } from '../common/profile';
 import { check, formatHuman, formatJson } from '../logic/check';
 import { detectSuperJson } from '../logic/install';
@@ -60,14 +60,20 @@ export default class Check extends Command {
   async run(): Promise<void> {
     const { flags } = this.parse(Check);
     await super.initialize(flags);
-    await this.execute({ logger: this.logger, flags });
+    await this.execute({
+      logger: this.logger,
+      userError: this.userError,
+      flags,
+    });
   }
 
   async execute({
     logger,
     flags,
+    userError,
   }: {
     logger: ILogger;
+    userError: UserError;
     flags: Flags<typeof Check.flags>;
   }): Promise<void> {
     // const { flags } = this.parse(Check);
@@ -76,17 +82,17 @@ export default class Check extends Command {
     if (flags.profileId) {
       const parsedProfileId = parseDocumentId(flags.profileId);
       if (parsedProfileId.kind == 'error') {
-        throw userError(`❌ Invalid profile id: ${parsedProfileId.message}`, 1);
+        throw userError(`Invalid profile id: ${parsedProfileId.message}`, 1);
       }
     }
 
     if (flags.providerName) {
       if (!isValidProviderName(flags.providerName)) {
-        throw userError(`❌ Invalid provider name: "${flags.providerName}"`, 1);
+        throw userError(`Invalid provider name: "${flags.providerName}"`, 1);
       }
       if (!flags.profileId) {
         throw userError(
-          '❌ --profileId must be specified when using --providerName',
+          '--profileId must be specified when using --providerName',
           1
         );
       }
@@ -101,16 +107,13 @@ export default class Check extends Command {
     //Load super json
     const superPath = await detectSuperJson(process.cwd(), flags.scan);
     if (!superPath) {
-      throw userError('❌ Unable to check, super.json not found', 1);
+      throw userError('Unable to check, super.json not found', 1);
     }
     const loadedResult = await SuperJson.load(joinPath(superPath, META_FILE));
     const superJson = loadedResult.match(
       v => v,
       err => {
-        throw userError(
-          `❌ Unable to load super.json: ${err.formatShort()}`,
-          1
-        );
+        throw userError(`Unable to load super.json: ${err.formatShort()}`, 1);
       }
     );
 
@@ -118,7 +121,7 @@ export default class Check extends Command {
     if (flags.profileId) {
       if (!superJson.normalized.profiles[flags.profileId]) {
         throw userError(
-          `❌ Unable to check, profile: "${flags.profileId}" not found in super.json`,
+          `Unable to check, profile: "${flags.profileId}" not found in super.json`,
           1
         );
       }
@@ -129,13 +132,13 @@ export default class Check extends Command {
           ]
         ) {
           throw userError(
-            `❌ Unable to check, provider: "${flags.providerName}" not found in profile: "${flags.profileId}" in super.json`,
+            `Unable to check, provider: "${flags.providerName}" not found in profile: "${flags.profileId}" in super.json`,
             1
           );
         }
         if (!superJson.normalized.providers[flags.providerName]) {
           throw userError(
-            `❌ Unable to check, provider: "${flags.providerName}" not found in super.json`,
+            `Unable to check, provider: "${flags.providerName}" not found in super.json`,
             1
           );
         }
@@ -143,32 +146,51 @@ export default class Check extends Command {
     }
 
     const profilesToValidate = Check.prepareProfilesToValidate(
-      superJson,
-      flags.profileId,
-      flags.providerName
+      {
+        superJson,
+        profileId: flags.profileId,
+        providerName: flags.providerName,
+      },
+      { userError }
     );
 
-    const result = await check(superJson, profilesToValidate, { logger });
+    const result = await check(superJson, profilesToValidate, {
+      logger,
+      userError,
+    });
     if (flags.json) {
       this.log(formatJson(result));
     } else {
-      this.log(formatHuman(result));
+      this.log(
+        formatHuman({
+          checkResults: result,
+          emoji: !flags.noEmoji,
+          color: !flags.noColor,
+        })
+      );
     }
     const issues = result.flatMap(result => result.issues);
     const numOfErrros = issues.filter(issue => issue.kind === 'error').length;
     const numOfWarnings = issues.filter(issue => issue.kind === 'warn').length;
     if (numOfErrros > 0 || (flags.failOnWarning && numOfWarnings > 0)) {
       throw userError(
-        `❌ Command found ${numOfErrros} errors and ${numOfWarnings} warnings`,
+        `Command found ${numOfErrros} errors and ${numOfWarnings} warnings`,
         1
       );
     }
   }
 
   public static prepareProfilesToValidate(
-    superJson: SuperJson,
-    profileId?: string,
-    providerName?: string
+    {
+      superJson,
+      profileId,
+      providerName,
+    }: {
+      superJson: SuperJson;
+      profileId?: string;
+      providerName?: string;
+    },
+    { userError }: { userError: UserError }
   ): ProfileToValidate[] {
     const profiles: ProfileToValidate[] = [];
     //validate every local map/profile in super.json
@@ -186,7 +208,7 @@ export default class Check extends Command {
             }
           }
           profiles.push({
-            id: ProfileId.fromId(profile),
+            id: ProfileId.fromId(profile, { userError }),
             maps,
           });
         }
@@ -208,12 +230,12 @@ export default class Check extends Command {
       }
       if ('file' in profileSettings) {
         profiles.push({
-          id: ProfileId.fromId(profileId),
+          id: ProfileId.fromId(profileId, { userError }),
           maps,
         });
       } else {
         profiles.push({
-          id: ProfileId.fromId(profileId),
+          id: ProfileId.fromId(profileId, { userError }),
           maps,
           version: profileSettings.version,
         });
@@ -236,12 +258,12 @@ export default class Check extends Command {
       }
       if ('file' in profileSettings) {
         profiles.push({
-          id: ProfileId.fromId(profileId),
+          id: ProfileId.fromId(profileId, { userError }),
           maps,
         });
       } else {
         profiles.push({
-          id: ProfileId.fromId(profileId),
+          id: ProfileId.fromId(profileId, { userError }),
           maps,
           version: profileSettings.version,
         });

@@ -12,7 +12,7 @@ import {
   validateMap,
 } from '@superfaceai/parser';
 
-import { userError } from '../common/error';
+import { UserError } from '../common/error';
 import {
   fetchMapAST,
   fetchProfileAST,
@@ -45,7 +45,7 @@ export function prePublishCheck(
     providerFrom: ProviderFromMetadata;
     superJson: SuperJson;
   },
-  { logger }: { logger: ILogger }
+  { logger, userError }: { logger: ILogger; userError: UserError }
 ): CheckResult[] {
   try {
     logger.info('assertProfile');
@@ -119,7 +119,7 @@ export async function loadProfile(
     profile: ProfileId;
     version?: string;
   },
-  { logger }: { logger: ILogger }
+  { logger, userError }: { logger: ILogger; userError: UserError }
 ): Promise<{
   ast: ProfileDocumentNode;
   from: ProfileFromMetadata;
@@ -140,7 +140,7 @@ export async function loadProfile(
     return { ast, from: { kind: 'local', ...source } };
   } else {
     //Load from store
-    ast = await fetchProfileAST(profileId);
+    ast = await fetchProfileAST({ profileId }, { userError });
     const version = composeVersion(ast.header.version);
     logger.info('fetchProfile', profile.id, version);
 
@@ -176,7 +176,7 @@ export async function loadMap(
     };
     version?: string;
   },
-  { logger }: { logger: ILogger }
+  { logger, userError }: { logger: ILogger; userError: UserError }
 ): Promise<{
   ast: MapDocumentNode;
   from: MapFromMetadata;
@@ -209,11 +209,14 @@ export async function loadMap(
   } else {
     //Load from store
     const ast = await fetchMapAST(
-      profile.name,
-      provider,
-      profile.scope,
-      version,
-      map.variant
+      {
+        profile: profile.name,
+        provider,
+        scope: profile.scope,
+        version,
+        variant: map.variant,
+      },
+      { userError }
     );
     const astVersion = composeVersion(ast.header.profile.version);
     logger.info('fetchMap', profile.withVersion(version), provider, astVersion);

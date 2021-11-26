@@ -10,7 +10,7 @@ import {
   SUPERFACE_DIR,
   TYPES_DIR,
 } from '../common/document';
-import { userError } from '../common/error';
+import { UserError } from '../common/error';
 import { mkdir, mkdirQuiet } from '../common/io';
 import { ILogger } from '../common/log';
 import { OutputStream } from '../common/output-stream';
@@ -113,7 +113,7 @@ export async function generateSpecifiedProfiles(
     superJson: SuperJson;
     profileIds: string[];
   },
-  { logger }: { logger: ILogger }
+  { logger, userError }: { logger: ILogger; userError: UserError }
 ): Promise<void> {
   for (const profileId of profileIds) {
     const parsedProfile = parseProfileId(profileId);

@@ -1,6 +1,7 @@
 import { Command as OclifCommand, flags } from '@oclif/command';
 import * as Parser from '@oclif/parser';
 
+import { createUserError, UserError } from './error';
 import { DummyLogger, ILogger, StdoutLogger } from './log';
 
 type FlagType<T> = T extends Parser.flags.IOptionFlag<infer V>
@@ -21,6 +22,9 @@ export type Flags<T> = OptionalUndefined<
 >;
 
 export abstract class Command extends OclifCommand {
+  protected logger: ILogger = new DummyLogger();
+  protected userError: UserError = createUserError(true);
+
   static flags = {
     quiet: flags.boolean({
       char: 'q',
@@ -28,14 +32,24 @@ export abstract class Command extends OclifCommand {
         'When set to true, disables the shell echo output of action.',
       default: false,
     }),
+    noColor: flags.boolean({
+      description: 'When set to true, disables all colored output.',
+      default: false,
+    }),
+    noEmoji: flags.boolean({
+      description: 'When set to true, disables displaying emoji in output.',
+      default: false,
+    }),
     help: flags.help({ char: 'h' }),
   };
 
-  protected logger: ILogger = new StdoutLogger();
-
   async initialize(flags: Flags<typeof Command.flags>): Promise<void> {
-    if (flags.quiet) {
-      this.logger = new DummyLogger();
+    if (!flags.quiet) {
+      this.logger = new StdoutLogger(!flags.noColor, !flags.noEmoji);
+    }
+
+    if (flags.noEmoji) {
+      this.userError = createUserError(false);
     }
   }
 }

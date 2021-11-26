@@ -2,6 +2,7 @@ import { flags as oclifFlags } from '@oclif/command';
 import { Netrc } from 'netrc-parser';
 
 import { Command, Flags } from '../common/command.abstract';
+import { UserError } from '../common/error';
 import { getServicesUrl, SuperfaceClient } from '../common/http';
 import { ILogger } from '../common/log';
 import { login } from '../logic/login';
@@ -26,16 +27,19 @@ export default class Login extends Command {
     await super.initialize(flags);
     await this.execute({
       logger: this.logger,
+      userError: this.userError,
       flags,
     });
   }
 
   async execute({
     logger,
+    userError,
     flags,
   }: {
     logger: ILogger;
     flags: Flags<typeof Login.flags>;
+    userError: UserError;
   }): Promise<void> {
     if (process.env.SUPERFACE_REFRESH_TOKEN) {
       logger.warn('usinfSfRefreshToken');
@@ -61,7 +65,7 @@ export default class Login extends Command {
       {
         force: flags.force,
       },
-      { logger }
+      { logger, userError }
     );
 
     logger.success('loggedInSuccessfully');

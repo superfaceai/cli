@@ -12,6 +12,7 @@ import {
 } from 'typescript';
 
 import { UNCOMPILED_SDK_FILE } from '../common/document';
+import { UserError } from '../common/error';
 import { rimraf } from '../common/io';
 import { ILogger } from '../common/log';
 import { OutputStream } from '../common/output-stream';
@@ -37,7 +38,7 @@ export async function generate(
     profiles: { id: ProfileId; version?: string }[];
     superJson: SuperJson;
   },
-  { logger }: { logger: ILogger }
+  { logger, userError }: { logger: ILogger; userError: UserError }
 ): Promise<void> {
   const sources: Record<string, string> = {};
   for (const profile of profiles) {
@@ -47,7 +48,7 @@ export async function generate(
         profile: profile.id,
         version: profile.version,
       },
-      { logger }
+      { logger, userError }
     );
     const typing = generateTypingsForProfile(loadedProfile.ast);
     sources[joinPath('types', profile.id.id + '.ts')] = typing;

@@ -21,7 +21,7 @@ import { bold } from 'chalk';
 import inquirer from 'inquirer';
 import { join as joinPath } from 'path';
 
-import { developerError, userError } from '../common/error';
+import { developerError, UserError } from '../common/error';
 import { fetchProviders, getServicesUrl } from '../common/http';
 import { exists, readFile } from '../common/io';
 import { ILogger } from '../common/log';
@@ -38,7 +38,11 @@ import { profileExists, providerExists } from './quickstart.utils';
 
 export async function interactiveInstall(
   profileArg: string,
-  { logger, pm }: { logger: ILogger; pm: IPackageManager }
+  {
+    logger,
+    pm,
+    userError,
+  }: { logger: ILogger; pm: IPackageManager; userError: UserError }
 ): Promise<void> {
   const [profileIdStr, version] = profileArg.split('@');
   const profilePathParts = profileIdStr.split('/');
@@ -106,13 +110,15 @@ export async function interactiveInstall(
           force: true,
         },
       },
-      { logger }
+      { logger, userError }
     );
     //Reload super.json
     superJson = (await SuperJson.load(joinPath(superPath, META_FILE))).unwrap();
   }
   //Ask for providers
-  const possibleProviders = (await fetchProviders(profileArg)).map(p => p.name);
+  const possibleProviders = (
+    await fetchProviders(profileArg, { userError })
+  ).map(p => p.name);
 
   const priorityToString: Map<number, string> = new Map([
     [1, 'primary'],
@@ -275,7 +281,7 @@ export async function interactiveInstall(
           force: true,
         },
       },
-      { logger }
+      { logger, userError }
     );
   }
 

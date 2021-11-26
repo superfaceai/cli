@@ -9,6 +9,7 @@ import {
   MockLogger,
   UNVERIFIED_PROVIDER_PREFIX,
 } from '../common';
+import { createUserError } from '../common/error';
 import { OutputStream } from '../common/output-stream';
 import { ProfileId } from '../common/profile';
 import {
@@ -58,6 +59,8 @@ describe('Publish CLI command', () => {
     const mockMapPath = `../path/to/profile${EXTENSIONS.map.source}`;
     const mockProviderPath = '../path/to/profile.json';
 
+    const userError = createUserError(false);
+
     it('exits when user declines prompt', async () => {
       const promptSpy = jest
         .spyOn(inquirer, 'prompt')
@@ -85,6 +88,7 @@ describe('Publish CLI command', () => {
       await expect(
         instance.execute({
           logger,
+          userError,
           argv: ['map'],
           flags: {
             profileId,
@@ -110,6 +114,7 @@ describe('Publish CLI command', () => {
       await expect(
         instance.execute({
           logger,
+          userError,
           argv: ['map'],
           flags: {
             profileId: 'U!0_',
@@ -137,6 +142,7 @@ describe('Publish CLI command', () => {
       await expect(
         instance.execute({
           logger,
+          userError,
           argv: ['profile'],
           flags: {
             profileId,
@@ -158,6 +164,7 @@ describe('Publish CLI command', () => {
       await expect(
         instance.execute({
           logger,
+          userError,
           argv: ['profile'],
           flags: {
             profileId,
@@ -179,6 +186,7 @@ describe('Publish CLI command', () => {
       await expect(
         instance.execute({
           logger,
+          userError,
           argv: ['profile'],
           flags: {
             profileId,
@@ -198,6 +206,7 @@ describe('Publish CLI command', () => {
       await expect(
         instance.execute({
           logger,
+          userError,
           argv: ['profile'],
           flags: {
             profileId,
@@ -224,6 +233,7 @@ describe('Publish CLI command', () => {
       await expect(
         instance.execute({
           logger,
+          userError,
           argv: ['profile'],
           flags: {
             profileId,
@@ -265,6 +275,7 @@ describe('Publish CLI command', () => {
       await expect(
         instance.execute({
           logger,
+          userError,
           argv: ['profile'],
           flags: {
             profileId,
@@ -298,6 +309,7 @@ describe('Publish CLI command', () => {
       await expect(
         instance.execute({
           logger,
+          userError,
           argv: ['profile'],
           flags: {
             profileId,
@@ -341,6 +353,7 @@ describe('Publish CLI command', () => {
       await expect(
         instance.execute({
           logger,
+          userError,
           argv: ['map'],
           flags: {
             profileId,
@@ -378,6 +391,7 @@ describe('Publish CLI command', () => {
       await expect(
         instance.execute({
           logger,
+          userError,
           argv: ['provider'],
           flags: {
             profileId,
@@ -422,6 +436,7 @@ describe('Publish CLI command', () => {
       await expect(
         instance.execute({
           logger,
+          userError,
           argv: ['provider'],
           flags: {
             profileId,
@@ -462,6 +477,7 @@ describe('Publish CLI command', () => {
       await expect(
         instance.execute({
           logger,
+          userError,
           argv: ['profile'],
           flags: {
             profileId,
@@ -502,6 +518,7 @@ describe('Publish CLI command', () => {
       await expect(
         instance.execute({
           logger,
+          userError,
           argv: ['map'],
           flags: {
             profileId,
@@ -544,6 +561,7 @@ describe('Publish CLI command', () => {
       await expect(
         instance.execute({
           logger,
+          userError,
           argv: ['provider'],
           flags: {
             profileId,
@@ -584,6 +602,7 @@ describe('Publish CLI command', () => {
       await expect(
         instance.execute({
           logger,
+          userError,
           argv: ['provider'],
           flags: {
             profileId,
@@ -632,6 +651,7 @@ describe('Publish CLI command', () => {
       await expect(
         instance.execute({
           logger,
+          userError,
           argv: ['profile'],
           flags: {
             profileId,
@@ -649,7 +669,7 @@ describe('Publish CLI command', () => {
         {
           publishing: 'profile',
           superJson: mockSuperJson,
-          profile: ProfileId.fromId(profileId),
+          profile: ProfileId.fromId(profileId, { userError }),
           provider: providerName,
           map: {
             variant: undefined,
@@ -658,6 +678,8 @@ describe('Publish CLI command', () => {
           options: {
             dryRun: false,
             quiet: false,
+            emoji: true,
+            json: undefined,
           },
         },
         expect.anything()
@@ -700,6 +722,7 @@ describe('Publish CLI command', () => {
       await expect(
         instance.execute({
           logger,
+          userError,
           argv: ['map'],
           flags: {
             profileId,
@@ -717,7 +740,7 @@ describe('Publish CLI command', () => {
         {
           publishing: 'map',
           superJson: mockSuperJson,
-          profile: ProfileId.fromId(profileId),
+          profile: ProfileId.fromId(profileId, { userError }),
           provider: providerName,
           map: {
             variant: undefined,
@@ -726,13 +749,15 @@ describe('Publish CLI command', () => {
           options: {
             dryRun: false,
             quiet: false,
+            emoji: true,
+            json: undefined,
           },
         },
         expect.anything()
       );
       expect(reconfigureProfileProvider).toHaveBeenCalledWith(
         mockSuperJson,
-        ProfileId.fromId(profileId),
+        ProfileId.fromId(profileId, { userError }),
         providerName,
         { kind: 'remote' }
       );
@@ -777,6 +802,7 @@ describe('Publish CLI command', () => {
       await expect(
         instance.execute({
           logger,
+          userError,
           argv: ['provider'],
           flags: {
             profileId,
@@ -792,13 +818,18 @@ describe('Publish CLI command', () => {
         {
           publishing: 'provider',
           superJson: mockSuperJson,
-          profile: ProfileId.fromId(profileId),
+          profile: ProfileId.fromId(profileId, { userError }),
           provider: providerName,
           map: {
             variant: undefined,
           },
           version: DEFAULT_PROFILE_VERSION_STR,
-          options: {},
+          options: {
+            dryRun: undefined,
+            emoji: true,
+            json: undefined,
+            quiet: undefined,
+          },
         },
         expect.anything()
       );
@@ -844,6 +875,7 @@ describe('Publish CLI command', () => {
       await expect(
         instance.execute({
           logger,
+          userError,
           argv: ['map'],
           flags: {
             profileId,
@@ -859,11 +891,16 @@ describe('Publish CLI command', () => {
         {
           publishing: 'map',
           superJson: mockSuperJson,
-          profile: ProfileId.fromId(profileId),
+          profile: ProfileId.fromId(profileId, { userError }),
           provider: providerName,
           map: { variant: undefined },
           version: DEFAULT_PROFILE_VERSION_STR,
-          options: {},
+          options: {
+            dryRun: undefined,
+            emoji: true,
+            json: undefined,
+            quiet: undefined,
+          },
         },
         expect.anything()
       );
@@ -910,6 +947,7 @@ describe('Publish CLI command', () => {
       await expect(
         instance.execute({
           logger,
+          userError,
           argv: ['map'],
           flags: {
             profileId,
@@ -924,17 +962,22 @@ describe('Publish CLI command', () => {
         {
           publishing: 'map',
           superJson: mockSuperJson,
-          profile: ProfileId.fromId(profileId),
+          profile: ProfileId.fromId(profileId, { userError }),
           provider: providerName,
           map: { variant: undefined },
           version: DEFAULT_PROFILE_VERSION_STR,
-          options: {},
+          options: {
+            dryRun: undefined,
+            emoji: true,
+            json: undefined,
+            quiet: undefined,
+          },
         },
         expect.anything()
       );
       expect(reconfigureProfileProvider).toHaveBeenCalledWith(
         mockSuperJson,
-        ProfileId.fromId(profileId),
+        ProfileId.fromId(profileId, { userError }),
         providerName,
         { kind: 'remote' }
       );
@@ -978,6 +1021,7 @@ describe('Publish CLI command', () => {
       await expect(
         instance.execute({
           logger,
+          userError,
           argv: ['provider'],
           flags: {
             profileId,
@@ -994,7 +1038,7 @@ describe('Publish CLI command', () => {
         {
           publishing: 'provider',
           superJson: mockSuperJson,
-          profile: ProfileId.fromId(profileId),
+          profile: ProfileId.fromId(profileId, { userError }),
           provider: providerName,
           map: {
             variant: undefined,
@@ -1002,6 +1046,9 @@ describe('Publish CLI command', () => {
           version: DEFAULT_PROFILE_VERSION_STR,
           options: {
             dryRun: true,
+            emoji: true,
+            json: undefined,
+            quiet: undefined,
           },
         },
         expect.anything()
@@ -1055,6 +1102,7 @@ describe('Publish CLI command', () => {
       await expect(
         instance.execute({
           logger,
+          userError,
           argv: ['provider'],
           flags: {
             profileId,
@@ -1070,13 +1118,18 @@ describe('Publish CLI command', () => {
         {
           publishing: 'provider',
           superJson: mockSuperJson,
-          profile: ProfileId.fromId(profileId),
+          profile: ProfileId.fromId(profileId, { userError }),
           provider: providerName,
           map: {
             variant: undefined,
           },
           version: DEFAULT_PROFILE_VERSION_STR,
-          options: {},
+          options: {
+            emoji: true,
+            json: undefined,
+            quiet: undefined,
+            dryRun: undefined,
+          },
         },
         expect.anything()
       );
@@ -1128,6 +1181,7 @@ describe('Publish CLI command', () => {
       await expect(
         instance.execute({
           logger,
+          userError,
           argv: ['profile'],
           flags: {
             profileId,
@@ -1143,7 +1197,7 @@ describe('Publish CLI command', () => {
         {
           publishing: 'profile',
           superJson: mockSuperJson,
-          profile: ProfileId.fromId(profileId),
+          profile: ProfileId.fromId(profileId, { userError }),
           provider: providerName,
           map: {
             variant: undefined,
@@ -1151,6 +1205,9 @@ describe('Publish CLI command', () => {
           version: undefined,
           options: {
             quiet: true,
+            dryRun: undefined,
+            emoji: true,
+            json: undefined,
           },
         },
         expect.anything()
@@ -1192,6 +1249,7 @@ describe('Publish CLI command', () => {
       await expect(
         instance.execute({
           logger,
+          userError,
           argv: ['profile'],
           flags: {
             profileId,
@@ -1207,7 +1265,7 @@ describe('Publish CLI command', () => {
         {
           publishing: 'profile',
           superJson: mockSuperJson,
-          profile: ProfileId.fromId(profileId),
+          profile: ProfileId.fromId(profileId, { userError }),
           provider: providerName,
           map: {
             variant: undefined,
@@ -1215,6 +1273,9 @@ describe('Publish CLI command', () => {
           version: undefined,
           options: {
             quiet: true,
+            emoji: true,
+            json: undefined,
+            dryRun: undefined,
           },
         },
         expect.anything()

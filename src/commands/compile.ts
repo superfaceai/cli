@@ -6,7 +6,7 @@ import { join as joinPath } from 'path';
 
 import { Command, Flags } from '../common/command.abstract';
 import { META_FILE } from '../common/document';
-import { userError } from '../common/error';
+import { UserError } from '../common/error';
 import { ILogger } from '../common/log';
 import { ProfileId } from '../common/profile';
 import { compile, MapToCompile, ProfileToCompile } from '../logic/compile';
@@ -60,32 +60,35 @@ export default class Compile extends Command {
     await super.initialize(flags);
     await this.execute({
       logger: this.logger,
+      userError: this.userError,
       flags,
     });
   }
 
   async execute({
     logger,
+    userError,
     flags,
   }: {
     logger: ILogger;
+    userError: UserError;
     flags: Flags<typeof Compile.flags>;
   }): Promise<void> {
     // Check inputs
     if (flags.profileId) {
       const parsedProfileId = parseDocumentId(flags.profileId);
       if (parsedProfileId.kind == 'error') {
-        throw userError(`❌ Invalid profile id: ${parsedProfileId.message}`, 1);
+        throw userError(`Invalid profile id: ${parsedProfileId.message}`, 1);
       }
     }
 
     if (flags.providerName) {
       if (!isValidProviderName(flags.providerName)) {
-        throw userError(`❌ Invalid provider name: "${flags.providerName}"`, 1);
+        throw userError(`Invalid provider name: "${flags.providerName}"`, 1);
       }
       if (!flags.profileId) {
         throw userError(
-          '❌ --profileId must be specified when using --providerName',
+          '--profileId must be specified when using --providerName',
           1
         );
       }
@@ -93,24 +96,21 @@ export default class Compile extends Command {
 
     if (flags.scan && (typeof flags.scan !== 'number' || flags.scan > 5)) {
       throw userError(
-        '❌ --scan/-s : Number of levels to scan cannot be higher than 5',
+        '--scan/-s : Number of levels to scan cannot be higher than 5',
         1
       );
     }
 
     const superPath = await detectSuperJson(process.cwd(), flags.scan);
     if (!superPath) {
-      throw userError('❌ Unable to compile, super.json not found', 1);
+      throw userError('Unable to compile, super.json not found', 1);
     }
     //Load super json
     const loadedResult = await SuperJson.load(joinPath(superPath, META_FILE));
     const superJson = loadedResult.match(
       v => v,
       err => {
-        throw userError(
-          `❌ Unable to load super.json: ${err.formatShort()}`,
-          1
-        );
+        throw userError(`Unable to load super.json: ${err.formatShort()}`, 1);
       }
     );
 
@@ -118,7 +118,7 @@ export default class Compile extends Command {
     if (flags.profileId) {
       if (!superJson.normalized.profiles[flags.profileId]) {
         throw userError(
-          `❌ Unable to compile, profile: "${flags.profileId}" not found in super.json`,
+          `Unable to compile, profile: "${flags.profileId}" not found in super.json`,
           1
         );
       }
@@ -129,7 +129,7 @@ export default class Compile extends Command {
           ]
         ) {
           throw userError(
-            `❌ Unable to compile, provider: "${flags.providerName}" not found in profile: "${flags.profileId}" in super.json`,
+            `Unable to compile, provider: "${flags.providerName}" not found in profile: "${flags.profileId}" in super.json`,
             1
           );
         }
@@ -158,7 +158,7 @@ export default class Compile extends Command {
           profiles.push({
             path: superJson.resolvePath(profileSettings.file),
             maps,
-            id: ProfileId.fromId(profile),
+            id: ProfileId.fromId(profile, { userError }),
           });
         }
       }
@@ -183,7 +183,7 @@ export default class Compile extends Command {
         profiles.push({
           path: superJson.resolvePath(profileSettings.file),
           maps,
-          id: ProfileId.fromId(flags.profileId),
+          id: ProfileId.fromId(flags.profileId, { userError }),
         });
       }
     }
@@ -205,7 +205,7 @@ export default class Compile extends Command {
         profiles.push({
           path: superJson.resolvePath(profileSettings.file),
           maps,
-          id: ProfileId.fromId(flags.profileId),
+          id: ProfileId.fromId(flags.profileId, { userError }),
         });
       }
     }
@@ -218,7 +218,7 @@ export default class Compile extends Command {
           onlyProfile: flags.onlyProfile,
         },
       },
-      { logger }
+      { logger, userError }
     );
 
     logger.success('compiledSuccessfully');

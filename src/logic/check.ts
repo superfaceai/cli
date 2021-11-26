@@ -13,6 +13,7 @@ import { ProfileId } from '@superfaceai/parser';
 import { green, red, yellow } from 'chalk';
 
 import { composeVersion } from '../common/document';
+import { UserError } from '../common/error';
 import { ILogger } from '../common/log';
 import { isProviderParseError } from './check.utils';
 import { ProfileToValidate } from './lint';
@@ -76,7 +77,7 @@ export type CheckIssue = { kind: 'error' | 'warn'; message: string };
 export async function check(
   superJson: SuperJson,
   profiles: ProfileToValidate[],
-  { logger }: { logger: ILogger }
+  { logger, userError }: { logger: ILogger; userError: UserError }
 ): Promise<CheckResult[]> {
   const finalResults: CheckResult[] = [];
 
@@ -88,12 +89,11 @@ export async function check(
         profile: profile.id,
         version: profile.version,
       },
-      { logger }
+      { logger, userError }
     );
     assertProfileDocumentNode(profileFiles.ast);
 
     for (const map of profile.maps) {
-      //Load map AST
       const mapFiles = await loadMap(
         {
           superJson,
@@ -102,24 +102,21 @@ export async function check(
           map: { variant: map.variant },
           version: profile.version,
         },
-        { logger }
+        { logger, userError }
       );
       assertMapDocumentNode(mapFiles.ast);
 
-      //Load provider.json
       const providerFiles = await loadProvider(superJson, map.provider, {
         logger,
       });
 
       logger.info('checkProfileAndMap', profile.id.toString(), map.provider);
-      //Check map and profile
       finalResults.push({
         ...checkMapAndProfile(profileFiles.ast, mapFiles.ast, { logger }),
         mapFrom: mapFiles.from,
         profileFrom: profileFiles.from,
       });
 
-      //Check map and provider
       logger.info('checkProvider', map.provider);
       finalResults.push({
         ...checkMapAndProvider(providerFiles.source, mapFiles.ast),
@@ -127,7 +124,6 @@ export async function check(
         providerFrom: providerFiles.from,
       });
 
-      //Check integration parameters
       logger.info('checkIntegrationParameters', map.provider);
       finalResults.push({
         ...checkIntegrationParameters(providerFiles.source, superJson),
@@ -322,16 +318,28 @@ export function checkMapAndProfile(
   };
 }
 
-export function formatHuman(checkResults: CheckResult[]): string {
-  const REPORT_OK = '🆗';
-  const REPORT_WARN = '⚠️';
-  const REPORT_ERR = '❌';
+export function formatHuman({
+  checkResults,
+  emoji,
+  color,
+}: {
+  checkResults: CheckResult[];
+  emoji: boolean;
+  color: boolean;
+}): string {
+  const REPORT_OK = '🆗 ';
+  const REPORT_WARN = '⚠️ ';
+  const REPORT_ERR = '❌ ';
 
   const formatCheckIssue = (issue: CheckIssue): string => {
     if (issue.kind === 'error') {
-      return red(`${REPORT_ERR} ${issue.message}\n`);
+      const message = `${emoji ? REPORT_ERR : ''}${issue.message}\n`;
+
+      return color ? red(message) : message;
     } else {
-      return yellow(`${REPORT_WARN} ${issue.message}\n`);
+      const message = `${emoji ? REPORT_WARN : ''} ${issue.message}\n`;
+
+      return color ? yellow(message) : message;
     }
   };
 
@@ -377,11 +385,17 @@ export function formatHuman(checkResults: CheckResult[]): string {
       message += `and super.json at path\n"${result.superJsonPath}"`;
     }
     if (result.issues.length === 0) {
-      return green(`${REPORT_OK} ${message}\n`);
+      message = `${emoji ? REPORT_OK : ''}${message}\n`;
+
+      return color ? green(message) : message;
     } else if (result.issues.every(issue => issue.kind === 'warn')) {
-      return yellow(`${REPORT_WARN} ${message}\n`);
+      message = `${emoji ? REPORT_WARN : ''}${message}\n`;
+
+      return color ? yellow(message) : message;
     } else {
-      return red(`${REPORT_ERR} ${message}\n`);
+      message = `${REPORT_ERR}${message}\n`;
+
+      return color ? red(message) : message;
     }
   };
 

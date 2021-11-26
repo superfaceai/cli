@@ -1,38 +1,38 @@
-import { CLIError } from '@oclif/errors';
 import { ok, SuperJson } from '@superfaceai/one-sdk';
 import { parseProfileId } from '@superfaceai/parser';
 import { mocked } from 'ts-jest/utils';
 
 import { MockLogger } from '../common';
 import { composeUsecaseName } from '../common/document';
+import { createUserError } from '../common/error';
 import { mkdir, mkdirQuiet } from '../common/io';
 import { OutputStream } from '../common/output-stream';
 import { ProfileId } from '../common/profile';
 import { createProfile } from './create';
 import { generateSpecifiedProfiles, initSuperface } from './init';
 
-//Mock io
 jest.mock('../common/io', () => ({
   mkdir: jest.fn(),
   mkdirQuiet: jest.fn(),
 }));
 
-//Mock parser
 jest.mock('@superfaceai/parser', () => ({
   parseProfileId: jest.fn(),
 }));
 
-//Mock create profile
 jest.mock('./create', () => ({
   createProfile: jest.fn(),
 }));
 
 describe('Init logic', () => {
   let logger: MockLogger;
+  const userError = createUserError(false);
+
   describe('when initialing superface', () => {
     beforeEach(() => {
       logger = new MockLogger();
     });
+
     afterEach(() => {
       jest.resetAllMocks();
     });
@@ -105,7 +105,7 @@ describe('Init logic', () => {
             superJson: mockSuperJson,
             profileIds: mockProfileIds,
           },
-          { logger }
+          { logger, userError }
         )
       ).resolves.toBeUndefined();
 
@@ -155,9 +155,9 @@ describe('Init logic', () => {
             superJson: mockSuperJson,
             profileIds: mockProfileIds,
           },
-          { logger }
+          { logger, userError }
         )
-      ).rejects.toEqual(new CLIError('Wrong profile Id'));
+      ).rejects.toThrow('Wrong profile Id');
 
       expect(parseProfileId).toHaveBeenCalledTimes(1);
       expect(parseProfileId).toHaveBeenCalledWith('first-profile-id');

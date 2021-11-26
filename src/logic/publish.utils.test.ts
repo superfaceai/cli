@@ -1,4 +1,3 @@
-import { CLIError } from '@oclif/errors';
 import {
   AstMetadata,
   MapDocumentNode,
@@ -8,6 +7,7 @@ import { Parser, SuperJson } from '@superfaceai/one-sdk';
 import { mocked } from 'ts-jest/utils';
 
 import { MockLogger } from '../common';
+import { createUserError } from '../common/error';
 import {
   fetchMapAST,
   fetchProfileAST,
@@ -31,15 +31,12 @@ import {
   ProviderFromMetadata,
 } from './publish.utils';
 
-//Mock check util
 jest.mock('./check.utils', () => ({
   ...jest.requireActual<Record<string, unknown>>('./check.utils'),
   findLocalProfileSource: jest.fn(),
   findLocalMapSource: jest.fn(),
   findLocalProviderSource: jest.fn(),
 }));
-
-//Mock http
 jest.mock('../common/http', () => ({
   fetchProfileAST: jest.fn(),
   fetchMapAST: jest.fn(),
@@ -48,9 +45,10 @@ jest.mock('../common/http', () => ({
 
 describe('Publish logic utils', () => {
   let logger: MockLogger;
+  const userError = createUserError(false);
 
   const mockProfileId = 'starwars/character-information';
-  const mockProfile = ProfileId.fromId(mockProfileId);
+  const mockProfile = ProfileId.fromId(mockProfileId, { userError });
   const mockProviderName = 'unverified-swapi';
 
   const astMetadata: AstMetadata = {
@@ -214,12 +212,10 @@ describe('Publish logic utils', () => {
             mapFrom: mockMapFrom,
             superJson: mockSuperJson,
           },
-          { logger }
+          { logger, userError }
         )
       ).toThrow(
-        new CLIError(
-          "Profile AST validation failed at $: expected 'astMetadata' in object, found: {}"
-        )
+        "Profile AST validation failed at $: expected 'astMetadata' in object, found: {}"
       );
     });
 
@@ -236,7 +232,7 @@ describe('Publish logic utils', () => {
             mapFrom: mockMapFrom,
             superJson: mockSuperJson,
           },
-          { logger }
+          { logger, userError }
         )
       ).toThrow(
         "Map AST validation failed at $: expected 'astMetadata' in object, found: {}"
@@ -256,7 +252,7 @@ describe('Publish logic utils', () => {
             mapFrom: mockMapFrom,
             superJson: mockSuperJson,
           },
-          { logger }
+          { logger, userError }
         )
       ).toEqual([
         {
@@ -298,7 +294,7 @@ describe('Publish logic utils', () => {
             mapFrom: mockMapFrom,
             superJson: mockSuperJson,
           },
-          { logger }
+          { logger, userError }
         )
           .flatMap(checkResult => checkResult.issues)
           .filter(err => err.kind === 'error').length
@@ -328,7 +324,7 @@ describe('Publish logic utils', () => {
             mapFrom: mockMapFrom,
             superJson: mockSuperJson,
           },
-          { logger }
+          { logger, userError }
         )
           .flatMap(checkResult => checkResult.issues)
           .filter(err => err.kind === 'warn').length
@@ -348,7 +344,7 @@ describe('Publish logic utils', () => {
             mapFrom: mockMapFrom,
             superJson: mockSuperJson,
           },
-          { logger }
+          { logger, userError }
         )
           .flatMap(checkResult => checkResult.issues)
           .filter(err => err.kind === 'error').length
@@ -378,7 +374,7 @@ describe('Publish logic utils', () => {
             mapFrom: mockMapFrom,
             superJson: mockSuperJson,
           },
-          { logger }
+          { logger, userError }
         )
           .flatMap(checkResult => checkResult.issues)
           .filter(err => err.kind === 'warn').length
@@ -398,7 +394,7 @@ describe('Publish logic utils', () => {
             mapFrom: mockMapFrom,
             superJson: mockSuperJson,
           },
-          { logger }
+          { logger, userError }
         )
           .flatMap(checkResult => checkResult.issues)
           .filter(err => err.kind === 'error').length
@@ -443,7 +439,7 @@ describe('Publish logic utils', () => {
             profile: mockProfile,
             version: undefined,
           },
-          { logger }
+          { logger, userError }
         )
       ).resolves.toEqual({
         ast: validProfileDocument,
@@ -480,7 +476,7 @@ describe('Publish logic utils', () => {
             profile: mockProfile,
             version: undefined,
           },
-          { logger }
+          { logger, userError }
         )
       ).resolves.toEqual({
         ast: validProfileDocument,
@@ -491,7 +487,10 @@ describe('Publish logic utils', () => {
       });
 
       expect(parseProfileSpy).not.toHaveBeenCalled();
-      expect(fetchProfileAST).toHaveBeenCalledWith(mockProfile.id);
+      expect(fetchProfileAST).toHaveBeenCalledWith(
+        { profileId: mockProfile.id },
+        expect.anything()
+      );
       expect(logger.stdout).toContainEqual([
         'fetchProfile',
         [mockProfile.id, '1.0.0'],
@@ -518,7 +517,7 @@ describe('Publish logic utils', () => {
             map: {},
             version: undefined,
           },
-          { logger }
+          { logger, userError }
         )
       ).resolves.toEqual({
         ast: validMapDocument,
@@ -559,7 +558,7 @@ describe('Publish logic utils', () => {
             map: {},
             version: undefined,
           },
-          { logger }
+          { logger, userError }
         )
       ).resolves.toEqual({
         ast: validMapDocument,
@@ -571,11 +570,12 @@ describe('Publish logic utils', () => {
 
       expect(parseMapSpy).not.toHaveBeenCalled();
       expect(fetchMapAST).toHaveBeenCalledWith(
-        mockProfile.name,
-        mockProviderName,
-        mockProfile.scope,
-        undefined,
-        undefined
+        {
+          profile: mockProfile.name,
+          provider: mockProviderName,
+          scope: mockProfile.scope,
+        },
+        expect.anything()
       );
 
       expect(logger.stdout).toContainEqual([

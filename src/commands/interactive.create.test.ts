@@ -1,9 +1,9 @@
-import { CLIError } from '@oclif/errors';
 import { SuperJson } from '@superfaceai/one-sdk';
 import inquirer from 'inquirer';
 import { mocked } from 'ts-jest/utils';
 
 import { DEFAULT_PROFILE_VERSION_STR, MockLogger } from '..';
+import { createUserError } from '../common/error';
 import { mkdirQuiet } from '../common/io';
 import { create } from '../logic/create';
 import { initSuperface } from '../logic/init';
@@ -28,6 +28,7 @@ describe('Interactive create CLI command', () => {
   let instance: Create;
   let documentName: string;
   let provider: string;
+  const userError = createUserError(false);
 
   afterEach(() => {
     jest.resetAllMocks();
@@ -60,6 +61,7 @@ describe('Interactive create CLI command', () => {
       await expect(
         instance.execute({
           logger,
+          userError,
           flags: {
             path: 'test',
             providerName: [],
@@ -112,6 +114,7 @@ describe('Interactive create CLI command', () => {
       await expect(
         instance.execute({
           logger,
+          userError,
           flags: {
             providerName: [],
             usecase: ['SendSMS'],
@@ -165,6 +168,7 @@ describe('Interactive create CLI command', () => {
       await expect(
         instance.execute({
           logger,
+          userError,
           flags: {
             providerName: [],
             usecase: ['ReceiveSMS', 'SendSMS'],
@@ -222,6 +226,7 @@ describe('Interactive create CLI command', () => {
       await expect(
         instance.execute({
           logger,
+          userError,
           flags: {
             providerName: [],
             usecase: [],
@@ -281,6 +286,7 @@ describe('Interactive create CLI command', () => {
       await expect(
         instance.execute({
           logger,
+          userError,
           flags: {
             providerName: [],
             usecase: [],
@@ -340,6 +346,7 @@ describe('Interactive create CLI command', () => {
       await expect(
         instance.execute({
           logger,
+          userError,
           flags: {
             providerName: [],
             usecase: ['SendSMS'],
@@ -397,6 +404,7 @@ describe('Interactive create CLI command', () => {
       await expect(
         instance.execute({
           logger,
+          userError,
           flags: {
             providerName: [],
             usecase: ['ReceiveSMS', 'SendSMS'],
@@ -453,6 +461,7 @@ describe('Interactive create CLI command', () => {
       await expect(
         instance.execute({
           logger,
+          userError,
           flags: {
             providerName: [],
             usecase: [],
@@ -510,6 +519,7 @@ describe('Interactive create CLI command', () => {
       await expect(
         instance.execute({
           logger,
+          userError,
           flags: {
             providerName: [],
             usecase: ['SendSMS'],
@@ -567,6 +577,7 @@ describe('Interactive create CLI command', () => {
       await expect(
         instance.execute({
           logger,
+          userError,
           flags: {
             providerName: [],
             usecase: ['SendSMS', 'ReceiveSMS'],
@@ -603,33 +614,32 @@ describe('Interactive create CLI command', () => {
       await expect(
         instance.execute({
           logger,
+          userError,
           flags: {
             providerName: [],
             usecase: [],
             version: DEFAULT_PROFILE_VERSION_STR,
           },
         })
-      ).rejects.toEqual(
-        new CLIError('Invalid command! Specify profileId or providerName')
-      );
+      ).rejects.toThrow('Invalid command! Specify profileId or providerName');
     });
 
     it('throws error on invalid document name', async () => {
       await expect(
         Create.run(['--profileId', 'map', '--profile'])
-      ).rejects.toEqual(new CLIError('ProfileId is reserved!'));
+      ).rejects.toThrow('ProfileId is reserved!');
 
       await expect(
         Create.run(['--profileId', 'profile', '--profile'])
-      ).rejects.toEqual(new CLIError('ProfileId is reserved!'));
+      ).rejects.toThrow('ProfileId is reserved!');
 
       await expect(
         Create.run(['--providerName', 'map', '--provider'])
-      ).rejects.toEqual(new CLIError('ProviderName "map" is reserved!'));
+      ).rejects.toThrow('ProviderName "map" is reserved!');
 
       await expect(
         Create.run(['--providerName', 'profile', '--provider'])
-      ).rejects.toEqual(new CLIError('ProviderName "profile" is reserved!'));
+      ).rejects.toThrow('ProviderName "profile" is reserved!');
     });
 
     it('throws error on invalid variant', async () => {
@@ -649,7 +659,7 @@ describe('Interactive create CLI command', () => {
           '--profile',
           '--map',
         ])
-      ).rejects.toEqual(new CLIError('Invalid map variant: vT_7!'));
+      ).rejects.toThrow('Invalid map variant: vT_7!');
     });
 
     it('throws error on invalid provider name', async () => {
@@ -668,8 +678,8 @@ describe('Interactive create CLI command', () => {
         //Init
         .mockResolvedValueOnce({ init: true });
 
-      await expect(Create.run(['-i'])).rejects.toEqual(
-        new CLIError('Invalid provider name: vT_7!')
+      await expect(Create.run(['-i'])).rejects.toThrow(
+        'Invalid provider name: vT_7!'
       );
     });
 
@@ -690,8 +700,8 @@ describe('Interactive create CLI command', () => {
         .mockResolvedValueOnce({ input: 'twilio' })
         //Init
         .mockResolvedValueOnce({ init: true });
-      await expect(Create.run(['-u', 'SendSMS', '-i'])).rejects.toEqual(
-        new CLIError('"vT_7!" is not a valid lowercase identifier')
+      await expect(Create.run(['-u', 'SendSMS', '-i'])).rejects.toThrow(
+        '"vT_7!" is not a valid lowercase identifier'
       );
     });
 
@@ -715,7 +725,7 @@ describe('Interactive create CLI command', () => {
 
       await expect(
         Create.run(['-v', '', '-u', 'SendSMS', '-i'])
-      ).rejects.toEqual(new CLIError(' is not a valid version'));
+      ).rejects.toThrow(' is not a valid version');
     });
 
     it('throws error on invalid usecase', async () => {
@@ -736,8 +746,8 @@ describe('Interactive create CLI command', () => {
         //Init
         .mockResolvedValueOnce({ init: true });
 
-      await expect(Create.run(['-u', '7_L§', '-i'])).rejects.toEqual(
-        new CLIError('Invalid usecase name: 7_L§')
+      await expect(Create.run(['-u', '7_L§', '-i'])).rejects.toThrow(
+        'Invalid usecase name: 7_L§'
       );
     });
   });

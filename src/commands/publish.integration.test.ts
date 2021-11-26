@@ -4,6 +4,7 @@ import { Netrc } from 'netrc-parser';
 import { join as joinPath, resolve } from 'path';
 
 import { UNVERIFIED_PROVIDER_PREFIX } from '../common';
+import { createUserError } from '../common/error';
 import { mkdir, rimraf } from '../common/io';
 import { messages } from '../common/messages';
 import { OutputStream } from '../common/output-stream';
@@ -28,7 +29,9 @@ describe('Publish CLI command', () => {
   let NETRC_FILENAME: string;
   const provider = 'swapi';
   const unverifiedProvider = `${UNVERIFIED_PROVIDER_PREFIX}swapi`;
-  const profileId = ProfileId.fromId('starwars/character-information');
+  const profileId = ProfileId.fromId('starwars/character-information', {
+    userError: createUserError(false),
+  });
   const profileVersion = '1.0.2';
 
   // const netRc = new Netrc();

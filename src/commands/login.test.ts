@@ -2,6 +2,7 @@ import { ServiceClient } from '@superfaceai/service-client';
 import { mocked } from 'ts-jest/utils';
 
 import { MockLogger } from '..';
+import { createUserError } from '../common/error';
 import { getServicesUrl } from '../common/http';
 import { login } from '../logic/login';
 import { CommandInstance } from '../test/utils';
@@ -23,7 +24,7 @@ const mockLoad = jest.fn();
 
 jest.mock('netrc-parser', () => {
   return {
-    //Netrc is not default export so we need this
+    // Netrc is not default export so we need this
     Netrc: jest.fn().mockImplementation(() => {
       return {
         loadSync: mockLoadSync,
@@ -44,6 +45,7 @@ describe('Login CLI command', () => {
   const originalValue = process.env.SUPERFACE_REFRESH_TOKEN;
   let logger: MockLogger;
   let instance: Login;
+  const userError = createUserError(false);
 
   beforeEach(async () => {
     jest.restoreAllMocks();
@@ -63,7 +65,7 @@ describe('Login CLI command', () => {
       const logoutSpy = jest.spyOn(ServiceClient.prototype, 'logout');
 
       await expect(
-        instance.execute({ logger, flags: { force: false } })
+        instance.execute({ logger, userError, flags: { force: false } })
       ).resolves.toBeUndefined();
       expect(login).toHaveBeenCalledWith(
         {
@@ -83,6 +85,7 @@ describe('Login CLI command', () => {
       await expect(
         instance.execute({
           logger,
+          userError,
           flags: {
             force: false,
             quiet: true,
@@ -104,7 +107,7 @@ describe('Login CLI command', () => {
       const logoutSpy = jest.spyOn(ServiceClient.prototype, 'logout');
 
       await expect(
-        instance.execute({ logger, flags: { force: true } })
+        instance.execute({ logger, userError, flags: { force: true } })
       ).resolves.toBeUndefined();
 
       expect(login).toHaveBeenCalledWith(
@@ -125,7 +128,7 @@ describe('Login CLI command', () => {
       const logoutSpy = jest.spyOn(ServiceClient.prototype, 'logout');
 
       await expect(
-        instance.execute({ logger, flags: { force: false } })
+        instance.execute({ logger, userError, flags: { force: false } })
       ).resolves.toBeUndefined();
       expect(login).toHaveBeenCalledWith(
         {

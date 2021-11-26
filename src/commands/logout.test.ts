@@ -1,12 +1,14 @@
 import { ServiceClient, ServiceClientError } from '@superfaceai/service-client';
 
 import { MockLogger } from '../common';
+import { createUserError } from '../common/error';
 import { CommandInstance } from '../test/utils';
 import Logout from './logout';
 
 describe('Logout CLI command', () => {
   let logger: MockLogger;
   let instance: Logout;
+  const userError = createUserError(false);
 
   beforeEach(async () => {
     logger = new MockLogger();
@@ -24,7 +26,7 @@ describe('Logout CLI command', () => {
         .mockResolvedValue(null);
 
       await expect(
-        instance.execute({ logger, flags: {} })
+        instance.execute({ logger, userError, flags: {} })
       ).resolves.toBeUndefined();
       expect(getInfoSpy).toHaveBeenCalled();
       expect(logger.stderr).toEqual([]);
@@ -39,7 +41,7 @@ describe('Logout CLI command', () => {
         );
 
       await expect(
-        instance.execute({ logger, flags: {} })
+        instance.execute({ logger, userError, flags: {} })
       ).resolves.toBeUndefined();
       expect(getInfoSpy).toHaveBeenCalled();
       expect(logger.stderr).toEqual([]);
@@ -55,9 +57,9 @@ describe('Logout CLI command', () => {
         .spyOn(ServiceClient.prototype, 'signOut')
         .mockRejectedValue(mockErr);
 
-      await expect(instance.execute({ logger, flags: {} })).rejects.toThrow(
-        'test'
-      );
+      await expect(
+        instance.execute({ logger, userError, flags: {} })
+      ).rejects.toThrow('test');
       expect(getInfoSpy).toHaveBeenCalled();
       expect(logger.stderr).toEqual([]);
       expect(logger.stdout).toEqual([]);

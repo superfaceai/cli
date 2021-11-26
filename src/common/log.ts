@@ -14,6 +14,11 @@ export class StdoutLogger implements ILogger {
   private readonly errorPrefix = '❌';
   private readonly warningPrefix = '⚠️';
 
+  constructor(
+    private readonly color: boolean,
+    private readonly emoji: boolean
+  ) {}
+
   info<K extends MessageKeys>(template: K, ...args: MessageArgs<K>): void {
     const message = this.getMessage(template, ...args);
     process.stdout.write(this.formatInfo(message));
@@ -35,19 +40,27 @@ export class StdoutLogger implements ILogger {
   }
 
   private formatInfo(input: string): string {
-    return grey(input) + '\n';
+    const message = this.color ? grey(input) : input;
+
+    return message + '\n';
   }
 
   private formatSuccess(input: string): string {
-    return green(`${this.successPrefix} ${input}`) + '\n';
+    const message = this.emoji ? `${this.successPrefix} ${input}` : input;
+
+    return (this.color ? green(message) : message) + '\n';
   }
 
   private formatWarn(input: string): string {
-    return yellow(`${this.warningPrefix} ${input}`) + '\n';
+    const message = this.emoji ? `${this.warningPrefix} ${input}` : input;
+
+    return (this.color ? yellow(message) : message) + '\n';
   }
 
   private formatError(input: string): string {
-    return red(`${this.errorPrefix} ${input}`) + '\n';
+    const message = this.emoji ? `${this.errorPrefix} ${input}` : input;
+
+    return (this.color ? red(message) : message) + '\n';
   }
 
   private getMessage<K extends MessageKeys>(

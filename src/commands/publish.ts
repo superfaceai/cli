@@ -7,7 +7,7 @@ import { join as joinPath } from 'path';
 
 import { META_FILE, UNVERIFIED_PROVIDER_PREFIX } from '../common';
 import { Command, Flags } from '../common/command.abstract';
-import { userError } from '../common/error';
+import { UserError } from '../common/error';
 import { getServicesUrl } from '../common/http';
 import { ILogger } from '../common/log';
 import { OutputStream } from '../common/output-stream';
@@ -81,6 +81,7 @@ export default class Publish extends Command {
 
     await this.execute({
       logger: this.logger,
+      userError: this.userError,
       flags,
       argv,
     });
@@ -88,10 +89,12 @@ export default class Publish extends Command {
 
   async execute({
     logger,
+    userError,
     flags,
     argv,
   }: {
     logger: ILogger;
+    userError: UserError;
     flags: Flags<typeof Publish.flags>;
     argv: string[];
   }): Promise<void> {
@@ -100,16 +103,16 @@ export default class Publish extends Command {
     // Check inputs
     const parsedProfileId = parseDocumentId(flags.profileId);
     if (parsedProfileId.kind == 'error') {
-      throw userError(`❌ Invalid profile id: ${parsedProfileId.message}`, 1);
+      throw this.userError(`Invalid profile id: ${parsedProfileId.message}`, 1);
     }
 
     if (!isValidProviderName(flags.providerName)) {
-      throw userError(`❌ Invalid provider name: "${flags.providerName}"`, 1);
+      throw this.userError(`Invalid provider name: "${flags.providerName}"`, 1);
     }
 
     if (flags.scan && (typeof flags.scan !== 'number' || flags.scan > 5)) {
       throw userError(
-        '❌ --scan/-s : Number of levels to scan cannot be higher than 5',
+        '--scan/-s : Number of levels to scan cannot be higher than 5',
         1
       );
     }
@@ -117,16 +120,13 @@ export default class Publish extends Command {
     //Load super json
     const superPath = await detectSuperJson(process.cwd(), flags.scan);
     if (!superPath) {
-      throw userError('❌ Unable to publish, super.json not found', 1);
+      throw userError('Unable to publish, super.json not found', 1);
     }
     const loadedResult = await SuperJson.load(joinPath(superPath, META_FILE));
     const superJson = loadedResult.match(
       v => v,
       err => {
-        throw userError(
-          `❌ Unable to load super.json: ${err.formatShort()}`,
-          1
-        );
+        throw userError(`Unable to load super.json: ${err.formatShort()}`, 1);
       }
     );
 
@@ -134,7 +134,7 @@ export default class Publish extends Command {
     const profileSettings = superJson.normalized.profiles[flags.profileId];
     if (!profileSettings) {
       throw userError(
-        `❌ Unable to publish, profile: "${flags.profileId}" not found in super.json`,
+        `Unable to publish, profile: "${flags.profileId}" not found in super.json`,
         1
       );
     }
@@ -142,7 +142,7 @@ export default class Publish extends Command {
       profileSettings.providers[flags.providerName];
     if (!profileProviderSettings) {
       throw userError(
-        `❌ Unable to publish, provider: "${flags.providerName}" not found in profile: "${flags.profileId}" in super.json`,
+        `Unable to publish, provider: "${flags.providerName}" not found in profile: "${flags.profileId}" in super.json`,
         1
       );
     }
@@ -150,7 +150,7 @@ export default class Publish extends Command {
     const providerSettings = superJson.normalized.providers[flags.providerName];
     if (!providerSettings) {
       throw userError(
-        `❌ Unable to publish, provider: "${flags.providerName}" not found in super.json`,
+        `Unable to publish, provider: "${flags.providerName}" not found in super.json`,
         1
       );
     }
@@ -159,13 +159,13 @@ export default class Publish extends Command {
     if (documentType === 'profile') {
       if (!('file' in profileSettings)) {
         throw userError(
-          '❌ When publishing profile, profile must be locally linked in super.json',
+          'When publishing profile, profile must be locally linked in super.json',
           1
         );
       }
       if (!profileSettings.file.endsWith(EXTENSIONS.profile.source)) {
         throw userError(
-          `❌ Profile path: "${profileSettings.file}" must leads to "${EXTENSIONS.profile.source}" file`,
+          `Profile path: "${profileSettings.file}" must leads to "${EXTENSIONS.profile.source}" file`,
           1
         );
       }
@@ -174,13 +174,13 @@ export default class Publish extends Command {
     } else if (documentType === 'map') {
       if (!('file' in profileProviderSettings)) {
         throw userError(
-          '❌ When publishing map, map must be locally linked in super.json',
+          'When publishing map, map must be locally linked in super.json',
           1
         );
       }
       if (!profileProviderSettings.file.endsWith(EXTENSIONS.map.source)) {
         throw userError(
-          `❌ Map path: "${profileProviderSettings.file}" must leads to "${EXTENSIONS.map.source}" file`,
+          `Map path: "${profileProviderSettings.file}" must leads to "${EXTENSIONS.map.source}" file`,
           1
         );
       }
@@ -188,25 +188,25 @@ export default class Publish extends Command {
     } else if (documentType === 'provider') {
       if (!flags.providerName.startsWith(UNVERIFIED_PROVIDER_PREFIX)) {
         throw userError(
-          `❌ When publishing provider, provider must have prefix "${UNVERIFIED_PROVIDER_PREFIX}"`,
+          `When publishing provider, provider must have prefix "${UNVERIFIED_PROVIDER_PREFIX}"`,
           1
         );
       }
       if (!('file' in providerSettings) || !providerSettings.file) {
         throw userError(
-          '❌ When publishing provider, provider must be locally linked in super.json',
+          'When publishing provider, provider must be locally linked in super.json',
           1
         );
       }
       if (!providerSettings.file.endsWith('.json')) {
         throw userError(
-          `❌ Provider path: "${providerSettings.file}" must leads to ".json" file`,
+          `Provider path: "${providerSettings.file}" must leads to ".json" file`,
           1
         );
       }
     } else {
       throw userError(
-        '❌ Document type must be one of "map", "profile", "provider"',
+        'Document type must be one of "map", "profile", "provider"',
         1
       );
     }
@@ -237,7 +237,7 @@ export default class Publish extends Command {
       {
         publishing: documentType,
         superJson,
-        profile: ProfileId.fromId(flags.profileId),
+        profile: ProfileId.fromId(flags.profileId, { userError }),
         provider: flags.providerName,
         map,
         version,
@@ -245,9 +245,10 @@ export default class Publish extends Command {
           dryRun: flags.dryRun,
           json: flags.json,
           quiet: flags.quiet,
+          emoji: !flags.noEmoji,
         },
       },
-      { logger }
+      { logger, userError }
     );
     if (result) {
       logger.warn('publishEndedWithErrors');
@@ -276,7 +277,7 @@ export default class Publish extends Command {
       if (documentType === 'map') {
         await reconfigureProfileProvider(
           superJson,
-          ProfileId.fromId(flags.profileId),
+          ProfileId.fromId(flags.profileId, { userError }),
           flags.providerName,
           {
             kind: 'remote',

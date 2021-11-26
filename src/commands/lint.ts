@@ -6,7 +6,7 @@ import { join as joinPath } from 'path';
 
 import { Command, Flags } from '../common/command.abstract';
 import { META_FILE } from '../common/document';
-import { developerError, userError } from '../common/error';
+import { developerError, UserError } from '../common/error';
 import { formatWordPlurality } from '../common/format';
 import { ListWriter } from '../common/list-writer';
 import { ILogger } from '../common/log';
@@ -89,6 +89,7 @@ export default class Lint extends Command {
     await super.initialize(flags);
     await this.execute({
       logger: this.logger,
+      userError: this.userError,
       flags,
     });
   }
@@ -96,25 +97,27 @@ export default class Lint extends Command {
   async execute({
     logger,
     flags,
+    userError,
   }: {
     logger: ILogger;
+    userError: UserError;
     flags: Flags<typeof Lint.flags>;
   }): Promise<void> {
     // Check inputs
     if (flags.profileId) {
       const parsedProfileId = parseDocumentId(flags.profileId);
       if (parsedProfileId.kind == 'error') {
-        throw userError(`❌ Invalid profile id: ${parsedProfileId.message}`, 1);
+        throw userError(`Invalid profile id: ${parsedProfileId.message}`, 1);
       }
     }
 
     if (flags.providerName) {
       if (!isValidProviderName(flags.providerName)) {
-        throw userError(`❌ Invalid provider name: "${flags.providerName}"`, 1);
+        throw userError(`Invalid provider name: "${flags.providerName}"`, 1);
       }
       if (!flags.profileId) {
         throw userError(
-          '❌ --profileId must be specified when using --providerName',
+          '--profileId must be specified when using --providerName',
           1
         );
       }
@@ -122,30 +125,27 @@ export default class Lint extends Command {
 
     if (flags.scan && (typeof flags.scan !== 'number' || flags.scan > 5)) {
       throw userError(
-        '❌ --scan/-s : Number of levels to scan cannot be higher than 5',
+        '--scan/-s : Number of levels to scan cannot be higher than 5',
         1
       );
     }
     const superPath = await detectSuperJson(process.cwd(), flags.scan);
     if (!superPath) {
-      throw userError('❌ Unable to lint, super.json not found', 1);
+      throw userError('Unable to lint, super.json not found', 1);
     }
     //Load super json
     const loadedResult = await SuperJson.load(joinPath(superPath, META_FILE));
     const superJson = loadedResult.match(
       v => v,
       err => {
-        throw userError(
-          `❌ Unable to load super.json: ${err.formatShort()}`,
-          1
-        );
+        throw userError(`Unable to load super.json: ${err.formatShort()}`, 1);
       }
     );
     //Check super.json
     if (flags.profileId) {
       if (!superJson.normalized.profiles[flags.profileId]) {
         throw userError(
-          `❌ Unable to lint, profile: "${flags.profileId}" not found in super.json`,
+          `Unable to lint, profile: "${flags.profileId}" not found in super.json`,
           1
         );
       }
@@ -156,16 +156,19 @@ export default class Lint extends Command {
           ]
         ) {
           throw userError(
-            `❌ Unable to lint, provider: "${flags.providerName}" not found in profile: "${flags.profileId}" in super.json`,
+            `Unable to lint, provider: "${flags.providerName}" not found in profile: "${flags.profileId}" in super.json`,
             1
           );
         }
       }
     }
     const profiles = Check.prepareProfilesToValidate(
-      superJson,
-      flags.profileId,
-      flags.providerName
+      {
+        superJson,
+        profileId: flags.profileId,
+        providerName: flags.providerName,
+      },
+      { userError }
     );
 
     const outputStream = new OutputStream(flags.output, {
@@ -182,12 +185,14 @@ export default class Lint extends Command {
             superJson,
             profiles,
             report =>
-              formatHuman(
+              formatHuman({
                 report,
-                !!flags.quiet,
-                flags.outputFormat === 'short'
-              ),
-            { logger }
+                quiet: !!flags.quiet,
+                short: flags.outputFormat === 'short',
+                emoji: !flags.noEmoji,
+                color: !flags.noColor,
+              }),
+            { logger, userError }
           );
           await outputStream.write(
             `\nDetected ${formatWordPlurality(
@@ -206,7 +211,7 @@ export default class Lint extends Command {
             superJson,
             profiles,
             report => formatJson(report),
-            { logger }
+            { logger, userError }
           );
           await outputStream.write(
             `],"total":{"errors":${totals[0]},"warnings":${totals[1]}}}\n`
@@ -218,7 +223,7 @@ export default class Lint extends Command {
     await outputStream.cleanup();
 
     if (totals[0] > 0) {
-      throw userError('❌ Errors were found', 1);
+      throw userError('Errors were found', 1);
     } else if (totals[1] > 0) {
       logger.warn('warningsWereFound');
     }
@@ -229,7 +234,7 @@ export default class Lint extends Command {
     superJson: SuperJson,
     profiles: ProfileToValidate[],
     reportFn: (report: ReportFormat) => string,
-    { logger }: { logger: ILogger }
+    { logger, userError }: { logger: ILogger; userError: UserError }
   ): Promise<[errors: number, warnings: number]> {
     const counts: [number, number][] = await lint(
       {
@@ -238,7 +243,7 @@ export default class Lint extends Command {
         writer,
         reportFn,
       },
-      { logger }
+      { logger, userError }
     );
 
     return counts.reduce((acc, curr) => [acc[0] + curr[0], acc[1] + curr[1]], [

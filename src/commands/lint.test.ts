@@ -1,8 +1,8 @@
-import { CLIError } from '@oclif/errors';
 import { err, ok, SuperJson } from '@superfaceai/one-sdk';
 import { SDKExecutionError } from '@superfaceai/one-sdk/dist/internal/errors';
 import { mocked } from 'ts-jest/utils';
 
+import { createUserError } from '../common/error';
 import { MockLogger } from '../common/log';
 import { OutputStream } from '../common/output-stream';
 import { ProfileId } from '../common/profile';
@@ -28,6 +28,7 @@ jest.mock('../logic/lint', () => ({
 describe('lint CLI command', () => {
   let logger: MockLogger;
   let instance: Lint;
+  const userError = createUserError(false);
   const profileId = 'starwars/character-information';
   const provider = 'swapi';
   const defaultFlags = {
@@ -50,11 +51,10 @@ describe('lint CLI command', () => {
       await expect(
         instance.execute({
           logger,
+          userError,
           flags: defaultFlags,
         })
-      ).rejects.toEqual(
-        new CLIError('❌ Unable to lint, super.json not found')
-      );
+      ).rejects.toThrow('Unable to lint, super.json not found');
     });
 
     it('throws when super.json not loaded correctly', async () => {
@@ -65,11 +65,10 @@ describe('lint CLI command', () => {
       await expect(
         instance.execute({
           logger,
+          userError,
           flags: defaultFlags,
         })
-      ).rejects.toEqual(
-        new CLIError('❌ Unable to load super.json: test error')
-      );
+      ).rejects.toThrow('Unable to load super.json: test error');
     });
 
     it('throws error on scan flag higher than 5', async () => {
@@ -78,12 +77,11 @@ describe('lint CLI command', () => {
       await expect(
         instance.execute({
           logger,
+          userError,
           flags: { ...defaultFlags, scan: 6 },
         })
-      ).rejects.toEqual(
-        new CLIError(
-          '❌ --scan/-s : Number of levels to scan cannot be higher than 5'
-        )
+      ).rejects.toThrow(
+        '--scan/-s : Number of levels to scan cannot be higher than 5'
       );
       expect(detectSuperJson).not.toHaveBeenCalled();
     }, 10000);
@@ -97,6 +95,7 @@ describe('lint CLI command', () => {
       await expect(
         instance.execute({
           logger,
+          userError,
           flags: {
             ...defaultFlags,
             profileId: 'U!0_',
@@ -104,10 +103,8 @@ describe('lint CLI command', () => {
             scan: 3,
           },
         })
-      ).rejects.toEqual(
-        new CLIError(
-          '❌ Invalid profile id: "U!0_" is not a valid lowercase identifier'
-        )
+      ).rejects.toThrow(
+        'Invalid profile id: "U!0_" is not a valid lowercase identifier'
       );
       expect(detectSuperJson).not.toHaveBeenCalled();
       expect(loadSpy).not.toHaveBeenCalled();
@@ -122,6 +119,7 @@ describe('lint CLI command', () => {
       await expect(
         instance.execute({
           logger,
+          userError,
           flags: {
             ...defaultFlags,
             profileId,
@@ -129,7 +127,7 @@ describe('lint CLI command', () => {
             scan: 3,
           },
         })
-      ).rejects.toEqual(new CLIError('❌ Invalid provider name: "U!0_"'));
+      ).rejects.toThrow('Invalid provider name: "U!0_"');
       expect(detectSuperJson).not.toHaveBeenCalled();
       expect(loadSpy).not.toHaveBeenCalled();
     }, 10000);
@@ -143,6 +141,7 @@ describe('lint CLI command', () => {
       await expect(
         instance.execute({
           logger,
+          userError,
           flags: {
             ...defaultFlags,
             profileId,
@@ -150,10 +149,8 @@ describe('lint CLI command', () => {
             scan: 3,
           },
         })
-      ).rejects.toEqual(
-        new CLIError(
-          `❌ Unable to lint, profile: "${profileId}" not found in super.json`
-        )
+      ).rejects.toThrow(
+        `Unable to lint, profile: "${profileId}" not found in super.json`
       );
       expect(detectSuperJson).toHaveBeenCalled();
       expect(loadSpy).toHaveBeenCalled();
@@ -178,6 +175,7 @@ describe('lint CLI command', () => {
       await expect(
         instance.execute({
           logger,
+          userError,
           flags: {
             ...defaultFlags,
             profileId,
@@ -185,10 +183,8 @@ describe('lint CLI command', () => {
             scan: 3,
           },
         })
-      ).rejects.toEqual(
-        new CLIError(
-          `❌ Unable to lint, provider: "${provider}" not found in profile: "${profileId}" in super.json`
-        )
+      ).rejects.toThrow(
+        `Unable to lint, provider: "${provider}" not found in profile: "${profileId}" in super.json`
       );
       expect(detectSuperJson).toHaveBeenCalled();
       expect(loadSpy).toHaveBeenCalled();
@@ -251,6 +247,7 @@ describe('lint CLI command', () => {
         await expect(
           instance.execute({
             logger,
+            userError,
             flags: {
               ...defaultFlags,
               scan: 4,
@@ -264,7 +261,7 @@ describe('lint CLI command', () => {
             superJson: mockSuperJson,
             profiles: [
               {
-                id: ProfileId.fromId(mockLocalProfile),
+                id: ProfileId.fromId(mockLocalProfile, { userError }),
                 maps: [
                   {
                     provider: mockLocalProvider,
@@ -336,6 +333,7 @@ describe('lint CLI command', () => {
         await expect(
           instance.execute({
             logger,
+            userError,
             flags: {
               ...defaultFlags,
               profileId: mockLocalProfile,
@@ -350,7 +348,7 @@ describe('lint CLI command', () => {
             superJson: mockSuperJson,
             profiles: [
               {
-                id: ProfileId.fromId(mockLocalProfile),
+                id: ProfileId.fromId(mockLocalProfile, { userError }),
                 maps: [
                   {
                     provider: mockLocalProvider,
@@ -419,6 +417,7 @@ describe('lint CLI command', () => {
         await expect(
           instance.execute({
             logger,
+            userError,
             flags: {
               ...defaultFlags,
               profileId: mockProfile,
@@ -433,7 +432,7 @@ describe('lint CLI command', () => {
             superJson: mockSuperJson,
             profiles: [
               {
-                id: ProfileId.fromId(mockProfile),
+                id: ProfileId.fromId(mockProfile, { userError }),
                 maps: [
                   {
                     provider: mockLocalProvider,
@@ -497,6 +496,7 @@ describe('lint CLI command', () => {
         await expect(
           instance.execute({
             logger,
+            userError,
             flags: {
               ...defaultFlags,
               profileId: mockLocalProfile,
@@ -512,7 +512,7 @@ describe('lint CLI command', () => {
             superJson: mockSuperJson,
             profiles: [
               {
-                id: ProfileId.fromId(mockLocalProfile),
+                id: ProfileId.fromId(mockLocalProfile, { userError }),
                 maps: [
                   {
                     provider: mockLocalProvider,
@@ -573,6 +573,7 @@ describe('lint CLI command', () => {
         await expect(
           instance.execute({
             logger,
+            userError,
             flags: {
               ...defaultFlags,
               profileId: mockProfile,
@@ -588,7 +589,7 @@ describe('lint CLI command', () => {
             superJson: mockSuperJson,
             profiles: [
               {
-                id: ProfileId.fromId(mockProfile),
+                id: ProfileId.fromId(mockProfile, { userError }),
                 maps: [
                   {
                     provider: mockLocalProvider,
@@ -651,6 +652,7 @@ describe('lint CLI command', () => {
         await expect(
           instance.execute({
             logger,
+            userError,
             flags: {
               ...defaultFlags,
               profileId: mockProfile,
@@ -666,7 +668,7 @@ describe('lint CLI command', () => {
             superJson: mockSuperJson,
             profiles: [
               {
-                id: ProfileId.fromId(mockProfile),
+                id: ProfileId.fromId(mockProfile, { userError }),
                 maps: [{ provider: mockProvider, variant: mapVariant }],
                 version,
               },
@@ -725,6 +727,7 @@ describe('lint CLI command', () => {
         await expect(
           instance.execute({
             logger,
+            userError,
             flags: {
               ...defaultFlags,
               profileId: mockProfile,
@@ -740,7 +743,7 @@ describe('lint CLI command', () => {
             superJson: mockSuperJson,
             profiles: [
               {
-                id: ProfileId.fromId(mockProfile),
+                id: ProfileId.fromId(mockProfile, { userError }),
                 maps: [{ provider: mockProvider, variant: mapVariant }],
                 version,
               },
@@ -799,6 +802,7 @@ describe('lint CLI command', () => {
         await expect(
           instance.execute({
             logger,
+            userError,
             flags: {
               ...defaultFlags,
               profileId: mockProfile,
@@ -806,7 +810,7 @@ describe('lint CLI command', () => {
               scan: 4,
             },
           })
-        ).rejects.toEqual(new CLIError('❌ Errors were found'));
+        ).rejects.toThrow('Errors were found');
 
         expect(lint).toHaveBeenCalledTimes(1);
         expect(lint).toHaveBeenCalledWith(
@@ -814,7 +818,7 @@ describe('lint CLI command', () => {
             superJson: mockSuperJson,
             profiles: [
               {
-                id: ProfileId.fromId(mockProfile),
+                id: ProfileId.fromId(mockProfile, { userError }),
                 maps: [{ provider: mockProvider, variant: mapVariant }],
                 version,
               },

@@ -15,6 +15,7 @@ import {
   SUPERFACE_DIR,
   trimExtension,
 } from '../common/document';
+import { UserError } from '../common/error';
 import {
   fetchProfile,
   fetchProfileAST,
@@ -141,14 +142,14 @@ export async function resolveInstallationRequests(
     requests: (LocalRequest | StoreRequest)[];
     options?: InstallOptions;
   },
-  { logger }: { logger: ILogger }
+  { logger, userError }: { logger: ILogger; userError: UserError }
 ): Promise<number> {
   // phase 1 - read local requests
   const phase1 = await Promise.all(
     requests.map(async request => {
       installDebug('Install phase 1:', request);
       if (request.kind === 'local') {
-        return readLocalRequest(superJson, request, { logger });
+        return readLocalRequest(superJson, request, { logger, userError });
       }
 
       return request;
@@ -186,7 +187,7 @@ export async function resolveInstallationRequests(
       if (request.kind === 'store') {
         return fetchStoreRequestCheckedOrDeferred(
           { superJson, request, options },
-          { logger }
+          { logger, userError }
         );
       }
 
@@ -217,14 +218,14 @@ export async function resolveInstallationRequests(
 async function readLocalRequest(
   _superJson: SuperJson,
   request: LocalRequest,
-  { logger }: { logger: ILogger }
+  { logger, userError }: { logger: ILogger; userError: UserError }
 ): Promise<LocalRequestRead | undefined> {
   try {
     const profileSource = await readFile(request.path, { encoding: 'utf-8' });
 
     // TODO: this should be extracted from the file header or not needed at all
-    const profileIdStr = trimExtension(basename(request.path));
-    const profileId = ProfileId.fromId(profileIdStr);
+    const profileIdStr = trimExtension(basename(request.path), { userError });
+    const profileId = ProfileId.fromId(profileIdStr, { userError });
 
     const profileAst = await Parser.parseProfile(profileSource, request.path, {
       profileName: profileId.name,
@@ -423,7 +424,7 @@ export async function getProfileFromStore(
       tryToAuthenticate?: boolean;
     };
   },
-  { logger }: { logger: ILogger }
+  { logger, userError }: { logger: ILogger; userError: UserError }
 ): Promise<ProfileResponse | undefined> {
   const profileIdStr = profileId.withVersion(version);
 
@@ -434,21 +435,39 @@ export async function getProfileFromStore(
   logger.info('fetchProfile', profileIdStr);
 
   try {
-    info = await fetchProfileInfo(profileIdStr, {
-      tryToAuthenticate: options?.tryToAuthenticate,
-    });
+    info = await fetchProfileInfo(
+      {
+        profileId: profileIdStr,
+        options: {
+          tryToAuthenticate: options?.tryToAuthenticate,
+        },
+      },
+      { userError }
+    );
     logger.info('fetchProfileInfo', profileIdStr);
 
-    profile = await fetchProfile(profileIdStr, {
-      tryToAuthenticate: options?.tryToAuthenticate,
-    });
+    profile = await fetchProfile(
+      {
+        profileId: profileIdStr,
+        options: {
+          tryToAuthenticate: options?.tryToAuthenticate,
+        },
+      },
+      { userError }
+    );
     logger.info('fetchProfileSource', profileIdStr);
 
     try {
       //This can fail due to validation issues, ast and parser version issues
-      ast = await fetchProfileAST(profileIdStr, {
-        tryToAuthenticate: options?.tryToAuthenticate,
-      });
+      ast = await fetchProfileAST(
+        {
+          profileId: profileIdStr,
+          options: {
+            tryToAuthenticate: options?.tryToAuthenticate,
+          },
+        },
+        { userError }
+      );
       logger.info('fetchProfileAst', profileIdStr);
     } catch (error) {
       logger.warn('fetchProfileAstFailed', profileIdStr);
@@ -481,7 +500,7 @@ async function fetchStoreRequestCheckedOrDeferred(
     request: StoreRequestChecked | StoreRequestDeferredCheck;
     options?: InstallOptions;
   },
-  { logger }: { logger: ILogger }
+  { logger, userError }: { logger: ILogger; userError: UserError }
 ): Promise<StoreRequestFetched | undefined> {
   const fetched = await getProfileFromStore(
     {
@@ -489,7 +508,7 @@ async function fetchStoreRequestCheckedOrDeferred(
       version: request.version,
       options,
     },
-    { logger }
+    { logger, userError }
   );
   if (fetched === undefined) {
     return undefined;
@@ -547,12 +566,12 @@ async function fetchStoreRequestCheckedOrDeferred(
  */
 export async function getExistingProfileIds(
   superJson: SuperJson,
-  { logger }: { logger: ILogger }
+  { logger, userError }: { logger: ILogger; userError: UserError }
 ): Promise<{ profileId: ProfileId; version: string }[]> {
   return Promise.all(
     Object.entries(superJson.normalized.profiles).map(
       async ([profileIdStr, profileSettings]) => {
-        const profileId = ProfileId.fromId(profileIdStr);
+        const profileId = ProfileId.fromId(profileIdStr, { userError });
 
         if ('version' in profileSettings) {
           return {
@@ -607,7 +626,7 @@ export async function installProfiles(
     requests: (LocalRequest | StoreRequest)[];
     options?: InstallOptions;
   },
-  { logger }: { logger: ILogger }
+  { logger, userError }: { logger: ILogger; userError: UserError }
 ): Promise<void> {
   const loadedResult = await SuperJson.load(joinPath(superPath, META_FILE));
   const superJson = loadedResult.match(
@@ -623,6 +642,7 @@ export async function installProfiles(
   if (requests.length === 0) {
     const existingProfileIds = await getExistingProfileIds(superJson, {
       logger,
+      userError,
     });
     requests = existingProfileIds.map<StoreRequest>(
       ({ profileId, version }) => ({
@@ -639,7 +659,7 @@ export async function installProfiles(
       requests,
       options,
     },
-    { logger }
+    { logger, userError }
   );
 
   if (installed > 0) {

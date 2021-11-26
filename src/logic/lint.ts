@@ -24,7 +24,7 @@ import {
   composeVersion,
   DEFAULT_PROFILE_VERSION_STR,
 } from '../common/document';
-import { userError } from '../common/error';
+import { UserError } from '../common/error';
 import { fetchMapAST, fetchProfileAST } from '../common/http';
 import { ListWriter } from '../common/list-writer';
 import { ILogger } from '../common/log';
@@ -57,7 +57,8 @@ export function isValidHeader(
 export function isValidMapId(
   profileHeader: ProfileHeaderStructure,
   mapHeader: MapHeaderNode,
-  mapPath: string
+  mapPath: string,
+  { userError }: { userError: UserError }
 ): boolean {
   const mapIdentifier = basename(mapPath, EXTENSIONS.map.source);
   const mapId = mapIdentifier.includes('@')
@@ -114,44 +115,58 @@ export const createFileReport = (
   warnings,
 });
 
-export function formatHuman(
-  report: ReportFormat,
-  quiet: boolean,
-  short?: boolean
-): string {
-  const REPORT_OK = '🆗';
-  const REPORT_WARN = '⚠️';
-  const REPORT_ERR = '❌';
+export function formatHuman({
+  report,
+  quiet,
+  emoji,
+  color,
+  short,
+}: {
+  report: ReportFormat;
+  quiet: boolean;
+  emoji: boolean;
+  color: boolean;
+  short?: boolean;
+}): string {
+  const REPORT_OK = '🆗 ';
+  const REPORT_WARN = '⚠️ ';
+  const REPORT_ERR = '❌ ';
 
   let prefix;
-  let color: (inout: string) => string;
+  const noColor = (input: string) => input;
+  let colorize: (inout: string) => string = noColor;
 
   if (report.errors.length > 0) {
-    prefix = REPORT_ERR;
-    color = red;
+    prefix = emoji ? REPORT_ERR : '';
+    if (color) {
+      colorize = red;
+    }
   } else if (report.warnings.length > 0) {
-    prefix = REPORT_WARN;
-    color = yellow;
+    prefix = emoji ? REPORT_WARN : '';
+    if (color) {
+      colorize = yellow;
+    }
   } else {
-    prefix = REPORT_OK;
-    color = green;
+    prefix = emoji ? REPORT_OK : '';
+    if (color) {
+      colorize = green;
+    }
   }
 
   let buffer = '';
 
   if (report.kind === 'file') {
-    buffer += color(
-      `${prefix} Parsing ${
+    buffer += colorize(
+      `${prefix}Parsing ${
         report.path.endsWith(EXTENSIONS.profile.source) ? 'profile' : 'map'
       } file: ${report.path}\n`
     );
     for (const error of report.errors) {
       if (short) {
-        buffer += red(
-          `\t${error.location.start.line}:${error.location.start.column} ${error.message}\n`
-        );
+        const message = `\t${error.location.start.line}:${error.location.start.column} ${error.message}\n`;
+        buffer += color ? red(message) : message;
       } else {
-        buffer += red(error.format());
+        buffer += color ? red(error.format()) : error.format();
       }
     }
     if (report.errors.length > 0 && report.warnings.length > 0) {
@@ -162,23 +177,28 @@ export function formatHuman(
     if (!quiet) {
       for (const warning of report.warnings) {
         if (typeof warning === 'string') {
-          buffer += yellow(`\t${warning}\n`);
+          const message = `\t${warning}\n`;
+          buffer += color ? yellow(message) : message;
         }
       }
     }
   } else {
-    buffer += color(
-      `${prefix} Validating profile: ${report.profile} to map: ${report.path}\n`
+    buffer += colorize(
+      `${prefix}Validating profile: ${report.profile} to map: ${report.path}\n`
     );
 
-    buffer += red(formatIssues(report.errors));
+    buffer += color
+      ? red(formatIssues(report.errors))
+      : formatIssues(report.errors);
 
     if (!quiet && report.errors.length > 0 && report.warnings.length > 0) {
       buffer += '\n';
     }
 
     if (!quiet) {
-      buffer += yellow(formatIssues(report.warnings));
+      buffer += color
+        ? yellow(formatIssues(report.warnings))
+        : formatIssues(report.warnings);
       buffer += '\n';
     }
   }
@@ -227,7 +247,7 @@ async function prepareLintedProfile(
     writer: ListWriter;
     reportFn: (report: ReportFormat) => string;
   },
-  { logger }: { logger: ILogger }
+  { logger, userError }: { logger: ILogger; userError: UserError }
 ): Promise<ProfileToLintWithAst> {
   const counts: [number, number][] = [];
   let profileAst: ProfileDocumentNode | undefined = undefined;
@@ -259,7 +279,10 @@ async function prepareLintedProfile(
     counts.push([report.errors.length, report.warnings.length]);
   } else {
     logger.info('fetchProfile', profile.id.id, profile.version);
-    profileAst = await fetchProfileAST(profile.id.id);
+    profileAst = await fetchProfileAST(
+      { profileId: profile.id.id },
+      { userError }
+    );
   }
 
   return {
@@ -284,7 +307,7 @@ async function prepareLintedMap(
     writer: ListWriter;
     fn: (report: ReportFormat) => string;
   },
-  { logger }: { logger: ILogger }
+  { logger, userError }: { logger: ILogger; userError: UserError }
 ): Promise<MapToLintWithAst> {
   const counts: [number, number][] = [];
   let mapAst: MapDocumentNode | undefined = undefined;
@@ -323,11 +346,14 @@ async function prepareLintedMap(
       map.provider
     );
     mapAst = await fetchMapAST(
-      profile.id.name,
-      map.provider,
-      profile.id.scope,
-      profile.version,
-      map.variant
+      {
+        profile: profile.id.name,
+        provider: map.provider,
+        scope: profile.id.scope,
+        version: profile.version,
+        variant: map.variant,
+      },
+      { userError }
     );
   }
 
@@ -362,7 +388,7 @@ export async function lint(
     writer: ListWriter;
     reportFn: (report: ReportFormat) => string;
   },
-  { logger }: { logger: ILogger }
+  { logger, userError }: { logger: ILogger; userError: UserError }
 ): Promise<[number, number][]> {
   const counts: [number, number][] = [];
 
@@ -374,9 +400,10 @@ export async function lint(
         writer,
         reportFn: reportFn,
       },
-      { logger }
+      { logger, userError }
     );
-    //Return if we have errors or warnings
+
+    // Return if we have errors or warnings
     if (!profileWithAst.ast) {
       return profileWithAst.counts;
     }
@@ -390,9 +417,10 @@ export async function lint(
           writer,
           fn: reportFn,
         },
-        { logger }
+        { logger, userError }
       );
-      //Return if we have errors or warnings
+
+      // Return if we have errors or warnings
       if (!preparedMap.ast) {
         return preparedMap.counts;
       }

@@ -2,13 +2,13 @@ import { VerificationStatus } from '@superfaceai/service-client';
 import inquirer from 'inquirer';
 import * as open from 'open';
 
-import { userError } from '../common/error';
+import { UserError } from '../common/error';
 import { SuperfaceClient } from '../common/http';
 import { ILogger } from '../common/log';
 
 export async function login(
   { force }: { force?: boolean },
-  { logger }: { logger: ILogger }
+  { logger, userError }: { logger: ILogger; userError: UserError }
 ): Promise<void> {
   const client = SuperfaceClient.getClient();
   //get verification url, browser url and expiresAt

@@ -1,9 +1,9 @@
-import { CLIError } from '@oclif/errors';
 import { err, ok, SuperJson } from '@superfaceai/one-sdk';
 import { SDKExecutionError } from '@superfaceai/one-sdk/dist/internal/errors';
 import { mocked } from 'ts-jest/utils';
 
 import { MockLogger } from '../common';
+import { createUserError } from '../common/error';
 import { ProfileId } from '../common/profile';
 import { compile } from '../logic/compile';
 import { detectSuperJson } from '../logic/install';
@@ -21,6 +21,7 @@ jest.mock('../logic/compile', () => ({
 }));
 
 describe('Compile CLI command', () => {
+  const userError = createUserError(false);
   afterEach(() => {
     jest.resetAllMocks();
   });
@@ -89,9 +90,9 @@ describe('Compile CLI command', () => {
 
     it('throws when super.json not found', async () => {
       mocked(detectSuperJson).mockResolvedValue(undefined);
-      await expect(instance.execute({ logger, flags: {} })).rejects.toEqual(
-        new CLIError('❌ Unable to compile, super.json not found')
-      );
+      await expect(
+        instance.execute({ logger, userError, flags: {} })
+      ).rejects.toThrow('Unable to compile, super.json not found');
     });
 
     it('throws when super.json not loaded correctly', async () => {
@@ -99,20 +100,18 @@ describe('Compile CLI command', () => {
       jest
         .spyOn(SuperJson, 'load')
         .mockResolvedValue(err(new SDKExecutionError('test error', [], [])));
-      await expect(instance.execute({ logger, flags: {} })).rejects.toEqual(
-        new CLIError('❌ Unable to load super.json: test error')
-      );
+      await expect(
+        instance.execute({ logger, userError, flags: {} })
+      ).rejects.toThrow('Unable to load super.json: test error');
     });
 
     it('throws error on scan flag higher than 5', async () => {
       mocked(detectSuperJson).mockResolvedValue('.');
 
       await expect(
-        instance.execute({ logger, flags: { scan: 7 } })
-      ).rejects.toEqual(
-        new CLIError(
-          '❌ --scan/-s : Number of levels to scan cannot be higher than 5'
-        )
+        instance.execute({ logger, userError, flags: { scan: 7 } })
+      ).rejects.toThrow(
+        '--scan/-s : Number of levels to scan cannot be higher than 5'
       );
       expect(detectSuperJson).not.toHaveBeenCalled();
     }, 10000);
@@ -126,16 +125,15 @@ describe('Compile CLI command', () => {
       await expect(
         instance.execute({
           logger,
+          userError,
           flags: {
             profileId: 'U!0_',
             providerName: mockProvider,
             scan: 3,
           },
         })
-      ).rejects.toEqual(
-        new CLIError(
-          '❌ Invalid profile id: "U!0_" is not a valid lowercase identifier'
-        )
+      ).rejects.toThrow(
+        'Invalid profile id: "U!0_" is not a valid lowercase identifier'
       );
       expect(detectSuperJson).not.toHaveBeenCalled();
       expect(loadSpy).not.toHaveBeenCalled();
@@ -150,13 +148,14 @@ describe('Compile CLI command', () => {
       await expect(
         instance.execute({
           logger,
+          userError,
           flags: {
             profileId: mockProfile,
             providerName: 'U!0_',
             scan: 3,
           },
         })
-      ).rejects.toEqual(new CLIError('❌ Invalid provider name: "U!0_"'));
+      ).rejects.toThrow('Invalid provider name: "U!0_"');
       expect(detectSuperJson).not.toHaveBeenCalled();
       expect(loadSpy).not.toHaveBeenCalled();
     }, 10000);
@@ -170,12 +169,11 @@ describe('Compile CLI command', () => {
       await expect(
         instance.execute({
           logger,
+          userError,
           flags: { providerName: mockProvider, scan: 3 },
         })
-      ).rejects.toEqual(
-        new CLIError(
-          '❌ --profileId must be specified when using --providerName'
-        )
+      ).rejects.toThrow(
+        '--profileId must be specified when using --providerName'
       );
       expect(detectSuperJson).not.toHaveBeenCalled();
       expect(loadSpy).not.toHaveBeenCalled();
@@ -190,16 +188,15 @@ describe('Compile CLI command', () => {
       await expect(
         instance.execute({
           logger,
+          userError,
           flags: {
             profileId: mockProfile,
             providerName: mockProvider,
             scan: 3,
           },
         })
-      ).rejects.toEqual(
-        new CLIError(
-          `❌ Unable to compile, profile: "${mockProfile}" not found in super.json`
-        )
+      ).rejects.toThrow(
+        `Unable to compile, profile: "${mockProfile}" not found in super.json`
       );
       expect(detectSuperJson).toHaveBeenCalled();
       expect(loadSpy).toHaveBeenCalled();
@@ -224,16 +221,15 @@ describe('Compile CLI command', () => {
       await expect(
         instance.execute({
           logger,
+          userError,
           flags: {
             profileId: mockProfile,
             providerName: mockProvider,
             scan: 3,
           },
         })
-      ).rejects.toEqual(
-        new CLIError(
-          `❌ Unable to compile, provider: "${mockProvider}" not found in profile: "${mockProfile}" in super.json`
-        )
+      ).rejects.toThrow(
+        `Unable to compile, provider: "${mockProvider}" not found in profile: "${mockProfile}" in super.json`
       );
       expect(detectSuperJson).toHaveBeenCalled();
       expect(loadSpy).toHaveBeenCalled();
@@ -249,7 +245,7 @@ describe('Compile CLI command', () => {
         mocked(compile).mockResolvedValue();
 
         await expect(
-          instance.execute({ logger, flags: { scan: 4 } })
+          instance.execute({ logger, userError, flags: { scan: 4 } })
         ).resolves.toBeUndefined();
 
         expect(compile).toHaveBeenCalledWith(
@@ -257,7 +253,7 @@ describe('Compile CLI command', () => {
             profiles: [
               {
                 path: mockSuperJson.resolvePath(`../${mockProfile}.supr`),
-                id: ProfileId.fromId(mockProfile),
+                id: ProfileId.fromId(mockProfile, { userError }),
                 maps: [
                   {
                     path: mockSuperJson.resolvePath(
@@ -275,7 +271,7 @@ describe('Compile CLI command', () => {
               },
               {
                 path: mockSuperJson.resolvePath(`../${secondMockProfile}.supr`),
-                id: ProfileId.fromId(secondMockProfile),
+                id: ProfileId.fromId(secondMockProfile, { userError }),
                 maps: [
                   {
                     path: mockSuperJson.resolvePath(
@@ -307,7 +303,7 @@ describe('Compile CLI command', () => {
         mocked(compile).mockResolvedValue();
 
         await expect(
-          instance.execute({ logger, flags: { onlyMap: true } })
+          instance.execute({ logger, userError, flags: { onlyMap: true } })
         ).resolves.toBeUndefined();
 
         expect(compile).toHaveBeenCalledWith(
@@ -315,7 +311,7 @@ describe('Compile CLI command', () => {
             profiles: [
               {
                 path: mockSuperJson.resolvePath(`../${mockProfile}.supr`),
-                id: ProfileId.fromId(mockProfile),
+                id: ProfileId.fromId(mockProfile, { userError }),
                 maps: [
                   {
                     path: mockSuperJson.resolvePath(
@@ -333,7 +329,7 @@ describe('Compile CLI command', () => {
               },
               {
                 path: mockSuperJson.resolvePath(`../${secondMockProfile}.supr`),
-                id: ProfileId.fromId(secondMockProfile),
+                id: ProfileId.fromId(secondMockProfile, { userError }),
                 maps: [
                   {
                     path: mockSuperJson.resolvePath(
@@ -362,7 +358,7 @@ describe('Compile CLI command', () => {
         mocked(compile).mockResolvedValue();
 
         await expect(
-          instance.execute({ logger, flags: { onlyProfile: true } })
+          instance.execute({ logger, userError, flags: { onlyProfile: true } })
         ).resolves.toBeUndefined();
 
         expect(compile).toHaveBeenCalledWith(
@@ -370,7 +366,7 @@ describe('Compile CLI command', () => {
             profiles: [
               {
                 path: mockSuperJson.resolvePath(`../${mockProfile}.supr`),
-                id: ProfileId.fromId(mockProfile),
+                id: ProfileId.fromId(mockProfile, { userError }),
                 maps: [
                   {
                     path: mockSuperJson.resolvePath(
@@ -388,7 +384,7 @@ describe('Compile CLI command', () => {
               },
               {
                 path: mockSuperJson.resolvePath(`../${secondMockProfile}.supr`),
-                id: ProfileId.fromId(secondMockProfile),
+                id: ProfileId.fromId(secondMockProfile, { userError }),
                 maps: [
                   {
                     path: mockSuperJson.resolvePath(
@@ -417,7 +413,7 @@ describe('Compile CLI command', () => {
         mocked(compile).mockResolvedValue();
 
         await expect(
-          instance.execute({ logger, flags: {} })
+          instance.execute({ logger, userError, flags: {} })
         ).resolves.toBeUndefined();
 
         expect(compile).toHaveBeenCalledWith(
@@ -425,7 +421,7 @@ describe('Compile CLI command', () => {
             profiles: [
               {
                 path: mockSuperJson.resolvePath(`../${mockProfile}.supr`),
-                id: ProfileId.fromId(mockProfile),
+                id: ProfileId.fromId(mockProfile, { userError }),
                 maps: [
                   {
                     path: mockSuperJson.resolvePath(
@@ -443,7 +439,7 @@ describe('Compile CLI command', () => {
               },
               {
                 path: mockSuperJson.resolvePath(`../${secondMockProfile}.supr`),
-                id: ProfileId.fromId(secondMockProfile),
+                id: ProfileId.fromId(secondMockProfile, { userError }),
                 maps: [
                   {
                     path: mockSuperJson.resolvePath(
@@ -474,7 +470,11 @@ describe('Compile CLI command', () => {
         mocked(compile).mockResolvedValue();
 
         await expect(
-          instance.execute({ logger, flags: { profileId: mockProfile } })
+          instance.execute({
+            logger,
+            userError,
+            flags: { profileId: mockProfile },
+          })
         ).resolves.toBeUndefined();
 
         expect(compile).toHaveBeenCalledWith(
@@ -482,7 +482,7 @@ describe('Compile CLI command', () => {
             profiles: [
               {
                 path: mockSuperJson.resolvePath(`../${mockProfile}.supr`),
-                id: ProfileId.fromId(mockProfile),
+                id: ProfileId.fromId(mockProfile, { userError }),
                 maps: [
                   {
                     path: mockSuperJson.resolvePath(
@@ -522,6 +522,7 @@ describe('Compile CLI command', () => {
         await expect(
           instance.execute({
             logger,
+            userError,
             flags: { profileId: mockProfile, onlyMap: true },
           })
         ).resolves.toBeUndefined();
@@ -531,7 +532,7 @@ describe('Compile CLI command', () => {
             profiles: [
               {
                 path: mockSuperJson.resolvePath(`../${mockProfile}.supr`),
-                id: ProfileId.fromId(mockProfile),
+                id: ProfileId.fromId(mockProfile, { userError }),
                 maps: [
                   {
                     path: mockSuperJson.resolvePath(
@@ -568,6 +569,7 @@ describe('Compile CLI command', () => {
         await expect(
           instance.execute({
             logger,
+            userError,
             flags: { profileId: mockProfile, onlyProfile: true },
           })
         ).resolves.toBeUndefined();
@@ -577,7 +579,7 @@ describe('Compile CLI command', () => {
             profiles: [
               {
                 path: mockSuperJson.resolvePath(`../${mockProfile}.supr`),
-                id: ProfileId.fromId(mockProfile),
+                id: ProfileId.fromId(mockProfile, { userError }),
                 maps: [
                   {
                     path: mockSuperJson.resolvePath(
@@ -616,6 +618,7 @@ describe('Compile CLI command', () => {
         await expect(
           instance.execute({
             logger,
+            userError,
             flags: {
               profileId: mockProfile,
               providerName: mockProvider,
@@ -628,7 +631,7 @@ describe('Compile CLI command', () => {
             profiles: [
               {
                 path: mockSuperJson.resolvePath(`../${mockProfile}.supr`),
-                id: ProfileId.fromId(mockProfile),
+                id: ProfileId.fromId(mockProfile, { userError }),
                 maps: [
                   {
                     path: mockSuperJson.resolvePath(
@@ -662,6 +665,7 @@ describe('Compile CLI command', () => {
         await expect(
           instance.execute({
             logger,
+            userError,
             flags: {
               profileId: mockProfile,
               providerName: mockProvider,
@@ -675,7 +679,7 @@ describe('Compile CLI command', () => {
             profiles: [
               {
                 path: mockSuperJson.resolvePath(`../${mockProfile}.supr`),
-                id: ProfileId.fromId(mockProfile),
+                id: ProfileId.fromId(mockProfile, { userError }),
                 maps: [
                   {
                     path: mockSuperJson.resolvePath(
@@ -706,6 +710,7 @@ describe('Compile CLI command', () => {
         await expect(
           instance.execute({
             logger,
+            userError,
             flags: {
               profileId: mockProfile,
               providerName: mockProvider,
@@ -719,7 +724,7 @@ describe('Compile CLI command', () => {
             profiles: [
               {
                 path: mockSuperJson.resolvePath(`../${mockProfile}.supr`),
-                id: ProfileId.fromId(mockProfile),
+                id: ProfileId.fromId(mockProfile, { userError }),
                 maps: [
                   {
                     path: mockSuperJson.resolvePath(

@@ -1,9 +1,9 @@
-import { CLIError } from '@oclif/errors';
 import { SuperJson } from '@superfaceai/one-sdk';
 import inquirer from 'inquirer';
 import { mocked } from 'ts-jest/utils';
 
 import { DEFAULT_PROFILE_VERSION_STR, MockLogger } from '../common';
+import { createUserError } from '../common/error';
 import { exists, mkdirQuiet } from '../common/io';
 import { create } from '../logic/create';
 import { initSuperface } from '../logic/init';
@@ -31,6 +31,7 @@ jest.mock('../logic/init', () => ({
 jest.mock('inquirer');
 
 describe('Create CLI command', () => {
+  const userError = createUserError(false);
   let documentName: string;
   let provider: string;
   let logger: MockLogger;
@@ -56,6 +57,7 @@ describe('Create CLI command', () => {
       await expect(
         instance.execute({
           logger,
+          userError,
           flags: {
             profileId: documentName,
             profile: true,
@@ -99,6 +101,7 @@ describe('Create CLI command', () => {
       await expect(
         instance.execute({
           logger,
+          userError,
           flags: {
             profileId: documentName,
             profile: true,
@@ -148,6 +151,7 @@ describe('Create CLI command', () => {
       await expect(
         instance.execute({
           logger,
+          userError,
           flags: {
             profileId: documentName,
             providerName: [provider],
@@ -195,6 +199,7 @@ describe('Create CLI command', () => {
       await expect(
         instance.execute({
           logger,
+          userError,
           flags: {
             profileId: documentName,
             providerName: [provider],
@@ -241,6 +246,7 @@ describe('Create CLI command', () => {
       await expect(
         instance.execute({
           logger,
+          userError,
           flags: {
             profileId: documentName,
             providerName: [provider],
@@ -286,6 +292,7 @@ describe('Create CLI command', () => {
       await expect(
         instance.execute({
           logger,
+          userError,
           flags: {
             profileId: documentName,
             profile: true,
@@ -328,6 +335,7 @@ describe('Create CLI command', () => {
       await expect(
         instance.execute({
           logger,
+          userError,
           flags: {
             profileId: documentName,
             usecase: ['SendSMS'],
@@ -370,6 +378,7 @@ describe('Create CLI command', () => {
       await expect(
         instance.execute({
           logger,
+          userError,
           flags: {
             profileId: documentName,
             usecase: ['ReceiveSMS', 'SendSMS'],
@@ -413,6 +422,7 @@ describe('Create CLI command', () => {
       await expect(
         instance.execute({
           logger,
+          userError,
           flags: {
             profileId: documentName,
             usecase: ['ReceiveSMS', 'SendSMS'],
@@ -458,6 +468,7 @@ describe('Create CLI command', () => {
       await expect(
         instance.execute({
           logger,
+          userError,
           flags: {
             profileId: documentName,
             providerName: [provider],
@@ -502,6 +513,7 @@ describe('Create CLI command', () => {
       await expect(
         instance.execute({
           logger,
+          userError,
           flags: {
             profileId: documentName,
             providerName: [provider, secondProvider],
@@ -544,6 +556,7 @@ describe('Create CLI command', () => {
       await expect(
         instance.execute({
           logger,
+          userError,
           flags: {
             providerName: [provider],
             version: DEFAULT_PROFILE_VERSION_STR,
@@ -585,6 +598,7 @@ describe('Create CLI command', () => {
       await expect(
         instance.execute({
           logger,
+          userError,
           flags: {
             providerName: [provider, secondProvider],
             version: DEFAULT_PROFILE_VERSION_STR,
@@ -626,6 +640,7 @@ describe('Create CLI command', () => {
       await expect(
         instance.execute({
           logger,
+          userError,
           flags: {
             profileId: documentName,
             usecase: ['SendSMS'],
@@ -671,6 +686,7 @@ describe('Create CLI command', () => {
       await expect(
         instance.execute({
           logger,
+          userError,
           flags: {
             profileId: documentName,
             usecase: ['SendSMS', 'ReciveSMS'],
@@ -716,6 +732,7 @@ describe('Create CLI command', () => {
       await expect(
         instance.execute({
           logger,
+          userError,
           flags: {
             profileId: documentName,
             usecase: ['SendSMS', 'ReciveSMS'],
@@ -760,6 +777,7 @@ describe('Create CLI command', () => {
       await expect(
         instance.execute({
           logger,
+          userError,
           flags: {
             profileId: documentName,
             usecase: ['SendSMS'],
@@ -804,6 +822,7 @@ describe('Create CLI command', () => {
       await expect(
         instance.execute({
           logger,
+          userError,
           flags: {
             profileId: documentName,
             usecase: ['SendSMS', 'ReceiveSMS'],
@@ -848,6 +867,7 @@ describe('Create CLI command', () => {
       await expect(
         instance.execute({
           logger,
+          userError,
           flags: {
             profileId: documentName,
             usecase: ['SendSMS', 'ReceiveSMS'],
@@ -891,6 +911,7 @@ describe('Create CLI command', () => {
       await expect(
         instance.execute({
           logger,
+          userError,
           flags: {
             profileId: documentName,
             providerName: [provider],
@@ -936,6 +957,7 @@ describe('Create CLI command', () => {
       await expect(
         instance.execute({
           logger,
+          userError,
           flags: {
             profileId: documentName,
             usecase: ['SendSMS'],
@@ -980,6 +1002,7 @@ describe('Create CLI command', () => {
       await expect(
         instance.execute({
           logger,
+          userError,
           flags: {
             profileId: documentName,
             providerName: ['twilio'],
@@ -1023,6 +1046,7 @@ describe('Create CLI command', () => {
       await expect(
         instance.execute({
           logger,
+          userError,
           flags: {
             profileId: documentName,
             providerName: [provider],
@@ -1072,6 +1096,7 @@ describe('Create CLI command', () => {
       await expect(
         instance.execute({
           logger,
+          userError,
           flags: {
             profileId: documentName,
             providerName: [provider],
@@ -1122,6 +1147,7 @@ describe('Create CLI command', () => {
       await expect(
         instance.execute({
           logger,
+          userError,
           flags: {
             profileId: documentName,
             providerName: [provider],
@@ -1170,6 +1196,7 @@ describe('Create CLI command', () => {
       await expect(
         instance.execute({
           logger,
+          userError,
           flags: {
             profileId: documentName,
             providerName: ['first', 'second'],
@@ -1180,10 +1207,8 @@ describe('Create CLI command', () => {
             providerFileName: 'test',
           },
         })
-      ).rejects.toEqual(
-        new CLIError(
-          'Unable to create mutiple providers with same file name: "test"'
-        )
+      ).rejects.toThrow(
+        'Unable to create mutiple providers with same file name: "test"'
       );
 
       expect(create).not.toHaveBeenCalled();
@@ -1200,6 +1225,7 @@ describe('Create CLI command', () => {
       await expect(
         instance.execute({
           logger,
+          userError,
           flags: {
             profileId: documentName,
             providerName: ['first', 'second'],
@@ -1212,10 +1238,8 @@ describe('Create CLI command', () => {
             mapFileName: 'test',
           },
         })
-      ).rejects.toEqual(
-        new CLIError(
-          'Unable to create mutiple maps with same file name: "test"'
-        )
+      ).rejects.toThrow(
+        'Unable to create mutiple maps with same file name: "test"'
       );
 
       expect(create).not.toHaveBeenCalled();
@@ -1226,6 +1250,7 @@ describe('Create CLI command', () => {
       await expect(
         instance.execute({
           logger,
+          userError,
           flags: {
             profileId: 'map',
             profile: true,
@@ -1234,11 +1259,12 @@ describe('Create CLI command', () => {
             providerName: [],
           },
         })
-      ).rejects.toEqual(new CLIError('ProfileId is reserved!'));
+      ).rejects.toThrow('ProfileId is reserved!');
 
       await expect(
         instance.execute({
           logger,
+          userError,
           flags: {
             profileId: 'profile',
             profile: true,
@@ -1247,11 +1273,12 @@ describe('Create CLI command', () => {
             providerName: [],
           },
         })
-      ).rejects.toEqual(new CLIError('ProfileId is reserved!'));
+      ).rejects.toThrow('ProfileId is reserved!');
 
       await expect(
         instance.execute({
           logger,
+          userError,
           flags: {
             providerName: ['map'],
             provider: true,
@@ -1259,11 +1286,12 @@ describe('Create CLI command', () => {
             usecase: [],
           },
         })
-      ).rejects.toEqual(new CLIError('ProviderName "map" is reserved!'));
+      ).rejects.toThrow('ProviderName "map" is reserved!');
 
       await expect(
         instance.execute({
           logger,
+          userError,
           flags: {
             providerName: ['profile'],
             provider: true,
@@ -1271,12 +1299,12 @@ describe('Create CLI command', () => {
             usecase: [],
           },
         })
-      ).rejects.toEqual(new CLIError('ProviderName "profile" is reserved!'));
+      ).rejects.toThrow('ProviderName "profile" is reserved!');
     });
 
     it('throws error on missing profileId and providerNamse', async () => {
-      await expect(Create.run([])).rejects.toEqual(
-        new CLIError('Invalid command! Specify profileId or providerName')
+      await expect(Create.run([])).rejects.toThrow(
+        'Invalid command! Specify profileId or providerName'
       );
     });
 
@@ -1284,6 +1312,7 @@ describe('Create CLI command', () => {
       await expect(
         instance.execute({
           logger,
+          userError,
           flags: {
             profileId: 'sms/service',
             providerName: ['twilio'],
@@ -1293,13 +1322,14 @@ describe('Create CLI command', () => {
             variant: 'vT_7!',
           },
         })
-      ).rejects.toEqual(new CLIError('Invalid map variant: vT_7!'));
+      ).rejects.toThrow('Invalid map variant: vT_7!');
     });
 
     it('throws error on invalid provider name', async () => {
       await expect(
         instance.execute({
           logger,
+          userError,
           flags: {
             profileId: 'sms/service',
             version: DEFAULT_PROFILE_VERSION_STR,
@@ -1308,7 +1338,7 @@ describe('Create CLI command', () => {
             map: true,
           },
         })
-      ).rejects.toEqual(new CLIError('Invalid provider name: vT_7!'));
+      ).rejects.toThrow('Invalid provider name: vT_7!');
     });
 
     it('throws error on invalid document', async () => {
@@ -1319,6 +1349,7 @@ describe('Create CLI command', () => {
       await expect(
         instance.execute({
           logger,
+          userError,
           flags: {
             profileId: documentName,
             usecase: ['SendSMS'],
@@ -1327,9 +1358,7 @@ describe('Create CLI command', () => {
             profile: true,
           },
         })
-      ).rejects.toEqual(
-        new CLIError('"vT_7!" is not a valid lowercase identifier')
-      );
+      ).rejects.toThrow('"vT_7!" is not a valid lowercase identifier');
     });
 
     it('throws error on invalid version', async () => {
@@ -1340,6 +1369,7 @@ describe('Create CLI command', () => {
       await expect(
         instance.execute({
           logger,
+          userError,
           flags: {
             profileId: documentName,
             version: '',
@@ -1348,7 +1378,7 @@ describe('Create CLI command', () => {
             providerName: [],
           },
         })
-      ).rejects.toEqual(new CLIError(' is not a valid version'));
+      ).rejects.toThrow(' is not a valid version');
     });
 
     it('throws error on invalid usecase', async () => {
@@ -1359,6 +1389,7 @@ describe('Create CLI command', () => {
       await expect(
         instance.execute({
           logger,
+          userError,
           flags: {
             profileId: documentName,
             usecase: ['7_L§'],
@@ -1367,7 +1398,7 @@ describe('Create CLI command', () => {
             profile: true,
           },
         })
-      ).rejects.toEqual(new CLIError('Invalid usecase name: 7_L§'));
+      ).rejects.toThrow('Invalid usecase name: 7_L§');
     });
   });
 });

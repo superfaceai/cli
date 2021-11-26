@@ -5,6 +5,7 @@ import { join as joinPath } from 'path';
 import { mocked } from 'ts-jest/utils';
 
 import { MockLogger } from '../common';
+import { createUserError } from '../common/error';
 import {
   fetchProfile,
   fetchProfileAST,
@@ -35,6 +36,7 @@ jest.mock('../common/io', () => ({
 
 describe('Install CLI logic', () => {
   let logger: MockLogger;
+  const userError = createUserError(false);
 
   beforeEach(async () => {
     logger = new MockLogger();
@@ -203,8 +205,8 @@ describe('Install CLI logic', () => {
 
       await expect(
         getProfileFromStore(
-          { profileId: ProfileId.fromId(profileId) },
-          { logger }
+          { profileId: ProfileId.fromId(profileId, { userError }) },
+          { logger, userError }
         )
       ).resolves.toEqual({
         ast: mockProfileAst,
@@ -214,15 +216,33 @@ describe('Install CLI logic', () => {
       expect(fetchProfile).toHaveBeenCalledTimes(1);
       expect(fetchProfileAST).toHaveBeenCalledTimes(1);
       expect(fetchProfileInfo).toHaveBeenCalledTimes(1);
-      expect(fetchProfile).toHaveBeenCalledWith(profileId, {
-        tryToAuthenticate: undefined,
-      });
-      expect(fetchProfileInfo).toHaveBeenCalledWith(profileId, {
-        tryToAuthenticate: undefined,
-      });
-      expect(fetchProfileAST).toHaveBeenCalledWith(profileId, {
-        tryToAuthenticate: undefined,
-      });
+      expect(fetchProfile).toHaveBeenCalledWith(
+        {
+          profileId,
+          options: {
+            tryToAuthenticate: undefined,
+          },
+        },
+        expect.anything()
+      );
+      expect(fetchProfileInfo).toHaveBeenCalledWith(
+        {
+          profileId,
+          options: {
+            tryToAuthenticate: undefined,
+          },
+        },
+        expect.anything()
+      );
+      expect(fetchProfileAST).toHaveBeenCalledWith(
+        {
+          profileId,
+          options: {
+            tryToAuthenticate: undefined,
+          },
+        },
+        expect.anything()
+      );
     }, 10000);
 
     it('gets profile when AST validation failed', async () => {
@@ -240,8 +260,8 @@ describe('Install CLI logic', () => {
 
       await expect(
         getProfileFromStore(
-          { profileId: ProfileId.fromId(profileId) },
-          { logger }
+          { profileId: ProfileId.fromId(profileId, { userError }) },
+          { logger, userError }
         )
       ).resolves.toEqual({
         ast: mockProfileAst,
@@ -251,15 +271,33 @@ describe('Install CLI logic', () => {
       expect(fetchProfile).toHaveBeenCalledTimes(1);
       expect(fetchProfileAST).toHaveBeenCalledTimes(1);
       expect(fetchProfileInfo).toHaveBeenCalledTimes(1);
-      expect(fetchProfile).toHaveBeenCalledWith(profileId, {
-        tryToAuthenticate: undefined,
-      });
-      expect(fetchProfileInfo).toHaveBeenCalledWith(profileId, {
-        tryToAuthenticate: undefined,
-      });
-      expect(fetchProfileAST).toHaveBeenCalledWith(profileId, {
-        tryToAuthenticate: undefined,
-      });
+      expect(fetchProfile).toHaveBeenCalledWith(
+        {
+          profileId,
+          options: {
+            tryToAuthenticate: undefined,
+          },
+        },
+        expect.anything()
+      );
+      expect(fetchProfileInfo).toHaveBeenCalledWith(
+        {
+          profileId,
+          options: {
+            tryToAuthenticate: undefined,
+          },
+        },
+        expect.anything()
+      );
+      expect(fetchProfileAST).toHaveBeenCalledWith(
+        {
+          profileId,
+          options: {
+            tryToAuthenticate: undefined,
+          },
+        },
+        expect.anything()
+      );
       expect(parseProfileSpy).toHaveBeenCalledWith(mockProfile, profileId, {
         profileName: 'character-information',
         scope: 'starwars',
@@ -278,12 +316,12 @@ describe('Install CLI logic', () => {
       await expect(
         getProfileFromStore(
           {
-            profileId: ProfileId.fromId(profileId),
+            profileId: ProfileId.fromId(profileId, { userError }),
             options: {
               tryToAuthenticate: true,
             },
           },
-          { logger }
+          { logger, userError }
         )
       ).resolves.toEqual({
         ast: mockProfileAst,
@@ -293,15 +331,33 @@ describe('Install CLI logic', () => {
       expect(fetchProfile).toHaveBeenCalledTimes(1);
       expect(fetchProfileAST).toHaveBeenCalledTimes(1);
       expect(fetchProfileInfo).toHaveBeenCalledTimes(1);
-      expect(fetchProfile).toHaveBeenCalledWith(profileId, {
-        tryToAuthenticate: true,
-      });
-      expect(fetchProfileInfo).toHaveBeenCalledWith(profileId, {
-        tryToAuthenticate: true,
-      });
-      expect(fetchProfileAST).toHaveBeenCalledWith(profileId, {
-        tryToAuthenticate: true,
-      });
+      expect(fetchProfile).toHaveBeenCalledWith(
+        {
+          profileId,
+          options: {
+            tryToAuthenticate: true,
+          },
+        },
+        expect.anything()
+      );
+      expect(fetchProfileInfo).toHaveBeenCalledWith(
+        {
+          profileId,
+          options: {
+            tryToAuthenticate: true,
+          },
+        },
+        expect.anything()
+      );
+      expect(fetchProfileAST).toHaveBeenCalledWith(
+        {
+          profileId,
+          options: {
+            tryToAuthenticate: true,
+          },
+        },
+        expect.anything()
+      );
       10000;
     });
 
@@ -314,14 +370,20 @@ describe('Install CLI logic', () => {
 
       await expect(
         getProfileFromStore(
-          { profileId: ProfileId.fromId(profileId) },
-          { logger }
+          { profileId: ProfileId.fromId(profileId, { userError }) },
+          { logger, userError }
         )
       ).resolves.toBeUndefined();
       expect(fetchProfileInfo).toHaveBeenCalledTimes(1);
-      expect(fetchProfileInfo).toHaveBeenCalledWith(profileId, {
-        tryToAuthenticate: undefined,
-      });
+      expect(fetchProfileInfo).toHaveBeenCalledWith(
+        {
+          profileId,
+          options: {
+            tryToAuthenticate: undefined,
+          },
+        },
+        expect.anything()
+      );
       expect(fetchProfile).not.toHaveBeenCalled();
       expect(fetchProfileAST).not.toHaveBeenCalled();
     }, 10000);
@@ -401,7 +463,7 @@ describe('Install CLI logic', () => {
               { kind: 'local', path: 'second.supr' },
             ],
           },
-          { logger }
+          { logger, userError }
         )
       ).resolves.toEqual(1);
 
@@ -436,7 +498,7 @@ describe('Install CLI logic', () => {
         }
       });
       const fetchProfileInfoMock = mocked(fetchProfileInfo).mockImplementation(
-        profileId => {
+        ({ profileId }) => {
           if (profileId === 'none') {
             return Promise.reject('none does not exist');
           } else {
@@ -469,27 +531,27 @@ describe('Install CLI logic', () => {
             requests: [
               {
                 kind: 'store',
-                profileId: ProfileId.fromId('first'),
+                profileId: ProfileId.fromId('first', { userError }),
                 version: '1.0.1',
               },
               {
                 kind: 'store',
-                profileId: ProfileId.fromId('none'),
+                profileId: ProfileId.fromId('none', { userError }),
                 version: undefined,
               },
               {
                 kind: 'store',
-                profileId: ProfileId.fromId('se/cond'),
+                profileId: ProfileId.fromId('se/cond', { userError }),
                 version: '2.2.0',
               },
               {
                 kind: 'store',
-                profileId: ProfileId.fromId('third'),
+                profileId: ProfileId.fromId('third', { userError }),
                 version: undefined,
               },
             ],
           },
-          { logger }
+          { logger, userError }
         )
       ).resolves.toEqual(1);
 
@@ -524,9 +586,9 @@ describe('Install CLI logic', () => {
           stubSuperJson.resolvePath(
             joinPath(
               'grid',
-              `${ProfileId.fromId('third').withVersion('1.0.1')}${
-                EXTENSIONS.profile.source
-              }`
+              `${ProfileId.fromId('third', { userError }).withVersion(
+                '1.0.1'
+              )}${EXTENSIONS.profile.source}`
             )
           ),
         ],
@@ -620,7 +682,7 @@ describe('Install CLI logic', () => {
             requests: [
               {
                 kind: 'store',
-                profileId: ProfileId.fromId('local/first'),
+                profileId: ProfileId.fromId('local/first', { userError }),
                 version: '1.0.1',
               },
               {
@@ -634,12 +696,12 @@ describe('Install CLI logic', () => {
 
               {
                 kind: 'store',
-                profileId: ProfileId.fromId('remote/first'),
+                profileId: ProfileId.fromId('remote/first', { userError }),
                 version: '1.0.1',
               },
               {
                 kind: 'store',
-                profileId: ProfileId.fromId('remote/second'),
+                profileId: ProfileId.fromId('remote/second', { userError }),
                 version: '1.0.1',
               },
               {
@@ -649,7 +711,7 @@ describe('Install CLI logic', () => {
             ],
             options: { force: true },
           },
-          { logger }
+          { logger, userError }
         )
       ).resolves.toEqual(6);
 
@@ -685,10 +747,10 @@ describe('Install CLI logic', () => {
 
       stubSuperJson.mergeProfile(profileId, { version: '1.0.1' });
       await expect(
-        getExistingProfileIds(stubSuperJson, { logger })
+        getExistingProfileIds(stubSuperJson, { logger, userError })
       ).resolves.toEqual([
         {
-          profileId: ProfileId.fromId(profileId),
+          profileId: ProfileId.fromId(profileId, { userError }),
           version: '1.0.1',
         },
       ]);
@@ -713,7 +775,7 @@ describe('Install CLI logic', () => {
         file: 'fixtures/install/playground/character-information.supr',
       });
       await expect(
-        getExistingProfileIds(stubSuperJson, { logger })
+        getExistingProfileIds(stubSuperJson, { logger, userError })
       ).resolves.toEqual([
         {
           profileId: ProfileId.fromScopeName('scope', 'test'),
@@ -806,22 +868,40 @@ describe('Install CLI logic', () => {
                 },
               ],
             },
-            { logger }
+            { logger, userError }
           )
         ).resolves.toBeUndefined();
 
         expect(fetchProfileInfo).toHaveBeenCalledTimes(1);
         expect(fetchProfile).toHaveBeenCalledTimes(1);
         expect(fetchProfileAST).toHaveBeenCalledTimes(1);
-        expect(fetchProfile).toHaveBeenCalledWith(profileId, {
-          tryToAuthenticate: undefined,
-        });
-        expect(fetchProfileInfo).toHaveBeenCalledWith(profileId, {
-          tryToAuthenticate: undefined,
-        });
-        expect(fetchProfileAST).toHaveBeenCalledWith(profileId, {
-          tryToAuthenticate: undefined,
-        });
+        expect(fetchProfile).toHaveBeenCalledWith(
+          {
+            profileId,
+            options: {
+              tryToAuthenticate: undefined,
+            },
+          },
+          expect.anything()
+        );
+        expect(fetchProfileInfo).toHaveBeenCalledWith(
+          {
+            profileId,
+            options: {
+              tryToAuthenticate: undefined,
+            },
+          },
+          expect.anything()
+        );
+        expect(fetchProfileAST).toHaveBeenCalledWith(
+          {
+            profileId,
+            options: {
+              tryToAuthenticate: undefined,
+            },
+          },
+          expect.anything()
+        );
 
         //actual path is changing
         expect(mockWrite).toHaveBeenCalledWith(expect.anything(), mockProfile, {
@@ -865,7 +945,10 @@ describe('Install CLI logic', () => {
         const parsedProfileSpy = jest.spyOn(Parser, 'parseProfile');
 
         await expect(
-          installProfiles({ superPath: '.', requests: [] }, { logger })
+          installProfiles(
+            { superPath: '.', requests: [] },
+            { logger, userError }
+          )
         ).resolves.toBeUndefined();
 
         expect(fetchProfileInfo).toHaveBeenCalledTimes(2);
@@ -873,33 +956,52 @@ describe('Install CLI logic', () => {
         expect(fetchProfileAST).toHaveBeenCalledTimes(2);
         expect(fetchProfile).toHaveBeenNthCalledWith(
           1,
-          'starwars/first@1.0.0',
-          { tryToAuthenticate: undefined }
+          {
+            profileId: 'starwars/first@1.0.0',
+            options: { tryToAuthenticate: undefined },
+          },
+          expect.anything()
         );
         expect(fetchProfile).toHaveBeenNthCalledWith(
           2,
-          'starwars/second@2.0.0',
-          { tryToAuthenticate: undefined }
+          {
+            profileId: 'starwars/second@2.0.0',
+            options: { tryToAuthenticate: undefined },
+          },
+          expect.anything()
         );
         expect(fetchProfileInfo).toHaveBeenNthCalledWith(
           1,
-          'starwars/first@1.0.0',
-          { tryToAuthenticate: undefined }
+          {
+            profileId: 'starwars/first@1.0.0',
+
+            options: { tryToAuthenticate: undefined },
+          },
+          expect.anything()
         );
         expect(fetchProfileInfo).toHaveBeenNthCalledWith(
           2,
-          'starwars/second@2.0.0',
-          { tryToAuthenticate: undefined }
+          {
+            profileId: 'starwars/second@2.0.0',
+            options: { tryToAuthenticate: undefined },
+          },
+          expect.anything()
         );
         expect(fetchProfileAST).toHaveBeenNthCalledWith(
           1,
-          'starwars/first@1.0.0',
-          { tryToAuthenticate: undefined }
+          {
+            profileId: 'starwars/first@1.0.0',
+            options: { tryToAuthenticate: undefined },
+          },
+          expect.anything()
         );
         expect(fetchProfileAST).toHaveBeenNthCalledWith(
           2,
-          'starwars/second@2.0.0',
-          { tryToAuthenticate: undefined }
+          {
+            profileId: 'starwars/second@2.0.0',
+            options: { tryToAuthenticate: undefined },
+          },
+          expect.anything()
         );
 
         expect(mockWrite).toHaveBeenCalled();

@@ -6,6 +6,7 @@ import { join as joinPath } from 'path';
 
 import { Command, Flags } from '../common/command.abstract';
 import { constructProviderSettings } from '../common/document';
+import { UserError } from '../common/error';
 import { ILogger } from '../common/log';
 import { OutputStream } from '../common/output-stream';
 import { generateSpecifiedProfiles, initSuperface } from '../logic/init';
@@ -118,6 +119,7 @@ export default class Init extends Command {
     await super.initialize(flags);
     await this.execute({
       logger: this.logger,
+      userError: this.userError,
       flags,
       args,
     });
@@ -125,10 +127,12 @@ export default class Init extends Command {
 
   async execute({
     logger,
+    userError,
     flags,
     args,
   }: {
     logger: ILogger;
+    userError: UserError;
     flags: Flags<typeof Init.flags>;
     args: { name?: string };
   }): Promise<void> {
@@ -180,7 +184,7 @@ export default class Init extends Command {
     if (profiles.length > 0) {
       await generateSpecifiedProfiles(
         { path, superJson, profileIds: profiles },
-        { logger }
+        { logger, userError }
       );
       await OutputStream.writeOnce(superJson.path, superJson.stringified);
     }

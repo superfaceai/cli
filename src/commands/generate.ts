@@ -5,7 +5,7 @@ import { join as joinPath } from 'path';
 
 import { Command, Flags } from '../common/command.abstract';
 import { META_FILE } from '../common/document';
-import { userError } from '../common/error';
+import { UserError } from '../common/error';
 import { ILogger } from '../common/log';
 import { ProfileId } from '../common/profile';
 import { generate } from '../logic/generate';
@@ -46,15 +46,18 @@ export default class Generate extends Command {
     await super.initialize(flags);
     await this.execute({
       logger: this.logger,
+      userError: this.userError,
       flags,
     });
   }
 
   async execute({
     logger,
+    userError,
     flags,
   }: {
     logger: ILogger;
+    userError: UserError;
     flags: Flags<typeof Generate.flags>;
   }): Promise<void> {
     if (flags.scan && (typeof flags.scan !== 'number' || flags.scan > 5)) {
@@ -93,7 +96,7 @@ export default class Generate extends Command {
       }
 
       profiles.push({
-        id: ProfileId.fromId(flags.profileId),
+        id: ProfileId.fromId(flags.profileId, { userError }),
         version:
           'version' in profileSettings ? profileSettings.version : undefined,
       });
@@ -102,14 +105,14 @@ export default class Generate extends Command {
         superJson.normalized.profiles
       )) {
         profiles.push({
-          id: ProfileId.fromId(profile),
+          id: ProfileId.fromId(profile, { userError }),
           version:
             'version' in profileSettings ? profileSettings.version : undefined,
         });
       }
     }
 
-    await generate({ profiles, superJson }, { logger });
+    await generate({ profiles, superJson }, { logger, userError });
 
     logger.success('generatedSuccessfully');
   }

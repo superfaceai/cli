@@ -1,13 +1,16 @@
 import { parseDocumentId } from '@superfaceai/parser';
 
-import { userError } from './error';
+import { UserError } from './error';
 
 export class ProfileId {
   public readonly scope?: string;
   public readonly name: string;
   public readonly id: string;
 
-  public static fromId(profileId: string): ProfileId {
+  public static fromId(
+    profileId: string,
+    { userError }: { userError: UserError }
+  ): ProfileId {
     const parsed = parseDocumentId(profileId);
     if (parsed.kind === 'error') {
       throw userError(`Invalid profile id: ${parsed.message}`, 1);

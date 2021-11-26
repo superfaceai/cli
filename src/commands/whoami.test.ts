@@ -1,13 +1,14 @@
-import { CLIError } from '@oclif/errors';
 import { ServiceApiError, ServiceClient } from '@superfaceai/service-client';
 
 import { MockLogger } from '../common';
+import { createUserError } from '../common/error';
 import { CommandInstance } from '../test/utils';
 import Whoami from './whoami';
 
 describe('Whoami CLI command', () => {
   let logger: MockLogger;
   let instance: Whoami;
+  const userError = createUserError(false);
 
   beforeEach(async () => {
     logger = new MockLogger();
@@ -30,7 +31,7 @@ describe('Whoami CLI command', () => {
         .mockResolvedValue(mockUserInfo);
 
       await expect(
-        instance.execute({ logger, flags: {} })
+        instance.execute({ logger, userError, flags: {} })
       ).resolves.toBeUndefined();
       expect(getInfoSpy).toHaveBeenCalled();
       expect(logger.stderr).toEqual([]);
@@ -52,7 +53,7 @@ describe('Whoami CLI command', () => {
         .mockRejectedValue(mockServerResponse);
 
       await expect(
-        instance.execute({ logger, flags: {} })
+        instance.execute({ logger, userError, flags: {} })
       ).resolves.toBeUndefined();
       expect(getInfoSpy).toHaveBeenCalled();
       expect(logger.stderr).toEqual([]);
@@ -71,7 +72,7 @@ describe('Whoami CLI command', () => {
         .mockRejectedValue(mockServerResponse);
 
       await expect(
-        instance.execute({ logger, flags: {} })
+        instance.execute({ logger, userError, flags: {} })
       ).resolves.toBeUndefined();
       expect(getInfoSpy).toHaveBeenCalled();
       expect(logger.stderr).toEqual([]);
@@ -87,9 +88,9 @@ describe('Whoami CLI command', () => {
         .spyOn(ServiceClient.prototype, 'getUserInfo')
         .mockRejectedValue(mockErr);
 
-      await expect(instance.execute({ logger, flags: {} })).rejects.toEqual(
-        new CLIError('test')
-      );
+      await expect(
+        instance.execute({ logger, userError, flags: {} })
+      ).rejects.toThrow('test');
       expect(getInfoSpy).toHaveBeenCalled();
       expect(logger.stderr).toEqual([]);
       expect(logger.stdout).toEqual([]);

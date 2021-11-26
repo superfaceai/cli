@@ -1,9 +1,9 @@
-import { CLIError } from '@oclif/errors';
 import { EXTENSIONS } from '@superfaceai/ast';
 import { err, ok, SuperJson } from '@superfaceai/one-sdk';
 import { SDKExecutionError } from '@superfaceai/one-sdk/dist/internal/errors';
 
 import { MockLogger } from '../common';
+import { createUserError } from '../common/error';
 import { OutputStream } from '../common/output-stream';
 import { ProfileId } from '../common/profile';
 import { empty as emptyMap } from '../templates/map';
@@ -13,6 +13,7 @@ import { create, createMap, createProfile, createProviderJson } from './create';
 
 describe('Create logic', () => {
   let logger: MockLogger;
+  const userError = createUserError(false);
   afterEach(() => {
     jest.resetAllMocks();
   });
@@ -24,7 +25,9 @@ describe('Create logic', () => {
   describe('when creating profile', () => {
     it('creates empty profile with scope', async () => {
       const mockBasePath = 'test-path';
-      const mockProfile = ProfileId.fromId('test-scope/test-name');
+      const mockProfile = ProfileId.fromId('test-scope/test-name', {
+        userError,
+      });
       const mockVersion = { major: 1 };
       const mockSuperJson = new SuperJson({});
       const mockUsecaseNames = ['test-usecase'];
@@ -61,7 +64,9 @@ describe('Create logic', () => {
     it('creates empty profile with scope and file name', async () => {
       const mockBasePath = 'test-path';
       const mockFilename = 'mock-filename';
-      const mockProfile = ProfileId.fromId('test-scope/test-name');
+      const mockProfile = ProfileId.fromId('test-scope/test-name', {
+        userError,
+      });
       const mockVersion = { major: 1 };
       const mockSuperJson = new SuperJson({});
       const mockUsecaseNames = ['test-usecase'];
@@ -99,7 +104,9 @@ describe('Create logic', () => {
     it('creates empty profile with scope and file name with extension', async () => {
       const mockBasePath = 'test-path';
       const mockFilename = `mock-filename${EXTENSIONS.profile.source}`;
-      const mockProfile = ProfileId.fromId('test-scope/test-name');
+      const mockProfile = ProfileId.fromId('test-scope/test-name', {
+        userError,
+      });
       const mockVersion = { major: 1 };
       const mockSuperJson = new SuperJson({});
       const mockUsecaseNames = ['test-usecase'];
@@ -136,7 +143,7 @@ describe('Create logic', () => {
 
     it('creates empty profile without scope', async () => {
       const mockBasePath = 'test-path';
-      const mockProfile = ProfileId.fromId('test-name');
+      const mockProfile = ProfileId.fromId('test-name', { userError });
       const mockVersion = { major: 1 };
       const mockSuperJson = new SuperJson({});
       const mockUsecaseNames = ['test-usecase'];
@@ -518,7 +525,7 @@ describe('Create logic', () => {
               superPath: mockSuperPath,
             },
           },
-          { logger }
+          { logger, userError }
         )
       ).resolves.toBeUndefined();
 
@@ -570,7 +577,7 @@ describe('Create logic', () => {
               provider: mockFilename,
             },
           },
-          { logger }
+          { logger, userError }
         )
       ).resolves.toBeUndefined();
 
@@ -621,7 +628,7 @@ describe('Create logic', () => {
               superPath: mockSuperPath,
             },
           },
-          { logger }
+          { logger, userError }
         )
       ).resolves.toBeUndefined();
 
@@ -682,7 +689,7 @@ describe('Create logic', () => {
               superPath: mockSuperPath,
             },
           },
-          { logger }
+          { logger, userError }
         )
       ).resolves.toBeUndefined();
 
@@ -738,7 +745,7 @@ describe('Create logic', () => {
               profile: mockFilename,
             },
           },
-          { logger }
+          { logger, userError }
         )
       ).resolves.toBeUndefined();
 
@@ -791,7 +798,7 @@ describe('Create logic', () => {
               superPath: mockSuperPath,
             },
           },
-          { logger }
+          { logger, userError }
         )
       ).resolves.toBeUndefined();
 
@@ -837,7 +844,7 @@ describe('Create logic', () => {
               superPath: mockSuperPath,
             },
           },
-          { logger }
+          { logger, userError }
         )
       ).resolves.toBeUndefined();
 
@@ -909,7 +916,7 @@ describe('Create logic', () => {
               superPath: mockSuperPath,
             },
           },
-          { logger }
+          { logger, userError }
         )
       ).resolves.toBeUndefined();
 
@@ -972,7 +979,7 @@ describe('Create logic', () => {
               map: mockFilename,
             },
           },
-          { logger }
+          { logger, userError }
         )
       ).resolves.toBeUndefined();
 
@@ -1030,7 +1037,7 @@ describe('Create logic', () => {
               superPath: mockSuperPath,
             },
           },
-          { logger }
+          { logger, userError }
         )
       ).resolves.toBeUndefined();
 
@@ -1110,10 +1117,10 @@ describe('Create logic', () => {
               superPath: mockSuperPath,
             },
           },
-          { logger }
+          { logger, userError }
         )
-      ).rejects.toEqual(
-        new CLIError('Provider name must be provided when generating a map.')
+      ).rejects.toThrow(
+        'Provider name must be provided when generating a map.'
       );
 
       expect(loadSpy).toHaveBeenCalledTimes(1);
@@ -1162,12 +1169,10 @@ describe('Create logic', () => {
               superPath: mockSuperPath,
             },
           },
-          { logger }
+          { logger, userError }
         )
-      ).rejects.toEqual(
-        new CLIError(
-          'Provider name must be provided when generating a provider.'
-        )
+      ).rejects.toThrow(
+        'Provider name must be provided when generating a provider.'
       );
 
       expect(loadSpy).toHaveBeenCalledTimes(1);
@@ -1215,11 +1220,9 @@ describe('Create logic', () => {
               superPath: mockSuperPath,
             },
           },
-          { logger }
+          { logger, userError }
         )
-      ).rejects.toEqual(
-        new CLIError('Profile name must be provided when generating a map.')
-      );
+      ).rejects.toThrow('Profile name must be provided when generating a map.');
 
       expect(loadSpy).toHaveBeenCalledTimes(1);
 
@@ -1266,10 +1269,10 @@ describe('Create logic', () => {
               superPath: mockSuperPath,
             },
           },
-          { logger }
+          { logger, userError }
         )
-      ).rejects.toEqual(
-        new CLIError('Profile name must be provided when generating a profile.')
+      ).rejects.toThrow(
+        'Profile name must be provided when generating a profile.'
       );
 
       expect(loadSpy).toHaveBeenCalledTimes(1);
@@ -1318,10 +1321,10 @@ describe('Create logic', () => {
               superPath: mockSuperPath,
             },
           },
-          { logger }
+          { logger, userError }
         )
-      ).rejects.toEqual(
-        new CLIError('Provider name must be provided when generating a map.')
+      ).rejects.toThrow(
+        'Provider name must be provided when generating a map.'
       );
 
       expect(loadSpy).toHaveBeenCalledTimes(1);

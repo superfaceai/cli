@@ -1,8 +1,8 @@
-import { CLIError } from '@oclif/errors';
 import { SuperJson } from '@superfaceai/one-sdk';
 import { mocked } from 'ts-jest/utils';
 
 import { MockLogger } from '../common';
+import { createUserError } from '../common/error';
 import { PackageManager } from '../common/package-manager';
 import { ProfileId } from '../common/profile';
 import { installProvider } from '../logic/configure';
@@ -12,23 +12,19 @@ import { interactiveInstall } from '../logic/quickstart';
 import { CommandInstance } from '../test/utils';
 import Install from './install';
 
-//Mock install logic
 jest.mock('../logic/install', () => ({
   detectSuperJson: jest.fn(),
   installProfiles: jest.fn(),
 }));
 
-//Mock configure logic
 jest.mock('../logic/configure', () => ({
   installProvider: jest.fn(),
 }));
 
-//Mock interactive install logic
 jest.mock('../logic/quickstart', () => ({
   interactiveInstall: jest.fn(),
 }));
 
-//Mock init logic
 jest.mock('../logic/init', () => ({
   initSuperface: jest.fn(),
 }));
@@ -37,6 +33,7 @@ describe('Install CLI command', () => {
   let logger: MockLogger;
   let instance: Install;
   let pm: PackageManager;
+  const userError = createUserError(false);
 
   beforeEach(async () => {
     logger = new MockLogger();
@@ -59,6 +56,7 @@ describe('Install CLI command', () => {
         instance.execute({
           logger,
           pm,
+          userError,
           args: { profileId: profileName },
           flags: {
             providers: [],
@@ -95,6 +93,7 @@ describe('Install CLI command', () => {
         instance.execute({
           logger,
           pm,
+          userError,
           args: { profileId: profileName },
           flags: {
             providers: [],
@@ -129,6 +128,7 @@ describe('Install CLI command', () => {
       await expect(
         instance.execute({
           logger,
+          userError,
           pm,
           args: {},
           flags: {
@@ -156,13 +156,14 @@ describe('Install CLI command', () => {
       await expect(
         instance.execute({
           logger,
+          userError,
           pm,
           args: {},
           flags: {
             providers: ['twilio'],
           },
         })
-      ).rejects.toEqual(new CLIError('EEXIT: 0'));
+      ).rejects.toThrow('EEXIT: 0');
       expect(installProfiles).not.toHaveBeenCalled();
     }, 10000);
 
@@ -174,6 +175,7 @@ describe('Install CLI command', () => {
         instance.execute({
           logger,
           pm,
+          userError,
           args: {
             profileId: profileName,
           },
@@ -193,6 +195,7 @@ describe('Install CLI command', () => {
         instance.execute({
           logger,
           pm,
+          userError,
           args: {
             profileId: profileName,
           },
@@ -208,8 +211,8 @@ describe('Install CLI command', () => {
       mocked(detectSuperJson).mockResolvedValue('.');
       const profileName = 'starwars/character-information';
 
-      await expect(Install.run([profileName, '-p'])).rejects.toEqual(
-        new CLIError('Flag --providers expects a value')
+      await expect(Install.run([profileName, '-p'])).rejects.toThrow(
+        'Flag --providers expects a value'
       );
       expect(installProfiles).toHaveBeenCalledTimes(0);
     }, 10000);
@@ -222,6 +225,7 @@ describe('Install CLI command', () => {
         instance.execute({
           logger,
           pm,
+          userError,
           args: {
             profileId: profileName,
           },
@@ -230,10 +234,8 @@ describe('Install CLI command', () => {
             scan: 6,
           },
         })
-      ).rejects.toEqual(
-        new CLIError(
-          '--scan/-s : Number of levels to scan cannot be higher than 5'
-        )
+      ).rejects.toThrow(
+        '--scan/-s : Number of levels to scan cannot be higher than 5'
       );
       expect(installProfiles).toHaveBeenCalledTimes(0);
     }, 10000);
@@ -242,12 +244,15 @@ describe('Install CLI command', () => {
       mocked(detectSuperJson).mockResolvedValue('.');
       mocked(installProvider).mockResolvedValue(undefined);
       const mockProviders = ['tyntec', 'twilio', 'made.up'];
-      const profileId = ProfileId.fromId('starwars/character-information');
+      const profileId = ProfileId.fromId('starwars/character-information', {
+        userError,
+      });
 
       await expect(
         instance.execute({
           logger,
           pm,
+          userError,
           args: {
             profileId: profileId.id,
           },
@@ -310,12 +315,15 @@ describe('Install CLI command', () => {
     it('calls install profiles correctly - providers separated by coma and space', async () => {
       mocked(detectSuperJson).mockResolvedValue('.');
       mocked(installProvider).mockResolvedValue(undefined);
-      const profileId = ProfileId.fromId('starwars/character-information');
+      const profileId = ProfileId.fromId('starwars/character-information', {
+        userError,
+      });
 
       await expect(
         instance.execute({
           logger,
           pm,
+          userError,
           args: {
             profileId: profileId.id,
           },
@@ -406,6 +414,7 @@ describe('Install CLI command', () => {
         instance.execute({
           logger,
           pm,
+          userError,
           args: { profileId: 'scope/profile' },
           flags: {
             interactive: true,
@@ -421,6 +430,7 @@ describe('Install CLI command', () => {
         instance.execute({
           logger,
           pm,
+          userError,
           args: {},
           flags: {
             providers: [],

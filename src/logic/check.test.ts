@@ -11,6 +11,7 @@ import { SuperJson } from '@superfaceai/one-sdk';
 import { mocked } from 'ts-jest/utils';
 
 import { MockLogger, UNVERIFIED_PROVIDER_PREFIX } from '../common';
+import { createUserError } from '../common/error';
 import {
   fetchMapAST,
   fetchProfileAST,
@@ -55,6 +56,7 @@ jest.mock('../common/http', () => ({
 
 describe('Check logic', () => {
   let logger: MockLogger;
+  const userError = createUserError(false);
 
   const profile = {
     name: 'character-information',
@@ -299,7 +301,7 @@ describe('Check logic', () => {
               maps: [{ provider: unverifiedProvider }],
             },
           ],
-          { logger }
+          { logger, userError }
         )
       ).resolves.toEqual([
         {
@@ -396,7 +398,7 @@ describe('Check logic', () => {
               maps: [{ provider: unverifiedProvider, variant }],
             },
           ],
-          { logger }
+          { logger, userError }
         )
       ).resolves.toEqual([
         {
@@ -490,7 +492,7 @@ describe('Check logic', () => {
               maps: [{ provider, variant }],
             },
           ],
-          { logger }
+          { logger, userError }
         )
       ).rejects.toThrow();
 
@@ -557,7 +559,7 @@ describe('Check logic', () => {
               maps: [{ provider, variant }],
             },
           ],
-          { logger }
+          { logger, userError }
         )
       ).rejects.toThrow();
 
@@ -618,7 +620,7 @@ describe('Check logic', () => {
                 maps: [{ provider, variant }],
               },
             ],
-            { logger }
+            { logger, userError }
           )
         ).length
       ).not.toEqual(0);
@@ -652,7 +654,50 @@ describe('Check logic', () => {
   describe('when formating human', () => {
     it('returns correctly formated string when empty issues array is passed', async () => {
       expect(
-        formatHuman([
+        formatHuman({
+          checkResults: [
+            {
+              kind: 'profileMap',
+              profileId: ProfileId.fromScopeName(
+                profile.scope,
+                profile.name
+              ).toString(),
+              provider,
+              issues: [],
+              mapFrom: mockRemoteMapFrom,
+              profileFrom: mockRemoteProfileFrom,
+            },
+          ],
+          color: false,
+          emoji: false,
+        })
+      ).toMatch(
+        `Checking remote profile "${profile.scope}/${profile.name}" with version "${profile.version}" and remote map with version "${profile.version}" for provider "${provider}"`
+      );
+      expect(
+        formatHuman({
+          checkResults: [
+            {
+              kind: 'mapProvider',
+              profileId: ProfileId.fromScopeName(
+                profile.scope,
+                profile.name
+              ).toString(),
+              provider,
+              issues: [],
+              mapFrom: mockRemoteMapFrom,
+              providerFrom: mockRemoteProfileFrom,
+            },
+          ],
+          emoji: false,
+          color: false,
+        })
+      ).toMatch(
+        `Checking remote map with version "${profile.version}" for profile "${profile.scope}/${profile.name}" and remote provider "${provider}"`
+      );
+
+      let result = formatHuman({
+        checkResults: [
           {
             kind: 'profileMap',
             profileId: ProfileId.fromScopeName(
@@ -661,44 +706,13 @@ describe('Check logic', () => {
             ).toString(),
             provider,
             issues: [],
-            mapFrom: mockRemoteMapFrom,
-            profileFrom: mockRemoteProfileFrom,
+            mapFrom: mockLocalMapFrom,
+            profileFrom: mockLocalProfileFrom,
           },
-        ])
-      ).toMatch(
-        `Checking remote profile "${profile.scope}/${profile.name}" with version "${profile.version}" and remote map with version "${profile.version}" for provider "${provider}"`
-      );
-      expect(
-        formatHuman([
-          {
-            kind: 'mapProvider',
-            profileId: ProfileId.fromScopeName(
-              profile.scope,
-              profile.name
-            ).toString(),
-            provider,
-            issues: [],
-            mapFrom: mockRemoteMapFrom,
-            providerFrom: mockRemoteProfileFrom,
-          },
-        ])
-      ).toMatch(
-        `Checking remote map with version "${profile.version}" for profile "${profile.scope}/${profile.name}" and remote provider "${provider}"`
-      );
-
-      let result = formatHuman([
-        {
-          kind: 'profileMap',
-          profileId: ProfileId.fromScopeName(
-            profile.scope,
-            profile.name
-          ).toString(),
-          provider,
-          issues: [],
-          mapFrom: mockLocalMapFrom,
-          profileFrom: mockLocalProfileFrom,
-        },
-      ]);
+        ],
+        emoji: false,
+        color: false,
+      });
       expect(result).toMatch(
         `Checking local profile "${profile.scope}/${profile.name}" at path`
       );
@@ -708,19 +722,23 @@ describe('Check logic', () => {
       );
       expect(result).toMatch(mockLocalMapFrom.path);
 
-      result = formatHuman([
-        {
-          kind: 'mapProvider',
-          profileId: ProfileId.fromScopeName(
-            profile.scope,
-            profile.name
-          ).toString(),
-          provider,
-          issues: [],
-          mapFrom: mockLocalMapFrom,
-          providerFrom: mockLocalProviderFrom,
-        },
-      ]);
+      result = formatHuman({
+        checkResults: [
+          {
+            kind: 'mapProvider',
+            profileId: ProfileId.fromScopeName(
+              profile.scope,
+              profile.name
+            ).toString(),
+            provider,
+            issues: [],
+            mapFrom: mockLocalMapFrom,
+            providerFrom: mockLocalProviderFrom,
+          },
+        ],
+        emoji: false,
+        color: false,
+      });
       expect(result).toMatch('Checking local map at path');
       expect(result).toMatch(mockLocalMapFrom.path);
       expect(result).toMatch(
@@ -812,7 +830,11 @@ describe('Check logic', () => {
           ],
         },
       ];
-      const formated = formatHuman(mockResult);
+      const formated = formatHuman({
+        checkResults: mockResult,
+        emoji: false,
+        color: false,
+      });
       //First title
       expect(formated).toMatch(
         `Checking remote profile "${profile.scope}/${profile.name}" with version "${profile.version}" and remote map with version "${profile.version}" for provider "${provider}"`

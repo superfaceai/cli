@@ -4,7 +4,7 @@ import { VersionRange } from '@superfaceai/parser';
 import { join as joinPath } from 'path';
 
 import { composeVersion, META_FILE } from '../common/document';
-import { userError } from '../common/error';
+import { UserError } from '../common/error';
 import { ILogger } from '../common/log';
 import { OutputStream } from '../common/output-stream';
 import { resolveSuperfaceRelatedPath } from '../common/path';
@@ -207,7 +207,7 @@ export async function create(
       profile?: string;
     };
   },
-  { logger }: { logger: ILogger }
+  { logger, userError }: { logger: ILogger; userError: UserError }
 ): Promise<void> {
   //Load super json if we have path
   let superJson: SuperJson | undefined = undefined;

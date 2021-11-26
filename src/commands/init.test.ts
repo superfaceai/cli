@@ -4,24 +4,23 @@ import { mocked } from 'ts-jest/utils';
 
 import { MockLogger } from '..';
 import { constructProviderSettings } from '../common/document';
+import { createUserError } from '../common/error';
 import { OutputStream } from '../common/output-stream';
 import { generateSpecifiedProfiles, initSuperface } from '../logic/init';
 import { CommandInstance } from '../test/utils';
-// import { MockStd, mockStd } from '../test/mock-std';
 import Init from './init';
 
-//Mock init logic
 jest.mock('../logic/init', () => ({
   initSuperface: jest.fn(),
   generateSpecifiedProfiles: jest.fn(),
 }));
 
-//Mock inquirer
 jest.mock('inquirer');
 
 describe('Init CLI command', () => {
   let logger: MockLogger;
   let instance: Init;
+  const userError = createUserError(false);
 
   describe('when running init command', () => {
     beforeEach(async () => {
@@ -50,6 +49,7 @@ describe('Init CLI command', () => {
       await expect(
         instance.execute({
           logger,
+          userError,
           flags: { profiles: [], providers: [], prompt: true },
           args: { name: mockPath },
         })
@@ -90,6 +90,7 @@ describe('Init CLI command', () => {
       await expect(
         instance.execute({
           logger,
+          userError,
           flags: { profiles: [], providers: [], prompt: true },
           args: { name: mockPath },
         })
@@ -127,6 +128,7 @@ describe('Init CLI command', () => {
       await expect(
         instance.execute({
           logger,
+          userError,
           flags: { profiles: [], providers: [] },
           args: { name: mockPath },
         })
@@ -160,6 +162,7 @@ describe('Init CLI command', () => {
       await expect(
         instance.execute({
           logger,
+          userError,
           flags: { profiles: [], providers: [], quiet: true },
           args: { name: mockPath },
         })

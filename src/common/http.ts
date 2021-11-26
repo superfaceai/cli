@@ -20,7 +20,7 @@ import {
   SF_API_URL_VARIABLE,
   SF_PRODUCTION,
 } from './document';
-import { userError } from './error';
+import { UserError } from './error';
 import { MapId } from './map';
 import { loadNetrc, saveNetrc } from './netrc';
 
@@ -92,7 +92,10 @@ export function getServicesUrl(): string {
   return SF_PRODUCTION;
 }
 
-export async function fetchProviders(profile: string): Promise<ProviderJson[]> {
+export async function fetchProviders(
+  profile: string,
+  { userError }: { userError: UserError }
+): Promise<ProviderJson[]> {
   const userAgent = `superface cli/${VERSION} (${process.platform}-${process.arch}) ${process.release.name}-${process.version} (with @superfaceai/one-sdk@${SDK_VERSION}, @superfaceai/parser@${PARSER_VERSION})`;
 
   const response = await SuperfaceClient.getClient().fetch(
@@ -108,17 +111,23 @@ export async function fetchProviders(profile: string): Promise<ProviderJson[]> {
     }
   );
 
-  await checkSuperfaceResponse(response);
+  await checkSuperfaceResponse(response, { userError });
 
   return ((await response.json()) as { data: ProviderJson[] }).data;
 }
 
 //Unable to reuse service client getProfile due to profile ID resolution - version is always defined in service client
 export async function fetchProfileInfo(
-  profileId: string,
-  options?: {
-    tryToAuthenticate?: boolean;
-  }
+  {
+    profileId,
+    options,
+  }: {
+    profileId: string;
+    options?: {
+      tryToAuthenticate?: boolean;
+    };
+  },
+  { userError }: { userError: UserError }
 ): Promise<ProfileInfo> {
   const response = await SuperfaceClient.getClient().fetch(`/${profileId}`, {
     authenticate: options?.tryToAuthenticate || false,
@@ -129,16 +138,22 @@ export async function fetchProfileInfo(
     },
   });
 
-  await checkSuperfaceResponse(response);
+  await checkSuperfaceResponse(response, { userError });
 
   return (await response.json()) as ProfileInfo;
 }
 
 export async function fetchProfile(
-  profileId: string,
-  options?: {
-    tryToAuthenticate?: boolean;
-  }
+  {
+    profileId,
+    options,
+  }: {
+    profileId: string;
+    options?: {
+      tryToAuthenticate?: boolean;
+    };
+  },
+  { userError }: { userError: UserError }
 ): Promise<string> {
   const response = await SuperfaceClient.getClient().fetch(`/${profileId}`, {
     authenticate: options?.tryToAuthenticate || false,
@@ -149,16 +164,22 @@ export async function fetchProfile(
     },
   });
 
-  await checkSuperfaceResponse(response);
+  await checkSuperfaceResponse(response, { userError });
 
   return response.text();
 }
 
 export async function fetchProfileAST(
-  profileId: string,
-  options?: {
-    tryToAuthenticate?: boolean;
-  }
+  {
+    profileId,
+    options,
+  }: {
+    profileId: string;
+    options?: {
+      tryToAuthenticate?: boolean;
+    };
+  },
+  { userError }: { userError: UserError }
 ): Promise<ProfileDocumentNode> {
   const response = await SuperfaceClient.getClient().fetch(`/${profileId}`, {
     authenticate: options?.tryToAuthenticate || false,
@@ -169,7 +190,7 @@ export async function fetchProfileAST(
     },
   });
 
-  await checkSuperfaceResponse(response);
+  await checkSuperfaceResponse(response, { userError });
 
   return assertProfileDocumentNode(await response.json());
 }
@@ -183,7 +204,10 @@ export async function fetchProviderInfo(
   return assertProviderJson(response.definition);
 }
 
-async function checkSuperfaceResponse(response: Response): Promise<Response> {
+async function checkSuperfaceResponse(
+  response: Response,
+  { userError }: { userError: UserError }
+): Promise<Response> {
   if (!response.ok) {
     const errorResponse = (await response.json()) as ServiceApiErrorResponse;
     throw userError(new ServiceApiError(errorResponse).message, 1);
@@ -198,11 +222,20 @@ function commonHeaders(): Record<string, string> {
   };
 }
 export async function fetchMapAST(
-  profile: string,
-  provider: string,
-  scope?: string,
-  version?: string,
-  variant?: string
+  {
+    profile,
+    provider,
+    scope,
+    version,
+    variant,
+  }: {
+    profile: string;
+    provider: string;
+    scope?: string;
+    version?: string;
+    variant?: string;
+  },
+  { userError }: { userError: UserError }
 ): Promise<MapDocumentNode> {
   const mapId = MapId.fromName({
     profile: {
@@ -224,7 +257,7 @@ export async function fetchMapAST(
     },
   });
 
-  await checkSuperfaceResponse(response);
+  await checkSuperfaceResponse(response, { userError });
 
   return assertMapDocumentNode(await response.json());
 }

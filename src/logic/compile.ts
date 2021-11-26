@@ -1,6 +1,6 @@
 import { Parser } from '@superfaceai/one-sdk';
 
-import { userError } from '../common/error';
+import { UserError } from '../common/error';
 import { exists, readFile } from '../common/io';
 import { ILogger } from '../common/log';
 import { ProfileId } from '../common/profile';
@@ -23,7 +23,7 @@ export async function compile(
       onlyProfile?: boolean;
     };
   },
-  { logger }: { logger: ILogger }
+  { logger, userError }: { logger: ILogger; userError: UserError }
 ): Promise<void> {
   //Clear cache
   await Parser.clearCache();
@@ -33,7 +33,7 @@ export async function compile(
       logger.info('compileProfile', profile.id.toString());
       if (!(await exists(profile.path))) {
         throw userError(
-          `❌ Path: "${
+          `Path: "${
             profile.path
           }" for profile ${profile.id.toString()} does not exist`,
           1
@@ -52,7 +52,7 @@ export async function compile(
         logger.info('compileMap', profile.id.toString(), map.provider);
         if (!(await exists(map.path))) {
           throw userError(
-            `❌ Path: "${map.path}" for map ${profile.id.toString()}.${
+            `Path: "${map.path}" for map ${profile.id.toString()}.${
               map.provider
             } does not exist`,
             1

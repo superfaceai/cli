@@ -3,7 +3,7 @@ import { ServiceApiError } from '@superfaceai/service-client';
 import { yellow } from 'chalk';
 
 import { ILogger, UNVERIFIED_PROVIDER_PREFIX } from '../common';
-import { userError } from '../common/error';
+import { UserError } from '../common/error';
 import { fetchProviderInfo, SuperfaceClient } from '../common/http';
 import { loadNetrc } from '../common/netrc';
 import { ProfileId } from '../common/profile';
@@ -46,14 +46,16 @@ export async function publish(
       dryRun?: boolean;
       json?: boolean;
       quiet?: boolean;
+      emoji?: boolean;
+      color?: boolean;
     };
   },
-  { logger }: { logger: ILogger }
+  { logger, userError }: { logger: ILogger; userError: UserError }
 ): Promise<string | undefined> {
-  //Profile
+  // Profile
   const profileFiles = await loadProfile(
     { superJson, profile, version },
-    { logger }
+    { logger, userError }
   );
   if (profileFiles.from.kind !== 'local' && publishing === 'profile') {
     throw userError(
@@ -61,10 +63,11 @@ export async function publish(
       1
     );
   }
-  //Map
+
+  // Map
   const mapFiles = await loadMap(
     { superJson, profile, provider, map, version },
-    { logger }
+    { logger, userError }
   );
   if (mapFiles.from.kind !== 'local' && publishing == 'map') {
     throw userError(
@@ -73,7 +76,7 @@ export async function publish(
     );
   }
 
-  //Provider
+  // Provider
   const providerFiles = await loadProvider(superJson, provider, { logger });
 
   if (providerFiles.from.kind === 'remote' && publishing === 'provider') {
@@ -82,7 +85,8 @@ export async function publish(
       1
     );
   }
-  //Check
+
+  // Check
   const checkReports = prePublishCheck(
     {
       publishing,
@@ -94,10 +98,11 @@ export async function publish(
       profileFrom: profileFiles.from,
       superJson,
     },
-    { logger }
+    { logger, userError }
   );
   const checkIssues = checkReports.flatMap(c => c.issues);
-  //Lint
+
+  // Lint
   const lintReport = prePublishLint(profileFiles.ast, mapFiles.ast);
 
   if (
@@ -105,7 +110,6 @@ export async function publish(
     lintReport.errors.length !== 0 ||
     lintReport.warnings.length !== 0
   ) {
-    //Format reports
     if (options?.json) {
       return JSON.stringify({
         check: {
@@ -125,9 +129,18 @@ export async function publish(
       });
     } else {
       let reportStr = yellow('Check results:\n');
-      reportStr += checkFormatHuman(checkReports);
+      reportStr += checkFormatHuman({
+        checkResults: checkReports,
+        emoji: !!options?.emoji,
+        color: !!options?.color,
+      });
       reportStr += yellow('\n\nLint results:\n');
-      reportStr += lintFormatHuman(lintReport, options?.quiet ?? false);
+      reportStr += lintFormatHuman({
+        report: lintReport,
+        quiet: options?.quiet ?? false,
+        emoji: options?.emoji ?? false,
+        color: options?.color ?? false,
+      });
 
       return reportStr;
     }
@@ -169,7 +182,7 @@ export async function publish(
   if (publishing === 'provider') {
     if (!providerFiles.source.name.startsWith(UNVERIFIED_PROVIDER_PREFIX)) {
       throw userError(
-        `❌ When publishing provider, provider name: "${providerFiles.source.name}" in provider.json must have prefix "${UNVERIFIED_PROVIDER_PREFIX}"`,
+        `When publishing provider, provider name: "${providerFiles.source.name}" in provider.json must have prefix "${UNVERIFIED_PROVIDER_PREFIX}"`,
         1
       );
     }
