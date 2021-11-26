@@ -244,7 +244,7 @@ export async function interactiveInstall(
   if (allProviders.length > 1) {
     if (
       await confirmPrompt(
-        `You have selected more than one provider.\nDo you want to enable provider failover:`,
+        'You have selected more than one provider.\nDo you want to enable provider failover:',
         { default: true }
       )
     ) {
@@ -356,7 +356,7 @@ export async function interactiveInstall(
   //Prompt user for dotenv installation
   if (
     await confirmPrompt(
-      `Superface CLI would like to install dotenv package (https://github.com/motdotla/dotenv#readme).\nThis package is used to load superface secrets from .env file. You can use different one or install it manually later.\nWould you like to install it now?:`,
+      'Superface CLI would like to install dotenv package (https://github.com/motdotla/dotenv#readme).\nThis package is used to load superface secrets from .env file. You can use different one or install it manually later.\nWould you like to install it now?:',
       { default: true }
     )
   ) {
@@ -429,7 +429,7 @@ async function selectRetryPolicy(
     //You want to customize?
     if (
       await confirmPrompt(
-        `Do you want to customize circuit breaker parameters?:`,
+        'Do you want to customize circuit breaker parameters?:',
         { default: false }
       )
     ) {

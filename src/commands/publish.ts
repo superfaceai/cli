@@ -159,7 +159,7 @@ export default class Publish extends Command {
     if (documentType === 'profile') {
       if (!('file' in profileSettings)) {
         throw userError(
-          `❌ When publishing profile, profile must be locally linked in super.json`,
+          '❌ When publishing profile, profile must be locally linked in super.json',
           1
         );
       }
@@ -174,7 +174,7 @@ export default class Publish extends Command {
     } else if (documentType === 'map') {
       if (!('file' in profileProviderSettings)) {
         throw userError(
-          `❌ When publishing map, map must be locally linked in super.json`,
+          '❌ When publishing map, map must be locally linked in super.json',
           1
         );
       }
@@ -194,7 +194,7 @@ export default class Publish extends Command {
       }
       if (!('file' in providerSettings) || !providerSettings.file) {
         throw userError(
-          `❌ When publishing provider, provider must be locally linked in super.json`,
+          '❌ When publishing provider, provider must be locally linked in super.json',
           1
         );
       }

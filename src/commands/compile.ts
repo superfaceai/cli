@@ -85,7 +85,7 @@ export default class Compile extends Command {
       }
       if (!flags.profileId) {
         throw userError(
-          `❌ --profileId must be specified when using --providerName`,
+          '❌ --profileId must be specified when using --providerName',
           1
         );
       }

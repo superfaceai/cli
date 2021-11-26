@@ -58,7 +58,7 @@ export class PackageManager implements IPackageManager {
 
       return false;
     }
-    const command = initPm === 'yarn' ? `yarn init -y` : `npm init -y`;
+    const command = initPm === 'yarn' ? 'yarn init -y' : 'npm init -y';
 
     this.logger.info('initPmOnPath', initPm, process.cwd());
     const result = await execShell(command);
@@ -107,7 +107,7 @@ export class PackageManager implements IPackageManager {
       return this.path;
     }
 
-    const npmPrefix = await execShell(`npm prefix`);
+    const npmPrefix = await execShell('npm prefix');
 
     if (npmPrefix.stderr !== '') {
       this.logger.error('shellCommandError', 'npm prefix', npmPrefix.stderr);

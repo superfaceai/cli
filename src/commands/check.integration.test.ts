@@ -138,7 +138,7 @@ describe('Check CLI command', () => {
       expect(result.stdout).toMatch(sourceFixture.map);
 
       // Map and provider
-      expect(result.stdout).toMatch(`🆗 Checking local map at path`);
+      expect(result.stdout).toMatch('Checking local map at path');
       expect(result.stdout).toMatch(sourceFixture.map);
       expect(result.stdout).toMatch(
         `for profile "${profileId}" and local provider "unverified-swapi" at path`
@@ -175,13 +175,13 @@ describe('Check CLI command', () => {
         mockServer.url
       );
       expect(result.stdout).toContain(
-        `Fetching profile "${profileId}" with version "${profileVersion}" from Superface store`
+        `Fetching profile "${profileId}" with version "${profileVersion}" from Superface registry`
       );
       expect(result.stdout).toContain(
         `Map for profile "${profileId}@${profileVersion}" and provider "${provider}" found on local file system`
       );
       expect(result.stdout).toContain(
-        `Fetching provider "${provider}" from Superface store`
+        `Fetching provider "${provider}" from Superface registry`
       );
       // Map and profile
       expect(result.stdout).toMatch(
@@ -189,7 +189,7 @@ describe('Check CLI command', () => {
       );
       expect(result.stdout).toMatch(sourceFixture.map);
       // Map and provider
-      expect(result.stdout).toMatch(`🆗 Checking local map at path`);
+      expect(result.stdout).toMatch('Checking local map at path');
 
       expect(result.stdout).toMatch(
         `for profile "${profileId}" and remote provider "${provider}"`
@@ -226,10 +226,10 @@ describe('Check CLI command', () => {
         `Profile "${profileId}" found on local file system`
       );
       expect(result.stdout).toContain(
-        `Fetching map for profile "${profileId}" and provider "${provider}" with version "1.0.0" from Superface store`
+        `Fetching map for profile "${profileId}" and provider "${provider}" with version "1.0.0" from Superface registry`
       );
       expect(result.stdout).toContain(
-        `Fetching provider "${provider}" from Superface store`
+        `Fetching provider "${provider}" from Superface registry`
       );
       //Map and profile
       expect(result.stdout).toMatch(
@@ -277,10 +277,10 @@ describe('Check CLI command', () => {
         mockServer.url
       );
       expect(result.stdout).toContain(
-        `Fetching profile "${profileId}" with version "${profileVersion}" from Superface store`
+        `Fetching profile "${profileId}" with version "${profileVersion}" from Superface registry`
       );
       expect(result.stdout).toContain(
-        `Fetching map for profile "${profileId}@${profileVersion}" and provider "${provider}" with version "1.0.0" from Superface store`
+        `Fetching map for profile "${profileId}@${profileVersion}" and provider "${provider}" with version "1.0.0" from Superface registry`
       );
       expect(result.stdout).toContain(
         `Provider "${provider}" found on local file system`

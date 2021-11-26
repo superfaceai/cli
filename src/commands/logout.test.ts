@@ -1,4 +1,3 @@
-import { CLIError } from '@oclif/errors';
 import { ServiceClient, ServiceClientError } from '@superfaceai/service-client';
 
 import { MockLogger } from '../common';
@@ -46,7 +45,7 @@ describe('Logout CLI command', () => {
       expect(logger.stderr).toEqual([]);
       expect(logger.stdout).toContainEqual([
         'superfaceServerError',
-        ['Error', `No session found, couldn't log out`],
+        ['Error', "No session found, couldn't log out"],
       ]);
     });
 
@@ -56,8 +55,8 @@ describe('Logout CLI command', () => {
         .spyOn(ServiceClient.prototype, 'signOut')
         .mockRejectedValue(mockErr);
 
-      await expect(instance.execute({ logger, flags: {} })).rejects.toEqual(
-        new CLIError('test')
+      await expect(instance.execute({ logger, flags: {} })).rejects.toThrow(
+        'test'
       );
       expect(getInfoSpy).toHaveBeenCalled();
       expect(logger.stderr).toEqual([]);

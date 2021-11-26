@@ -239,7 +239,7 @@ describe('HTTP functions', () => {
         .spyOn(ServiceClient.prototype, 'fetch')
         .mockResolvedValue(mockResponse(200, 'OK', undefined, 'mock profile'));
 
-      await expect(fetchProfile(profileId)).resolves.toEqual(`"mock profile"`);
+      await expect(fetchProfile(profileId)).resolves.toEqual('"mock profile"');
 
       expect(fetchSpy).toHaveBeenCalledTimes(1);
       expect(fetchSpy).toHaveBeenCalledWith(`/${profileId}`, {
@@ -259,7 +259,7 @@ describe('HTTP functions', () => {
 
       await expect(
         fetchProfile(profileId, { tryToAuthenticate: true })
-      ).resolves.toEqual(`"mock profile"`);
+      ).resolves.toEqual('"mock profile"');
 
       expect(fetchSpy).toHaveBeenCalledTimes(1);
       expect(fetchSpy).toHaveBeenCalledWith(`/${profileId}`, {

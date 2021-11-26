@@ -28,7 +28,7 @@ export async function login(
   if (!force) {
     const prompt: { open: boolean } = await inquirer.prompt({
       name: 'open',
-      message: `Do you want to open browser with Superface login page?`,
+      message: 'Do you want to open browser with Superface login page?',
       type: 'confirm',
       default: true,
     });

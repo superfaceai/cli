@@ -953,11 +953,11 @@ describe('Lint logic', () => {
       };
 
       const formated = formatHuman(mockFileReport, false);
-      expect(formated).toMatch(`❌ Parsing map file: ${mockPath}`);
+      expect(formated).toMatch(`Parsing map file: ${mockPath}`);
       expect(formated).toMatch('SyntaxError: Expected  but found <NONE>');
-      expect(formated).toMatch(`--> some/path.suma:0:0`);
+      expect(formated).toMatch('--> some/path.suma:0:0');
 
-      expect(formated).toMatch(`-1 | mock-content`);
+      expect(formated).toMatch('-1 | mock-content');
       expect(formated).toMatch('ouch!');
     });
 
@@ -972,7 +972,7 @@ describe('Lint logic', () => {
       };
 
       const formated = formatHuman(mockFileReport, false, true);
-      expect(formated).toMatch(`❌ Parsing profile file: ${mockPath}`);
+      expect(formated).toMatch(`Parsing profile file: ${mockPath}`);
       expect(formated).toMatch('0:0 message');
       expect(formated).toMatch('ouch!');
     });
@@ -988,7 +988,7 @@ describe('Lint logic', () => {
       };
 
       const formated = formatHuman(mockFileReport, true);
-      expect(formated).toMatch(`❌ Parsing map file: some/path.suma`);
+      expect(formated).toMatch('Parsing map file: some/path.suma');
       expect(formated).toMatch('detail');
     });
 
@@ -1002,7 +1002,7 @@ describe('Lint logic', () => {
         warnings: [],
       };
       const formated = formatHuman(mockFileReport, false);
-      expect(formated).toMatch(`❌ Parsing profile file: ${mockPath}`);
+      expect(formated).toMatch(`Parsing profile file: ${mockPath}`);
       expect(formated).toMatch('detail');
     });
 
@@ -1017,7 +1017,7 @@ describe('Lint logic', () => {
       };
 
       const formated = formatHuman(mockFileReport, false);
-      expect(formated).toMatch(`⚠️ Parsing map file: ${mockPath}`);
+      expect(formated).toMatch(`Parsing map file: ${mockPath}`);
       expect(formated).toMatch('ouch!');
     });
 
@@ -1032,7 +1032,7 @@ describe('Lint logic', () => {
       };
 
       const formated = formatHuman(mockFileReport, false);
-      expect(formated).toMatch(`🆗 Parsing map file: ${mockPath}`);
+      expect(formated).toMatch(`Parsing map file: ${mockPath}`);
     });
 
     it('formats compatibility correctly', async () => {
@@ -1064,7 +1064,7 @@ describe('Lint logic', () => {
 
       const formated = formatHuman(mockFileReport, false);
       expect(formated).toMatch(
-        `❌ Validating profile: test-profile to map: ${mockPath}`
+        `Validating profile: test-profile to map: ${mockPath}`
       );
       expect(formated).toMatch(' - Wrong Scope: expected this, but got that');
       expect(formated).toMatch(' - Wrong Scope: expected this, but got that');

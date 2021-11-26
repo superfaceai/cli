@@ -45,20 +45,20 @@ describe('Configure CLI logic', () => {
     ).toEqual([
       {
         id: 'api',
-        apikey: `$TEST_PROVIDER_API_KEY`,
+        apikey: '$TEST_PROVIDER_API_KEY',
       },
       {
         id: 'bearer',
-        token: `$TEST_PROVIDER_TOKEN`,
+        token: '$TEST_PROVIDER_TOKEN',
       },
       {
         id: 'basic',
-        username: `$TEST_PROVIDER_USERNAME`,
-        password: `$TEST_PROVIDER_PASSWORD`,
+        username: '$TEST_PROVIDER_USERNAME',
+        password: '$TEST_PROVIDER_PASSWORD',
       },
       {
         id: 'digest',
-        digest: `$TEST_PROVIDER_DIGEST`,
+        digest: '$TEST_PROVIDER_DIGEST',
       },
     ]);
   });

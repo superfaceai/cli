@@ -52,7 +52,7 @@ describe('Configure CLI command', () => {
         mockServer.url
       );
       expect(result.stdout).toMatch(
-        'All profiles (1) have been installed successfully.'
+        'All profiles (1) have been installed successfully'
       );
 
       result = await execCLI(
@@ -61,7 +61,7 @@ describe('Configure CLI command', () => {
         mockServer.url
       );
       expect(result.stdout).toMatch(
-        '🆗 All security schemes have been configured successfully.'
+        '🆗 All security schemes have been configured successfully'
       );
       await expect(
         exists(joinPath(tempDir, 'superface', 'super.json'))
@@ -105,7 +105,7 @@ describe('Configure CLI command', () => {
         mockServer.url
       );
       expect(result.stdout).toMatch(
-        'All profiles (1) have been installed successfully.'
+        'All profiles (1) have been installed successfully'
       );
 
       result = await execCLI(
@@ -114,20 +114,20 @@ describe('Configure CLI command', () => {
         mockServer.url
       );
       expect(result.stdout).toMatch(
-        '🆗 All security schemes have been configured successfully.'
+        '🆗 All security schemes have been configured successfully'
       );
       expect(result.stdout).toMatch(
-        `Provider azure-cognitive-services has integration parameters that must be configured. You can configure them in super.json on path: superface/super.json or set the environment variables as defined below.`
+        'Provider "azure-cognitive-services" has integration parameters that must be configured. You can configure them in "super.json" in "superface/super.json" or set the environment variables as defined below'
       );
       expect(result.stdout).toMatch(
-        '🆗 Parameter version has been configured to use value of environment value "$AZURE_COGNITIVE_SERVICES_VERSION"'
+        '🆗 Parameter "version" has been configured to use value of environment value "$AZURE_COGNITIVE_SERVICES_VERSION"'
       );
       expect(result.stdout).toContain(
-        'Please, configure this environment value.'
+        'Please configure this environment value'
       );
 
       expect(result.stdout).toContain(
-        'If you do not set the variable, the default value "v1" will be used.'
+        'If you do not set the variable, the default value "v1" will be used'
       );
 
       await expect(
@@ -168,7 +168,7 @@ describe('Configure CLI command', () => {
         mockServer.url
       );
       expect(result.stdout).toMatch(
-        'All profiles (1) have been installed successfully.'
+        'All profiles (1) have been installed successfully'
       );
 
       //mock provider structure
@@ -195,9 +195,7 @@ describe('Configure CLI command', () => {
         mockServer.url
       );
 
-      expect(result.stdout).toContain(
-        'No security schemes found to configure.'
-      );
+      expect(result.stdout).toContain('No security schemes found to configure');
 
       const superJson = (
         await SuperJson.load(joinPath(tempDir, 'superface', 'super.json'))
@@ -221,7 +219,7 @@ describe('Configure CLI command', () => {
         mockServer.url
       );
       expect(result.stdout).toMatch(
-        'All profiles (1) have been installed successfully.'
+        'All profiles (1) have been installed successfully'
       );
       //mock provider structure
       const mockProviderInfo = {
@@ -245,9 +243,7 @@ describe('Configure CLI command', () => {
         mockServer.url
       );
 
-      expect(result.stdout).toContain(
-        'No security schemes found to configure.'
-      );
+      expect(result.stdout).toContain('No security schemes found to configure');
 
       const superJson = (
         await SuperJson.load(joinPath(tempDir, 'superface', 'super.json'))
@@ -270,7 +266,7 @@ describe('Configure CLI command', () => {
         mockServer.url
       );
       expect(result.stdout).toMatch(
-        'All profiles (1) have been installed successfully.'
+        'All profiles (1) have been installed successfully'
       );
 
       result = await execCLI(
@@ -449,7 +445,7 @@ describe('Configure CLI command', () => {
         mockServer.url
       );
       expect(result.stdout).toMatch(
-        'All profiles (1) have been installed successfully.'
+        'All profiles (1) have been installed successfully'
       );
 
       result = await execCLI(
@@ -466,7 +462,7 @@ describe('Configure CLI command', () => {
       );
 
       expect(result.stdout).toContain(
-        `🆗 All security schemes have been configured successfully.`
+        'All security schemes have been configured successfully'
       );
       const superJson = (
         await SuperJson.load(joinPath(tempDir, 'superface', 'super.json'))
@@ -551,7 +547,7 @@ describe('Configure CLI command', () => {
         mockServer.url
       );
       expect(result.stdout).toMatch(
-        'All profiles (1) have been installed successfully.'
+        'All profiles (1) have been installed successfully'
       );
 
       result = await execCLI(
@@ -562,13 +558,13 @@ describe('Configure CLI command', () => {
           '-p',
           profileId,
           '--localMap',
-          `../../../fixtures/valid.suma`,
+          '../../../fixtures/valid.suma',
         ],
         mockServer.url
       );
 
       expect(result.stdout).toContain(
-        `🆗 All security schemes have been configured successfully.`
+        'All security schemes have been configured successfully'
       );
       const superJson = (
         await SuperJson.load(joinPath(tempDir, 'superface', 'super.json'))

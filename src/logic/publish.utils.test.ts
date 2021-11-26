@@ -218,7 +218,7 @@ describe('Publish logic utils', () => {
         )
       ).toThrow(
         new CLIError(
-          `Profile AST validation failed at $: expected 'astMetadata' in object, found: {}`
+          "Profile AST validation failed at $: expected 'astMetadata' in object, found: {}"
         )
       );
     });
@@ -239,9 +239,7 @@ describe('Publish logic utils', () => {
           { logger }
         )
       ).toThrow(
-        new CLIError(
-          `Map AST validation failed at $: expected 'astMetadata' in object, found: {}`
-        )
+        "Map AST validation failed at $: expected 'astMetadata' in object, found: {}"
       );
     });
 

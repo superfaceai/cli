@@ -13,7 +13,8 @@ export default class Login extends Command {
     ...Command.flags,
     force: oclifFlags.boolean({
       char: 'f',
-      description: `When set to true user won't be asked to confirm browser opening`,
+      description:
+        "When set to true user won't be asked to confirm browser opening",
       default: false,
     }),
   };

@@ -70,11 +70,12 @@ describe('Login CLI command', () => {
       });
 
       expect(result.stdout).toContain(
-        `Do you want to open browser with Superface login page?`
+        'Do you want to open browser with Superface login page?'
       );
       expect(result.stdout).toContain(
-        `Please open url: ${mockInitLoginResponse.browserUrl} in your browser to continue with login.`
+        'Please open following url in your browser to continue with login'
       );
+      expect(result.stdout).toContain(mockInitLoginResponse.browserUrl);
       expect(result.stdout).toContain('Logged in');
 
       const savedNetRc = new Netrc(joinPath(tempDir, NETRC_FILENAME));
@@ -124,11 +125,12 @@ describe('Login CLI command', () => {
       });
       expect(result.stdout).toContain('Already logged in, logging out');
       expect(result.stdout).toContain(
-        `Do you want to open browser with Superface login page?`
+        'Do you want to open browser with Superface login page?'
       );
       expect(result.stdout).toContain(
-        `Please open url: ${mockInitLoginResponse.browserUrl} in your browser to continue with login.`
+        'Please open following url in your browser to continue with login'
       );
+      expect(result.stdout).toContain(mockInitLoginResponse.browserUrl);
       expect(result.stdout).toContain('Logged in');
 
       const savedNetRc = new Netrc(joinPath(tempDir, NETRC_FILENAME));
@@ -170,7 +172,7 @@ describe('Login CLI command', () => {
           ],
         })
       ).rejects.toEqual(
-        expect.stringContaining(`Attempt to login ended with: Mock error`)
+        expect.stringContaining('Attempt to login ended with: Mock error')
       );
 
       const savedNetRc = new Netrc(joinPath(tempDir, NETRC_FILENAME));
@@ -208,7 +210,7 @@ describe('Login CLI command', () => {
         })
       ).rejects.toEqual(
         expect.stringContaining(
-          `Attempt to login ended with: Mock error: detail of error`
+          'Attempt to login ended with: Mock error: detail of error'
         )
       );
 
@@ -241,7 +243,7 @@ describe('Login CLI command', () => {
         })
       ).rejects.toEqual(
         expect.stringContaining(
-          `Unable to get auth token, request ended with status: EXPIRED`
+          'Unable to get auth token, request ended with status: EXPIRED'
         )
       );
 

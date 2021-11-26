@@ -67,21 +67,21 @@ export default class Create extends Command {
     //Command modifiers
     init: oclifFlags.boolean({
       default: false,
-      description: `When set to true, command will initialize Superface`,
+      description: 'When set to true, command will initialize Superface',
       exclusive: ['no-init'],
     }),
     ['no-init']: oclifFlags.boolean({
       default: false,
-      description: `When set to true, command won't initialize Superface`,
+      description: "When set to true, command won't initialize Superface",
       exclusive: ['init'],
     }),
     ['no-super-json']: oclifFlags.boolean({
       default: false,
-      description: `When set to true, command won't change SuperJson file`,
+      description: "When set to true, command won't change SuperJson file",
     }),
     interactive: oclifFlags.boolean({
       char: 'i',
-      description: `When set to true, command is used in interactive mode.`,
+      description: 'When set to true, command is used in interactive mode.',
       default: false,
       exclusive: ['quiet', 'profile', 'map', 'provider'],
     }),

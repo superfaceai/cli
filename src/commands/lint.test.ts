@@ -284,7 +284,7 @@ describe('lint CLI command', () => {
         expect(detectSuperJson).toHaveBeenCalledWith(process.cwd(), 4);
         expect(loadSpy).toHaveBeenCalledTimes(1);
         expect(writeSpy).toHaveBeenCalledTimes(1);
-        expect(writeSpy).toHaveBeenCalledWith(`\nDetected 0 problems\n`);
+        expect(writeSpy).toHaveBeenCalledWith('\nDetected 0 problems\n');
 
         expect(cleanupSpy).toHaveBeenCalledTimes(1);
       });
@@ -368,7 +368,7 @@ describe('lint CLI command', () => {
         expect(detectSuperJson).toHaveBeenCalledWith(process.cwd(), 4);
         expect(loadSpy).toHaveBeenCalledTimes(1);
         expect(writeSpy).toHaveBeenCalledTimes(1);
-        expect(writeSpy).toHaveBeenCalledWith(`\nDetected 0 problems\n`);
+        expect(writeSpy).toHaveBeenCalledWith('\nDetected 0 problems\n');
 
         expect(cleanupSpy).toHaveBeenCalledTimes(1);
       });
@@ -452,7 +452,7 @@ describe('lint CLI command', () => {
         expect(detectSuperJson).toHaveBeenCalledWith(process.cwd(), 4);
         expect(loadSpy).toHaveBeenCalledTimes(1);
         expect(writeSpy).toHaveBeenCalledTimes(1);
-        expect(writeSpy).toHaveBeenCalledWith(`\nDetected 0 problems\n`);
+        expect(writeSpy).toHaveBeenCalledWith('\nDetected 0 problems\n');
 
         expect(cleanupSpy).toHaveBeenCalledTimes(1);
       });
@@ -529,7 +529,7 @@ describe('lint CLI command', () => {
         expect(detectSuperJson).toHaveBeenCalledWith(process.cwd(), 4);
         expect(loadSpy).toHaveBeenCalledTimes(1);
         expect(writeSpy).toHaveBeenCalledTimes(1);
-        expect(writeSpy).toHaveBeenCalledWith(`\nDetected 0 problems\n`);
+        expect(writeSpy).toHaveBeenCalledWith('\nDetected 0 problems\n');
 
         expect(cleanupSpy).toHaveBeenCalledTimes(1);
       });
@@ -606,7 +606,7 @@ describe('lint CLI command', () => {
         expect(detectSuperJson).toHaveBeenCalledWith(process.cwd(), 4);
         expect(loadSpy).toHaveBeenCalledTimes(1);
         expect(writeSpy).toHaveBeenCalledTimes(1);
-        expect(writeSpy).toHaveBeenCalledWith(`\nDetected 0 problems\n`);
+        expect(writeSpy).toHaveBeenCalledWith('\nDetected 0 problems\n');
 
         expect(cleanupSpy).toHaveBeenCalledTimes(1);
       });
@@ -680,7 +680,7 @@ describe('lint CLI command', () => {
         expect(detectSuperJson).toHaveBeenCalledWith(process.cwd(), 4);
         expect(loadSpy).toHaveBeenCalledTimes(1);
         expect(writeSpy).toHaveBeenCalledTimes(1);
-        expect(writeSpy).toHaveBeenCalledWith(`\nDetected 0 problems\n`);
+        expect(writeSpy).toHaveBeenCalledWith('\nDetected 0 problems\n');
 
         expect(cleanupSpy).toHaveBeenCalledTimes(1);
       });
@@ -754,7 +754,7 @@ describe('lint CLI command', () => {
         expect(detectSuperJson).toHaveBeenCalledWith(process.cwd(), 4);
         expect(loadSpy).toHaveBeenCalledTimes(1);
         expect(writeSpy).toHaveBeenCalledTimes(1);
-        expect(writeSpy).toHaveBeenCalledWith(`\nDetected 1 problem\n`);
+        expect(writeSpy).toHaveBeenCalledWith('\nDetected 1 problem\n');
 
         expect(cleanupSpy).toHaveBeenCalledTimes(1);
       });
@@ -828,7 +828,7 @@ describe('lint CLI command', () => {
         expect(detectSuperJson).toHaveBeenCalledWith(process.cwd(), 4);
         expect(loadSpy).toHaveBeenCalledTimes(1);
         expect(writeSpy).toHaveBeenCalledTimes(1);
-        expect(writeSpy).toHaveBeenCalledWith(`\nDetected 1 problem\n`);
+        expect(writeSpy).toHaveBeenCalledWith('\nDetected 1 problem\n');
 
         expect(cleanupSpy).toHaveBeenCalledTimes(1);
       });

@@ -59,7 +59,7 @@ describe('Logout CLI command', () => {
       expect(result.stdout).toContain(
         messages.superfaceServerError(
           'Error',
-          `No session found, couldn't log out`
+          "No session found, couldn't log out"
         )
       );
     });

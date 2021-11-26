@@ -666,7 +666,7 @@ describe('Check logic', () => {
           },
         ])
       ).toMatch(
-        `🆗 Checking remote profile "${profile.scope}/${profile.name}" with version "${profile.version}" and remote map with version "${profile.version}" for provider "${provider}"`
+        `Checking remote profile "${profile.scope}/${profile.name}" with version "${profile.version}" and remote map with version "${profile.version}" for provider "${provider}"`
       );
       expect(
         formatHuman([
@@ -683,7 +683,7 @@ describe('Check logic', () => {
           },
         ])
       ).toMatch(
-        `🆗 Checking remote map with version "${profile.version}" for profile "${profile.scope}/${profile.name}" and remote provider "${provider}"`
+        `Checking remote map with version "${profile.version}" for profile "${profile.scope}/${profile.name}" and remote provider "${provider}"`
       );
 
       let result = formatHuman([
@@ -700,7 +700,7 @@ describe('Check logic', () => {
         },
       ]);
       expect(result).toMatch(
-        `🆗 Checking local profile "${profile.scope}/${profile.name}" at path`
+        `Checking local profile "${profile.scope}/${profile.name}" at path`
       );
       expect(result).toMatch(mockLocalProfileFrom.path);
       expect(result).toMatch(
@@ -721,7 +721,7 @@ describe('Check logic', () => {
           providerFrom: mockLocalProviderFrom,
         },
       ]);
-      expect(result).toMatch(`🆗 Checking local map at path`);
+      expect(result).toMatch('Checking local map at path');
       expect(result).toMatch(mockLocalMapFrom.path);
       expect(result).toMatch(
         `for profile "${profile.scope}/${profile.name}" and local provider "${provider}" at path`
@@ -815,40 +815,40 @@ describe('Check logic', () => {
       const formated = formatHuman(mockResult);
       //First title
       expect(formated).toMatch(
-        `❌ Checking remote profile "${profile.scope}/${profile.name}" with version "${profile.version}" and remote map with version "${profile.version}" for provider "${provider}"`
+        `Checking remote profile "${profile.scope}/${profile.name}" with version "${profile.version}" and remote map with version "${profile.version}" for provider "${provider}"`
       );
 
       // First body
-      expect(formated).toMatch('❌ first-check-first-error');
-      expect(formated).toMatch('⚠️ first-check-first-warn');
-      expect(formated).toMatch('❌ first-check-second-error');
-      expect(formated).toMatch('⚠️ first-check-second-warn');
+      expect(formated).toMatch('first-check-first-error');
+      expect(formated).toMatch('first-check-first-warn');
+      expect(formated).toMatch('first-check-second-error');
+      expect(formated).toMatch('first-check-second-warn');
 
       // Second title
-      expect(formated).toMatch(`❌ Checking local map at path`);
+      expect(formated).toMatch('Checking local map at path');
       expect(formated).toMatch(mockLocalMapFrom.path);
       expect(formated).toMatch(
         `for profile "${profile.scope}/${profile.name}" and local provider "${provider}" at path`
       );
       expect(formated).toMatch(mockLocalProviderFrom.path);
       // Second body
-      expect(formated).toMatch('❌ second-check-first-error');
-      expect(formated).toMatch('⚠️ second-check-first-warn');
-      expect(formated).toMatch('❌ second-check-second-error');
-      expect(formated).toMatch('⚠️ second-check-second-warn');
+      expect(formated).toMatch('second-check-first-error');
+      expect(formated).toMatch('second-check-first-warn');
+      expect(formated).toMatch('second-check-second-error');
+      expect(formated).toMatch('second-check-second-warn');
 
       // Third title
       expect(formated).toMatch(
-        `❌ Checking integration parameters of local provider at path`
+        'Checking integration parameters of local provider at path'
       );
       expect(formated).toMatch(mockLocalProviderFrom.path);
-      expect(formated).toMatch(`and super.json at path`);
+      expect(formated).toMatch('and super.json at path');
       expect(formated).toMatch('some/path');
       // Third body
-      expect(formated).toMatch('❌ third-check-first-error');
-      expect(formated).toMatch('⚠️ third-check-first-warn');
-      expect(formated).toMatch('❌ third-check-second-error');
-      expect(formated).toMatch('⚠️ third-check-second-warn');
+      expect(formated).toMatch('third-check-first-error');
+      expect(formated).toMatch('third-check-first-warn');
+      expect(formated).toMatch('third-check-second-error');
+      expect(formated).toMatch('third-check-second-warn');
     });
   });
 
@@ -1310,7 +1310,7 @@ describe('Check logic', () => {
         issues: [
           {
             kind: 'error',
-            message: `Provider different is not defined in super.json`,
+            message: 'Provider different is not defined in super.json',
           },
         ],
         kind: 'parameters',

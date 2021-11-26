@@ -42,7 +42,7 @@ describe('Install CLI command', () => {
         mockServer.url
       );
       expect(result.stdout).toMatch(
-        'All profiles (1) have been installed successfully.'
+        'All profiles (1) have been installed successfully'
       );
       await expect(
         exists(joinPath(tempDir, 'superface', 'super.json'))
@@ -67,7 +67,7 @@ describe('Install CLI command', () => {
         mockServer.url
       );
       expect(result.stdout).toMatch(
-        'All profiles (1) have been installed successfully.'
+        'All profiles (1) have been installed successfully'
       );
       await expect(
         exists(joinPath(tempDir, 'superface', 'super.json'))
@@ -97,7 +97,7 @@ describe('Install CLI command', () => {
         mockServer.url
       );
       expect(result.stdout).toMatch(
-        'All profiles (1) have been installed successfully.'
+        'All profiles (1) have been installed successfully'
       );
       await expect(
         exists(joinPath(tempDir, 'superface', 'super.json'))

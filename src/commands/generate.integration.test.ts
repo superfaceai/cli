@@ -99,7 +99,7 @@ describe('Generate CLI command', () => {
         ['generate', '--profileId', 'starwars/character-information'],
         mockServer.url
       );
-      expect(result.stdout).toMatch('🆗 types generated successfully.');
+      expect(result.stdout).toMatch('🆗 types generated successfully');
 
       await expect(exists(paths[0])).resolves.toBe(true);
       await expect(exists(paths[1])).resolves.toBe(true);
@@ -151,7 +151,7 @@ describe('Generate CLI command', () => {
         ['generate', '--profileId', 'starwars/character-information'],
         mockServer.url
       );
-      expect(result.stdout).toMatch('🆗 types generated successfully.');
+      expect(result.stdout).toMatch('🆗 types generated successfully');
 
       await expect(exists(paths[0])).resolves.toBe(true);
       await expect(exists(paths[1])).resolves.toBe(true);
@@ -218,7 +218,7 @@ describe('Generate CLI command', () => {
       await expect(exists(paths[5])).resolves.toBe(false);
 
       const result = await execCLI(tempDir, ['generate'], mockServer.url);
-      expect(result.stdout).toMatch('🆗 types generated successfully.');
+      expect(result.stdout).toMatch('🆗 types generated successfully');
 
       await expect(exists(paths[0])).resolves.toBe(true);
       await expect(exists(paths[1])).resolves.toBe(true);

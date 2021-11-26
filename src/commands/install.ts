@@ -77,7 +77,8 @@ export default class Install extends Command {
     }),
     interactive: oclifFlags.boolean({
       char: 'i',
-      description: `When set to true, command is used in interactive mode. It leads users through profile installation, provider selection, provider security and retry policy setup. Result of this command is ready to use superface configuration.`,
+      description:
+        'When set to true, command is used in interactive mode. It leads users through profile installation, provider selection, provider security and retry policy setup. Result of this command is ready to use superface configuration.',
       default: false,
       exclusive: ['providers', 'force', 'local', 'scan', 'quiet'],
       hidden: true,

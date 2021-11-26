@@ -672,7 +672,8 @@ describe('Quickstart logic', () => {
     });
 
     it('sets up sf correctly - existing super.json and existing .env', async () => {
-      const mockEnv = `test=test\nMAILGUN_USERNAME=u\nMAILGUN_PASSWORD=p\nSENDGRID_TOKEN=t\ntest2=test2\n`;
+      const mockEnv =
+        'test=test\nMAILGUN_USERNAME=u\nMAILGUN_PASSWORD=p\nSENDGRID_TOKEN=t\ntest2=test2\n';
       //Super.json affter install
       const mockSuperJson = new SuperJson({
         profiles: {
