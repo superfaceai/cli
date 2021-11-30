@@ -674,7 +674,7 @@ export async function installProfiles(
       logger.warn('noProfilesInstalled');
     } else if (installed < toInstall) {
       logger.warn(
-        'xOutOfYInsatlled',
+        'xOutOfYInstalled',
         installed.toString(),
         toInstall.toString()
       );

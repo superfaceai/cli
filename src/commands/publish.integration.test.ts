@@ -203,7 +203,7 @@ describe('Publish CLI command', () => {
         )
       );
       expect(result.stdout).toContain(messages.publishProfile(profileId.id));
-      expect(result.stdout).toContain(messages.publishSuccessfull('profile'));
+      expect(result.stdout).toContain(messages.publishSuccessful('profile'));
 
       //Check super.json
       const superJson = (
@@ -283,7 +283,7 @@ describe('Publish CLI command', () => {
         messages.fetchProvider(unverifiedProvider)
       );
       expect(result.stdout).toContain(messages.publishProfile(profileId.id));
-      expect(result.stdout).toContain(messages.publishSuccessfull('profile'));
+      expect(result.stdout).toContain(messages.publishSuccessful('profile'));
 
       //Check super.json
       const superJson = (
@@ -372,7 +372,7 @@ describe('Publish CLI command', () => {
       expect(result.stdout).toContain(
         messages.publishMap(profileId.id, unverifiedProvider)
       );
-      expect(result.stdout).toContain(messages.publishSuccessfull('map'));
+      expect(result.stdout).toContain(messages.publishSuccessful('map'));
 
       //Check super.json
       const superJson = (
@@ -459,7 +459,7 @@ describe('Publish CLI command', () => {
       expect(result.stdout).toContain(
         messages.publishMap(profileId.id, unverifiedProvider)
       );
-      expect(result.stdout).toContain(messages.publishSuccessfull('map'));
+      expect(result.stdout).toContain(messages.publishSuccessful('map'));
 
       //Check super.json
       const superJson = (
@@ -549,7 +549,7 @@ describe('Publish CLI command', () => {
       expect(result.stdout).toContain(
         messages.publishProvider(unverifiedProvider)
       );
-      expect(result.stdout).toContain(messages.publishSuccessfull('provider'));
+      expect(result.stdout).toContain(messages.publishSuccessful('provider'));
 
       //Check super.json
       const superJson = (
@@ -639,7 +639,7 @@ describe('Publish CLI command', () => {
       expect(result.stdout).toContain(
         messages.publishProvider(unverifiedProvider)
       );
-      expect(result.stdout).toContain(messages.publishSuccessfull('provider'));
+      expect(result.stdout).toContain(messages.publishSuccessful('provider'));
 
       //Check super.json
       const superJson = (

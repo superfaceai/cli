@@ -41,7 +41,7 @@ const publish = {
   localAndRemoteProvider: (provider: string) =>
     `Provider "${provider}" found localy linked in "super.json" and also in Superface registry; consider using provider from Superface registry`,
   publishEndedWithErrors: () => 'Publishing command ended up with errors:\n',
-  publishSuccessfull: (documentType: string) =>
+  publishSuccessful: (documentType: string) =>
     `${documentType} has been published successfully`,
 };
 
@@ -55,7 +55,7 @@ const login = {
 };
 
 const loggout = {
-  loggoutSuccessfull: () => 'You have been logged out',
+  loggoutSuccessful: () => 'You have been logged out',
 };
 
 const lint = {
@@ -112,7 +112,7 @@ const configure = {
     provider: string,
     authType: string
   ) =>
-    `Value of "${envVariableName}" in "${provider}" ${authType} security schema does not start with $ character`,
+    `Value of "${envVariableName}" in "${provider}" ${authType} security scheme does not start with $ character`,
   unknownSecurityType: (provider: string) =>
     `Unable to resolve security type for "${provider}"`,
   unknownSecurityScheme: (provider: string) =>
@@ -145,7 +145,7 @@ const install = {
   installProfilesToSuperJson: (path: string) =>
     `Installing profiles according to "super.json" to path "${path}"`,
   installProfile: (profile: string) => `Installing profile "${profile}"`,
-  xOutOfYInsatlled: (x: string, y: string) =>
+  xOutOfYInstalled: (x: string, y: string) =>
     `Installed ${x} out of ${y} profiles`,
   allProfilesInstalled: (count: string) =>
     `All profiles (${count}) have been installed successfully`,
@@ -225,7 +225,7 @@ const create = {
     `Created map for profile "${profile}" and provider "${provider}" at path "${path}"`,
   createProvider: (provider: string, path: string) =>
     `Created provider "${provider}" at path "${path}"`,
-  unverfiedPrefix: (provider: string, prefix: string) =>
+  unverifiedPrefix: (provider: string, prefix: string) =>
     `Published provider name must have prefix "${prefix}"\nIf you are planning to publish this map or provider consider renaming it, eg: "${prefix}${provider}"`,
 };
 

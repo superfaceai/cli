@@ -44,7 +44,7 @@ describe('Logout CLI command', () => {
         env: { NETRC_FILEPATH: NETRC_FILENAME },
       });
 
-      expect(result.stdout).toContain(messages.loggoutSuccessfull());
+      expect(result.stdout).toContain(messages.loggoutSuccessful());
 
       const savedNetRc = new Netrc(joinPath(tempDir, NETRC_FILENAME));
       await savedNetRc.load();

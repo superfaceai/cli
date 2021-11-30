@@ -260,7 +260,7 @@ describe('Install CLI command', () => {
         })
       ).resolves.toBeUndefined();
 
-      expect(logger.stdout).toContainEqual(['configuringProviders', []]);
+      expect(logger.stdout).not.toContainEqual(['configuringProviders', []]);
       expect(installProfiles).toHaveBeenCalledTimes(1);
       expect(installProfiles).toHaveBeenCalledWith(
         {

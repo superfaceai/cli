@@ -253,7 +253,7 @@ export default class Create extends Command {
           !provider.startsWith(UNVERIFIED_PROVIDER_PREFIX) &&
           (flags.map || flags.provider)
         ) {
-          logger.warn('unverfiedPrefix', provider, UNVERIFIED_PROVIDER_PREFIX);
+          logger.warn('unverifiedPrefix', provider, UNVERIFIED_PROVIDER_PREFIX);
         }
       }
     }

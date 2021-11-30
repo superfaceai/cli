@@ -30,7 +30,7 @@ describe('Logout CLI command', () => {
       ).resolves.toBeUndefined();
       expect(getInfoSpy).toHaveBeenCalled();
       expect(logger.stderr).toEqual([]);
-      expect(logger.stdout).toContainEqual(['loggoutSuccessfull', []]);
+      expect(logger.stdout).toContainEqual(['loggoutSuccessful', []]);
     });
 
     it('calls getUserInfo correctly, user logged out', async () => {

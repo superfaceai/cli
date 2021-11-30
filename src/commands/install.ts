@@ -203,8 +203,9 @@ export default class Install extends Command {
       },
       { logger, userError }
     );
-
-    logger.info('configuringProviders');
+    if (providers.length > 0) {
+      logger.info('configuringProviders');
+    }
     for (const provider of providers) {
       await installProvider(
         {

@@ -103,11 +103,11 @@ export default class Publish extends Command {
     // Check inputs
     const parsedProfileId = parseDocumentId(flags.profileId);
     if (parsedProfileId.kind == 'error') {
-      throw this.userError(`Invalid profile id: ${parsedProfileId.message}`, 1);
+      throw userError(`Invalid profile id: ${parsedProfileId.message}`, 1);
     }
 
     if (!isValidProviderName(flags.providerName)) {
-      throw this.userError(`Invalid provider name: "${flags.providerName}"`, 1);
+      throw userError(`Invalid provider name: "${flags.providerName}"`, 1);
     }
 
     if (flags.scan && (typeof flags.scan !== 'number' || flags.scan > 5)) {
@@ -257,7 +257,7 @@ export default class Publish extends Command {
       return;
     }
 
-    logger.success('publishSuccessfull', documentType);
+    logger.success('publishSuccessful', documentType);
     let transition = true;
     if (!flags.force) {
       const prompt: { continue: boolean } = await inquirer.prompt({

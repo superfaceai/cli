@@ -76,8 +76,6 @@ export default class Check extends Command {
     userError: UserError;
     flags: Flags<typeof Check.flags>;
   }): Promise<void> {
-    // const { flags } = this.parse(Check);
-
     // Check inputs
     if (flags.profileId) {
       const parsedProfileId = parseDocumentId(flags.profileId);

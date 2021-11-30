@@ -35,7 +35,7 @@ export default class Logout extends Command {
   }): Promise<void> {
     try {
       await SuperfaceClient.getClient().signOut();
-      logger.success('loggoutSuccessfull');
+      logger.success('loggoutSuccessful');
     } catch (error) {
       if (error instanceof ServiceClientError) {
         logger.warn('superfaceServerError', error.name, error.message);

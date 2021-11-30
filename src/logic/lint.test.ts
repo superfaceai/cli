@@ -902,7 +902,6 @@ describe('Lint logic', () => {
         .mockResolvedValue(undefined);
 
       await expect(
-        // lint(mockSuperJson, mockProfiles, mockListWriter, mockReportFn)
         lint(
           {
             superJson: mockSuperJson,
