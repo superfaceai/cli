@@ -156,12 +156,14 @@ export async function mockResponsesForProfileProviders(
   profile: string,
   path = joinPath('fixtures', 'providers')
 ): Promise<void> {
-  const providersInfo: ProviderJson[] = [];
+  const providersInfo: { definition: ProviderJson }[] = [];
   for (const p of providers) {
     const basePath = joinPath(path, p);
-    providersInfo.push(
-      JSON.parse(await readFile(basePath + '.json', { encoding: 'utf-8' }))
-    );
+    providersInfo.push({
+      definition: JSON.parse(
+        await readFile(basePath + '.json', { encoding: 'utf-8' })
+      ),
+    });
   }
   await server
     .get('/providers')

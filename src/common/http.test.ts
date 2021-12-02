@@ -6,6 +6,7 @@ import {
   SecurityType,
 } from '@superfaceai/ast';
 import { ServiceApiError, ServiceClient } from '@superfaceai/service-client';
+import { mocked } from 'ts-jest/utils';
 
 import {
   ContentType,
@@ -16,9 +17,70 @@ import {
   fetchProviderInfo,
   fetchProviders,
   getServicesUrl,
+  SuperfaceClient,
 } from '../common/http';
 import { mockResponse } from '../test/utils';
 import { DEFAULT_PROFILE_VERSION_STR } from './document';
+import { loadNetrc } from './netrc';
+import { ProfileId } from './profile';
+
+jest.mock('./netrc');
+
+describe('SuperfaceClient', () => {
+  describe('getClient', () => {
+    let sfClient: typeof SuperfaceClient;
+
+    beforeEach(async () => {
+      sfClient = (await import('../common/http')).SuperfaceClient;
+    });
+
+    afterEach(() => {
+      jest.resetModules();
+    });
+
+    it('should return client', async () => {
+      const mockNetRcRecord = {
+        baseUrl: 'baseUrl',
+        refreshToken: 'RT',
+      };
+      mocked(loadNetrc).mockReturnValue(mockNetRcRecord);
+      const client = sfClient.getClient();
+
+      expect(client).toEqual({
+        _STORAGE: {
+          baseUrl: mockNetRcRecord.baseUrl,
+          refreshToken: mockNetRcRecord.refreshToken,
+          commonHeaders: {
+            ['User-Agent']: expect.any(String),
+          },
+          refreshTokenUpdatedHandler: expect.any(Function),
+        },
+      });
+    });
+
+    it('should return client - refresh token from env', async () => {
+      const originalValue = process.env.SUPERFACE_REFRESH_TOKEN;
+
+      process.env.SUPERFACE_REFRESH_TOKEN = 'RT';
+
+      const client = sfClient.getClient();
+
+      expect(client).toEqual({
+        _STORAGE: {
+          baseUrl: expect.any(String),
+          refreshToken: 'RT',
+          commonHeaders: {
+            ['User-Agent']: expect.any(String),
+          },
+          refreshTokenUpdatedHandler: undefined,
+        },
+      });
+      if (originalValue) {
+        process.env.SUPERFACE_REFRESH_TOKEN = originalValue;
+      }
+    });
+  });
+});
 
 describe('HTTP functions', () => {
   const profileId = 'starwars/character-information';
@@ -97,7 +159,9 @@ describe('HTTP functions', () => {
       const fetchSpy = jest
         .spyOn(ServiceClient.prototype, 'fetch')
         .mockResolvedValue(
-          mockResponse(200, 'OK', undefined, { data: [mockProviderJson] })
+          mockResponse(200, 'OK', undefined, {
+            data: [{ definition: mockProviderJson }],
+          })
         );
 
       await expect(fetchProviders(profileId)).resolves.toEqual([
@@ -105,17 +169,13 @@ describe('HTTP functions', () => {
       ]);
 
       expect(fetchSpy).toHaveBeenCalledTimes(1);
-      expect(fetchSpy).toHaveBeenCalledWith(
-        `/providers?profile=${encodeURIComponent(profileId)}`,
-        {
-          authenticate: false,
-          method: 'GET',
-          headers: {
-            'Content-Type': ContentType.JSON,
-            'User-Agent': expect.any(String),
-          },
-        }
-      );
+      expect(fetchSpy).toHaveBeenCalledWith(`/providers?profile=${profileId}`, {
+        authenticate: false,
+        method: 'GET',
+        headers: {
+          'Content-Type': ContentType.JSON,
+        },
+      });
     }, 10000);
 
     it('throws error when request fails', async () => {
@@ -136,17 +196,13 @@ describe('HTTP functions', () => {
       );
 
       expect(fetchSpy).toHaveBeenCalledTimes(1);
-      expect(fetchSpy).toHaveBeenCalledWith(
-        `/providers?profile=${encodeURIComponent(profileId)}`,
-        {
-          authenticate: false,
-          method: 'GET',
-          headers: {
-            'Content-Type': ContentType.JSON,
-            'User-Agent': expect.any(String),
-          },
-        }
-      );
+      expect(fetchSpy).toHaveBeenCalledWith(`/providers?profile=${profileId}`, {
+        authenticate: false,
+        method: 'GET',
+        headers: {
+          'Content-Type': ContentType.JSON,
+        },
+      });
     }, 10000);
   });
 
@@ -167,9 +223,9 @@ describe('HTTP functions', () => {
         .spyOn(ServiceClient.prototype, 'fetch')
         .mockResolvedValue(mockResponse(200, 'OK', undefined, mockProfileInfo));
 
-      await expect(fetchProfileInfo(profileId)).resolves.toEqual(
-        mockProfileInfo
-      );
+      await expect(
+        fetchProfileInfo(ProfileId.fromId(profileId))
+      ).resolves.toEqual(mockProfileInfo);
 
       expect(fetchSpy).toHaveBeenCalledTimes(1);
       expect(fetchSpy).toHaveBeenCalledWith(`/${profileId}`, {
@@ -177,7 +233,6 @@ describe('HTTP functions', () => {
         method: 'GET',
         headers: {
           Accept: ContentType.JSON,
-          'User-Agent': expect.any(String),
         },
       });
     }, 10000);
@@ -188,7 +243,9 @@ describe('HTTP functions', () => {
         .mockResolvedValue(mockResponse(200, 'OK', undefined, mockProfileInfo));
 
       await expect(
-        fetchProfileInfo(profileId, { tryToAuthenticate: true })
+        fetchProfileInfo(ProfileId.fromId(profileId), undefined, {
+          tryToAuthenticate: true,
+        })
       ).resolves.toEqual(mockProfileInfo);
 
       expect(fetchSpy).toHaveBeenCalledTimes(1);
@@ -197,7 +254,6 @@ describe('HTTP functions', () => {
         method: 'GET',
         headers: {
           Accept: ContentType.JSON,
-          'User-Agent': expect.any(String),
         },
       });
     }, 10000);
@@ -216,9 +272,9 @@ describe('HTTP functions', () => {
           mockResponse(404, 'Not Found', undefined, mockErrResponse)
         );
 
-      await expect(fetchProfileInfo(profileId)).rejects.toThrow(
-        new ServiceApiError(mockErrResponse).message
-      );
+      await expect(
+        fetchProfileInfo(ProfileId.fromId(profileId))
+      ).rejects.toThrow(new ServiceApiError(mockErrResponse).message);
 
       expect(fetchSpy).toHaveBeenCalledTimes(1);
       expect(fetchSpy).toHaveBeenCalledWith(`/${profileId}`, {
@@ -226,7 +282,6 @@ describe('HTTP functions', () => {
         method: 'GET',
         headers: {
           Accept: ContentType.JSON,
-          'User-Agent': expect.any(String),
         },
       });
     }, 10000);
@@ -238,7 +293,9 @@ describe('HTTP functions', () => {
         .spyOn(ServiceClient.prototype, 'fetch')
         .mockResolvedValue(mockResponse(200, 'OK', undefined, 'mock profile'));
 
-      await expect(fetchProfile(profileId)).resolves.toEqual(`"mock profile"`);
+      await expect(fetchProfile(ProfileId.fromId(profileId))).resolves.toEqual(
+        `"mock profile"`
+      );
 
       expect(fetchSpy).toHaveBeenCalledTimes(1);
       expect(fetchSpy).toHaveBeenCalledWith(`/${profileId}`, {
@@ -246,7 +303,6 @@ describe('HTTP functions', () => {
         method: 'GET',
         headers: {
           Accept: ContentType.PROFILE_SOURCE,
-          'User-Agent': expect.any(String),
         },
       });
     }, 10000);
@@ -257,7 +313,9 @@ describe('HTTP functions', () => {
         .mockResolvedValue(mockResponse(200, 'OK', undefined, 'mock profile'));
 
       await expect(
-        fetchProfile(profileId, { tryToAuthenticate: true })
+        fetchProfile(ProfileId.fromId(profileId), undefined, {
+          tryToAuthenticate: true,
+        })
       ).resolves.toEqual(`"mock profile"`);
 
       expect(fetchSpy).toHaveBeenCalledTimes(1);
@@ -266,7 +324,6 @@ describe('HTTP functions', () => {
         method: 'GET',
         headers: {
           Accept: ContentType.PROFILE_SOURCE,
-          'User-Agent': expect.any(String),
         },
       });
     }, 10000);
@@ -285,7 +342,7 @@ describe('HTTP functions', () => {
           mockResponse(404, 'Not Found', undefined, mockErrResponse)
         );
 
-      await expect(fetchProfile(profileId)).rejects.toThrow(
+      await expect(fetchProfile(ProfileId.fromId(profileId))).rejects.toThrow(
         new ServiceApiError(mockErrResponse).message
       );
 
@@ -295,7 +352,6 @@ describe('HTTP functions', () => {
         method: 'GET',
         headers: {
           Accept: ContentType.PROFILE_SOURCE,
-          'User-Agent': expect.any(String),
         },
       });
     }, 10000);
@@ -337,14 +393,15 @@ describe('HTTP functions', () => {
         .spyOn(ServiceClient.prototype, 'fetch')
         .mockResolvedValue(mockResponse(200, 'OK', undefined, mockProfileAst));
 
-      await expect(fetchProfileAST(profileId)).resolves.toEqual(mockProfileAst);
+      await expect(
+        fetchProfileAST(ProfileId.fromId(profileId))
+      ).resolves.toEqual(mockProfileAst);
       expect(fetchSpy).toHaveBeenCalledTimes(1);
       expect(fetchSpy).toHaveBeenCalledWith(`/${profileId}`, {
         authenticate: false,
         method: 'GET',
         headers: {
           Accept: ContentType.PROFILE_AST,
-          'User-Agent': expect.any(String),
         },
       });
     }, 10000);
@@ -354,7 +411,9 @@ describe('HTTP functions', () => {
         .mockResolvedValue(mockResponse(200, 'OK', undefined, mockProfileAst));
 
       await expect(
-        fetchProfileAST(profileId, { tryToAuthenticate: true })
+        fetchProfileAST(ProfileId.fromId(profileId), undefined, {
+          tryToAuthenticate: true,
+        })
       ).resolves.toEqual(mockProfileAst);
 
       expect(fetchSpy).toHaveBeenCalledTimes(1);
@@ -363,7 +422,6 @@ describe('HTTP functions', () => {
         method: 'GET',
         headers: {
           Accept: ContentType.PROFILE_AST,
-          'User-Agent': expect.any(String),
         },
       });
     }, 10000);
@@ -382,9 +440,9 @@ describe('HTTP functions', () => {
           mockResponse(404, 'Not Found', undefined, mockErrResponse)
         );
 
-      await expect(fetchProfileAST(profileId)).rejects.toThrow(
-        new ServiceApiError(mockErrResponse).message
-      );
+      await expect(
+        fetchProfileAST(ProfileId.fromId(profileId))
+      ).rejects.toThrow(new ServiceApiError(mockErrResponse).message);
 
       expect(fetchSpy).toHaveBeenCalledTimes(1);
       expect(fetchSpy).toHaveBeenCalledWith(`/${profileId}`, {
@@ -392,7 +450,6 @@ describe('HTTP functions', () => {
         method: 'GET',
         headers: {
           Accept: ContentType.PROFILE_AST,
-          'User-Agent': expect.any(String),
         },
       });
     }, 10000);
@@ -653,9 +710,9 @@ describe('HTTP functions', () => {
         .spyOn(ServiceClient.prototype, 'fetch')
         .mockResolvedValue(mockResponse(200, 'OK', undefined, mockMapDocument));
 
-      await expect(fetchMapAST(profileName, provider)).resolves.toEqual(
-        mockMapDocument
-      );
+      await expect(
+        fetchMapAST({ name: profileName, provider })
+      ).resolves.toEqual(mockMapDocument);
       expect(fetchSpy).toHaveBeenCalledTimes(1);
       expect(fetchSpy).toHaveBeenCalledWith(
         `/${profileName}.${provider}@${DEFAULT_PROFILE_VERSION_STR}`,
@@ -664,7 +721,6 @@ describe('HTTP functions', () => {
           method: 'GET',
           headers: {
             Accept: ContentType.MAP_AST,
-            'User-Agent': expect.any(String),
           },
         }
       );
@@ -694,7 +750,7 @@ describe('HTTP functions', () => {
         .mockResolvedValue(mockResponse(200, 'OK', undefined, mockMapDocument));
 
       await expect(
-        fetchMapAST(profileName, provider, scope, version, variant)
+        fetchMapAST({ name: profileName, provider, scope, version, variant })
       ).resolves.toEqual(mockMapDocument);
       expect(fetchSpy).toHaveBeenCalledTimes(1);
       expect(fetchSpy).toHaveBeenCalledWith(
@@ -704,7 +760,6 @@ describe('HTTP functions', () => {
           method: 'GET',
           headers: {
             Accept: ContentType.MAP_AST,
-            'User-Agent': expect.any(String),
           },
         }
       );
@@ -725,7 +780,7 @@ describe('HTTP functions', () => {
         );
 
       await expect(
-        fetchMapAST(profileName, provider, scope, version)
+        fetchMapAST({ name: profileName, provider, scope, version })
       ).rejects.toThrow(new ServiceApiError(mockErrResponse).message);
 
       expect(fetchSpy).toHaveBeenCalledTimes(1);
@@ -736,7 +791,6 @@ describe('HTTP functions', () => {
           method: 'GET',
           headers: {
             Accept: ContentType.MAP_AST,
-            'User-Agent': expect.any(String),
           },
         }
       );

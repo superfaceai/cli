@@ -444,7 +444,7 @@ describe('Publish logic utils', () => {
       });
 
       expect(parseProfileSpy).not.toHaveBeenCalled();
-      expect(fetchProfileAST).toHaveBeenCalledWith(mockProfile.id);
+      expect(fetchProfileAST).toHaveBeenCalledWith(mockProfile, undefined);
       expect(mockLogCb).toHaveBeenCalledWith(
         `Loading profile: "${mockProfile.id}" in version: "1.0.0" from Superface store`
       );
@@ -507,13 +507,13 @@ describe('Publish logic utils', () => {
       });
 
       expect(parseMapSpy).not.toHaveBeenCalled();
-      expect(fetchMapAST).toHaveBeenCalledWith(
-        mockProfile.name,
-        mockProviderName,
-        mockProfile.scope,
-        undefined,
-        undefined
-      );
+      expect(fetchMapAST).toHaveBeenCalledWith({
+        name: mockProfile.name,
+        provider: mockProviderName,
+        scope: mockProfile.scope,
+        version: undefined,
+        variant: undefined,
+      });
 
       expect(mockLogCb).toHaveBeenCalledWith(
         `Loading map for profile: "${mockProfile.id}" and provider: "${mockProviderName}" in version: "1.0.0" from Superface store`

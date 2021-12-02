@@ -207,9 +207,7 @@ describe('Install CLI command', () => {
       mocked(detectSuperJson).mockResolvedValue('.');
       const profileId = ProfileId.fromId('starwars/character-information');
 
-      await expect(
-        Install.run([profileId.id])
-      ).resolves.toBeUndefined();
+      await expect(Install.run([profileId.id])).resolves.toBeUndefined();
 
       expect(stdout.output).not.toContain('Configuring providers');
       expect(installProfiles).toHaveBeenCalledTimes(1);

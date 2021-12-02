@@ -256,7 +256,7 @@ async function prepareLintedProfile(
     options?.logCb?.(
       `Loading profile: "${profile.id.id}" from Superface store`
     );
-    profileAst = await fetchProfileAST(profile.id.id);
+    profileAst = await fetchProfileAST(profile.id, profile.version);
   }
 
   return {
@@ -312,13 +312,13 @@ async function prepareLintedMap(
         profile.version
       )}" and provider: "${map.provider}" from Superface store`
     );
-    mapAst = await fetchMapAST(
-      profile.id.name,
-      map.provider,
-      profile.id.scope,
-      profile.version,
-      map.variant
-    );
+    mapAst = await fetchMapAST({
+      name: profile.id.name,
+      provider: map.provider,
+      scope: profile.id.scope,
+      version: profile.version,
+      variant: map.variant,
+    });
   }
 
   const mapId = MapId.fromName({

@@ -138,15 +138,15 @@ export async function loadProfile(
     return { ast, from: { kind: 'local', ...source } };
   } else {
     //Load from store
-    ast = await fetchProfileAST(profileId);
-    const version = composeVersion(ast.header.version);
+    ast = await fetchProfileAST(profile, version);
+    const versionString = composeVersion(ast.header.version);
     options?.logCb?.(
-      `Loading profile: "${profile.id}" in version: "${version}" from Superface store`
+      `Loading profile: "${profile.id}" in version: "${versionString}" from Superface store`
     );
 
     return {
       ast,
-      from: { kind: 'remote', version },
+      from: { kind: 'remote', version: versionString },
     };
   }
 }
@@ -203,13 +203,13 @@ export async function loadMap(
     };
   } else {
     //Load from store
-    const ast = await fetchMapAST(
-      profile.name,
+    const ast = await fetchMapAST({
+      name: profile.name,
       provider,
-      profile.scope,
+      scope: profile.scope,
       version,
-      map.variant
-    );
+      variant: map.variant,
+    });
     const astVersion = composeVersion(ast.header.profile.version);
     options?.logCb?.(
       `Loading map for profile: "${profile.withVersion(
