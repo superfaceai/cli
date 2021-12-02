@@ -520,7 +520,7 @@ describe('Lint logic', () => {
             writer: mockListWriter,
             reportFn: mockReportFn,
           },
-          { logger, userError }
+          { logger }
         )
       ).resolves.toEqual([
         [1, 0],
@@ -635,7 +635,7 @@ describe('Lint logic', () => {
             writer: mockListWriter,
             reportFn: mockReportFn,
           },
-          { logger, userError }
+          { logger }
         )
       ).resolves.toEqual([
         [1, 0],
@@ -728,7 +728,7 @@ describe('Lint logic', () => {
             writer: mockListWriter,
             reportFn: mockReportFn,
           },
-          { logger, userError }
+          { logger }
         )
       ).resolves.toEqual([
         [1, 0],
@@ -831,7 +831,7 @@ describe('Lint logic', () => {
             writer: mockListWriter,
             reportFn: mockReportFn,
           },
-          { logger, userError }
+          { logger }
         )
       ).resolves.toEqual([[1, 0]]);
 
@@ -909,7 +909,7 @@ describe('Lint logic', () => {
             writer: mockListWriter,
             reportFn: mockReportFn,
           },
-          { logger, userError }
+          { logger }
         )
       ).resolves.toEqual([[1, 0]]);
 

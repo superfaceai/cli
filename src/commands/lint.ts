@@ -192,7 +192,7 @@ export default class Lint extends Command {
                 emoji: !flags.noEmoji,
                 color: !flags.noColor,
               }),
-            { logger, userError }
+            { logger }
           );
           await outputStream.write(
             `\nDetected ${formatWordPlurality(
@@ -211,7 +211,7 @@ export default class Lint extends Command {
             superJson,
             profiles,
             report => formatJson(report),
-            { logger, userError }
+            { logger }
           );
           await outputStream.write(
             `],"total":{"errors":${totals[0]},"warnings":${totals[1]}}}\n`
@@ -234,7 +234,7 @@ export default class Lint extends Command {
     superJson: SuperJson,
     profiles: ProfileToValidate[],
     reportFn: (report: ReportFormat) => string,
-    { logger, userError }: { logger: ILogger; userError: UserError }
+    { logger }: { logger: ILogger }
   ): Promise<[errors: number, warnings: number]> {
     const counts: [number, number][] = await lint(
       {
@@ -243,7 +243,7 @@ export default class Lint extends Command {
         writer,
         reportFn,
       },
-      { logger, userError }
+      { logger }
     );
 
     return counts.reduce((acc, curr) => [acc[0] + curr[0], acc[1] + curr[1]], [

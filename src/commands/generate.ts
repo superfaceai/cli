@@ -112,7 +112,7 @@ export default class Generate extends Command {
       }
     }
 
-    await generate({ profiles, superJson }, { logger, userError });
+    await generate({ profiles, superJson }, { logger });
 
     logger.success('generatedSuccessfully');
   }

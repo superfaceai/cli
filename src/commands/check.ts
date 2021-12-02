@@ -154,7 +154,6 @@ export default class Check extends Command {
 
     const result = await check(superJson, profilesToValidate, {
       logger,
-      userError,
     });
     if (flags.json) {
       this.log(formatJson(result));

@@ -13,7 +13,6 @@ import { ProfileId } from '@superfaceai/parser';
 import { green, red, yellow } from 'chalk';
 
 import { composeVersion } from '../common/document';
-import { UserError } from '../common/error';
 import { ILogger } from '../common/log';
 import { isProviderParseError } from './check.utils';
 import { ProfileToValidate } from './lint';
@@ -77,7 +76,7 @@ export type CheckIssue = { kind: 'error' | 'warn'; message: string };
 export async function check(
   superJson: SuperJson,
   profiles: ProfileToValidate[],
-  { logger, userError }: { logger: ILogger; userError: UserError }
+  { logger }: { logger: ILogger }
 ): Promise<CheckResult[]> {
   const finalResults: CheckResult[] = [];
 
@@ -89,7 +88,7 @@ export async function check(
         profile: profile.id,
         version: profile.version,
       },
-      { logger, userError }
+      { logger }
     );
     assertProfileDocumentNode(profileFiles.ast);
 
@@ -102,7 +101,7 @@ export async function check(
           map: { variant: map.variant },
           version: profile.version,
         },
-        { logger, userError }
+        { logger }
       );
       assertMapDocumentNode(mapFiles.ast);
 

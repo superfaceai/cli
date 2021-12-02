@@ -187,7 +187,7 @@ export async function resolveInstallationRequests(
       if (request.kind === 'store') {
         return fetchStoreRequestCheckedOrDeferred(
           { superJson, request, options },
-          { logger, userError }
+          { logger }
         );
       }
 
@@ -424,7 +424,7 @@ export async function getProfileFromStore(
       tryToAuthenticate?: boolean;
     };
   },
-  { logger, userError }: { logger: ILogger; userError: UserError }
+  { logger }: { logger: ILogger }
 ): Promise<ProfileResponse | undefined> {
   const profileIdStr = profileId.withVersion(version);
 
@@ -435,39 +435,21 @@ export async function getProfileFromStore(
   logger.info('fetchProfile', profileIdStr);
 
   try {
-    info = await fetchProfileInfo(
-      {
-        profileId: profileIdStr,
-        options: {
-          tryToAuthenticate: options?.tryToAuthenticate,
-        },
-      },
-      { userError }
-    );
+    info = await fetchProfileInfo(profileId, version, {
+      tryToAuthenticate: options?.tryToAuthenticate,
+    });
     logger.info('fetchProfileInfo', profileIdStr);
 
-    profile = await fetchProfile(
-      {
-        profileId: profileIdStr,
-        options: {
-          tryToAuthenticate: options?.tryToAuthenticate,
-        },
-      },
-      { userError }
-    );
+    profile = await fetchProfile(profileId, version, {
+      tryToAuthenticate: options?.tryToAuthenticate,
+    });
     logger.info('fetchProfileSource', profileIdStr);
 
     try {
       //This can fail due to validation issues, ast and parser version issues
-      ast = await fetchProfileAST(
-        {
-          profileId: profileIdStr,
-          options: {
-            tryToAuthenticate: options?.tryToAuthenticate,
-          },
-        },
-        { userError }
-      );
+      ast = await fetchProfileAST(profileId, version, {
+        tryToAuthenticate: options?.tryToAuthenticate,
+      });
       logger.info('fetchProfileAst', profileIdStr);
     } catch (error) {
       logger.warn('fetchProfileAstFailed', profileIdStr);
@@ -500,7 +482,7 @@ async function fetchStoreRequestCheckedOrDeferred(
     request: StoreRequestChecked | StoreRequestDeferredCheck;
     options?: InstallOptions;
   },
-  { logger, userError }: { logger: ILogger; userError: UserError }
+  { logger }: { logger: ILogger }
 ): Promise<StoreRequestFetched | undefined> {
   const fetched = await getProfileFromStore(
     {
@@ -508,7 +490,7 @@ async function fetchStoreRequestCheckedOrDeferred(
       version: request.version,
       options,
     },
-    { logger, userError }
+    { logger }
   );
   if (fetched === undefined) {
     return undefined;

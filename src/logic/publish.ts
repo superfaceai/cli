@@ -55,7 +55,7 @@ export async function publish(
   // Profile
   const profileFiles = await loadProfile(
     { superJson, profile, version },
-    { logger, userError }
+    { logger }
   );
   if (profileFiles.from.kind !== 'local' && publishing === 'profile') {
     throw userError(
@@ -67,7 +67,7 @@ export async function publish(
   // Map
   const mapFiles = await loadMap(
     { superJson, profile, provider, map, version },
-    { logger, userError }
+    { logger }
   );
   if (mapFiles.from.kind !== 'local' && publishing == 'map') {
     throw userError(

@@ -116,9 +116,7 @@ export async function interactiveInstall(
     superJson = (await SuperJson.load(joinPath(superPath, META_FILE))).unwrap();
   }
   //Ask for providers
-  const possibleProviders = (
-    await fetchProviders(profileArg, { userError })
-  ).map(p => p.name);
+  const possibleProviders = (await fetchProviders(profileArg)).map(p => p.name);
 
   const priorityToString: Map<number, string> = new Map([
     [1, 'primary'],

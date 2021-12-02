@@ -439,7 +439,7 @@ describe('Publish logic utils', () => {
             profile: mockProfile,
             version: undefined,
           },
-          { logger, userError }
+          { logger }
         )
       ).resolves.toEqual({
         ast: validProfileDocument,
@@ -476,7 +476,7 @@ describe('Publish logic utils', () => {
             profile: mockProfile,
             version: undefined,
           },
-          { logger, userError }
+          { logger }
         )
       ).resolves.toEqual({
         ast: validProfileDocument,
@@ -487,13 +487,10 @@ describe('Publish logic utils', () => {
       });
 
       expect(parseProfileSpy).not.toHaveBeenCalled();
-      expect(fetchProfileAST).toHaveBeenCalledWith(
-        { profileId: mockProfile.id },
-        expect.anything()
-      );
+      expect(fetchProfileAST).toHaveBeenCalledWith(mockProfile, undefined);
       expect(logger.stdout).toContainEqual([
         'fetchProfile',
-        [mockProfile.id, '1.0.0'],
+        [mockProfile.id, undefined],
       ]);
     });
   });
@@ -517,7 +514,7 @@ describe('Publish logic utils', () => {
             map: {},
             version: undefined,
           },
-          { logger, userError }
+          { logger }
         )
       ).resolves.toEqual({
         ast: validMapDocument,
@@ -558,7 +555,7 @@ describe('Publish logic utils', () => {
             map: {},
             version: undefined,
           },
-          { logger, userError }
+          { logger }
         )
       ).resolves.toEqual({
         ast: validMapDocument,
@@ -569,14 +566,13 @@ describe('Publish logic utils', () => {
       });
 
       expect(parseMapSpy).not.toHaveBeenCalled();
-      expect(fetchMapAST).toHaveBeenCalledWith(
-        {
-          profile: mockProfile.name,
-          provider: mockProviderName,
-          scope: mockProfile.scope,
-        },
-        expect.anything()
-      );
+      expect(fetchMapAST).toHaveBeenCalledWith({
+        name: mockProfile.name,
+        provider: mockProviderName,
+        scope: mockProfile.scope,
+        version: undefined,
+        variant: undefined,
+      });
 
       expect(logger.stdout).toContainEqual([
         'fetchMap',

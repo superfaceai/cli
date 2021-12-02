@@ -119,7 +119,7 @@ export async function loadProfile(
     profile: ProfileId;
     version?: string;
   },
-  { logger, userError }: { logger: ILogger; userError: UserError }
+  { logger }: { logger: ILogger }
 ): Promise<{
   ast: ProfileDocumentNode;
   from: ProfileFromMetadata;
@@ -140,13 +140,13 @@ export async function loadProfile(
     return { ast, from: { kind: 'local', ...source } };
   } else {
     //Load from store
-    ast = await fetchProfileAST({ profileId }, { userError });
-    const version = composeVersion(ast.header.version);
+    ast = await fetchProfileAST(profile, version);
+    const versionString = composeVersion(ast.header.version);
     logger.info('fetchProfile', profile.id, version);
 
     return {
       ast,
-      from: { kind: 'remote', version },
+      from: { kind: 'remote', version: versionString },
     };
   }
 }
@@ -176,7 +176,7 @@ export async function loadMap(
     };
     version?: string;
   },
-  { logger, userError }: { logger: ILogger; userError: UserError }
+  { logger }: { logger: ILogger }
 ): Promise<{
   ast: MapDocumentNode;
   from: MapFromMetadata;
@@ -208,16 +208,13 @@ export async function loadMap(
     };
   } else {
     //Load from store
-    const ast = await fetchMapAST(
-      {
-        profile: profile.name,
-        provider,
-        scope: profile.scope,
-        version,
-        variant: map.variant,
-      },
-      { userError }
-    );
+    const ast = await fetchMapAST({
+      name: profile.name,
+      provider,
+      scope: profile.scope,
+      version,
+      variant: map.variant,
+    });
     const astVersion = composeVersion(ast.header.profile.version);
     logger.info('fetchMap', profile.withVersion(version), provider, astVersion);
 

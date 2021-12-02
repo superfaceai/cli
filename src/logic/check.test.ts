@@ -11,7 +11,6 @@ import { SuperJson } from '@superfaceai/one-sdk';
 import { mocked } from 'ts-jest/utils';
 
 import { MockLogger, UNVERIFIED_PROVIDER_PREFIX } from '../common';
-import { createUserError } from '../common/error';
 import {
   fetchMapAST,
   fetchProfileAST,
@@ -56,7 +55,6 @@ jest.mock('../common/http', () => ({
 
 describe('Check logic', () => {
   let logger: MockLogger;
-  const userError = createUserError(false);
 
   const profile = {
     name: 'character-information',
@@ -301,7 +299,7 @@ describe('Check logic', () => {
               maps: [{ provider: unverifiedProvider }],
             },
           ],
-          { logger, userError }
+          { logger }
         )
       ).resolves.toEqual([
         {
@@ -398,7 +396,7 @@ describe('Check logic', () => {
               maps: [{ provider: unverifiedProvider, variant }],
             },
           ],
-          { logger, userError }
+          { logger }
         )
       ).resolves.toEqual([
         {
@@ -492,7 +490,7 @@ describe('Check logic', () => {
               maps: [{ provider, variant }],
             },
           ],
-          { logger, userError }
+          { logger }
         )
       ).rejects.toThrow();
 
@@ -559,7 +557,7 @@ describe('Check logic', () => {
               maps: [{ provider, variant }],
             },
           ],
-          { logger, userError }
+          { logger }
         )
       ).rejects.toThrow();
 
@@ -620,7 +618,7 @@ describe('Check logic', () => {
                 maps: [{ provider, variant }],
               },
             ],
-            { logger, userError }
+            { logger }
           )
         ).length
       ).not.toEqual(0);

@@ -247,7 +247,7 @@ async function prepareLintedProfile(
     writer: ListWriter;
     reportFn: (report: ReportFormat) => string;
   },
-  { logger, userError }: { logger: ILogger; userError: UserError }
+  { logger }: { logger: ILogger }
 ): Promise<ProfileToLintWithAst> {
   const counts: [number, number][] = [];
   let profileAst: ProfileDocumentNode | undefined = undefined;
@@ -279,10 +279,7 @@ async function prepareLintedProfile(
     counts.push([report.errors.length, report.warnings.length]);
   } else {
     logger.info('fetchProfile', profile.id.id, profile.version);
-    profileAst = await fetchProfileAST(
-      { profileId: profile.id.id },
-      { userError }
-    );
+    profileAst = await fetchProfileAST(profile.id, profile.version);
   }
 
   return {
@@ -307,7 +304,7 @@ async function prepareLintedMap(
     writer: ListWriter;
     fn: (report: ReportFormat) => string;
   },
-  { logger, userError }: { logger: ILogger; userError: UserError }
+  { logger }: { logger: ILogger }
 ): Promise<MapToLintWithAst> {
   const counts: [number, number][] = [];
   let mapAst: MapDocumentNode | undefined = undefined;
@@ -345,16 +342,13 @@ async function prepareLintedMap(
       profile.id.withVersion(profile.version),
       map.provider
     );
-    mapAst = await fetchMapAST(
-      {
-        profile: profile.id.name,
-        provider: map.provider,
-        scope: profile.id.scope,
-        version: profile.version,
-        variant: map.variant,
-      },
-      { userError }
-    );
+    mapAst = await fetchMapAST({
+      name: profile.id.name,
+      provider: map.provider,
+      scope: profile.id.scope,
+      version: profile.version,
+      variant: map.variant,
+    });
   }
 
   const mapId = MapId.fromName({
@@ -388,7 +382,7 @@ export async function lint(
     writer: ListWriter;
     reportFn: (report: ReportFormat) => string;
   },
-  { logger, userError }: { logger: ILogger; userError: UserError }
+  { logger }: { logger: ILogger }
 ): Promise<[number, number][]> {
   const counts: [number, number][] = [];
 
@@ -400,7 +394,7 @@ export async function lint(
         writer,
         reportFn: reportFn,
       },
-      { logger, userError }
+      { logger }
     );
 
     // Return if we have errors or warnings
@@ -417,7 +411,7 @@ export async function lint(
           writer,
           fn: reportFn,
         },
-        { logger, userError }
+        { logger }
       );
 
       // Return if we have errors or warnings
