@@ -13,7 +13,6 @@ import {
   parseProfile,
   ProfileHeaderStructure,
   Source,
-  // SyntaxError,
   validateMap,
   ValidationResult,
 } from '@superfaceai/parser';
@@ -101,19 +100,6 @@ export const createProfileMapReport = (
         errors: result.errors,
         warnings: result.warnings ?? [],
       };
-
-// export const createFileReport = (
-//   path: string,
-//   remote: boolean,
-//   errors: SyntaxError[],
-//   warnings: string[]
-// ): FileReport => ({
-//   kind: 'file',
-//   remote,
-//   path,
-//   errors,
-//   warnings,
-// });
 
 export function formatHuman(
   report: ReportFormat,
