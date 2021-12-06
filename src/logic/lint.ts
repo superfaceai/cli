@@ -13,7 +13,6 @@ import {
   parseProfile,
   ProfileHeaderStructure,
   Source,
-  SyntaxError,
   validateMap,
   ValidationResult,
 } from '@superfaceai/parser';
@@ -26,7 +25,6 @@ import {
 } from '../common/document';
 import { UserError } from '../common/error';
 import { fetchMapAST, fetchProfileAST } from '../common/http';
-import { ListWriter } from '../common/list-writer';
 import { ILogger } from '../common/log';
 import { MapId } from '../common/map';
 import { ProfileId } from '../common/profile';
@@ -104,17 +102,6 @@ export const createProfileMapReport = (
         warnings: result.warnings ?? [],
       };
 
-export const createFileReport = (
-  path: string,
-  errors: SyntaxError[],
-  warnings: string[]
-): FileReport => ({
-  kind: 'file',
-  path,
-  errors,
-  warnings,
-});
-
 export function formatHuman({
   report,
   quiet,
@@ -128,9 +115,9 @@ export function formatHuman({
   color: boolean;
   short?: boolean;
 }): string {
-  const REPORT_OK = '🆗 ';
-  const REPORT_WARN = '⚠️ ';
-  const REPORT_ERR = '❌ ';
+  const REPORT_OK = '🆗';
+  const REPORT_WARN = '⚠️';
+  const REPORT_ERR = '❌';
 
   let prefix;
   const noColor = (input: string) => input;
@@ -157,7 +144,7 @@ export function formatHuman({
 
   if (report.kind === 'file') {
     buffer += colorize(
-      `${prefix}Parsing ${
+      `${prefix} Parsing ${
         report.path.endsWith(EXTENSIONS.profile.source) ? 'profile' : 'map'
       } file: ${report.path}\n`
     );
@@ -206,16 +193,20 @@ export function formatHuman({
   return buffer;
 }
 
-export function formatJson(report: ReportFormat): string {
-  return JSON.stringify(report, (key, value) => {
-    if (key === 'source') {
-      return undefined;
-    }
+export function formatJson(input: LintResult | ReportFormat): string {
+  return JSON.stringify(
+    input,
+    (key, value) => {
+      if (key === 'source') {
+        return undefined;
+      }
 
-    // we are just passing the value along, nothing unsafe about that
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    return value;
-  });
+      // we are just passing the value along, nothing unsafe about that
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+      return value;
+    },
+    2
+  );
 }
 
 export type MapToValidate = { provider: string; variant?: string };
@@ -224,132 +215,68 @@ export type ProfileToValidate = {
   maps: MapToValidate[];
   version?: string;
 };
-type MapToLintWithAst = MapToValidate & {
+
+// Linted map and profile
+type PreparedMap = MapToValidate & {
+  path: string;
   ast?: MapDocumentNode;
-  path: string;
-  counts: [number, number][];
+  report: FileReport;
 };
-type ProfileToLintWithAst = ProfileToValidate & {
-  ast?: ProfileDocumentNode;
+
+type PreparedProfile = ProfileToValidate & {
   path: string;
-  counts: [number, number][];
+  ast?: ProfileDocumentNode;
+  report: FileReport;
 };
 
 async function prepareLintedProfile(
-  {
-    superJson,
-    profile,
-    writer,
-    reportFn,
-  }: {
-    superJson: SuperJson;
-    profile: ProfileToValidate;
-    writer: ListWriter;
-    reportFn: (report: ReportFormat) => string;
-  },
+  superJson: SuperJson,
+  profile: ProfileToValidate,
   { logger }: { logger: ILogger }
-): Promise<ProfileToLintWithAst> {
-  const counts: [number, number][] = [];
-  let profileAst: ProfileDocumentNode | undefined = undefined;
+): Promise<PreparedProfile> {
+  let ast: ProfileDocumentNode | undefined = undefined;
   const profileSource = await findLocalProfileSource(
     superJson,
     profile.id,
     profile.version
   );
+  const path = profileSource?.path || profile.id.withVersion(profile.version);
+
+  const report: FileReport = {
+    kind: 'file',
+    path,
+    errors: [],
+    warnings: [],
+  };
   //If we have local profile we lint it
   if (profileSource) {
     logger.info('localProfileFound', profile.id.id, profileSource.path);
 
-    const report: FileReport = {
-      kind: 'file',
-      path: profileSource.path || profile.id.withVersion(profile.version),
-      errors: [],
-      warnings: [],
-    };
-
     try {
-      profileAst = parseProfile(
-        new Source(profileSource.source, profileSource.path)
-      );
+      ast = parseProfile(new Source(profileSource.source, profileSource.path));
     } catch (e) {
       report.errors.push(e);
     }
-    await writer.writeElement(reportFn(report));
-
-    counts.push([report.errors.length, report.warnings.length]);
   } else {
     logger.info('fetchProfile', profile.id.id, profile.version);
-    profileAst = await fetchProfileAST(profile.id, profile.version);
+    ast = await fetchProfileAST(profile.id, profile.version);
   }
 
   return {
     ...profile,
-    ast: profileAst,
-    path: profileSource?.path || profile.id.withVersion(profile.version),
-    counts,
+    ast,
+    path,
+    report,
   };
 }
 
 async function prepareLintedMap(
-  {
-    superJson,
-    profile,
-    map,
-    writer,
-    fn,
-  }: {
-    superJson: SuperJson;
-    profile: ProfileToValidate;
-    map: MapToValidate;
-    writer: ListWriter;
-    fn: (report: ReportFormat) => string;
-  },
+  superJson: SuperJson,
+  profile: ProfileToValidate,
+  map: MapToValidate,
   { logger }: { logger: ILogger }
-): Promise<MapToLintWithAst> {
-  const counts: [number, number][] = [];
-  let mapAst: MapDocumentNode | undefined = undefined;
-
-  const mapSource = await findLocalMapSource(
-    superJson,
-    profile.id,
-    map.provider
-  );
-  if (mapSource) {
-    logger.info(
-      'localMapFound',
-      profile.id.withVersion(profile.version),
-      map.provider,
-      mapSource.path
-    );
-    const report: FileReport = {
-      kind: 'file',
-      path: mapSource.path,
-      errors: [],
-      warnings: [],
-    };
-
-    try {
-      mapAst = parseMap(new Source(mapSource.source, mapSource.path));
-    } catch (e) {
-      report.errors.push(e);
-    }
-    await writer.writeElement(fn(report));
-
-    counts.push([report.errors.length, report.warnings.length]);
-  } else {
-    logger.info(
-      'fetchMap',
-      profile.id.withVersion(profile.version),
-      map.provider
-    );
-    mapAst = await fetchMapAST({
-      name: profile.id.name,
-      provider: map.provider,
-      scope: profile.id.scope,
-      version: profile.version,
-      variant: map.variant,
-    });
-  }
+): Promise<PreparedMap> {
+  let ast: MapDocumentNode | undefined = undefined;
 
   const mapId = MapId.fromName({
     profile: {
@@ -360,78 +287,119 @@ async function prepareLintedMap(
     variant: map.variant,
   });
 
+  const mapSource = await findLocalMapSource(
+    superJson,
+    profile.id,
+    map.provider
+  );
+
+  const path =
+    mapSource?.path ??
+    mapId.withVersion(profile.version || DEFAULT_PROFILE_VERSION_STR);
+
+  const report: FileReport = {
+    kind: 'file',
+    path,
+    errors: [],
+    warnings: [],
+  };
+  if (mapSource) {
+    logger.info(
+      'localMapFound',
+      profile.id.withVersion(profile.version),
+      map.provider,
+      mapSource.path
+    );
+
+    try {
+      ast = parseMap(new Source(mapSource.source, mapSource.path));
+    } catch (e) {
+      report.errors.push(e);
+    }
+  } else {
+    logger.info(
+      'fetchMap',
+      profile.id.withVersion(profile.version),
+      map.provider
+    );
+    ast = await fetchMapAST({
+      name: profile.id.name,
+      provider: map.provider,
+      scope: profile.id.scope,
+      version: profile.version,
+      variant: map.variant,
+    });
+  }
+
   return {
     ...map,
-    ast: mapAst,
-    path:
-      mapSource?.path ??
-      mapId.withVersion(profile.version || DEFAULT_PROFILE_VERSION_STR),
-    counts,
+    ast,
+    report,
+    path,
+  };
+}
+
+export type LintResult = {
+  reports: ReportFormat[];
+  total: {
+    errors: number;
+    warnings: number;
+  };
+};
+
+function prepareResult(reports: ReportFormat[]): LintResult {
+  const total = {
+    errors: 0,
+    warnings: 0,
+  };
+  reports.forEach(report => {
+    total.errors += report.errors.length;
+    total.warnings += report.warnings.length;
+  });
+
+  return {
+    reports,
+    total,
   };
 }
 
 export async function lint(
-  {
-    superJson,
-    profiles,
-    writer,
-    reportFn,
-  }: {
-    superJson: SuperJson;
-    profiles: ProfileToValidate[];
-    writer: ListWriter;
-    reportFn: (report: ReportFormat) => string;
-  },
+  superJson: SuperJson,
+  profiles: ProfileToValidate[],
   { logger }: { logger: ILogger }
-): Promise<[number, number][]> {
+): Promise<LintResult> {
   const counts: [number, number][] = [];
+  const reports: ReportFormat[] = [];
 
   for (const profile of profiles) {
-    const profileWithAst = await prepareLintedProfile(
-      {
-        superJson,
-        profile,
-        writer,
-        reportFn: reportFn,
-      },
-      { logger }
-    );
-
-    // Return if we have errors or warnings
-    if (!profileWithAst.ast) {
-      return profileWithAst.counts;
+    const preparedProfile = await prepareLintedProfile(superJson, profile, {
+      logger,
+    });
+    reports.push(preparedProfile.report);
+    //Return if we have errors or warnings
+    if (!preparedProfile.ast) {
+      return prepareResult(reports);
     }
 
     for (const map of profile.maps) {
-      const preparedMap = await prepareLintedMap(
-        {
-          superJson,
-          profile,
-          map,
-          writer,
-          fn: reportFn,
-        },
-        { logger }
-      );
-
-      // Return if we have errors or warnings
+      const preparedMap = await prepareLintedMap(superJson, profile, map, {
+        logger,
+      });
+      reports.push(preparedMap.report);
+      //Return if we have errors or warnings
       if (!preparedMap.ast) {
-        return preparedMap.counts;
+        return prepareResult(reports);
       }
 
       try {
         const result = validateMap(
-          getProfileOutput(profileWithAst.ast),
+          getProfileOutput(preparedProfile.ast),
           preparedMap.ast
         );
 
-        const report = createProfileMapReport(
-          result,
-          profileWithAst.path,
-          preparedMap.path
+        reports.push(
+          createProfileMapReport(result, preparedProfile.path, preparedMap.path)
         );
-
-        await writer.writeElement(reportFn(report));
 
         counts.push([
           result.pass ? 0 : result.errors.length,
@@ -442,11 +410,11 @@ export async function lint(
         logger.error(
           'unexpectedLintError',
           preparedMap.path,
-          profileWithAst.path
+          preparedProfile.path
         );
       }
     }
   }
 
-  return counts;
+  return prepareResult(reports);
 }
