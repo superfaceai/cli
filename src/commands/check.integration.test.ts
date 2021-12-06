@@ -1,6 +1,6 @@
 import { SuperJson } from '@superfaceai/one-sdk';
 import { getLocal } from 'mockttp';
-import { join as joinPath, resolve } from 'path';
+import { join as joinPath } from 'path';
 
 import { UNVERIFIED_PROVIDER_PREFIX } from '../common';
 import { mkdir, rimraf } from '../common/io';
@@ -119,26 +119,20 @@ describe('Check CLI command', () => {
       expect(result.stdout).toContain(
         messages.localProfileFound(
           profileId,
-          joinPath(
-            process.cwd(),
-            resolve(`../../../../${sourceFixture.profile}`)
-          )
+          joinPath(process.cwd(), sourceFixture.profile)
         )
       );
       expect(result.stdout).toContain(
         messages.localMapFound(
           profileId,
           provider,
-          joinPath(process.cwd(), resolve(`../../../../${sourceFixture.map}`))
+          joinPath(process.cwd(), sourceFixture.map)
         )
       );
       expect(result.stdout).toContain(
         messages.localProviderFound(
           provider,
-          joinPath(
-            process.cwd(),
-            resolve(`../../../../${sourceFixture.provider}`)
-          )
+          joinPath(process.cwd(), sourceFixture.provider)
         )
       );
       expect(result.stdout).toContain(
@@ -198,7 +192,7 @@ describe('Check CLI command', () => {
         messages.localMapFound(
           `${profileId}@${profileVersion}`,
           provider,
-          joinPath(process.cwd(), resolve(`../../../../${sourceFixture.map}`))
+          joinPath(process.cwd(), sourceFixture.map)
         )
       );
       expect(result.stdout).toContain(messages.fetchProvider(provider));
@@ -244,10 +238,7 @@ describe('Check CLI command', () => {
       expect(result.stdout).toContain(
         messages.localProfileFound(
           profileId,
-          joinPath(
-            process.cwd(),
-            resolve(`../../../../${sourceFixture.profile}`)
-          )
+          joinPath(process.cwd(), sourceFixture.profile)
         )
       );
       expect(result.stdout).toContain(
@@ -308,10 +299,7 @@ describe('Check CLI command', () => {
       expect(result.stdout).toContain(
         messages.localProviderFound(
           provider,
-          joinPath(
-            process.cwd(),
-            resolve(`../../../../${sourceFixture.provider}`)
-          )
+          joinPath(process.cwd(), sourceFixture.provider)
         )
       );
       // Map and profile
@@ -358,26 +346,20 @@ describe('Check CLI command', () => {
       expect(result.stdout).toContain(
         messages.localProfileFound(
           profileId,
-          joinPath(
-            process.cwd(),
-            resolve(`../../../../${sourceFixture.profile}`)
-          )
+          joinPath(process.cwd(), sourceFixture.profile)
         )
       );
       expect(result.stdout).toContain(
         messages.localMapFound(
           profileId,
           provider,
-          joinPath(process.cwd(), resolve(`../../../../${sourceFixture.map}`))
+          joinPath(process.cwd(), sourceFixture.map)
         )
       );
       expect(result.stdout).toContain(
         messages.localProviderFound(
           provider,
-          joinPath(
-            process.cwd(),
-            resolve(`../../../../${sourceFixture.provider}`)
-          )
+          joinPath(process.cwd(), sourceFixture.provider)
         )
       );
       expect(result.stdout).toContain(JSON.stringify([]));
