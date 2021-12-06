@@ -9,17 +9,9 @@ import { META_FILE } from '../common';
 import { Command } from '../common/command.abstract';
 import { developerError, userError } from '../common/error';
 import { formatWordPlurality } from '../common/format';
-import { ListWriter } from '../common/list-writer';
-import { LogCallback } from '../common/log';
 import { OutputStream } from '../common/output-stream';
-import { ReportFormat } from '../common/report.interfaces';
 import { detectSuperJson } from '../logic/install';
-import {
-  formatHuman,
-  formatJson,
-  lint,
-  ProfileToValidate,
-} from '../logic/lint';
+import { formatHuman, formatJson, lint } from '../logic/lint';
 import Check from './check';
 
 type OutputFormatFlag = 'long' | 'short' | 'json';
@@ -91,7 +83,7 @@ export default class Lint extends Command {
   async run(): Promise<void> {
     const { flags } = this.parse(Lint);
 
-    if (flags.quiet) {
+    if (flags.quiet || flags.outputFormat === 'json') {
       this.logCallback = undefined;
       this.errCallback = undefined;
     }
@@ -164,76 +156,35 @@ export default class Lint extends Command {
     const outputStream = new OutputStream(flags.output, {
       append: flags.append,
     });
-    let totals: [errors: number, warnings: number];
 
-    switch (flags.outputFormat) {
-      case 'long':
-      case 'short':
-        {
-          totals = await Lint.processFiles(
-            new ListWriter(outputStream, '\n'),
-            superJson,
-            profiles,
-            report =>
-              formatHuman(report, flags.quiet, flags.outputFormat === 'short'),
-            { logCb: this.logCallback, errCb: this.errCallback }
-          );
-          await outputStream.write(
-            `\nDetected ${formatWordPlurality(
-              totals[0] + (flags.quiet ? 0 : totals[1]),
-              'problem'
-            )}\n`
-          );
-        }
-        break;
+    const result = await lint(superJson, profiles, {
+      logCb: this.logCallback,
+      errCb: this.errCallback,
+    });
 
-      case 'json':
-        {
-          await outputStream.write('{"reports":[');
-          totals = await Lint.processFiles(
-            new ListWriter(outputStream, ','),
-            superJson,
-            profiles,
-            report => formatJson(report),
-            { logCb: undefined, errCb: this.errCallback }
-          );
-          await outputStream.write(
-            `],"total":{"errors":${totals[0]},"warnings":${totals[1]}}}\n`
-          );
-        }
-        break;
+    if (flags.outputFormat === 'long' || flags.outputFormat === 'short') {
+      for (const report of result.reports) {
+        await outputStream.write(
+          formatHuman(report, flags.quiet, flags.outputFormat === 'short')
+        );
+      }
+
+      await outputStream.write(
+        `\nDetected ${formatWordPlurality(
+          result.total.errors + (flags.quiet ? 0 : result.total.warnings),
+          'problem'
+        )}\n`
+      );
+    } else {
+      await outputStream.write(formatJson(result));
     }
 
     await outputStream.cleanup();
 
-    if (totals[0] > 0) {
+    if (result.total.errors > 0) {
       throw userError('Errors were found', 1);
-    } else if (totals[1] > 0) {
+    } else if (result.total.warnings > 0) {
       this.logCallback?.('⚠️ Warnings were found');
     }
-  }
-
-  static async processFiles(
-    writer: ListWriter,
-    superJson: SuperJson,
-    profiles: ProfileToValidate[],
-    fn: (report: ReportFormat) => string,
-    options?: {
-      logCb?: LogCallback;
-      errCb?: LogCallback;
-    }
-  ): Promise<[errors: number, warnings: number]> {
-    const counts: [number, number][] = await lint(
-      superJson,
-      profiles,
-      writer,
-      fn,
-      options
-    );
-
-    return counts.reduce((acc, curr) => [acc[0] + curr[0], acc[1] + curr[1]], [
-      0,
-      0,
-    ]);
   }
 }

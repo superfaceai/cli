@@ -3,6 +3,7 @@ import { join as joinPath, resolve } from 'path';
 
 import { mkdir, rimraf } from '../common/io';
 import { OutputStream } from '../common/output-stream';
+import { LintResult } from '../logic/lint';
 import { MockStd, mockStd } from '../test/mock-std';
 import { execCLI, setUpTempDir } from '../test/utils';
 
@@ -181,7 +182,7 @@ describe('lint CLI command', () => {
     ).rejects.toContain('❌ Errors were found');
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const result: Record<string, unknown> = JSON.parse(stdout.output);
+    const result: LintResult = JSON.parse(stdout.output);
     expect(result).toMatchObject({
       total: {
         errors: 1,
