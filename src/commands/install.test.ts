@@ -306,7 +306,10 @@ describe('Install CLI command', () => {
         })
       ).resolves.toBeUndefined();
 
-      expect(logger.stdout).toContainEqual(['invalidProviderName', []]);
+      expect(logger.stdout).toContainEqual([
+        'invalidProviderName',
+        ['made.up'],
+      ]);
       expect(installProfiles).toHaveBeenCalledTimes(1);
       expect(installProfiles).toHaveBeenCalledWith(
         {
@@ -377,7 +380,10 @@ describe('Install CLI command', () => {
         })
       ).resolves.toBeUndefined();
 
-      expect(logger.stdout).toContainEqual(['invalidProviderName', []]);
+      expect(logger.stdout).toContainEqual([
+        'invalidProviderName',
+        ['made.up'],
+      ]);
       expect(installProfiles).toHaveBeenCalledTimes(1);
       expect(installProfiles).toHaveBeenCalledWith(
         {

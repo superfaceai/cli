@@ -32,7 +32,7 @@ const parseProviders = (logger: ILogger, providers?: string[]): string[] => {
         return false;
       }
       if (!isValidProviderName(p)) {
-        logger.warn('invalidProviderName');
+        logger.warn('invalidProviderName', p);
 
         return false;
       }

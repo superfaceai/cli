@@ -1,9 +1,10 @@
 import { SuperJson } from '@superfaceai/one-sdk';
 import { getLocal } from 'mockttp';
-import { join as joinPath } from 'path';
+import { join as joinPath, resolve } from 'path';
 
 import { UNVERIFIED_PROVIDER_PREFIX } from '../common';
 import { mkdir, rimraf } from '../common/io';
+import { messages } from '../common/messages';
 import { OutputStream } from '../common/output-stream';
 import {
   execCLI,
@@ -116,16 +117,32 @@ describe('Check CLI command', () => {
         mockServer.url
       );
       expect(result.stdout).toContain(
-        `Profile "${profileId}" found on local file system`
+        messages.localProfileFound(
+          profileId,
+          joinPath(
+            process.cwd(),
+            resolve(`../../../../${sourceFixture.profile}`)
+          )
+        )
       );
       expect(result.stdout).toContain(
-        `Map for profile "${profileId}" and provider "${provider}" found on local file system`
+        messages.localMapFound(
+          profileId,
+          provider,
+          joinPath(process.cwd(), resolve(`../../../../${sourceFixture.map}`))
+        )
       );
       expect(result.stdout).toContain(
-        `Provider "${provider}" found on local file system`
+        messages.localProviderFound(
+          provider,
+          joinPath(
+            process.cwd(),
+            resolve(`../../../../${sourceFixture.provider}`)
+          )
+        )
       );
       expect(result.stdout).toContain(
-        'Checking profile "starwars/character-information" and map for provider "unverified-swapi"'
+        messages.checkProfileAndMap(profileId, provider)
       );
       // Map and profile
       expect(result.stdout).toMatch(
@@ -175,14 +192,16 @@ describe('Check CLI command', () => {
         mockServer.url
       );
       expect(result.stdout).toContain(
-        `Fetching profile "${profileId}" with version "${profileVersion}" from Superface registry`
+        messages.fetchProfile(profileId, profileVersion)
       );
       expect(result.stdout).toContain(
-        `Map for profile "${profileId}@${profileVersion}" and provider "${provider}" found on local file system`
+        messages.localMapFound(
+          `${profileId}@${profileVersion}`,
+          provider,
+          joinPath(process.cwd(), resolve(`../../../../${sourceFixture.map}`))
+        )
       );
-      expect(result.stdout).toContain(
-        `Fetching provider "${provider}" from Superface registry`
-      );
+      expect(result.stdout).toContain(messages.fetchProvider(provider));
       // Map and profile
       expect(result.stdout).toMatch(
         `🆗 Checking remote profile "${profileId}" with version "${profileVersion}" and local map for provider "${provider}" at path`
@@ -223,14 +242,18 @@ describe('Check CLI command', () => {
         mockServer.url
       );
       expect(result.stdout).toContain(
-        `Profile "${profileId}" found on local file system`
+        messages.localProfileFound(
+          profileId,
+          joinPath(
+            process.cwd(),
+            resolve(`../../../../${sourceFixture.profile}`)
+          )
+        )
       );
       expect(result.stdout).toContain(
-        `Fetching map for profile "${profileId}" and provider "${provider}" with version "1.0.0" from Superface registry`
+        messages.fetchMap(profileId, provider, '1.0.0')
       );
-      expect(result.stdout).toContain(
-        `Fetching provider "${provider}" from Superface registry`
-      );
+      expect(result.stdout).toContain(messages.fetchProvider(provider));
       //Map and profile
       expect(result.stdout).toMatch(
         `🆗 Checking local profile "${profileId}@1.0.1" at path`
@@ -277,13 +300,19 @@ describe('Check CLI command', () => {
         mockServer.url
       );
       expect(result.stdout).toContain(
-        `Fetching profile "${profileId}" with version "${profileVersion}" from Superface registry`
+        messages.fetchProfile(profileId, profileVersion)
       );
       expect(result.stdout).toContain(
-        `Fetching map for profile "${profileId}@${profileVersion}" and provider "${provider}" with version "1.0.0" from Superface registry`
+        messages.fetchMap(`${profileId}@${profileVersion}`, provider, '1.0.0')
       );
       expect(result.stdout).toContain(
-        `Provider "${provider}" found on local file system`
+        messages.localProviderFound(
+          provider,
+          joinPath(
+            process.cwd(),
+            resolve(`../../../../${sourceFixture.provider}`)
+          )
+        )
       );
       // Map and profile
       expect(result.stdout).toMatch(
@@ -327,13 +356,29 @@ describe('Check CLI command', () => {
         mockServer.url
       );
       expect(result.stdout).toContain(
-        `Profile "${profileId}" found on local file system`
+        messages.localProfileFound(
+          profileId,
+          joinPath(
+            process.cwd(),
+            resolve(`../../../../${sourceFixture.profile}`)
+          )
+        )
       );
       expect(result.stdout).toContain(
-        `Map for profile "${profileId}" and provider "${provider}" found on local file system`
+        messages.localMapFound(
+          profileId,
+          provider,
+          joinPath(process.cwd(), resolve(`../../../../${sourceFixture.map}`))
+        )
       );
       expect(result.stdout).toContain(
-        `Provider "${provider}" found on local file system`
+        messages.localProviderFound(
+          provider,
+          joinPath(
+            process.cwd(),
+            resolve(`../../../../${sourceFixture.provider}`)
+          )
+        )
       );
       expect(result.stdout).toContain(JSON.stringify([]));
     });

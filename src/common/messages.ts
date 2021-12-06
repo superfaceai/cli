@@ -6,40 +6,40 @@ const common = {
   mkdir: (path: string) => `Created directory "${path}"`,
   initSuperJson: (path: string) => `Initialized "super.json" at path "${path}"`,
   updateSuperJson: (path: string) => `Updated "super.json" at path "${path}"`,
-  writeProfile: (path: string) => `Profile saved to "${path}"`,
+  writeProfile: (path: string) => `Profile saved to: "${path}"`,
   unableToWriteProfile: (profile: string, err: unknown) =>
     // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-    `Could not write profile ${profile} source: ${err}`,
-  invalidProfileId: (id: string) => `Invalid profile id "${id}"`,
-  invalidProfileName: (name: string) => `Invalid profile name "${name}"`,
+    `Could not write profile: "${profile}"" source: "${err}"`,
+  invalidProfileId: (id: string) => `Invalid profile id: "${id}"`,
+  invalidProfileName: (name: string) => `Invalid profile name: "${name}"`,
   invalidProfileVersion: (version: string) =>
-    `Invalid profile version "${version}"`,
-  invalidProviderName: () => 'Invalid provider name',
+    `Invalid profile version: "${version}"`,
+  invalidProviderName: (name: string) => `Invalid provider name: ${name}`,
   assertProfile: () => 'Asserting profile document',
   assertMap: () => 'Asserting map document',
   errorMessage: (error: string) => error,
   // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
   unknownError: (error: unknown) => `${error}`,
   superfaceServerError: (name: string, message: string) =>
-    `Superface server responded with error "${name}": "${message}"`,
+    `Superface server responded with error: "${name}": "${message}"`,
 };
 
 const load = {
   localProfileFound: (profileId: string, path: string) =>
-    `Profile "${profileId}" found on local file system at path "${path}"`,
+    `Profile "${profileId}" found on local file system at path: "${path}"`,
   localMapFound: (profile: string, provider: string, path: string) =>
-    `Map for profile "${profile}" and provider "${provider}" found on local file system at path "${path}"`,
+    `Map for profile: "${profile}" and provide:r "${provider}" found on local file system at path: "${path}"`,
   localProviderFound: (provider: string, path: string) =>
-    `Provider "${provider}" found on local file system at path "${path}"`,
+    `Provider: "${provider}" found on local file system at path: "${path}"`,
 };
 
 const publish = {
   publishMap: (profile: string, provider: string) =>
-    `Publishing map for profile "${profile}" and provider "${provider}"`,
-  publishProfile: (profile: string) => `Publishing profile "${profile}"`,
-  publishProvider: (provider: string) => `Publishing provider "${provider}"`,
+    `Publishing map for profile: "${profile}" and provider: "${provider}"`,
+  publishProfile: (profile: string) => `Publishing profile: "${profile}"`,
+  publishProvider: (provider: string) => `Publishing provider: "${provider}"`,
   localAndRemoteProvider: (provider: string) =>
-    `Provider "${provider}" found localy linked in "super.json" and also in Superface registry; consider using provider from Superface registry`,
+    `Provider: "${provider}" found localy linked in "super.json" and also in Superface registry; consider using provider from Superface registry`,
   publishEndedWithErrors: () => 'Publishing command ended up with errors:\n',
   publishSuccessful: (documentType: string) =>
     `${documentType} has been published successfully`,
@@ -61,34 +61,34 @@ const loggout = {
 const lint = {
   warningsWereFound: () => 'Warnings were found',
   unexpectedLintError: (mapPath: string, profilePath: string) =>
-    `Unexpected error during validation of map "${mapPath}" to profile "${profilePath}"\nThis error is probably not a problem in linted files but in parser itself\nTry updating CLI and its dependencies or report an issue`,
+    `Unexpected error during validation of map: "${mapPath}" to profile: "${profilePath}"\nThis error is probably not a problem in linted files but in parser itself\nTry updating CLI and its dependencies or report an issue`,
 };
 
 const fetch = {
   fetchProfileInfo: (profile: string) =>
-    `Fetching profile info of profile "${profile}" from Superface registry`,
+    `Fetching profile info of profile: "${profile}" from Superface registry`,
   fetchProfileSource: (profile: string) =>
-    `Fetching profile source for "${profile}" from Superface registry`,
+    `Fetching profile source for: "${profile}" from Superface registry`,
   fetchProfileAst: (profile: string) =>
-    `Fetching compiled profile for "${profile}" from Superface registry`,
+    `Fetching compiled profile for: "${profile}" from Superface registry`,
   fetchProfileAstFailed: (profile: string) =>
-    `Fetching compiled profile for "${profile}" failed, trying to parse source file`,
+    `Fetching compiled profile for: "${profile}" failed, trying to parse source file`,
   fetchProfile: (profile: string, version?: string) => {
     if (version) {
-      return `Fetching profile "${profile}" with version "${version}" from Superface registry`;
+      return `Fetching profile: "${profile}" with version: "${version}" from Superface registry`;
     }
 
-    return `Fetching profile "${profile}" from Superface registry`;
+    return `Fetching profile: "${profile}" from Superface registry`;
   },
   fetchMap: (profile: string, provider: string, astVersion?: string) => {
     if (astVersion) {
-      return `Fetching map for profile "${profile}" and provider "${provider}" with version "${astVersion}" from Superface registry`;
+      return `Fetching map for profile: "${profile}" and provider: "${provider}" with version: "${astVersion}" from Superface registry`;
     }
 
-    return `Fetching map for profile "${profile}" and provider "${provider}" from Superface registry`;
+    return `Fetching map for profile: "${profile}" and provider: "${provider}" from Superface registry`;
   },
   fetchProvider: (provider: string) =>
-    `Fetching provider "${provider}" from Superface registry`,
+    `Fetching provider: "${provider}" from Superface registry`,
   couldNotFetch: (entitiy: string, error: unknown) =>
     // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
     `Could not fetch "${entitiy}": "${error}"`,
@@ -96,25 +96,25 @@ const fetch = {
 
 const configure = {
   configureProviderToSuperJson: (path: string) =>
-    `Configuring provider to "super.json" on path "${path}"`,
+    `Configuring provider to "super.json" on path: "${path}"`,
   configuringProviders: () => 'Configuring providers',
-  configureMultipleProviderSecurity: () => "Configuring providers' security",
+  configureMultipleProviderSecurity: () => "Configuring provider's security",
   configureProviderSecurity: (provider: string) =>
-    `Configuring "${provider}" security`,
+    `Configuring: "${provider}" security`,
   noAuthProvider: (provider: string) =>
-    `Provider "${provider}" can be used without authentication`,
+    `Provider: "${provider}" can be used without authentication`,
   configuringSecuritySchemes: (current: number, total: number) =>
     `Configuring ${current}/${total} security schemes`,
   providerAlreadyExists: (provider: string) =>
-    `Provider "${provider}" already exists (Use '--force/-f' to overwrite profiles)`,
+    `Provider: "${provider}" already exists (Use '--force/-f' to overwrite profiles)`,
   unexpectedSecurityValue: (
     envVariableName: string,
     provider: string,
     authType: string
   ) =>
-    `Value of "${envVariableName}" in "${provider}" ${authType} security scheme does not start with $ character`,
+    `Value of: "${envVariableName}" in: "${provider}" ${authType} security scheme does not start with $ character`,
   unknownSecurityType: (provider: string) =>
-    `Unable to resolve security type for "${provider}"`,
+    `Unable to resolve security type for: "${provider}"`,
   unknownSecurityScheme: (provider: string) =>
     `Provider "${provider}" contains unknown security scheme`,
 
@@ -126,25 +126,29 @@ const configure = {
     `Some security schemes have been configured. Configured ${x} out of ${y}`,
   noSecurityFound: () => 'No security schemes found to configure',
   providerHasParameters: (provider: string, superJsonPath: string) =>
-    `Provider "${provider}" has integration parameters that must be configured. You can configure them in "super.json" in "${superJsonPath}" or set the environment variables as defined below`,
+    `Provider: "${provider}" has integration parameters that must be configured. You can configure them in "super.json" in: "${superJsonPath}" or set the environment variables as defined below`,
   parameterNotConfigured: (
     name: string,
-    description: string,
-    superJsonPath: string
+    superJsonPath: string,
+    description?: string
   ) =>
-    `Parameter "${name}"${description} has not been configured\nPlease, configure this parameter manually in "super.json" in "${superJsonPath}"`,
-  parameterConfigured: (name: string, description: string, value: string) =>
-    `Parameter "${name}"${description} has been configured to use value of environment value "${value}".\nPlease configure this environment value`,
+    `Parameter: "${name}"${
+      description ? ` with description: "${description}"` : ''
+    } has not been configured\nPlease, configure this parameter manually in "super.json" in: "${superJsonPath}"`,
+  parameterConfigured: (name: string, value: string, description?: string) =>
+    `Parameter: "${name}"${
+      description ? ` with description: "${description}"` : ''
+    } has been configured to use value of environment value "${value}".\nPlease configure this environment value`,
   parameterHasDefault: (defaultValue: string) =>
-    `If you do not set the variable, the default value "${defaultValue}" will be used`,
+    `If you do not set the variable, the default value: "${defaultValue}" will be used`,
 };
 
 const install = {
   installMultipleProviders: () => 'Installing providers',
-  installProvider: (provider: string) => `Installing provider "${provider}"`,
+  installProvider: (provider: string) => `Installing provider: "${provider}"`,
   installProfilesToSuperJson: (path: string) =>
-    `Installing profiles according to "super.json" to path "${path}"`,
-  installProfile: (profile: string) => `Installing profile "${profile}"`,
+    `Installing profiles according to "super.json" at path: "${path}"`,
+  installProfile: (profile: string) => `Installing profile: "${profile}"`,
   xOutOfYInstalled: (x: string, y: string) =>
     `Installed ${x} out of ${y} profiles`,
   allProfilesInstalled: (count: string) =>
@@ -152,18 +156,18 @@ const install = {
   noProfilesInstalled: () => 'No profiles have been installed',
   noProfilesFound: () => 'No profiles found to install',
   noVersionForProfile: (profileId: string) =>
-    `No version for profile "${profileId}" was found, returning default version "1.0.0"`,
+    `No version for profile: "${profileId}" was found, returning default version "1.0.0"`,
   couldNotReadProfile: (path: string, err: unknown) =>
     // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-    `Could not read profile file "${path}": ${err}`,
+    `Could not read profile file: "${path}": ${err}`,
   profileInstalledFromSamePath: (profile: string, path: string) =>
-    `Profile "${profile}" already installed from the same path "${path}". Skipping`,
+    `Profile: "${profile}" already installed from the same path: "${path}". Skipping`,
   profileInstalledFromPath: (profile: string, path: string) =>
-    `Profile "${profile}" already installed from a different path "${path}". Pass '--force' to override`,
+    `Profile: "${profile}" already installed from a different path: "${path}". Pass '--force' to override`,
   profileInstalledWithVersion: (profile: string, version: string) =>
-    `Profile "${profile}" already installed with version "${version}". Pass '--force' to override`,
+    `Profile: "${profile}" already installed with version: "${version}". Pass '--force' to override`,
   fileAlreadyExists: (path: string) =>
-    `Target file already exists "${path}". Pass '--force' to override`,
+    `Target file already exists: "${path}". Pass '--force' to override`,
   unableToInstallWithoutProfile: () =>
     'Unable to install providers without a profile. Please specify a profile id',
   missingInteractiveFlag: () =>
@@ -172,35 +176,35 @@ const install = {
 
 const check = {
   checkProfileAndMap: (profile: string, provider: string) =>
-    `Checking profile "${profile}" and map for provider "${provider}"`,
-  checkProvider: (provider: string) => `Checking provider "${provider}"`,
+    `Checking profile: "${profile}" and map for provider: "${provider}"`,
+  checkProvider: (provider: string) => `Checking provider: "${provider}"`,
   checkIntegrationParameters: (provider: string) =>
-    `Checking integration parameters of provider "${provider}"`,
+    `Checking integration parameters of provider: "${provider}"`,
   checkVersions: (profile: string, provider: string) =>
-    `Checking versions of profile "${profile}" and map for provider "${provider}"`,
+    `Checking versions of profile: "${profile}" and map for provider: "${provider}"`,
   checkUsecases: (profile: string, provider: string) =>
-    `Checking usecase definitions in profile "${profile}" and map for provider "${provider}"`,
+    `Checking usecase definitions in profile: "${profile}" and map for provider: "${provider}"`,
 };
 
 const packageManager = {
   packageJsonNotFound: () =>
-    `"package.json" not found in current directory "${process.cwd()}"`,
-  initPm: (pm: string) => `Initializing package manager "${pm}"`,
+    `"package.json" not found in current directory: "${process.cwd()}"`,
+  initPm: (pm: string) => `Initializing package manager: "${pm}"`,
   initPmOnPath: (pm: string, path: string) =>
-    `Initializing "${pm}" in "${path}"`,
+    `Initializing: "${pm}" at: "${path}"`,
 
   pmAlreadyInitialized: (pm: string) => `"${pm}" already initialized.`,
   pmNotInitialized: (packageName: string) =>
-    `Unable to install package "${packageName}" without package.json`,
+    `Unable to install package: "${packageName}" without package.json`,
   installPackage: (packageName: string) =>
-    `Installing package "${packageName}"`,
+    `Installing package: "${packageName}"`,
   installPackageOnPath: (packageName: string, path: string, command: string) =>
-    `Installing package "${packageName}" in "${path}" with "${command}"`,
+    `Installing package: "${packageName}" at: "${path}" with: "${command}"`,
 
   configurePackage: (packageName: string) =>
-    `Configuring package "${packageName}"`,
+    `Configuring package: "${packageName}"`,
   shellCommandError: (command: string, error: string) =>
-    `Shell command "${command}" responded with ${error}`,
+    `Shell command: "${command}" responded with: ${error}`,
   stdout: (stdout: string) => stdout,
 };
 
@@ -220,19 +224,19 @@ const init = {
 
 const create = {
   createProfile: (profile: string, path: string) =>
-    `Created profile "${profile}" at path "${path}"`,
+    `Created profile: "${profile}" at path: "${path}"`,
   createMap: (profile: string, provider: string, path: string) =>
-    `Created map for profile "${profile}" and provider "${provider}" at path "${path}"`,
+    `Created map for profile: "${profile}" and provider: "${provider}" at path: "${path}"`,
   createProvider: (provider: string, path: string) =>
-    `Created provider "${provider}" at path "${path}"`,
+    `Created provider: "${provider}" at path: "${path}"`,
   unverifiedPrefix: (provider: string, prefix: string) =>
-    `Published provider name must have prefix "${prefix}"\nIf you are planning to publish this map or provider consider renaming it, eg: "${prefix}${provider}"`,
+    `Published provider name must have prefix: "${prefix}"\nIf you are planning to publish this map or provider consider renaming it, eg: "${prefix}${provider}"`,
 };
 
 const compile = {
-  compileProfile: (profile: string) => `Compiling profile "${profile}"`,
+  compileProfile: (profile: string) => `Compiling profile: "${profile}"`,
   compileMap: (profile: string, provider: string) =>
-    `Compiling map for profile "${profile}" and provider "${provider}"`,
+    `Compiling map for profile: "${profile}" and provider: "${provider}"`,
   compiledSuccessfully: () => 'compiled successfully',
 };
 
@@ -242,14 +246,14 @@ const generate = {
 
 const whoami = {
   loggedInAs: (name: string, email: string) =>
-    `You are logged in as "${name} (${email})"`,
+    `You are logged in as: "${name} (${email})"`,
   notLoggedIn: () =>
     "You are not logged in. Please try running 'superface login'",
 };
 
 const quickstart = {
   configuredWithSdkToken: (envName: string) =>
-    `Your SDK token was saved to "${envName}" variable in .env file. You can use it for authentization during SDK usage by loading it to your enviroment`,
+    `Your SDK token was saved to: "${envName}" variable in .env file. You can use it for authentization during SDK usage by loading it to your enviroment`,
   configuredWithoutSdkToken: () => 'Continuing without SDK token',
   superfaceConfigureSuccess: () => 'Superface has been configured successfully',
   capabilityDocsUrl: (url: string) =>

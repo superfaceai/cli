@@ -32,7 +32,7 @@ const parseProviders = (input: string, logger: ILogger): string[] =>
     .filter(i => i.trim() !== '')
     .filter(p => {
       if (!isValidProviderName(p)) {
-        logger.warn('invalidProviderName');
+        logger.warn('invalidProviderName', p);
 
         return false;
       }

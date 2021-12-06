@@ -247,11 +247,6 @@ export async function installProvider(
   if (providerInfo.parameters && providerInfo.parameters.length > 0) {
     logger.info('providerHasParameters', providerInfo.name, superJson.path);
     for (const parameter of providerInfo.parameters) {
-      let description = '';
-      if (parameter.description) {
-        description = ` with description "${parameter.description}"`;
-      }
-
       const superJsonValue =
         superJson.normalized.providers[providerInfo.name].parameters[
           parameter.name
@@ -260,15 +255,15 @@ export async function installProvider(
         logger.warn(
           'parameterNotConfigured',
           parameter.name,
-          description,
-          superJson.path
+          superJson.path,
+          parameter.description
         );
       } else {
         logger.success(
           'parameterConfigured',
           parameter.name,
-          description,
-          superJsonValue
+          superJsonValue,
+          parameter.description
         );
       }
       if (parameter.default) {
