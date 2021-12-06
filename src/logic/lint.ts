@@ -258,8 +258,6 @@ async function prepareLintedMap(
   superJson: SuperJson,
   profile: ProfileToValidate,
   map: MapToValidate,
-  // writer: ListWriter,
-  // fn: (report: ReportFormat) => string,
   options?: {
     logCb?: LogCallback;
   }
