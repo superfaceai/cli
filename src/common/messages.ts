@@ -9,7 +9,7 @@ const common = {
   writeProfile: (path: string) => `Profile saved to: "${path}"`,
   unableToWriteProfile: (profile: string, err: unknown) =>
     // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-    `Could not write profile: "${profile}"" source: "${err}"`,
+    `Could not write profile: "${profile}" source: "${err}"`,
   invalidProfileId: (id: string) => `Invalid profile id: "${id}"`,
   invalidProfileName: (name: string) => `Invalid profile name: "${name}"`,
   invalidProfileVersion: (version: string) =>
@@ -28,7 +28,7 @@ const load = {
   localProfileFound: (profileId: string, path: string) =>
     `Profile "${profileId}" found on local file system at path: "${path}"`,
   localMapFound: (profile: string, provider: string, path: string) =>
-    `Map for profile: "${profile}" and provide:r "${provider}" found on local file system at path: "${path}"`,
+    `Map for profile: "${profile}" and provider: "${provider}" found on local file system at path: "${path}"`,
   localProviderFound: (provider: string, path: string) =>
     `Provider: "${provider}" found on local file system at path: "${path}"`,
 };
