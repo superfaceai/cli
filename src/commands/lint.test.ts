@@ -5,7 +5,7 @@ import { mocked } from 'ts-jest/utils';
 import { OutputStream } from '../common/output-stream';
 import { ProfileId } from '../common/profile';
 import { detectSuperJson } from '../logic/install';
-import { formatHuman, lint, LintResult } from '../logic/lint';
+import { formatHuman, formatJson, lint, LintResult } from '../logic/lint';
 import Lint from './lint';
 
 //Mock output stream
@@ -124,6 +124,21 @@ describe('lint CLI command', () => {
         Lint.run(['--profileId', 'U!0_', '--providerName', provider, '-s', '3'])
       ).rejects.toThrow(
         'Invalid profile id: "U!0_" is not a valid lowercase identifier'
+      );
+      expect(detectSuperJson).not.toHaveBeenCalled();
+      expect(loadSpy).not.toHaveBeenCalled();
+    }, 10000);
+
+    it('throws error on missing profile id', async () => {
+      mocked(detectSuperJson).mockResolvedValue('.');
+      const loadSpy = jest
+        .spyOn(SuperJson, 'load')
+        .mockResolvedValue(ok(new SuperJson()));
+
+      await expect(
+        Lint.run(['--providerName', 'test', '-s', '3'])
+      ).rejects.toThrow(
+        '--profileId must be specified when using --providerName'
       );
       expect(detectSuperJson).not.toHaveBeenCalled();
       expect(loadSpy).not.toHaveBeenCalled();
@@ -678,6 +693,77 @@ describe('lint CLI command', () => {
           formatHuman(mockResult.reports[1], true, true)
         );
         expect(writeSpy).toHaveBeenCalledWith(`\nDetected 0 problems\n`);
+
+        expect(cleanupSpy).toHaveBeenCalledTimes(1);
+      });
+
+      it('lints remote profile and remote map, with json format', async () => {
+        const mockProfile = 'starwars/character-information';
+        const mockProvider = 'swapi';
+        const version = '1.0.2';
+        const mapVariant = 'test';
+        const mockSuperJson = new SuperJson({
+          profiles: {
+            [mockProfile]: {
+              version,
+              defaults: {},
+              providers: {
+                [mockProvider]: {
+                  mapVariant,
+                },
+              },
+            },
+          },
+          providers: {
+            [mockProvider]: {
+              file: '../swapi.provider.json',
+              security: [],
+            },
+          },
+        });
+        const loadSpy = jest
+          .spyOn(SuperJson, 'load')
+          .mockResolvedValue(ok(mockSuperJson));
+
+        mocked(detectSuperJson).mockResolvedValue('.');
+        mocked(lint).mockResolvedValue(mockResult);
+        const writeSpy = jest
+          .spyOn(OutputStream.prototype, 'write')
+          .mockResolvedValue(undefined);
+        const cleanupSpy = jest
+          .spyOn(OutputStream.prototype, 'cleanup')
+          .mockResolvedValue(undefined);
+
+        await expect(
+          Lint.run([
+            '--profileId',
+            mockProfile,
+            '--providerName',
+            mockProvider,
+            '-s',
+            '4',
+            '-f',
+            'json',
+          ])
+        ).resolves.toBeUndefined();
+
+        expect(lint).toHaveBeenCalledTimes(1);
+        expect(lint).toHaveBeenCalledWith(
+          mockSuperJson,
+          [
+            {
+              id: ProfileId.fromId(mockProfile),
+              maps: [{ provider: mockProvider, variant: mapVariant }],
+              version,
+            },
+          ],
+          { logCb: undefined, errCb: undefined }
+        );
+
+        expect(detectSuperJson).toHaveBeenCalledWith(process.cwd(), 4);
+        expect(loadSpy).toHaveBeenCalledTimes(1);
+        expect(writeSpy).toHaveBeenCalledTimes(1);
+        expect(writeSpy).toHaveBeenCalledWith(formatJson(mockResult));
 
         expect(cleanupSpy).toHaveBeenCalledTimes(1);
       });
