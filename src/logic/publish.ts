@@ -122,8 +122,8 @@ export async function publish(
   }
 
   //check if user is logged in
-  const netRc = loadNetrc();
-  if (!netRc.refreshToken && !process.env.SUPERFACE_REFRESH_TOKEN) {
+  const netRcToken = loadNetrc();
+  if (!netRcToken && !process.env.SUPERFACE_REFRESH_TOKEN) {
     throw userError(
       `You have to be logged in to publish ${publishing}. Please run: "sf login"`,
       1

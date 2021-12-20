@@ -6,9 +6,9 @@ import { loadNetrc, saveNetrc } from './netrc';
 jest.mock('./http');
 
 const mockRefreshToken = 'RT';
-const mockBaseUrlWithExistingRecord = 'existing';
-const mockBaseUrlWithEmptyRecord = 'empty';
-const mockBaseUrl = 'superface.ai';
+const mockBaseUrlWithExistingRecord = 'https://existing.io';
+const mockBaseUrlWithEmptyRecord = 'https://empty.io';
+const mockBaseUrl = 'https://superface.ai';
 
 const mockLoadSync = jest.fn();
 const mockSave = jest.fn();
@@ -22,10 +22,10 @@ jest.mock('netrc-parser', () => {
         save: mockSave,
         load: mockLoad,
         machines: {
-          [mockBaseUrlWithExistingRecord]: {
+          ['existing.io']: {
             password: mockRefreshToken,
           },
-          [mockBaseUrlWithEmptyRecord]: {},
+          ['empty.io']: {},
         },
       };
     }),
@@ -35,27 +35,18 @@ describe('NetRc functions', () => {
   describe('when loading netrc record', () => {
     it('calls netrc correctly with existing record', () => {
       mocked(getServicesUrl).mockReturnValue(mockBaseUrlWithExistingRecord);
-      expect(loadNetrc()).toEqual({
-        baseUrl: mockBaseUrlWithExistingRecord,
-        refreshToken: mockRefreshToken,
-      });
+      expect(loadNetrc()).toEqual(mockRefreshToken);
       expect(mockLoadSync).toHaveBeenCalled();
     });
     it('calls netrc correctly with empty record', () => {
       mocked(getServicesUrl).mockReturnValue(mockBaseUrlWithEmptyRecord);
-      expect(loadNetrc()).toEqual({
-        baseUrl: mockBaseUrlWithEmptyRecord,
-        refreshToken: undefined,
-      });
+      expect(loadNetrc()).toBeUndefined();
       expect(mockLoadSync).toHaveBeenCalled();
     });
 
     it('calls netrc correctly with undefined record', () => {
       mocked(getServicesUrl).mockReturnValue(mockBaseUrl);
-      expect(loadNetrc()).toEqual({
-        baseUrl: mockBaseUrl,
-        refreshToken: undefined,
-      });
+      expect(loadNetrc()).toBeUndefined()
       expect(mockLoadSync).toHaveBeenCalled();
     });
   });

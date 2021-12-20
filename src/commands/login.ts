@@ -18,11 +18,11 @@ export default class Login extends Command {
     }),
   };
 
-  private warnCallback? = (message: string) =>
+  private warnCallback?= (message: string) =>
     this.log('⚠️  ' + yellow(message));
 
-  private logCallback? = (message: string) => this.log(grey(message));
-  private successCallback? = (message: string) =>
+  private logCallback?= (message: string) => this.log(grey(message));
+  private successCallback?= (message: string) =>
     this.log(bold(green(message)));
 
   static examples = ['$ superface login', '$ superface login -f'];
@@ -41,23 +41,31 @@ export default class Login extends Command {
         `Using value from SUPERFACE_REFRESH_TOKEN environment variable`
       );
     } else {
-      const storeUrl = getServicesUrl();
+      const machine = new URL(getServicesUrl()).host
+      console.log('machine', machine)
       //environment variable for specific netrc file
       const netrc = new Netrc(process.env.NETRC_FILEPATH);
       await netrc.load();
-      const previousEntry = netrc.machines[storeUrl];
+      console.log('net', netrc.machines)
+      const previousEntry = netrc.machines[machine];
+
+      console.log('entry', previousEntry)
       try {
         //check if already logged in and logout
         if (previousEntry && previousEntry.password) {
+          console.log('go')
           this.logCallback?.('⚠️ Already logged in, logging out');
           //logout from service client
+          console.log('before')
           await SuperfaceClient.getClient().logout();
         }
       } catch (err) {
+        console.log('err', err)
         this.warnCallback?.(err);
       }
     }
 
+    console.log('after')
     await login({
       logCb: this.logCallback,
       warnCb: this.warnCallback,

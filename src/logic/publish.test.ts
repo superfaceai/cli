@@ -250,10 +250,7 @@ describe('Publish logic', () => {
           [mockProviderName]: {},
         },
       });
-      mocked(loadNetrc).mockReturnValue({
-        refreshToken: 'RT',
-        baseUrl: 'https://superface.ai',
-      });
+      mocked(loadNetrc).mockReturnValue('RT');
       mocked(getServicesUrl).mockReturnValue('');
       mocked(loadProfile).mockResolvedValue({
         ast: mockProfileDocument,
@@ -337,10 +334,7 @@ describe('Publish logic', () => {
           [mockProviderName]: {},
         },
       });
-      mocked(loadNetrc).mockReturnValue({
-        refreshToken: 'RT',
-        baseUrl: 'https://superface.ai',
-      });
+      mocked(loadNetrc).mockReturnValue('RT');
       mocked(loadProfile).mockResolvedValue({
         ast: mockProfileDocument,
         from: mockLocalProfileFrom,
@@ -420,10 +414,7 @@ describe('Publish logic', () => {
           [mockProviderName]: {},
         },
       });
-      mocked(loadNetrc).mockReturnValue({
-        refreshToken: 'RT',
-        baseUrl: 'https://superface.ai',
-      });
+      mocked(loadNetrc).mockReturnValue('RT');
       mocked(loadProfile).mockResolvedValue({
         ast: mockProfileDocument,
         from: mockLocalProfileFrom,
@@ -503,10 +494,7 @@ describe('Publish logic', () => {
           [mockProviderName]: {},
         },
       });
-      mocked(loadNetrc).mockReturnValue({
-        refreshToken: 'RT',
-        baseUrl: 'https://superface.ai',
-      });
+      mocked(loadNetrc).mockReturnValue('RT');
       mocked(loadProfile).mockResolvedValue({
         ast: mockProfileDocument,
         from: mockLocalProfileFrom,
@@ -632,10 +620,7 @@ describe('Publish logic', () => {
           [mockProviderName]: {},
         },
       });
-      mocked(loadNetrc).mockReturnValue({
-        refreshToken: 'RT',
-        baseUrl: 'https://superface.ai',
-      });
+      mocked(loadNetrc).mockReturnValue('RT');
       mocked(loadProfile).mockResolvedValue({
         ast: mockProfileDocument,
         from: mockRemoteProfileFrom,
@@ -719,10 +704,7 @@ describe('Publish logic', () => {
           [mockProviderName]: {},
         },
       });
-      mocked(loadNetrc).mockReturnValue({
-        refreshToken: 'RT',
-        baseUrl: 'https://superface.ai',
-      });
+      mocked(loadNetrc).mockReturnValue('RT');
       mocked(loadProfile).mockResolvedValue({
         ast: mockProfileDocument,
         from: mockLocalProfileFrom,
@@ -805,10 +787,7 @@ describe('Publish logic', () => {
           [mockProviderName]: {},
         },
       });
-      mocked(loadNetrc).mockReturnValue({
-        refreshToken: 'RT',
-        baseUrl: 'https://superface.ai',
-      });
+      mocked(loadNetrc).mockReturnValue('RT');
       mocked(loadProfile).mockResolvedValue({
         ast: mockProfileDocument,
         from: mockRemoteProfileFrom,
@@ -891,10 +870,7 @@ describe('Publish logic', () => {
           [mockProviderName]: {},
         },
       });
-      mocked(loadNetrc).mockReturnValue({
-        refreshToken: 'RT',
-        baseUrl: 'https://superface.ai',
-      });
+      mocked(loadNetrc).mockReturnValue('RT');
       mocked(loadProfile).mockResolvedValue({
         ast: mockProfileDocument,
         from: mockRemoteProfileFrom,
@@ -978,10 +954,7 @@ describe('Publish logic', () => {
           [mockProviderName]: {},
         },
       });
-      mocked(loadNetrc).mockReturnValue({
-        refreshToken: 'RT',
-        baseUrl: 'https://superface.ai',
-      });
+      mocked(loadNetrc).mockReturnValue('RT');
       mocked(loadProfile).mockResolvedValue({
         ast: mockProfileDocument,
         from: mockRemoteProfileFrom,
@@ -1135,10 +1108,7 @@ describe('Publish logic', () => {
           },
         },
       });
-      mocked(loadNetrc).mockReturnValue({
-        refreshToken: 'RT',
-        baseUrl: 'https://superface.ai',
-      });
+      mocked(loadNetrc).mockReturnValue('RT');
       mocked(loadProfile).mockResolvedValue({
         ast: mockProfileDocument,
         from: mockLocalProfileFrom,
@@ -1238,10 +1208,7 @@ describe('Publish logic', () => {
           },
         },
       });
-      mocked(loadNetrc).mockReturnValue({
-        refreshToken: 'RT',
-        baseUrl: 'https://superface.ai',
-      });
+      mocked(loadNetrc).mockReturnValue('RT');
       mocked(loadProfile).mockResolvedValue({
         ast: mockProfileDocument,
         from: mockRemoteProfileFrom,
@@ -1327,10 +1294,7 @@ describe('Publish logic', () => {
           },
         },
       });
-      mocked(loadNetrc).mockReturnValue({
-        refreshToken: 'RT',
-        baseUrl: 'https://superface.ai',
-      });
+      mocked(loadNetrc).mockReturnValue('RT');
       mocked(loadProfile).mockResolvedValue({
         ast: mockProfileDocument,
         from: mockRemoteProfileFrom,
@@ -1428,10 +1392,7 @@ describe('Publish logic', () => {
           },
         },
       });
-      mocked(loadNetrc).mockReturnValue({
-        refreshToken: 'RT',
-        baseUrl: 'https://superface.ai',
-      });
+      mocked(loadNetrc).mockReturnValue('RT');
       mocked(loadProfile).mockResolvedValue({
         ast: mockProfileDocument,
         from: mockRemoteProfileFrom,

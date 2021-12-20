@@ -43,12 +43,12 @@ describe('SuperfaceClient', () => {
         baseUrl: 'baseUrl',
         refreshToken: 'RT',
       };
-      mocked(loadNetrc).mockReturnValue(mockNetRcRecord);
+      mocked(loadNetrc).mockReturnValue(mockNetRcRecord.refreshToken);
       const client = sfClient.getClient();
 
       expect(client).toEqual({
         _STORAGE: {
-          baseUrl: mockNetRcRecord.baseUrl,
+          baseUrl: getServicesUrl(),
           refreshToken: mockNetRcRecord.refreshToken,
           commonHeaders: {
             ['User-Agent']: expect.any(String),

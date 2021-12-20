@@ -58,10 +58,10 @@ export class SuperfaceClient {
           //Do not use seveNetrc - refresh token from enviroment should not be saved
         });
       } else {
-        const netrcRecord = loadNetrc();
+        const netrcRefreshToken = loadNetrc();
         SuperfaceClient.serviceClient = new ServiceClient({
-          baseUrl: netrcRecord.baseUrl,
-          refreshToken: netrcRecord.refreshToken,
+          baseUrl: getServicesUrl(),
+          refreshToken: netrcRefreshToken,
           commonHeaders: { 'User-Agent': userAgent },
           refreshTokenUpdatedHandler: saveNetrc,
         });

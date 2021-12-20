@@ -7,8 +7,8 @@ import { MockStd, mockStd } from '../test/mock-std';
 import Login from './login';
 
 const mockRefreshToken = 'RT';
-const mockBaseUrlWithExistingRecord = 'existing';
-const mockBaseUrlWithEmptyRecord = 'empty';
+const mockBaseUrlWithExistingRecord = 'https://existing.io';
+const mockBaseUrlWithEmptyRecord = 'https://empty.io';
 
 jest.mock('../logic/login');
 jest.mock('../common/http', () => ({
@@ -29,10 +29,10 @@ jest.mock('netrc-parser', () => {
         save: mockSave,
         load: mockLoad,
         machines: {
-          [mockBaseUrlWithExistingRecord]: {
+          ['existing.io']: {
             password: mockRefreshToken,
           },
-          [mockBaseUrlWithEmptyRecord]: {},
+          ['empty.io']: {},
         },
       };
     }),
@@ -44,7 +44,7 @@ describe('Login CLI command', () => {
   const logoutSpy = jest.spyOn(ServiceClient.prototype, 'logout');
 
   let stdout: MockStd;
-  let stderr: MockStd;
+  // let stderr: MockStd;
 
   beforeEach(async () => {
     mockSave.mockClear();
@@ -53,13 +53,13 @@ describe('Login CLI command', () => {
 
     logoutSpy.mockClear();
     stdout = mockStd();
-    jest
-      .spyOn(process['stdout'], 'write')
-      .mockImplementation(stdout.implementation);
-    stderr = mockStd();
-    jest
-      .spyOn(process['stderr'], 'write')
-      .mockImplementation(stderr.implementation);
+    // jest
+    //   .spyOn(process['stdout'], 'write')
+    //   .mockImplementation(stdout.implementation);
+    // stderr = mockStd();
+    // jest
+    //   .spyOn(process['stderr'], 'write')
+    //   .mockImplementation(stderr.implementation);
   });
 
   afterAll(() => {
@@ -97,11 +97,9 @@ describe('Login CLI command', () => {
       expect(logoutSpy).not.toHaveBeenCalled();
       expect(stdout.output).toEqual('');
     });
-    it('calls login correctly - existing record in netrc and force flag', async () => {
+    it.only('calls login correctly - existing record in netrc and force flag', async () => {
       mocked(getServicesUrl).mockReturnValue(mockBaseUrlWithExistingRecord);
-      const logoutSpy = jest
-        .spyOn(ServiceClient.prototype, 'logout')
-        .mockResolvedValue(undefined);
+      logoutSpy.mockResolvedValue(undefined);
 
       await expect(Login.run(['-f'])).resolves.toBeUndefined();
 
