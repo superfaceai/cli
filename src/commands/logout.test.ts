@@ -1,21 +1,18 @@
 import { ServiceClient, ServiceClientError } from '@superfaceai/service-client';
 
-import { MockStd, mockStd } from '../test/mock-std';
+import { MockLogger } from '../common';
+import { createUserError } from '../common/error';
+import { CommandInstance } from '../test/utils';
 import Logout from './logout';
 
 describe('Logout CLI command', () => {
-  let stdout: MockStd;
-  let stderr: MockStd;
+  let logger: MockLogger;
+  let instance: Logout;
+  const userError = createUserError(false);
 
   beforeEach(async () => {
-    stdout = mockStd();
-    jest
-      .spyOn(process['stdout'], 'write')
-      .mockImplementation(stdout.implementation);
-    stderr = mockStd();
-    jest
-      .spyOn(process['stderr'], 'write')
-      .mockImplementation(stderr.implementation);
+    logger = new MockLogger();
+    instance = CommandInstance(Logout);
   });
 
   afterEach(async () => {
@@ -28,10 +25,12 @@ describe('Logout CLI command', () => {
         .spyOn(ServiceClient.prototype, 'signOut')
         .mockResolvedValue(null);
 
-      await expect(Logout.run([])).resolves.toBeUndefined();
+      await expect(
+        instance.execute({ logger, userError, flags: {} })
+      ).resolves.toBeUndefined();
       expect(getInfoSpy).toHaveBeenCalled();
-      expect(stderr.output).toEqual('');
-      expect(stdout.output).toEqual(`🆗 You have been logged out\n`);
+      expect(logger.stderr).toEqual([]);
+      expect(logger.stdout).toContainEqual(['loggoutSuccessful', []]);
     });
 
     it('calls getUserInfo correctly, user logged out', async () => {
@@ -41,12 +40,15 @@ describe('Logout CLI command', () => {
           new ServiceClientError("No session found, couldn't log out")
         );
 
-      await expect(Logout.run([])).resolves.toBeUndefined();
+      await expect(
+        instance.execute({ logger, userError, flags: {} })
+      ).resolves.toBeUndefined();
       expect(getInfoSpy).toHaveBeenCalled();
-      expect(stderr.output).toEqual('');
-      expect(stdout.output).toEqual(
-        `Superface server responded with: No session found, couldn't log out\n`
-      );
+      expect(logger.stderr).toEqual([]);
+      expect(logger.stdout).toContainEqual([
+        'superfaceServerError',
+        ['Error', "No session found, couldn't log out"],
+      ]);
     });
 
     it('calls getUserInfo correctly, unknown error', async () => {
@@ -55,10 +57,12 @@ describe('Logout CLI command', () => {
         .spyOn(ServiceClient.prototype, 'signOut')
         .mockRejectedValue(mockErr);
 
-      await expect(Logout.run([])).rejects.toThrow(' Error: test');
+      await expect(
+        instance.execute({ logger, userError, flags: {} })
+      ).rejects.toThrow('test');
       expect(getInfoSpy).toHaveBeenCalled();
-      expect(stderr.output).toEqual('');
-      expect(stdout.output).toEqual('');
+      expect(logger.stderr).toEqual([]);
+      expect(logger.stdout).toEqual([]);
     });
   });
 });

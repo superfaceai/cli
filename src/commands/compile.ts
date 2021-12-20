@@ -2,12 +2,12 @@ import { flags as oclifFlags } from '@oclif/command';
 import { isValidProviderName } from '@superfaceai/ast';
 import { SuperJson } from '@superfaceai/one-sdk';
 import { parseDocumentId } from '@superfaceai/parser';
-import { bold, green, grey } from 'chalk';
 import { join as joinPath } from 'path';
 
-import { Command } from '../common/command.abstract';
+import { Command, Flags } from '../common/command.abstract';
 import { META_FILE } from '../common/document';
-import { userError } from '../common/error';
+import { UserError } from '../common/error';
+import { ILogger } from '../common/log';
 import { ProfileId } from '../common/profile';
 import { compile, MapToCompile, ProfileToCompile } from '../logic/compile';
 import { detectSuperJson } from '../logic/install';
@@ -55,18 +55,25 @@ export default class Compile extends Command {
     '$ superface compile --profileId starwars/character-information --providerName swapi --onlyMap --onlyProfile',
   ];
 
-  private logCallback? = (message: string) => this.log(grey(message));
-  private successCallback? = (message: string) =>
-    this.log(bold(green(message)));
-
   async run(): Promise<void> {
     const { flags } = this.parse(Compile);
+    await super.initialize(flags);
+    await this.execute({
+      logger: this.logger,
+      userError: this.userError,
+      flags,
+    });
+  }
 
-    if (flags.quiet) {
-      this.logCallback = undefined;
-      this.successCallback = undefined;
-    }
-
+  async execute({
+    logger,
+    userError,
+    flags,
+  }: {
+    logger: ILogger;
+    userError: UserError;
+    flags: Flags<typeof Compile.flags>;
+  }): Promise<void> {
     // Check inputs
     if (flags.profileId) {
       const parsedProfileId = parseDocumentId(flags.profileId);
@@ -81,7 +88,7 @@ export default class Compile extends Command {
       }
       if (!flags.profileId) {
         throw userError(
-          `--profileId must be specified when using --providerName`,
+          '--profileId must be specified when using --providerName',
           1
         );
       }
@@ -151,7 +158,7 @@ export default class Compile extends Command {
           profiles.push({
             path: superJson.resolvePath(profileSettings.file),
             maps,
-            id: ProfileId.fromId(profile),
+            id: ProfileId.fromId(profile, { userError }),
           });
         }
       }
@@ -176,7 +183,7 @@ export default class Compile extends Command {
         profiles.push({
           path: superJson.resolvePath(profileSettings.file),
           maps,
-          id: ProfileId.fromId(flags.profileId),
+          id: ProfileId.fromId(flags.profileId, { userError }),
         });
       }
     }
@@ -198,17 +205,22 @@ export default class Compile extends Command {
         profiles.push({
           path: superJson.resolvePath(profileSettings.file),
           maps,
-          id: ProfileId.fromId(flags.profileId),
+          id: ProfileId.fromId(flags.profileId, { userError }),
         });
       }
     }
 
-    await compile(profiles, {
-      logCb: this.logCallback,
-      onlyMap: flags.onlyMap,
-      onlyProfile: flags.onlyProfile,
-    });
+    await compile(
+      {
+        profiles,
+        options: {
+          onlyMap: flags.onlyMap,
+          onlyProfile: flags.onlyProfile,
+        },
+      },
+      { logger, userError }
+    );
 
-    this.successCallback?.(`🆗 compiled successfully.`);
+    logger.success('compiledSuccessfully');
   }
 }

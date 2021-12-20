@@ -2,15 +2,14 @@ import { flags } from '@oclif/command';
 import { EXTENSIONS, isValidProviderName } from '@superfaceai/ast';
 import { SuperJson } from '@superfaceai/one-sdk';
 import { parseDocumentId } from '@superfaceai/parser';
-import { green, grey, yellow } from 'chalk';
 import inquirer from 'inquirer';
 import { join as joinPath } from 'path';
 
 import { META_FILE, UNVERIFIED_PROVIDER_PREFIX } from '../common';
-import { Command } from '../common/command.abstract';
-import { userError } from '../common/error';
+import { Command, Flags } from '../common/command.abstract';
+import { UserError } from '../common/error';
 import { getServicesUrl } from '../common/http';
-import { formatShellLog } from '../common/log';
+import { ILogger } from '../common/log';
 import { OutputStream } from '../common/output-stream';
 import { ProfileId } from '../common/profile';
 import {
@@ -76,20 +75,30 @@ export default class Publish extends Command {
     '$ superface publish profile --profileId starwars/characeter-information --providerName swapi --dryRun',
   ];
 
-  private logCallback? = (message: string) => this.log(grey(message));
-  private warnCallback? = (message: string) => this.log(yellow(message));
-  private successCallback? = (message: string) => this.log(green(message));
-
   async run(): Promise<void> {
     const { argv, flags } = this.parse(Publish);
+    await super.initialize(flags);
 
+    await this.execute({
+      logger: this.logger,
+      userError: this.userError,
+      flags,
+      argv,
+    });
+  }
+
+  async execute({
+    logger,
+    userError,
+    flags,
+    argv,
+  }: {
+    logger: ILogger;
+    userError: UserError;
+    flags: Flags<typeof Publish.flags>;
+    argv: string[];
+  }): Promise<void> {
     const documentType = argv[0];
-
-    if (flags.quiet) {
-      this.logCallback = undefined;
-      this.successCallback = undefined;
-      this.warnCallback = undefined;
-    }
 
     // Check inputs
     const parsedProfileId = parseDocumentId(flags.profileId);
@@ -150,7 +159,7 @@ export default class Publish extends Command {
     if (documentType === 'profile') {
       if (!('file' in profileSettings)) {
         throw userError(
-          `When publishing profile, profile must be locally linked in super.json`,
+          'When publishing profile, profile must be locally linked in super.json',
           1
         );
       }
@@ -165,7 +174,7 @@ export default class Publish extends Command {
     } else if (documentType === 'map') {
       if (!('file' in profileProviderSettings)) {
         throw userError(
-          `When publishing map, map must be locally linked in super.json`,
+          'When publishing map, map must be locally linked in super.json',
           1
         );
       }
@@ -185,7 +194,7 @@ export default class Publish extends Command {
       }
       if (!('file' in providerSettings) || !providerSettings.file) {
         throw userError(
-          `When publishing provider, provider must be locally linked in super.json`,
+          'When publishing provider, provider must be locally linked in super.json',
           1
         );
       }
@@ -225,29 +234,30 @@ export default class Publish extends Command {
     };
 
     const result = await publish(
-      documentType,
-      superJson,
-      ProfileId.fromId(flags.profileId),
-      flags.providerName,
-      map,
-      version,
       {
-        logCb: this.logCallback,
-        dryRun: flags.dryRun,
-        json: flags.json,
-        quiet: flags.quiet,
-      }
+        publishing: documentType,
+        superJson,
+        profile: ProfileId.fromId(flags.profileId, { userError }),
+        provider: flags.providerName,
+        map,
+        version,
+        options: {
+          dryRun: flags.dryRun,
+          json: flags.json,
+          quiet: flags.quiet,
+          emoji: !flags.noEmoji,
+        },
+      },
+      { logger, userError }
     );
     if (result) {
-      this.warnCallback?.('❌ Publishing command ended up with errors:\n');
+      logger.warn('publishEndedWithErrors');
       this.log(result);
 
       return;
     }
 
-    this.successCallback?.(
-      `🆗 ${documentType} has been published successfully.`
-    );
+    logger.success('publishSuccessful', documentType);
     let transition = true;
     if (!flags.force) {
       const prompt: { continue: boolean } = await inquirer.prompt({
@@ -267,7 +277,7 @@ export default class Publish extends Command {
       if (documentType === 'map') {
         await reconfigureProfileProvider(
           superJson,
-          ProfileId.fromId(flags.profileId),
+          ProfileId.fromId(flags.profileId, { userError }),
           flags.providerName,
           {
             kind: 'remote',
@@ -283,9 +293,7 @@ export default class Publish extends Command {
         force: flags.force,
       });
 
-      this.logCallback?.(
-        formatShellLog("echo '<updated super.json>' >", [superJson.path])
-      );
+      logger.info('updateSuperJson', superJson.path);
     }
   }
 }

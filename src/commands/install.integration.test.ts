@@ -9,7 +9,6 @@ import { execCLI, mockResponsesForProfile, setUpTempDir } from '../test/utils';
 const mockServer = getLocal();
 
 describe('Install CLI command', () => {
-  //File specific path
   const TEMP_PATH = joinPath('test', 'tmp');
   let tempDir: string;
 
@@ -43,7 +42,7 @@ describe('Install CLI command', () => {
         mockServer.url
       );
       expect(result.stdout).toMatch(
-        'All profiles (1) have been installed successfully.'
+        'All profiles (1) have been installed successfully'
       );
       await expect(
         exists(joinPath(tempDir, 'superface', 'super.json'))
@@ -68,7 +67,7 @@ describe('Install CLI command', () => {
         mockServer.url
       );
       expect(result.stdout).toMatch(
-        'All profiles (1) have been installed successfully.'
+        'All profiles (1) have been installed successfully'
       );
       await expect(
         exists(joinPath(tempDir, 'superface', 'super.json'))
@@ -98,7 +97,7 @@ describe('Install CLI command', () => {
         mockServer.url
       );
       expect(result.stdout).toMatch(
-        'All profiles (1) have been installed successfully.'
+        'All profiles (1) have been installed successfully'
       );
       await expect(
         exists(joinPath(tempDir, 'superface', 'super.json'))
@@ -121,7 +120,7 @@ describe('Install CLI command', () => {
         ['install', profileIdRequest, '--local'],
         mockServer.url
       );
-      expect(result.stdout).toMatch('❌ No profiles have been installed');
+      expect(result.stdout).toMatch('No profiles have been installed');
 
       await expect(
         exists(joinPath(tempDir, 'superface', 'super.json'))
@@ -153,15 +152,13 @@ describe('Install CLI command', () => {
         JSON.stringify(localSuperJson, undefined, 2)
       );
 
-      const result = await execCLI(
-        tempDir,
-        ['install', 'starwars/character-information'],
-        mockServer.url
-      );
-
-      expect(result.stdout).toMatch('already installed from a path:');
-
-      expect(result.stdout).toMatch('❌ No profiles have been installed');
+      await expect(
+        execCLI(
+          tempDir,
+          ['install', 'starwars/character-information'],
+          mockServer.url
+        )
+      ).rejects.toMatch('already installed from a different path');
     }, 20000);
   });
 });

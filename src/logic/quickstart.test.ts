@@ -3,46 +3,32 @@ import { ok, Parser, SuperJson } from '@superfaceai/one-sdk';
 import inquirer from 'inquirer';
 import { mocked } from 'ts-jest/utils';
 
+import { MockLogger } from '..';
+import { createUserError } from '../common/error';
 import { fetchProviders, getServicesUrl } from '../common/http';
 import { exists, readFile } from '../common/io';
 import { OutputStream } from '../common/output-stream';
+import { PackageManager } from '../common/package-manager';
 import { findLocalProfileSource } from './check.utils';
 import { initSuperface } from './init';
 import { detectSuperJson } from './install';
 import { interactiveInstall } from './quickstart';
 import { profileExists, providerExists } from './quickstart.utils';
 
-//Mock package manager
 jest.mock('../common/package-manager');
-
-//Mock install logic
 jest.mock('./install');
-
-//Mock configure logic
 jest.mock('./configure');
-
-//Mock init logic
 jest.mock('./init');
-
-//Mock check.utils logic
 jest.mock('./check.utils');
-
-//Mock quickstart logic
 jest.mock('./quickstart.utils');
-
-//Mock http
 jest.mock('../common/http');
-
-//Mock IO
 jest.mock('../common/io');
-
-//Mock inquirer
 jest.mock('inquirer');
 
 describe('Quickstart logic', () => {
-  const logCb = jest.fn();
-  const warnCb = jest.fn();
-  const successCb = jest.fn();
+  let logger: MockLogger;
+  let pm: PackageManager;
+  const userError = createUserError(false);
   // eslint-disable-next-line @typescript-eslint/unbound-method
   const originalLoad = SuperJson.load;
   let mockLoad = jest.fn();
@@ -52,6 +38,8 @@ describe('Quickstart logic', () => {
   });
 
   beforeEach(() => {
+    logger = new MockLogger();
+    pm = new PackageManager(logger);
     mockLoad = jest.fn();
     SuperJson.load = mockLoad;
   });
@@ -304,9 +292,9 @@ describe('Quickstart logic', () => {
         });
 
       await interactiveInstall(`${profile.scope}/${profile.profile}`, {
-        logCb,
-        warnCb,
-        successCb,
+        logger,
+        pm,
+        userError,
       });
 
       expect(detectSuperJson).toHaveBeenCalled();
@@ -319,25 +307,33 @@ describe('Quickstart logic', () => {
         'SENDGRID_TOKEN=sendgridBearer\nTEST_DIGEST=testDigest\nMAILGUN_USERNAME=mailgunUsername\nMAILGUN_PASSWORD=mailgunPassword\nSUPERFACE_SDK_TOKEN=sfs_bb064dd57c302911602dd097bc29bedaea6a021c25a66992d475ed959aa526c7_37bce8b5\n'
       );
 
-      expect(successCb).toHaveBeenCalledWith(
-        'Initializing superface directory'
-      );
-      expect(successCb).toHaveBeenCalledWith('\nInstalling providers');
-      expect(successCb).toHaveBeenCalledWith(
-        '\nConfiguring providers security'
-      );
-      expect(logCb).toHaveBeenCalledWith('\nConfiguring "sendgrid" security');
-      expect(logCb).toHaveBeenCalledWith('\nConfiguring "mailgun" security');
-      expect(logCb).toHaveBeenCalledWith('\nConfiguring "test" security');
-      expect(successCb).toHaveBeenCalledWith(
-        '\nInstalling package "@superfaceai/one-sdk"'
-      );
-      expect(successCb).toHaveBeenCalledWith(
-        '\n🆗 Superface have been configured successfully!'
-      );
-      expect(successCb).toHaveBeenCalledWith(
-        `\nNow you can follow our documentation to use installed capability: "https://superface.ai/${profile.scope}/${profile.profile}"`
-      );
+      expect(logger.stdout).toContainEqual(['initSuperface', []]);
+      expect(logger.stdout).toContainEqual(['installMultipleProviders', []]);
+      expect(logger.stdout).toContainEqual([
+        'configureMultipleProviderSecurity',
+        [],
+      ]);
+      expect(logger.stdout).toContainEqual([
+        'configureProviderSecurity',
+        ['sendgrid'],
+      ]);
+      expect(logger.stdout).toContainEqual([
+        'configureProviderSecurity',
+        ['mailgun'],
+      ]);
+      expect(logger.stdout).toContainEqual([
+        'configureProviderSecurity',
+        ['test'],
+      ]);
+      expect(logger.stdout).toContainEqual([
+        'installPackage',
+        ['@superfaceai/one-sdk'],
+      ]);
+      expect(logger.stdout).toContainEqual(['superfaceConfigureSuccess', []]);
+      expect(logger.stdout).toContainEqual([
+        'capabilityDocsUrl',
+        [`https://superface.ai/${profile.scope}/${profile.profile}`],
+      ]);
     });
 
     it('sets up sf correctly - non existing super.json and existing .env', async () => {
@@ -467,7 +463,7 @@ describe('Quickstart logic', () => {
 
       await interactiveInstall(
         `${profile.scope}/${profile.profile}@${profile.version}`,
-        { logCb, warnCb, successCb }
+        { logger, pm, userError }
       );
 
       expect(detectSuperJson).toHaveBeenCalled();
@@ -479,25 +475,33 @@ describe('Quickstart logic', () => {
         'SOME=env\nSENDGRID_TOKEN=sendgridBearer\nTEST_API_KEY=testApiKey\nMAILGUN_USERNAME=mailgunUsername\nMAILGUN_PASSWORD=mailgunPassword\nSUPERFACE_SDK_TOKEN=sfs_bb064dd57c302911602dd097bc29bedaea6a021c25a66992d475ed959aa526c7_37bce8b5\n'
       );
 
-      expect(successCb).toHaveBeenCalledWith(
-        'Initializing superface directory'
-      );
-      expect(successCb).toHaveBeenCalledWith('\nInstalling providers');
-      expect(successCb).toHaveBeenCalledWith(
-        '\nConfiguring providers security'
-      );
-      expect(logCb).toHaveBeenCalledWith('\nConfiguring "sendgrid" security');
-      expect(logCb).toHaveBeenCalledWith('\nConfiguring "mailgun" security');
-      expect(logCb).toHaveBeenCalledWith('\nConfiguring "test" security');
-      expect(successCb).toHaveBeenCalledWith(
-        '\nInstalling package "@superfaceai/one-sdk"'
-      );
-      expect(successCb).toHaveBeenCalledWith(
-        '\n🆗 Superface have been configured successfully!'
-      );
-      expect(successCb).toHaveBeenCalledWith(
-        `\nNow you can follow our documentation to use installed capability: "https://superface.ai/${profile.scope}/${profile.profile}"`
-      );
+      expect(logger.stdout).toContainEqual(['initSuperface', []]);
+      expect(logger.stdout).toContainEqual(['installMultipleProviders', []]);
+      expect(logger.stdout).toContainEqual([
+        'configureMultipleProviderSecurity',
+        [],
+      ]);
+      expect(logger.stdout).toContainEqual([
+        'configureProviderSecurity',
+        ['sendgrid'],
+      ]);
+      expect(logger.stdout).toContainEqual([
+        'configureProviderSecurity',
+        ['mailgun'],
+      ]);
+      expect(logger.stdout).toContainEqual([
+        'configureProviderSecurity',
+        ['test'],
+      ]);
+      expect(logger.stdout).toContainEqual([
+        'installPackage',
+        ['@superfaceai/one-sdk'],
+      ]);
+      expect(logger.stdout).toContainEqual(['superfaceConfigureSuccess', []]);
+      expect(logger.stdout).toContainEqual([
+        'capabilityDocsUrl',
+        [`https://superface.ai/${profile.scope}/${profile.profile}`],
+      ]);
     });
 
     it('sets up sf correctly - misconfigured super.json', async () => {
@@ -610,9 +614,9 @@ describe('Quickstart logic', () => {
         });
 
       await interactiveInstall(`${profile.scope}/${profile.profile}`, {
-        logCb,
-        warnCb,
-        successCb,
+        logger,
+        pm,
+        userError,
       });
 
       expect(detectSuperJson).toHaveBeenCalled();
@@ -629,28 +633,34 @@ describe('Quickstart logic', () => {
         'TEST_API_KEY=env\nMAILGUN_USERNAME=mailgunUsername\nMAILGUN_PASSWORD=mailgunPassword\nSUPERFACE_SDK_TOKEN=sfs_bb064dd57c302911602dd097bc29bedaea6a021c25a66992d475ed959aa526c7_37bce8b5\n'
       );
 
-      expect(successCb).toHaveBeenCalledWith(
-        'Initializing superface directory'
-      );
-      expect(successCb).toHaveBeenCalledWith('\nInstalling providers');
-      expect(successCb).toHaveBeenCalledWith(
-        '\nConfiguring providers security'
-      );
-      expect(logCb).toHaveBeenCalledWith('\nConfiguring "sendgrid" security');
-      expect(warnCb).toHaveBeenCalledWith(
-        'Value of SENDGRID_TOKEN in "sendgrid" "bearer" security schema does not start with $ character.'
-      );
-      expect(logCb).toHaveBeenCalledWith('\nConfiguring "mailgun" security');
-      expect(successCb).toHaveBeenCalledWith(
-        '\nInstalling package "@superfaceai/one-sdk"'
-      );
-      expect(successCb).toHaveBeenCalledWith(
-        '\n🆗 Superface have been configured successfully!'
-      );
+      expect(logger.stdout).toContainEqual(['initSuperface', []]);
+      expect(logger.stdout).toContainEqual(['installMultipleProviders', []]);
+      expect(logger.stdout).toContainEqual([
+        'configureMultipleProviderSecurity',
+        [],
+      ]);
+      expect(logger.stdout).toContainEqual([
+        'configureProviderSecurity',
+        ['sendgrid'],
+      ]);
+      expect(logger.stdout).toContainEqual([
+        'unexpectedSecurityValue',
+        ['SENDGRID_TOKEN', 'sendgrid', 'bearer'],
+      ]);
+      expect(logger.stdout).toContainEqual([
+        'configureProviderSecurity',
+        ['mailgun'],
+      ]);
+      expect(logger.stdout).toContainEqual([
+        'installPackage',
+        ['@superfaceai/one-sdk'],
+      ]);
+      expect(logger.stdout).toContainEqual(['superfaceConfigureSuccess', []]);
     });
 
     it('sets up sf correctly - existing super.json and existing .env', async () => {
-      const mockEnv = `test=test\nMAILGUN_USERNAME=u\nMAILGUN_PASSWORD=p\nSENDGRID_TOKEN=t\ntest2=test2\n`;
+      const mockEnv =
+        'test=test\nMAILGUN_USERNAME=u\nMAILGUN_PASSWORD=p\nSENDGRID_TOKEN=t\ntest2=test2\n';
       //Super.json affter install
       const mockSuperJson = new SuperJson({
         profiles: {
@@ -783,9 +793,9 @@ describe('Quickstart logic', () => {
             'sfs_bb064dd57c302911602dd097bc29bedaea6a021c25a66992d475ed959aa526c7_37bce8b5',
         });
       await interactiveInstall(`${profile.scope}/${profile.profile}`, {
-        logCb,
-        warnCb,
-        successCb,
+        logger,
+        pm,
+        userError,
       });
 
       expect(detectSuperJson).toHaveBeenCalled();
@@ -801,25 +811,33 @@ describe('Quickstart logic', () => {
         'test=test\nSENDGRID_TOKEN=t\ntest2=test2\nMAILGUN_USERNAME=mailgunUsername\nMAILGUN_PASSWORD=mailgunPassword\nTEST_DIGEST=testDigest\nSUPERFACE_SDK_TOKEN=sfs_bb064dd57c302911602dd097bc29bedaea6a021c25a66992d475ed959aa526c7_37bce8b5\n'
       );
 
-      expect(successCb).toHaveBeenCalledWith('\nInstalling providers');
-      expect(successCb).toHaveBeenCalledWith(
-        '\nConfiguring providers security'
-      );
+      expect(logger.stdout).toContainEqual(['installMultipleProviders', []]);
+      expect(logger.stdout).toContainEqual([
+        'configureMultipleProviderSecurity',
+        [],
+      ]);
       //User dont want to override sendgrid
-      expect(logCb).not.toHaveBeenCalledWith(
-        '\nConfiguring "sendgrid" security'
-      );
-      expect(logCb).toHaveBeenCalledWith('\nConfiguring "mailgun" security');
-      expect(logCb).toHaveBeenCalledWith('\nConfiguring "test" security');
-      expect(successCb).toHaveBeenCalledWith(
-        '\nInstalling package "@superfaceai/one-sdk"'
-      );
-      expect(successCb).toHaveBeenCalledWith(
-        '\n🆗 Superface have been configured successfully!'
-      );
-      expect(successCb).toHaveBeenCalledWith(
-        `\nNow you can follow our documentation to use installed capability: "https://superface.ai/${profile.scope}/${profile.profile}"`
-      );
+      expect(logger.stdout).not.toContain([
+        'configureProviderSecurity',
+        ['sendgrid'],
+      ]);
+      expect(logger.stdout).toContainEqual([
+        'configureProviderSecurity',
+        ['mailgun'],
+      ]);
+      expect(logger.stdout).toContainEqual([
+        'configureProviderSecurity',
+        ['test'],
+      ]);
+      expect(logger.stdout).toContainEqual([
+        'installPackage',
+        ['@superfaceai/one-sdk'],
+      ]);
+      expect(logger.stdout).toContainEqual(['superfaceConfigureSuccess', []]);
+      expect(logger.stdout).toContainEqual([
+        'capabilityDocsUrl',
+        [`https://superface.ai/${profile.scope}/${profile.profile}`],
+      ]);
     });
   });
 });

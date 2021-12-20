@@ -19,7 +19,9 @@ import { SyntaxErrorCategory } from '@superfaceai/parser/dist/language/error';
 import { MatchAttempts } from '@superfaceai/parser/dist/language/syntax/rule';
 import { mocked } from 'ts-jest/utils';
 
+import { createUserError } from '../common/error';
 import { fetchMapAST, fetchProfileAST } from '../common/http';
+import { MockLogger } from '../common/log';
 import { ProfileId } from '../common/profile';
 import { ReportFormat } from '../common/report.interfaces';
 import { findLocalMapSource, findLocalProfileSource } from './check.utils';
@@ -32,26 +34,19 @@ import {
   lint,
   ProfileToValidate,
 } from './lint';
-//Mock io
+
 jest.mock('../common/io', () => ({
   readFile: jest.fn(),
 }));
-
-//Mock output stream
 jest.mock('../common/output-stream');
-
-//Mock check utils
 jest.mock('./check.utils', () => ({
   findLocalMapSource: jest.fn(),
   findLocalProfileSource: jest.fn(),
 }));
-
-//Mock http
 jest.mock('../common/http', () => ({
   fetchMapAST: jest.fn(),
   fetchProfileAST: jest.fn(),
 }));
-
 jest.mock('@superfaceai/parser', () => ({
   ...jest.requireActual<Record<string, unknown>>('@superfaceai/parser'),
   parseProfile: jest.fn(),
@@ -60,8 +55,15 @@ jest.mock('@superfaceai/parser', () => ({
 }));
 
 describe('Lint logic', () => {
+  let logger: MockLogger;
+  const userError = createUserError(false);
   const mockMapPath = 'mockMapPath';
   const mockProfilePath = 'mockProfilePath';
+
+  beforeEach(() => {
+    logger = new MockLogger();
+  });
+
   afterEach(() => {
     jest.resetAllMocks();
   });
@@ -210,7 +212,9 @@ describe('Lint logic', () => {
         value: mockDocument,
       });
       expect(
-        isValidMapId(mockValidProfileHeader, mocValidMapHeader, mockMapPath)
+        isValidMapId(mockValidProfileHeader, mocValidMapHeader, mockMapPath, {
+          userError,
+        })
       ).toEqual(true);
     });
 
@@ -231,7 +235,9 @@ describe('Lint logic', () => {
         value: mockDocument,
       });
       expect(
-        isValidMapId(mockValidProfileHeader, mocValidMapHeader, mockMapPath)
+        isValidMapId(mockValidProfileHeader, mocValidMapHeader, mockMapPath, {
+          userError,
+        })
       ).toEqual(false);
     });
 
@@ -252,7 +258,9 @@ describe('Lint logic', () => {
         value: mockDocument,
       });
       expect(
-        isValidMapId(mockValidProfileHeader, mocValidMapHeader, mockMapPath)
+        isValidMapId(mockValidProfileHeader, mocValidMapHeader, mockMapPath, {
+          userError,
+        })
       ).toEqual(false);
     });
 
@@ -272,7 +280,9 @@ describe('Lint logic', () => {
         value: mockDocument,
       });
       expect(
-        isValidMapId(mockValidProfileHeader, mocValidMapHeader, mockMapPath)
+        isValidMapId(mockValidProfileHeader, mocValidMapHeader, mockMapPath, {
+          userError,
+        })
       ).toEqual(false);
     });
 
@@ -292,7 +302,9 @@ describe('Lint logic', () => {
         value: mockDocument,
       });
       expect(
-        isValidMapId(mockValidProfileHeader, mocValidMapHeader, mockMapPath)
+        isValidMapId(mockValidProfileHeader, mocValidMapHeader, mockMapPath, {
+          userError,
+        })
       ).toEqual(false);
     });
 
@@ -303,7 +315,9 @@ describe('Lint logic', () => {
       });
       const mockMapPath = 'testMapPath';
       expect(() =>
-        isValidMapId(mockValidProfileHeader, mocValidMapHeader, mockMapPath)
+        isValidMapId(mockValidProfileHeader, mocValidMapHeader, mockMapPath, {
+          userError,
+        })
       ).toThrow('parse-error');
     });
   });
@@ -471,7 +485,9 @@ describe('Lint logic', () => {
         .mockReturnValueOnce(mockMapDocument)
         .mockReturnValueOnce(mockMapDocumentMatching);
 
-      await expect(lint(mockSuperJson, mockProfiles)).resolves.toEqual({
+      await expect(
+        lint(mockSuperJson, mockProfiles, { logger })
+      ).resolves.toEqual({
         reports: [
           {
             errors: [],
@@ -551,7 +567,9 @@ describe('Lint logic', () => {
         .mockResolvedValueOnce(mockMapDocument)
         .mockResolvedValueOnce(mockMapDocumentMatching);
 
-      await expect(lint(mockSuperJson, mockProfiles)).resolves.toEqual({
+      await expect(
+        lint(mockSuperJson, mockProfiles, { logger })
+      ).resolves.toEqual({
         reports: [
           {
             errors: [],
@@ -630,7 +648,9 @@ describe('Lint logic', () => {
 
       mocked(fetchProfileAST).mockResolvedValue(mockProfileDocument);
 
-      await expect(lint(mockSuperJson, mockProfiles)).resolves.toEqual({
+      await expect(
+        lint(mockSuperJson, mockProfiles, { logger })
+      ).resolves.toEqual({
         reports: [
           {
             errors: [],
@@ -730,7 +750,9 @@ describe('Lint logic', () => {
         throw mockSyntaxErr;
       });
 
-      await expect(lint(mockSuperJson, mockProfiles)).resolves.toEqual({
+      await expect(
+        lint(mockSuperJson, mockProfiles, { logger })
+      ).resolves.toEqual({
         reports: [
           {
             errors: [
@@ -817,7 +839,9 @@ describe('Lint logic', () => {
         throw mockSyntaxErr;
       });
 
-      await expect(lint(mockSuperJson, mockProfiles)).resolves.toEqual({
+      await expect(
+        lint(mockSuperJson, mockProfiles, { logger })
+      ).resolves.toEqual({
         reports: [
           {
             errors: [],
@@ -881,12 +905,17 @@ describe('Lint logic', () => {
         warnings: ['ouch!'],
       };
 
-      const formated = formatHuman(mockFileReport, false);
-      expect(formated).toMatch(`❌ Parsing map file: ${mockPath}`);
+      const formated = formatHuman({
+        report: mockFileReport,
+        quiet: false,
+        emoji: false,
+        color: false,
+      });
+      expect(formated).toMatch(`Parsing map file: ${mockPath}`);
       expect(formated).toMatch('SyntaxError: Expected  but found <NONE>');
-      expect(formated).toMatch(`--> some/path.suma:0:0`);
+      expect(formated).toMatch('--> some/path.suma:0:0');
 
-      expect(formated).toMatch(`-1 | mock-content`);
+      expect(formated).toMatch('-1 | mock-content');
       expect(formated).toMatch('ouch!');
     });
 
@@ -900,8 +929,14 @@ describe('Lint logic', () => {
         warnings: ['ouch!'],
       };
 
-      const formated = formatHuman(mockFileReport, false, true);
-      expect(formated).toMatch(`❌ Parsing profile file: ${mockPath}`);
+      const formated = formatHuman({
+        report: mockFileReport,
+        quiet: false,
+        short: true,
+        emoji: false,
+        color: false,
+      });
+      expect(formated).toMatch(`Parsing profile file: ${mockPath}`);
       expect(formated).toMatch('0:0 message');
       expect(formated).toMatch('ouch!');
     });
@@ -916,8 +951,13 @@ describe('Lint logic', () => {
         warnings: ['ouch!'],
       };
 
-      const formated = formatHuman(mockFileReport, true);
-      expect(formated).toMatch(`❌ Parsing map file: some/path.suma`);
+      const formated = formatHuman({
+        report: mockFileReport,
+        quiet: true,
+        emoji: false,
+        color: false,
+      });
+      expect(formated).toMatch('Parsing map file: some/path.suma');
       expect(formated).toMatch('detail');
     });
 
@@ -930,8 +970,13 @@ describe('Lint logic', () => {
         errors: [mockSyntaxErr],
         warnings: [],
       };
-      const formated = formatHuman(mockFileReport, false);
-      expect(formated).toMatch(`❌ Parsing profile file: ${mockPath}`);
+      const formated = formatHuman({
+        report: mockFileReport,
+        quiet: false,
+        emoji: false,
+        color: false,
+      });
+      expect(formated).toMatch(`Parsing profile file: ${mockPath}`);
       expect(formated).toMatch('detail');
     });
 
@@ -945,8 +990,13 @@ describe('Lint logic', () => {
         warnings: ['ouch!'],
       };
 
-      const formated = formatHuman(mockFileReport, false);
-      expect(formated).toMatch(`⚠️ Parsing map file: ${mockPath}`);
+      const formated = formatHuman({
+        report: mockFileReport,
+        quiet: false,
+        emoji: false,
+        color: false,
+      });
+      expect(formated).toMatch(`Parsing map file: ${mockPath}`);
       expect(formated).toMatch('ouch!');
     });
 
@@ -960,8 +1010,13 @@ describe('Lint logic', () => {
         warnings: [],
       };
 
-      const formated = formatHuman(mockFileReport, false);
-      expect(formated).toMatch(`🆗 Parsing map file: ${mockPath}`);
+      const formated = formatHuman({
+        report: mockFileReport,
+        quiet: false,
+        emoji: false,
+        color: false,
+      });
+      expect(formated).toMatch(`Parsing map file: ${mockPath}`);
     });
 
     it('formats compatibility correctly', async () => {
@@ -991,9 +1046,14 @@ describe('Lint logic', () => {
         ],
       };
 
-      const formated = formatHuman(mockFileReport, false);
+      const formated = formatHuman({
+        report: mockFileReport,
+        quiet: false,
+        emoji: false,
+        color: false,
+      });
       expect(formated).toMatch(
-        `❌ Validating profile: test-profile to map: ${mockPath}`
+        `Validating profile: test-profile to map: ${mockPath}`
       );
       expect(formated).toMatch(' - Wrong Scope: expected this, but got that');
       expect(formated).toMatch(' - Wrong Scope: expected this, but got that');

@@ -1,9 +1,11 @@
 import { CLIError } from '@oclif/errors';
-import { AstMetadata, ProfileDocumentNode } from '@superfaceai/ast';
+import { AstMetadata, EXTENSIONS, ProfileDocumentNode } from '@superfaceai/ast';
 import { ok, Parser, SuperJson } from '@superfaceai/one-sdk';
-import { join } from 'path';
+import { join as joinPath } from 'path';
 import { mocked } from 'ts-jest/utils';
 
+import { MockLogger } from '../common';
+import { createUserError } from '../common/error';
 import {
   fetchProfile,
   fetchProfileAST,
@@ -20,7 +22,6 @@ import {
   resolveInstallationRequests,
 } from './install';
 
-//Mock http
 jest.mock('../common/http', () => ({
   fetchProfileInfo: jest.fn(),
   fetchProfile: jest.fn(),
@@ -34,6 +35,13 @@ jest.mock('../common/io', () => ({
 }));
 
 describe('Install CLI logic', () => {
+  let logger: MockLogger;
+  const userError = createUserError(false);
+
+  beforeEach(async () => {
+    logger = new MockLogger();
+  });
+
   afterEach(() => {
     jest.resetAllMocks();
   });
@@ -63,7 +71,7 @@ describe('Install CLI logic', () => {
       OutputStream.writeOnce = mockWrite;
 
       //create mock nested paths
-      let path = join(
+      let path = joinPath(
         'fixtures',
         'install',
         'playground',
@@ -71,7 +79,7 @@ describe('Install CLI logic', () => {
         'nested1'
       );
       await mkdirQuiet(path);
-      path = join(
+      path = joinPath(
         'fixtures',
         'install',
         'playground',
@@ -86,7 +94,7 @@ describe('Install CLI logic', () => {
       OutputStream.writeOnce = originalWriteOnce;
       process.chdir(INITIAL_CWD);
       await rimraf(
-        join('fixtures', 'install', 'playground', 'superface', 'nested1')
+        joinPath('fixtures', 'install', 'playground', 'superface', 'nested1')
       );
     });
 
@@ -96,30 +104,30 @@ describe('Install CLI logic', () => {
     });
 
     it('detects super.json in cwd', async () => {
-      process.chdir(join('fixtures', 'install', 'playground', 'superface'));
+      process.chdir(joinPath('fixtures', 'install', 'playground', 'superface'));
       expect(await detectSuperJson(process.cwd())).toEqual('.');
     }, 10000);
 
     it('detects super.json from 1 level above', async () => {
-      process.chdir(join('fixtures', 'install', 'playground'));
+      process.chdir(joinPath('fixtures', 'install', 'playground'));
       expect(await detectSuperJson(process.cwd())).toEqual('superface');
     }, 10000);
 
     it('does not detect super.json from 2 levels above', async () => {
-      process.chdir(join('fixtures', 'install'));
+      process.chdir(joinPath('fixtures', 'install'));
       expect(await detectSuperJson(process.cwd())).toBeUndefined();
     }, 10000);
 
     it('detects super.json from 1 level below', async () => {
       process.chdir(
-        join('fixtures', 'install', 'playground', 'superface', 'nested1')
+        joinPath('fixtures', 'install', 'playground', 'superface', 'nested1')
       );
       expect(await detectSuperJson(process.cwd(), 1)).toEqual('..');
     }, 10000);
 
     it('detects super.json from 2 levels below', async () => {
       process.chdir(
-        join(
+        joinPath(
           'fixtures',
           'install',
           'playground',
@@ -133,7 +141,7 @@ describe('Install CLI logic', () => {
 
     it('does not detect super.json from 2 levels below without level', async () => {
       process.chdir(
-        join(
+        joinPath(
           'fixtures',
           'install',
           'playground',
@@ -147,7 +155,6 @@ describe('Install CLI logic', () => {
   });
 
   describe('when geting profile from store', () => {
-    //mock profile info
     const mockProfileInfo = {
       profile_id: 'starwars/character-information@1.0.1',
       profile_name: 'starwars/character-information',
@@ -158,7 +165,7 @@ describe('Install CLI logic', () => {
       published_at: new Date(),
       published_by: 'Ondrej Musil <mail@ondrejmusil.cz>',
     };
-    //mock profile ast
+
     const mockProfileAst: ProfileDocumentNode = {
       kind: 'ProfileDocument',
       astMetadata,
@@ -187,10 +194,10 @@ describe('Install CLI logic', () => {
         end: { line: 1, column: 1, charIndex: 0 },
       },
     };
+
     it('gets profile', async () => {
       mocked(fetchProfileInfo).mockResolvedValue(mockProfileInfo);
       mocked(fetchProfileAST).mockResolvedValue(mockProfileAst);
-      //mock profile
       const mockProfile = 'mock profile';
       mocked(fetchProfile).mockResolvedValue(mockProfile);
 
@@ -199,7 +206,9 @@ describe('Install CLI logic', () => {
         'character-information'
       );
 
-      await expect(getProfileFromStore(profileId)).resolves.toEqual({
+      await expect(
+        getProfileFromStore({ profileId }, { logger })
+      ).resolves.toEqual({
         ast: mockProfileAst,
         info: mockProfileInfo,
         profile: mockProfile,
@@ -234,7 +243,9 @@ describe('Install CLI logic', () => {
         'character-information'
       );
 
-      await expect(getProfileFromStore(profileId)).resolves.toEqual({
+      await expect(
+        getProfileFromStore({ profileId }, { logger })
+      ).resolves.toEqual({
         ast: mockProfileAst,
         info: mockProfileInfo,
         profile: mockProfile,
@@ -270,9 +281,15 @@ describe('Install CLI logic', () => {
       );
 
       await expect(
-        getProfileFromStore(profileId, undefined, {
-          tryToAuthenticate: true,
-        })
+        getProfileFromStore(
+          {
+            profileId,
+            options: {
+              tryToAuthenticate: true,
+            },
+          },
+          { logger }
+        )
       ).resolves.toEqual({
         ast: mockProfileAst,
         info: mockProfileInfo,
@@ -300,7 +317,9 @@ describe('Install CLI logic', () => {
 
       const profileId = ProfileId.fromScopeName(undefined, 'made-up');
 
-      await expect(getProfileFromStore(profileId)).resolves.toBeUndefined();
+      await expect(
+        getProfileFromStore({ profileId }, { logger })
+      ).resolves.toBeUndefined();
       expect(fetchProfileInfo).toHaveBeenCalledTimes(1);
       expect(fetchProfileInfo).toHaveBeenCalledWith(profileId, undefined, {
         tryToAuthenticate: undefined,
@@ -375,11 +394,17 @@ describe('Install CLI logic', () => {
         );
 
       await expect(
-        resolveInstallationRequests(stubSuperJson, [
-          { kind: 'local', path: 'first.supr' },
-          { kind: 'local', path: 'none.supr' },
-          { kind: 'local', path: 'second.supr' },
-        ])
+        resolveInstallationRequests(
+          {
+            superJson: stubSuperJson,
+            requests: [
+              { kind: 'local', path: 'first.supr' },
+              { kind: 'local', path: 'none.supr' },
+              { kind: 'local', path: 'second.supr' },
+            ],
+          },
+          { logger, userError }
+        )
       ).resolves.toEqual(1);
 
       expect(stubSuperJson.document).toEqual({
@@ -438,34 +463,35 @@ describe('Install CLI logic', () => {
         },
         definitions: [],
       });
-      const warnCbMock = jest.fn();
 
       await expect(
         resolveInstallationRequests(
-          stubSuperJson,
-          [
-            {
-              kind: 'store',
-              profileId: ProfileId.fromId('first'),
-              version: '1.0.1',
-            },
-            {
-              kind: 'store',
-              profileId: ProfileId.fromId('none'),
-              version: undefined,
-            },
-            {
-              kind: 'store',
-              profileId: ProfileId.fromId('se/cond'),
-              version: '2.2.0',
-            },
-            {
-              kind: 'store',
-              profileId: ProfileId.fromId('third'),
-              version: undefined,
-            },
-          ],
-          { warnCb: warnCbMock }
+          {
+            superJson: stubSuperJson,
+            requests: [
+              {
+                kind: 'store',
+                profileId: ProfileId.fromId('first', { userError }),
+                version: '1.0.1',
+              },
+              {
+                kind: 'store',
+                profileId: ProfileId.fromId('none', { userError }),
+                version: undefined,
+              },
+              {
+                kind: 'store',
+                profileId: ProfileId.fromId('se/cond', { userError }),
+                version: '2.2.0',
+              },
+              {
+                kind: 'store',
+                profileId: ProfileId.fromId('third', { userError }),
+                version: undefined,
+              },
+            ],
+          },
+          { logger, userError }
         )
       ).resolves.toEqual(1);
 
@@ -486,19 +512,27 @@ describe('Install CLI logic', () => {
       expect(fetchProfileMock).toHaveBeenCalledTimes(2);
       expect(fetchProfileASTMock).toHaveBeenCalledTimes(2);
 
-      expect(warnCbMock).toHaveBeenNthCalledWith(
-        1,
-        expect.stringContaining('already installed from a path')
-      );
-      expect(warnCbMock).toHaveBeenNthCalledWith(
-        2,
-        expect.stringContaining('Could not fetch none: none does not exist')
-      );
-      expect(warnCbMock).toHaveBeenNthCalledWith(
-        3,
-        expect.stringContaining('Target file already exists:')
-      );
-      expect(warnCbMock).toHaveBeenCalledTimes(3);
+      expect(logger.stderr).toContainEqual([
+        'profileInstalledFromPath',
+        ['se/cond', 'second.supr'],
+      ]);
+      expect(logger.stderr).toContainEqual([
+        'couldNotFetch',
+        ['none', 'none does not exist'],
+      ]);
+      expect(logger.stderr).toContainEqual([
+        'fileAlreadyExists',
+        [
+          stubSuperJson.resolvePath(
+            joinPath(
+              'grid',
+              `${ProfileId.fromId('third', { userError }).withVersion(
+                '1.0.1'
+              )}${EXTENSIONS.profile.source}`
+            )
+          ),
+        ],
+      ]);
     }, 10000);
 
     it('overrides everything with force flag', async () => {
@@ -583,38 +617,41 @@ describe('Install CLI logic', () => {
 
       await expect(
         resolveInstallationRequests(
-          stubSuperJson,
-          [
-            {
-              kind: 'store',
-              profileId: ProfileId.fromId('local/first'),
-              version: '1.0.1',
-            },
-            {
-              kind: 'local',
-              path: 'local-second.supr',
-            },
-            {
-              kind: 'local',
-              path: 'local-third.supr',
-            },
+          {
+            superJson: stubSuperJson,
+            requests: [
+              {
+                kind: 'store',
+                profileId: ProfileId.fromId('local/first', { userError }),
+                version: '1.0.1',
+              },
+              {
+                kind: 'local',
+                path: 'local-second.supr',
+              },
+              {
+                kind: 'local',
+                path: 'local-third.supr',
+              },
 
-            {
-              kind: 'store',
-              profileId: ProfileId.fromId('remote/first'),
-              version: '1.0.1',
-            },
-            {
-              kind: 'store',
-              profileId: ProfileId.fromId('remote/second'),
-              version: '1.0.1',
-            },
-            {
-              kind: 'local',
-              path: 'remote-third.supr',
-            },
-          ],
-          { warnCb: console.log, force: true }
+              {
+                kind: 'store',
+                profileId: ProfileId.fromId('remote/first', { userError }),
+                version: '1.0.1',
+              },
+              {
+                kind: 'store',
+                profileId: ProfileId.fromId('remote/second', { userError }),
+                version: '1.0.1',
+              },
+              {
+                kind: 'local',
+                path: 'remote-third.supr',
+              },
+            ],
+            options: { force: true },
+          },
+          { logger, userError }
         )
       ).resolves.toEqual(6);
 
@@ -649,9 +686,11 @@ describe('Install CLI logic', () => {
       const stubSuperJson = new SuperJson({});
 
       stubSuperJson.mergeProfile(profileId, { version: '1.0.1' });
-      await expect(getExistingProfileIds(stubSuperJson)).resolves.toEqual([
+      await expect(
+        getExistingProfileIds(stubSuperJson, { logger, userError })
+      ).resolves.toEqual([
         {
-          profileId: ProfileId.fromId(profileId),
+          profileId: ProfileId.fromId(profileId, { userError }),
           version: '1.0.1',
         },
       ]);
@@ -675,7 +714,9 @@ describe('Install CLI logic', () => {
       stubSuperJson.mergeProfile(profileId, {
         file: 'fixtures/install/playground/character-information.supr',
       });
-      await expect(getExistingProfileIds(stubSuperJson)).resolves.toEqual([
+      await expect(
+        getExistingProfileIds(stubSuperJson, { logger, userError })
+      ).resolves.toEqual([
         {
           profileId: ProfileId.fromScopeName('scope', 'test'),
           version: '1.0.0',
@@ -750,22 +791,27 @@ describe('Install CLI logic', () => {
         const parsedProfileSpy = jest
           .spyOn(Parser, 'parseProfile')
           .mockResolvedValue(mockProfileAst);
-        const profileId = ProfileId.fromId('starwars/character-information');
+        const profileId = ProfileId.fromId('starwars/character-information', {
+          userError,
+        });
 
         await expect(
-          installProfiles({
-            superPath: '.',
-            requests: [
-              {
-                kind: 'store',
-                profileId: ProfileId.fromScopeName(
-                  'starwars',
-                  'character-information'
-                ),
-                version: undefined,
-              },
-            ],
-          })
+          installProfiles(
+            {
+              superPath: '.',
+              requests: [
+                {
+                  kind: 'store',
+                  profileId: ProfileId.fromScopeName(
+                    'starwars',
+                    'character-information'
+                  ),
+                  version: undefined,
+                },
+              ],
+            },
+            { logger, userError }
+          )
         ).resolves.toBeUndefined();
 
         expect(fetchProfileInfo).toHaveBeenCalledTimes(1);
@@ -814,7 +860,6 @@ describe('Install CLI logic', () => {
         mocked(fetchProfile).mockResolvedValue(mockProfile);
         mocked(fetchProfileInfo).mockResolvedValue(mockProfileInfo);
 
-        //Mock super json load
         // eslint-disable-next-line @typescript-eslint/unbound-method
         const originalLoad = SuperJson.load;
         const mockLoad = jest.fn();
@@ -828,7 +873,10 @@ describe('Install CLI logic', () => {
         const parsedProfileSpy = jest.spyOn(Parser, 'parseProfile');
 
         await expect(
-          installProfiles({ superPath: '.', requests: [] })
+          installProfiles(
+            { superPath: '.', requests: [] },
+            { logger, userError }
+          )
         ).resolves.toBeUndefined();
 
         expect(fetchProfileInfo).toHaveBeenCalledTimes(2);
@@ -836,43 +884,43 @@ describe('Install CLI logic', () => {
         expect(fetchProfileAST).toHaveBeenCalledTimes(2);
         expect(fetchProfile).toHaveBeenNthCalledWith(
           1,
-          ProfileId.fromId('starwars/first'),
+          ProfileId.fromId('starwars/first', { userError }),
           '1.0.0',
           { tryToAuthenticate: undefined }
         );
         expect(fetchProfile).toHaveBeenNthCalledWith(
           2,
-          ProfileId.fromId('starwars/second'),
+          ProfileId.fromId('starwars/second', { userError }),
           '2.0.0',
           { tryToAuthenticate: undefined }
         );
         expect(fetchProfileInfo).toHaveBeenNthCalledWith(
           1,
-          ProfileId.fromId('starwars/first'),
+          ProfileId.fromId('starwars/first', { userError }),
           '1.0.0',
           { tryToAuthenticate: undefined }
         );
         expect(fetchProfileInfo).toHaveBeenNthCalledWith(
           2,
-          ProfileId.fromId('starwars/second'),
+          ProfileId.fromId('starwars/second', { userError }),
           '2.0.0',
           { tryToAuthenticate: undefined }
         );
         expect(fetchProfileAST).toHaveBeenNthCalledWith(
           1,
-          ProfileId.fromId('starwars/first'),
+          ProfileId.fromId('starwars/first', { userError }),
           '1.0.0',
           { tryToAuthenticate: undefined }
         );
         expect(fetchProfileAST).toHaveBeenNthCalledWith(
           2,
-          ProfileId.fromId('starwars/second'),
+          ProfileId.fromId('starwars/second', { userError }),
           '2.0.0',
           { tryToAuthenticate: undefined }
         );
 
         expect(mockWrite).toHaveBeenCalled();
-        //actual path is changing
+        // actual path is changing
         expect(mockWrite).toHaveBeenCalledWith(
           expect.stringContaining('first@1.0.0.supr'),
           mockProfile,

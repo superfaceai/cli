@@ -165,7 +165,7 @@ export async function compileFixtureAsts(): Promise<void> {
       JSON.stringify(ast, undefined, 2)
     );
   }
-  console.log(`OK`);
+  console.log('OK');
 }
 
 if (require.main === module) {

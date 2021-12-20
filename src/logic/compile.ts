@@ -1,8 +1,8 @@
 import { Parser } from '@superfaceai/one-sdk';
 
-import { LogCallback } from '..';
-import { userError } from '../common/error';
+import { UserError } from '../common/error';
 import { exists, readFile } from '../common/io';
+import { ILogger } from '../common/log';
 import { ProfileId } from '../common/profile';
 
 export type MapToCompile = { provider: string; path: string };
@@ -13,19 +13,24 @@ export type ProfileToCompile = {
 };
 
 export async function compile(
-  profiles: ProfileToCompile[],
-  options?: {
-    logCb?: LogCallback;
-    onlyMap?: boolean;
-    onlyProfile?: boolean;
-  }
+  {
+    profiles,
+    options,
+  }: {
+    profiles: ProfileToCompile[];
+    options?: {
+      onlyMap?: boolean;
+      onlyProfile?: boolean;
+    };
+  },
+  { logger, userError }: { logger: ILogger; userError: UserError }
 ): Promise<void> {
   //Clear cache
   await Parser.clearCache();
   for (const profile of profiles) {
     //Compile profile
     if (!options?.onlyMap) {
-      options?.logCb?.(`Compiling profile ${profile.id.toString()}`);
+      logger.info('compileProfile', profile.id.toString());
       if (!(await exists(profile.path))) {
         throw userError(
           `Path: "${
@@ -44,11 +49,7 @@ export async function compile(
     //Compile maps
     if (!options?.onlyProfile) {
       for (const map of profile.maps) {
-        options?.logCb?.(
-          `Compiling map for profile ${profile.id.toString()} and provider ${
-            map.provider
-          }`
-        );
+        logger.info('compileMap', profile.id.toString(), map.provider);
         if (!(await exists(map.path))) {
           throw userError(
             `Path: "${map.path}" for map ${profile.id.toString()}.${

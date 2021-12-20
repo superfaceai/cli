@@ -164,7 +164,7 @@ describe('Check utils', () => {
       });
 
       expect(exists).toHaveBeenCalledWith(
-        expect.stringContaining(`grid/starwars`)
+        expect.stringContaining('grid/starwars')
       );
       expect(exists).toHaveBeenCalledWith(
         expect.stringContaining(
@@ -211,7 +211,7 @@ describe('Check utils', () => {
       });
 
       expect(exists).toHaveBeenCalledWith(
-        expect.stringContaining(`grid/starwars`)
+        expect.stringContaining('grid/starwars')
       );
       expect(exists).toHaveBeenCalledWith(
         expect.stringContaining(
@@ -253,7 +253,7 @@ describe('Check utils', () => {
       ).resolves.toBeUndefined();
 
       expect(exists).toHaveBeenCalledWith(
-        expect.stringContaining(`grid/starwars`)
+        expect.stringContaining('grid/starwars')
       );
     });
 
@@ -290,7 +290,7 @@ describe('Check utils', () => {
       ).resolves.toBeUndefined();
 
       expect(exists).toHaveBeenCalledWith(
-        expect.stringContaining(`grid/starwars`)
+        expect.stringContaining('grid/starwars')
       );
       expect(exists).toHaveBeenCalledWith(
         expect.stringContaining(
@@ -330,7 +330,7 @@ describe('Check utils', () => {
         },
       });
       mocked(exists).mockResolvedValue(false);
-      mocked(readFile).mockResolvedValue(`"mockProfileSource"`);
+      mocked(readFile).mockResolvedValue('"mockProfileSource"');
 
       await expect(
         findLocalProfileSource(mockSuperJson, profile)

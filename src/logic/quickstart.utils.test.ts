@@ -1,12 +1,15 @@
 import { SuperJson } from '@superfaceai/one-sdk';
 import { mocked } from 'ts-jest/utils';
 
+import { createUserError } from '../common/error';
 import { exists } from '../common/io';
 import { ProfileId } from '../common/profile';
 import { profileExists, providerExists } from './quickstart.utils';
 
 jest.mock('../common/io');
 describe('Quickstart logic', () => {
+  const userError = createUserError(false);
+
   afterEach(() => {
     jest.resetAllMocks();
   });
@@ -18,7 +21,7 @@ describe('Quickstart logic', () => {
 
       await expect(
         profileExists(mockSuperJson, {
-          id: ProfileId.fromId('starwars/character-information'),
+          id: ProfileId.fromId('starwars/character-information', { userError }),
           version: '1.0.0',
         })
       ).resolves.toEqual(true);
@@ -32,7 +35,7 @@ describe('Quickstart logic', () => {
 
       await expect(
         profileExists(mockSuperJson, {
-          id: ProfileId.fromId('starwars/character-information'),
+          id: ProfileId.fromId('starwars/character-information', { userError }),
           version: '1.0.0',
         })
       ).resolves.toEqual(false);
@@ -60,7 +63,7 @@ describe('Quickstart logic', () => {
 
       await expect(
         profileExists(mockSuperJson, {
-          id: ProfileId.fromId('communication/send-email'),
+          id: ProfileId.fromId('communication/send-email', { userError }),
           version: '1.0.0',
         })
       ).resolves.toEqual(true);
@@ -88,7 +91,7 @@ describe('Quickstart logic', () => {
 
       await expect(
         profileExists(mockSuperJson, {
-          id: ProfileId.fromId('vcs/pull-request'),
+          id: ProfileId.fromId('vcs/pull-request', { userError }),
           version: '1.0.0',
         })
       ).resolves.toEqual(false);

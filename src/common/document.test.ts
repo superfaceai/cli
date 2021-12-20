@@ -11,8 +11,8 @@ import {
   inferDocumentTypeWithFlag,
   trimExtension,
 } from './document';
+import { createUserError } from './error';
 
-//Mock parser
 jest.mock('@superfaceai/parser', () => ({
   ...jest.requireActual<Record<string, unknown>>('@superfaceai/parser'),
   parseProfile: jest.fn(),
@@ -20,6 +20,7 @@ jest.mock('@superfaceai/parser', () => ({
 }));
 
 describe('Document functions', () => {
+  const userError = createUserError(false);
   afterEach(async () => {
     jest.resetAllMocks();
   });
@@ -60,11 +61,15 @@ describe('Document functions', () => {
 
   describe('when triming extension', () => {
     it('trims extension correctly', async () => {
-      expect(trimExtension('test.suma')).toEqual('test');
-      expect(trimExtension('test.supr')).toEqual('test');
-      expect(trimExtension('test.suma.ast.json')).toEqual('test');
-      expect(trimExtension('test.supr.ast.json')).toEqual('test');
-      expect(() => trimExtension('test.json')).toThrow(
+      expect(trimExtension('test.suma', { userError })).toEqual('test');
+      expect(trimExtension('test.supr', { userError })).toEqual('test');
+      expect(trimExtension('test.suma.ast.json', { userError })).toEqual(
+        'test'
+      );
+      expect(trimExtension('test.supr.ast.json', { userError })).toEqual(
+        'test'
+      );
+      expect(() => trimExtension('test.json', { userError })).toThrow(
         'Could not infer document type'
       );
     });
@@ -87,7 +92,9 @@ describe('Document functions', () => {
             version: { major: 2 },
           },
         });
-      expect(constructProfileSettings(['first', 'second'])).toEqual({
+      expect(
+        constructProfileSettings(['first', 'second'], { userError })
+      ).toEqual({
         first: {
           version: '1.0.0',
           file: 'grid/first.supr',
@@ -104,7 +111,7 @@ describe('Document functions', () => {
         kind: 'error',
         message: 'test err',
       });
-      expect(() => constructProfileSettings(['first'])).toThrow(
+      expect(() => constructProfileSettings(['first'], { userError })).toThrow(
         'Wrong profile Id'
       );
     });

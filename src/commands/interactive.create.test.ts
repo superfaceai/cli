@@ -2,33 +2,36 @@ import { SuperJson } from '@superfaceai/one-sdk';
 import inquirer from 'inquirer';
 import { mocked } from 'ts-jest/utils';
 
+import { DEFAULT_PROFILE_VERSION_STR, MockLogger } from '..';
+import { createUserError } from '../common/error';
 import { mkdirQuiet } from '../common/io';
 import { create } from '../logic/create';
 import { initSuperface } from '../logic/init';
+import { CommandInstance } from '../test/utils';
 import Create from './create';
 
-//Mock create logic
 jest.mock('../logic/create', () => ({
   create: jest.fn(),
 }));
-
-//Mock init logic
 jest.mock('../logic/init', () => ({
   initSuperface: jest.fn(),
 }));
-
-//Mock inquirer
 jest.mock('inquirer');
 
 describe('Interactive create CLI command', () => {
+  let logger: MockLogger;
+  let instance: Create;
   let documentName: string;
   let provider: string;
+  const userError = createUserError(false);
 
   afterEach(() => {
     jest.resetAllMocks();
   });
 
   beforeEach(() => {
+    logger = new MockLogger();
+    instance = CommandInstance(Create);
     mocked(create).mockResolvedValue(undefined);
   });
 
@@ -50,7 +53,19 @@ describe('Interactive create CLI command', () => {
         .mockResolvedValueOnce({ init: true });
 
       await mkdirQuiet('test');
-      await expect(Create.run(['-i', '-p', 'test'])).resolves.toBeUndefined();
+      await expect(
+        instance.execute({
+          logger,
+          userError,
+          flags: {
+            path: 'test',
+            providerName: [],
+            usecase: [],
+            version: DEFAULT_PROFILE_VERSION_STR,
+            interactive: true,
+          },
+        })
+      ).resolves.toBeUndefined();
       expect(create).toHaveBeenCalledTimes(1);
       expect(create).toHaveBeenCalledWith(
         {
@@ -59,6 +74,7 @@ describe('Interactive create CLI command', () => {
           provider: false,
           document: {
             name: 'sendsms',
+            providerNames: [],
             usecases: ['Sendsms'],
             scope: undefined,
             version: { label: undefined, major: 1, minor: 0, patch: 0 },
@@ -70,7 +86,7 @@ describe('Interactive create CLI command', () => {
             provider: undefined,
           },
         },
-        { logCb: expect.anything(), warnCb: expect.anything() }
+        expect.anything()
       );
     });
 
@@ -91,7 +107,16 @@ describe('Interactive create CLI command', () => {
         .mockResolvedValueOnce({ init: true });
 
       await expect(
-        Create.run(['-u', 'SendSMS', '-i'])
+        instance.execute({
+          logger,
+          userError,
+          flags: {
+            providerName: [],
+            usecase: ['SendSMS'],
+            version: DEFAULT_PROFILE_VERSION_STR,
+            interactive: true,
+          },
+        })
       ).resolves.toBeUndefined();
 
       expect(create).toHaveBeenCalledTimes(1);
@@ -102,6 +127,7 @@ describe('Interactive create CLI command', () => {
           provider: false,
           document: {
             name: 'service',
+            providerNames: [],
             usecases: ['SendSMS'],
             scope: 'sms',
             version: { label: undefined, major: 1, minor: 0, patch: 0 },
@@ -113,7 +139,7 @@ describe('Interactive create CLI command', () => {
             provider: undefined,
           },
         },
-        { logCb: expect.anything(), warnCb: expect.anything() }
+        expect.anything()
       );
     });
 
@@ -135,7 +161,16 @@ describe('Interactive create CLI command', () => {
         .mockResolvedValueOnce({ init: true });
 
       await expect(
-        Create.run(['-u', 'ReceiveSMS', 'SendSMS', '-i'])
+        instance.execute({
+          logger,
+          userError,
+          flags: {
+            providerName: [],
+            usecase: ['ReceiveSMS', 'SendSMS'],
+            version: DEFAULT_PROFILE_VERSION_STR,
+            interactive: true,
+          },
+        })
       ).resolves.toBeUndefined();
 
       expect(create).toHaveBeenCalledTimes(1);
@@ -146,6 +181,7 @@ describe('Interactive create CLI command', () => {
           provider: false,
           document: {
             name: 'service',
+            providerNames: [],
             usecases: ['ReceiveSMS', 'SendSMS'],
             scope: 'sms',
             version: { label: undefined, major: 1, minor: 0, patch: 0 },
@@ -157,7 +193,7 @@ describe('Interactive create CLI command', () => {
             provider: undefined,
           },
         },
-        { logCb: expect.anything(), warnCb: expect.anything() }
+        expect.anything()
       );
     });
 
@@ -182,7 +218,19 @@ describe('Interactive create CLI command', () => {
         //Init
         .mockResolvedValueOnce({ init: true });
 
-      await expect(Create.run(['-i', '-t', 'bugfix'])).resolves.toBeUndefined();
+      await expect(
+        instance.execute({
+          logger,
+          userError,
+          flags: {
+            providerName: [],
+            usecase: [],
+            version: DEFAULT_PROFILE_VERSION_STR,
+            variant: 'bugfix',
+            interactive: true,
+          },
+        })
+      ).resolves.toBeUndefined();
 
       expect(create).toHaveBeenCalledTimes(1);
       expect(create).toHaveBeenCalledWith(
@@ -205,7 +253,7 @@ describe('Interactive create CLI command', () => {
             provider: undefined,
           },
         },
-        { logCb: expect.anything(), warnCb: expect.anything() }
+        expect.anything()
       );
     });
 
@@ -230,7 +278,19 @@ describe('Interactive create CLI command', () => {
         //Init
         .mockResolvedValueOnce({ init: true });
 
-      await expect(Create.run(['-i', '-t', 'bugfix'])).resolves.toBeUndefined();
+      await expect(
+        instance.execute({
+          logger,
+          userError,
+          flags: {
+            providerName: [],
+            usecase: [],
+            version: DEFAULT_PROFILE_VERSION_STR,
+            variant: 'bugfix',
+            interactive: true,
+          },
+        })
+      ).resolves.toBeUndefined();
 
       expect(create).toHaveBeenCalledTimes(1);
       expect(create).toHaveBeenCalledWith(
@@ -253,7 +313,7 @@ describe('Interactive create CLI command', () => {
             provider: undefined,
           },
         },
-        { logCb: expect.anything(), warnCb: expect.anything() }
+        expect.anything()
       );
     });
 
@@ -279,7 +339,16 @@ describe('Interactive create CLI command', () => {
         .mockResolvedValueOnce({ init: true });
 
       await expect(
-        Create.run(['-u', 'SendSMS', '-i'])
+        instance.execute({
+          logger,
+          userError,
+          flags: {
+            providerName: [],
+            usecase: ['SendSMS'],
+            version: DEFAULT_PROFILE_VERSION_STR,
+            interactive: true,
+          },
+        })
       ).resolves.toBeUndefined();
 
       expect(create).toHaveBeenCalledTimes(1);
@@ -302,7 +371,7 @@ describe('Interactive create CLI command', () => {
             provider: undefined,
           },
         },
-        { logCb: expect.anything(), warnCb: expect.anything() }
+        expect.anything()
       );
     });
 
@@ -328,7 +397,16 @@ describe('Interactive create CLI command', () => {
         .mockResolvedValueOnce({ init: true });
 
       await expect(
-        Create.run(['-u', 'ReceiveSMS', 'SendSMS', '-i'])
+        instance.execute({
+          logger,
+          userError,
+          flags: {
+            providerName: [],
+            usecase: ['ReceiveSMS', 'SendSMS'],
+            version: DEFAULT_PROFILE_VERSION_STR,
+            interactive: true,
+          },
+        })
       ).resolves.toBeUndefined();
       expect(create).toHaveBeenCalledTimes(1);
       expect(create).toHaveBeenCalledWith(
@@ -350,7 +428,7 @@ describe('Interactive create CLI command', () => {
             provider: undefined,
           },
         },
-        { logCb: expect.anything(), warnCb: expect.anything() }
+        expect.anything()
       );
     });
 
@@ -375,7 +453,18 @@ describe('Interactive create CLI command', () => {
         //Init
         .mockResolvedValueOnce({ init: true });
 
-      await expect(Create.run(['-i'])).resolves.toBeUndefined();
+      await expect(
+        instance.execute({
+          logger,
+          userError,
+          flags: {
+            providerName: [],
+            usecase: [],
+            version: DEFAULT_PROFILE_VERSION_STR,
+            interactive: true,
+          },
+        })
+      ).resolves.toBeUndefined();
 
       expect(create).toHaveBeenCalledTimes(1);
       expect(create).toHaveBeenCalledWith(
@@ -397,7 +486,7 @@ describe('Interactive create CLI command', () => {
             provider: undefined,
           },
         },
-        { logCb: expect.anything(), warnCb: expect.anything() }
+        expect.anything()
       );
     });
 
@@ -423,7 +512,16 @@ describe('Interactive create CLI command', () => {
         .mockResolvedValueOnce({ init: true });
 
       await expect(
-        Create.run(['-u', 'SendSMS', '-i'])
+        instance.execute({
+          logger,
+          userError,
+          flags: {
+            providerName: [],
+            usecase: ['SendSMS'],
+            version: DEFAULT_PROFILE_VERSION_STR,
+            interactive: true,
+          },
+        })
       ).resolves.toBeUndefined();
 
       expect(create).toHaveBeenCalledTimes(1);
@@ -446,7 +544,7 @@ describe('Interactive create CLI command', () => {
             provider: undefined,
           },
         },
-        { logCb: expect.anything(), warnCb: expect.anything() }
+        expect.anything()
       );
     });
 
@@ -472,7 +570,16 @@ describe('Interactive create CLI command', () => {
         .mockResolvedValueOnce({ init: true });
 
       await expect(
-        Create.run(['-u', 'SendSMS', 'ReceiveSMS', '-i'])
+        instance.execute({
+          logger,
+          userError,
+          flags: {
+            providerName: [],
+            usecase: ['SendSMS', 'ReceiveSMS'],
+            version: DEFAULT_PROFILE_VERSION_STR,
+            interactive: true,
+          },
+        })
       ).resolves.toBeUndefined();
       expect(create).toHaveBeenCalledTimes(1);
       expect(create).toHaveBeenCalledWith(
@@ -494,14 +601,22 @@ describe('Interactive create CLI command', () => {
             provider: undefined,
           },
         },
-        { logCb: expect.anything(), warnCb: expect.anything() }
+        expect.anything()
       );
     });
 
     it('throws error on invalid command', async () => {
-      await expect(Create.run([])).rejects.toThrow(
-        'Invalid command! Specify profileId or providerName'
-      );
+      await expect(
+        instance.execute({
+          logger,
+          userError,
+          flags: {
+            providerName: [],
+            usecase: [],
+            version: DEFAULT_PROFILE_VERSION_STR,
+          },
+        })
+      ).rejects.toThrow('Invalid command! Specify profileId or providerName');
     });
 
     it('throws error on invalid document name', async () => {

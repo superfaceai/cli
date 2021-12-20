@@ -1,12 +1,12 @@
 import { flags as oclifFlags } from '@oclif/command';
 import { isValidDocumentName, isValidProviderName } from '@superfaceai/ast';
-import { bold, green, grey, yellow } from 'chalk';
 import { join as joinPath } from 'path';
 
-import { Command } from '../common/command.abstract';
+import { Command, Flags } from '../common/command.abstract';
 import { META_FILE, SUPERFACE_DIR } from '../common/document';
-import { userError } from '../common/error';
-import { LogCallback } from '../common/log';
+import { UserError } from '../common/error';
+import { ILogger } from '../common/log';
+import { IPackageManager, PackageManager } from '../common/package-manager';
 import { NORMALIZED_CWD_PATH } from '../common/path';
 import { ProfileId } from '../common/profile';
 import { installProvider } from '../logic/configure';
@@ -19,10 +19,7 @@ import {
 } from '../logic/install';
 import { interactiveInstall } from '../logic/quickstart';
 
-const parseProviders = (
-  providers?: string[],
-  options?: { warnCb?: LogCallback }
-): string[] => {
+const parseProviders = (logger: ILogger, providers?: string[]): string[] => {
   if (!providers) {
     return [];
   }
@@ -35,7 +32,7 @@ const parseProviders = (
         return false;
       }
       if (!isValidProviderName(p)) {
-        options?.warnCb?.(`Invalid provider name: ${p}`);
+        logger.warn('invalidProviderName', p);
 
         return false;
       }
@@ -80,7 +77,8 @@ export default class Install extends Command {
     }),
     interactive: oclifFlags.boolean({
       char: 'i',
-      description: `When set to true, command is used in interactive mode. It leads users through profile installation, provider selection, provider security and retry policy setup. Result of this command is ready to use superface configuration.`,
+      description:
+        'When set to true, command is used in interactive mode. It leads users through profile installation, provider selection, provider security and retry policy setup. Result of this command is ready to use superface configuration.',
       default: false,
       exclusive: ['providers', 'force', 'local', 'scan', 'quiet'],
       hidden: true,
@@ -102,22 +100,32 @@ export default class Install extends Command {
     '$ superface install --local sms/service.supr',
   ];
 
-  private warnCallback? = (message: string) =>
-    this.log('⚠️  ' + yellow(message));
-
-  private logCallback? = (message: string) => this.log(grey(message));
-
-  private successCallback? = (message: string) =>
-    this.log(bold(green(message)));
-
   async run(): Promise<void> {
-    const { args, flags } = this.parse(Install);
+    const { flags, args } = this.parse(Install);
+    await super.initialize(flags);
+    const pm = new PackageManager(this.logger);
+    await this.execute({
+      logger: this.logger,
+      userError: this.userError,
+      pm,
+      flags,
+      args,
+    });
+  }
 
-    if (flags.quiet) {
-      this.logCallback = undefined;
-      this.warnCallback = undefined;
-    }
-
+  async execute({
+    logger,
+    userError,
+    pm,
+    flags,
+    args,
+  }: {
+    logger: ILogger;
+    userError: UserError;
+    pm: IPackageManager;
+    flags: Flags<typeof Install.flags>;
+    args: { profileId?: string };
+  }): Promise<void> {
     if (flags.scan && (typeof flags.scan !== 'number' || flags.scan > 5)) {
       throw userError(
         '--scan/-s : Number of levels to scan cannot be higher than 5',
@@ -127,47 +135,34 @@ export default class Install extends Command {
 
     if (flags.interactive) {
       if (!args.profileId) {
-        this.warnCallback?.(
-          `Profile ID argument must be used with interactive flag`
-        );
-        this.exit(0);
+        logger.warn('missingInteractiveFlag');
+        this.exit(1);
       }
 
-      await interactiveInstall(args.profileId, {
-        logCb: this.logCallback,
-        warnCb: this.warnCallback,
-        successCb: this.successCallback,
-      });
+      await interactiveInstall(args.profileId, { logger, pm, userError });
 
       return;
     }
 
     let superPath = await detectSuperJson(process.cwd(), flags.scan);
     if (!superPath) {
-      this.logCallback?.(
-        "Initializing superface directory with empty 'super.json'"
-      );
+      logger.info('initSuperface');
       await initSuperface(
-        NORMALIZED_CWD_PATH,
-        { profiles: {}, providers: {} },
-        { logCb: this.logCallback }
+        {
+          appPath: NORMALIZED_CWD_PATH,
+          initialDocument: { profiles: {}, providers: {} },
+        },
+        { logger }
       );
       superPath = SUPERFACE_DIR;
     }
 
-    const providers = parseProviders(flags.providers, {
-      warnCb: this.warnCallback,
-    });
+    const providers = parseProviders(logger, flags.providers);
 
-    this.logCallback?.(
-      `Installing profiles according to 'super.json' on path '${joinPath(
-        superPath,
-        META_FILE
-      )}'`
-    );
+    logger.info('installProfilesToSuperJson', joinPath(superPath, META_FILE));
 
     const requests: (LocalInstallRequest | StoreInstallRequest)[] = [];
-    const profileArg = args.profileId as string | undefined;
+    const profileArg = args.profileId;
     if (profileArg !== undefined) {
       if (flags.local) {
         requests.push({
@@ -176,10 +171,10 @@ export default class Install extends Command {
         });
       } else {
         const [id, version] = profileArg.split('@');
-        const profileId = ProfileId.fromId(id);
+        const profileId = ProfileId.fromId(id, { userError });
 
         if (!isValidDocumentName(profileId.name)) {
-          this.warnCallback?.(`Invalid profile name: ${profileId.name}`);
+          logger.warn('invalidProfileName', profileId.name);
           this.exit();
         }
 
@@ -192,39 +187,38 @@ export default class Install extends Command {
     } else {
       //Do not install providers without profile
       if (providers.length > 0) {
-        this.warnCallback?.(
-          'Unable to install providers without a profile. Please, specify a profile id.'
-        );
+        logger.warn('unableToInstallWithoutProfile');
         this.exit();
       }
     }
 
-    await installProfiles({
-      superPath,
-      requests,
-      options: {
-        logCb: this.logCallback,
-        warnCb: this.warnCallback,
-        force: flags.force,
-        tryToAuthenticate: true,
+    await installProfiles(
+      {
+        superPath,
+        requests,
+        options: {
+          force: !!flags.force,
+          tryToAuthenticate: true,
+        },
       },
-    });
-
+      { logger, userError }
+    );
     if (providers.length > 0) {
-      this.logCallback?.(`\n\nConfiguring providers`);
+      logger.info('configuringProviders');
     }
     for (const provider of providers) {
-      await installProvider({
-        superPath,
-        provider,
-        profileId: ProfileId.fromId(profileArg as string),
-        defaults: undefined,
-        options: {
-          logCb: this.logCallback,
-          warnCb: this.warnCallback,
-          force: flags.force,
+      await installProvider(
+        {
+          superPath,
+          provider,
+          profileId: ProfileId.fromId(profileArg as string, { userError }),
+          defaults: undefined,
+          options: {
+            force: !!flags.force,
+          },
         },
-      });
+        { logger, userError }
+      );
     }
   }
 }

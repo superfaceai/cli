@@ -2,10 +2,9 @@ import { SuperJson } from '@superfaceai/one-sdk';
 import { ServiceApiError } from '@superfaceai/service-client';
 import { yellow } from 'chalk';
 
-import { UNVERIFIED_PROVIDER_PREFIX } from '../common';
-import { userError } from '../common/error';
+import { ILogger, UNVERIFIED_PROVIDER_PREFIX } from '../common';
+import { UserError } from '../common/error';
 import { fetchProviderInfo, SuperfaceClient } from '../common/http';
-import { LogCallback } from '../common/log';
 import { loadNetrc } from '../common/netrc';
 import { ProfileId } from '../common/profile';
 import {
@@ -25,37 +24,50 @@ import {
 } from './publish.utils';
 
 export async function publish(
-  publishing: 'map' | 'profile' | 'provider',
-  superJson: SuperJson,
-  profile: ProfileId,
-  provider: string,
-  map: {
-    variant?: string;
+  {
+    publishing,
+    superJson,
+    profile,
+    provider,
+    map,
+    version,
+    options,
+  }: {
+    publishing: 'map' | 'profile' | 'provider';
+
+    superJson: SuperJson;
+    profile: ProfileId;
+    provider: string;
+    map: {
+      variant?: string;
+    };
+    version?: string;
+    options?: {
+      dryRun?: boolean;
+      json?: boolean;
+      quiet?: boolean;
+      emoji?: boolean;
+      color?: boolean;
+    };
   },
-  version?: string,
-  options?: {
-    logCb?: LogCallback;
-    dryRun?: boolean;
-    json?: boolean;
-    quiet?: boolean;
-  }
+  { logger, userError }: { logger: ILogger; userError: UserError }
 ): Promise<string | undefined> {
-  //Profile
-  const profileFiles = await loadProfile(superJson, profile, version, options);
+  // Profile
+  const profileFiles = await loadProfile(
+    { superJson, profile, version },
+    { logger }
+  );
   if (profileFiles.from.kind !== 'local' && publishing === 'profile') {
     throw userError(
       `Profile: "${profile.id}" not found on local file system`,
       1
     );
   }
-  //Map
+
+  // Map
   const mapFiles = await loadMap(
-    superJson,
-    profile,
-    provider,
-    map,
-    version,
-    options
+    { superJson, profile, provider, map, version },
+    { logger }
   );
   if (mapFiles.from.kind !== 'local' && publishing == 'map') {
     throw userError(
@@ -64,8 +76,8 @@ export async function publish(
     );
   }
 
-  //Provider
-  const providerFiles = await loadProvider(superJson, provider, options);
+  // Provider
+  const providerFiles = await loadProvider(superJson, provider, { logger });
 
   if (providerFiles.from.kind === 'remote' && publishing === 'provider') {
     throw userError(
@@ -73,19 +85,24 @@ export async function publish(
       1
     );
   }
-  //Check
-  const checkReports = prePublishCheck({
-    publishing,
-    profileAst: profileFiles.ast,
-    mapAst: mapFiles.ast,
-    providerJson: providerFiles.source,
-    providerFrom: providerFiles.from,
-    mapFrom: mapFiles.from,
-    profileFrom: profileFiles.from,
-    superJson,
-  });
+
+  // Check
+  const checkReports = prePublishCheck(
+    {
+      publishing,
+      profileAst: profileFiles.ast,
+      mapAst: mapFiles.ast,
+      providerJson: providerFiles.source,
+      providerFrom: providerFiles.from,
+      mapFrom: mapFiles.from,
+      profileFrom: profileFiles.from,
+      superJson,
+    },
+    { logger, userError }
+  );
   const checkIssues = checkReports.flatMap(c => c.issues);
-  //Lint
+
+  // Lint
   const lintReport = prePublishLint(profileFiles.ast, mapFiles.ast);
 
   if (
@@ -93,7 +110,6 @@ export async function publish(
     lintReport.errors.length !== 0 ||
     lintReport.warnings.length !== 0
   ) {
-    //Format reports
     if (options?.json) {
       return JSON.stringify({
         check: {
@@ -113,9 +129,18 @@ export async function publish(
       });
     } else {
       let reportStr = yellow('Check results:\n');
-      reportStr += checkFormatHuman(checkReports);
+      reportStr += checkFormatHuman({
+        checkResults: checkReports,
+        emoji: !!options?.emoji,
+        color: !!options?.color,
+      });
       reportStr += yellow('\n\nLint results:\n');
-      reportStr += lintFormatHuman(lintReport, options?.quiet ?? false);
+      reportStr += lintFormatHuman({
+        report: lintReport,
+        quiet: options?.quiet ?? false,
+        emoji: options?.emoji ?? false,
+        color: options?.color ?? false,
+      });
 
       return reportStr;
     }
@@ -140,14 +165,12 @@ export async function publish(
       try {
         await fetchProviderInfo(mapFiles.ast.header.provider);
         //Log if provider exists in SF and user is using local one
-        options?.logCb?.(
-          `Provider: "${mapFiles.ast.header.provider}" found localy linked in super.json and also in Superface server. Consider using provider from Superface store.`
-        );
+        logger.info('localAndRemoteProvider', mapFiles.ast.header.provider);
       } catch (error) {
         //If provider does not exists in SF register (is not verified) it must start with unverified
         if (error instanceof ServiceApiError && error.status === 404) {
           throw userError(
-            `Provider: "${mapFiles.ast.header.provider}" does not exist in Superface store and it does not start with: "${UNVERIFIED_PROVIDER_PREFIX}" prefix.\nPlease, rename provider: "${mapFiles.ast.header.provider}" or use existing provider.`,
+            `Provider: ${mapFiles.ast.header.provider} does not exist in Superface store and it does not start with: ${UNVERIFIED_PROVIDER_PREFIX} prefix.\nPlease, rename provider: ${mapFiles.ast.header.provider} or use existing provider.`,
             1
           );
         } else {
@@ -168,19 +191,17 @@ export async function publish(
   const client = SuperfaceClient.getClient();
 
   if (publishing === 'provider') {
-    options?.logCb?.(`Publishing provider "${provider}"`);
+    logger.info('publishProvider', provider);
     if (!options?.dryRun) {
       await client.createProvider(JSON.stringify(providerFiles.source));
     }
   } else if (publishing === 'profile' && profileFiles.from.kind === 'local') {
-    options?.logCb?.(`Publishing profile "${profile.name}"`);
+    logger.info('publishProfile', profile.id);
     if (!options?.dryRun) {
       await client.createProfile(profileFiles.from.source);
     }
   } else if (publishing === 'map' && mapFiles.from.kind === 'local') {
-    options?.logCb?.(
-      `Publishing map for profile "${profile.name}" and provider "${provider}"`
-    );
+    logger.info('publishMap', profile.id, provider);
 
     if (!options?.dryRun) {
       await client.createMap(mapFiles.from.source);

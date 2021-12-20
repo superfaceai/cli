@@ -10,7 +10,7 @@ import {
 import { SuperJson } from '@superfaceai/one-sdk';
 import { mocked } from 'ts-jest/utils';
 
-import { UNVERIFIED_PROVIDER_PREFIX } from '../common';
+import { MockLogger, UNVERIFIED_PROVIDER_PREFIX } from '../common';
 import {
   fetchMapAST,
   fetchProfileAST,
@@ -36,19 +36,17 @@ import {
   ProviderFromMetadata,
 } from './publish.utils';
 
-//Mock publish utils
 jest.mock('./publish.utils', () => ({
   loadMap: jest.fn(),
   loadProfile: jest.fn(),
   loadProvider: jest.fn(),
 }));
-//Mock check utils
+
 jest.mock('./check.utils', () => ({
   findLocalProviderSource: jest.fn(),
   isProviderParseError: jest.fn(),
 }));
 
-//Mock http
 jest.mock('../common/http', () => ({
   fetchProfileAST: jest.fn(),
   fetchMapAST: jest.fn(),
@@ -56,9 +54,8 @@ jest.mock('../common/http', () => ({
 }));
 
 describe('Check logic', () => {
-  afterEach(() => {
-    jest.resetAllMocks();
-  });
+  let logger: MockLogger;
+
   const profile = {
     name: 'character-information',
     scope: 'starwars',
@@ -250,6 +247,14 @@ describe('Check logic', () => {
     kind: 'remote',
   };
 
+  beforeEach(() => {
+    logger = new MockLogger();
+  });
+
+  afterEach(() => {
+    jest.resetAllMocks();
+  });
+
   describe('when checking capability', () => {
     it('returns correctly formated result when we use local files', async () => {
       const mockProfile = {
@@ -286,12 +291,16 @@ describe('Check logic', () => {
       });
 
       await expect(
-        check(mockSuperJson, [
-          {
-            id: ProfileId.fromScopeName(undefined, mockProfile.name),
-            maps: [{ provider: unverifiedProvider }],
-          },
-        ])
+        check(
+          mockSuperJson,
+          [
+            {
+              id: ProfileId.fromScopeName(undefined, mockProfile.name),
+              maps: [{ provider: unverifiedProvider }],
+            },
+          ],
+          { logger }
+        )
       ).resolves.toEqual([
         {
           kind: 'profileMap',
@@ -321,21 +330,25 @@ describe('Check logic', () => {
       expect(loadProvider).toHaveBeenCalledWith(
         mockSuperJson,
         unverifiedProvider,
-        undefined
+        expect.anything()
       );
       expect(loadProfile).toHaveBeenCalledWith(
-        mockSuperJson,
-        ProfileId.fromScopeName(undefined, mockProfile.name),
-        undefined,
-        undefined
+        {
+          superJson: mockSuperJson,
+          profile: ProfileId.fromScopeName(undefined, mockProfile.name),
+          version: undefined,
+        },
+        expect.anything()
       );
       expect(loadMap).toHaveBeenCalledWith(
-        mockSuperJson,
-        ProfileId.fromScopeName(undefined, mockProfile.name),
-        unverifiedProvider,
-        { variant: undefined },
-        undefined,
-        undefined
+        {
+          superJson: mockSuperJson,
+          profile: ProfileId.fromScopeName(undefined, mockProfile.name),
+          provider: unverifiedProvider,
+          map: { variant: undefined },
+          version: undefined,
+        },
+        expect.anything()
       );
       expect(fetchMapAST).not.toHaveBeenCalled();
       expect(fetchProfileAST).not.toHaveBeenCalled();
@@ -374,13 +387,17 @@ describe('Check logic', () => {
       });
 
       await expect(
-        check(mockSuperJson, [
-          {
-            id: ProfileId.fromScopeName(profile.scope, profile.name),
-            version: profile.version,
-            maps: [{ provider: unverifiedProvider, variant }],
-          },
-        ])
+        check(
+          mockSuperJson,
+          [
+            {
+              id: ProfileId.fromScopeName(profile.scope, profile.name),
+              version: profile.version,
+              maps: [{ provider: unverifiedProvider, variant }],
+            },
+          ],
+          { logger }
+        )
       ).resolves.toEqual([
         {
           kind: 'profileMap',
@@ -410,21 +427,25 @@ describe('Check logic', () => {
       expect(loadProvider).toHaveBeenCalledWith(
         mockSuperJson,
         unverifiedProvider,
-        undefined
+        expect.anything()
       );
       expect(loadProfile).toHaveBeenCalledWith(
-        mockSuperJson,
-        ProfileId.fromScopeName(profile.scope, profile.name),
-        profile.version,
-        undefined
+        {
+          superJson: mockSuperJson,
+          profile: ProfileId.fromScopeName(profile.scope, profile.name),
+          version: profile.version,
+        },
+        expect.anything()
       );
       expect(loadMap).toHaveBeenCalledWith(
-        mockSuperJson,
-        ProfileId.fromScopeName(profile.scope, profile.name),
-        unverifiedProvider,
-        { variant },
-        '1.0.3',
-        undefined
+        {
+          superJson: mockSuperJson,
+          profile: ProfileId.fromScopeName(profile.scope, profile.name),
+          provider: unverifiedProvider,
+          map: { variant },
+          version: '1.0.3',
+        },
+        expect.anything()
       );
     });
 
@@ -460,29 +481,37 @@ describe('Check logic', () => {
       });
 
       await expect(
-        check(mockSuperJson, [
-          {
-            id: ProfileId.fromScopeName(profile.scope, profile.name),
-            version: profile.version,
-            maps: [{ provider, variant }],
-          },
-        ])
+        check(
+          mockSuperJson,
+          [
+            {
+              id: ProfileId.fromScopeName(profile.scope, profile.name),
+              version: profile.version,
+              maps: [{ provider, variant }],
+            },
+          ],
+          { logger }
+        )
       ).rejects.toThrow();
 
       expect(loadProvider).not.toHaveBeenCalled();
       expect(loadProfile).toHaveBeenCalledWith(
-        mockSuperJson,
-        ProfileId.fromScopeName(profile.scope, profile.name),
-        profile.version,
-        undefined
+        {
+          superJson: mockSuperJson,
+          profile: ProfileId.fromScopeName(profile.scope, profile.name),
+          version: profile.version,
+        },
+        expect.anything()
       );
       expect(loadMap).toHaveBeenCalledWith(
-        mockSuperJson,
-        ProfileId.fromScopeName(profile.scope, profile.name),
-        provider,
-        { variant },
-        '1.0.3',
-        undefined
+        {
+          superJson: mockSuperJson,
+          profile: ProfileId.fromScopeName(profile.scope, profile.name),
+          provider,
+          map: { variant },
+          version: '1.0.3',
+        },
+        expect.anything()
       );
 
       expect(fetchProviderInfo).not.toHaveBeenCalled();
@@ -519,21 +548,27 @@ describe('Check logic', () => {
         from: mockRemoteProviderFrom,
       });
       await expect(
-        check(mockSuperJson, [
-          {
-            id: ProfileId.fromScopeName(profile.scope, profile.name),
-            version: profile.version,
-            maps: [{ provider, variant }],
-          },
-        ])
+        check(
+          mockSuperJson,
+          [
+            {
+              id: ProfileId.fromScopeName(profile.scope, profile.name),
+              version: profile.version,
+              maps: [{ provider, variant }],
+            },
+          ],
+          { logger }
+        )
       ).rejects.toThrow();
 
       expect(loadProvider).not.toHaveBeenCalled();
       expect(loadProfile).toHaveBeenCalledWith(
-        mockSuperJson,
-        ProfileId.fromScopeName(profile.scope, profile.name),
-        profile.version,
-        undefined
+        {
+          superJson: mockSuperJson,
+          profile: ProfileId.fromScopeName(profile.scope, profile.name),
+          version: profile.version,
+        },
+        expect.anything()
       );
       expect(loadMap).not.toHaveBeenCalled();
 
@@ -574,34 +609,42 @@ describe('Check logic', () => {
 
       expect(
         (
-          await check(mockSuperJson, [
-            {
-              id: ProfileId.fromScopeName(profile.scope, profile.name),
-              version: profile.version,
-              maps: [{ provider, variant }],
-            },
-          ])
+          await check(
+            mockSuperJson,
+            [
+              {
+                id: ProfileId.fromScopeName(profile.scope, profile.name),
+                version: profile.version,
+                maps: [{ provider, variant }],
+              },
+            ],
+            { logger }
+          )
         ).length
       ).not.toEqual(0);
 
       expect(loadProvider).toHaveBeenCalledWith(
         mockSuperJson,
         provider,
-        undefined
+        expect.anything()
       );
       expect(loadProfile).toHaveBeenCalledWith(
-        mockSuperJson,
-        ProfileId.fromScopeName(profile.scope, profile.name),
-        profile.version,
-        undefined
+        {
+          superJson: mockSuperJson,
+          profile: ProfileId.fromScopeName(profile.scope, profile.name),
+          version: profile.version,
+        },
+        expect.anything()
       );
       expect(loadMap).toHaveBeenCalledWith(
-        mockSuperJson,
-        ProfileId.fromScopeName(profile.scope, profile.name),
-        provider,
-        { variant },
-        '1.0.3',
-        undefined
+        {
+          superJson: mockSuperJson,
+          profile: ProfileId.fromScopeName(profile.scope, profile.name),
+          provider,
+          map: { variant },
+          version: '1.0.3',
+        },
+        expect.anything()
       );
     });
   });
@@ -609,7 +652,50 @@ describe('Check logic', () => {
   describe('when formating human', () => {
     it('returns correctly formated string when empty issues array is passed', async () => {
       expect(
-        formatHuman([
+        formatHuman({
+          checkResults: [
+            {
+              kind: 'profileMap',
+              profileId: ProfileId.fromScopeName(
+                profile.scope,
+                profile.name
+              ).toString(),
+              provider,
+              issues: [],
+              mapFrom: mockRemoteMapFrom,
+              profileFrom: mockRemoteProfileFrom,
+            },
+          ],
+          color: false,
+          emoji: false,
+        })
+      ).toMatch(
+        `Checking remote profile "${profile.scope}/${profile.name}" with version "${profile.version}" and remote map with version "${profile.version}" for provider "${provider}"`
+      );
+      expect(
+        formatHuman({
+          checkResults: [
+            {
+              kind: 'mapProvider',
+              profileId: ProfileId.fromScopeName(
+                profile.scope,
+                profile.name
+              ).toString(),
+              provider,
+              issues: [],
+              mapFrom: mockRemoteMapFrom,
+              providerFrom: mockRemoteProfileFrom,
+            },
+          ],
+          emoji: false,
+          color: false,
+        })
+      ).toMatch(
+        `Checking remote map with version "${profile.version}" for profile "${profile.scope}/${profile.name}" and remote provider "${provider}"`
+      );
+
+      let result = formatHuman({
+        checkResults: [
           {
             kind: 'profileMap',
             profileId: ProfileId.fromScopeName(
@@ -618,15 +704,24 @@ describe('Check logic', () => {
             ).toString(),
             provider,
             issues: [],
-            mapFrom: mockRemoteMapFrom,
-            profileFrom: mockRemoteProfileFrom,
+            mapFrom: mockLocalMapFrom,
+            profileFrom: mockLocalProfileFrom,
           },
-        ])
-      ).toMatch(
-        `🆗 Checking remote profile ${profile.scope}/${profile.name} with version ${profile.version} and remote map with version ${profile.version} for provider ${provider}`
+        ],
+        emoji: false,
+        color: false,
+      });
+      expect(result).toMatch(
+        `Checking local profile "${profile.scope}/${profile.name}" at path`
       );
-      expect(
-        formatHuman([
+      expect(result).toMatch(mockLocalProfileFrom.path);
+      expect(result).toMatch(
+        `and local map for provider "${provider}" at path`
+      );
+      expect(result).toMatch(mockLocalMapFrom.path);
+
+      result = formatHuman({
+        checkResults: [
           {
             kind: 'mapProvider',
             profileId: ProfileId.fromScopeName(
@@ -635,51 +730,17 @@ describe('Check logic', () => {
             ).toString(),
             provider,
             issues: [],
-            mapFrom: mockRemoteMapFrom,
-            providerFrom: mockRemoteProfileFrom,
+            mapFrom: mockLocalMapFrom,
+            providerFrom: mockLocalProviderFrom,
           },
-        ])
-      ).toMatch(
-        `🆗 Checking remote map with version ${profile.version} for profile ${profile.scope}/${profile.name} and remote provider ${provider}`
-      );
-
-      let result = formatHuman([
-        {
-          kind: 'profileMap',
-          profileId: ProfileId.fromScopeName(
-            profile.scope,
-            profile.name
-          ).toString(),
-          provider,
-          issues: [],
-          mapFrom: mockLocalMapFrom,
-          profileFrom: mockLocalProfileFrom,
-        },
-      ]);
-      expect(result).toMatch(
-        `🆗 Checking local profile ${profile.scope}/${profile.name} at path`
-      );
-      expect(result).toMatch(mockLocalProfileFrom.path);
-      expect(result).toMatch(`and local map for provider ${provider} at path`);
-      expect(result).toMatch(mockLocalMapFrom.path);
-
-      result = formatHuman([
-        {
-          kind: 'mapProvider',
-          profileId: ProfileId.fromScopeName(
-            profile.scope,
-            profile.name
-          ).toString(),
-          provider,
-          issues: [],
-          mapFrom: mockLocalMapFrom,
-          providerFrom: mockLocalProviderFrom,
-        },
-      ]);
-      expect(result).toMatch(`🆗 Checking local map at path`);
+        ],
+        emoji: false,
+        color: false,
+      });
+      expect(result).toMatch('Checking local map at path');
       expect(result).toMatch(mockLocalMapFrom.path);
       expect(result).toMatch(
-        `for profile ${profile.scope}/${profile.name} and local provider ${provider} at path`
+        `for profile "${profile.scope}/${profile.name}" and local provider "${provider}" at path`
       );
       expect(result).toMatch(mockLocalProviderFrom.path);
     });
@@ -767,40 +828,47 @@ describe('Check logic', () => {
           ],
         },
       ];
-      const formated = formatHuman(mockResult);
+      const formated = formatHuman({
+        checkResults: mockResult,
+        emoji: false,
+        color: false,
+      });
       //First title
       expect(formated).toMatch(
-        `❌ Checking remote profile ${profile.scope}/${profile.name} with version ${profile.version} and remote map with version ${profile.version} for provider ${provider}`
+        `Checking remote profile "${profile.scope}/${profile.name}" with version "${profile.version}" and remote map with version "${profile.version}" for provider "${provider}"`
       );
-      //First body
-      expect(formated).toMatch('❌ first-check-first-error');
-      expect(formated).toMatch('⚠️ first-check-first-warn');
-      expect(formated).toMatch('❌ first-check-second-error');
-      expect(formated).toMatch('⚠️ first-check-second-warn');
-      //Second title
-      expect(formated).toMatch(`❌ Checking local map at path`);
+
+      // First body
+      expect(formated).toMatch('first-check-first-error');
+      expect(formated).toMatch('first-check-first-warn');
+      expect(formated).toMatch('first-check-second-error');
+      expect(formated).toMatch('first-check-second-warn');
+
+      // Second title
+      expect(formated).toMatch('Checking local map at path');
       expect(formated).toMatch(mockLocalMapFrom.path);
       expect(formated).toMatch(
-        `for profile ${profile.scope}/${profile.name} and local provider ${provider} at path`
+        `for profile "${profile.scope}/${profile.name}" and local provider "${provider}" at path`
       );
       expect(formated).toMatch(mockLocalProviderFrom.path);
       // Second body
-      expect(formated).toMatch('❌ second-check-first-error');
-      expect(formated).toMatch('⚠️ second-check-first-warn');
-      expect(formated).toMatch('❌ second-check-second-error');
-      expect(formated).toMatch('⚠️ second-check-second-warn');
-      //Third title
+      expect(formated).toMatch('second-check-first-error');
+      expect(formated).toMatch('second-check-first-warn');
+      expect(formated).toMatch('second-check-second-error');
+      expect(formated).toMatch('second-check-second-warn');
+
+      // Third title
       expect(formated).toMatch(
-        `❌ Checking integration parameters of local provider at path`
+        'Checking integration parameters of local provider at path'
       );
       expect(formated).toMatch(mockLocalProviderFrom.path);
-      expect(formated).toMatch(`and super.json at path`);
+      expect(formated).toMatch('and super.json at path');
       expect(formated).toMatch('some/path');
-      //Third body
-      expect(formated).toMatch('❌ third-check-first-error');
-      expect(formated).toMatch('⚠️ third-check-first-warn');
-      expect(formated).toMatch('❌ third-check-second-error');
-      expect(formated).toMatch('⚠️ third-check-second-warn');
+      // Third body
+      expect(formated).toMatch('third-check-first-error');
+      expect(formated).toMatch('third-check-first-warn');
+      expect(formated).toMatch('third-check-second-error');
+      expect(formated).toMatch('third-check-second-warn');
     });
   });
 
@@ -846,7 +914,9 @@ describe('Check logic', () => {
 
   describe('when checking profile and map', () => {
     it('returns empty result if profile and map checks out', async () => {
-      expect(checkMapAndProfile(mockProfileDocument, mockMapDocument)).toEqual({
+      expect(
+        checkMapAndProfile(mockProfileDocument, mockMapDocument, { logger })
+      ).toEqual({
         kind: 'profileMap',
         issues: [],
         profileId: 'starwars/character-information@1.0.3',
@@ -892,7 +962,8 @@ describe('Check logic', () => {
       };
 
       expect(
-        checkMapAndProfile(mockProfileDocument, mockMapDocument).issues.length
+        checkMapAndProfile(mockProfileDocument, mockMapDocument, { logger })
+          .issues.length
       ).toEqual(5);
     });
 
@@ -940,12 +1011,13 @@ describe('Check logic', () => {
       };
 
       expect(
-        checkMapAndProfile(mockProfileDocument, mockMapDocument).issues.length
+        checkMapAndProfile(mockProfileDocument, mockMapDocument, { logger })
+          .issues.length
       ).toEqual(7);
       expect(
-        checkMapAndProfile(mockProfileDocument, mockMapDocument).issues.filter(
-          result => result.kind === 'warn'
-        ).length
+        checkMapAndProfile(mockProfileDocument, mockMapDocument, {
+          logger,
+        }).issues.filter(result => result.kind === 'warn').length
       ).toEqual(2);
     });
 
@@ -995,11 +1067,13 @@ describe('Check logic', () => {
       expect(
         checkMapAndProfile(mockProfileDocument, mockMapDocument, {
           strict: true,
+          logger,
         }).issues.length
       ).toEqual(7);
       expect(
         checkMapAndProfile(mockProfileDocument, mockMapDocument, {
           strict: true,
+          logger,
         }).issues.filter(result => result.kind === 'warn').length
       ).toEqual(0);
     });
@@ -1256,7 +1330,7 @@ describe('Check logic', () => {
         issues: [
           {
             kind: 'error',
-            message: `Provider different is not defined in super.json`,
+            message: 'Provider different is not defined in super.json',
           },
         ],
         kind: 'parameters',

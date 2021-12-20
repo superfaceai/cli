@@ -2,13 +2,13 @@ import { flags as oclifFlags } from '@oclif/command';
 import { isValidProviderName } from '@superfaceai/ast';
 import { SuperJson } from '@superfaceai/one-sdk';
 import { parseDocumentId } from '@superfaceai/parser';
-import { bold, grey, red } from 'chalk';
 import { join as joinPath } from 'path';
 
-import { META_FILE } from '../common';
-import { Command } from '../common/command.abstract';
-import { developerError, userError } from '../common/error';
+import { Command, Flags } from '../common/command.abstract';
+import { META_FILE } from '../common/document';
+import { developerError, UserError } from '../common/error';
 import { formatWordPlurality } from '../common/format';
+import { ILogger } from '../common/log';
 import { OutputStream } from '../common/output-stream';
 import { detectSuperJson } from '../logic/install';
 import { formatHuman, formatJson, lint } from '../logic/lint';
@@ -77,17 +77,25 @@ export default class Lint extends Command {
     '$ superface lint -s 3',
   ];
 
-  private logCallback? = (message: string) => this.log(grey(message));
-  private errCallback? = (message: string) => this.log(red(bold(message)));
-
   async run(): Promise<void> {
     const { flags } = this.parse(Lint);
+    await super.initialize(flags);
+    await this.execute({
+      logger: this.logger,
+      userError: this.userError,
+      flags,
+    });
+  }
 
-    if (flags.quiet || flags.outputFormat === 'json') {
-      this.logCallback = undefined;
-      this.errCallback = undefined;
-    }
-
+  async execute({
+    logger,
+    flags,
+    userError,
+  }: {
+    logger: ILogger;
+    userError: UserError;
+    flags: Flags<typeof Lint.flags>;
+  }): Promise<void> {
     // Check inputs
     if (flags.profileId) {
       const parsedProfileId = parseDocumentId(flags.profileId);
@@ -102,7 +110,7 @@ export default class Lint extends Command {
       }
       if (!flags.profileId) {
         throw userError(
-          `--profileId must be specified when using --providerName`,
+          '--profileId must be specified when using --providerName',
           1
         );
       }
@@ -148,9 +156,12 @@ export default class Lint extends Command {
       }
     }
     const profiles = Check.prepareProfilesToValidate(
-      superJson,
-      flags.profileId,
-      flags.providerName
+      {
+        superJson,
+        profileId: flags.profileId,
+        providerName: flags.providerName,
+      },
+      { userError }
     );
 
     const outputStream = new OutputStream(flags.output, {
@@ -158,14 +169,19 @@ export default class Lint extends Command {
     });
 
     const result = await lint(superJson, profiles, {
-      logCb: this.logCallback,
-      errCb: this.errCallback,
+      logger,
     });
 
     if (flags.outputFormat === 'long' || flags.outputFormat === 'short') {
       for (const report of result.reports) {
         await outputStream.write(
-          formatHuman(report, flags.quiet, flags.outputFormat === 'short')
+          formatHuman({
+            report,
+            quiet: !!flags.quiet,
+            emoji: !flags.noEmoji,
+            color: !flags.noColor,
+            short: flags.outputFormat === 'short',
+          })
         );
       }
 
@@ -184,7 +200,7 @@ export default class Lint extends Command {
     if (result.total.errors > 0) {
       throw userError('Errors were found', 1);
     } else if (result.total.warnings > 0) {
-      this.logCallback?.('⚠️ Warnings were found');
+      logger.warn('warningsWereFound');
     }
   }
 }

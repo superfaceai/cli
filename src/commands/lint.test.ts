@@ -2,29 +2,39 @@ import { err, ok, SuperJson } from '@superfaceai/one-sdk';
 import { SDKExecutionError } from '@superfaceai/one-sdk/dist/internal/errors';
 import { mocked } from 'ts-jest/utils';
 
+import { createUserError } from '../common/error';
+import { MockLogger } from '../common/log';
 import { OutputStream } from '../common/output-stream';
 import { ProfileId } from '../common/profile';
 import { detectSuperJson } from '../logic/install';
 import { formatHuman, formatJson, lint, LintResult } from '../logic/lint';
+import { CommandInstance } from '../test/utils';
 import Lint from './lint';
 
-//Mock output stream
 jest.mock('../common/output-stream');
-
-//Mock install logic
 jest.mock('../logic/install', () => ({
   detectSuperJson: jest.fn(),
 }));
-
-//Mock lint logic
 jest.mock('../logic/lint', () => ({
   ...jest.requireActual<Record<string, unknown>>('../logic/lint'),
   lint: jest.fn(),
 }));
 
 describe('lint CLI command', () => {
+  let logger: MockLogger;
+  let instance: Lint;
+  const userError = createUserError(false);
   const profileId = 'starwars/character-information';
   const provider = 'swapi';
+  const defaultFlags = {
+    output: '-',
+    outputFormat: 'long' as 'long' | 'json' | 'short',
+  };
+
+  beforeEach(() => {
+    logger = new MockLogger();
+    instance = CommandInstance(Lint);
+  });
 
   const mockResultWithErrs: LintResult = {
     reports: [
@@ -78,12 +88,17 @@ describe('lint CLI command', () => {
   afterEach(() => {
     jest.resetAllMocks();
   });
+
   describe('lint CLI command', () => {
     it('throws when super.json not found', async () => {
       mocked(detectSuperJson).mockResolvedValue(undefined);
-      await expect(Lint.run([])).rejects.toThrow(
-        'Unable to lint, super.json not found'
-      );
+      await expect(
+        instance.execute({
+          logger,
+          userError,
+          flags: defaultFlags,
+        })
+      ).rejects.toThrow('Unable to lint, super.json not found');
     });
 
     it('throws when super.json not loaded correctly', async () => {
@@ -91,24 +106,25 @@ describe('lint CLI command', () => {
       jest
         .spyOn(SuperJson, 'load')
         .mockResolvedValue(err(new SDKExecutionError('test error', [], [])));
-      await expect(Lint.run([])).rejects.toThrow(
-        'Unable to load super.json: test error'
-      );
+      await expect(
+        instance.execute({
+          logger,
+          userError,
+          flags: defaultFlags,
+        })
+      ).rejects.toThrow('Unable to load super.json: test error');
     });
-
-    it('throws error on invalid scan flag', async () => {
-      mocked(detectSuperJson).mockResolvedValue('.');
-
-      await expect(Lint.run(['-s test'])).rejects.toThrow(
-        'Expected an integer but received:  test'
-      );
-      expect(detectSuperJson).not.toHaveBeenCalled();
-    }, 10000);
 
     it('throws error on scan flag higher than 5', async () => {
       mocked(detectSuperJson).mockResolvedValue('.');
 
-      await expect(Lint.run(['-s', '6'])).rejects.toThrow(
+      await expect(
+        instance.execute({
+          logger,
+          userError,
+          flags: { ...defaultFlags, scan: 6 },
+        })
+      ).rejects.toThrow(
         '--scan/-s : Number of levels to scan cannot be higher than 5'
       );
       expect(detectSuperJson).not.toHaveBeenCalled();
@@ -121,7 +137,16 @@ describe('lint CLI command', () => {
         .mockResolvedValue(ok(new SuperJson()));
 
       await expect(
-        Lint.run(['--profileId', 'U!0_', '--providerName', provider, '-s', '3'])
+        instance.execute({
+          logger,
+          userError,
+          flags: {
+            ...defaultFlags,
+            profileId: 'U!0_',
+            providerName: provider,
+            scan: 3,
+          },
+        })
       ).rejects.toThrow(
         'Invalid profile id: "U!0_" is not a valid lowercase identifier'
       );
@@ -151,14 +176,16 @@ describe('lint CLI command', () => {
         .mockResolvedValue(ok(new SuperJson()));
 
       await expect(
-        Lint.run([
-          '--profileId',
-          profileId,
-          '--providerName',
-          'U!0_',
-          '-s',
-          '3',
-        ])
+        instance.execute({
+          logger,
+          userError,
+          flags: {
+            ...defaultFlags,
+            profileId,
+            providerName: 'U!0_',
+            scan: 3,
+          },
+        })
       ).rejects.toThrow('Invalid provider name: "U!0_"');
       expect(detectSuperJson).not.toHaveBeenCalled();
       expect(loadSpy).not.toHaveBeenCalled();
@@ -171,14 +198,16 @@ describe('lint CLI command', () => {
         .mockResolvedValue(ok(new SuperJson()));
 
       await expect(
-        Lint.run([
-          '--profileId',
-          profileId,
-          '--providerName',
-          provider,
-          '-s',
-          '3',
-        ])
+        instance.execute({
+          logger,
+          userError,
+          flags: {
+            ...defaultFlags,
+            profileId,
+            providerName: provider,
+            scan: 3,
+          },
+        })
       ).rejects.toThrow(
         `Unable to lint, profile: "${profileId}" not found in super.json`
       );
@@ -203,14 +232,16 @@ describe('lint CLI command', () => {
       );
 
       await expect(
-        Lint.run([
-          '--profileId',
-          profileId,
-          '--providerName',
-          provider,
-          '-s',
-          '3',
-        ])
+        instance.execute({
+          logger,
+          userError,
+          flags: {
+            ...defaultFlags,
+            profileId,
+            providerName: provider,
+            scan: 3,
+          },
+        })
       ).rejects.toThrow(
         `Unable to lint, provider: "${provider}" not found in profile: "${profileId}" in super.json`
       );
@@ -272,14 +303,23 @@ describe('lint CLI command', () => {
           .spyOn(OutputStream.prototype, 'cleanup')
           .mockResolvedValue(undefined);
 
-        await expect(Lint.run(['-s', '4'])).resolves.toBeUndefined();
+        await expect(
+          instance.execute({
+            logger,
+            userError,
+            flags: {
+              ...defaultFlags,
+              scan: 4,
+            },
+          })
+        ).resolves.toBeUndefined();
 
         expect(lint).toHaveBeenCalledTimes(1);
         expect(lint).toHaveBeenCalledWith(
           mockSuperJson,
           [
             {
-              id: ProfileId.fromId(mockLocalProfile),
+              id: ProfileId.fromId(mockLocalProfile, { userError }),
               maps: [
                 {
                   provider: mockLocalProvider,
@@ -290,19 +330,31 @@ describe('lint CLI command', () => {
               ],
             },
           ],
-          { logCb: expect.anything(), errCb: expect.anything() }
+          expect.anything()
         );
 
         expect(detectSuperJson).toHaveBeenCalledWith(process.cwd(), 4);
         expect(loadSpy).toHaveBeenCalledTimes(1);
         expect(writeSpy).toHaveBeenCalledTimes(3);
         expect(writeSpy).toHaveBeenCalledWith(
-          formatHuman(mockResult.reports[0], false, true)
+          formatHuman({
+            report: mockResult.reports[0],
+            quiet: false,
+            emoji: true,
+            color: true,
+            short: true,
+          })
         );
         expect(writeSpy).toHaveBeenCalledWith(
-          formatHuman(mockResult.reports[1], false, true)
+          formatHuman({
+            report: mockResult.reports[1],
+            quiet: false,
+            emoji: true,
+            color: true,
+            short: true,
+          })
         );
-        expect(writeSpy).toHaveBeenCalledWith(`\nDetected 0 problems\n`);
+        expect(writeSpy).toHaveBeenCalledWith('\nDetected 0 problems\n');
 
         expect(cleanupSpy).toHaveBeenCalledTimes(1);
       });
@@ -352,7 +404,15 @@ describe('lint CLI command', () => {
           .mockResolvedValue(undefined);
 
         await expect(
-          Lint.run(['--profileId', mockLocalProfile, '-s', '4'])
+          instance.execute({
+            logger,
+            userError,
+            flags: {
+              ...defaultFlags,
+              profileId: mockLocalProfile,
+              scan: 4,
+            },
+          })
         ).resolves.toBeUndefined();
 
         expect(lint).toHaveBeenCalledTimes(1);
@@ -360,7 +420,7 @@ describe('lint CLI command', () => {
           mockSuperJson,
           [
             {
-              id: ProfileId.fromId(mockLocalProfile),
+              id: ProfileId.fromId(mockLocalProfile, { userError }),
               maps: [
                 {
                   provider: mockLocalProvider,
@@ -369,19 +429,31 @@ describe('lint CLI command', () => {
               ],
             },
           ],
-          { logCb: expect.anything(), errCb: expect.anything() }
+          expect.anything()
         );
 
         expect(detectSuperJson).toHaveBeenCalledWith(process.cwd(), 4);
         expect(loadSpy).toHaveBeenCalledTimes(1);
         expect(writeSpy).toHaveBeenCalledTimes(3);
         expect(writeSpy).toHaveBeenCalledWith(
-          formatHuman(mockResult.reports[0], false, true)
+          formatHuman({
+            report: mockResult.reports[0],
+            quiet: false,
+            emoji: true,
+            color: true,
+            short: true,
+          })
         );
         expect(writeSpy).toHaveBeenCalledWith(
-          formatHuman(mockResult.reports[1], false, true)
+          formatHuman({
+            report: mockResult.reports[1],
+            quiet: false,
+            emoji: true,
+            color: true,
+            short: true,
+          })
         );
-        expect(writeSpy).toHaveBeenCalledWith(`\nDetected 0 problems\n`);
+        expect(writeSpy).toHaveBeenCalledWith('\nDetected 0 problems\n');
 
         expect(cleanupSpy).toHaveBeenCalledTimes(1);
       });
@@ -430,7 +502,15 @@ describe('lint CLI command', () => {
           .mockResolvedValue(undefined);
 
         await expect(
-          Lint.run(['--profileId', mockProfile, '-s', '4'])
+          instance.execute({
+            logger,
+            userError,
+            flags: {
+              ...defaultFlags,
+              profileId: mockProfile,
+              scan: 4,
+            },
+          })
         ).resolves.toBeUndefined();
 
         expect(lint).toHaveBeenCalledTimes(1);
@@ -438,7 +518,7 @@ describe('lint CLI command', () => {
           mockSuperJson,
           [
             {
-              id: ProfileId.fromId(mockProfile),
+              id: ProfileId.fromId(mockProfile, { userError }),
               maps: [
                 {
                   provider: mockLocalProvider,
@@ -448,19 +528,31 @@ describe('lint CLI command', () => {
               version,
             },
           ],
-          { logCb: expect.anything(), errCb: expect.anything() }
+          expect.anything()
         );
 
         expect(detectSuperJson).toHaveBeenCalledWith(process.cwd(), 4);
         expect(loadSpy).toHaveBeenCalledTimes(1);
         expect(writeSpy).toHaveBeenCalledTimes(3);
         expect(writeSpy).toHaveBeenCalledWith(
-          formatHuman(mockResult.reports[0], false, true)
+          formatHuman({
+            report: mockResult.reports[0],
+            quiet: false,
+            emoji: true,
+            color: true,
+            short: true,
+          })
         );
         expect(writeSpy).toHaveBeenCalledWith(
-          formatHuman(mockResult.reports[1], false, true)
+          formatHuman({
+            report: mockResult.reports[1],
+            quiet: false,
+            emoji: true,
+            color: true,
+            short: true,
+          })
         );
-        expect(writeSpy).toHaveBeenCalledWith(`\nDetected 0 problems\n`);
+        expect(writeSpy).toHaveBeenCalledWith('\nDetected 0 problems\n');
 
         expect(cleanupSpy).toHaveBeenCalledTimes(1);
       });
@@ -503,14 +595,16 @@ describe('lint CLI command', () => {
           .mockResolvedValue(undefined);
 
         await expect(
-          Lint.run([
-            '--profileId',
-            mockLocalProfile,
-            '--providerName',
-            mockLocalProvider,
-            '-s',
-            '4',
-          ])
+          instance.execute({
+            logger,
+            userError,
+            flags: {
+              ...defaultFlags,
+              profileId: mockLocalProfile,
+              providerName: mockLocalProvider,
+              scan: 4,
+            },
+          })
         ).resolves.toBeUndefined();
 
         expect(lint).toHaveBeenCalledTimes(1);
@@ -518,7 +612,7 @@ describe('lint CLI command', () => {
           mockSuperJson,
           [
             {
-              id: ProfileId.fromId(mockLocalProfile),
+              id: ProfileId.fromId(mockLocalProfile, { userError }),
               maps: [
                 {
                   provider: mockLocalProvider,
@@ -526,19 +620,31 @@ describe('lint CLI command', () => {
               ],
             },
           ],
-          { logCb: expect.anything(), errCb: expect.anything() }
+          expect.anything()
         );
 
         expect(detectSuperJson).toHaveBeenCalledWith(process.cwd(), 4);
         expect(loadSpy).toHaveBeenCalledTimes(1);
         expect(writeSpy).toHaveBeenCalledTimes(3);
         expect(writeSpy).toHaveBeenCalledWith(
-          formatHuman(mockResult.reports[0], false, true)
+          formatHuman({
+            report: mockResult.reports[0],
+            quiet: false,
+            emoji: true,
+            color: true,
+            short: true,
+          })
         );
         expect(writeSpy).toHaveBeenCalledWith(
-          formatHuman(mockResult.reports[1], false, true)
+          formatHuman({
+            report: mockResult.reports[1],
+            quiet: false,
+            emoji: true,
+            color: true,
+            short: true,
+          })
         );
-        expect(writeSpy).toHaveBeenCalledWith(`\nDetected 0 problems\n`);
+        expect(writeSpy).toHaveBeenCalledWith('\nDetected 0 problems\n');
 
         expect(cleanupSpy).toHaveBeenCalledTimes(1);
       });
@@ -580,14 +686,16 @@ describe('lint CLI command', () => {
           .mockResolvedValue(undefined);
 
         await expect(
-          Lint.run([
-            '--profileId',
-            mockProfile,
-            '--providerName',
-            mockLocalProvider,
-            '-s',
-            '4',
-          ])
+          instance.execute({
+            logger,
+            userError,
+            flags: {
+              ...defaultFlags,
+              profileId: mockProfile,
+              providerName: mockLocalProvider,
+              scan: 4,
+            },
+          })
         ).resolves.toBeUndefined();
 
         expect(lint).toHaveBeenCalledTimes(1);
@@ -595,7 +703,7 @@ describe('lint CLI command', () => {
           mockSuperJson,
           [
             {
-              id: ProfileId.fromId(mockProfile),
+              id: ProfileId.fromId(mockProfile, { userError }),
               maps: [
                 {
                   provider: mockLocalProvider,
@@ -604,19 +712,31 @@ describe('lint CLI command', () => {
               version,
             },
           ],
-          { logCb: expect.anything(), errCb: expect.anything() }
+          expect.anything()
         );
 
         expect(detectSuperJson).toHaveBeenCalledWith(process.cwd(), 4);
         expect(loadSpy).toHaveBeenCalledTimes(1);
         expect(writeSpy).toHaveBeenCalledTimes(3);
         expect(writeSpy).toHaveBeenCalledWith(
-          formatHuman(mockResult.reports[0], false, true)
+          formatHuman({
+            report: mockResult.reports[0],
+            quiet: false,
+            emoji: true,
+            color: true,
+            short: true,
+          })
         );
         expect(writeSpy).toHaveBeenCalledWith(
-          formatHuman(mockResult.reports[1], false, true)
+          formatHuman({
+            report: mockResult.reports[1],
+            quiet: false,
+            emoji: true,
+            color: true,
+            short: true,
+          })
         );
-        expect(writeSpy).toHaveBeenCalledWith(`\nDetected 0 problems\n`);
+        expect(writeSpy).toHaveBeenCalledWith('\nDetected 0 problems\n');
 
         expect(cleanupSpy).toHaveBeenCalledTimes(1);
       });
@@ -659,15 +779,16 @@ describe('lint CLI command', () => {
           .mockResolvedValue(undefined);
 
         await expect(
-          Lint.run([
-            '--profileId',
-            mockProfile,
-            '--providerName',
-            mockProvider,
-            '-s',
-            '4',
-            '-q',
-          ])
+          instance.execute({
+            logger,
+            userError,
+            flags: {
+              ...defaultFlags,
+              profileId: mockProfile,
+              providerName: mockProvider,
+              scan: 4,
+            },
+          })
         ).resolves.toBeUndefined();
 
         expect(lint).toHaveBeenCalledTimes(1);
@@ -675,24 +796,36 @@ describe('lint CLI command', () => {
           mockSuperJson,
           [
             {
-              id: ProfileId.fromId(mockProfile),
+              id: ProfileId.fromId(mockProfile, { userError }),
               maps: [{ provider: mockProvider, variant: mapVariant }],
               version,
             },
           ],
-          { logCb: undefined, errCb: undefined }
+          expect.anything()
         );
 
         expect(detectSuperJson).toHaveBeenCalledWith(process.cwd(), 4);
         expect(loadSpy).toHaveBeenCalledTimes(1);
         expect(writeSpy).toHaveBeenCalledTimes(3);
         expect(writeSpy).toHaveBeenCalledWith(
-          formatHuman(mockResult.reports[0], true, true)
+          formatHuman({
+            report: mockResult.reports[0],
+            quiet: false,
+            emoji: true,
+            color: true,
+            short: true,
+          })
         );
         expect(writeSpy).toHaveBeenCalledWith(
-          formatHuman(mockResult.reports[1], true, true)
+          formatHuman({
+            report: mockResult.reports[1],
+            quiet: false,
+            emoji: true,
+            color: true,
+            short: true,
+          })
         );
-        expect(writeSpy).toHaveBeenCalledWith(`\nDetected 0 problems\n`);
+        expect(writeSpy).toHaveBeenCalledWith('\nDetected 0 problems\n');
 
         expect(cleanupSpy).toHaveBeenCalledTimes(1);
       });
@@ -752,12 +885,12 @@ describe('lint CLI command', () => {
           mockSuperJson,
           [
             {
-              id: ProfileId.fromId(mockProfile),
+              id: ProfileId.fromId(mockProfile, { userError }),
               maps: [{ provider: mockProvider, variant: mapVariant }],
               version,
             },
           ],
-          { logCb: undefined, errCb: undefined }
+          expect.anything()
         );
 
         expect(detectSuperJson).toHaveBeenCalledWith(process.cwd(), 4);
@@ -806,14 +939,16 @@ describe('lint CLI command', () => {
           .mockResolvedValue(undefined);
 
         await expect(
-          Lint.run([
-            '--profileId',
-            mockProfile,
-            '--providerName',
-            mockProvider,
-            '-s',
-            '4',
-          ])
+          instance.execute({
+            logger,
+            userError,
+            flags: {
+              ...defaultFlags,
+              profileId: mockProfile,
+              providerName: mockProvider,
+              scan: 4,
+            },
+          })
         ).resolves.toBeUndefined();
 
         expect(lint).toHaveBeenCalledTimes(1);
@@ -821,27 +956,40 @@ describe('lint CLI command', () => {
           mockSuperJson,
           [
             {
-              id: ProfileId.fromId(mockProfile),
+              id: ProfileId.fromId(mockProfile, { userError }),
               maps: [{ provider: mockProvider, variant: mapVariant }],
               version,
             },
           ],
-          { logCb: expect.anything(), errCb: expect.anything() }
+          expect.anything()
         );
 
         expect(detectSuperJson).toHaveBeenCalledWith(process.cwd(), 4);
         expect(loadSpy).toHaveBeenCalledTimes(1);
         expect(writeSpy).toHaveBeenCalledTimes(3);
         expect(writeSpy).toHaveBeenCalledWith(
-          formatHuman(mockResult.reports[0], false, true)
+          formatHuman({
+            report: mockResult.reports[0],
+            quiet: false,
+            emoji: true,
+            color: true,
+            short: true,
+          })
         );
         expect(writeSpy).toHaveBeenCalledWith(
-          formatHuman(mockResult.reports[1], false, true)
+          formatHuman({
+            report: mockResult.reports[1],
+            quiet: false,
+            emoji: true,
+            color: true,
+            short: true,
+          })
         );
-        expect(writeSpy).toHaveBeenCalledWith(`\nDetected 0 problems\n`);
+        expect(writeSpy).toHaveBeenCalledWith('\nDetected 0 problems\n');
 
         expect(cleanupSpy).toHaveBeenCalledTimes(1);
       });
+
       it('throws on error', async () => {
         const mockProfile = 'starwars/character-information';
         const mockProvider = 'swapi';
@@ -880,14 +1028,16 @@ describe('lint CLI command', () => {
           .mockResolvedValue(undefined);
 
         await expect(
-          Lint.run([
-            '--profileId',
-            mockProfile,
-            '--providerName',
-            mockProvider,
-            '-s',
-            '4',
-          ])
+          instance.execute({
+            logger,
+            userError,
+            flags: {
+              ...defaultFlags,
+              profileId: mockProfile,
+              providerName: mockProvider,
+              scan: 4,
+            },
+          })
         ).rejects.toThrow('Errors were found');
 
         expect(lint).toHaveBeenCalledTimes(1);
@@ -895,24 +1045,36 @@ describe('lint CLI command', () => {
           mockSuperJson,
           [
             {
-              id: ProfileId.fromId(mockProfile),
+              id: ProfileId.fromId(mockProfile, { userError }),
               maps: [{ provider: mockProvider, variant: mapVariant }],
               version,
             },
           ],
-          { logCb: expect.anything(), errCb: expect.anything() }
+          expect.anything()
         );
 
         expect(detectSuperJson).toHaveBeenCalledWith(process.cwd(), 4);
         expect(loadSpy).toHaveBeenCalledTimes(1);
         expect(writeSpy).toHaveBeenCalledTimes(3);
         expect(writeSpy).toHaveBeenCalledWith(
-          formatHuman(mockResultWithErrs.reports[0], false, true)
+          formatHuman({
+            report: mockResultWithErrs.reports[0],
+            quiet: false,
+            emoji: true,
+            color: true,
+            short: false,
+          })
         );
         expect(writeSpy).toHaveBeenCalledWith(
-          formatHuman(mockResultWithErrs.reports[1], false, true)
+          formatHuman({
+            report: mockResultWithErrs.reports[1],
+            quiet: false,
+            emoji: true,
+            color: true,
+            short: true,
+          })
         );
-        expect(writeSpy).toHaveBeenCalledWith(`\nDetected 1 problem\n`);
+        expect(writeSpy).toHaveBeenCalledWith('\nDetected 1 problem\n');
 
         expect(cleanupSpy).toHaveBeenCalledTimes(1);
       });

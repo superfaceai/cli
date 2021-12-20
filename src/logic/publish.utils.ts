@@ -12,13 +12,13 @@ import {
   validateMap,
 } from '@superfaceai/parser';
 
-import { userError } from '../common/error';
+import { UserError } from '../common/error';
 import {
   fetchMapAST,
   fetchProfileAST,
   fetchProviderInfo,
 } from '../common/http';
-import { LogCallback } from '../common/log';
+import { ILogger } from '../common/log';
 import { ProfileId } from '../common/profile';
 import { ProfileMapReport } from '../common/report.interfaces';
 import {
@@ -45,16 +45,16 @@ export function prePublishCheck(
     providerFrom: ProviderFromMetadata;
     superJson: SuperJson;
   },
-  options?: { logCb?: LogCallback; warnCb?: LogCallback }
+  { logger, userError }: { logger: ILogger; userError: UserError }
 ): CheckResult[] {
   try {
-    options?.logCb?.('Asserting profile document');
+    logger.info('assertProfile');
     assertProfileDocumentNode(params.profileAst);
   } catch (error) {
     throw userError(error, 1);
   }
   try {
-    options?.logCb?.('Asserting map document');
+    logger.info('assertMap');
     assertMapDocumentNode(params.mapAst);
   } catch (error) {
     throw userError(error, 1);
@@ -66,7 +66,7 @@ export function prePublishCheck(
     ...checkMapAndProfile(params.profileAst, params.mapAst, {
       //strict when we are publishing profile or map
       strict: params.publishing !== 'provider',
-      logCb: options?.logCb,
+      logger,
     }),
     profileFrom: params.profileFrom,
     mapFrom: params.mapFrom,
@@ -110,12 +110,16 @@ export type ProfileFromMetadata =
  * Loads profile source (if present on local filesystem) and AST (downloaded when source not found locally, compiled when found)
  */
 export async function loadProfile(
-  superJson: SuperJson,
-  profile: ProfileId,
-  version?: string,
-  options?: {
-    logCb?: LogCallback;
-  }
+  {
+    superJson,
+    profile,
+    version,
+  }: {
+    superJson: SuperJson;
+    profile: ProfileId;
+    version?: string;
+  },
+  { logger }: { logger: ILogger }
 ): Promise<{
   ast: ProfileDocumentNode;
   from: ProfileFromMetadata;
@@ -131,18 +135,14 @@ export async function loadProfile(
       profileName: profile.name,
       scope: profile.scope,
     });
-    options?.logCb?.(
-      `Profile: "${profileId}" found on local file system at path: "${source.path}"`
-    );
+    logger.info('localProfileFound', profileId, source.path);
 
     return { ast, from: { kind: 'local', ...source } };
   } else {
     //Load from store
     ast = await fetchProfileAST(profile, version);
     const versionString = composeVersion(ast.header.version);
-    options?.logCb?.(
-      `Loading profile: "${profile.id}" in version: "${versionString}" from Superface store`
-    );
+    logger.info('fetchProfile', profile.id, version);
 
     return {
       ast,
@@ -161,16 +161,22 @@ export type MapFromMetadata =
  * Loads map source (if present on local filesystem) and AST (downloaded when source not found locally, compiled when found)
  */
 export async function loadMap(
-  superJson: SuperJson,
-  profile: ProfileId,
-  provider: string,
-  map: {
-    variant?: string;
+  {
+    superJson,
+    profile,
+    provider,
+    map,
+    version,
+  }: {
+    superJson: SuperJson;
+    profile: ProfileId;
+    provider: string;
+    map: {
+      variant?: string;
+    };
+    version?: string;
   },
-  version?: string,
-  options?: {
-    logCb?: LogCallback;
-  }
+  { logger }: { logger: ILogger }
 ): Promise<{
   ast: MapDocumentNode;
   from: MapFromMetadata;
@@ -186,12 +192,11 @@ export async function loadMap(
         providerName: provider,
       }
     );
-    options?.logCb?.(
-      `Map for profile: "${profile.withVersion(
-        version
-      )}" and provider: "${provider}" found on local filesystem at path: "${
-        source.path
-      }"`
+    logger.info(
+      'localMapFound',
+      profile.withVersion(version),
+      provider,
+      source.path
     );
 
     return {
@@ -211,11 +216,7 @@ export async function loadMap(
       variant: map.variant,
     });
     const astVersion = composeVersion(ast.header.profile.version);
-    options?.logCb?.(
-      `Loading map for profile: "${profile.withVersion(
-        version
-      )}" and provider: "${provider}" in version: "${astVersion}" from Superface store`
-    );
+    logger.info('fetchMap', profile.withVersion(version), provider, astVersion);
 
     return {
       ast,
@@ -239,25 +240,21 @@ export type ProviderFromMetadata =
 export async function loadProvider(
   superJson: SuperJson,
   provider: string,
-  options?: {
-    logCb?: LogCallback;
-  }
+  { logger }: { logger: ILogger }
 ): Promise<{
   source: ProviderJson;
   from: ProviderFromMetadata;
 }> {
   const providerSource = await findLocalProviderSource(superJson, provider);
   if (providerSource) {
-    options?.logCb?.(
-      `Provider: "${provider}" found on local file system at path: "${providerSource.path}"`
-    );
+    logger.info('localProviderFound', provider, providerSource.path);
 
     return {
       source: providerSource.source,
       from: { kind: 'local', path: providerSource.path },
     };
   }
-  options?.logCb?.(`Loading provider: "${provider}" from Superface store`);
+  logger.info('fetchProvider', provider);
 
   return {
     source: await fetchProviderInfo(provider),

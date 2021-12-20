@@ -21,12 +21,12 @@ import { bold } from 'chalk';
 import inquirer from 'inquirer';
 import { join as joinPath } from 'path';
 
-import { developerError, userError } from '../common/error';
+import { developerError, UserError } from '../common/error';
 import { fetchProviders, getServicesUrl } from '../common/http';
 import { exists, readFile } from '../common/io';
-import { LogCallback } from '../common/log';
+import { ILogger } from '../common/log';
 import { OutputStream } from '../common/output-stream';
-import { PackageManager } from '../common/package-manager';
+import { IPackageManager } from '../common/package-manager';
 import { NORMALIZED_CWD_PATH } from '../common/path';
 import { ProfileId } from '../common/profile';
 import { envVariable } from '../templates/env';
@@ -38,11 +38,11 @@ import { profileExists, providerExists } from './quickstart.utils';
 
 export async function interactiveInstall(
   profileArg: string,
-  options?: {
-    logCb?: LogCallback;
-    warnCb?: LogCallback;
-    successCb?: LogCallback;
-  }
+  {
+    logger,
+    pm,
+    userError,
+  }: { logger: ILogger; pm: IPackageManager; userError: UserError }
 ): Promise<void> {
   const [profileIdStr, version] = profileArg.split('@');
   const profilePathParts = profileIdStr.split('/');
@@ -52,12 +52,12 @@ export async function interactiveInstall(
   );
 
   if (!isValidDocumentName(profileId.name)) {
-    options?.warnCb?.(`Invalid profile name: ${profileId.name}`);
+    logger.error('invalidProfileName', profileId.name);
 
     return;
   }
   if (version && !isValidVersionString(version)) {
-    options?.warnCb?.(`Invalid profile version: ${version}`);
+    logger.error('invalidProfileVersion', version);
 
     return;
   }
@@ -66,11 +66,13 @@ export async function interactiveInstall(
   let superPath = await detectSuperJson(process.cwd());
   if (!superPath) {
     //Init SF
-    options?.successCb?.('Initializing superface directory');
+    logger.success('initSuperface');
     await initSuperface(
-      NORMALIZED_CWD_PATH,
-      { profiles: {}, providers: {} },
-      { logCb: options?.logCb }
+      {
+        appPath: NORMALIZED_CWD_PATH,
+        initialDocument: { profiles: {}, providers: {} },
+      },
+      { logger }
     );
     superPath = SUPERFACE_DIR;
   }
@@ -80,7 +82,7 @@ export async function interactiveInstall(
     await SuperJson.load(joinPath(superPath, META_FILE))
   ).unwrap();
 
-  options?.successCb?.(`\nInitializing ${profileArg}`);
+  logger.success('installProfile', profileArg);
 
   let installProfile = true;
   //Override existing profile
@@ -94,21 +96,22 @@ export async function interactiveInstall(
   }
   //Install profile
   if (installProfile) {
-    await installProfiles({
-      superPath,
-      requests: [
-        {
-          kind: 'store',
-          profileId,
-          version: version,
+    await installProfiles(
+      {
+        superPath,
+        requests: [
+          {
+            kind: 'store',
+            profileId,
+            version: version,
+          },
+        ],
+        options: {
+          force: true,
         },
-      ],
-      options: {
-        logCb: options?.logCb,
-        warnCb: options?.warnCb,
-        force: true,
       },
-    });
+      { logger, userError }
+    );
     //Reload super.json
     superJson = (await SuperJson.load(joinPath(superPath, META_FILE))).unwrap();
   }
@@ -178,7 +181,7 @@ export async function interactiveInstall(
   }
 
   //Configure providers
-  options?.successCb?.(`\nInstalling providers`);
+  logger.success('installMultipleProviders');
   const providersToInstall: string[] = [];
   for (const provider of providersWithPriority) {
     //Override existing provider
@@ -245,7 +248,7 @@ export async function interactiveInstall(
   if (allProviders.length > 1) {
     if (
       await confirmPrompt(
-        `You have selected more than one provider.\nDo you want to enable provider failover:`,
+        'You have selected more than one provider.\nDo you want to enable provider failover:',
         { default: true }
       )
     ) {
@@ -262,21 +265,22 @@ export async function interactiveInstall(
   //Configure retry policies && install providers
   for (const provider of providersToInstall) {
     //Install provider
-    await installProvider({
-      superPath,
-      provider,
-      profileId,
-      defaults: {
-        [selectedUseCase]: {
-          retryPolicy: await selectRetryPolicy(provider, selectedUseCase),
+    await installProvider(
+      {
+        superPath,
+        provider,
+        profileId,
+        defaults: {
+          [selectedUseCase]: {
+            retryPolicy: await selectRetryPolicy(provider, selectedUseCase),
+          },
+        },
+        options: {
+          force: true,
         },
       },
-      options: {
-        logCb: options?.logCb,
-        warnCb: options?.warnCb,
-        force: true,
-      },
-    });
+      { logger, userError }
+    );
   }
 
   //Reload super.json
@@ -284,7 +288,7 @@ export async function interactiveInstall(
   //Get installed providers
   const installedProviders = superJson.normalized.providers;
   //Ask for provider security
-  options?.successCb?.(`\nConfiguring providers security`);
+  logger.success('configureMultipleProviderSecurity');
 
   //Get .env file
   if (await exists('.env')) {
@@ -296,7 +300,7 @@ export async function interactiveInstall(
     if (!providersToInstall.includes(provider)) {
       continue;
     }
-    options?.logCb?.(`\nConfiguring "${provider}" security`);
+    logger.info('configureProviderSecurity', provider);
     //Select security schema
     if (
       installedProviders[provider].security &&
@@ -318,22 +322,15 @@ export async function interactiveInstall(
         provider,
         selectedSchema,
         envContent,
-        {
-          logCb: options?.logCb,
-          warnCb: options?.warnCb,
-        }
+        { logger }
       );
     } else {
-      options?.successCb?.(
-        `\nProvider "${provider}" can be used without authentication`
-      );
+      logger.success('noAuthProvider', provider);
     }
   }
   //Check/init package-manager
-  if (!(await PackageManager.packageJsonExists({ warnCb: options?.warnCb }))) {
-    options?.warnCb?.(
-      `Package.json not found in current directory "${process.cwd()}".`
-    );
+  if (!(await pm.packageJsonExists())) {
+    logger.warn('packageJsonNotFound');
     //Prompt user for package manager initialization
     const response: {
       pm: 'yarn' | 'npm' | 'exit';
@@ -352,36 +349,27 @@ export async function interactiveInstall(
     if (response.pm === 'exit') {
       return;
     }
-    options?.successCb?.(`\nInitializing package manager "${response.pm}"`);
+    logger.success('initPm', response.pm);
 
-    await PackageManager.init(response.pm, {
-      logCb: options?.logCb,
-      warnCb: options?.warnCb,
-    });
+    await pm.init(response.pm);
   }
   //Install SDK
-  options?.successCb?.(`\nInstalling package "@superfaceai/one-sdk"`);
-  await PackageManager.installPackage('@superfaceai/one-sdk', {
-    logCb: options?.logCb,
-    warnCb: options?.warnCb,
-  });
+  logger.success('installPackage', '@superfaceai/one-sdk');
+  await pm.installPackage('@superfaceai/one-sdk');
 
   //Prompt user for dotenv installation
   if (
     await confirmPrompt(
-      `Superface CLI would like to install dotenv package (https://github.com/motdotla/dotenv#readme).\nThis package is used to load superface secrets from .env file. You can use different one or install it manually later.\nWould you like to install it now?:`,
+      'Superface CLI would like to install dotenv package (https://github.com/motdotla/dotenv#readme).\nThis package is used to load superface secrets from .env file. You can use different one or install it manually later.\nWould you like to install it now?:',
       { default: true }
     )
   ) {
-    options?.successCb?.(`\nInstalling package "dotenv"`);
-    await PackageManager.installPackage('dotenv', {
-      logCb: options?.logCb,
-      warnCb: options?.warnCb,
-    });
+    logger.success('installPackage', 'dotenv');
+    await pm.installPackage('dotenv');
   }
 
   //Prompt user for optional SDK token
-  options?.successCb?.(`\nConfiguring package "@superfaceai/one-sdk"`);
+  logger.success('configurePackage', '@superfaceai/one-sdk');
 
   const tokenEnvName = 'SUPERFACE_SDK_TOKEN';
 
@@ -406,24 +394,21 @@ export async function interactiveInstall(
 
     if (tokenResponse.token) {
       envContent += envVariable(tokenEnvName, tokenResponse.token);
-      options?.successCb?.(
-        `Your SDK token was saved to ${tokenEnvName} variable in .env file. You can use it for authentization during SDK usage by loading it to your enviroment.`
-      );
+      logger.success('configuredWithSdkToken', tokenEnvName);
     } else {
-      options?.successCb?.('Continuing without SDK token');
+      logger.success('configuredWithoutSdkToken');
     }
   }
 
   //Write .env file
   await OutputStream.writeOnce('.env', envContent);
 
-  options?.successCb?.(`\n🆗 Superface have been configured successfully!`);
+  logger.success('superfaceConfigureSuccess');
 
   //Lead to docs page
-  options?.successCb?.(
-    `\nNow you can follow our documentation to use installed capability: "${
-      new URL(profileId.id, getServicesUrl()).href
-    }"`
+  logger.success(
+    'capabilityDocsUrl',
+    new URL(profileId.id, getServicesUrl()).href
   );
 }
 
@@ -434,7 +419,7 @@ async function selectRetryPolicy(
   //Select retry policy
   const policyResponse: { policy: OnFail } = await inquirer.prompt({
     name: 'policy',
-    message: `Select a failure policy for provider "${provider}" and use case: "${selectedUseCase}":`,
+    message: `Select a failure policy for provider ${provider} and use case: ${selectedUseCase}:`,
     type: 'list',
     choices: [
       { name: 'None', value: OnFail.NONE },
@@ -448,7 +433,7 @@ async function selectRetryPolicy(
     //You want to customize?
     if (
       await confirmPrompt(
-        `Do you want to customize circuit breaker parameters?:`,
+        'Do you want to customize circuit breaker parameters?:',
         { default: false }
       )
     ) {
@@ -482,12 +467,12 @@ async function selectCircuitBreakerValues(
     maxContiguousRetries: number;
   } = await inquirer.prompt({
     name: 'maxContiguousRetries',
-    message: `Enter value of maximum contiguous retries for provider "${provider}" and use case: ${useCase}:`,
+    message: `Enter value of maximum contiguous retries for provider ${provider} and use case: ${useCase}:`,
     type: 'number',
   });
   const requestTimeout: { requestTimeout: number } = await inquirer.prompt({
     name: 'requestTimeout',
-    message: `Enter request timeout for provider "${provider}" and use case: ${useCase} (in miliseconds):`,
+    message: `Enter request timeout for provider ${provider} and use case: ${useCase} (in miliseconds):`,
     type: 'number',
   });
 
@@ -506,12 +491,12 @@ async function selectExponentialBackoffValues(
 ): Promise<{ kind: BackoffKind.EXPONENTIAL; start: number; factor: number }> {
   const start: { start: number } = await inquirer.prompt({
     name: 'start',
-    message: `Enter initial value of exponential backoff for provider "${provider}" and use case: ${useCase} (in miliseconds):`,
+    message: `Enter initial value of exponential backoff for provider ${provider} and use case: ${useCase} (in miliseconds):`,
     type: 'number',
   });
   const factor: { factor: number } = await inquirer.prompt({
     name: 'factor',
-    message: `Enter value of exponent in exponential backoff for provider "${provider}" and use case: ${useCase} (in miliseconds):`,
+    message: `Enter value of exponent in exponential backoff for provider ${provider} and use case: ${useCase} (in miliseconds):`,
     type: 'number',
   });
 
@@ -523,20 +508,23 @@ async function selectExponentialBackoffValues(
 }
 
 async function getPromptedValue(
-  provider: string,
-  authType: 'api key' | 'basic' | 'digest' | 'bearer',
-  name: string,
-  envVariableName: string,
-  envContent: string,
-  options?: {
-    logCb?: LogCallback;
-    warnCb?: LogCallback;
-  }
+  {
+    provider,
+    authType,
+    name,
+    envVariableName,
+    envContent,
+  }: {
+    provider: string;
+    authType: 'api key' | 'basic' | 'digest' | 'bearer';
+    name: string;
+    envVariableName: string;
+    envContent: string;
+  },
+  { logger }: { logger: ILogger }
 ): Promise<string> {
   if (!envVariableName.startsWith('$')) {
-    options?.warnCb?.(
-      `Value of ${envVariableName} in "${provider}" "${authType}" security schema does not start with $ character.`
-    );
+    logger.warn('unexpectedSecurityValue', envVariableName, provider, authType);
 
     return envContent;
   }
@@ -545,7 +533,7 @@ async function getPromptedValue(
     //Do we want to override?
     if (
       await confirmPrompt(
-        `Value of "${variableName}" for "${provider}" is already set.\nDo you want to override it?:`
+        `Value of ${variableName} for ${provider} is already set.\nDo you want to override it?:`
       )
     ) {
       //Delete set row
@@ -560,7 +548,7 @@ async function getPromptedValue(
 
   const response: { value: string } = await inquirer.prompt({
     name: 'value',
-    message: `Enter ${name} of ${authType} security for "${provider}". This value will be stored locally in .env file:`,
+    message: `Enter ${name} of ${authType} security for ${provider}. This value will be stored locally in .env file:`,
     type: 'password',
   });
 
@@ -571,58 +559,67 @@ async function resolveSecurityEnvValues(
   provider: string,
   schema: SecurityValues,
   envFile: string,
-  options?: {
-    logCb?: LogCallback;
-    warnCb?: LogCallback;
-  }
+  { logger }: { logger: ILogger }
 ): Promise<string> {
   let newEnvContent = envFile;
   if (isApiKeySecurityValues(schema)) {
     newEnvContent = await getPromptedValue(
-      provider,
-      'api key',
-      'apikey',
-      schema.apikey,
-      newEnvContent,
-      options
+      {
+        provider,
+        authType: 'api key',
+        name: 'apikey',
+        envVariableName: schema.apikey,
+        envContent: newEnvContent,
+      },
+      {
+        logger,
+      }
     );
   } else if (isBasicAuthSecurityValues(schema)) {
     newEnvContent = await getPromptedValue(
-      provider,
-      'basic',
-      'username',
-      schema.username,
-      newEnvContent,
-      options
+      {
+        provider,
+        authType: 'basic',
+        name: 'username',
+        envVariableName: schema.username,
+        envContent: newEnvContent,
+      },
+      { logger }
     );
     newEnvContent = await getPromptedValue(
-      provider,
-      'basic',
-      'password',
-      schema.password,
-      newEnvContent,
-      options
+      {
+        provider,
+        authType: 'basic',
+        name: 'password',
+        envVariableName: schema.password,
+        envContent: newEnvContent,
+      },
+      { logger }
     );
   } else if (isBearerTokenSecurityValues(schema)) {
     newEnvContent = await getPromptedValue(
-      provider,
-      'bearer',
-      'token',
-      schema.token,
-      newEnvContent,
-      options
+      {
+        provider,
+        authType: 'bearer',
+        name: 'token',
+        envVariableName: schema.token,
+        envContent: newEnvContent,
+      },
+      { logger }
     );
   } else if (isDigestSecurityValues(schema)) {
     newEnvContent = await getPromptedValue(
-      provider,
-      'bearer',
-      'digest',
-      schema.digest,
-      newEnvContent,
-      options
+      {
+        provider,
+        authType: 'bearer',
+        name: 'digest',
+        envVariableName: schema.digest,
+        envContent: newEnvContent,
+      },
+      { logger }
     );
   } else {
-    options?.warnCb?.(`Unable to resolve security type for "${provider}"`);
+    logger.warn('unknownSecurityType', provider);
   }
 
   return newEnvContent;
@@ -634,7 +631,7 @@ async function selectSecuritySchema(
 ): Promise<SecurityValues> {
   const schemaResponse: { schema: SecurityValues } = await inquirer.prompt({
     name: 'schema',
-    message: `Select a security schema for "${provider}":`,
+    message: `Select a security schema for ${provider}:`,
     type: 'list',
     choices: schemas.map(s => {
       return { name: s.id, value: s };

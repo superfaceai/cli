@@ -4,6 +4,7 @@ import { join as joinPath } from 'path';
 
 import { composeUsecaseName, DEFAULT_PROFILE_VERSION_STR } from '../common';
 import { mkdir, readFile, rimraf } from '../common/io';
+import { messages } from '../common/messages';
 import * as mapTemplate from '../templates/map';
 import * as profileTemplate from '../templates/profile';
 import * as providerTemplate from '../templates/provider';
@@ -57,7 +58,7 @@ describe('Create CLI command', () => {
       );
 
       expect(result.stdout).toMatch(
-        `-> Created ${documentName}.supr (name = "${documentName}", version = "1.0.0")`
+        messages.createProfile(`${documentName}@1.0.0`, `${documentName}.supr`)
       );
 
       const profileFile = await readFile(
@@ -97,7 +98,7 @@ describe('Create CLI command', () => {
         }
       );
       expect(result.stdout).toContain(
-        `-> Created ${documentName}.supr (name = "${documentName}", version = "1.0.0")`
+        messages.createProfile(`${documentName}@1.0.0`, `${documentName}.supr`)
       );
 
       const profileFile = await readFile(
@@ -145,7 +146,7 @@ describe('Create CLI command', () => {
         }
       );
       expect(result.stdout).toContain(
-        `-> Created ${documentName}.supr (name = "${documentName}", version = "1.0.0")`
+        messages.createProfile(`${documentName}@1.0.0`, `${documentName}.supr`)
       );
 
       const profileFile = await readFile(
@@ -196,7 +197,11 @@ describe('Create CLI command', () => {
         }
       );
       expect(result.stdout).toContain(
-        `-> Created ${documentName}.${provider}.suma (profile = "${documentName}@1.0", provider = "${provider}")`
+        messages.createMap(
+          `${documentName}@1.0`,
+          provider,
+          `${documentName}.${provider}.suma`
+        )
       );
       expect(result.stdout).not.toContain(
         `-> Created ${provider}.provider.json`
@@ -261,13 +266,20 @@ describe('Create CLI command', () => {
         }
       );
       expect(result.stdout).toContain(
-        `-> Created ${documentName}.${provider}.bugfix.suma (profile = "${documentName}@1.0", provider = "${provider}")`
+        messages.createMap(
+          `${documentName}@1.0`,
+          provider,
+          `${documentName}.${provider}.bugfix.suma`
+        )
       );
       expect(result.stdout).not.toContain(
-        `-> Created ${provider}.bugfix.provider.json`
+        messages.createProvider(provider, `${provider}.bugfix.provider.json`)
       );
       expect(result.stdout).not.toContain(
-        `-> Created ${secondProvider}.bugfix.provider.json`
+        messages.createProvider(
+          secondProvider,
+          `${secondProvider}.bugfix.provider.json`
+        )
       );
 
       let createdFile = await readFile(
@@ -335,7 +347,9 @@ describe('Create CLI command', () => {
           inputs: [{ value: ENTER, timeout: 1000 }],
         }
       );
-      expect(result.stdout).toContain(`-> Created ${provider}.provider.json`);
+      expect(result.stdout).toContain(
+        messages.createProvider(provider, `${provider}.provider.json`)
+      );
 
       const superJson = (
         await SuperJson.load(joinPath(tempDir, 'superface', 'super.json'))
@@ -372,9 +386,14 @@ describe('Create CLI command', () => {
           inputs: [{ value: ENTER, timeout: 1000 }],
         }
       );
-      expect(result.stdout).toContain(`-> Created ${provider}.provider.json`);
       expect(result.stdout).toContain(
-        `-> Created ${secondProvider}.provider.json`
+        messages.createProvider(provider, `${provider}.provider.json`)
+      );
+      expect(result.stdout).toContain(
+        messages.createProvider(
+          secondProvider,
+          `${secondProvider}.provider.json`
+        )
       );
 
       const superJson = (
@@ -420,9 +439,15 @@ describe('Create CLI command', () => {
         }
       );
       expect(result.stdout).toContain(
-        `-> Created ${documentName}.${provider}.suma (profile = "${documentName}@1.0", provider = "${provider}")`
+        messages.createMap(
+          `${documentName}@1.0`,
+          provider,
+          `${documentName}.${provider}.suma`
+        )
       );
-      expect(result.stdout).toContain(`-> Created ${provider}.provider.json`);
+      expect(result.stdout).toContain(
+        messages.createProvider(provider, `${provider}.provider.json`)
+      );
 
       let createdFile = await readFile(
         joinPath(tempDir, `${documentName}.${provider}.suma`),
@@ -492,11 +517,16 @@ describe('Create CLI command', () => {
         }
       );
       expect(result.stdout).toContain(
-        `-> Created ${documentName}.${provider}.suma (profile = "${documentName}@1.0", provider = "${provider}")`
+        messages.createMap(
+          `${documentName}@1.0`,
+          provider,
+          `${documentName}.${provider}.suma`
+        )
       );
       expect(result.stdout).not.toContain(
-        `-> Created ${provider}.provider.json`
+        messages.createProvider(provider, `${provider}.provider.json`)
       );
+
       const createdFile = await readFile(
         joinPath(tempDir, `${documentName}.${provider}.suma`),
         { encoding: 'utf-8' }
@@ -550,13 +580,17 @@ describe('Create CLI command', () => {
         }
       );
       expect(result.stdout).toContain(
-        `-> Created ${documentName}.supr (name = "${documentName}", version = "1.0.0")`
+        messages.createProfile(`${documentName}@1.0.0`, `${documentName}.supr`)
       );
       expect(result.stdout).toContain(
-        `-> Created ${documentName}.${provider}.suma (profile = "${documentName}@1.0", provider = "${provider}")`
+        messages.createMap(
+          `${documentName}@1.0`,
+          provider,
+          `${documentName}.${provider}.suma`
+        )
       );
       expect(result.stdout).not.toContain(
-        `-> Created ${provider}.provider.json`
+        messages.createProvider(provider, `${provider}.provider.json`)
       );
       let createdFile = await readFile(
         joinPath(tempDir, `${documentName}.supr`),
@@ -626,13 +660,17 @@ describe('Create CLI command', () => {
         }
       );
       expect(result.stdout).toContain(
-        `-> Created ${documentName}.supr (name = "${documentName}", version = "1.0.0")`
+        messages.createProfile(`${documentName}@1.0.0`, `${documentName}.supr`)
       );
       expect(result.stdout).toContain(
-        `-> Created ${documentName}.${provider}.suma (profile = "${documentName}@1.0", provider = "${provider}")`
+        messages.createMap(
+          `${documentName}@1.0`,
+          provider,
+          `${documentName}.${provider}.suma`
+        )
       );
       expect(result.stdout).not.toContain(
-        `-> Created ${provider}.provider.json`
+        messages.createProvider(provider, `${provider}.provider.json`)
       );
       let createdFile = await readFile(
         joinPath(tempDir, `${documentName}.supr`),
@@ -702,12 +740,18 @@ describe('Create CLI command', () => {
         }
       );
       expect(result.stdout).toMatch(
-        `-> Created ${documentName}.supr (name = "${documentName}", version = "1.0.0")`
+        messages.createProfile(`${documentName}@1.0.0`, `${documentName}.supr`)
       );
       expect(result.stdout).toMatch(
-        `-> Created ${documentName}.${provider}.suma (profile = "${documentName}@1.0", provider = "${provider}")`
+        messages.createMap(
+          `${documentName}@1.0`,
+          provider,
+          `${documentName}.${provider}.suma`
+        )
       );
-      expect(result.stdout).not.toMatch(`-> Created ${provider}.provider.json`);
+      expect(result.stdout).not.toMatch(
+        messages.createProvider(provider, `${provider}.provider.json`)
+      );
 
       let createdFile = await readFile(
         joinPath(tempDir, `${documentName}.supr`),
@@ -787,17 +831,33 @@ describe('Create CLI command', () => {
         }
       );
       expect(result.stdout).toMatch(
-        `-> Created ${documentName}.supr (name = "${documentName}", version = "1.1.0-rev133")`
+        messages.createProfile(
+          `${documentName}@1.1.0-rev133`,
+          `${documentName}.supr`
+        )
       );
       expect(result.stdout).toMatch(
-        `-> Created ${documentName}.${provider}.bugfix.suma (profile = "${documentName}@1.1-rev133", provider = "${provider}")`
+        messages.createMap(
+          `${documentName}@1.1-rev133`,
+          provider,
+          `${documentName}.${provider}.bugfix.suma`
+        )
       );
       expect(result.stdout).toMatch(
-        `-> Created ${documentName}.${secondProvider}.bugfix.suma (profile = "${documentName}@1.1-rev133", provider = "${secondProvider}")`
+        messages.createMap(
+          `${documentName}@1.1-rev133`,
+          secondProvider,
+          `${documentName}.${secondProvider}.bugfix.suma`
+        )
       );
-      expect(result.stdout).toMatch(`-> Created ${provider}.provider.json`);
       expect(result.stdout).toMatch(
-        `-> Created ${secondProvider}.provider.json`
+        messages.createProvider(provider, `${provider}.provider.json`)
+      );
+      expect(result.stdout).toMatch(
+        messages.createProvider(
+          secondProvider,
+          `${secondProvider}.provider.json`
+        )
       );
 
       let createdFile = await readFile(
@@ -929,13 +989,20 @@ describe('Create CLI command', () => {
         inputs: [{ value: ENTER, timeout: 1000 }],
       }
     );
-    expect(result.stdout).toMatch(
-      `-> Created ${mockProfileFileName}.supr (name = "${documentName}", version = "1.1.0-rev133")`
+    expect(result.stdout).toContain(
+      messages.createProfile(
+        `${documentName}@1.1.0-rev133`,
+        `${mockProfileFileName}.supr`
+      )
     );
     expect(result.stdout).toMatch(
-      `-> Created ${mockMapFileName}.suma (profile = "${documentName}@1.1-rev133", provider = "${provider}")`
+      messages.createMap(
+        `${documentName}@1.1-rev133`,
+        provider,
+        `${mockMapFileName}.suma`
+      )
     );
-    expect(result.stdout).toMatch(`-> Created ${mockProviderFileName}.json`);
+    messages.createProvider(provider, `${mockProviderFileName}.json`);
 
     let createdFile = await readFile(
       joinPath(tempDir, `${mockProfileFileName}.supr`),
