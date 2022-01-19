@@ -147,7 +147,7 @@ export function streamEnd(stream: Writable): Promise<void> {
 export function execFile(
   path: string,
   args?: string[],
-  execOptions?: fs.BaseEncodingOptions & childProcess.ExecFileOptions,
+  execOptions?: fs.ObjectEncodingOptions & childProcess.ExecFileOptions,
   options?: {
     forwardStdout?: boolean;
     forwardStderr?: boolean;
