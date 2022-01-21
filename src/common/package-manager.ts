@@ -1,6 +1,6 @@
 import { join, normalize, relative } from 'path';
 
-import { execShell, exists } from './io';
+import { execShell, exists, readFileQuiet } from './io';
 import { ILogger } from './log';
 
 export interface IPackageManager {
@@ -118,5 +118,67 @@ export class PackageManager implements IPackageManager {
       relative(process.cwd(), npmPrefix.stdout.trim()) || normalize('./');
 
     return this.path;
+  }
+
+  public async getSfVersions(
+    _packageName: string
+  ): Promise<{ sdk?: string; ast?: string; parser?: string }> {
+    const SUPERFACE_SDK = '@superfaceai/one-sdk';
+    const SUPERFACE_AST = '@superfaceai/ast';
+    const SUPERFACE_PARSER = '@superfaceai/parser';
+
+    let sdk,
+      parser,
+      ast = undefined;
+
+    //Try to use pm to get packages versions
+    if (!(await this.packageJsonExists())) {
+      this.logger.error('packageJsonNotFound');
+
+      return {};
+    }
+
+    const pm = await this.getUsedPm();
+
+    const command = pm === 'yarn' ? 'yarn list --json' : 'npm ls --json --all';
+
+    const path = (await this.getPath()) || process.cwd();
+
+    const result = await execShell(command, { cwd: path });
+    if (result.stderr !== '') {
+      this.logger.error('shellCommandError', command, result.stderr.trimEnd());
+    }
+    //Extract versions - different structure for yarn and npm
+    console.log('res', JSON.parse(result.stdout));
+
+    //Try it via node_modules
+    const sdkPackagePath = join(
+      path,
+      'node_modules',
+      SUPERFACE_SDK,
+      'package.json'
+    );
+    if (await exists(sdkPackagePath)) {
+      const sdkPackageJson = await readFileQuiet(sdkPackagePath);
+      if (sdkPackageJson) {
+        const content: Record<string, unknown> = JSON.parse(sdkPackageJson);
+
+        if (content.version && typeof content.version === 'string') {
+          sdk = content.version;
+        }
+
+        if (content.dependencies && typeof content.dependencies === 'object') {
+          const deps = content.dependencies as Record<string, string>;
+          if (deps[SUPERFACE_AST]) {
+            ast = deps[SUPERFACE_AST];
+          }
+          if (deps[SUPERFACE_PARSER]) {
+            parser = deps[SUPERFACE_PARSER];
+          }
+        }
+      }
+    }
+    
+return { sdk, parser, ast };
   }
 }

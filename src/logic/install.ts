@@ -25,6 +25,7 @@ import {
 import { exists, isAccessible, readFile } from '../common/io';
 import { ILogger } from '../common/log';
 import { OutputStream } from '../common/output-stream';
+import { PackageManager } from '../common/package-manager';
 import { resolveSuperfaceRelatedPath } from '../common/path';
 import { ProfileId } from '../common/profile';
 import { arrayFilterUndefined } from '../common/util';
@@ -426,6 +427,12 @@ export async function getProfileFromStore(
   },
   { logger }: { logger: ILogger }
 ): Promise<ProfileResponse | undefined> {
+  const pm = new PackageManager(logger);
+  const superfacePackagesVersions = await pm.getSfVersions('');
+
+  //Use versions to get correct AST
+  console.log('versions', superfacePackagesVersions);
+
   const profileIdStr = profileId.withVersion(version);
 
   // fetch the profile
