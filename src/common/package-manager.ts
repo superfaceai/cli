@@ -1,3 +1,4 @@
+import * as lockfile from '@yarnpkg/lockfile';
 import { join, normalize, relative } from 'path';
 
 import { execShell, exists, readFileQuiet } from './io';
@@ -9,6 +10,10 @@ export interface IPackageManager {
   init(initPm: 'npm' | 'yarn'): Promise<boolean>;
   installPackage(packageName: string): Promise<boolean>;
 }
+
+const SUPERFACE_SDK = '@superfaceai/one-sdk';
+const SUPERFACE_AST = '@superfaceai/ast';
+const SUPERFACE_PARSER = '@superfaceai/parser';
 
 export class PackageManager implements IPackageManager {
   private usedPackageManager: 'npm' | 'yarn' | undefined = undefined;
@@ -123,14 +128,6 @@ export class PackageManager implements IPackageManager {
   public async getSfVersions(
     _packageName: string
   ): Promise<{ sdk?: string; ast?: string; parser?: string }> {
-    const SUPERFACE_SDK = '@superfaceai/one-sdk';
-    const SUPERFACE_AST = '@superfaceai/ast';
-    const SUPERFACE_PARSER = '@superfaceai/parser';
-
-    let sdk,
-      parser,
-      ast = undefined;
-
     //Try to use pm to get packages versions
     if (!(await this.packageJsonExists())) {
       this.logger.error('packageJsonNotFound');
@@ -139,8 +136,13 @@ export class PackageManager implements IPackageManager {
     }
 
     const pm = await this.getUsedPm();
+    //TODO: select one approach:
 
-    const command = pm === 'yarn' ? 'yarn list --json' : 'npm ls --json --all';
+    //First approach - try to use yarn list/npm ls
+    const command =
+      pm === 'yarn'
+        ? 'yarn list --pattern @superfaceai'
+        : 'npm ls --json --all';
 
     const path = (await this.getPath()) || process.cwd();
 
@@ -149,36 +151,133 @@ export class PackageManager implements IPackageManager {
       this.logger.error('shellCommandError', command, result.stderr.trimEnd());
     }
     //Extract versions - different structure for yarn and npm
-    console.log('res', JSON.parse(result.stdout));
+    // console.log('res', result.stdout);
 
-    //Try it via node_modules
-    const sdkPackagePath = join(
-      path,
-      'node_modules',
-      SUPERFACE_SDK,
-      'package.json'
-    );
-    if (await exists(sdkPackagePath)) {
-      const sdkPackageJson = await readFileQuiet(sdkPackagePath);
-      if (sdkPackageJson) {
-        const content: Record<string, unknown> = JSON.parse(sdkPackageJson);
+    //Second approach parse lock file - probably quite accurate
+    const lockFileName = pm === 'yarn' ? 'yarn.lock' : 'package-lock.json';
+    const lockFilePath = join(path, lockFileName);
+
+    if (await exists(lockFilePath)) {
+      const lockFileContent = await readFileQuiet(lockFilePath);
+      if (lockFileContent) {
+        if (pm === 'yarn') {
+          return this.extractYarnLock(lockFileContent);
+        } else {
+          return this.extractPackageLock(lockFileContent);
+        }
+      }
+    }
+
+    //Naive but probalby more stable approach - via node_modules
+    // let sdk,
+    //   parser,
+    //   ast = undefined;
+    // const sdkPackagePath = join(
+    //   path,
+    //   'node_modules',
+    //   SUPERFACE_SDK,
+    //   'package.json'
+    // );
+    // if (await exists(sdkPackagePath)) {
+    //   const sdkPackageJson = await readFileQuiet(sdkPackagePath);
+    //   if (sdkPackageJson) {
+    //     const content: Record<string, unknown> = JSON.parse(sdkPackageJson);
+
+    //     if (content.version && typeof content.version === 'string') {
+    //       sdk = content.version;
+    //     }
+
+    //     if (content.dependencies && typeof content.dependencies === 'object') {
+    //       const deps = content.dependencies as Record<string, string>;
+    //       if (deps[SUPERFACE_AST]) {
+    //         ast = deps[SUPERFACE_AST];
+    //       }
+    //       if (deps[SUPERFACE_PARSER]) {
+    //         parser = deps[SUPERFACE_PARSER];
+    //       }
+    //     }
+    //   }
+    // }
+
+    return {};
+  }
+
+  private extractYarnLock(
+    yarnLock: string
+  ): { sdk?: string; ast?: string; parser?: string } {
+    let sdk,
+      parser,
+      ast = undefined;
+
+    const json = lockfile.parse(yarnLock).object as Record<string, unknown>;
+
+    const sdkKey = Object.keys(json).find(key => key.startsWith(SUPERFACE_SDK));
+    if (sdkKey) {
+      if (json[sdkKey] && typeof json[sdkKey] === 'object') {
+        const content = json[sdkKey] as Record<string, unknown>;
+
+        if (content.version && typeof content.version === 'string') {
+          sdk = content.version;
+        }
+        if (content.dependencies && typeof content.dependencies === 'object') {
+          const sdkDeps = content.dependencies as Record<string, unknown>;
+
+          if (
+            sdkDeps[SUPERFACE_AST] &&
+            typeof sdkDeps[SUPERFACE_PARSER] === 'string'
+          ) {
+            ast = sdkDeps[SUPERFACE_PARSER] as string;
+          }
+
+          if (
+            sdkDeps[SUPERFACE_PARSER] &&
+            typeof sdkDeps[SUPERFACE_PARSER] === 'string'
+          ) {
+            parser = sdkDeps[SUPERFACE_PARSER] as string;
+          }
+        }
+      }
+    }
+
+    return { sdk, parser, ast };
+  }
+
+  private extractPackageLock(
+    packageLock: string
+  ): { sdk?: string; ast?: string; parser?: string } {
+    let sdk,
+      parser,
+      ast = undefined;
+
+    const json = JSON.parse(packageLock) as Record<string, unknown>;
+    if (json.dependencies && typeof json.dependencies === 'object') {
+      const deps = json.dependencies as Record<string, unknown>;
+
+      if (deps[SUPERFACE_SDK] && typeof deps[SUPERFACE_SDK] === 'object') {
+        const content = deps[SUPERFACE_SDK] as Record<string, unknown>;
 
         if (content.version && typeof content.version === 'string') {
           sdk = content.version;
         }
 
-        if (content.dependencies && typeof content.dependencies === 'object') {
-          const deps = content.dependencies as Record<string, string>;
-          if (deps[SUPERFACE_AST]) {
-            ast = deps[SUPERFACE_AST];
+        if (content.requires && typeof content.requires === 'object') {
+          const sdkDeps = content.requires as Record<string, unknown>;
+          if (
+            sdkDeps[SUPERFACE_AST] &&
+            typeof sdkDeps[SUPERFACE_AST] === 'string'
+          ) {
+            ast = sdkDeps[SUPERFACE_AST] as string;
           }
-          if (deps[SUPERFACE_PARSER]) {
-            parser = deps[SUPERFACE_PARSER];
+          if (
+            sdkDeps[SUPERFACE_PARSER] &&
+            typeof sdkDeps[SUPERFACE_PARSER] === 'string'
+          ) {
+            parser = sdkDeps[SUPERFACE_PARSER] as string;
           }
         }
       }
     }
-    
-return { sdk, parser, ast };
+
+    return { sdk, parser, ast };
   }
 }
