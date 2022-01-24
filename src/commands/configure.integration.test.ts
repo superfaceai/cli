@@ -84,7 +84,8 @@ describe('Configure CLI command', () => {
         },
         {
           id: 'digest',
-          digest: `$${provider.toUpperCase()}_DIGEST`,
+          username: `$${provider.toUpperCase()}_USERNAME`,
+          password: `$${provider.toUpperCase()}_PASSWORD`,
         },
       ]);
       expect(superJson.document.profiles![profileId]).toEqual({
@@ -301,7 +302,8 @@ describe('Configure CLI command', () => {
         },
         {
           id: 'digest',
-          digest: `$${provider.toUpperCase()}_DIGEST`,
+          username: `$${provider.toUpperCase()}_USERNAME`,
+          password: `$${provider.toUpperCase()}_PASSWORD`,
         },
       ]);
       expect(superJson.document.profiles![profileId]).toEqual({
@@ -482,7 +484,8 @@ describe('Configure CLI command', () => {
         },
         {
           id: 'digest',
-          digest: '$SWAPI_DIGEST',
+          password: '$SWAPI_PASSWORD',
+          username: '$SWAPI_USERNAME',
         },
       ]);
 
@@ -577,7 +580,8 @@ describe('Configure CLI command', () => {
         },
         {
           id: 'digest',
-          digest: '$SWAPI_DIGEST',
+          password: '$SWAPI_PASSWORD',
+          username: '$SWAPI_USERNAME',
         },
       ]);
       expect(superJson.document.profiles![profileId]).toEqual({

@@ -84,6 +84,9 @@ describe('Lint logic', () => {
 
   const mockSyntaxErr: SyntaxError = {
     source: new Source('test'),
+    formatHints: () => '',
+    formatVisualization: () => '',
+    hints: [],
     location: {
       start: {
         line: 0,
@@ -333,6 +336,9 @@ describe('Lint logic', () => {
           {
             kind: 'wrongScope',
             context: {
+              path: {
+                kind: '',
+              },
               expected: 'this',
               actual: 'that',
             },
@@ -362,6 +368,9 @@ describe('Lint logic', () => {
           {
             kind: 'wrongScope',
             context: {
+              path: {
+                kind: '',
+              },
               expected: 'this',
               actual: 'that',
             },
@@ -371,6 +380,9 @@ describe('Lint logic', () => {
           {
             kind: 'wrongScope',
             context: {
+              path: {
+                kind: '',
+              },
               expected: 'this',
               actual: 'that',
             },
@@ -507,7 +519,7 @@ describe('Lint logic', () => {
                 context: {
                   actual: 'different-test-profile',
                   expected: 'test-profile',
-                  path: ['MapHeader'],
+                  path: { kind: 'MapHeader' },
                 },
                 kind: 'wrongProfileName',
               },
@@ -589,7 +601,7 @@ describe('Lint logic', () => {
                 context: {
                   actual: 'different-test-profile',
                   expected: 'test-profile',
-                  path: ['MapHeader'],
+                  path: { kind: 'MapHeader' },
                 },
                 kind: 'wrongProfileName',
               },
@@ -671,7 +683,7 @@ describe('Lint logic', () => {
                 context: {
                   actual: 'different-test-profile',
                   expected: 'test-profile',
-                  path: ['MapHeader'],
+                  path: { kind: 'MapHeader' },
                 },
                 kind: 'wrongProfileName',
               },
@@ -702,6 +714,9 @@ describe('Lint logic', () => {
     it('returns correct counts, corrupted profile', async () => {
       const mockSyntaxErr: SyntaxError = {
         source: new Source('test'),
+        formatHints: () => '',
+        formatVisualization: () => '',
+        hints: [],
         location: {
           start: {
             line: 0,
@@ -760,6 +775,9 @@ describe('Lint logic', () => {
                 category: 'Parser',
                 detail: '',
                 format: expect.any(Function),
+                formatHints: expect.any(Function),
+                formatVisualization: expect.any(Function),
+                hints: [],
                 location: {
                   end: {
                     charIndex: 0,
@@ -790,6 +808,9 @@ describe('Lint logic', () => {
     it('returns correct counts, corrupted map', async () => {
       const mockSyntaxErr: SyntaxError = {
         source: new Source('test'),
+        formatHints: () => '',
+        formatVisualization: () => '',
+        hints: [],
         location: {
           start: {
             line: 0,
@@ -855,6 +876,9 @@ describe('Lint logic', () => {
                 category: 'Parser',
                 detail: '',
                 format: expect.any(Function),
+                formatHints: expect.any(Function),
+                formatVisualization: expect.any(Function),
+                hints: [],
                 location: {
                   end: {
                     charIndex: 0,
@@ -915,7 +939,6 @@ describe('Lint logic', () => {
       expect(formated).toMatch('SyntaxError: Expected  but found <NONE>');
       expect(formated).toMatch('--> some/path.suma:0:0');
 
-      expect(formated).toMatch('-1 | mock-content');
       expect(formated).toMatch('ouch!');
     });
 
@@ -1030,6 +1053,9 @@ describe('Lint logic', () => {
           {
             kind: 'wrongScope',
             context: {
+              path: {
+                kind: '',
+              },
               expected: 'this',
               actual: 'that',
             },
@@ -1039,6 +1065,9 @@ describe('Lint logic', () => {
           {
             kind: 'wrongScope',
             context: {
+              path: {
+                kind: '',
+              },
               expected: 'this',
               actual: 'that',
             },

@@ -162,7 +162,11 @@ describe('Configure CLI logic', () => {
             password: '$TEST_PASSWORD',
             username: '$TEST_USERNAME',
           },
-          { digest: '$TEST_DIGEST', id: 'digest' },
+          {
+            id: 'digest',
+            password: '$TEST_PASSWORD',
+            username: '$TEST_USERNAME',
+          },
         ],
       });
 
@@ -236,7 +240,11 @@ describe('Configure CLI logic', () => {
             password: '$PROVIDER_TEST_PASSWORD',
             username: '$PROVIDER_TEST_USERNAME',
           },
-          { digest: '$PROVIDER_TEST_DIGEST', id: 'digest' },
+          {
+            id: 'digest',
+            password: '$PROVIDER_TEST_PASSWORD',
+            username: '$PROVIDER_TEST_USERNAME',
+          },
         ],
       });
 
@@ -324,7 +332,11 @@ describe('Configure CLI logic', () => {
             password: '$PROVIDER_TEST_PASSWORD',
             username: '$PROVIDER_TEST_USERNAME',
           },
-          { digest: '$PROVIDER_TEST_DIGEST', id: 'digest' },
+          {
+            id: 'digest',
+            password: '$PROVIDER_TEST_PASSWORD',
+            username: '$PROVIDER_TEST_USERNAME',
+          },
         ],
         parameters: {
           first: '$PROVIDER_TEST_FIRST',
@@ -488,7 +500,11 @@ describe('Configure CLI logic', () => {
             password: '$TEST_PASSWORD',
             username: '$TEST_USERNAME',
           },
-          { digest: '$TEST_DIGEST', id: 'digest' },
+          {
+            id: 'digest',
+            password: '$TEST_PASSWORD',
+            username: '$TEST_USERNAME',
+          },
         ],
       });
 
@@ -561,7 +577,11 @@ describe('Configure CLI logic', () => {
             password: '$TEST_PASSWORD',
             username: '$TEST_USERNAME',
           },
-          { digest: '$TEST_DIGEST', id: 'digest' },
+          {
+            id: 'digest',
+            password: '$TEST_PASSWORD',
+            username: '$TEST_USERNAME',
+          },
         ],
       });
 
@@ -639,7 +659,11 @@ describe('Configure CLI logic', () => {
             password: '$TEST_PASSWORD',
             username: '$TEST_USERNAME',
           },
-          { digest: '$TEST_DIGEST', id: 'digest' },
+          {
+            id: 'digest',
+            password: '$TEST_PASSWORD',
+            username: '$TEST_USERNAME',
+          },
         ],
       });
 
@@ -713,7 +737,11 @@ describe('Configure CLI logic', () => {
             password: '$TEST_PASSWORD',
             username: '$TEST_USERNAME',
           },
-          { digest: '$TEST_DIGEST', id: 'digest' },
+          {
+            id: 'digest',
+            password: '$TEST_PASSWORD',
+            username: '$TEST_USERNAME',
+          },
         ],
       });
 
@@ -788,7 +816,11 @@ describe('Configure CLI logic', () => {
             password: '$TEST_PASSWORD',
             username: '$TEST_USERNAME',
           },
-          { digest: '$TEST_DIGEST', id: 'digest' },
+          {
+            id: 'digest',
+            password: '$TEST_PASSWORD',
+            username: '$TEST_USERNAME',
+          },
         ],
       });
 

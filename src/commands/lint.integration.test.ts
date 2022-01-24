@@ -204,6 +204,7 @@ describe('lint CLI command', () => {
         {
           category: 'Parser',
           detail: 'Expected `provider` but found `map`',
+          hints: [],
           location: {
             end: {
               charIndex: 34,

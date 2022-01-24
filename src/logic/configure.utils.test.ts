@@ -58,7 +58,8 @@ describe('Configure CLI logic', () => {
       },
       {
         id: 'digest',
-        digest: '$TEST_PROVIDER_DIGEST',
+        password: '$TEST_PROVIDER_PASSWORD',
+        username: '$TEST_PROVIDER_USERNAME',
       },
     ]);
   });
