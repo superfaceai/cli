@@ -7,21 +7,20 @@ import {
   SecurityValues,
 } from '@superfaceai/ast';
 
-import { LogCallback } from '../common/log';
+import { ILogger } from '../common/log';
 
 export function prepareSecurityValues(
   providerName: string,
   schemes: SecurityScheme[],
-  options?: {
-    logCb?: LogCallback;
-    warnCb?: LogCallback;
-  }
+  { logger }: { logger: ILogger }
 ): SecurityValues[] {
   const security: SecurityValues[] = [];
 
   for (const scheme of schemes) {
-    options?.logCb?.(
-      `Configuring ${security.length + 1}/${schemes.length} security schemes`
+    logger.info(
+      'configuringSecuritySchemes',
+      security.length + 1,
+      schemes.length
     );
     // Char "-" is not allowed in env variables so replace it with "_"
     const envProviderName = providerName.replace('-', '_').toUpperCase();
@@ -47,9 +46,7 @@ export function prepareSecurityValues(
         digest: `$${envProviderName}_DIGEST`,
       });
     } else {
-      options?.warnCb?.(
-        `⚠️  Provider: "${providerName}" contains unknown security scheme`
-      );
+      logger.warn('unknownSecurityScheme', providerName);
     }
   }
 

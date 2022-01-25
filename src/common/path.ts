@@ -10,7 +10,7 @@ import {
 
 export const NORMALIZED_CWD_PATH = normalize('./');
 /**
- * Resolves specified path according to provider SuperJson
+ * Resolves specified path according to provided SuperJson
  * @param path relative or absolute path
  * @param superJson SuperJson to be used to resolution
  * @returns relative path from super.json. Starts with ./ if original path leads to superface directory

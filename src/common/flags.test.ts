@@ -1,5 +1,3 @@
-import { CLIError } from '@oclif/errors';
-
 import { documentTypeFlag, skipFileFlag } from './flags';
 
 describe('Custom flags', () => {
@@ -23,11 +21,7 @@ describe('Custom flags', () => {
     it('throws developer error on invalid input', async () => {
       expect(() => {
         documentTypeFlag.parse('invalid', undefined);
-      }).toThrow(
-        new CLIError('Internal error: unexpected enum variant', {
-          exit: -1,
-        })
-      );
+      }).toThrow('Internal error: unexpected enum variant');
     });
   });
 
@@ -47,11 +41,7 @@ describe('Custom flags', () => {
     it('throws developer error on invalid input', async () => {
       expect(() => {
         skipFileFlag().parse('invalid', undefined);
-      }).toThrow(
-        new CLIError('Internal error: unexpected enum variant', {
-          exit: -1,
-        })
-      );
+      }).toThrow('Internal error: unexpected enum variant');
     });
   });
 });

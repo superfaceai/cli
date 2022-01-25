@@ -2,24 +2,16 @@ import { flags as oclifFlags } from '@oclif/command';
 import { isValidProviderName } from '@superfaceai/ast';
 import { SuperJson } from '@superfaceai/one-sdk';
 import { parseDocumentId } from '@superfaceai/parser';
-import { bold, grey, red } from 'chalk';
 import { join as joinPath } from 'path';
 
-import { META_FILE } from '../common';
-import { Command } from '../common/command.abstract';
-import { developerError, userError } from '../common/error';
+import { Command, Flags } from '../common/command.abstract';
+import { META_FILE } from '../common/document';
+import { developerError, UserError } from '../common/error';
 import { formatWordPlurality } from '../common/format';
-import { ListWriter } from '../common/list-writer';
-import { LogCallback } from '../common/log';
+import { ILogger } from '../common/log';
 import { OutputStream } from '../common/output-stream';
-import { ReportFormat } from '../common/report.interfaces';
 import { detectSuperJson } from '../logic/install';
-import {
-  formatHuman,
-  formatJson,
-  lint,
-  ProfileToValidate,
-} from '../logic/lint';
+import { formatHuman, formatJson, lint } from '../logic/lint';
 import Check from './check';
 
 type OutputFormatFlag = 'long' | 'short' | 'json';
@@ -85,32 +77,40 @@ export default class Lint extends Command {
     '$ superface lint -s 3',
   ];
 
-  private logCallback? = (message: string) => this.log(grey(message));
-  private errCallback? = (message: string) => this.log(red(bold(message)));
-
   async run(): Promise<void> {
     const { flags } = this.parse(Lint);
+    await super.initialize(flags);
+    await this.execute({
+      logger: this.logger,
+      userError: this.userError,
+      flags,
+    });
+  }
 
-    if (flags.quiet) {
-      this.logCallback = undefined;
-      this.errCallback = undefined;
-    }
-
+  async execute({
+    logger,
+    flags,
+    userError,
+  }: {
+    logger: ILogger;
+    userError: UserError;
+    flags: Flags<typeof Lint.flags>;
+  }): Promise<void> {
     // Check inputs
     if (flags.profileId) {
       const parsedProfileId = parseDocumentId(flags.profileId);
       if (parsedProfileId.kind == 'error') {
-        throw userError(`❌ Invalid profile id: ${parsedProfileId.message}`, 1);
+        throw userError(`Invalid profile id: ${parsedProfileId.message}`, 1);
       }
     }
 
     if (flags.providerName) {
       if (!isValidProviderName(flags.providerName)) {
-        throw userError(`❌ Invalid provider name: "${flags.providerName}"`, 1);
+        throw userError(`Invalid provider name: "${flags.providerName}"`, 1);
       }
       if (!flags.profileId) {
         throw userError(
-          `❌ --profileId must be specified when using --providerName`,
+          '--profileId must be specified when using --providerName',
           1
         );
       }
@@ -118,30 +118,27 @@ export default class Lint extends Command {
 
     if (flags.scan && (typeof flags.scan !== 'number' || flags.scan > 5)) {
       throw userError(
-        '❌ --scan/-s : Number of levels to scan cannot be higher than 5',
+        '--scan/-s : Number of levels to scan cannot be higher than 5',
         1
       );
     }
     const superPath = await detectSuperJson(process.cwd(), flags.scan);
     if (!superPath) {
-      throw userError('❌ Unable to lint, super.json not found', 1);
+      throw userError('Unable to lint, super.json not found', 1);
     }
     //Load super json
     const loadedResult = await SuperJson.load(joinPath(superPath, META_FILE));
     const superJson = loadedResult.match(
       v => v,
       err => {
-        throw userError(
-          `❌ Unable to load super.json: ${err.formatShort()}`,
-          1
-        );
+        throw userError(`Unable to load super.json: ${err.formatShort()}`, 1);
       }
     );
     //Check super.json
     if (flags.profileId) {
       if (!superJson.normalized.profiles[flags.profileId]) {
         throw userError(
-          `❌ Unable to lint, profile: "${flags.profileId}" not found in super.json`,
+          `Unable to lint, profile: "${flags.profileId}" not found in super.json`,
           1
         );
       }
@@ -152,91 +149,58 @@ export default class Lint extends Command {
           ]
         ) {
           throw userError(
-            `❌ Unable to lint, provider: "${flags.providerName}" not found in profile: "${flags.profileId}" in super.json`,
+            `Unable to lint, provider: "${flags.providerName}" not found in profile: "${flags.profileId}" in super.json`,
             1
           );
         }
       }
     }
     const profiles = Check.prepareProfilesToValidate(
-      superJson,
-      flags.profileId,
-      flags.providerName
+      {
+        superJson,
+        profileId: flags.profileId,
+        providerName: flags.providerName,
+      },
+      { userError }
     );
 
     const outputStream = new OutputStream(flags.output, {
       append: flags.append,
     });
-    let totals: [errors: number, warnings: number];
 
-    switch (flags.outputFormat) {
-      case 'long':
-      case 'short':
-        {
-          totals = await Lint.processFiles(
-            new ListWriter(outputStream, '\n'),
-            superJson,
-            profiles,
-            report =>
-              formatHuman(report, flags.quiet, flags.outputFormat === 'short'),
-            { logCb: this.logCallback, errCb: this.errCallback }
-          );
-          await outputStream.write(
-            `\nDetected ${formatWordPlurality(
-              totals[0] + (flags.quiet ? 0 : totals[1]),
-              'problem'
-            )}\n`
-          );
-        }
-        break;
+    const result = await lint(superJson, profiles, {
+      logger,
+    });
 
-      case 'json':
-        {
-          await outputStream.write('{"reports":[');
-          totals = await Lint.processFiles(
-            new ListWriter(outputStream, ','),
-            superJson,
-            profiles,
-            report => formatJson(report),
-            { logCb: undefined, errCb: this.errCallback }
-          );
-          await outputStream.write(
-            `],"total":{"errors":${totals[0]},"warnings":${totals[1]}}}\n`
-          );
-        }
-        break;
+    if (flags.outputFormat === 'long' || flags.outputFormat === 'short') {
+      for (const report of result.reports) {
+        await outputStream.write(
+          formatHuman({
+            report,
+            quiet: !!flags.quiet,
+            emoji: !flags.noEmoji,
+            color: !flags.noColor,
+            short: flags.outputFormat === 'short',
+          })
+        );
+      }
+
+      await outputStream.write(
+        `\nDetected ${formatWordPlurality(
+          result.total.errors + (flags.quiet ? 0 : result.total.warnings),
+          'problem'
+        )}\n`
+      );
+    } else {
+      await outputStream.write(formatJson(result));
     }
 
     await outputStream.cleanup();
 
-    if (totals[0] > 0) {
-      throw userError('❌ Errors were found', 1);
-    } else if (totals[1] > 0) {
-      this.logCallback?.('⚠️ Warnings were found');
+    if (result.total.errors > 0) {
+      throw userError('Errors were found', 1);
+    } else if (result.total.warnings > 0) {
+      logger.warn('warningsWereFound');
     }
-  }
-
-  static async processFiles(
-    writer: ListWriter,
-    superJson: SuperJson,
-    profiles: ProfileToValidate[],
-    fn: (report: ReportFormat) => string,
-    options?: {
-      logCb?: LogCallback;
-      errCb?: LogCallback;
-    }
-  ): Promise<[errors: number, warnings: number]> {
-    const counts: [number, number][] = await lint(
-      superJson,
-      profiles,
-      writer,
-      fn,
-      options
-    );
-
-    return counts.reduce((acc, curr) => [acc[0] + curr[0], acc[1] + curr[1]], [
-      0,
-      0,
-    ]);
   }
 }

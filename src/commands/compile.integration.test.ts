@@ -4,6 +4,7 @@ import { promises as fsp } from 'fs';
 import { join as joinPath, resolve } from 'path';
 
 import { exists, mkdir, readFile, rimraf, stat } from '../common/io';
+import { messages } from '../common/messages';
 import { OutputStream } from '../common/output-stream';
 import { execCLI, setUpTempDir } from '../test/utils';
 
@@ -55,13 +56,11 @@ describe('Compile CLI command', () => {
       );
       const result = await execCLI(tempDir, ['compile'], '');
       //Check stdout
-      expect(result.stdout).toMatch(
-        `Compiling map for profile ${profileId} and provider ${provider}`
-      );
+      expect(result.stdout).toMatch(messages.compileMap(profileId, provider));
 
-      expect(result.stdout).toContain(`Compiling profile ${profileId}`);
+      expect(result.stdout).toContain(messages.compileProfile(profileId));
 
-      expect(result.stdout).toContain(`🆗 compiled successfully.`);
+      expect(result.stdout).toContain(messages.compiledSuccessfully());
 
       //Check super.json
       const superJson = (
@@ -123,13 +122,11 @@ describe('Compile CLI command', () => {
         ''
       );
       //Check stdout
-      expect(result.stdout).toMatch(
-        `Compiling map for profile ${profileId} and provider ${provider}`
-      );
+      expect(result.stdout).toMatch(messages.compileMap(profileId, provider));
 
-      expect(result.stdout).toContain(`Compiling profile ${profileId}`);
+      expect(result.stdout).toContain(messages.compileProfile(profileId));
 
-      expect(result.stdout).toContain(`🆗 compiled successfully.`);
+      expect(result.stdout).toContain(messages.compiledSuccessfully());
 
       //Check super.json
       const superJson = (
@@ -207,11 +204,11 @@ describe('Compile CLI command', () => {
         ''
       );
       //Check stdout
-      expect(result.stdout).toContain(
-        `Compiling map for profile ${profileId} and provider ${provider}`
-      );
-      expect(result.stdout).toContain(`Compiling profile ${profileId}`);
-      expect(result.stdout).toContain(`🆗 compiled successfully`);
+      expect(result.stdout).toMatch(messages.compileMap(profileId, provider));
+
+      expect(result.stdout).toContain(messages.compileProfile(profileId));
+
+      expect(result.stdout).toContain(messages.compiledSuccessfully());
 
       //Check super.json
       const superJson = (

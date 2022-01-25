@@ -1,8 +1,9 @@
-import { CLIError } from '@oclif/errors';
 import { EXTENSIONS } from '@superfaceai/ast';
 import { err, ok, SuperJson } from '@superfaceai/one-sdk';
 import { SDKExecutionError } from '@superfaceai/one-sdk/dist/internal/errors';
 
+import { MockLogger } from '../common';
+import { createUserError } from '../common/error';
 import { OutputStream } from '../common/output-stream';
 import { ProfileId } from '../common/profile';
 import { empty as emptyMap } from '../templates/map';
@@ -11,14 +12,22 @@ import { empty as emptyProvider } from '../templates/provider';
 import { create, createMap, createProfile, createProviderJson } from './create';
 
 describe('Create logic', () => {
+  let logger: MockLogger;
+  const userError = createUserError(false);
   afterEach(() => {
     jest.resetAllMocks();
+  });
+
+  beforeEach(async () => {
+    logger = new MockLogger();
   });
 
   describe('when creating profile', () => {
     it('creates empty profile with scope', async () => {
       const mockBasePath = 'test-path';
-      const mockProfile = ProfileId.fromId(`test-scope/test-name`);
+      const mockProfile = ProfileId.fromId('test-scope/test-name', {
+        userError,
+      });
       const mockVersion = { major: 1 };
       const mockSuperJson = new SuperJson({});
       const mockUsecaseNames = ['test-usecase'];
@@ -28,11 +37,14 @@ describe('Create logic', () => {
 
       await expect(
         createProfile(
-          mockBasePath,
-          mockProfile,
-          mockVersion,
-          mockUsecaseNames,
-          mockSuperJson
+          {
+            basePath: mockBasePath,
+            profile: mockProfile,
+            version: mockVersion,
+            usecaseNames: mockUsecaseNames,
+            superJson: mockSuperJson,
+          },
+          { logger }
         )
       ).resolves.toBeUndefined();
 
@@ -52,7 +64,9 @@ describe('Create logic', () => {
     it('creates empty profile with scope and file name', async () => {
       const mockBasePath = 'test-path';
       const mockFilename = 'mock-filename';
-      const mockProfile = ProfileId.fromId(`test-scope/test-name`);
+      const mockProfile = ProfileId.fromId('test-scope/test-name', {
+        userError,
+      });
       const mockVersion = { major: 1 };
       const mockSuperJson = new SuperJson({});
       const mockUsecaseNames = ['test-usecase'];
@@ -62,12 +76,15 @@ describe('Create logic', () => {
 
       await expect(
         createProfile(
-          mockBasePath,
-          mockProfile,
-          mockVersion,
-          mockUsecaseNames,
-          mockSuperJson,
-          mockFilename
+          {
+            basePath: mockBasePath,
+            profile: mockProfile,
+            version: mockVersion,
+            usecaseNames: mockUsecaseNames,
+            superJson: mockSuperJson,
+            fileName: mockFilename,
+          },
+          { logger }
         )
       ).resolves.toBeUndefined();
 
@@ -87,7 +104,9 @@ describe('Create logic', () => {
     it('creates empty profile with scope and file name with extension', async () => {
       const mockBasePath = 'test-path';
       const mockFilename = `mock-filename${EXTENSIONS.profile.source}`;
-      const mockProfile = ProfileId.fromId(`test-scope/test-name`);
+      const mockProfile = ProfileId.fromId('test-scope/test-name', {
+        userError,
+      });
       const mockVersion = { major: 1 };
       const mockSuperJson = new SuperJson({});
       const mockUsecaseNames = ['test-usecase'];
@@ -97,12 +116,15 @@ describe('Create logic', () => {
 
       await expect(
         createProfile(
-          mockBasePath,
-          mockProfile,
-          mockVersion,
-          mockUsecaseNames,
-          mockSuperJson,
-          mockFilename
+          {
+            basePath: mockBasePath,
+            profile: mockProfile,
+            version: mockVersion,
+            usecaseNames: mockUsecaseNames,
+            superJson: mockSuperJson,
+            fileName: mockFilename,
+          },
+          { logger }
         )
       ).resolves.toBeUndefined();
 
@@ -121,7 +143,7 @@ describe('Create logic', () => {
 
     it('creates empty profile without scope', async () => {
       const mockBasePath = 'test-path';
-      const mockProfile = ProfileId.fromId(`test-name`);
+      const mockProfile = ProfileId.fromId('test-name', { userError });
       const mockVersion = { major: 1 };
       const mockSuperJson = new SuperJson({});
       const mockUsecaseNames = ['test-usecase'];
@@ -131,11 +153,14 @@ describe('Create logic', () => {
 
       await expect(
         createProfile(
-          mockBasePath,
-          mockProfile,
-          mockVersion,
-          mockUsecaseNames,
-          mockSuperJson
+          {
+            basePath: mockBasePath,
+            profile: mockProfile,
+            version: mockVersion,
+            usecaseNames: mockUsecaseNames,
+            superJson: mockSuperJson,
+          },
+          { logger }
         )
       ).resolves.toBeUndefined();
 
@@ -166,7 +191,15 @@ describe('Create logic', () => {
         .mockResolvedValue(true);
 
       await expect(
-        createMap(mockBasePath, mockId, mockUsecaseNames, mockSuperJson)
+        createMap(
+          {
+            basePath: mockBasePath,
+            id: mockId,
+            usecaseNames: mockUsecaseNames,
+            superJson: mockSuperJson,
+          },
+          { logger }
+        )
       ).resolves.toBeUndefined();
 
       expect(writeIfAbsentSpy).toHaveBeenCalledTimes(1);
@@ -196,7 +229,15 @@ describe('Create logic', () => {
         .mockResolvedValue(true);
 
       await expect(
-        createMap(mockBasePath, mockId, mockUsecaseNames, mockSuperJson)
+        createMap(
+          {
+            basePath: mockBasePath,
+            id: mockId,
+            usecaseNames: mockUsecaseNames,
+            superJson: mockSuperJson,
+          },
+          { logger }
+        )
       ).resolves.toBeUndefined();
 
       expect(writeIfAbsentSpy).toHaveBeenCalledTimes(1);
@@ -227,7 +268,15 @@ describe('Create logic', () => {
         .mockResolvedValue(true);
 
       await expect(
-        createMap(mockBasePath, mockId, mockUsecaseNames, mockSuperJson)
+        createMap(
+          {
+            basePath: mockBasePath,
+            id: mockId,
+            usecaseNames: mockUsecaseNames,
+            superJson: mockSuperJson,
+          },
+          { logger }
+        )
       ).resolves.toBeUndefined();
 
       expect(writeIfAbsentSpy).toHaveBeenCalledTimes(1);
@@ -260,11 +309,14 @@ describe('Create logic', () => {
 
       await expect(
         createMap(
-          mockBasePath,
-          mockId,
-          mockUsecaseNames,
-          mockSuperJson,
-          mockFilename
+          {
+            basePath: mockBasePath,
+            id: mockId,
+            usecaseNames: mockUsecaseNames,
+            superJson: mockSuperJson,
+            fileName: mockFilename,
+          },
+          { logger }
         )
       ).resolves.toBeUndefined();
 
@@ -298,11 +350,14 @@ describe('Create logic', () => {
 
       await expect(
         createMap(
-          mockBasePath,
-          mockId,
-          mockUsecaseNames,
-          mockSuperJson,
-          mockFilename
+          {
+            basePath: mockBasePath,
+            id: mockId,
+            usecaseNames: mockUsecaseNames,
+            superJson: mockSuperJson,
+            fileName: mockFilename,
+          },
+          { logger }
         )
       ).resolves.toBeUndefined();
 
@@ -329,7 +384,14 @@ describe('Create logic', () => {
         .mockResolvedValue(true);
 
       await expect(
-        createProviderJson(mockBasePath, mockName, mockSuperJson)
+        createProviderJson(
+          {
+            basePath: mockBasePath,
+            provider: mockName,
+            superJson: mockSuperJson,
+          },
+          { logger }
+        )
       ).resolves.toBeUndefined();
 
       expect(writeIfAbsentSpy).toHaveBeenCalledTimes(1);
@@ -352,7 +414,15 @@ describe('Create logic', () => {
         .mockResolvedValue(true);
 
       await expect(
-        createProviderJson(mockBasePath, mockName, mockSuperJson, mockFilename)
+        createProviderJson(
+          {
+            basePath: mockBasePath,
+            provider: mockName,
+            superJson: mockSuperJson,
+            fileName: mockFilename,
+          },
+          { logger }
+        )
       ).resolves.toBeUndefined();
 
       expect(writeIfAbsentSpy).toHaveBeenCalledTimes(1);
@@ -375,7 +445,15 @@ describe('Create logic', () => {
         .mockResolvedValue(true);
 
       await expect(
-        createProviderJson(mockBasePath, mockName, mockSuperJson, mockFilename)
+        createProviderJson(
+          {
+            basePath: mockBasePath,
+            provider: mockName,
+            superJson: mockSuperJson,
+            fileName: mockFilename,
+          },
+          { logger }
+        )
       ).resolves.toBeUndefined();
 
       expect(writeIfAbsentSpy).toHaveBeenCalledTimes(1);
@@ -437,15 +515,18 @@ describe('Create logic', () => {
         .mockResolvedValue(undefined);
 
       await expect(
-        create({
-          profile: false,
-          map: false,
-          provider: true,
-          document: document,
-          paths: {
-            superPath: mockSuperPath,
+        create(
+          {
+            profile: false,
+            map: false,
+            provider: true,
+            document: document,
+            paths: {
+              superPath: mockSuperPath,
+            },
           },
-        })
+          { logger, userError }
+        )
       ).resolves.toBeUndefined();
 
       expect(loadSpy).toHaveBeenCalledTimes(1);
@@ -483,18 +564,21 @@ describe('Create logic', () => {
         .mockResolvedValue(undefined);
 
       await expect(
-        create({
-          profile: false,
-          map: false,
-          provider: true,
-          document: document,
-          paths: {
-            superPath: mockSuperPath,
+        create(
+          {
+            profile: false,
+            map: false,
+            provider: true,
+            document: document,
+            paths: {
+              superPath: mockSuperPath,
+            },
+            fileNames: {
+              provider: mockFilename,
+            },
           },
-          fileNames: {
-            provider: mockFilename,
-          },
-        })
+          { logger, userError }
+        )
       ).resolves.toBeUndefined();
 
       expect(loadSpy).toHaveBeenCalledTimes(1);
@@ -534,15 +618,18 @@ describe('Create logic', () => {
       document.providerNames = [mockProvider, secondMockProvider];
 
       await expect(
-        create({
-          profile: false,
-          map: false,
-          provider: true,
-          document,
-          paths: {
-            superPath: mockSuperPath,
+        create(
+          {
+            profile: false,
+            map: false,
+            provider: true,
+            document,
+            paths: {
+              superPath: mockSuperPath,
+            },
           },
-        })
+          { logger, userError }
+        )
       ).resolves.toBeUndefined();
 
       expect(loadSpy).toHaveBeenCalledTimes(1);
@@ -592,15 +679,18 @@ describe('Create logic', () => {
         .mockResolvedValue(undefined);
 
       await expect(
-        create({
-          profile: true,
-          map: false,
-          provider: false,
-          document,
-          paths: {
-            superPath: mockSuperPath,
+        create(
+          {
+            profile: true,
+            map: false,
+            provider: false,
+            document,
+            paths: {
+              superPath: mockSuperPath,
+            },
           },
-        })
+          { logger, userError }
+        )
       ).resolves.toBeUndefined();
 
       expect(loadSpy).toHaveBeenCalledTimes(1);
@@ -642,18 +732,21 @@ describe('Create logic', () => {
         .mockResolvedValue(undefined);
 
       await expect(
-        create({
-          profile: true,
-          map: false,
-          provider: false,
-          document,
-          paths: {
-            superPath: mockSuperPath,
+        create(
+          {
+            profile: true,
+            map: false,
+            provider: false,
+            document,
+            paths: {
+              superPath: mockSuperPath,
+            },
+            fileNames: {
+              profile: mockFilename,
+            },
           },
-          fileNames: {
-            profile: mockFilename,
-          },
-        })
+          { logger, userError }
+        )
       ).resolves.toBeUndefined();
 
       expect(loadSpy).toHaveBeenCalledTimes(1);
@@ -695,15 +788,18 @@ describe('Create logic', () => {
         .mockResolvedValue(undefined);
 
       await expect(
-        create({
-          profile: true,
-          map: false,
-          provider: false,
-          document,
-          paths: {
-            superPath: mockSuperPath,
+        create(
+          {
+            profile: true,
+            map: false,
+            provider: false,
+            document,
+            paths: {
+              superPath: mockSuperPath,
+            },
           },
-        })
+          { logger, userError }
+        )
       ).resolves.toBeUndefined();
 
       expect(loadSpy).toHaveBeenCalledTimes(1);
@@ -738,15 +834,18 @@ describe('Create logic', () => {
         .mockResolvedValue(undefined);
 
       await expect(
-        create({
-          profile: false,
-          map: true,
-          provider: true,
-          document,
-          paths: {
-            superPath: mockSuperPath,
+        create(
+          {
+            profile: false,
+            map: true,
+            provider: true,
+            document,
+            paths: {
+              superPath: mockSuperPath,
+            },
           },
-        })
+          { logger, userError }
+        )
       ).resolves.toBeUndefined();
 
       expect(loadSpy).toHaveBeenCalledTimes(1);
@@ -807,15 +906,18 @@ describe('Create logic', () => {
         .mockResolvedValue(undefined);
 
       await expect(
-        create({
-          profile: false,
-          map: true,
-          provider: false,
-          document,
-          paths: {
-            superPath: mockSuperPath,
+        create(
+          {
+            profile: false,
+            map: true,
+            provider: false,
+            document,
+            paths: {
+              superPath: mockSuperPath,
+            },
           },
-        })
+          { logger, userError }
+        )
       ).resolves.toBeUndefined();
 
       expect(loadSpy).toHaveBeenCalledTimes(1);
@@ -864,18 +966,21 @@ describe('Create logic', () => {
         .mockResolvedValue(undefined);
 
       await expect(
-        create({
-          profile: false,
-          map: true,
-          provider: false,
-          document,
-          paths: {
-            superPath: mockSuperPath,
+        create(
+          {
+            profile: false,
+            map: true,
+            provider: false,
+            document,
+            paths: {
+              superPath: mockSuperPath,
+            },
+            fileNames: {
+              map: mockFilename,
+            },
           },
-          fileNames: {
-            map: mockFilename,
-          },
-        })
+          { logger, userError }
+        )
       ).resolves.toBeUndefined();
 
       expect(loadSpy).toHaveBeenCalledTimes(1);
@@ -922,15 +1027,18 @@ describe('Create logic', () => {
         .mockResolvedValue(undefined);
 
       await expect(
-        create({
-          profile: true,
-          map: true,
-          provider: false,
-          document,
-          paths: {
-            superPath: mockSuperPath,
+        create(
+          {
+            profile: true,
+            map: true,
+            provider: false,
+            document,
+            paths: {
+              superPath: mockSuperPath,
+            },
           },
-        })
+          { logger, userError }
+        )
       ).resolves.toBeUndefined();
 
       expect(loadSpy).toHaveBeenCalledTimes(1);
@@ -999,17 +1107,20 @@ describe('Create logic', () => {
         .mockResolvedValue(undefined);
 
       await expect(
-        create({
-          profile: false,
-          map: true,
-          provider: false,
-          document,
-          paths: {
-            superPath: mockSuperPath,
+        create(
+          {
+            profile: false,
+            map: true,
+            provider: false,
+            document,
+            paths: {
+              superPath: mockSuperPath,
+            },
           },
-        })
-      ).rejects.toEqual(
-        new CLIError('Provider name must be provided when generating a map.')
+          { logger, userError }
+        )
+      ).rejects.toThrow(
+        'Provider name must be provided when generating a map.'
       );
 
       expect(loadSpy).toHaveBeenCalledTimes(1);
@@ -1048,19 +1159,20 @@ describe('Create logic', () => {
         .mockResolvedValue(undefined);
 
       await expect(
-        create({
-          profile: false,
-          map: false,
-          provider: true,
-          document,
-          paths: {
-            superPath: mockSuperPath,
+        create(
+          {
+            profile: false,
+            map: false,
+            provider: true,
+            document,
+            paths: {
+              superPath: mockSuperPath,
+            },
           },
-        })
-      ).rejects.toEqual(
-        new CLIError(
-          'Provider name must be provided when generating a provider.'
+          { logger, userError }
         )
+      ).rejects.toThrow(
+        'Provider name must be provided when generating a provider.'
       );
 
       expect(loadSpy).toHaveBeenCalledTimes(1);
@@ -1098,18 +1210,19 @@ describe('Create logic', () => {
         .mockResolvedValue(undefined);
 
       await expect(
-        create({
-          profile: false,
-          map: true,
-          provider: false,
-          document,
-          paths: {
-            superPath: mockSuperPath,
+        create(
+          {
+            profile: false,
+            map: true,
+            provider: false,
+            document,
+            paths: {
+              superPath: mockSuperPath,
+            },
           },
-        })
-      ).rejects.toEqual(
-        new CLIError('Profile name must be provided when generating a map.')
-      );
+          { logger, userError }
+        )
+      ).rejects.toThrow('Profile name must be provided when generating a map.');
 
       expect(loadSpy).toHaveBeenCalledTimes(1);
 
@@ -1146,17 +1259,20 @@ describe('Create logic', () => {
         .mockResolvedValue(undefined);
 
       await expect(
-        create({
-          profile: true,
-          map: false,
-          provider: false,
-          document,
-          paths: {
-            superPath: mockSuperPath,
+        create(
+          {
+            profile: true,
+            map: false,
+            provider: false,
+            document,
+            paths: {
+              superPath: mockSuperPath,
+            },
           },
-        })
-      ).rejects.toEqual(
-        new CLIError('Profile name must be provided when generating a profile.')
+          { logger, userError }
+        )
+      ).rejects.toThrow(
+        'Profile name must be provided when generating a profile.'
       );
 
       expect(loadSpy).toHaveBeenCalledTimes(1);
@@ -1195,17 +1311,20 @@ describe('Create logic', () => {
         .mockResolvedValue(undefined);
 
       await expect(
-        create({
-          profile: true,
-          map: true,
-          provider: false,
-          document,
-          paths: {
-            superPath: mockSuperPath,
+        create(
+          {
+            profile: true,
+            map: true,
+            provider: false,
+            document,
+            paths: {
+              superPath: mockSuperPath,
+            },
           },
-        })
-      ).rejects.toEqual(
-        new CLIError('Provider name must be provided when generating a map.')
+          { logger, userError }
+        )
+      ).rejects.toThrow(
+        'Provider name must be provided when generating a map.'
       );
 
       expect(loadSpy).toHaveBeenCalledTimes(1);

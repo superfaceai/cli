@@ -1,33 +1,38 @@
-import { CLIError } from '@oclif/errors';
 import { ok, SuperJson } from '@superfaceai/one-sdk';
 import { parseProfileId } from '@superfaceai/parser';
 import { mocked } from 'ts-jest/utils';
 
+import { MockLogger } from '../common';
 import { composeUsecaseName } from '../common/document';
+import { createUserError } from '../common/error';
 import { mkdir, mkdirQuiet } from '../common/io';
 import { OutputStream } from '../common/output-stream';
 import { ProfileId } from '../common/profile';
 import { createProfile } from './create';
 import { generateSpecifiedProfiles, initSuperface } from './init';
 
-//Mock io
 jest.mock('../common/io', () => ({
   mkdir: jest.fn(),
   mkdirQuiet: jest.fn(),
 }));
 
-//Mock parser
 jest.mock('@superfaceai/parser', () => ({
   parseProfileId: jest.fn(),
 }));
 
-//Mock create profile
 jest.mock('./create', () => ({
   createProfile: jest.fn(),
 }));
 
 describe('Init logic', () => {
+  let logger: MockLogger;
+  const userError = createUserError(false);
+
   describe('when initialing superface', () => {
+    beforeEach(() => {
+      logger = new MockLogger();
+    });
+
     afterEach(() => {
       jest.resetAllMocks();
     });
@@ -44,7 +49,9 @@ describe('Init logic', () => {
       mocked(mkdirQuiet).mockResolvedValue(true);
       mocked(mkdir).mockResolvedValue('test');
 
-      await expect(initSuperface(mockAppPath)).resolves.not.toBeUndefined();
+      await expect(
+        initSuperface({ appPath: mockAppPath }, { logger })
+      ).resolves.not.toBeUndefined();
 
       expect(mkdir).toHaveBeenCalledTimes(1);
       expect(mkdir).toHaveBeenCalledWith(mockAppPath, { recursive: true });
@@ -92,7 +99,14 @@ describe('Init logic', () => {
       const mockProfileIds = ['first-profile-id', 'second-profile-id'];
 
       await expect(
-        generateSpecifiedProfiles(mockPath, mockSuperJson, mockProfileIds)
+        generateSpecifiedProfiles(
+          {
+            path: mockPath,
+            superJson: mockSuperJson,
+            profileIds: mockProfileIds,
+          },
+          { logger, userError }
+        )
       ).resolves.toBeUndefined();
 
       expect(parseProfileId).toHaveBeenCalledTimes(2);
@@ -102,23 +116,25 @@ describe('Init logic', () => {
       expect(createProfile).toHaveBeenCalledTimes(2);
       expect(createProfile).toHaveBeenNthCalledWith(
         1,
-        'test/superface/grid',
-        ProfileId.fromScopeName(undefined, 'first-test-name'),
-        { major: 1 },
-        [composeUsecaseName('first-test-name')],
-        mockSuperJson,
-        undefined,
-        { logCb: undefined }
+        {
+          basePath: 'test/superface/grid',
+          profile: ProfileId.fromScopeName(undefined, 'first-test-name'),
+          version: { major: 1 },
+          usecaseNames: [composeUsecaseName('first-test-name')],
+          superJson: mockSuperJson,
+        },
+        expect.anything()
       );
       expect(createProfile).toHaveBeenNthCalledWith(
         2,
-        'test/superface/grid',
-        ProfileId.fromScopeName(undefined, 'second-test-name'),
-        { major: 2 },
-        [composeUsecaseName('second-test-name')],
-        mockSuperJson,
-        undefined,
-        { logCb: undefined }
+        {
+          basePath: 'test/superface/grid',
+          profile: ProfileId.fromScopeName(undefined, 'second-test-name'),
+          version: { major: 2 },
+          usecaseNames: [composeUsecaseName('second-test-name')],
+          superJson: mockSuperJson,
+        },
+        expect.anything()
       );
     });
 
@@ -133,8 +149,15 @@ describe('Init logic', () => {
       const mockProfileIds = ['first-profile-id'];
 
       await expect(
-        generateSpecifiedProfiles(mockPath, mockSuperJson, mockProfileIds)
-      ).rejects.toEqual(new CLIError('Wrong profile Id'));
+        generateSpecifiedProfiles(
+          {
+            path: mockPath,
+            superJson: mockSuperJson,
+            profileIds: mockProfileIds,
+          },
+          { logger, userError }
+        )
+      ).rejects.toThrow('Wrong profile Id');
 
       expect(parseProfileId).toHaveBeenCalledTimes(1);
       expect(parseProfileId).toHaveBeenCalledWith('first-profile-id');

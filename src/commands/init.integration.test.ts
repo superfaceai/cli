@@ -8,6 +8,7 @@ import {
   TYPES_DIR,
 } from '../common/document';
 import { access, rimraf } from '../common/io';
+import { messages } from '../common/messages';
 import { MockStd, mockStd } from '../test/mock-std';
 import Init from './init';
 
@@ -37,11 +38,17 @@ describe('Init CLI command', () => {
     const expectedDirectories = [SUPERFACE_DIR, TYPES_DIR, GRID_DIR];
 
     expect(stdout.output).toContain(
-      `$ mkdir 'fixtures/playgrounds/test/superface'
-$ echo '<initial super.json>' > 'fixtures/playgrounds/test/superface/super.json'
-$ mkdir 'fixtures/playgrounds/test/superface/grid'
-$ mkdir 'fixtures/playgrounds/test/superface/types'
-`
+      messages.mkdir('fixtures/playgrounds/test/superface')
+    );
+
+    expect(stdout.output).toContain(
+      messages.mkdir('fixtures/playgrounds/test/superface/grid')
+    );
+    expect(stdout.output).toContain(
+      messages.initSuperJson('fixtures/playgrounds/test/superface/super.json')
+    );
+    expect(stdout.output).toContain(
+      messages.mkdir('fixtures/playgrounds/test/superface/types')
     );
 
     await expect(
@@ -67,7 +74,7 @@ $ mkdir 'fixtures/playgrounds/test/superface/types'
     const expectedDirectories = [SUPERFACE_DIR, TYPES_DIR, GRID_DIR];
 
     expect(stdout.output).not.toContain(
-      "$ mkdir 'fixtures/playgrounds/test/superface"
+      messages.mkdir('fixtures/playgrounds/test/superface')
     );
 
     await expect(
@@ -114,10 +121,17 @@ $ mkdir 'fixtures/playgrounds/test/superface/types'
     ];
 
     expect(stdout.output).toContain(
-      '-> Created fixtures/playgrounds/test/superface/grid/my-profile.supr (name = "my-profile", version = "1.0.0")'
+      messages.createProfile(
+        'my-profile@1.0.0',
+        'fixtures/playgrounds/test/superface/grid/my-profile.supr'
+      )
     );
+
     expect(stdout.output).toContain(
-      '-> Created fixtures/playgrounds/test/superface/grid/my-scope/my-profile.supr (name = "my-scope/my-profile", version = "1.0.0")'
+      messages.createProfile(
+        'my-scope/my-profile@1.0.0',
+        'fixtures/playgrounds/test/superface/grid/my-scope/my-profile.supr'
+      )
     );
 
     await expect(

@@ -4,8 +4,8 @@ import { VersionRange } from '@superfaceai/parser';
 import { join as joinPath } from 'path';
 
 import { composeVersion, META_FILE } from '../common/document';
-import { userError } from '../common/error';
-import { formatShellLog, LogCallback } from '../common/log';
+import { UserError } from '../common/error';
+import { ILogger } from '../common/log';
 import { OutputStream } from '../common/output-stream';
 import { resolveSuperfaceRelatedPath } from '../common/path';
 import { ProfileId } from '../common/profile';
@@ -17,16 +17,26 @@ import * as providerTemplate from '../templates/provider';
  * Creates a new profile
  */
 export async function createProfile(
-  basePath: string,
-  profile: ProfileId,
-  version: VersionRange,
-  usecaseNames: string[],
-  superJson?: SuperJson,
-  fileName?: string,
-  options?: {
-    force?: boolean;
-    logCb?: LogCallback;
-  }
+  {
+    basePath,
+    profile,
+    version,
+    usecaseNames,
+    superJson,
+    fileName,
+    options,
+  }: {
+    basePath: string;
+    profile: ProfileId;
+    version: VersionRange;
+    usecaseNames: string[];
+    superJson?: SuperJson;
+    fileName?: string;
+    options?: {
+      force?: boolean;
+    };
+  },
+  { logger }: { logger: ILogger }
 ): Promise<void> {
   //Add extension if missing
   if (fileName && !fileName.endsWith(EXTENSIONS.profile.source)) {
@@ -47,9 +57,7 @@ export async function createProfile(
   );
 
   if (created) {
-    options?.logCb?.(
-      `-> Created ${filePath} (name = "${profile.id}", version = "${versionStr}")`
-    );
+    logger.success('createProfile', profile.withVersion(versionStr), filePath);
     if (superJson) {
       superJson.mergeProfile(profile.id, {
         file: resolveSuperfaceRelatedPath(filePath, superJson),
@@ -62,20 +70,29 @@ export async function createProfile(
  * Creates a new map
  */
 export async function createMap(
-  basePath: string,
-  id: {
-    profile: ProfileId;
-    provider: string;
-    variant?: string;
-    version: VersionRange;
+  {
+    basePath,
+    id,
+    usecaseNames,
+    superJson,
+    fileName,
+    options,
+  }: {
+    basePath: string;
+    id: {
+      profile: ProfileId;
+      provider: string;
+      variant?: string;
+      version: VersionRange;
+    };
+    usecaseNames: string[];
+    superJson?: SuperJson;
+    fileName?: string;
+    options?: {
+      force?: boolean;
+    };
   },
-  usecaseNames: string[],
-  superJson?: SuperJson,
-  fileName?: string,
-  options?: {
-    force?: boolean;
-    logCb?: LogCallback;
-  }
+  { logger }: { logger: ILogger }
 ): Promise<void> {
   const variantName = id.variant ? `.${id.variant}` : '';
   //Add extension if missing
@@ -101,10 +118,11 @@ export async function createMap(
   );
 
   if (created) {
-    options?.logCb?.(
-      `-> Created ${filePath} (profile = "${id.profile.withVersion(
-        version
-      )}", provider = "${id.provider}")`
+    logger.success(
+      'createMap',
+      id.profile.withVersion(version),
+      id.provider,
+      filePath
     );
     if (superJson) {
       superJson.mergeProfileProvider(id.profile.id, id.provider, {
@@ -117,14 +135,22 @@ export async function createMap(
  * Creates a new provider
  */
 export async function createProviderJson(
-  basePath: string,
-  provider: string,
-  superJson?: SuperJson,
-  fileName?: string,
-  options?: {
-    force?: boolean;
-    logCb?: LogCallback;
-  }
+  {
+    basePath,
+    provider,
+    superJson,
+    fileName,
+    options,
+  }: {
+    basePath: string;
+    provider: string;
+    superJson?: SuperJson;
+    fileName?: string;
+    options?: {
+      force?: boolean;
+    };
+  },
+  { logger }: { logger: ILogger }
 ): Promise<void> {
   //Add extension if missing
   if (fileName && !fileName.endsWith('.json')) {
@@ -139,7 +165,7 @@ export async function createProviderJson(
   );
 
   if (created) {
-    options?.logCb?.(`-> Created ${filePath}`);
+    logger.success('createProvider', provider, filePath);
     if (superJson) {
       superJson.mergeProvider(provider, {
         file: resolveSuperfaceRelatedPath(filePath, superJson),
@@ -152,7 +178,14 @@ export async function createProviderJson(
  * Creates a new document
  */
 export async function create(
-  create: {
+  {
+    profile,
+    map,
+    provider,
+    document,
+    paths,
+    fileNames,
+  }: {
     profile: boolean;
     map: boolean;
     provider: boolean;
@@ -174,22 +207,18 @@ export async function create(
       profile?: string;
     };
   },
-
-  options?: {
-    logCb?: LogCallback;
-    warnCb?: LogCallback;
-  }
+  { logger, userError }: { logger: ILogger; userError: UserError }
 ): Promise<void> {
   //Load super json if we have path
   let superJson: SuperJson | undefined = undefined;
-  if (create.paths.superPath) {
+  if (paths.superPath) {
     const loadedResult = await SuperJson.load(
-      joinPath(create.paths.superPath, META_FILE)
+      joinPath(paths.superPath, META_FILE)
     );
     superJson = loadedResult.match(
       v => v,
       err => {
-        options?.warnCb?.(err.formatLong());
+        logger.warn('errorMessage', err.formatLong());
 
         return new SuperJson({});
       }
@@ -203,9 +232,9 @@ export async function create(
     version,
     variant,
     usecases,
-  } = create.document;
+  } = document;
 
-  if (create.map) {
+  if (map) {
     if (providers.length === 0) {
       throw userError(
         'Provider name must be provided when generating a map.',
@@ -220,21 +249,23 @@ export async function create(
     }
     for (const provider of providers) {
       await createMap(
-        create.paths.basePath ?? '',
         {
-          profile: ProfileId.fromScopeName(scope, name),
-          provider,
-          variant,
-          version,
+          basePath: paths.basePath ?? '',
+          id: {
+            profile: ProfileId.fromScopeName(scope, name),
+            provider,
+            variant,
+            version,
+          },
+          usecaseNames: usecases,
+          superJson,
+          fileName: fileNames?.map,
         },
-        usecases,
-        superJson,
-        create.fileNames?.map,
-        { logCb: options?.logCb }
+        { logger }
       );
     }
   }
-  if (create.provider) {
+  if (provider) {
     if (providers.length === 0) {
       throw userError(
         'Provider name must be provided when generating a provider.',
@@ -243,17 +274,17 @@ export async function create(
     }
     for (const provider of providers) {
       await createProviderJson(
-        create.paths.basePath ?? '',
-        provider,
-        superJson,
-        create.fileNames?.provider,
         {
-          logCb: options?.logCb,
-        }
+          basePath: paths.basePath ?? '',
+          provider,
+          superJson,
+          fileName: fileNames?.provider,
+        },
+        { logger }
       );
     }
   }
-  if (create.profile) {
+  if (profile) {
     if (!name) {
       throw userError(
         'Profile name must be provided when generating a profile.',
@@ -261,23 +292,21 @@ export async function create(
       );
     }
     await createProfile(
-      create.paths.basePath ?? '',
-      ProfileId.fromScopeName(scope, name),
-      version,
-      usecases,
-      superJson,
-      create.fileNames?.profile,
       {
-        logCb: options?.logCb,
-      }
+        basePath: paths.basePath ?? '',
+        profile: ProfileId.fromScopeName(scope, name),
+        version,
+        usecaseNames: usecases,
+        superJson,
+        fileName: fileNames?.profile,
+      },
+      { logger }
     );
   }
 
   // write new information to super.json
   if (superJson) {
     await OutputStream.writeOnce(superJson.path, superJson.stringified);
-    options?.logCb?.(
-      formatShellLog("echo '<updated super.json>' >", [superJson.path])
-    );
+    logger.info('updateSuperJson', superJson.path);
   }
 }

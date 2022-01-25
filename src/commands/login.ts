@@ -1,9 +1,10 @@
 import { flags as oclifFlags } from '@oclif/command';
-import { bold, green, grey, yellow } from 'chalk';
 import { Netrc } from 'netrc-parser';
 
-import { Command } from '../common/command.abstract';
+import { Command, Flags } from '../common/command.abstract';
+import { UserError } from '../common/error';
 import { getServicesUrl, SuperfaceClient } from '../common/http';
+import { ILogger } from '../common/log';
 import { login } from '../logic/login';
 
 export default class Login extends Command {
@@ -13,33 +14,35 @@ export default class Login extends Command {
     ...Command.flags,
     force: oclifFlags.boolean({
       char: 'f',
-      description: `When set to true user won't be asked to confirm browser opening`,
+      description:
+        "When set to true user won't be asked to confirm browser opening",
       default: false,
     }),
   };
-
-  private warnCallback? = (message: string) =>
-    this.log('⚠️  ' + yellow(message));
-
-  private logCallback? = (message: string) => this.log(grey(message));
-  private successCallback? = (message: string) =>
-    this.log(bold(green(message)));
 
   static examples = ['$ superface login', '$ superface login -f'];
 
   async run(): Promise<void> {
     const { flags } = this.parse(Login);
+    await super.initialize(flags);
+    await this.execute({
+      logger: this.logger,
+      userError: this.userError,
+      flags,
+    });
+  }
 
-    if (flags.quiet) {
-      this.warnCallback = undefined;
-      this.logCallback = undefined;
-      this.successCallback = undefined;
-    }
-
+  async execute({
+    logger,
+    userError,
+    flags,
+  }: {
+    logger: ILogger;
+    flags: Flags<typeof Login.flags>;
+    userError: UserError;
+  }): Promise<void> {
     if (process.env.SUPERFACE_REFRESH_TOKEN) {
-      this.warnCallback?.(
-        `Using value from SUPERFACE_REFRESH_TOKEN environment variable`
-      );
+      logger.warn('usinfSfRefreshToken');
     } else {
       const storeUrl = getServicesUrl();
       //environment variable for specific netrc file
@@ -49,21 +52,22 @@ export default class Login extends Command {
       try {
         //check if already logged in and logout
         if (previousEntry && previousEntry.password) {
-          this.logCallback?.('⚠️ Already logged in, logging out');
+          logger.info('alreadyLoggedIn');
           //logout from service client
           await SuperfaceClient.getClient().logout();
         }
       } catch (err) {
-        this.warnCallback?.(err);
+        logger.error('unknownError', err);
       }
     }
 
-    await login({
-      logCb: this.logCallback,
-      warnCb: this.warnCallback,
-      force: flags.force,
-    });
+    await login(
+      {
+        force: flags.force,
+      },
+      { logger, userError }
+    );
 
-    this.successCallback?.('🆗 Logged in');
+    logger.success('loggedInSuccessfully');
   }
 }

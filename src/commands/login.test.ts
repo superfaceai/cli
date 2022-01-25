@@ -1,9 +1,11 @@
 import { ServiceClient } from '@superfaceai/service-client';
 import { mocked } from 'ts-jest/utils';
 
+import { MockLogger } from '..';
+import { createUserError } from '../common/error';
 import { getServicesUrl } from '../common/http';
 import { login } from '../logic/login';
-import { MockStd, mockStd } from '../test/mock-std';
+import { CommandInstance } from '../test/utils';
 import Login from './login';
 
 const mockRefreshToken = 'RT';
@@ -22,7 +24,7 @@ const mockLoad = jest.fn();
 
 jest.mock('netrc-parser', () => {
   return {
-    //Netrc is not default export so we need this
+    // Netrc is not default export so we need this
     Netrc: jest.fn().mockImplementation(() => {
       return {
         loadSync: mockLoadSync,
@@ -41,25 +43,14 @@ jest.mock('netrc-parser', () => {
 
 describe('Login CLI command', () => {
   const originalValue = process.env.SUPERFACE_REFRESH_TOKEN;
-  const logoutSpy = jest.spyOn(ServiceClient.prototype, 'logout');
-
-  let stdout: MockStd;
-  let stderr: MockStd;
+  let logger: MockLogger;
+  let instance: Login;
+  const userError = createUserError(false);
 
   beforeEach(async () => {
-    mockSave.mockClear();
-    mockLoad.mockClear();
-    mockLoadSync.mockClear();
-
-    logoutSpy.mockClear();
-    stdout = mockStd();
-    jest
-      .spyOn(process['stdout'], 'write')
-      .mockImplementation(stdout.implementation);
-    stderr = mockStd();
-    jest
-      .spyOn(process['stderr'], 'write')
-      .mockImplementation(stderr.implementation);
+    jest.restoreAllMocks();
+    logger = new MockLogger();
+    instance = CommandInstance(Login);
   });
 
   afterAll(() => {
@@ -71,49 +62,64 @@ describe('Login CLI command', () => {
   describe('when running login command', () => {
     it('calls login correctly - non existing record in netrc', async () => {
       mocked(getServicesUrl).mockReturnValue(mockBaseUrlWithEmptyRecord);
+      const logoutSpy = jest.spyOn(ServiceClient.prototype, 'logout');
 
-      await expect(Login.run([])).resolves.toBeUndefined();
-      expect(login).toHaveBeenCalledWith({
-        logCb: expect.anything(),
-        warnCb: expect.anything(),
-        force: false,
-      });
+      await expect(
+        instance.execute({ logger, userError, flags: { force: false } })
+      ).resolves.toBeUndefined();
+      expect(login).toHaveBeenCalledWith(
+        {
+          force: false,
+        },
+        expect.anything()
+      );
 
       expect(logoutSpy).not.toHaveBeenCalled();
-      expect(stdout.output).toContain('Logged in');
+      expect(logger.stdout).toContainEqual(['loggedInSuccessfully', []]);
     });
 
     it('calls login correctly - non existing record in netrc and quiet flag', async () => {
       mocked(getServicesUrl).mockReturnValue(mockBaseUrlWithEmptyRecord);
       const logoutSpy = jest.spyOn(ServiceClient.prototype, 'logout');
 
-      await expect(Login.run(['-q'])).resolves.toBeUndefined();
-      expect(login).toHaveBeenCalledWith({
-        logCb: undefined,
-        warnCb: undefined,
-        force: false,
-      });
+      await expect(
+        instance.execute({
+          logger,
+          userError,
+          flags: {
+            force: false,
+            quiet: true,
+          },
+        })
+      ).resolves.toBeUndefined();
+      expect(login).toHaveBeenCalledWith(
+        {
+          force: false,
+        },
+        expect.anything()
+      );
 
       expect(logoutSpy).not.toHaveBeenCalled();
-      expect(stdout.output).toEqual('');
+      expect(logger.stdout).toContainEqual(['loggedInSuccessfully', []]);
     });
     it('calls login correctly - existing record in netrc and force flag', async () => {
       mocked(getServicesUrl).mockReturnValue(mockBaseUrlWithExistingRecord);
-      const logoutSpy = jest
-        .spyOn(ServiceClient.prototype, 'logout')
-        .mockResolvedValue(undefined);
+      const logoutSpy = jest.spyOn(ServiceClient.prototype, 'logout');
 
-      await expect(Login.run(['-f'])).resolves.toBeUndefined();
+      await expect(
+        instance.execute({ logger, userError, flags: { force: true } })
+      ).resolves.toBeUndefined();
 
-      expect(login).toHaveBeenCalledWith({
-        logCb: expect.anything(),
-        warnCb: expect.anything(),
-        force: true,
-      });
+      expect(login).toHaveBeenCalledWith(
+        {
+          force: true,
+        },
+        expect.anything()
+      );
 
+      expect(logger.stdout).toContainEqual(['alreadyLoggedIn', []]);
+      expect(logger.stdout).toContainEqual(['loggedInSuccessfully', []]);
       expect(logoutSpy).toHaveBeenCalled();
-      expect(stdout.output).toContain('Already logged in, logging out');
-      expect(stdout.output).toContain('Logged in');
     });
 
     it('calls login correctly - refresh token in env', async () => {
@@ -121,18 +127,19 @@ describe('Login CLI command', () => {
       mocked(getServicesUrl).mockReturnValue(mockBaseUrlWithExistingRecord);
       const logoutSpy = jest.spyOn(ServiceClient.prototype, 'logout');
 
-      await expect(Login.run([])).resolves.toBeUndefined();
-      expect(login).toHaveBeenCalledWith({
-        logCb: expect.anything(),
-        warnCb: expect.anything(),
-        force: false,
-      });
-
-      expect(logoutSpy).not.toHaveBeenCalled();
-      expect(stdout.output).toContain(
-        `Using value from SUPERFACE_REFRESH_TOKEN environment variable`
+      await expect(
+        instance.execute({ logger, userError, flags: { force: false } })
+      ).resolves.toBeUndefined();
+      expect(login).toHaveBeenCalledWith(
+        {
+          force: false,
+        },
+        expect.anything()
       );
-      expect(stdout.output).toContain('Logged in');
+
+      expect(logger.stdout).toContainEqual(['usinfSfRefreshToken', []]);
+      expect(logger.stdout).toContainEqual(['loggedInSuccessfully', []]);
+      expect(logoutSpy).not.toHaveBeenCalled();
     });
   });
 });

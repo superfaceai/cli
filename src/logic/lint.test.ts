@@ -1,4 +1,3 @@
-import { CLIError } from '@oclif/errors';
 import {
   AstMetadata,
   MapDocumentNode,
@@ -20,14 +19,13 @@ import { SyntaxErrorCategory } from '@superfaceai/parser/dist/language/error';
 import { MatchAttempts } from '@superfaceai/parser/dist/language/syntax/rule';
 import { mocked } from 'ts-jest/utils';
 
+import { createUserError } from '../common/error';
 import { fetchMapAST, fetchProfileAST } from '../common/http';
-import { ListWriter } from '../common/list-writer';
-import { OutputStream } from '../common/output-stream';
+import { MockLogger } from '../common/log';
 import { ProfileId } from '../common/profile';
 import { ReportFormat } from '../common/report.interfaces';
 import { findLocalMapSource, findLocalProfileSource } from './check.utils';
 import {
-  createFileReport,
   createProfileMapReport,
   formatHuman,
   formatJson,
@@ -36,26 +34,19 @@ import {
   lint,
   ProfileToValidate,
 } from './lint';
-//Mock io
+
 jest.mock('../common/io', () => ({
   readFile: jest.fn(),
 }));
-
-//Mock output stream
 jest.mock('../common/output-stream');
-
-//Mock check utils
 jest.mock('./check.utils', () => ({
   findLocalMapSource: jest.fn(),
   findLocalProfileSource: jest.fn(),
 }));
-
-//Mock http
 jest.mock('../common/http', () => ({
   fetchMapAST: jest.fn(),
   fetchProfileAST: jest.fn(),
 }));
-
 jest.mock('@superfaceai/parser', () => ({
   ...jest.requireActual<Record<string, unknown>>('@superfaceai/parser'),
   parseProfile: jest.fn(),
@@ -64,8 +55,15 @@ jest.mock('@superfaceai/parser', () => ({
 }));
 
 describe('Lint logic', () => {
+  let logger: MockLogger;
+  const userError = createUserError(false);
   const mockMapPath = 'mockMapPath';
   const mockProfilePath = 'mockProfilePath';
+
+  beforeEach(() => {
+    logger = new MockLogger();
+  });
+
   afterEach(() => {
     jest.resetAllMocks();
   });
@@ -214,7 +212,9 @@ describe('Lint logic', () => {
         value: mockDocument,
       });
       expect(
-        isValidMapId(mockValidProfileHeader, mocValidMapHeader, mockMapPath)
+        isValidMapId(mockValidProfileHeader, mocValidMapHeader, mockMapPath, {
+          userError,
+        })
       ).toEqual(true);
     });
 
@@ -235,7 +235,9 @@ describe('Lint logic', () => {
         value: mockDocument,
       });
       expect(
-        isValidMapId(mockValidProfileHeader, mocValidMapHeader, mockMapPath)
+        isValidMapId(mockValidProfileHeader, mocValidMapHeader, mockMapPath, {
+          userError,
+        })
       ).toEqual(false);
     });
 
@@ -256,7 +258,9 @@ describe('Lint logic', () => {
         value: mockDocument,
       });
       expect(
-        isValidMapId(mockValidProfileHeader, mocValidMapHeader, mockMapPath)
+        isValidMapId(mockValidProfileHeader, mocValidMapHeader, mockMapPath, {
+          userError,
+        })
       ).toEqual(false);
     });
 
@@ -276,7 +280,9 @@ describe('Lint logic', () => {
         value: mockDocument,
       });
       expect(
-        isValidMapId(mockValidProfileHeader, mocValidMapHeader, mockMapPath)
+        isValidMapId(mockValidProfileHeader, mocValidMapHeader, mockMapPath, {
+          userError,
+        })
       ).toEqual(false);
     });
 
@@ -296,7 +302,9 @@ describe('Lint logic', () => {
         value: mockDocument,
       });
       expect(
-        isValidMapId(mockValidProfileHeader, mocValidMapHeader, mockMapPath)
+        isValidMapId(mockValidProfileHeader, mocValidMapHeader, mockMapPath, {
+          userError,
+        })
       ).toEqual(false);
     });
 
@@ -307,8 +315,10 @@ describe('Lint logic', () => {
       });
       const mockMapPath = 'testMapPath';
       expect(() =>
-        isValidMapId(mockValidProfileHeader, mocValidMapHeader, mockMapPath)
-      ).toThrowError(new CLIError('parse-error'));
+        isValidMapId(mockValidProfileHeader, mocValidMapHeader, mockMapPath, {
+          userError,
+        })
+      ).toThrow('parse-error');
     });
   });
 
@@ -384,27 +394,7 @@ describe('Lint logic', () => {
     });
   });
 
-  describe('when creating file report', () => {
-    it('creates file report correctly', async () => {
-      const mockPath = 'test-path';
-      const mockWarning = 'ouch!';
-
-      expect(
-        createFileReport(mockPath, [mockSyntaxErr], [mockWarning])
-      ).toEqual({
-        kind: 'file',
-        path: mockPath,
-        errors: [mockSyntaxErr],
-        warnings: [mockWarning],
-      });
-    });
-  });
-
   describe('when linting maps to profile', () => {
-    const mockListWriter = new ListWriter(new OutputStream('test'), '');
-    const mockReportFn: (report: ReportFormat) => string = (
-      report: ReportFormat
-    ) => JSON.stringify(report);
     const mockProfileContent = 'profile-content';
     const mockMapContent = 'map-content';
 
@@ -495,79 +485,54 @@ describe('Lint logic', () => {
         .mockReturnValueOnce(mockMapDocument)
         .mockReturnValueOnce(mockMapDocumentMatching);
 
-      const writeElementSpy = jest
-        .spyOn(mockListWriter, 'writeElement')
-        .mockResolvedValue(undefined);
-
       await expect(
-        lint(mockSuperJson, mockProfiles, mockListWriter, mockReportFn)
-      ).resolves.toEqual([
-        [1, 0],
-        [0, 0],
-      ]);
-
-      expect(writeElementSpy).toHaveBeenCalledTimes(5);
-
-      expect(writeElementSpy).toHaveBeenNthCalledWith(
-        1,
-        mockReportFn({
-          kind: 'file',
-          path: mockProfilePath,
-          errors: [],
-          warnings: [],
-        })
-      );
-
-      expect(writeElementSpy).toHaveBeenNthCalledWith(
-        2,
-        mockReportFn({
-          kind: 'file',
-          path: 'swapi path',
-          errors: [],
-          warnings: [],
-        })
-      );
-
-      expect(writeElementSpy).toHaveBeenNthCalledWith(
-        3,
-        mockReportFn({
-          kind: 'compatibility',
-          profile: mockProfilePath,
-          path: 'swapi path',
-          errors: [
-            {
-              kind: 'wrongProfileName',
-              context: {
-                path: ['MapHeader'],
-                expected: 'test-profile',
-                actual: 'different-test-profile',
+        lint(mockSuperJson, mockProfiles, { logger })
+      ).resolves.toEqual({
+        reports: [
+          {
+            errors: [],
+            kind: 'file',
+            path: 'mockProfilePath',
+            warnings: [],
+          },
+          {
+            errors: [],
+            kind: 'file',
+            path: 'swapi path',
+            warnings: [],
+          },
+          {
+            errors: [
+              {
+                context: {
+                  actual: 'different-test-profile',
+                  expected: 'test-profile',
+                  path: ['MapHeader'],
+                },
+                kind: 'wrongProfileName',
               },
-            },
-          ],
-          warnings: [],
-        })
-      );
-
-      expect(writeElementSpy).toHaveBeenNthCalledWith(
-        4,
-        mockReportFn({
-          kind: 'file',
-          path: 'starwars path',
-          errors: [],
-          warnings: [],
-        })
-      );
-
-      expect(writeElementSpy).toHaveBeenNthCalledWith(
-        5,
-        mockReportFn({
-          kind: 'compatibility',
-          profile: mockProfilePath,
-          path: 'starwars path',
-          errors: [],
-          warnings: [],
-        })
-      );
+            ],
+            kind: 'compatibility',
+            path: 'swapi path',
+            profile: 'mockProfilePath',
+            warnings: [],
+          },
+          {
+            errors: [],
+            kind: 'file',
+            path: 'starwars path',
+            warnings: [],
+          },
+          {
+            errors: [],
+            kind: 'compatibility',
+            path: 'starwars path',
+            profile: 'mockProfilePath',
+            warnings: [],
+          },
+        ],
+        total: { errors: 1, warnings: 0 },
+      });
     });
 
     it('returns correct counts, local profile and remote maps', async () => {
@@ -602,58 +567,54 @@ describe('Lint logic', () => {
         .mockResolvedValueOnce(mockMapDocument)
         .mockResolvedValueOnce(mockMapDocumentMatching);
 
-      const writeElementSpy = jest
-        .spyOn(mockListWriter, 'writeElement')
-        .mockResolvedValue(undefined);
-
       await expect(
-        lint(mockSuperJson, mockProfiles, mockListWriter, mockReportFn)
-      ).resolves.toEqual([
-        [1, 0],
-        [0, 0],
-      ]);
-
-      expect(writeElementSpy).toHaveBeenCalledTimes(3);
-
-      expect(writeElementSpy).toHaveBeenNthCalledWith(
-        1,
-        mockReportFn({
-          kind: 'file',
-          path: mockProfilePath,
-          errors: [],
-          warnings: [],
-        })
-      );
-
-      expect(writeElementSpy).toHaveBeenNthCalledWith(
-        2,
-        mockReportFn({
-          kind: 'compatibility',
-          profile: mockProfilePath,
-          path: `${profile.id}.swapi.test@1.0.0`,
-          errors: [
-            {
-              kind: 'wrongProfileName',
-              context: {
-                path: ['MapHeader'],
-                expected: 'test-profile',
-                actual: 'different-test-profile',
+        lint(mockSuperJson, mockProfiles, { logger })
+      ).resolves.toEqual({
+        reports: [
+          {
+            errors: [],
+            kind: 'file',
+            path: 'mockProfilePath',
+            warnings: [],
+          },
+          {
+            errors: [],
+            kind: 'file',
+            path: 'starwars/character-information.swapi.test@1.0.0',
+            warnings: [],
+          },
+          {
+            errors: [
+              {
+                context: {
+                  actual: 'different-test-profile',
+                  expected: 'test-profile',
+                  path: ['MapHeader'],
+                },
+                kind: 'wrongProfileName',
               },
-            },
-          ],
-          warnings: [],
-        })
-      );
-      expect(writeElementSpy).toHaveBeenNthCalledWith(
-        3,
-        mockReportFn({
-          kind: 'compatibility',
-          profile: mockProfilePath,
-          path: `${profile.id}.starwars.test@1.0.0`,
-          errors: [],
-          warnings: [],
-        })
-      );
+            ],
+            kind: 'compatibility',
+            path: 'starwars/character-information.swapi.test@1.0.0',
+            profile: 'mockProfilePath',
+            warnings: [],
+          },
+          {
+            errors: [],
+            kind: 'file',
+            path: 'starwars/character-information.starwars.test@1.0.0',
+            warnings: [],
+          },
+          {
+            errors: [],
+            kind: 'compatibility',
+            path: 'starwars/character-information.starwars.test@1.0.0',
+            profile: 'mockProfilePath',
+            warnings: [],
+          },
+        ],
+        total: { errors: 1, warnings: 0 },
+      });
     });
 
     it('returns correct counts, remote profile and map', async () => {
@@ -687,48 +648,55 @@ describe('Lint logic', () => {
 
       mocked(fetchProfileAST).mockResolvedValue(mockProfileDocument);
 
-      const writeElementSpy = jest
-        .spyOn(mockListWriter, 'writeElement')
-        .mockResolvedValue(undefined);
-
       await expect(
-        lint(mockSuperJson, mockProfiles, mockListWriter, mockReportFn)
-      ).resolves.toEqual([
-        [1, 0],
-        [0, 0],
-      ]);
+        lint(mockSuperJson, mockProfiles, { logger })
+      ).resolves.toEqual({
+        reports: [
+          {
+            errors: [],
+            kind: 'file',
+            path: 'starwars/character-information@1.0.0',
+            warnings: [],
+          },
+          {
+            errors: [],
+            kind: 'file',
+            path: 'starwars/character-information.swapi.test@1.0.0',
+            warnings: [],
+          },
 
-      expect(writeElementSpy).toHaveBeenCalledTimes(2);
-
-      expect(writeElementSpy).toHaveBeenNthCalledWith(
-        1,
-        mockReportFn({
-          kind: 'compatibility',
-          profile: profile.withVersion('1.0.0'),
-          path: `${profile.id}.swapi.test@1.0.0`,
-          errors: [
-            {
-              kind: 'wrongProfileName',
-              context: {
-                path: ['MapHeader'],
-                expected: 'test-profile',
-                actual: 'different-test-profile',
+          {
+            errors: [
+              {
+                context: {
+                  actual: 'different-test-profile',
+                  expected: 'test-profile',
+                  path: ['MapHeader'],
+                },
+                kind: 'wrongProfileName',
               },
-            },
-          ],
-          warnings: [],
-        })
-      );
-      expect(writeElementSpy).toHaveBeenNthCalledWith(
-        2,
-        mockReportFn({
-          kind: 'compatibility',
-          profile: profile.withVersion('1.0.0'),
-          path: `${profile.id}.starwars.test@1.0.0`,
-          errors: [],
-          warnings: [],
-        })
-      );
+            ],
+            kind: 'compatibility',
+            path: 'starwars/character-information.swapi.test@1.0.0',
+            profile: 'starwars/character-information@1.0.0',
+            warnings: [],
+          },
+          {
+            errors: [],
+            kind: 'file',
+            path: 'starwars/character-information.starwars.test@1.0.0',
+            warnings: [],
+          },
+          {
+            errors: [],
+            kind: 'compatibility',
+            path: 'starwars/character-information.starwars.test@1.0.0',
+            profile: 'starwars/character-information@1.0.0',
+            warnings: [],
+          },
+        ],
+        total: { errors: 1, warnings: 0 },
+      });
     });
 
     it('returns correct counts, corrupted profile', async () => {
@@ -782,24 +750,42 @@ describe('Lint logic', () => {
         throw mockSyntaxErr;
       });
 
-      const writeElementSpy = jest
-        .spyOn(mockListWriter, 'writeElement')
-        .mockResolvedValue(undefined);
-
       await expect(
-        lint(mockSuperJson, mockProfiles, mockListWriter, mockReportFn)
-      ).resolves.toEqual([[1, 0]]);
-
-      expect(writeElementSpy).toHaveBeenCalledTimes(1);
-
-      expect(writeElementSpy).toHaveBeenCalledWith(
-        mockReportFn({
-          kind: 'file',
-          path: mockProfilePath,
-          errors: [mockSyntaxErr],
-          warnings: [],
-        })
-      );
+        lint(mockSuperJson, mockProfiles, { logger })
+      ).resolves.toEqual({
+        reports: [
+          {
+            errors: [
+              {
+                category: 'Parser',
+                detail: '',
+                format: expect.any(Function),
+                location: {
+                  end: {
+                    charIndex: 0,
+                    column: 0,
+                    line: 0,
+                  },
+                  start: {
+                    charIndex: 0,
+                    column: 0,
+                    line: 0,
+                  },
+                },
+                message: 'message',
+                source: new Source('test', undefined, {
+                  column: 0,
+                  line: 0,
+                }),
+              },
+            ],
+            kind: 'file',
+            path: 'mockProfilePath',
+            warnings: [],
+          },
+        ],
+        total: { errors: 1, warnings: 0 },
+      });
     });
     it('returns correct counts, corrupted map', async () => {
       const mockSyntaxErr: SyntaxError = {
@@ -852,34 +838,49 @@ describe('Lint logic', () => {
       mocked(parseMap).mockImplementation(() => {
         throw mockSyntaxErr;
       });
-      const writeElementSpy = jest
-        .spyOn(mockListWriter, 'writeElement')
-        .mockResolvedValue(undefined);
 
       await expect(
-        lint(mockSuperJson, mockProfiles, mockListWriter, mockReportFn)
-      ).resolves.toEqual([[1, 0]]);
-
-      expect(writeElementSpy).toHaveBeenCalledTimes(2);
-
-      expect(writeElementSpy).toHaveBeenNthCalledWith(
-        1,
-        mockReportFn({
-          kind: 'file',
-          path: mockProfilePath,
-          errors: [],
-          warnings: [],
-        })
-      );
-      expect(writeElementSpy).toHaveBeenNthCalledWith(
-        2,
-        mockReportFn({
-          kind: 'file',
-          path: mockMapPath,
-          errors: [mockSyntaxErr],
-          warnings: [],
-        })
-      );
+        lint(mockSuperJson, mockProfiles, { logger })
+      ).resolves.toEqual({
+        reports: [
+          {
+            errors: [],
+            kind: 'file',
+            path: 'mockProfilePath',
+            warnings: [],
+          },
+          {
+            errors: [
+              {
+                category: 'Parser',
+                detail: '',
+                format: expect.any(Function),
+                location: {
+                  end: {
+                    charIndex: 0,
+                    column: 0,
+                    line: 0,
+                  },
+                  start: {
+                    charIndex: 0,
+                    column: 0,
+                    line: 0,
+                  },
+                },
+                message: 'message',
+                source: new Source('test', undefined, {
+                  column: 0,
+                  line: 0,
+                }),
+              },
+            ],
+            kind: 'file',
+            path: 'mockMapPath',
+            warnings: [],
+          },
+        ],
+        total: { errors: 1, warnings: 0 },
+      });
     });
   });
 
@@ -904,12 +905,17 @@ describe('Lint logic', () => {
         warnings: ['ouch!'],
       };
 
-      const formated = formatHuman(mockFileReport, false);
-      expect(formated).toMatch(`❌ Parsing map file: ${mockPath}`);
+      const formated = formatHuman({
+        report: mockFileReport,
+        quiet: false,
+        emoji: false,
+        color: false,
+      });
+      expect(formated).toMatch(`Parsing map file: ${mockPath}`);
       expect(formated).toMatch('SyntaxError: Expected  but found <NONE>');
-      expect(formated).toMatch(`--> some/path.suma:0:0`);
+      expect(formated).toMatch('--> some/path.suma:0:0');
 
-      expect(formated).toMatch(`-1 | mock-content`);
+      expect(formated).toMatch('-1 | mock-content');
       expect(formated).toMatch('ouch!');
     });
 
@@ -923,8 +929,14 @@ describe('Lint logic', () => {
         warnings: ['ouch!'],
       };
 
-      const formated = formatHuman(mockFileReport, false, true);
-      expect(formated).toMatch(`❌ Parsing profile file: ${mockPath}`);
+      const formated = formatHuman({
+        report: mockFileReport,
+        quiet: false,
+        short: true,
+        emoji: false,
+        color: false,
+      });
+      expect(formated).toMatch(`Parsing profile file: ${mockPath}`);
       expect(formated).toMatch('0:0 message');
       expect(formated).toMatch('ouch!');
     });
@@ -939,8 +951,13 @@ describe('Lint logic', () => {
         warnings: ['ouch!'],
       };
 
-      const formated = formatHuman(mockFileReport, true);
-      expect(formated).toMatch(`❌ Parsing map file: some/path.suma`);
+      const formated = formatHuman({
+        report: mockFileReport,
+        quiet: true,
+        emoji: false,
+        color: false,
+      });
+      expect(formated).toMatch('Parsing map file: some/path.suma');
       expect(formated).toMatch('detail');
     });
 
@@ -953,8 +970,13 @@ describe('Lint logic', () => {
         errors: [mockSyntaxErr],
         warnings: [],
       };
-      const formated = formatHuman(mockFileReport, false);
-      expect(formated).toMatch(`❌ Parsing profile file: ${mockPath}`);
+      const formated = formatHuman({
+        report: mockFileReport,
+        quiet: false,
+        emoji: false,
+        color: false,
+      });
+      expect(formated).toMatch(`Parsing profile file: ${mockPath}`);
       expect(formated).toMatch('detail');
     });
 
@@ -968,8 +990,13 @@ describe('Lint logic', () => {
         warnings: ['ouch!'],
       };
 
-      const formated = formatHuman(mockFileReport, false);
-      expect(formated).toMatch(`⚠️ Parsing map file: ${mockPath}`);
+      const formated = formatHuman({
+        report: mockFileReport,
+        quiet: false,
+        emoji: false,
+        color: false,
+      });
+      expect(formated).toMatch(`Parsing map file: ${mockPath}`);
       expect(formated).toMatch('ouch!');
     });
 
@@ -983,8 +1010,13 @@ describe('Lint logic', () => {
         warnings: [],
       };
 
-      const formated = formatHuman(mockFileReport, false);
-      expect(formated).toMatch(`🆗 Parsing map file: ${mockPath}`);
+      const formated = formatHuman({
+        report: mockFileReport,
+        quiet: false,
+        emoji: false,
+        color: false,
+      });
+      expect(formated).toMatch(`Parsing map file: ${mockPath}`);
     });
 
     it('formats compatibility correctly', async () => {
@@ -1014,9 +1046,14 @@ describe('Lint logic', () => {
         ],
       };
 
-      const formated = formatHuman(mockFileReport, false);
+      const formated = formatHuman({
+        report: mockFileReport,
+        quiet: false,
+        emoji: false,
+        color: false,
+      });
       expect(formated).toMatch(
-        `❌ Validating profile: test-profile to map: ${mockPath}`
+        `Validating profile: test-profile to map: ${mockPath}`
       );
       expect(formated).toMatch(' - Wrong Scope: expected this, but got that');
       expect(formated).toMatch(' - Wrong Scope: expected this, but got that');
@@ -1033,7 +1070,7 @@ describe('Lint logic', () => {
     };
     it('formats json correctly', async () => {
       expect(formatJson(mockFileReport)).toEqual(
-        '{"path":"some/path","kind":"file","errors":[{"location":{"start":{"line":0,"column":0,"charIndex":0},"end":{"line":0,"column":0,"charIndex":0}},"category":"Parser","detail":"","message":"message"}],"warnings":[]}'
+        expect.not.stringMatching('source')
       );
     });
   });

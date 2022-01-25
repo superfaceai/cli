@@ -1,12 +1,12 @@
 import { flags as oclifFlags } from '@oclif/command';
 import { isValidProviderName } from '@superfaceai/ast';
-import { grey, yellow } from 'chalk';
 import { join as joinPath } from 'path';
 
-import { Command } from '../common/command.abstract';
+import { Command, Flags } from '../common/command.abstract';
 import { META_FILE, SUPERFACE_DIR } from '../common/document';
-import { userError } from '../common/error';
+import { UserError } from '../common/error';
 import { exists } from '../common/io';
+import { ILogger } from '../common/log';
 import { ProfileId } from '../common/profile';
 import { installProvider } from '../logic/configure';
 import { initSuperface } from '../logic/init';
@@ -58,18 +58,32 @@ export default class Configure extends Command {
     '$ superface configure twilio -p send-sms --localMap maps/send-sms.twilio.suma',
   ];
 
-  private warnCallback? = (message: string) => this.log(yellow(message));
-  private logCallback? = (message: string) => this.log(grey(message));
-
   async run(): Promise<void> {
-    const { args, flags } = this.parse(Configure);
+    const { flags, args } = this.parse(Configure);
+    await super.initialize(flags);
+    await this.execute({
+      logger: this.logger,
+      userError: this.userError,
+      flags,
+      args,
+    });
+  }
 
-    if (flags.quiet) {
-      this.warnCallback = undefined;
-      this.logCallback = undefined;
-    }
-
-    if (!isValidProviderName(args.providerName)) {
+  async execute({
+    logger,
+    userError,
+    flags,
+    args,
+  }: {
+    logger: ILogger;
+    userError: UserError;
+    flags: Flags<typeof Configure.flags>;
+    args: { providerName?: string };
+  }): Promise<void> {
+    if (
+      args.providerName === undefined ||
+      !isValidProviderName(args.providerName)
+    ) {
       throw userError('Invalid provider name', 1);
     }
 
@@ -84,36 +98,30 @@ export default class Configure extends Command {
     let superPath = await detectSuperJson(process.cwd());
 
     if (!superPath) {
-      this.logCallback?.(
-        "Initializing superface directory with empty 'super.json'"
-      );
+      logger.info('initSuperface');
+
       await initSuperface(
-        './',
-        { profiles: {}, providers: {} },
-        { logCb: this.logCallback }
+        { appPath: './', initialDocument: { profiles: {}, providers: {} } },
+        { logger }
       );
       superPath = SUPERFACE_DIR;
     }
 
-    this.logCallback?.(
-      `Installing provider to 'super.json' on path '${joinPath(
+    logger.info('configureProviderToSuperJson', joinPath(superPath, META_FILE));
+    await installProvider(
+      {
         superPath,
-        META_FILE
-      )}'`
-    );
-    await installProvider({
-      superPath,
-      provider: args.providerName as string,
-      profileId: ProfileId.fromId(flags.profile.trim()),
-      defaults: undefined,
-      options: {
-        logCb: this.logCallback,
-        warnCb: this.warnCallback,
-        force: flags.force,
-        localMap: flags.localMap,
-        localProvider: flags.localProvider,
-        updateEnv: flags['write-env'],
+        provider: args.providerName,
+        profileId: ProfileId.fromId(flags.profile.trim(), { userError }),
+        defaults: undefined,
+        options: {
+          force: flags.force,
+          localMap: flags.localMap,
+          localProvider: flags.localProvider,
+          updateEnv: flags['write-env'],
+        },
       },
-    });
+      { logger, userError }
+    );
   }
 }

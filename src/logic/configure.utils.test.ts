@@ -5,9 +5,11 @@ import {
   SecurityType,
 } from '@superfaceai/ast';
 
+import { MockLogger } from '../common';
 import { prepareSecurityValues } from '.';
 
 describe('Configure CLI logic', () => {
+  let logger: MockLogger;
   const providerName = 'test-provider';
   const mockSecuritySchemes: SecurityScheme[] = [
     {
@@ -33,24 +35,30 @@ describe('Configure CLI logic', () => {
     },
   ];
 
+  beforeEach(() => {
+    logger = new MockLogger();
+  });
+
   it('prepares security values', async () => {
-    expect(prepareSecurityValues(providerName, mockSecuritySchemes)).toEqual([
+    expect(
+      prepareSecurityValues(providerName, mockSecuritySchemes, { logger })
+    ).toEqual([
       {
         id: 'api',
-        apikey: `$TEST_PROVIDER_API_KEY`,
+        apikey: '$TEST_PROVIDER_API_KEY',
       },
       {
         id: 'bearer',
-        token: `$TEST_PROVIDER_TOKEN`,
+        token: '$TEST_PROVIDER_TOKEN',
       },
       {
         id: 'basic',
-        username: `$TEST_PROVIDER_USERNAME`,
-        password: `$TEST_PROVIDER_PASSWORD`,
+        username: '$TEST_PROVIDER_USERNAME',
+        password: '$TEST_PROVIDER_PASSWORD',
       },
       {
         id: 'digest',
-        digest: `$TEST_PROVIDER_DIGEST`,
+        digest: '$TEST_PROVIDER_DIGEST',
       },
     ]);
   });
@@ -58,9 +66,11 @@ describe('Configure CLI logic', () => {
   it('does not prepare unknown security values', async () => {
     const mockSecurityScheme = { id: 'unknown' };
     expect(
-      prepareSecurityValues(providerName, [
-        mockSecurityScheme as SecurityScheme,
-      ])
+      prepareSecurityValues(
+        providerName,
+        [mockSecurityScheme as SecurityScheme],
+        { logger }
+      )
     ).toEqual([]);
   });
 });

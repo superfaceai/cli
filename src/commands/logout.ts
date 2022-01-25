@@ -1,9 +1,9 @@
 import { ServiceClientError } from '@superfaceai/service-client';
-import { green, yellow } from 'chalk';
 
-import { Command } from '../common/command.abstract';
-import { userError } from '../common/error';
+import { Command, Flags } from '../common/command.abstract';
+import { UserError } from '../common/error';
 import { SuperfaceClient } from '../common/http';
+import { ILogger } from '../common/log';
 
 export default class Logout extends Command {
   static strict = false;
@@ -14,16 +14,31 @@ export default class Logout extends Command {
 
   static examples = ['$ superface logout'];
 
-  private warnCallback = (message: string) => this.log(yellow(message));
-  private successCallback = (message: string) => this.log(green(message));
-
   async run(): Promise<void> {
+    const { flags } = this.parse(Logout);
+    await super.initialize(flags);
+    await this.execute({
+      logger: this.logger,
+      userError: this.userError,
+      flags,
+    });
+  }
+
+  async execute({
+    logger,
+    userError,
+    flags: _,
+  }: {
+    logger: ILogger;
+    userError: UserError;
+    flags: Flags<typeof Logout.flags>;
+  }): Promise<void> {
     try {
       await SuperfaceClient.getClient().signOut();
-      this.successCallback(`🆗 You have been logged out`);
+      logger.success('loggoutSuccessful');
     } catch (error) {
       if (error instanceof ServiceClientError) {
-        this.warnCallback(`Superface server responded with: ${error.message}`);
+        logger.warn('superfaceServerError', error.name, error.message);
 
         return;
       }

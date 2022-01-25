@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-explicit-any */
 import { EXTENSIONS, ProviderJson } from '@superfaceai/ast';
 import { AuthToken, CLILoginResponse } from '@superfaceai/service-client';
 import { execFile } from 'child_process';
@@ -156,12 +156,14 @@ export async function mockResponsesForProfileProviders(
   profile: string,
   path = joinPath('fixtures', 'providers')
 ): Promise<void> {
-  const providersInfo: ProviderJson[] = [];
+  const providersInfo: { definition: ProviderJson }[] = [];
   for (const p of providers) {
     const basePath = joinPath(path, p);
-    providersInfo.push(
-      JSON.parse(await readFile(basePath + '.json', { encoding: 'utf-8' }))
-    );
+    providersInfo.push({
+      definition: JSON.parse(
+        await readFile(basePath + '.json', { encoding: 'utf-8' })
+      ),
+    });
   }
   await server
     .get('/providers')
@@ -371,6 +373,7 @@ export function mockResponse(
 
   return new Response(data ? JSON.stringify(data) : undefined, ResponseInit);
 }
+
 /**
  * Creates a random directory in `path` and returns the path
  */
@@ -387,4 +390,13 @@ export async function setUpTempDir(
   }
 
   return directory;
+}
+
+/**
+ * Creates a command instance
+ */
+export function CommandInstance<T>(command: new (...args: any[]) => T): T {
+  const instance = new command([], {} as any);
+
+  return instance;
 }

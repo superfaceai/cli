@@ -4,6 +4,7 @@ import { join as joinPath } from 'path';
 
 import { ContentType } from '../common/http';
 import { mkdir, rimraf } from '../common/io';
+import { messages } from '../common/messages';
 import { execCLI, setUpTempDir } from '../test/utils';
 
 const mockServer = getLocal();
@@ -40,9 +41,9 @@ describe('Whoami CLI command', () => {
         .thenJson(200, mockUserInfo);
       const result = await execCLI(tempDir, ['whoami'], mockServer.url);
 
-      expect(result.stdout).toMatch(`🆗 You are logged in as: `);
-      expect(result.stdout).toContain(mockUserInfo.name);
-      expect(result.stdout).toContain(mockUserInfo.email);
+      expect(result.stdout).toMatch(
+        messages.loggedInAs(mockUserInfo.name, mockUserInfo.email)
+      );
     });
 
     it('returns warning if user is not logged in', async () => {
@@ -59,9 +60,7 @@ describe('Whoami CLI command', () => {
         .thenJson(401, mockServerResponse);
       const result = await execCLI(tempDir, ['whoami'], mockServer.url);
 
-      expect(result.stdout).toMatch(
-        '❌ You are not logged in. Please try running "sf login"'
-      );
+      expect(result.stdout).toMatch(messages.notLoggedIn());
     });
   });
 });

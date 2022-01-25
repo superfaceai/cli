@@ -1,4 +1,3 @@
-import { CLIError } from '@oclif/errors';
 import { EXTENSIONS } from '@superfaceai/ast';
 import { err, ok, SuperJson } from '@superfaceai/one-sdk';
 import { SDKExecutionError } from '@superfaceai/one-sdk/dist/internal/errors';
@@ -7,8 +6,10 @@ import { mocked } from 'ts-jest/utils';
 
 import {
   DEFAULT_PROFILE_VERSION_STR,
+  MockLogger,
   UNVERIFIED_PROVIDER_PREFIX,
 } from '../common';
+import { createUserError } from '../common/error';
 import { OutputStream } from '../common/output-stream';
 import { ProfileId } from '../common/profile';
 import {
@@ -17,6 +18,7 @@ import {
 } from '../logic/configure';
 import { detectSuperJson } from '../logic/install';
 import { publish } from '../logic/publish';
+import { CommandInstance } from '../test/utils';
 import Install from './install';
 import Publish from './publish';
 
@@ -37,17 +39,27 @@ jest.mock('../logic/install', () => ({
 }));
 
 describe('Publish CLI command', () => {
+  let logger: MockLogger;
+  let instance: Publish;
+
   afterEach(() => {
     jest.resetAllMocks();
   });
 
+  beforeEach(async () => {
+    logger = new MockLogger();
+    instance = CommandInstance(Publish);
+  });
+
   describe('running publish command', () => {
     const profileId = 'starwars/character-information';
-    const provider = `${UNVERIFIED_PROVIDER_PREFIX}swapi`;
+    const providerName = `${UNVERIFIED_PROVIDER_PREFIX}swapi`;
 
     const mockProfilePath = `../path/to/profile${EXTENSIONS.profile.source}`;
     const mockMapPath = `../path/to/profile${EXTENSIONS.map.source}`;
-    const mockProviderPath = `../path/to/profile.json`;
+    const mockProviderPath = '../path/to/profile.json';
+
+    const userError = createUserError(false);
 
     it('exits when user declines prompt', async () => {
       const promptSpy = jest
@@ -59,14 +71,14 @@ describe('Publish CLI command', () => {
           [profileId]: {
             file: mockProfilePath,
             providers: {
-              [provider]: {
+              [providerName]: {
                 file: 'some/path/to/map.suma',
               },
             },
           },
         },
         providers: {
-          [provider]: {},
+          [providerName]: {},
         },
       });
       const loadSpy = jest
@@ -74,16 +86,17 @@ describe('Publish CLI command', () => {
         .mockResolvedValue(ok(mockSuperJson));
 
       await expect(
-        Publish.run([
-          'map',
-          '--profileId',
-          profileId,
-          '--providerName',
-          provider,
-          '-s',
-          '3',
-        ])
-      ).rejects.toEqual(new CLIError('EEXIT: 0'));
+        instance.execute({
+          logger,
+          userError,
+          argv: ['map'],
+          flags: {
+            profileId,
+            providerName,
+            scan: 3,
+          },
+        })
+      ).rejects.toThrow('EEXIT: 0');
       expect(detectSuperJson).toHaveBeenCalled();
       expect(loadSpy).toHaveBeenCalled();
       expect(promptSpy).toHaveBeenCalledTimes(1);
@@ -99,19 +112,18 @@ describe('Publish CLI command', () => {
         .mockResolvedValue(ok(new SuperJson()));
 
       await expect(
-        Publish.run([
-          'map',
-          '--profileId',
-          'U!0_',
-          '--providerName',
-          provider,
-          '-s',
-          '3',
-        ])
-      ).rejects.toEqual(
-        new CLIError(
-          '❌ Invalid profile id: "U!0_" is not a valid lowercase identifier'
-        )
+        instance.execute({
+          logger,
+          userError,
+          argv: ['map'],
+          flags: {
+            profileId: 'U!0_',
+            providerName,
+            scan: 3,
+          },
+        })
+      ).rejects.toThrow(
+        'Invalid profile id: "U!0_" is not a valid lowercase identifier'
       );
       expect(detectSuperJson).not.toHaveBeenCalled();
       expect(loadSpy).not.toHaveBeenCalled();
@@ -128,16 +140,17 @@ describe('Publish CLI command', () => {
         .mockResolvedValue(ok(new SuperJson()));
 
       await expect(
-        Publish.run([
-          'profile',
-          '--profileId',
-          profileId,
-          '--providerName',
-          'U!0_',
-          '-s',
-          '3',
-        ])
-      ).rejects.toEqual(new CLIError('❌ Invalid provider name: "U!0_"'));
+        instance.execute({
+          logger,
+          userError,
+          argv: ['profile'],
+          flags: {
+            profileId,
+            providerName: 'U!0_',
+            scan: 3,
+          },
+        })
+      ).rejects.toThrow('Invalid provider name: "U!0_"');
       expect(detectSuperJson).not.toHaveBeenCalled();
       expect(loadSpy).not.toHaveBeenCalled();
       expect(promptSpy).not.toHaveBeenCalled();
@@ -149,16 +162,16 @@ describe('Publish CLI command', () => {
         .mockResolvedValueOnce({ upload: true });
       mocked(detectSuperJson).mockResolvedValue(undefined);
       await expect(
-        Publish.run([
-          'profile',
-          '--profileId',
-          profileId,
-          '--providerName',
-          provider,
-        ])
-      ).rejects.toEqual(
-        new CLIError('❌ Unable to publish, super.json not found')
-      );
+        instance.execute({
+          logger,
+          userError,
+          argv: ['profile'],
+          flags: {
+            profileId,
+            providerName,
+          },
+        })
+      ).rejects.toThrow('Unable to publish, super.json not found');
       expect(promptSpy).not.toHaveBeenCalled();
     });
 
@@ -171,38 +184,18 @@ describe('Publish CLI command', () => {
         .spyOn(SuperJson, 'load')
         .mockResolvedValue(err(new SDKExecutionError('test', [], [])));
       await expect(
-        Publish.run([
-          'map',
-          '--profileId',
-          profileId,
-          '--providerName',
-          provider,
-        ])
-      ).rejects.toEqual(new CLIError('❌ Unable to load super.json: test'));
+        instance.execute({
+          logger,
+          userError,
+          argv: ['profile'],
+          flags: {
+            profileId,
+            providerName,
+          },
+        })
+      ).rejects.toThrow('Unable to load super.json: test');
       expect(promptSpy).not.toHaveBeenCalled();
     });
-
-    it('throws error on invalid scan flag', async () => {
-      const promptSpy = jest
-        .spyOn(inquirer, 'prompt')
-        .mockResolvedValueOnce({ upload: true });
-      mocked(detectSuperJson).mockResolvedValue('.');
-
-      await expect(
-        Publish.run([
-          'map',
-          '--profileId',
-          profileId,
-          '--providerName',
-          provider,
-          '-s test',
-        ])
-      ).rejects.toEqual(
-        new CLIError('Expected an integer but received:  test')
-      );
-      expect(promptSpy).not.toHaveBeenCalled();
-      expect(detectSuperJson).not.toHaveBeenCalled();
-    }, 10000);
 
     it('throws error on scan flag higher than 5', async () => {
       const promptSpy = jest
@@ -211,19 +204,18 @@ describe('Publish CLI command', () => {
       mocked(detectSuperJson).mockResolvedValue('.');
 
       await expect(
-        Publish.run([
-          'profile',
-          '--profileId',
-          profileId,
-          '--providerName',
-          provider,
-          '-s',
-          '6',
-        ])
-      ).rejects.toEqual(
-        new CLIError(
-          '❌ --scan/-s : Number of levels to scan cannot be higher than 5'
-        )
+        instance.execute({
+          logger,
+          userError,
+          argv: ['profile'],
+          flags: {
+            profileId,
+            providerName,
+            scan: 6,
+          },
+        })
+      ).rejects.toThrow(
+        '--scan/-s : Number of levels to scan cannot be higher than 5'
       );
       expect(promptSpy).not.toHaveBeenCalled();
       expect(detectSuperJson).not.toHaveBeenCalled();
@@ -239,19 +231,18 @@ describe('Publish CLI command', () => {
         .mockResolvedValue(ok(new SuperJson()));
 
       await expect(
-        Publish.run([
-          'profile',
-          '--profileId',
-          profileId,
-          '--providerName',
-          provider,
-          '-s',
-          '3',
-        ])
-      ).rejects.toEqual(
-        new CLIError(
-          `❌ Unable to publish, profile: "${profileId}" not found in super.json`
-        )
+        instance.execute({
+          logger,
+          userError,
+          argv: ['profile'],
+          flags: {
+            profileId,
+            providerName,
+            scan: 3,
+          },
+        })
+      ).rejects.toThrow(
+        `Unable to publish, profile: "${profileId}" not found in super.json`
       );
       expect(detectSuperJson).toHaveBeenCalled();
       expect(loadSpy).toHaveBeenCalled();
@@ -269,12 +260,12 @@ describe('Publish CLI command', () => {
           [profileId]: {
             file: mockPath,
             providers: {
-              [provider]: {},
+              [providerName]: {},
             },
           },
         },
         providers: {
-          [provider]: {},
+          [providerName]: {},
         },
       });
       const loadSpy = jest
@@ -282,17 +273,17 @@ describe('Publish CLI command', () => {
         .mockResolvedValue(ok(mockSuperJson));
 
       await expect(
-        Publish.run([
-          'profile',
-          '--profileId',
-          profileId,
-          '--providerName',
-          provider,
-        ])
-      ).rejects.toEqual(
-        new CLIError(
-          `❌ Profile path: "${mockPath}" must leads to "${EXTENSIONS.profile.source}" file`
-        )
+        instance.execute({
+          logger,
+          userError,
+          argv: ['profile'],
+          flags: {
+            profileId,
+            providerName,
+          },
+        })
+      ).rejects.toThrow(
+        `Profile path: "${mockPath}" must leads to "${EXTENSIONS.profile.source}" file`
       );
       expect(detectSuperJson).toHaveBeenCalled();
       expect(loadSpy).toHaveBeenCalled();
@@ -316,19 +307,18 @@ describe('Publish CLI command', () => {
         .mockResolvedValue(ok(mockSuperJson));
 
       await expect(
-        Publish.run([
-          'map',
-          '--profileId',
-          profileId,
-          '--providerName',
-          provider,
-          '-s',
-          '3',
-        ])
-      ).rejects.toEqual(
-        new CLIError(
-          `❌ Unable to publish, provider: "${provider}" not found in profile: "${profileId}" in super.json`
-        )
+        instance.execute({
+          logger,
+          userError,
+          argv: ['profile'],
+          flags: {
+            profileId,
+            providerName,
+            scan: 3,
+          },
+        })
+      ).rejects.toThrow(
+        `Unable to publish, provider: "${providerName}" not found in profile: "${profileId}" in super.json`
       );
       expect(detectSuperJson).toHaveBeenCalled();
       expect(loadSpy).toHaveBeenCalled();
@@ -346,14 +336,14 @@ describe('Publish CLI command', () => {
           [profileId]: {
             version: DEFAULT_PROFILE_VERSION_STR,
             providers: {
-              [provider]: {
+              [providerName]: {
                 file: mockPath,
               },
             },
           },
         },
         providers: {
-          [provider]: {},
+          [providerName]: {},
         },
       });
       const loadSpy = jest
@@ -361,19 +351,18 @@ describe('Publish CLI command', () => {
         .mockResolvedValue(ok(mockSuperJson));
 
       await expect(
-        Publish.run([
-          'map',
-          '--profileId',
-          profileId,
-          '--providerName',
-          provider,
-          '-s',
-          '3',
-        ])
-      ).rejects.toEqual(
-        new CLIError(
-          `❌ Map path: "${mockPath}" must leads to "${EXTENSIONS.map.source}" file`
-        )
+        instance.execute({
+          logger,
+          userError,
+          argv: ['map'],
+          flags: {
+            profileId,
+            providerName,
+            scan: 3,
+          },
+        })
+      ).rejects.toThrow(
+        `Map path: "${mockPath}" must leads to "${EXTENSIONS.map.source}" file`
       );
       expect(detectSuperJson).toHaveBeenCalled();
       expect(loadSpy).toHaveBeenCalled();
@@ -390,7 +379,7 @@ describe('Publish CLI command', () => {
           [profileId]: {
             file: '',
             providers: {
-              [provider]: {},
+              [providerName]: {},
             },
           },
         },
@@ -400,19 +389,18 @@ describe('Publish CLI command', () => {
         .mockResolvedValue(ok(mockSuperJson));
 
       await expect(
-        Publish.run([
-          'provider',
-          '--profileId',
-          profileId,
-          '--providerName',
-          provider,
-          '-s',
-          '3',
-        ])
-      ).rejects.toEqual(
-        new CLIError(
-          `❌ Unable to publish, provider: "${provider}" not found in super.json`
-        )
+        instance.execute({
+          logger,
+          userError,
+          argv: ['provider'],
+          flags: {
+            profileId,
+            providerName,
+            scan: 3,
+          },
+        })
+      ).rejects.toThrow(
+        `Unable to publish, provider: "${providerName}" not found in super.json`
       );
       expect(detectSuperJson).toHaveBeenCalled();
       expect(loadSpy).toHaveBeenCalled();
@@ -431,12 +419,12 @@ describe('Publish CLI command', () => {
           [profileId]: {
             version: DEFAULT_PROFILE_VERSION_STR,
             providers: {
-              [provider]: {},
+              [providerName]: {},
             },
           },
         },
         providers: {
-          [provider]: {
+          [providerName]: {
             file: mockPath,
           },
         },
@@ -446,19 +434,18 @@ describe('Publish CLI command', () => {
         .mockResolvedValue(ok(mockSuperJson));
 
       await expect(
-        Publish.run([
-          'provider',
-          '--profileId',
-          profileId,
-          '--providerName',
-          provider,
-          '-s',
-          '3',
-        ])
-      ).rejects.toEqual(
-        new CLIError(
-          `❌ Provider path: "${mockPath}" must leads to ".json" file`
-        )
+        instance.execute({
+          logger,
+          userError,
+          argv: ['provider'],
+          flags: {
+            profileId,
+            providerName,
+            scan: 3,
+          },
+        })
+      ).rejects.toThrow(
+        `Provider path: "${mockPath}" must leads to ".json" file`
       );
       expect(detectSuperJson).toHaveBeenCalled();
       expect(loadSpy).toHaveBeenCalled();
@@ -475,12 +462,12 @@ describe('Publish CLI command', () => {
           [profileId]: {
             version: DEFAULT_PROFILE_VERSION_STR,
             providers: {
-              [provider]: {},
+              [providerName]: {},
             },
           },
         },
         providers: {
-          [provider]: {},
+          [providerName]: {},
         },
       });
       const loadSpy = jest
@@ -488,19 +475,18 @@ describe('Publish CLI command', () => {
         .mockResolvedValue(ok(mockSuperJson));
 
       await expect(
-        Publish.run([
-          'profile',
-          '--profileId',
-          profileId,
-          '--providerName',
-          provider,
-          '-s',
-          '3',
-        ])
-      ).rejects.toEqual(
-        new CLIError(
-          `❌ When publishing profile, profile must be locally linked in super.json`
-        )
+        instance.execute({
+          logger,
+          userError,
+          argv: ['profile'],
+          flags: {
+            profileId,
+            providerName,
+            scan: 3,
+          },
+        })
+      ).rejects.toThrow(
+        'When publishing profile, profile must be locally linked in super.json'
       );
       expect(detectSuperJson).toHaveBeenCalled();
       expect(loadSpy).toHaveBeenCalled();
@@ -517,12 +503,12 @@ describe('Publish CLI command', () => {
           [profileId]: {
             version: DEFAULT_PROFILE_VERSION_STR,
             providers: {
-              [provider]: {},
+              [providerName]: {},
             },
           },
         },
         providers: {
-          [provider]: {},
+          [providerName]: {},
         },
       });
       const loadSpy = jest
@@ -530,19 +516,18 @@ describe('Publish CLI command', () => {
         .mockResolvedValue(ok(mockSuperJson));
 
       await expect(
-        Publish.run([
-          'map',
-          '--profileId',
-          profileId,
-          '--providerName',
-          provider,
-          '-s',
-          '3',
-        ])
-      ).rejects.toEqual(
-        new CLIError(
-          `❌ When publishing map, map must be locally linked in super.json`
-        )
+        instance.execute({
+          logger,
+          userError,
+          argv: ['map'],
+          flags: {
+            profileId,
+            providerName,
+            scan: 3,
+          },
+        })
+      ).rejects.toThrow(
+        'When publishing map, map must be locally linked in super.json'
       );
       expect(detectSuperJson).toHaveBeenCalled();
       expect(loadSpy).toHaveBeenCalled();
@@ -574,19 +559,18 @@ describe('Publish CLI command', () => {
         .mockResolvedValue(ok(mockSuperJson));
 
       await expect(
-        Publish.run([
-          'provider',
-          '--profileId',
-          profileId,
-          '--providerName',
-          'test',
-          '-s',
-          '3',
-        ])
-      ).rejects.toEqual(
-        new CLIError(
-          `❌ When publishing provider, provider must have prefix "${UNVERIFIED_PROVIDER_PREFIX}"`
-        )
+        instance.execute({
+          logger,
+          userError,
+          argv: ['provider'],
+          flags: {
+            profileId,
+            providerName: 'test',
+            scan: 3,
+          },
+        })
+      ).rejects.toThrow(
+        `When publishing provider, provider must have prefix "${UNVERIFIED_PROVIDER_PREFIX}"`
       );
       expect(detectSuperJson).toHaveBeenCalled();
       expect(loadSpy).toHaveBeenCalled();
@@ -603,12 +587,12 @@ describe('Publish CLI command', () => {
           [profileId]: {
             version: DEFAULT_PROFILE_VERSION_STR,
             providers: {
-              [provider]: {},
+              [providerName]: {},
             },
           },
         },
         providers: {
-          [provider]: {},
+          [providerName]: {},
         },
       });
       const loadSpy = jest
@@ -616,19 +600,18 @@ describe('Publish CLI command', () => {
         .mockResolvedValue(ok(mockSuperJson));
 
       await expect(
-        Publish.run([
-          'provider',
-          '--profileId',
-          profileId,
-          '--providerName',
-          provider,
-          '-s',
-          '3',
-        ])
-      ).rejects.toEqual(
-        new CLIError(
-          `❌ When publishing provider, provider must be locally linked in super.json`
-        )
+        instance.execute({
+          logger,
+          userError,
+          argv: ['provider'],
+          flags: {
+            profileId,
+            providerName,
+            scan: 3,
+          },
+        })
+      ).rejects.toThrow(
+        'When publishing provider, provider must be locally linked in super.json'
       );
       expect(detectSuperJson).toHaveBeenCalled();
       expect(loadSpy).toHaveBeenCalled();
@@ -649,12 +632,12 @@ describe('Publish CLI command', () => {
           [profileId]: {
             file: mockProfilePath,
             providers: {
-              [provider]: {},
+              [providerName]: {},
             },
           },
         },
         providers: {
-          [provider]: {},
+          [providerName]: {},
         },
       });
       const loadSpy = jest
@@ -666,33 +649,40 @@ describe('Publish CLI command', () => {
         .mockResolvedValue(undefined);
 
       await expect(
-        Publish.run([
-          'profile',
-          '--profileId',
-          profileId,
-          '--providerName',
-          provider,
-          '-s',
-          '3',
-        ])
+        instance.execute({
+          logger,
+          userError,
+          argv: ['profile'],
+          flags: {
+            profileId,
+            providerName,
+            scan: 3,
+            dryRun: false,
+            quiet: false,
+          },
+        })
       ).resolves.toBeUndefined();
 
       expect(promptSpy).toHaveBeenCalledTimes(2);
       expect(loadSpy).toHaveBeenCalled();
       expect(publish).toHaveBeenCalledWith(
-        'profile',
-        mockSuperJson,
-        ProfileId.fromId(profileId),
-        provider,
         {
-          variant: undefined,
+          publishing: 'profile',
+          superJson: mockSuperJson,
+          profile: ProfileId.fromId(profileId, { userError }),
+          provider: providerName,
+          map: {
+            variant: undefined,
+          },
+          version: undefined,
+          options: {
+            dryRun: false,
+            quiet: false,
+            emoji: true,
+            json: undefined,
+          },
         },
-        undefined,
-        {
-          logCb: expect.anything(),
-          dryRun: false,
-          quiet: false,
-        }
+        expect.anything()
       );
       expect(installSpy).toHaveBeenCalledWith([profileId, '-f']);
       expect(writeOnceSpy).not.toHaveBeenCalled();
@@ -711,14 +701,14 @@ describe('Publish CLI command', () => {
           [profileId]: {
             version: DEFAULT_PROFILE_VERSION_STR,
             providers: {
-              [provider]: {
+              [providerName]: {
                 file: mockMapPath,
               },
             },
           },
         },
         providers: {
-          [provider]: {},
+          [providerName]: {},
         },
       });
       const loadSpy = jest
@@ -730,44 +720,51 @@ describe('Publish CLI command', () => {
         .mockResolvedValue(undefined);
 
       await expect(
-        Publish.run([
-          'map',
-          '--profileId',
-          profileId,
-          '--providerName',
-          provider,
-          '-s',
-          '3',
-        ])
+        instance.execute({
+          logger,
+          userError,
+          argv: ['map'],
+          flags: {
+            profileId,
+            providerName,
+            scan: 3,
+            dryRun: false,
+            quiet: false,
+          },
+        })
       ).resolves.toBeUndefined();
 
       expect(promptSpy).toHaveBeenCalledTimes(2);
       expect(loadSpy).toHaveBeenCalled();
       expect(publish).toHaveBeenCalledWith(
-        'map',
-        mockSuperJson,
-        ProfileId.fromId(profileId),
-        provider,
         {
-          variant: undefined,
+          publishing: 'map',
+          superJson: mockSuperJson,
+          profile: ProfileId.fromId(profileId, { userError }),
+          provider: providerName,
+          map: {
+            variant: undefined,
+          },
+          version: DEFAULT_PROFILE_VERSION_STR,
+          options: {
+            dryRun: false,
+            quiet: false,
+            emoji: true,
+            json: undefined,
+          },
         },
-        DEFAULT_PROFILE_VERSION_STR,
-        {
-          logCb: expect.anything(),
-          dryRun: false,
-          quiet: false,
-        }
+        expect.anything()
       );
       expect(reconfigureProfileProvider).toHaveBeenCalledWith(
         mockSuperJson,
-        ProfileId.fromId(profileId),
-        provider,
+        ProfileId.fromId(profileId, { userError }),
+        providerName,
         { kind: 'remote' }
       );
       expect(writeOnceSpy).toHaveBeenCalledWith(
         mockSuperJson.path,
         expect.any(String),
-        { force: false }
+        { force: undefined }
       );
     });
 
@@ -784,12 +781,12 @@ describe('Publish CLI command', () => {
           [profileId]: {
             version: DEFAULT_PROFILE_VERSION_STR,
             providers: {
-              [provider]: {},
+              [providerName]: {},
             },
           },
         },
         providers: {
-          [provider]: {
+          [providerName]: {
             file: mockProviderPath,
           },
         },
@@ -803,44 +800,49 @@ describe('Publish CLI command', () => {
         .mockResolvedValue(undefined);
 
       await expect(
-        Publish.run([
-          'provider',
-          '--profileId',
-          profileId,
-          '--providerName',
-          provider,
-          '-s',
-          '3',
-        ])
+        instance.execute({
+          logger,
+          userError,
+          argv: ['provider'],
+          flags: {
+            profileId,
+            providerName,
+            scan: 3,
+          },
+        })
       ).resolves.toBeUndefined();
 
       expect(promptSpy).toHaveBeenCalledTimes(2);
       expect(loadSpy).toHaveBeenCalled();
       expect(publish).toHaveBeenCalledWith(
-        'provider',
-        mockSuperJson,
-        ProfileId.fromId(profileId),
-        provider,
         {
-          variant: undefined,
+          publishing: 'provider',
+          superJson: mockSuperJson,
+          profile: ProfileId.fromId(profileId, { userError }),
+          provider: providerName,
+          map: {
+            variant: undefined,
+          },
+          version: DEFAULT_PROFILE_VERSION_STR,
+          options: {
+            dryRun: undefined,
+            emoji: true,
+            json: undefined,
+            quiet: undefined,
+          },
         },
-        DEFAULT_PROFILE_VERSION_STR,
-        {
-          logCb: expect.anything(),
-          dryRun: false,
-          quiet: false,
-        }
+        expect.anything()
       );
       expect(detectSuperJson).toHaveBeenCalledWith(process.cwd(), 3);
       expect(reconfigureProvider).toHaveBeenCalledWith(
         mockSuperJson,
-        provider,
+        providerName,
         { kind: 'remote' }
       );
       expect(writeOnceSpy).toHaveBeenCalledWith(
         mockSuperJson.path,
         expect.any(String),
-        { force: false }
+        { force: undefined }
       );
     });
 
@@ -852,14 +854,14 @@ describe('Publish CLI command', () => {
           [profileId]: {
             version: DEFAULT_PROFILE_VERSION_STR,
             providers: {
-              [provider]: {
+              [providerName]: {
                 file: mockMapPath,
               },
             },
           },
         },
         providers: {
-          [provider]: {},
+          [providerName]: {},
         },
       });
       const loadSpy = jest
@@ -871,30 +873,36 @@ describe('Publish CLI command', () => {
         .mockResolvedValue(undefined);
 
       await expect(
-        Publish.run([
-          'map',
-          '--profileId',
-          profileId,
-          '--providerName',
-          provider,
-          '-f',
-        ])
+        instance.execute({
+          logger,
+          userError,
+          argv: ['map'],
+          flags: {
+            profileId,
+            providerName,
+            force: true,
+          },
+        })
       ).resolves.toBeUndefined();
 
       expect(promptSpy).not.toHaveBeenCalledTimes(1);
       expect(loadSpy).toHaveBeenCalled();
       expect(publish).toHaveBeenCalledWith(
-        'map',
-        mockSuperJson,
-        ProfileId.fromId(profileId),
-        provider,
-        { variant: undefined },
-        DEFAULT_PROFILE_VERSION_STR,
         {
-          logCb: expect.anything(),
-          dryRun: false,
-          quiet: false,
-        }
+          publishing: 'map',
+          superJson: mockSuperJson,
+          profile: ProfileId.fromId(profileId, { userError }),
+          provider: providerName,
+          map: { variant: undefined },
+          version: DEFAULT_PROFILE_VERSION_STR,
+          options: {
+            dryRun: undefined,
+            emoji: true,
+            json: undefined,
+            quiet: undefined,
+          },
+        },
+        expect.anything()
       );
       expect(writeOnceSpy).toHaveBeenCalledWith(
         mockSuperJson.path,
@@ -916,14 +924,14 @@ describe('Publish CLI command', () => {
           [profileId]: {
             version: DEFAULT_PROFILE_VERSION_STR,
             providers: {
-              [provider]: {
+              [providerName]: {
                 file: mockMapPath,
               },
             },
           },
         },
         providers: {
-          [provider]: {
+          [providerName]: {
             file: mockPath,
           },
         },
@@ -937,40 +945,46 @@ describe('Publish CLI command', () => {
         .mockResolvedValue(undefined);
 
       await expect(
-        Publish.run([
-          'map',
-          '--profileId',
-          profileId,
-          '--providerName',
-          provider,
-        ])
+        instance.execute({
+          logger,
+          userError,
+          argv: ['map'],
+          flags: {
+            profileId,
+            providerName,
+          },
+        })
       ).resolves.toBeUndefined();
 
       expect(promptSpy).not.toHaveBeenCalledTimes(1);
       expect(loadSpy).toHaveBeenCalled();
       expect(publish).toHaveBeenCalledWith(
-        'map',
-        mockSuperJson,
-        ProfileId.fromId(profileId),
-        provider,
-        { variant: undefined },
-        DEFAULT_PROFILE_VERSION_STR,
         {
-          logCb: expect.anything(),
-          dryRun: false,
-          quiet: false,
-        }
+          publishing: 'map',
+          superJson: mockSuperJson,
+          profile: ProfileId.fromId(profileId, { userError }),
+          provider: providerName,
+          map: { variant: undefined },
+          version: DEFAULT_PROFILE_VERSION_STR,
+          options: {
+            dryRun: undefined,
+            emoji: true,
+            json: undefined,
+            quiet: undefined,
+          },
+        },
+        expect.anything()
       );
       expect(reconfigureProfileProvider).toHaveBeenCalledWith(
         mockSuperJson,
-        ProfileId.fromId(profileId),
-        provider,
+        ProfileId.fromId(profileId, { userError }),
+        providerName,
         { kind: 'remote' }
       );
       expect(writeOnceSpy).toHaveBeenCalledWith(
         mockSuperJson.path,
         expect.any(String),
-        { force: false }
+        { force: undefined }
       );
     });
 
@@ -986,12 +1000,12 @@ describe('Publish CLI command', () => {
           [profileId]: {
             version: DEFAULT_PROFILE_VERSION_STR,
             providers: {
-              [provider]: {},
+              [providerName]: {},
             },
           },
         },
         providers: {
-          [provider]: {
+          [providerName]: {
             file: mockProviderPath,
           },
         },
@@ -1005,43 +1019,50 @@ describe('Publish CLI command', () => {
         .mockResolvedValue(undefined);
 
       await expect(
-        Publish.run([
-          'provider',
-          '--profileId',
-          profileId,
-          '--providerName',
-          provider,
-          '--dryRun',
-        ])
+        instance.execute({
+          logger,
+          userError,
+          argv: ['provider'],
+          flags: {
+            profileId,
+            providerName,
+            scan: 3,
+            dryRun: true,
+          },
+        })
       ).resolves.toBeUndefined();
 
       expect(promptSpy).toHaveBeenCalledTimes(2);
       expect(loadSpy).toHaveBeenCalled();
       expect(publish).toHaveBeenCalledWith(
-        'provider',
-        mockSuperJson,
-        ProfileId.fromId(profileId),
-        provider,
         {
-          variant: undefined,
+          publishing: 'provider',
+          superJson: mockSuperJson,
+          profile: ProfileId.fromId(profileId, { userError }),
+          provider: providerName,
+          map: {
+            variant: undefined,
+          },
+          version: DEFAULT_PROFILE_VERSION_STR,
+          options: {
+            dryRun: true,
+            emoji: true,
+            json: undefined,
+            quiet: undefined,
+          },
         },
-        DEFAULT_PROFILE_VERSION_STR,
-        {
-          logCb: expect.anything(),
-          dryRun: true,
-          quiet: false,
-        }
+        expect.anything()
       );
 
       expect(reconfigureProvider).toHaveBeenCalledWith(
         mockSuperJson,
-        provider,
+        providerName,
         { kind: 'remote' }
       );
       expect(writeOnceSpy).toHaveBeenCalledWith(
         mockSuperJson.path,
         expect.any(String),
-        { force: false }
+        { force: undefined }
       );
     });
 
@@ -1058,14 +1079,14 @@ describe('Publish CLI command', () => {
           [profileId]: {
             version: DEFAULT_PROFILE_VERSION_STR,
             providers: {
-              [provider]: {
+              [providerName]: {
                 file: mockPath,
               },
             },
           },
         },
         providers: {
-          [provider]: {
+          [providerName]: {
             file: mockProviderPath,
           },
         },
@@ -1079,42 +1100,49 @@ describe('Publish CLI command', () => {
         .mockResolvedValue(undefined);
 
       await expect(
-        Publish.run([
-          'provider',
-          '--profileId',
-          profileId,
-          '--providerName',
-          provider,
-        ])
+        instance.execute({
+          logger,
+          userError,
+          argv: ['provider'],
+          flags: {
+            profileId,
+            providerName,
+            scan: 3,
+          },
+        })
       ).resolves.toBeUndefined();
 
       expect(promptSpy).toHaveBeenCalledTimes(2);
       expect(loadSpy).toHaveBeenCalled();
       expect(publish).toHaveBeenCalledWith(
-        'provider',
-        mockSuperJson,
-        ProfileId.fromId(profileId),
-        provider,
         {
-          variant: undefined,
+          publishing: 'provider',
+          superJson: mockSuperJson,
+          profile: ProfileId.fromId(profileId, { userError }),
+          provider: providerName,
+          map: {
+            variant: undefined,
+          },
+          version: DEFAULT_PROFILE_VERSION_STR,
+          options: {
+            emoji: true,
+            json: undefined,
+            quiet: undefined,
+            dryRun: undefined,
+          },
         },
-        DEFAULT_PROFILE_VERSION_STR,
-        {
-          logCb: expect.anything(),
-          quiet: false,
-          dryRun: false,
-        }
+        expect.anything()
       );
 
       expect(reconfigureProvider).toHaveBeenCalledWith(
         mockSuperJson,
-        provider,
+        providerName,
         { kind: 'remote' }
       );
       expect(writeOnceSpy).toHaveBeenCalledWith(
         mockSuperJson.path,
         expect.any(String),
-        { force: false }
+        { force: undefined }
       );
     });
 
@@ -1134,12 +1162,12 @@ describe('Publish CLI command', () => {
           [profileId]: {
             file: mockProfilePath,
             providers: {
-              [provider]: {},
+              [providerName]: {},
             },
           },
         },
         providers: {
-          [provider]: {},
+          [providerName]: {},
         },
       });
       const loadSpy = jest
@@ -1151,32 +1179,38 @@ describe('Publish CLI command', () => {
         .mockResolvedValue(undefined);
 
       await expect(
-        Publish.run([
-          'profile',
-          '--profileId',
-          profileId,
-          '--providerName',
-          provider,
-          '-q',
-        ])
+        instance.execute({
+          logger,
+          userError,
+          argv: ['profile'],
+          flags: {
+            profileId,
+            providerName,
+            quiet: true,
+          },
+        })
       ).resolves.toBeUndefined();
 
       expect(promptSpy).toHaveBeenCalledTimes(2);
       expect(loadSpy).toHaveBeenCalled();
       expect(publish).toHaveBeenCalledWith(
-        'profile',
-        mockSuperJson,
-        ProfileId.fromId(profileId),
-        provider,
         {
-          variant: undefined,
+          publishing: 'profile',
+          superJson: mockSuperJson,
+          profile: ProfileId.fromId(profileId, { userError }),
+          provider: providerName,
+          map: {
+            variant: undefined,
+          },
+          version: undefined,
+          options: {
+            quiet: true,
+            dryRun: undefined,
+            emoji: true,
+            json: undefined,
+          },
         },
-        undefined,
-        {
-          logCb: undefined,
-          dryRun: false,
-          quiet: true,
-        }
+        expect.anything()
       );
       expect(installSpy).toHaveBeenCalledWith([profileId, '-f']);
       expect(writeOnceSpy).not.toHaveBeenCalled();
@@ -1196,12 +1230,12 @@ describe('Publish CLI command', () => {
           [profileId]: {
             file: mockProfilePath,
             providers: {
-              [provider]: {},
+              [providerName]: {},
             },
           },
         },
         providers: {
-          [provider]: {},
+          [providerName]: {},
         },
       });
       const loadSpy = jest
@@ -1213,32 +1247,38 @@ describe('Publish CLI command', () => {
         .mockResolvedValue(undefined);
 
       await expect(
-        Publish.run([
-          'profile',
-          '--profileId',
-          profileId,
-          '--providerName',
-          provider,
-          '-q',
-        ])
+        instance.execute({
+          logger,
+          userError,
+          argv: ['profile'],
+          flags: {
+            profileId,
+            providerName,
+            quiet: true,
+          },
+        })
       ).resolves.toBeUndefined();
 
       expect(promptSpy).toHaveBeenCalledTimes(1);
       expect(loadSpy).toHaveBeenCalled();
       expect(publish).toHaveBeenCalledWith(
-        'profile',
-        mockSuperJson,
-        ProfileId.fromId(profileId),
-        provider,
         {
-          variant: undefined,
+          publishing: 'profile',
+          superJson: mockSuperJson,
+          profile: ProfileId.fromId(profileId, { userError }),
+          provider: providerName,
+          map: {
+            variant: undefined,
+          },
+          version: undefined,
+          options: {
+            quiet: true,
+            emoji: true,
+            json: undefined,
+            dryRun: undefined,
+          },
         },
-        undefined,
-        {
-          logCb: undefined,
-          dryRun: false,
-          quiet: true,
-        }
+        expect.anything()
       );
       expect(installSpy).not.toHaveBeenCalled();
       expect(writeOnceSpy).not.toHaveBeenCalled();

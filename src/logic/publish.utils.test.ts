@@ -1,4 +1,3 @@
-import { CLIError } from '@oclif/errors';
 import {
   AstMetadata,
   MapDocumentNode,
@@ -7,6 +6,8 @@ import {
 import { Parser, SuperJson } from '@superfaceai/one-sdk';
 import { mocked } from 'ts-jest/utils';
 
+import { MockLogger } from '../common';
+import { createUserError } from '../common/error';
 import {
   fetchMapAST,
   fetchProfileAST,
@@ -30,26 +31,24 @@ import {
   ProviderFromMetadata,
 } from './publish.utils';
 
-//Mock check util
 jest.mock('./check.utils', () => ({
   ...jest.requireActual<Record<string, unknown>>('./check.utils'),
   findLocalProfileSource: jest.fn(),
   findLocalMapSource: jest.fn(),
   findLocalProviderSource: jest.fn(),
 }));
-
-//Mock http
 jest.mock('../common/http', () => ({
   fetchProfileAST: jest.fn(),
   fetchMapAST: jest.fn(),
   fetchProviderInfo: jest.fn(),
 }));
 
-const mockLogCb = jest.fn();
-
 describe('Publish logic utils', () => {
+  let logger: MockLogger;
+  const userError = createUserError(false);
+
   const mockProfileId = 'starwars/character-information';
-  const mockProfile = ProfileId.fromId(mockProfileId);
+  const mockProfile = ProfileId.fromId(mockProfileId, { userError });
   const mockProviderName = 'unverified-swapi';
 
   const astMetadata: AstMetadata = {
@@ -191,6 +190,10 @@ describe('Publish logic utils', () => {
     path: 'mock provider path',
   };
 
+  beforeEach(() => {
+    logger = new MockLogger();
+  });
+
   afterEach(() => {
     jest.resetAllMocks();
   });
@@ -198,54 +201,59 @@ describe('Publish logic utils', () => {
   describe('when running pre publish check', () => {
     it('throws error on invalid profile document structure', async () => {
       expect(() =>
-        prePublishCheck({
-          publishing: 'profile',
-          profileAst: {} as ProfileDocumentNode,
-          mapAst: validMapDocument,
-          providerJson: validProviderSource,
-          profileFrom: mockProfileFrom,
-          providerFrom: mockProviderFrom,
-          mapFrom: mockMapFrom,
-          superJson: mockSuperJson,
-        })
-      ).toThrow(
-        new CLIError(
-          `Profile AST validation failed at $: expected 'astMetadata' in object, found: {}`
+        prePublishCheck(
+          {
+            publishing: 'profile',
+            profileAst: {} as ProfileDocumentNode,
+            mapAst: validMapDocument,
+            providerJson: validProviderSource,
+            profileFrom: mockProfileFrom,
+            providerFrom: mockProviderFrom,
+            mapFrom: mockMapFrom,
+            superJson: mockSuperJson,
+          },
+          { logger, userError }
         )
+      ).toThrow(
+        "Profile AST validation failed at $: expected 'astMetadata' in object, found: {}"
       );
     });
 
     it('throws error on invalid map document structure', async () => {
       expect(() =>
-        prePublishCheck({
-          publishing: 'profile',
-          profileAst: validProfileDocument,
-          mapAst: {} as MapDocumentNode,
-          providerJson: validProviderSource,
-          profileFrom: mockProfileFrom,
-          providerFrom: mockProviderFrom,
-          mapFrom: mockMapFrom,
-          superJson: mockSuperJson,
-        })
-      ).toThrow(
-        new CLIError(
-          `Map AST validation failed at $: expected 'astMetadata' in object, found: {}`
+        prePublishCheck(
+          {
+            publishing: 'profile',
+            profileAst: validProfileDocument,
+            mapAst: {} as MapDocumentNode,
+            providerJson: validProviderSource,
+            profileFrom: mockProfileFrom,
+            providerFrom: mockProviderFrom,
+            mapFrom: mockMapFrom,
+            superJson: mockSuperJson,
+          },
+          { logger, userError }
         )
+      ).toThrow(
+        "Map AST validation failed at $: expected 'astMetadata' in object, found: {}"
       );
     });
 
     it('returns empty array on valid documents', async () => {
       expect(
-        prePublishCheck({
-          publishing: 'profile',
-          profileAst: validProfileDocument,
-          mapAst: validMapDocument,
-          providerJson: validProviderSource,
-          profileFrom: mockProfileFrom,
-          providerFrom: mockProviderFrom,
-          mapFrom: mockMapFrom,
-          superJson: mockSuperJson,
-        })
+        prePublishCheck(
+          {
+            publishing: 'profile',
+            profileAst: validProfileDocument,
+            mapAst: validMapDocument,
+            providerJson: validProviderSource,
+            profileFrom: mockProfileFrom,
+            providerFrom: mockProviderFrom,
+            mapFrom: mockMapFrom,
+            superJson: mockSuperJson,
+          },
+          { logger, userError }
+        )
       ).toEqual([
         {
           kind: 'profileMap',
@@ -275,16 +283,19 @@ describe('Publish logic utils', () => {
 
     it('returns array with errors on invalid profile', async () => {
       expect(
-        prePublishCheck({
-          publishing: 'profile',
-          profileAst: invalidProfileDocument,
-          mapAst: validMapDocument,
-          providerJson: validProviderSource,
-          profileFrom: mockProfileFrom,
-          providerFrom: mockProviderFrom,
-          mapFrom: mockMapFrom,
-          superJson: mockSuperJson,
-        })
+        prePublishCheck(
+          {
+            publishing: 'profile',
+            profileAst: invalidProfileDocument,
+            mapAst: validMapDocument,
+            providerJson: validProviderSource,
+            profileFrom: mockProfileFrom,
+            providerFrom: mockProviderFrom,
+            mapFrom: mockMapFrom,
+            superJson: mockSuperJson,
+          },
+          { logger, userError }
+        )
           .flatMap(checkResult => checkResult.issues)
           .filter(err => err.kind === 'error').length
       ).toBeGreaterThan(0);
@@ -292,26 +303,29 @@ describe('Publish logic utils', () => {
 
     it('returns array with warnings on invalid profile', async () => {
       expect(
-        prePublishCheck({
-          publishing: 'provider',
-          profileAst: invalidProfileDocument,
-          mapAst: {
-            ...validMapDocument,
-            definitions: [
-              {
-                kind: 'MapDefinition',
-                name: 'RetrieveCharacterInformation',
-                usecaseName: 'RetrieveCharacterInformation',
-                statements: [],
-              },
-            ],
+        prePublishCheck(
+          {
+            publishing: 'provider',
+            profileAst: invalidProfileDocument,
+            mapAst: {
+              ...validMapDocument,
+              definitions: [
+                {
+                  kind: 'MapDefinition',
+                  name: 'RetrieveCharacterInformation',
+                  usecaseName: 'RetrieveCharacterInformation',
+                  statements: [],
+                },
+              ],
+            },
+            providerJson: validProviderSource,
+            profileFrom: mockProfileFrom,
+            providerFrom: mockProviderFrom,
+            mapFrom: mockMapFrom,
+            superJson: mockSuperJson,
           },
-          providerJson: validProviderSource,
-          profileFrom: mockProfileFrom,
-          providerFrom: mockProviderFrom,
-          mapFrom: mockMapFrom,
-          superJson: mockSuperJson,
-        })
+          { logger, userError }
+        )
           .flatMap(checkResult => checkResult.issues)
           .filter(err => err.kind === 'warn').length
       ).toBeGreaterThan(0);
@@ -319,16 +333,19 @@ describe('Publish logic utils', () => {
 
     it('returns array with errors on invalid map', async () => {
       expect(
-        prePublishCheck({
-          publishing: 'map',
-          profileAst: invalidProfileDocument,
-          mapAst: invalidMapDocument,
-          providerJson: validProviderSource,
-          profileFrom: mockProfileFrom,
-          providerFrom: mockProviderFrom,
-          mapFrom: mockMapFrom,
-          superJson: mockSuperJson,
-        })
+        prePublishCheck(
+          {
+            publishing: 'map',
+            profileAst: invalidProfileDocument,
+            mapAst: invalidMapDocument,
+            providerJson: validProviderSource,
+            profileFrom: mockProfileFrom,
+            providerFrom: mockProviderFrom,
+            mapFrom: mockMapFrom,
+            superJson: mockSuperJson,
+          },
+          { logger, userError }
+        )
           .flatMap(checkResult => checkResult.issues)
           .filter(err => err.kind === 'error').length
       ).toBeGreaterThan(0);
@@ -336,26 +353,29 @@ describe('Publish logic utils', () => {
 
     it('returns array with warnings on invalid map', async () => {
       expect(
-        prePublishCheck({
-          publishing: 'provider',
-          profileAst: invalidProfileDocument,
-          mapAst: {
-            ...invalidMapDocument,
-            definitions: [
-              {
-                kind: 'MapDefinition',
-                name: 'RetrieveCharacterInformation',
-                usecaseName: 'RetrieveCharacterInformation',
-                statements: [],
-              },
-            ],
+        prePublishCheck(
+          {
+            publishing: 'provider',
+            profileAst: invalidProfileDocument,
+            mapAst: {
+              ...invalidMapDocument,
+              definitions: [
+                {
+                  kind: 'MapDefinition',
+                  name: 'RetrieveCharacterInformation',
+                  usecaseName: 'RetrieveCharacterInformation',
+                  statements: [],
+                },
+              ],
+            },
+            providerJson: validProviderSource,
+            profileFrom: mockProfileFrom,
+            providerFrom: mockProviderFrom,
+            mapFrom: mockMapFrom,
+            superJson: mockSuperJson,
           },
-          providerJson: validProviderSource,
-          profileFrom: mockProfileFrom,
-          providerFrom: mockProviderFrom,
-          mapFrom: mockMapFrom,
-          superJson: mockSuperJson,
-        })
+          { logger, userError }
+        )
           .flatMap(checkResult => checkResult.issues)
           .filter(err => err.kind === 'warn').length
       ).toBeGreaterThan(0);
@@ -363,16 +383,19 @@ describe('Publish logic utils', () => {
 
     it('returns array with errors on invalid provider', async () => {
       expect(
-        prePublishCheck({
-          publishing: 'provider',
-          profileAst: validProfileDocument,
-          mapAst: validMapDocument,
-          providerJson: invalidProviderSource,
-          profileFrom: mockProfileFrom,
-          providerFrom: mockProviderFrom,
-          mapFrom: mockMapFrom,
-          superJson: mockSuperJson,
-        })
+        prePublishCheck(
+          {
+            publishing: 'provider',
+            profileAst: validProfileDocument,
+            mapAst: validMapDocument,
+            providerJson: invalidProviderSource,
+            profileFrom: mockProfileFrom,
+            providerFrom: mockProviderFrom,
+            mapFrom: mockMapFrom,
+            superJson: mockSuperJson,
+          },
+          { logger, userError }
+        )
           .flatMap(checkResult => checkResult.issues)
           .filter(err => err.kind === 'error').length
       ).toBeGreaterThan(0);
@@ -410,7 +433,14 @@ describe('Publish logic utils', () => {
         .mockResolvedValue(validProfileDocument);
 
       await expect(
-        loadProfile(mockSuperJson, mockProfile, undefined, { logCb: mockLogCb })
+        loadProfile(
+          {
+            superJson: mockSuperJson,
+            profile: mockProfile,
+            version: undefined,
+          },
+          { logger }
+        )
       ).resolves.toEqual({
         ast: validProfileDocument,
         from: {
@@ -428,9 +458,10 @@ describe('Publish logic utils', () => {
           scope: mockProfile.scope,
         }
       );
-      expect(mockLogCb).toHaveBeenCalledWith(
-        `Profile: "${mockProfile.id}" found on local file system at path: "mock profile path"`
-      );
+      expect(logger.stdout).toContainEqual([
+        'localProfileFound',
+        [mockProfile.id, 'mock profile path'],
+      ]);
     });
 
     it('loads AST from store', async () => {
@@ -439,7 +470,14 @@ describe('Publish logic utils', () => {
       const parseProfileSpy = jest.spyOn(Parser, 'parseProfile');
 
       await expect(
-        loadProfile(mockSuperJson, mockProfile, undefined, { logCb: mockLogCb })
+        loadProfile(
+          {
+            superJson: mockSuperJson,
+            profile: mockProfile,
+            version: undefined,
+          },
+          { logger }
+        )
       ).resolves.toEqual({
         ast: validProfileDocument,
         from: {
@@ -449,10 +487,11 @@ describe('Publish logic utils', () => {
       });
 
       expect(parseProfileSpy).not.toHaveBeenCalled();
-      expect(fetchProfileAST).toHaveBeenCalledWith(mockProfile.id);
-      expect(mockLogCb).toHaveBeenCalledWith(
-        `Loading profile: "${mockProfile.id}" in version: "1.0.0" from Superface store`
-      );
+      expect(fetchProfileAST).toHaveBeenCalledWith(mockProfile, undefined);
+      expect(logger.stdout).toContainEqual([
+        'fetchProfile',
+        [mockProfile.id, undefined],
+      ]);
     });
   });
 
@@ -467,9 +506,16 @@ describe('Publish logic utils', () => {
         .mockResolvedValue(validMapDocument);
 
       await expect(
-        loadMap(mockSuperJson, mockProfile, mockProviderName, {}, undefined, {
-          logCb: mockLogCb,
-        })
+        loadMap(
+          {
+            superJson: mockSuperJson,
+            profile: mockProfile,
+            provider: mockProviderName,
+            map: {},
+            version: undefined,
+          },
+          { logger }
+        )
       ).resolves.toEqual({
         ast: validMapDocument,
         from: {
@@ -489,9 +535,10 @@ describe('Publish logic utils', () => {
         }
       );
 
-      expect(mockLogCb).toHaveBeenCalledWith(
-        `Map for profile: "${mockProfile.id}" and provider: "${mockProviderName}" found on local filesystem at path: "mock map path"`
-      );
+      expect(logger.stdout).toContainEqual([
+        'localMapFound',
+        [mockProfile.id, mockProviderName, 'mock map path'],
+      ]);
     });
 
     it('loads AST from store', async () => {
@@ -500,9 +547,16 @@ describe('Publish logic utils', () => {
       const parseMapSpy = jest.spyOn(Parser, 'parseMap');
 
       await expect(
-        loadMap(mockSuperJson, mockProfile, mockProviderName, {}, undefined, {
-          logCb: mockLogCb,
-        })
+        loadMap(
+          {
+            superJson: mockSuperJson,
+            profile: mockProfile,
+            provider: mockProviderName,
+            map: {},
+            version: undefined,
+          },
+          { logger }
+        )
       ).resolves.toEqual({
         ast: validMapDocument,
         from: {
@@ -512,17 +566,18 @@ describe('Publish logic utils', () => {
       });
 
       expect(parseMapSpy).not.toHaveBeenCalled();
-      expect(fetchMapAST).toHaveBeenCalledWith(
-        mockProfile.name,
-        mockProviderName,
-        mockProfile.scope,
-        undefined,
-        undefined
-      );
+      expect(fetchMapAST).toHaveBeenCalledWith({
+        name: mockProfile.name,
+        provider: mockProviderName,
+        scope: mockProfile.scope,
+        version: undefined,
+        variant: undefined,
+      });
 
-      expect(mockLogCb).toHaveBeenCalledWith(
-        `Loading map for profile: "${mockProfile.id}" and provider: "${mockProviderName}" in version: "1.0.0" from Superface store`
-      );
+      expect(logger.stdout).toContainEqual([
+        'fetchMap',
+        [mockProfile.id, mockProviderName, '1.0.0'],
+      ]);
     });
   });
 
@@ -534,7 +589,7 @@ describe('Publish logic utils', () => {
       });
 
       await expect(
-        loadProvider(mockSuperJson, mockProviderName, { logCb: mockLogCb })
+        loadProvider(mockSuperJson, mockProviderName, { logger })
       ).resolves.toEqual({
         source: validProviderSource,
         from: {
@@ -542,9 +597,10 @@ describe('Publish logic utils', () => {
           path: 'mock provider path',
         },
       });
-      expect(mockLogCb).toHaveBeenCalledWith(
-        `Provider: "${mockProviderName}" found on local file system at path: "mock provider path"`
-      );
+      expect(logger.stdout).toContainEqual([
+        'localProviderFound',
+        [mockProviderName, 'mock provider path'],
+      ]);
     });
 
     it('loads provider json from store', async () => {
@@ -552,7 +608,7 @@ describe('Publish logic utils', () => {
       mocked(fetchProviderInfo).mockResolvedValue(validProviderSource);
 
       await expect(
-        loadProvider(mockSuperJson, mockProviderName, { logCb: mockLogCb })
+        loadProvider(mockSuperJson, mockProviderName, { logger })
       ).resolves.toEqual({
         source: validProviderSource,
         from: {
@@ -561,9 +617,10 @@ describe('Publish logic utils', () => {
       });
 
       expect(fetchProviderInfo).toHaveBeenCalledWith(mockProviderName);
-      expect(mockLogCb).toHaveBeenCalledWith(
-        `Loading provider: "${mockProviderName}" from Superface store`
-      );
+      expect(logger.stdout).toContainEqual([
+        'fetchProvider',
+        [mockProviderName],
+      ]);
     });
   });
 });
