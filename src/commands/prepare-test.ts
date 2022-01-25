@@ -41,7 +41,7 @@ export default class PrepareTest extends Command {
       required: false,
     }),
     fileName: oclifFlags.string({
-      description: 'Name of test file. Default is [provider.test.ts]',
+      description: 'Name of test file. Default is [provider].test.ts',
       required: false,
     }),
   };

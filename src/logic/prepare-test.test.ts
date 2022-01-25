@@ -192,6 +192,7 @@ describe('starwars/character-information/swapi', () => {
   });
 
 });`;
+
   afterEach(() => {
     jest.resetAllMocks();
   });

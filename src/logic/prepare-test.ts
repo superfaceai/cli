@@ -1,5 +1,6 @@
 import {
   ComlinkListLiteralNode,
+  ComlinkLiteralNode,
   ComlinkObjectLiteralNode,
   ComlinkPrimitiveLiteralNode,
   isUseCaseDefinitionNode,
@@ -54,17 +55,9 @@ function extractComlinkListLiterallNode(
   input: ComlinkListLiteralNode,
   numberOfTabs: number
 ): string {
-  const items = [];
-  for (const item of input.items) {
-    if (item.kind === 'ComlinkPrimitiveLiteral') {
-      items.push(extractComlinkPrimitiveLiteralNode(item));
-    } else if (item.kind === 'ComlinkObjectLiteral') {
-      items.push(extractComlinkObjectLiteral(item, numberOfTabs + 1));
-    } else {
-      items.push(extractComlinkListLiterallNode(item, numberOfTabs + 1));
-    }
-  }
-
+  const items = input.items.map(item =>
+    stringifyExampleNode(item, numberOfTabs + 1)
+  );
   return `[${items.join(', ')}]`;
 }
 /**
@@ -80,14 +73,7 @@ function extractComlinkObjectLiteral(
   let stringified = '{';
   let value = '';
   for (const field of input.fields) {
-    if (field.value.kind === 'ComlinkPrimitiveLiteral') {
-      value = extractComlinkPrimitiveLiteralNode(field.value);
-    } else if (field.value.kind === 'ComlinkListLiteral') {
-      value = extractComlinkListLiterallNode(field.value, numberOfTabs + 1);
-    } else {
-      value = extractComlinkObjectLiteral(field.value, numberOfTabs + 1);
-    }
-
+    value = stringifyExampleNode(field.value, numberOfTabs + 1);
     stringified += `\n${indent(numberOfTabs)}${field.key.join('.')}: ${value},`;
   }
 
@@ -99,6 +85,23 @@ function extractComlinkObjectLiteral(
   return (stringified += `\n${indent(numberOfTabs - 1)}}`);
 }
 
+function stringifyExampleNode(
+  node: ComlinkLiteralNode,
+  numberOfTabs: number
+): string {
+  let stringified: string;
+
+  if (node.kind === 'ComlinkObjectLiteral') {
+    stringified = extractComlinkObjectLiteral(node, numberOfTabs);
+  } else if (node.kind === 'ComlinkListLiteral') {
+    stringified = extractComlinkListLiterallNode(node, numberOfTabs);
+  } else {
+    stringified = extractComlinkPrimitiveLiteralNode(node);
+  }
+
+  return stringified;
+}
+
 /**
  * Prepares ExampleInput object
  * @param input UseCaseExampleNode to be used as an input
@@ -107,23 +110,15 @@ function extractComlinkObjectLiteral(
 function prepareExampleInput(
   input: UseCaseExampleNode
 ): ExampleInput | undefined {
-  if (input.input === undefined || input.exampleName === undefined) {
+  if (input.input === undefined) {
     return undefined;
   }
 
-  let stringified: string;
-
-  if (input.input.value.kind === 'ComlinkObjectLiteral') {
-    stringified = extractComlinkObjectLiteral(input.input.value, 6);
-  } else if (input.input.value.kind === 'ComlinkListLiteral') {
-    stringified = extractComlinkListLiterallNode(input.input.value, 6);
-  } else {
-    stringified = extractComlinkPrimitiveLiteralNode(input.input.value);
-  }
+  const NUMBER_OF_TABS = 6;
 
   return {
     exampleKind: input.error === undefined ? 'success' : 'error',
-    input: stringified,
+    input: stringifyExampleNode(input.input.value, NUMBER_OF_TABS),
   };
 }
 
