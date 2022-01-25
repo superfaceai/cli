@@ -26,7 +26,7 @@ describe('${profile.id}/${provider}', () => {
   }
 
   return `${head}
-  ${body}\n
+  ${body}
 });`;
 }
 function testUseCaseTemplete(usecase: string, inputs: ExampleInput[]): string {

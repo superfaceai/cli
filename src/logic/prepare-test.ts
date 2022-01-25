@@ -25,7 +25,7 @@ export type ExampleInput = {
  * @param numberOfTabs number of \t in created string
  * @returns
  */
-function intend(numberOfTabs: number): string {
+function indent(numberOfTabs: number): string {
   let res = '';
   for (let i = 0; i < numberOfTabs; i++) {
     res += '\t';
@@ -70,7 +70,7 @@ function extractComlinkListLiterallNode(
     }
   }
 
-  return `[${items.join(',')}]`;
+  return `[${items.join(', ')}]`;
 }
 /**
  * Extracts value of ComlinkObjectLiteral to be used in string
@@ -152,12 +152,14 @@ export async function prepareTest(
     logCb?: LogCallback;
   }
 ): Promise<void> {
-  const profileFiles = await loadProfile(superJson, profile, version, options);
+  const {
+    ast: { definitions },
+  } = await loadProfile(superJson, profile, version, options);
+  const usecases = definitions.filter(isUseCaseDefinitionNode);
   const parameters: Record<string, ExampleInput[]> = {};
 
-  for (const usecase of profileFiles.ast.definitions) {
-    if (isUseCaseDefinitionNode(usecase)) {
-      const examples = usecase.examples || [];
+  for (const usecase of usecases) {
+    const examples = usecase.examples || [];
       const exampleParams = [];
       for (const example of examples) {
         const parameter = prepareExampleInput(example.value);

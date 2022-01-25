@@ -16,7 +16,7 @@ export default class PrepareTest extends Command {
   static strict = false;
 
   static description =
-    'Prepares test file from for specified profile and provider. Examples in profile are used as an input.';
+    'Prepares test file for specified profile and provider. Examples in profile are used as an input.';
 
   static args = [];
 
@@ -38,11 +38,11 @@ export default class PrepareTest extends Command {
       required: false,
     }),
     path: oclifFlags.string({
-      description: 'Path to test file. Default is [provider.test.ts]',
+      description: 'Path to test file. Default is [cwd]/[scope]/[name]',
       required: false,
     }),
     fileName: oclifFlags.string({
-      description: 'Name of test file. Default is [cwd]/[scope]/[name]',
+      description: 'Name of test file. Default is [provider.test.ts]',
       required: false,
     }),
   };
