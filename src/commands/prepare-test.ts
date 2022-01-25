@@ -2,12 +2,11 @@ import { flags as oclifFlags } from '@oclif/command';
 import { isValidProviderName } from '@superfaceai/ast';
 import { SuperJson } from '@superfaceai/one-sdk';
 import { parseDocumentId } from '@superfaceai/parser';
-import { grey } from 'chalk';
 import { join as joinPath } from 'path';
 
-import { META_FILE } from '../common';
-import { Command } from '../common/command.abstract';
-import { userError } from '../common/error';
+import { ILogger, META_FILE } from '../common';
+import { Command, Flags } from '../common/command.abstract';
+import { UserError } from '../common/error';
 import { ProfileId } from '../common/profile';
 import { detectSuperJson } from '../logic/install';
 import { prepareTest } from '../logic/prepare-test';
@@ -54,15 +53,28 @@ export default class PrepareTest extends Command {
     '$ superface prepare-test --profileId starwars/character-information --providerName swapi -q',
   ];
 
-  private logCallback? = (message: string) => this.log(grey(message));
-
   async run(): Promise<void> {
-    const { flags } = this.parse(PrepareTest);
+    const { argv, flags } = this.parse(PrepareTest);
+    await super.initialize(flags);
 
-    if (flags.quiet) {
-      this.logCallback = undefined;
-    }
+    await this.execute({
+      logger: this.logger,
+      userError: this.userError,
+      flags,
+      argv,
+    });
+  }
 
+  async execute({
+    logger,
+    userError,
+    flags,
+  }: {
+    logger: ILogger;
+    userError: UserError;
+    flags: Flags<typeof PrepareTest.flags>;
+    argv: string[];
+  }): Promise<void> {
     // Check inputs
     const parsedProfileId = parseDocumentId(flags.profileId);
     if (parsedProfileId.kind == 'error') {
@@ -74,7 +86,7 @@ export default class PrepareTest extends Command {
     }
     if (!flags.profileId) {
       throw userError(
-        `❌ --profileId must be specified when using --providerName`,
+        '❌ --profileId must be specified when using --providerName',
         1
       );
     }
@@ -127,15 +139,15 @@ export default class PrepareTest extends Command {
     }
 
     await prepareTest(
-      superJson,
-      ProfileId.fromId(flags.profileId),
-      flags.providerName,
-      flags.path,
-      flags.fileName,
-      undefined,
       {
-        logCb: this.logCallback,
-      }
+        superJson,
+        profile: ProfileId.fromId(flags.profileId, { userError }),
+        provider: flags.providerName,
+        path: flags.path,
+        fileName: flags.fileName,
+        version: undefined,
+      },
+      { logger }
     );
   }
 }

@@ -8,7 +8,7 @@ import {
 import { SuperJson } from '@superfaceai/one-sdk';
 import { join as joinPath } from 'path';
 
-import { LogCallback } from '..';
+import { ILogger } from '../common';
 import { exists, mkdir } from '../common/io';
 import { OutputStream } from '../common/output-stream';
 import { ProfileId } from '../common/profile';
@@ -26,12 +26,7 @@ export type ExampleInput = {
  * @returns
  */
 function indent(numberOfTabs: number): string {
-  let res = '';
-  for (let i = 0; i < numberOfTabs; i++) {
-    res += '\t';
-  }
-
-  return res;
+  return '\t'.repeat(numberOfTabs);
 }
 
 /**
@@ -93,15 +88,15 @@ function extractComlinkObjectLiteral(
       value = extractComlinkObjectLiteral(field.value, numberOfTabs + 1);
     }
 
-    stringified += `\n${intend(numberOfTabs)}${field.key.join('.')}: ${value},`;
+    stringified += `\n${indent(numberOfTabs)}${field.key.join('.')}: ${value},`;
   }
 
   //Add newline only when input is not empty
   if (input.fields.length === 0) {
-    return (stringified += `}`);
+    return (stringified += '}');
   }
 
-  return (stringified += `\n${intend(numberOfTabs - 1)}}`);
+  return (stringified += `\n${indent(numberOfTabs - 1)}}`);
 }
 
 /**
@@ -142,33 +137,39 @@ function prepareExampleInput(
  * @param version optional version of used profile
  */
 export async function prepareTest(
-  superJson: SuperJson,
-  profile: ProfileId,
-  provider: string,
-  path?: string,
-  fileName?: string,
-  version?: string,
-  options?: {
-    logCb?: LogCallback;
-  }
+  {
+    superJson,
+    profile,
+    provider,
+    path,
+    fileName,
+    version,
+  }: {
+    superJson: SuperJson;
+    profile: ProfileId;
+    provider: string;
+    path?: string;
+    fileName?: string;
+    version?: string;
+  },
+  { logger }: { logger: ILogger }
 ): Promise<void> {
   const {
     ast: { definitions },
-  } = await loadProfile(superJson, profile, version, options);
+  } = await loadProfile({ superJson, profile, version }, { logger });
   const usecases = definitions.filter(isUseCaseDefinitionNode);
   const parameters: Record<string, ExampleInput[]> = {};
 
   for (const usecase of usecases) {
     const examples = usecase.examples || [];
-      const exampleParams = [];
-      for (const example of examples) {
-        const parameter = prepareExampleInput(example.value);
-        if (parameter !== undefined) {
-          exampleParams.push(parameter);
-        }
+    const exampleParams = [];
+    for (const example of examples) {
+      const parameter = prepareExampleInput(example.value);
+      if (parameter !== undefined) {
+        exampleParams.push(parameter);
       }
-      parameters[usecase.useCaseName] = exampleParams;
     }
+    parameters[usecase.useCaseName] = exampleParams;
   }
 
   const testFileContent = testTemplate(profile, provider, parameters);

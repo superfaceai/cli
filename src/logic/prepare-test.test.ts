@@ -3,6 +3,8 @@ import { parseProfile, Source } from '@superfaceai/parser';
 import { join as joinPath } from 'path';
 import { mocked } from 'ts-jest/utils';
 
+import { MockLogger } from '../common';
+import { createUserError } from '../common/error';
 import { exists, mkdir } from '../common/io';
 import { OutputStream } from '../common/output-stream';
 import { ProfileId } from '../common/profile';
@@ -18,8 +20,13 @@ jest.mock('../common/io', () => ({
   mkdir: jest.fn(),
 }));
 
+const userError = createUserError(false);
+let logger: MockLogger;
+
 describe('prepareTest logic', () => {
-  const mockProfileId = ProfileId.fromId('starwars/character-information');
+  const mockProfileId = ProfileId.fromId('starwars/character-information', {
+    userError,
+  });
   const provider = 'swapi';
   const mockSuperJson = new SuperJson({
     profiles: {
@@ -189,6 +196,10 @@ describe('starwars/character-information/swapi', () => {
     jest.resetAllMocks();
   });
 
+  beforeEach(() => {
+    logger = new MockLogger();
+  });
+
   describe('calling prepare test', () => {
     it('prepares test for profile, default path and name', async () => {
       const ast = parseProfile(new Source(mockProfileSource));
@@ -203,7 +214,14 @@ describe('starwars/character-information/swapi', () => {
         .mockResolvedValue(undefined);
 
       await expect(
-        prepareTest(mockSuperJson, mockProfileId, 'swapi')
+        prepareTest(
+          {
+            superJson: mockSuperJson,
+            profile: mockProfileId,
+            provider: 'swapi',
+          },
+          { logger }
+        )
       ).resolves.toBeUndefined();
 
       expect(writeSpy).toHaveBeenCalledWith(
@@ -228,7 +246,15 @@ describe('starwars/character-information/swapi', () => {
         .mockResolvedValue(undefined);
 
       await expect(
-        prepareTest(mockSuperJson, mockProfileId, 'swapi', 'custom/path')
+        prepareTest(
+          {
+            superJson: mockSuperJson,
+            profile: mockProfileId,
+            provider: 'swapi',
+            path: 'custom/path',
+          },
+          { logger }
+        )
       ).resolves.toBeUndefined();
 
       expect(writeSpy).toHaveBeenCalledWith(
@@ -254,11 +280,14 @@ describe('starwars/character-information/swapi', () => {
 
       await expect(
         prepareTest(
-          mockSuperJson,
-          mockProfileId,
-          'swapi',
-          'custom/path',
-          'custom-name.ts'
+          {
+            superJson: mockSuperJson,
+            profile: mockProfileId,
+            provider: 'swapi',
+            path: 'custom/path',
+            fileName: 'custom-name.ts',
+          },
+          { logger }
         )
       ).resolves.toBeUndefined();
 
