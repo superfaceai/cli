@@ -8,6 +8,7 @@ import { UserError } from '../common/error';
 import { exists } from '../common/io';
 import { ILogger } from '../common/log';
 import { ProfileId } from '../common/profile';
+import { isCompatible } from '../logic';
 import { installProvider } from '../logic/configure';
 import { initSuperface } from '../logic/init';
 import { detectSuperJson } from '../logic/install';
@@ -95,6 +96,15 @@ export default class Configure extends Command {
       throw userError(`Local path: "${flags.localProvider}" does not exist`, 1);
     }
 
+    const profileId = ProfileId.fromId(flags.profile.trim(), { userError });
+    const provider = args.providerName;
+
+    if (provider !== undefined && !flags.localMap && !flags.localProvider) {
+      if (!(await isCompatible(flags.profile.trim(), [provider], { logger }))) {
+        this.exit();
+      }
+    }
+
     let superPath = await detectSuperJson(process.cwd());
 
     if (!superPath) {
@@ -111,8 +121,8 @@ export default class Configure extends Command {
     await installProvider(
       {
         superPath,
-        provider: args.providerName,
-        profileId: ProfileId.fromId(flags.profile.trim(), { userError }),
+        provider,
+        profileId,
         defaults: undefined,
         options: {
           force: flags.force,

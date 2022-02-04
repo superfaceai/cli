@@ -5,6 +5,7 @@ import { MockLogger } from '../common';
 import { createUserError } from '../common/error';
 import { PackageManager } from '../common/package-manager';
 import { ProfileId } from '../common/profile';
+import { isCompatible } from '../logic';
 import { installProvider } from '../logic/configure';
 import { initSuperface } from '../logic/init';
 import { detectSuperJson, installProfiles } from '../logic/install';
@@ -27,6 +28,10 @@ jest.mock('../logic/quickstart', () => ({
 
 jest.mock('../logic/init', () => ({
   initSuperface: jest.fn(),
+}));
+
+jest.mock('../logic/configure.utils', () => ({
+  isCompatible: jest.fn(),
 }));
 
 describe('Install CLI command', () => {
@@ -87,6 +92,7 @@ describe('Install CLI command', () => {
 
     it('calls install profiles correctly', async () => {
       mocked(detectSuperJson).mockResolvedValue('.');
+      mocked(isCompatible).mockResolvedValue(true);
       const profileName = 'starwars/character-information';
 
       await expect(
@@ -148,6 +154,25 @@ describe('Install CLI command', () => {
         },
         expect.anything()
       );
+    }, 10000);
+
+    it('throws error on incompatible providers', async () => {
+      mocked(detectSuperJson).mockResolvedValue('.');
+      mocked(isCompatible).mockResolvedValue(false);
+      const profileName = 'starwars/character-information';
+
+      await expect(
+        instance.execute({
+          logger,
+          pm,
+          userError,
+          args: { profileId: profileName },
+          flags: {
+            providers: ['nope'],
+          },
+        })
+      ).rejects.toThrow('EEXIT: 0');
+      expect(installProfiles).not.toHaveBeenCalled();
     }, 10000);
 
     it('throws error on empty profileId argument with providers flag', async () => {
@@ -287,6 +312,7 @@ describe('Install CLI command', () => {
     it('calls install profiles correctly - one invalid provider', async () => {
       mocked(detectSuperJson).mockResolvedValue('.');
       mocked(installProvider).mockResolvedValue(undefined);
+      mocked(isCompatible).mockResolvedValue(true);
       const mockProviders = ['tyntec', 'twilio', 'made.up'];
       const profileId = ProfileId.fromId('starwars/character-information', {
         userError,
@@ -362,6 +388,7 @@ describe('Install CLI command', () => {
     it('calls install profiles correctly - providers separated by coma and space', async () => {
       mocked(detectSuperJson).mockResolvedValue('.');
       mocked(installProvider).mockResolvedValue(undefined);
+      mocked(isCompatible).mockResolvedValue(true);
       const profileId = ProfileId.fromId('starwars/character-information', {
         userError,
       });

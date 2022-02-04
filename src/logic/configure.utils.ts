@@ -7,6 +7,7 @@ import {
   SecurityValues,
 } from '@superfaceai/ast';
 
+import { fetchProviders } from '../common/http';
 import { ILogger } from '../common/log';
 
 export function prepareSecurityValues(
@@ -51,4 +52,28 @@ export function prepareSecurityValues(
   }
 
   return security;
+}
+
+export async function isCompatible(
+  profile: string,
+  providers: string[],
+  { logger }: { logger: ILogger }
+): Promise<boolean> {
+  const compatibleProviders = await fetchProviders(profile);
+  for (const provider of providers) {
+    if (
+      !compatibleProviders.find(providerJson => providerJson.name === provider)
+    ) {
+      logger.error(
+        'compatibleProviderNotFound',
+        provider,
+        profile,
+        compatibleProviders.map(providerJson => providerJson.name)
+      );
+
+      return false;
+    }
+  }
+
+  return true;
 }
