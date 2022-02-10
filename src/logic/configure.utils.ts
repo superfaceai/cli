@@ -59,16 +59,16 @@ export async function isCompatible(
   providers: string[],
   { logger }: { logger: ILogger }
 ): Promise<boolean> {
-  const compatibleProviders = await fetchProviders(profile);
+  const compatibleProviders = (await fetchProviders(profile)).map(
+    providerJson => providerJson.name
+  );
   for (const provider of providers) {
-    if (
-      !compatibleProviders.find(providerJson => providerJson.name === provider)
-    ) {
+    if (!compatibleProviders.includes(provider)) {
       logger.error(
         'compatibleProviderNotFound',
         provider,
         profile,
-        compatibleProviders.map(providerJson => providerJson.name)
+        compatibleProviders
       );
 
       return false;
