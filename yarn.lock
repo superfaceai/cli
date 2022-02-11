@@ -906,9 +906,9 @@
     typescript-is "^0.18.3"
 
 "@superfaceai/one-sdk@^1.0.0":
-  version "1.1.0"
-  resolved "https://registry.yarnpkg.com/@superfaceai/one-sdk/-/one-sdk-1.1.0.tgz#481a66c482e325371ee59a560e22cb5c72a0c77c"
-  integrity sha512-h6ayj/5umnYlPAOtpklMEySdZHgE9Use+LzbmQ1y3UXXsfOKpxqso7pm1Xtyv7a6cGfmfgf4HljUy8Pg3zgXUA==
+  version "1.2.2"
+  resolved "https://registry.yarnpkg.com/@superfaceai/one-sdk/-/one-sdk-1.2.2.tgz#54e499bc2e1cb727c6c2bc0b7a62c56af9921b9c"
+  integrity sha512-E2XX1T3IJh3hSDV6sC1pIulYOmaDhkA5ykSfgRau2fAX1afbQfatZVfHbBU3PzfwnnyJLp+EoNOBzd6pSd+Png==
   dependencies:
     "@superfaceai/ast" "1.0.0"
     "@superfaceai/parser" "1.0.0"
