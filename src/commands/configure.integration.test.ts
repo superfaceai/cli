@@ -1,15 +1,14 @@
-import { HttpScheme, SecurityType } from '@superfaceai/ast';
 import { SuperJson } from '@superfaceai/one-sdk';
 import { getLocal } from 'mockttp';
 import { join as joinPath } from 'path';
 
-import { ContentType } from '../common/http';
 import { exists, mkdir, mkdirQuiet, rimraf } from '../common/io';
 import { messages } from '../common/messages';
 import { OutputStream } from '../common/output-stream';
 import {
   execCLI,
   mockResponsesForProfile,
+  mockResponsesForProfileProviders,
   mockResponsesForProvider,
   setUpTempDir,
 } from '../test/utils';
@@ -22,6 +21,9 @@ describe('Configure CLI command', () => {
   const profileId = 'starwars/character-information';
   const profileVersion = '1.0.1';
   const provider = 'swapi';
+  const emptyProvider = 'empty';
+  const providerWithoutSecurity = 'provider-without-security';
+
   const providerWithParameters = 'azure-cognitive-services';
   let tempDir: string;
 
@@ -31,6 +33,19 @@ describe('Configure CLI command', () => {
     await mockResponsesForProfile(mockServer, 'starwars/character-information');
     await mockResponsesForProvider(mockServer, 'swapi');
     await mockResponsesForProvider(mockServer, 'azure-cognitive-services');
+    await mockResponsesForProvider(mockServer, emptyProvider);
+    await mockResponsesForProvider(mockServer, providerWithoutSecurity);
+
+    await mockResponsesForProfileProviders(
+      mockServer,
+      [
+        'swapi',
+        'azure-cognitive-services',
+        emptyProvider,
+        providerWithoutSecurity,
+      ],
+      'starwars/character-information'
+    );
   });
   beforeEach(async () => {
     tempDir = await setUpTempDir(TEMP_PATH);
@@ -166,31 +181,12 @@ describe('Configure CLI command', () => {
     }, 30000);
 
     it('configures provider with empty security schemes correctly', async () => {
-      const emptyProvider = 'empty';
       let result = await execCLI(
         tempDir,
         ['install', 'starwars/character-information'],
         mockServer.url
       );
       expect(result.stdout).toMatch(messages.allProfilesInstalled('1'));
-
-      //mock provider structure
-      const mockProviderInfo = {
-        name: emptyProvider,
-        services: [
-          {
-            id: 'swapidev',
-            baseUrl: 'https://swapi.dev/api',
-          },
-        ],
-        //empty
-        securitySchemes: [],
-        defaultService: 'swapidev',
-      };
-      await mockServer
-        .get('/providers/' + emptyProvider)
-        .withHeaders({ 'Content-Type': ContentType.JSON })
-        .thenJson(200, { definition: mockProviderInfo });
 
       result = await execCLI(
         tempDir,
@@ -215,28 +211,12 @@ describe('Configure CLI command', () => {
     }, 30000);
 
     it('configures provider without security schemes correctly', async () => {
-      const providerWithoutSecurity = 'provider-without-security';
       let result = await execCLI(
         tempDir,
         ['install', 'starwars/character-information'],
         mockServer.url
       );
       expect(result.stdout).toMatch(messages.allProfilesInstalled('1'));
-      //mock provider structure
-      const mockProviderInfo = {
-        name: providerWithoutSecurity,
-        services: [
-          {
-            id: 'swapidev',
-            baseUrl: 'https://swapi.dev/api',
-          },
-        ],
-        defaultService: 'swapidev',
-      };
-      await mockServer
-        .get('/providers/' + providerWithoutSecurity)
-        .withHeaders({ 'Content-Type': ContentType.JSON })
-        .thenJson(200, { definition: mockProviderInfo });
 
       result = await execCLI(
         tempDir,
@@ -357,19 +337,18 @@ describe('Configure CLI command', () => {
     }, 30000);
 
     it('overrides existing super.json with a force flag', async () => {
-      const simpleProvider = 'simple-provider';
       //set existing super.json
       const localSuperJson = {
         profiles: {
           [profileId]: {
             version: profileVersion,
             providers: {
-              [simpleProvider]: {},
+              [providerWithoutSecurity]: {},
             },
           },
         },
         providers: {
-          [simpleProvider]: {
+          [providerWithoutSecurity]: {
             security: [
               {
                 id: 'apiKey',
@@ -384,54 +363,29 @@ describe('Configure CLI command', () => {
         joinPath(tempDir, 'superface', 'super.json'),
         JSON.stringify(localSuperJson, undefined, 2)
       );
-      const mockProviderInfo = {
-        name: simpleProvider,
-        services: [
-          {
-            id: 'swapidev',
-            baseUrl: 'https://swapi.dev/api',
-          },
-        ],
-        securitySchemes: [
-          {
-            id: 'swapidev',
-            type: SecurityType.HTTP,
-            scheme: HttpScheme.BEARER,
-          },
-        ],
-        defaultService: 'swapidev',
-      };
-
-      await mockServer
-        .get('/providers/' + simpleProvider)
-        .withHeaders({ 'Content-Type': ContentType.JSON })
-        .thenJson(200, { definition: mockProviderInfo });
 
       const result = await execCLI(
         tempDir,
-        ['configure', simpleProvider, '-p', profileId, '-f'],
+        ['configure', providerWithoutSecurity, '-p', profileId, '-f'],
         mockServer.url
       );
 
       expect(result.stdout).not.toContain(
-        messages.providerAlreadyExists(simpleProvider)
+        messages.providerAlreadyExists(providerWithoutSecurity)
       );
 
       const superJson = (
         await SuperJson.load(joinPath(tempDir, 'superface', 'super.json'))
       ).unwrap();
 
-      expect(superJson.normalized.providers[simpleProvider].security).toEqual([
-        {
-          id: 'swapidev',
-          token: '$SIMPLE_PROVIDER_TOKEN',
-        },
-      ]);
+      expect(
+        superJson.normalized.providers[providerWithoutSecurity].security
+      ).toEqual([]);
 
       expect(superJson.document.profiles![profileId]).toEqual({
         version: profileVersion,
-        priority: [simpleProvider],
-        providers: { [simpleProvider]: {} },
+        priority: [providerWithoutSecurity],
+        providers: { [providerWithoutSecurity]: {} },
       });
     }, 30000);
   });

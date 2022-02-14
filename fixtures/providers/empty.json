@@ -1,0 +1,11 @@
+{
+  "name": "empty",
+  "services": [
+    {
+      "baseUrl": "https://empty.dev/api",
+      "id": "empty"
+    }
+  ],
+  "securitySchemes": [],
+  "defaultService": "empty"
+}

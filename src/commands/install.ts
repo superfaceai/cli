@@ -2,6 +2,7 @@ import { flags as oclifFlags } from '@oclif/command';
 import { isValidDocumentName, isValidProviderName } from '@superfaceai/ast';
 import { join as joinPath } from 'path';
 
+import { isCompatible } from '..';
 import { Command, Flags } from '../common/command.abstract';
 import { META_FILE, SUPERFACE_DIR } from '../common/document';
 import { UserError } from '../common/error';
@@ -145,6 +146,16 @@ export default class Install extends Command {
     }
 
     let superPath = await detectSuperJson(process.cwd(), flags.scan);
+
+    const providers = parseProviders(logger, flags.providers);
+
+    const profileArg = args.profileId;
+    if (profileArg !== undefined && !flags.local && providers.length > 0) {
+      if (!(await isCompatible(profileArg, providers, { logger }))) {
+        this.exit();
+      }
+    }
+
     if (!superPath) {
       logger.info('initSuperface');
       await initSuperface(
@@ -157,12 +168,9 @@ export default class Install extends Command {
       superPath = SUPERFACE_DIR;
     }
 
-    const providers = parseProviders(logger, flags.providers);
-
     logger.info('installProfilesToSuperJson', joinPath(superPath, META_FILE));
 
     const requests: (LocalInstallRequest | StoreInstallRequest)[] = [];
-    const profileArg = args.profileId;
     if (profileArg !== undefined) {
       if (flags.local) {
         requests.push({
