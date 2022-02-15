@@ -24,6 +24,17 @@ const common = {
     `Superface server responded with error: "${name}": "${message}"`,
 };
 
+const compatibility = {
+  compatibleProviderNotFound: (
+    provider: string,
+    profile: string,
+    compatibleProviders: string[]
+  ) =>
+    `Provider: "${provider}" is not compatible with profile: "${profile}". Compatible providers are: ${compatibleProviders.join(
+      ', '
+    )}`,
+};
+
 const load = {
   localProfileFound: (profileId: string, path: string) =>
     `Profile "${profileId}" found on local file system at path: "${path}"`,
@@ -278,6 +289,7 @@ export const messages = {
   ...whoami,
   ...loggout,
   ...generate,
+  ...compatibility,
 };
 
 export type MessageKeys = keyof typeof messages;

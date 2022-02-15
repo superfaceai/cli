@@ -4,7 +4,12 @@ import { join as joinPath } from 'path';
 
 import { exists, mkdir, mkdirQuiet, rimraf } from '../common/io';
 import { OutputStream } from '../common/output-stream';
-import { execCLI, mockResponsesForProfile, setUpTempDir } from '../test/utils';
+import {
+  execCLI,
+  mockResponsesForProfile,
+  mockResponsesForProfileProviders,
+  setUpTempDir,
+} from '../test/utils';
 
 const mockServer = getLocal();
 
@@ -19,6 +24,11 @@ describe('Install CLI command', () => {
     await mockResponsesForProfile(
       mockServer,
       'starwars/character-information@1.0.2'
+    );
+    await mockResponsesForProfileProviders(
+      mockServer,
+      ['swapi'],
+      'starwars/character-information'
     );
   });
 

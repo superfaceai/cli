@@ -6,6 +6,7 @@ import { createUserError } from '../common/error';
 import { exists } from '../common/io';
 import { ILogger, MockLogger } from '../common/log';
 import { ProfileId } from '../common/profile';
+import { isCompatible } from '../logic';
 import { installProvider } from '../logic/configure';
 import { initSuperface } from '../logic/init';
 import { detectSuperJson } from '../logic/install';
@@ -27,6 +28,10 @@ jest.mock('../logic/install', () => ({
 }));
 jest.mock('../logic/configure', () => ({
   installProvider: jest.fn(),
+}));
+
+jest.mock('../logic/configure.utils', () => ({
+  isCompatible: jest.fn(),
 }));
 
 describe('Configure CLI command', () => {
@@ -104,9 +109,28 @@ describe('Configure CLI command', () => {
       expect(installProvider).not.toHaveBeenCalled();
     });
 
+    it('does not configure on non-compatible profile', async () => {
+      mocked(isValidDocumentName).mockReturnValue(true);
+      mocked(detectSuperJson).mockResolvedValue(superPath);
+      mocked(isCompatible).mockResolvedValue(false);
+
+      await expect(
+        instance.execute({
+          logger,
+          userError,
+          args: { providerName: provider },
+          flags: { profile: profileId.id, force: false, 'write-env': false },
+        })
+      ).rejects.toThrow('EEXIT: 0');
+
+      expect(detectSuperJson).not.toHaveBeenCalled();
+      expect(installProvider).not.toHaveBeenCalled();
+    });
+
     it('configures provider', async () => {
       mocked(isValidDocumentName).mockReturnValue(true);
       mocked(detectSuperJson).mockResolvedValue(superPath);
+      mocked(isCompatible).mockResolvedValue(true);
 
       await expect(
         instance.execute({
@@ -140,6 +164,7 @@ describe('Configure CLI command', () => {
     it('configures provider with env flag', async () => {
       mocked(isValidDocumentName).mockReturnValue(true);
       mocked(detectSuperJson).mockResolvedValue(superPath);
+      mocked(isCompatible).mockResolvedValue(true);
 
       await expect(
         instance.execute({
@@ -174,6 +199,7 @@ describe('Configure CLI command', () => {
       mocked(isValidDocumentName).mockReturnValue(true);
       mocked(detectSuperJson).mockResolvedValue(undefined);
       mocked(initSuperface).mockResolvedValue(new SuperJson());
+      mocked(isCompatible).mockResolvedValue(true);
 
       await expect(
         instance.execute({

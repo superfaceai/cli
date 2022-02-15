@@ -1,0 +1,10 @@
+{
+  "name": "provider-without-security",
+  "services": [
+    {
+      "baseUrl": "https://empty.dev/api",
+      "id": "empty"
+    }
+  ],
+  "defaultService": "empty"
+}
