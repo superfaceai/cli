@@ -980,7 +980,7 @@ describe('Configure CLI logic', () => {
       expect(loadSpy).toHaveBeenCalledWith('some/path/super.json');
     });
 
-    it('does not print info about security schemes if provider hasn\'t been updated', async () => {
+    it("does not print info about security schemes if provider hasn't been updated", async () => {
       //normalized is getter on SuperJson - unable to mock or spy on
       Object.assign(mockSuperJson, {
         normalized: {
@@ -1031,7 +1031,7 @@ describe('Configure CLI logic', () => {
         ['configureProviderSecurity', [providerName]],
         ['updateSuperJson', [undefined]],
         ['profileProviderConfigured', [providerName, mockProfileId.toString()]],
-        ['noSecurityFound', []],
+        ['noSecurityFoundOrAlreadyConfigured', []],
       ]);
 
       expect(fetchProviderInfo).toHaveBeenCalledTimes(1);

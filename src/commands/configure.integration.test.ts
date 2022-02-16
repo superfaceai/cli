@@ -194,7 +194,9 @@ describe('Configure CLI command', () => {
         mockServer.url
       );
 
-      expect(result.stdout).toContain(messages.noSecurityFound());
+      expect(result.stdout).toContain(
+        messages.noSecurityFoundOrAlreadyConfigured()
+      );
 
       const superJson = (
         await SuperJson.load(joinPath(tempDir, 'superface', 'super.json'))
@@ -224,7 +226,9 @@ describe('Configure CLI command', () => {
         mockServer.url
       );
 
-      expect(result.stdout).toContain(messages.noSecurityFound());
+      expect(result.stdout).toContain(
+        messages.noSecurityFoundOrAlreadyConfigured()
+      );
 
       const superJson = (
         await SuperJson.load(joinPath(tempDir, 'superface', 'super.json'))
@@ -327,7 +331,9 @@ describe('Configure CLI command', () => {
         mockServer.url
       );
 
-      expect(result.stdout).toContain(messages.noSecurityFound());
+      expect(result.stdout).toContain(
+        messages.noSecurityFoundOrAlreadyConfigured()
+      );
 
       const superJson = (
         await SuperJson.load(joinPath(tempDir, 'superface', 'super.json'))
@@ -375,14 +381,10 @@ describe('Configure CLI command', () => {
         JSON.stringify(localSuperJson, undefined, 2)
       );
 
-      const result = await execCLI(
+      await execCLI(
         tempDir,
         ['configure', providerWithoutSecurity, '-p', profileId, '-f'],
         mockServer.url
-      );
-
-      expect(result.stdout).not.toContain(
-        messages.providerAlreadyExists(providerWithoutSecurity)
       );
 
       const superJson = (

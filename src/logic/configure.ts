@@ -259,7 +259,7 @@ export async function installProvider(
       logger.success('allSecurityConfigured');
     }
   } else {
-    logger.info('noSecurityFound');
+    logger.info('noSecurityFoundOrAlreadyConfigured');
   }
   // inform user about configured parameters if we have updated the provider settings
   if (
