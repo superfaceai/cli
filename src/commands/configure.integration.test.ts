@@ -293,7 +293,7 @@ describe('Configure CLI command', () => {
   });
 
   describe('when providers are present in super.json', () => {
-    it('prints warning without a force flag', async () => {
+    it('uses existing provider without a force flag', async () => {
       //set existing super.json
       const localSuperJson = {
         profiles: {
@@ -327,7 +327,7 @@ describe('Configure CLI command', () => {
         mockServer.url
       );
 
-      expect(result.stdout).toContain(messages.providerAlreadyExists(provider));
+      expect(result.stdout).toContain(messages.noSecurityFound());
 
       const superJson = (
         await SuperJson.load(joinPath(tempDir, 'superface', 'super.json'))
