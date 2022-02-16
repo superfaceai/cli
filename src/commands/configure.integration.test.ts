@@ -293,7 +293,7 @@ describe('Configure CLI command', () => {
   });
 
   describe('when providers are present in super.json', () => {
-    it('errors without a force flag', async () => {
+    it('prints warning without a force flag', async () => {
       //set existing super.json
       const localSuperJson = {
         profiles: {
@@ -333,7 +333,18 @@ describe('Configure CLI command', () => {
         await SuperJson.load(joinPath(tempDir, 'superface', 'super.json'))
       ).unwrap();
 
-      expect(superJson.document).toEqual(localSuperJson);
+      expect(superJson.normalized.providers[provider].security).toEqual([
+        {
+          id: 'apiKey',
+          apikey: '$TEST_API_KEY',
+        },
+      ]);
+
+      expect(superJson.document.profiles![profileId]).toEqual({
+        version: profileVersion,
+        priority: [provider],
+        providers: { [provider]: {} },
+      });
     }, 30000);
 
     it('overrides existing super.json with a force flag', async () => {
