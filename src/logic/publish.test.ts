@@ -204,6 +204,9 @@ describe('Publish logic', () => {
         {
           kind: 'wrongScope',
           context: {
+            path: {
+              kind: '',
+            },
             expected: 'this',
             actual: 'that',
           },
@@ -213,6 +216,9 @@ describe('Publish logic', () => {
         {
           kind: 'wrongScope',
           context: {
+            path: {
+              kind: '',
+            },
             expected: 'this',
             actual: 'that',
           },
@@ -1812,6 +1818,9 @@ describe('Publish logic', () => {
           {
             kind: 'wrongScope',
             context: {
+              path: {
+                kind: '',
+              },
               expected: 'this',
               actual: 'that',
             },
@@ -1821,6 +1830,9 @@ describe('Publish logic', () => {
           {
             kind: 'wrongScope',
             context: {
+              path: {
+                kind: '',
+              },
               expected: 'this',
               actual: 'that',
             },

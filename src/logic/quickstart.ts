@@ -516,7 +516,7 @@ async function getPromptedValue(
     envContent,
   }: {
     provider: string;
-    authType: 'api key' | 'basic' | 'digest' | 'bearer';
+    authType: 'api key' | 'http' | 'bearer';
     name: string;
     envVariableName: string;
     envContent: string;
@@ -575,11 +575,15 @@ async function resolveSecurityEnvValues(
         logger,
       }
     );
-  } else if (isBasicAuthSecurityValues(schema)) {
+    //Digest and basic have same structure
+  } else if (
+    isBasicAuthSecurityValues(schema) ||
+    isDigestSecurityValues(schema)
+  ) {
     newEnvContent = await getPromptedValue(
       {
         provider,
-        authType: 'basic',
+        authType: 'http',
         name: 'username',
         envVariableName: schema.username,
         envContent: newEnvContent,
@@ -589,7 +593,7 @@ async function resolveSecurityEnvValues(
     newEnvContent = await getPromptedValue(
       {
         provider,
-        authType: 'basic',
+        authType: 'http',
         name: 'password',
         envVariableName: schema.password,
         envContent: newEnvContent,
@@ -603,17 +607,6 @@ async function resolveSecurityEnvValues(
         authType: 'bearer',
         name: 'token',
         envVariableName: schema.token,
-        envContent: newEnvContent,
-      },
-      { logger }
-    );
-  } else if (isDigestSecurityValues(schema)) {
-    newEnvContent = await getPromptedValue(
-      {
-        provider,
-        authType: 'bearer',
-        name: 'digest',
-        envVariableName: schema.digest,
         envContent: newEnvContent,
       },
       { logger }

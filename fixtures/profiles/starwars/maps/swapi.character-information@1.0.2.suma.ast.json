@@ -654,12 +654,12 @@
   "astMetadata": {
     "astVersion": {
       "major": 1,
-      "minor": 0,
+      "minor": 1,
       "patch": 0
     },
     "parserVersion": {
       "major": 1,
-      "minor": 0,
+      "minor": 1,
       "patch": 0
     },
     "sourceChecksum": "1ed288c0f2b9ae0d099a6c12d06e0183489ec58ec880f0ab62a15fba4eedc045"
