@@ -53,7 +53,7 @@ export async function updateEnv(
 /**
  * Handle responses from superface registry.
  * It saves new information about provider into super.json.
- * @returns number of configured security schemes
+ * @returns number of configured security schemes and information about update of the provider settings
  */
 export function handleProviderResponse(
   {
@@ -70,10 +70,11 @@ export function handleProviderResponse(
     options?: {
       localMap?: string;
       localProvider?: string;
+      force?: boolean;
     };
   },
   { logger }: { logger: ILogger }
-): number {
+): { providerUpdated: boolean; numberOfConfigured: number } {
   logger.info('configureProviderSecurity', response.name);
 
   let parameters: { [key: string]: string } | undefined = undefined;
@@ -81,18 +82,24 @@ export function handleProviderResponse(
     parameters = prepareProviderParameters(response.name, response.parameters);
   }
 
+  let numberOfConfigured = 0;
+  let providerUpdated = false;
   const security = response.securitySchemes
     ? prepareSecurityValues(response.name, response.securitySchemes)
     : [];
 
-  // update super.json
-  superJson.setProvider(response.name, {
-    security,
-    parameters,
-    file: options?.localProvider
-      ? superJson.relativePath(options.localProvider)
-      : undefined,
-  });
+  // update super.json - set provider if not already set or on force
+  if (options?.force || !superJson.normalized.providers[response.name]) {
+    superJson.setProvider(response.name, {
+      security,
+      parameters,
+      file: options?.localProvider
+        ? superJson.relativePath(options.localProvider)
+        : undefined,
+    });
+    numberOfConfigured = security.length;
+    providerUpdated = true;
+  }
 
   //constructProfileProviderSettings returns Record<string, ProfileProviderEntry>
   let settings = defaults
@@ -111,7 +118,7 @@ export function handleProviderResponse(
   }
   superJson.setProfileProvider(profileId.id, response.name, settings);
 
-  return security.length;
+  return { providerUpdated, numberOfConfigured };
 }
 
 /**
@@ -195,18 +202,8 @@ export async function installProvider(
     providerInfo = await getProviderFromStore(provider, { logger, userError });
   }
 
-  // Check existence and warn
-  if (
-    options?.force !== true &&
-    superJson.normalized.providers[providerInfo.name]
-  ) {
-    logger.warn('providerAlreadyExists', providerInfo.name);
-
-    return;
-  }
-
   //Write provider to super.json
-  const numOfConfigured = handleProviderResponse(
+  const configureResult = handleProviderResponse(
     {
       superJson,
       profileId,
@@ -227,24 +224,39 @@ export async function installProvider(
       logger,
     });
   }
-  if (providerInfo.securitySchemes && providerInfo.securitySchemes.length > 0) {
-    // inform user about instlaled security schemes
-    if (numOfConfigured === 0) {
+  logger.success(
+    'profileProviderConfigured',
+    providerInfo.name,
+    profileId.toString()
+  );
+  // inform user about installed security schemes if we have updated the provider settings
+  if (
+    configureResult.providerUpdated &&
+    providerInfo.securitySchemes &&
+    providerInfo.securitySchemes.length > 0
+  ) {
+    if (configureResult.numberOfConfigured === 0) {
       logger.warn('noSecurityConfigured');
-    } else if (numOfConfigured < providerInfo.securitySchemes.length) {
+    } else if (
+      configureResult.numberOfConfigured < providerInfo.securitySchemes.length
+    ) {
       logger.warn(
         'xOutOfYConfigured',
-        numOfConfigured,
+        configureResult.numberOfConfigured,
         providerInfo.securitySchemes.length
       );
     } else {
       logger.success('allSecurityConfigured');
     }
   } else {
-    logger.info('noSecurityFound');
+    logger.info('noSecurityFoundOrAlreadyConfigured');
   }
-  // inform user about configured parameters
-  if (providerInfo.parameters && providerInfo.parameters.length > 0) {
+  // inform user about configured parameters if we have updated the provider settings
+  if (
+    configureResult.providerUpdated &&
+    providerInfo.parameters &&
+    providerInfo.parameters.length > 0
+  ) {
     logger.info('providerHasParameters', providerInfo.name, superJson.path);
     for (const parameter of providerInfo.parameters) {
       const superJsonValue =

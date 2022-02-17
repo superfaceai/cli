@@ -116,8 +116,6 @@ const configure = {
     `Provider: "${provider}" can be used without authentication`,
   configuringSecuritySchemes: (current: number, total: number) =>
     `Configuring ${current}/${total} security schemes`,
-  providerAlreadyExists: (provider: string) =>
-    `Provider: "${provider}" already exists (Use '--force/-f' to overwrite profiles)`,
   unexpectedSecurityValue: (
     envVariableName: string,
     provider: string,
@@ -128,14 +126,16 @@ const configure = {
     `Unable to resolve security type for: "${provider}"`,
   unknownSecurityScheme: (provider: string) =>
     `Provider "${provider}" contains unknown security scheme`,
-
-  noSecurityConfigured: () => 'No security schemes have been configured',
+  profileProviderConfigured: (provider: string, profile: string) =>
+    `Provider "${provider}" configured for profile: "${profile}"`,
+  noSecurityConfigured: () => 'No new security schemes have been configured',
   allSecurityConfigured: () =>
     'All security schemes have been configured successfully',
 
   xOutOfYConfigured: (x: number, y: number) =>
     `Some security schemes have been configured. Configured ${x} out of ${y}`,
-  noSecurityFound: () => 'No security schemes found to configure',
+  noSecurityFoundOrAlreadyConfigured: () =>
+    'No security schemes found to configure or already configured',
   providerHasParameters: (provider: string, superJsonPath: string) =>
     `Provider: "${provider}" has integration parameters that must be configured. You can configure them in "super.json" in: "${superJsonPath}" or set the environment variables as defined below`,
   parameterNotConfigured: (

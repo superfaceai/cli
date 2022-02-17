@@ -132,8 +132,19 @@ describe('Configure CLI logic', () => {
     });
   });
   describe('when handling provider response', () => {
-    const mockSuperJson = new SuperJson();
+    let mockSuperJson: SuperJson;
     const mockProfileId = ProfileId.fromId('test-profile', { userError });
+
+    beforeEach(async () => {
+      mockSuperJson = new SuperJson();
+
+      //normalized is getter on SuperJson - unable to mock or spy on
+      Object.assign(mockSuperJson, {
+        normalized: {
+          providers: {},
+        },
+      });
+    });
     it('add providers to super json', async () => {
       const setProviderSpy = jest.spyOn(SuperJson.prototype, 'setProvider');
       const setProfileProviderSpy = jest.spyOn(
@@ -150,7 +161,7 @@ describe('Configure CLI logic', () => {
           },
           { logger }
         )
-      ).toEqual(4);
+      ).toEqual({ numberOfConfigured: 4, providerUpdated: true });
 
       expect(setProviderSpy).toHaveBeenCalledTimes(1);
       expect(setProviderSpy).toHaveBeenCalledWith(providerName, {
@@ -228,7 +239,7 @@ describe('Configure CLI logic', () => {
           },
           { logger }
         )
-      ).toEqual(4);
+      ).toEqual({ numberOfConfigured: 4, providerUpdated: true });
 
       expect(setProviderSpy).toHaveBeenCalledTimes(1);
       expect(setProviderSpy).toHaveBeenCalledWith('provider-test', {
@@ -320,7 +331,7 @@ describe('Configure CLI logic', () => {
           },
           { logger }
         )
-      ).toEqual(4);
+      ).toEqual({ numberOfConfigured: 4, providerUpdated: true });
 
       expect(setProviderSpy).toHaveBeenCalledTimes(1);
       expect(setProviderSpy).toHaveBeenCalledWith('provider-test', {
@@ -349,6 +360,108 @@ describe('Configure CLI logic', () => {
       expect(setProfileProviderSpy).toHaveBeenCalledWith(
         mockProfileId.id,
         'provider-test',
+        {}
+      );
+    });
+
+    it('does not overwrite existing provider', async () => {
+      const mockSecurity = {
+        id: 'basic',
+        username: 'username',
+        password: 'password',
+      };
+      //normalized is getter on SuperJson - unable to mock or spy on
+      Object.assign(mockSuperJson, {
+        normalized: {
+          providers: {
+            [mockProviderJson.name]: {
+              security: [mockSecurity],
+            },
+          },
+        },
+      });
+      const setProviderSpy = jest.spyOn(SuperJson.prototype, 'setProvider');
+      const setProfileProviderSpy = jest.spyOn(
+        SuperJson.prototype,
+        'setProfileProvider'
+      );
+
+      expect(
+        handleProviderResponse(
+          {
+            superJson: mockSuperJson,
+            profileId: mockProfileId,
+            response: mockProviderJson,
+          },
+          { logger }
+        )
+      ).toEqual({ numberOfConfigured: 0, providerUpdated: false });
+
+      expect(setProviderSpy).not.toHaveBeenCalled();
+
+      expect(setProfileProviderSpy).toHaveBeenCalledTimes(1);
+      expect(setProfileProviderSpy).toHaveBeenCalledWith(
+        mockProfileId.id,
+        providerName,
+        {}
+      );
+    });
+
+    it('overwrites existing provider with force', async () => {
+      const mockSecurity = {
+        id: 'basic',
+        username: 'username',
+        password: 'password',
+      };
+      //normalized is getter on SuperJson - unable to mock or spy on
+      Object.assign(mockSuperJson, {
+        normalized: {
+          providers: {
+            [mockProviderJson.name]: {
+              security: [mockSecurity],
+            },
+          },
+        },
+      });
+      const setProviderSpy = jest.spyOn(SuperJson.prototype, 'setProvider');
+      const setProfileProviderSpy = jest.spyOn(
+        SuperJson.prototype,
+        'setProfileProvider'
+      );
+
+      expect(
+        handleProviderResponse(
+          {
+            superJson: mockSuperJson,
+            profileId: mockProfileId,
+            response: mockProviderJson,
+            options: { force: true },
+          },
+          { logger }
+        )
+      ).toEqual({ numberOfConfigured: 4, providerUpdated: true });
+
+      expect(setProviderSpy).toHaveBeenCalledTimes(1);
+      expect(setProviderSpy).toHaveBeenCalledWith(providerName, {
+        security: [
+          { apikey: '$TEST_API_KEY', id: 'api' },
+          { id: 'bearer', token: '$TEST_TOKEN' },
+          {
+            id: 'basic',
+            password: '$TEST_PASSWORD',
+            username: '$TEST_USERNAME',
+          },
+          {
+            password: '$TEST_PASSWORD',
+            username: '$TEST_USERNAME', id: 'digest'
+          },
+        ],
+      });
+
+      expect(setProfileProviderSpy).toHaveBeenCalledTimes(1);
+      expect(setProfileProviderSpy).toHaveBeenCalledWith(
+        mockProfileId.id,
+        providerName,
         {}
       );
     });
@@ -387,7 +500,7 @@ describe('Configure CLI logic', () => {
           },
           { logger }
         )
-      ).toEqual(0);
+      ).toEqual({ numberOfConfigured: 0, providerUpdated: true });
 
       expect(setProviderSpy).toHaveBeenCalledTimes(1);
       expect(setProviderSpy).toHaveBeenCalledWith(providerName, {
@@ -902,7 +1015,7 @@ describe('Configure CLI logic', () => {
       expect(loadSpy).toHaveBeenCalledWith('some/path/super.json');
     });
 
-    it('does not write anything if provider already exists', async () => {
+    it("does not print info about security schemes if provider hasn't been updated", async () => {
       //normalized is getter on SuperJson - unable to mock or spy on
       Object.assign(mockSuperJson, {
         normalized: {
@@ -948,11 +1061,78 @@ describe('Configure CLI logic', () => {
       expect(loadSpy).toHaveBeenCalledTimes(1);
       expect(loadSpy).toHaveBeenCalledWith('some/path/super.json');
 
+      expect(logger.stdout).toEqual([
+        ['fetchProvider', [providerName]],
+        ['configureProviderSecurity', [providerName]],
+        ['updateSuperJson', [undefined]],
+        ['profileProviderConfigured', [providerName, mockProfileId.toString()]],
+        ['noSecurityFoundOrAlreadyConfigured', []],
+      ]);
+
       expect(fetchProviderInfo).toHaveBeenCalledTimes(1);
 
-      expect(setProfileProviderSpy).not.toHaveBeenCalled();
+      expect(setProfileProviderSpy).toHaveBeenCalledTimes(1);
       expect(setProviderSpy).not.toHaveBeenCalled();
-      expect(writeOnceSpy).not.toHaveBeenCalled();
+      expect(writeOnceSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('prints info about security schemes if provider has been updated', async () => {
+      //normalized is getter on SuperJson - unable to mock or spy on
+      Object.assign(mockSuperJson, {
+        normalized: {
+          profiles: {
+            [mockProfileId.id]: {
+              version: '1.0.0',
+              defaults: {},
+              providers: {},
+            },
+          },
+          providers: {},
+        },
+      });
+      const loadSpy = jest
+        .spyOn(SuperJson, 'load')
+        .mockResolvedValue(ok(mockSuperJson));
+
+      mocked(fetchProviderInfo).mockResolvedValue(mockProviderJson);
+
+      const setProviderSpy = jest.spyOn(SuperJson.prototype, 'setProvider');
+      const setProfileProviderSpy = jest.spyOn(
+        SuperJson.prototype,
+        'setProfileProvider'
+      );
+
+      const writeOnceSpy = jest
+        .spyOn(OutputStream, 'writeOnce')
+        .mockResolvedValue(undefined);
+
+      await expect(
+        installProvider(
+          {
+            superPath: 'some/path',
+            provider: providerName,
+            profileId: mockProfileId,
+          },
+          { logger, userError }
+        )
+      ).resolves.toBeUndefined();
+
+      expect(loadSpy).toHaveBeenCalledTimes(1);
+      expect(loadSpy).toHaveBeenCalledWith('some/path/super.json');
+
+      expect(logger.stdout).toEqual([
+        ['fetchProvider', [providerName]],
+        ['configureProviderSecurity', [providerName]],
+        ['updateSuperJson', [undefined]],
+        ['profileProviderConfigured', [providerName, mockProfileId.toString()]],
+        ['allSecurityConfigured', []],
+      ]);
+
+      expect(fetchProviderInfo).toHaveBeenCalledTimes(1);
+
+      expect(setProfileProviderSpy).toHaveBeenCalledTimes(1);
+      expect(setProviderSpy).toHaveBeenCalledTimes(1);
+      expect(writeOnceSpy).toHaveBeenCalledTimes(1);
     });
   });
 });

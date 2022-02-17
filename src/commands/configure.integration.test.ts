@@ -195,7 +195,9 @@ describe('Configure CLI command', () => {
         mockServer.url
       );
 
-      expect(result.stdout).toContain(messages.noSecurityFound());
+      expect(result.stdout).toContain(
+        messages.noSecurityFoundOrAlreadyConfigured()
+      );
 
       const superJson = (
         await SuperJson.load(joinPath(tempDir, 'superface', 'super.json'))
@@ -225,7 +227,9 @@ describe('Configure CLI command', () => {
         mockServer.url
       );
 
-      expect(result.stdout).toContain(messages.noSecurityFound());
+      expect(result.stdout).toContain(
+        messages.noSecurityFoundOrAlreadyConfigured()
+      );
 
       const superJson = (
         await SuperJson.load(joinPath(tempDir, 'superface', 'super.json'))
@@ -295,7 +299,7 @@ describe('Configure CLI command', () => {
   });
 
   describe('when providers are present in super.json', () => {
-    it('errors without a force flag', async () => {
+    it('uses existing provider without a force flag', async () => {
       //set existing super.json
       const localSuperJson = {
         profiles: {
@@ -329,13 +333,26 @@ describe('Configure CLI command', () => {
         mockServer.url
       );
 
-      expect(result.stdout).toContain(messages.providerAlreadyExists(provider));
+      expect(result.stdout).toContain(
+        messages.noSecurityFoundOrAlreadyConfigured()
+      );
 
       const superJson = (
         await SuperJson.load(joinPath(tempDir, 'superface', 'super.json'))
       ).unwrap();
 
-      expect(superJson.document).toEqual(localSuperJson);
+      expect(superJson.normalized.providers[provider].security).toEqual([
+        {
+          id: 'apiKey',
+          apikey: '$TEST_API_KEY',
+        },
+      ]);
+
+      expect(superJson.document.profiles![profileId]).toEqual({
+        version: profileVersion,
+        priority: [provider],
+        providers: { [provider]: {} },
+      });
     }, 30000);
 
     it('overrides existing super.json with a force flag', async () => {
@@ -366,14 +383,10 @@ describe('Configure CLI command', () => {
         JSON.stringify(localSuperJson, undefined, 2)
       );
 
-      const result = await execCLI(
+      await execCLI(
         tempDir,
         ['configure', providerWithoutSecurity, '-p', profileId, '-f'],
         mockServer.url
-      );
-
-      expect(result.stdout).not.toContain(
-        messages.providerAlreadyExists(providerWithoutSecurity)
       );
 
       const superJson = (
