@@ -425,6 +425,23 @@ describe('Lint logic', () => {
       },
       definitions: [],
     };
+
+    const mockProfileDocumentWithExamples: ProfileDocumentNode = {
+      kind: 'ProfileDocument',
+      astMetadata,
+      header: {
+        kind: 'ProfileHeader',
+        name: 'test-profile',
+        scope: 'some-map-scope',
+        version: {
+          major: 1,
+          minor: 0,
+          patch: 0,
+        },
+      },
+      definitions: [],
+    };
+
     const mockMapDocumentMatching: MapDocumentNode = {
       kind: 'MapDocument',
       astMetadata,
@@ -497,6 +514,7 @@ describe('Lint logic', () => {
         .mockReturnValueOnce(mockMapDocument)
         .mockReturnValueOnce(mockMapDocumentMatching);
 
+      console.log(await lint(mockSuperJson, mockProfiles, { logger }))
       await expect(
         lint(mockSuperJson, mockProfiles, { logger })
       ).resolves.toEqual({

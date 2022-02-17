@@ -13,6 +13,7 @@ import {
   parseProfile,
   ProfileHeaderStructure,
   Source,
+  validateExamples,
   validateMap,
   ValidationResult,
 } from '@superfaceai/parser';
@@ -88,19 +89,19 @@ export const createProfileMapReport = (
 ): ProfileMapReport =>
   result.pass
     ? {
-        kind: 'compatibility',
-        profile: profilePath,
-        path: mapPath,
-        errors: [],
-        warnings: result.warnings ?? [],
-      }
+      kind: 'compatibility',
+      profile: profilePath,
+      path: mapPath,
+      errors: [],
+      warnings: result.warnings ?? [],
+    }
     : {
-        kind: 'compatibility',
-        profile: profilePath,
-        path: mapPath,
-        errors: result.errors,
-        warnings: result.warnings ?? [],
-      };
+      kind: 'compatibility',
+      profile: profilePath,
+      path: mapPath,
+      errors: result.errors,
+      warnings: result.warnings ?? [],
+    };
 
 export function formatHuman({
   report,
@@ -144,8 +145,7 @@ export function formatHuman({
 
   if (report.kind === 'file') {
     buffer += colorize(
-      `${prefix} Parsing ${
-        report.path.endsWith(EXTENSIONS.profile.source) ? 'profile' : 'map'
+      `${prefix} Parsing ${report.path.endsWith(EXTENSIONS.profile.source) ? 'profile' : 'map'
       } file: ${report.path}\n`
     );
     for (const error of report.errors) {
@@ -392,13 +392,25 @@ export async function lint(
       }
 
       try {
-        const result = validateMap(
-          getProfileOutput(preparedProfile.ast),
-          preparedMap.ast
-        );
+        const profileOutput = getProfileOutput(preparedProfile.ast);
+
+        const result = validateMap(profileOutput, preparedMap.ast);
 
         reports.push(
           createProfileMapReport(result, preparedProfile.path, preparedMap.path)
+        );
+
+        const examplesValidationResult = validateExamples(
+          preparedProfile.ast,
+          profileOutput
+        );
+
+        reports.push(
+          createProfileMapReport(
+            examplesValidationResult,
+            preparedProfile.path,
+            preparedMap.path
+          )
         );
 
         counts.push([
