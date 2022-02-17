@@ -451,7 +451,10 @@ describe('Configure CLI logic', () => {
             password: '$TEST_PASSWORD',
             username: '$TEST_USERNAME',
           },
-          { digest: '$TEST_DIGEST', id: 'digest' },
+          {
+            password: '$TEST_PASSWORD',
+            username: '$TEST_USERNAME', id: 'digest'
+          },
         ],
       });
 
