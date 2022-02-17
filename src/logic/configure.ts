@@ -202,16 +202,6 @@ export async function installProvider(
     providerInfo = await getProviderFromStore(provider, { logger, userError });
   }
 
-  // Check existence and warn
-  // if (
-  //   options?.force !== true &&
-  //   superJson.normalized.providers[providerInfo.name]
-  // ) {
-  //   logger.warn('providerAlreadyExists', providerInfo.name);
-
-  //   // return;
-  // }
-
   //Write provider to super.json
   const configureResult = handleProviderResponse(
     {
