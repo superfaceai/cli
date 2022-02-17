@@ -66,7 +66,8 @@ describe('Configure logic utils', () => {
         },
         {
           id: 'digest',
-          digest: '$TEST_PROVIDER_DIGEST',
+          username: '$TEST_PROVIDER_USERNAME',
+          password: '$TEST_PROVIDER_PASSWORD',
         },
       ]);
     });

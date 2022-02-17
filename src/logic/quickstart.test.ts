@@ -151,7 +151,8 @@ describe('Quickstart logic', () => {
           security: [
             {
               id: 'digest',
-              digest: '$TEST_DIGEST',
+              username: '$DIGEST_USERNAME',
+              password: '$DIGEST_PASSWORD',
             },
             {
               id: 'apikey',
@@ -201,7 +202,8 @@ describe('Quickstart logic', () => {
                 security: [
                   {
                     id: 'digest',
-                    digest: '$TEST_DIGEST',
+                    username: '$DIGEST_USERNAME',
+                    password: '$DIGEST_PASSWORD',
                   },
                   {
                     id: 'apikey',
@@ -275,8 +277,9 @@ describe('Quickstart logic', () => {
         .mockResolvedValueOnce({
           schema: mockSuperJson.normalized.providers['test'].security[0],
         })
-        //Set test digest
-        .mockResolvedValueOnce({ value: 'testDigest' })
+        //Set digest
+        .mockResolvedValueOnce({ value: 'testDigestUsername' })
+        .mockResolvedValueOnce({ value: 'testDigestPassword' })
         //Set mailgun username
         .mockResolvedValueOnce({ value: 'mailgunUsername' })
         //Set mailgun password
@@ -304,7 +307,7 @@ describe('Quickstart logic', () => {
 
       expect(writeOnceSpy).toHaveBeenCalledWith(
         '.env',
-        'SENDGRID_TOKEN=sendgridBearer\nTEST_DIGEST=testDigest\nMAILGUN_USERNAME=mailgunUsername\nMAILGUN_PASSWORD=mailgunPassword\nSUPERFACE_SDK_TOKEN=sfs_bb064dd57c302911602dd097bc29bedaea6a021c25a66992d475ed959aa526c7_37bce8b5\n'
+        'SENDGRID_TOKEN=sendgridBearer\nDIGEST_USERNAME=testDigestUsername\nDIGEST_PASSWORD=testDigestPassword\nMAILGUN_USERNAME=mailgunUsername\nMAILGUN_PASSWORD=mailgunPassword\nSUPERFACE_SDK_TOKEN=sfs_bb064dd57c302911602dd097bc29bedaea6a021c25a66992d475ed959aa526c7_37bce8b5\n'
       );
 
       expect(logger.stdout).toContainEqual(['initSuperface', []]);
@@ -371,7 +374,8 @@ describe('Quickstart logic', () => {
                 security: [
                   {
                     id: 'digest',
-                    digest: '$TEST_DIGEST',
+                    username: '$DIGEST_USERNAME',
+                    password: '$DIGEST_PASSWORD',
                   },
                   {
                     id: 'apikey',
@@ -540,7 +544,8 @@ describe('Quickstart logic', () => {
             security: [
               {
                 id: 'digest',
-                digest: '$TEST_DIGEST',
+                username: '$DIGEST_USERNAME',
+                password: '$DIGEST_PASSWORD',
               },
               {
                 id: 'apikey',
@@ -696,7 +701,8 @@ describe('Quickstart logic', () => {
             security: [
               {
                 id: 'digest',
-                digest: '$TEST_DIGEST',
+                username: '$DIGEST_USERNAME',
+                password: '$DIGEST_PASSWORD',
               },
               {
                 id: 'apikey',
@@ -782,7 +788,8 @@ describe('Quickstart logic', () => {
           schema: mockSuperJson.normalized.providers['test'].security[0],
         })
         //Set test digest
-        .mockResolvedValueOnce({ value: 'testDigest' })
+        .mockResolvedValueOnce({ value: 'testDigestUsername' })
+        .mockResolvedValueOnce({ value: 'testDigestPassword' })
         //Init PM
         .mockResolvedValueOnce({ pm: 'npm' })
         //Install dotenv
@@ -808,7 +815,7 @@ describe('Quickstart logic', () => {
       });
       expect(writeOnceSpy).toHaveBeenCalledWith(
         '.env',
-        'test=test\nSENDGRID_TOKEN=t\ntest2=test2\nMAILGUN_USERNAME=mailgunUsername\nMAILGUN_PASSWORD=mailgunPassword\nTEST_DIGEST=testDigest\nSUPERFACE_SDK_TOKEN=sfs_bb064dd57c302911602dd097bc29bedaea6a021c25a66992d475ed959aa526c7_37bce8b5\n'
+        'test=test\nSENDGRID_TOKEN=t\ntest2=test2\nMAILGUN_USERNAME=mailgunUsername\nMAILGUN_PASSWORD=mailgunPassword\nDIGEST_USERNAME=testDigestUsername\nDIGEST_PASSWORD=testDigestPassword\nSUPERFACE_SDK_TOKEN=sfs_bb064dd57c302911602dd097bc29bedaea6a021c25a66992d475ed959aa526c7_37bce8b5\n'
       );
 
       expect(logger.stdout).toContainEqual(['installMultipleProviders', []]);

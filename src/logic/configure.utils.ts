@@ -44,7 +44,8 @@ export function prepareSecurityValues(
     } else if (isDigestSecurityScheme(scheme)) {
       security.push({
         id: scheme.id,
-        digest: `$${envProviderName}_DIGEST`,
+        username: `$${envProviderName}_USERNAME`,
+        password: `$${envProviderName}_PASSWORD`,
       });
     } else {
       logger.warn('unknownSecurityScheme', providerName);

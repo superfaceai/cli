@@ -44,7 +44,21 @@ describe('lint CLI command', () => {
             context: {
               actual: 'different-test-profile',
               expected: 'test-profile',
-              path: ['MapHeader'],
+              path: {
+                kind: 'nodeKind',
+                location: {
+                  start: {
+                    line: 1,
+                    column: 1,
+                    charIndex: 0,
+                  },
+                  end: {
+                    line: 1,
+                    column: 1,
+                    charIndex: 0,
+                  },
+                },
+              },
             },
             kind: 'wrongProfileName',
           },
