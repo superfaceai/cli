@@ -426,21 +426,21 @@ describe('Lint logic', () => {
       definitions: [],
     };
 
-    const mockProfileDocumentWithExamples: ProfileDocumentNode = {
-      kind: 'ProfileDocument',
-      astMetadata,
-      header: {
-        kind: 'ProfileHeader',
-        name: 'test-profile',
-        scope: 'some-map-scope',
-        version: {
-          major: 1,
-          minor: 0,
-          patch: 0,
-        },
-      },
-      definitions: [],
-    };
+    // const mockProfileDocumentWithExamples: ProfileDocumentNode = {
+    //   kind: 'ProfileDocument',
+    //   astMetadata,
+    //   header: {
+    //     kind: 'ProfileHeader',
+    //     name: 'test-profile',
+    //     scope: 'some-map-scope',
+    //     version: {
+    //       major: 1,
+    //       minor: 0,
+    //       patch: 0,
+    //     },
+    //   },
+    //   definitions: [],
+    // };
 
     const mockMapDocumentMatching: MapDocumentNode = {
       kind: 'MapDocument',
@@ -514,7 +514,6 @@ describe('Lint logic', () => {
         .mockReturnValueOnce(mockMapDocument)
         .mockReturnValueOnce(mockMapDocumentMatching);
 
-      console.log(await lint(mockSuperJson, mockProfiles, { logger }))
       await expect(
         lint(mockSuperJson, mockProfiles, { logger })
       ).resolves.toEqual({
@@ -549,8 +548,22 @@ describe('Lint logic', () => {
           },
           {
             errors: [],
+            kind: "compatibility",
+            path: "swapi path",
+            profile: "mockProfilePath",
+            warnings: [],
+          },
+          {
+            errors: [],
             kind: 'file',
             path: 'starwars path',
+            warnings: [],
+          },
+          {
+            errors: [],
+            kind: "compatibility",
+            path: "starwars path",
+            profile: "mockProfilePath",
             warnings: [],
           },
           {
@@ -631,8 +644,22 @@ describe('Lint logic', () => {
           },
           {
             errors: [],
+            kind: "compatibility",
+            path: 'starwars/character-information.swapi.test@1.0.0',
+            profile: 'mockProfilePath',
+            warnings: [],
+          },
+          {
+            errors: [],
             kind: 'file',
             path: 'starwars/character-information.starwars.test@1.0.0',
+            warnings: [],
+          },
+          {
+            errors: [],
+            kind: "compatibility",
+            path: 'starwars/character-information.starwars.test@1.0.0',
+            profile: 'mockProfilePath',
             warnings: [],
           },
           {
@@ -713,8 +740,22 @@ describe('Lint logic', () => {
           },
           {
             errors: [],
+            kind: 'compatibility',
+            path: 'starwars/character-information.swapi.test@1.0.0',
+            profile: 'starwars/character-information@1.0.0',
+            warnings: [],
+          },
+          {
+            errors: [],
             kind: 'file',
             path: 'starwars/character-information.starwars.test@1.0.0',
+            warnings: [],
+          },
+          {
+            errors: [],
+            kind: 'compatibility',
+            path: 'starwars/character-information.starwars.test@1.0.0',
+            profile: 'starwars/character-information@1.0.0',
             warnings: [],
           },
           {

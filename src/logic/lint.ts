@@ -370,47 +370,51 @@ export async function lint(
 ): Promise<LintResult> {
   const counts: [number, number][] = [];
   const reports: ReportFormat[] = [];
+  console.log('new')
 
   for (const profile of profiles) {
     const preparedProfile = await prepareLintedProfile(superJson, profile, {
       logger,
     });
-    reports.push(preparedProfile.report);
+
     //Return if we have errors or warnings
     if (!preparedProfile.ast) {
-      return prepareResult(reports);
+      return prepareResult([preparedProfile.report]);
     }
+
+
+    //Lint examples
+    const profileOutput = getProfileOutput(preparedProfile.ast);
+
+    console.log('new')
+    const examplesValidationResult = validateExamples(
+      preparedProfile.ast,
+      profileOutput
+    );
+
+    console.log('res', examplesValidationResult)
+
+    reports.push({ ...preparedProfile.report, warnings: [...preparedProfile.report.warnings, ...(examplesValidationResult.warnings ?? [])] });
+
+
 
     for (const map of profile.maps) {
       const preparedMap = await prepareLintedMap(superJson, profile, map, {
         logger,
       });
       reports.push(preparedMap.report);
+
       //Return if we have errors or warnings
       if (!preparedMap.ast) {
         return prepareResult(reports);
       }
 
       try {
-        const profileOutput = getProfileOutput(preparedProfile.ast);
 
         const result = validateMap(profileOutput, preparedMap.ast);
 
         reports.push(
           createProfileMapReport(result, preparedProfile.path, preparedMap.path)
-        );
-
-        const examplesValidationResult = validateExamples(
-          preparedProfile.ast,
-          profileOutput
-        );
-
-        reports.push(
-          createProfileMapReport(
-            examplesValidationResult,
-            preparedProfile.path,
-            preparedMap.path
-          )
         );
 
         counts.push([
