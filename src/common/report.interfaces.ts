@@ -9,7 +9,7 @@ export interface Report {
 
 export interface FileReport extends Report {
   kind: 'file';
-  errors: (SyntaxError | ValidationIssue)[];
+  errors: ({ issueType: 'syntax', data: SyntaxError } | { issueType: 'example', data: ValidationIssue })[];
   warnings: ValidationIssue[];
 }
 
