@@ -145,7 +145,7 @@ export default class Lint extends Command {
       if (flags.providerName) {
         if (
           !superJson.normalized.profiles[flags.profileId].providers[
-          flags.providerName
+            flags.providerName
           ]
         ) {
           throw userError(
@@ -171,8 +171,6 @@ export default class Lint extends Command {
     const result = await lint(superJson, profiles, {
       logger,
     });
-
-    console.log('fin', result)
 
     if (flags.outputFormat === 'long' || flags.outputFormat === 'short') {
       for (const report of result.reports) {

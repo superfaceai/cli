@@ -548,9 +548,9 @@ describe('Lint logic', () => {
           },
           {
             errors: [],
-            kind: "compatibility",
-            path: "swapi path",
-            profile: "mockProfilePath",
+            kind: 'compatibility',
+            path: 'swapi path',
+            profile: 'mockProfilePath',
             warnings: [],
           },
           {
@@ -561,9 +561,9 @@ describe('Lint logic', () => {
           },
           {
             errors: [],
-            kind: "compatibility",
-            path: "starwars path",
-            profile: "mockProfilePath",
+            kind: 'compatibility',
+            path: 'starwars path',
+            profile: 'mockProfilePath',
             warnings: [],
           },
           {
@@ -644,7 +644,7 @@ describe('Lint logic', () => {
           },
           {
             errors: [],
-            kind: "compatibility",
+            kind: 'compatibility',
             path: 'starwars/character-information.swapi.test@1.0.0',
             profile: 'mockProfilePath',
             warnings: [],
@@ -657,7 +657,7 @@ describe('Lint logic', () => {
           },
           {
             errors: [],
-            kind: "compatibility",
+            kind: 'compatibility',
             path: 'starwars/character-information.starwars.test@1.0.0',
             profile: 'mockProfilePath',
             warnings: [],

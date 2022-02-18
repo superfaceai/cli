@@ -13,6 +13,7 @@ import {
   parseProfile,
   ProfileHeaderStructure,
   Source,
+  SyntaxError,
   validateExamples,
   validateMap,
   ValidationResult,
@@ -89,19 +90,19 @@ export const createProfileMapReport = (
 ): ProfileMapReport =>
   result.pass
     ? {
-      kind: 'compatibility',
-      profile: profilePath,
-      path: mapPath,
-      errors: [],
-      warnings: result.warnings ?? [],
-    }
+        kind: 'compatibility',
+        profile: profilePath,
+        path: mapPath,
+        errors: [],
+        warnings: result.warnings ?? [],
+      }
     : {
-      kind: 'compatibility',
-      profile: profilePath,
-      path: mapPath,
-      errors: result.errors,
-      warnings: result.warnings ?? [],
-    };
+        kind: 'compatibility',
+        profile: profilePath,
+        path: mapPath,
+        errors: result.errors,
+        warnings: result.warnings ?? [],
+      };
 
 export function formatHuman({
   report,
@@ -145,15 +146,20 @@ export function formatHuman({
 
   if (report.kind === 'file') {
     buffer += colorize(
-      `${prefix} Parsing ${report.path.endsWith(EXTENSIONS.profile.source) ? 'profile' : 'map'
+      `${prefix} Parsing ${
+        report.path.endsWith(EXTENSIONS.profile.source) ? 'profile' : 'map'
       } file: ${report.path}\n`
     );
     for (const error of report.errors) {
-      if (short) {
-        const message = `\t${error.location.start.line}:${error.location.start.column} ${error.message}\n`;
-        buffer += color ? red(message) : message;
+      if (error instanceof SyntaxError) {
+        if (short) {
+          const message = `\t${error.location.start.line}:${error.location.start.column} ${error.message}\n`;
+          buffer += color ? red(message) : message;
+        } else {
+          buffer += color ? red(error.format()) : error.format();
+        }
       } else {
-        buffer += color ? red(error.format()) : error.format();
+        buffer += color ? red(formatIssues([error])) : formatIssues([error]);
       }
     }
     if (report.errors.length > 0 && report.warnings.length > 0) {
@@ -162,12 +168,10 @@ export function formatHuman({
 
     // TODO
     if (!quiet) {
-      for (const warning of report.warnings) {
-        if (typeof warning === 'string') {
-          const message = `\t${warning}\n`;
-          buffer += color ? yellow(message) : message;
-        }
-      }
+      buffer += color
+        ? yellow(formatIssues(report.warnings))
+        : formatIssues(report.warnings);
+      buffer += '\n';
     }
   } else {
     buffer += colorize(
@@ -260,6 +264,19 @@ async function prepareLintedProfile(
   } else {
     logger.info('fetchProfile', profile.id.id, profile.version);
     ast = await fetchProfileAST(profile.id, profile.version);
+  }
+
+  //Validate examples
+  if (ast) {
+    const examplesValidationResult = validateExamples(
+      ast,
+      getProfileOutput(ast)
+    );
+
+    if (!examplesValidationResult.pass) {
+      report.errors.push(...examplesValidationResult.errors);
+    }
+    report.warnings.push(...(examplesValidationResult.warnings ?? []));
   }
 
   return {
@@ -370,33 +387,18 @@ export async function lint(
 ): Promise<LintResult> {
   const counts: [number, number][] = [];
   const reports: ReportFormat[] = [];
-  console.log('new')
 
   for (const profile of profiles) {
     const preparedProfile = await prepareLintedProfile(superJson, profile, {
       logger,
     });
 
+    reports.push(preparedProfile.report);
+
     //Return if we have errors or warnings
     if (!preparedProfile.ast) {
-      return prepareResult([preparedProfile.report]);
+      return prepareResult(reports);
     }
-
-
-    //Lint examples
-    const profileOutput = getProfileOutput(preparedProfile.ast);
-
-    console.log('new')
-    const examplesValidationResult = validateExamples(
-      preparedProfile.ast,
-      profileOutput
-    );
-
-    console.log('res', examplesValidationResult)
-
-    reports.push({ ...preparedProfile.report, warnings: [...preparedProfile.report.warnings, ...(examplesValidationResult.warnings ?? [])] });
-
-
 
     for (const map of profile.maps) {
       const preparedMap = await prepareLintedMap(superJson, profile, map, {
@@ -410,8 +412,10 @@ export async function lint(
       }
 
       try {
-
-        const result = validateMap(profileOutput, preparedMap.ast);
+        const result = validateMap(
+          getProfileOutput(preparedProfile.ast),
+          preparedMap.ast
+        );
 
         reports.push(
           createProfileMapReport(result, preparedProfile.path, preparedMap.path)
