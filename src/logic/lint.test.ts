@@ -83,12 +83,9 @@ describe('Lint logic', () => {
     },
   };
 
-  const mockSyntaxErr: SyntaxError = {
-    source: new Source('test'),
-    formatHints: () => '',
-    formatVisualization: () => '',
-    hints: [],
-    location: {
+  const mockSyntaxErr: SyntaxError = new SyntaxError(
+    new Source('test'),
+    {
       start: {
         line: 0,
         column: 0,
@@ -100,11 +97,9 @@ describe('Lint logic', () => {
         charIndex: 0,
       },
     },
-    category: SyntaxErrorCategory.PARSER,
-    detail: '',
-    format: () => 'detail',
-    message: 'message',
-  };
+    SyntaxErrorCategory.PARSER,
+    'detail'
+  );
 
   describe('when validating header', () => {
     let mockValidProfileHeader: ProfileHeaderStructure;
@@ -631,22 +626,8 @@ describe('Lint logic', () => {
           },
           {
             errors: [],
-            kind: 'compatibility',
-            path: 'starwars/character-information.swapi.test@1.0.0',
-            profile: 'mockProfilePath',
-            warnings: [],
-          },
-          {
-            errors: [],
             kind: 'file',
             path: 'starwars/character-information.starwars.test@1.0.0',
-            warnings: [],
-          },
-          {
-            errors: [],
-            kind: 'compatibility',
-            path: 'starwars/character-information.starwars.test@1.0.0',
-            profile: 'mockProfilePath',
             warnings: [],
           },
           {
@@ -727,22 +708,8 @@ describe('Lint logic', () => {
           },
           {
             errors: [],
-            kind: 'compatibility',
-            path: 'starwars/character-information.swapi.test@1.0.0',
-            profile: 'starwars/character-information@1.0.0',
-            warnings: [],
-          },
-          {
-            errors: [],
             kind: 'file',
             path: 'starwars/character-information.starwars.test@1.0.0',
-            warnings: [],
-          },
-          {
-            errors: [],
-            kind: 'compatibility',
-            path: 'starwars/character-information.starwars.test@1.0.0',
-            profile: 'starwars/character-information@1.0.0',
             warnings: [],
           },
           {
@@ -959,12 +926,12 @@ describe('Lint logic', () => {
       kind: 'wrongScope',
       context: {
         path: {
-          kind: 'test'
+          kind: 'test',
         },
         expected: 'foo',
-        actual: 'bar'
-      }
-    }
+        actual: 'bar',
+      },
+    };
     it('formats file with errors and warnings correctly', async () => {
       const mockPath = 'some/path.suma';
       const mockErr = SyntaxError.fromSyntaxRuleNoMatch(
@@ -995,7 +962,7 @@ describe('Lint logic', () => {
       expect(formated).toMatch('SyntaxError: Expected  but found <NONE>');
       expect(formated).toMatch('--> some/path.suma:0:0');
 
-      expect(formated).toMatch('ouch!');
+      expect(formated).toMatch('test - Wrong Scope: expected foo, but got bar');
     });
 
     it('formats file with errors and warnings correctly - short output', async () => {
@@ -1016,8 +983,8 @@ describe('Lint logic', () => {
         color: false,
       });
       expect(formated).toMatch(`Parsing profile file: ${mockPath}`);
-      expect(formated).toMatch('0:0 message');
-      expect(formated).toMatch('ouch!');
+      expect(formated).toMatch('0:0 detail');
+      expect(formated).toMatch('test - Wrong Scope: expected foo, but got bar');
     });
 
     it('formats file with errors and warnings correctly - quiet', async () => {
@@ -1040,7 +1007,7 @@ describe('Lint logic', () => {
       expect(formated).toMatch('detail');
     });
 
-    it.only('formats file with errors correctly', async () => {
+    it('formats file with errors correctly', async () => {
       const mockPath = 'some/path.supr';
 
       const mockFileReport: ReportFormat = {
@@ -1076,7 +1043,9 @@ describe('Lint logic', () => {
         color: false,
       });
       expect(formated).toMatch(`Parsing map file: ${mockPath}`);
-      expect(formated).toMatch(' Parsing map file: some/path.suma\ntest - Wrong Scope: expected foo, but got bar\n');
+      expect(formated).toMatch(
+        ' Parsing map file: some/path.suma\ntest - Wrong Scope: expected foo, but got bar\n'
+      );
     });
 
     it('formats ok file correctly', async () => {

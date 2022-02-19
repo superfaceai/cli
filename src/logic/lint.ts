@@ -90,19 +90,19 @@ export const createProfileMapReport = (
 ): ProfileMapReport =>
   result.pass
     ? {
-      kind: 'compatibility',
-      profile: profilePath,
-      path: mapPath,
-      errors: [],
-      warnings: result.warnings ?? [],
-    }
+        kind: 'compatibility',
+        profile: profilePath,
+        path: mapPath,
+        errors: [],
+        warnings: result.warnings ?? [],
+      }
     : {
-      kind: 'compatibility',
-      profile: profilePath,
-      path: mapPath,
-      errors: result.errors,
-      warnings: result.warnings ?? [],
-    };
+        kind: 'compatibility',
+        profile: profilePath,
+        path: mapPath,
+        errors: result.errors,
+        warnings: result.warnings ?? [],
+      };
 
 export function formatHuman({
   report,
@@ -146,13 +146,12 @@ export function formatHuman({
 
   if (report.kind === 'file') {
     buffer += colorize(
-      `${prefix} Parsing ${report.path.endsWith(EXTENSIONS.profile.source) ? 'profile' : 'map'
+      `${prefix} Parsing ${
+        report.path.endsWith(EXTENSIONS.profile.source) ? 'profile' : 'map'
       } file: ${report.path}\n`
     );
     for (const error of report.errors) {
-      console.log('errr', error)
       if (error instanceof SyntaxError) {
-        console.log('true')
         if (short) {
           const message = `\t${error.location.start.line}:${error.location.start.column} ${error.message}\n`;
           buffer += color ? red(message) : message;
@@ -160,7 +159,6 @@ export function formatHuman({
           buffer += color ? red(error.format()) : error.format();
         }
       } else {
-        console.log('else')
         buffer += color ? red(formatIssues([error])) : formatIssues([error]);
       }
     }
@@ -276,7 +274,7 @@ async function prepareLintedProfile(
     );
 
     if (!examplesValidationResult.pass) {
-      report.errors.push(...examplesValidationResult.errors.map(e => ({ data: e, issueType: 'example' })));
+      report.errors.push(...examplesValidationResult.errors);
     }
     report.warnings.push(...(examplesValidationResult.warnings ?? []));
   }
