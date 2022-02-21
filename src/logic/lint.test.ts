@@ -18,6 +18,7 @@ import {
 } from '@superfaceai/parser';
 import { SyntaxErrorCategory } from '@superfaceai/parser/dist/language/error';
 import { MatchAttempts } from '@superfaceai/parser/dist/language/syntax/rule';
+import { red, yellow } from 'chalk';
 import { mocked } from 'ts-jest/utils';
 
 import { createUserError } from '../common/error';
@@ -421,22 +422,6 @@ describe('Lint logic', () => {
       },
       definitions: [],
     };
-
-    // const mockProfileDocumentWithExamples: ProfileDocumentNode = {
-    //   kind: 'ProfileDocument',
-    //   astMetadata,
-    //   header: {
-    //     kind: 'ProfileHeader',
-    //     name: 'test-profile',
-    //     scope: 'some-map-scope',
-    //     version: {
-    //       major: 1,
-    //       minor: 0,
-    //       patch: 0,
-    //     },
-    //   },
-    //   definitions: [],
-    // };
 
     const mockMapDocumentMatching: MapDocumentNode = {
       kind: 'MapDocument',
@@ -963,6 +948,41 @@ describe('Lint logic', () => {
       expect(formated).toMatch('--> some/path.suma:0:0');
 
       expect(formated).toMatch('test - Wrong Scope: expected foo, but got bar');
+    });
+
+    it('formats file with errors and warnings correctly - with color', async () => {
+      const mockPath = 'some/path.suma';
+      const mockErr = SyntaxError.fromSyntaxRuleNoMatch(
+        new Source('mock-content', mockPath),
+        {
+          kind: 'nomatch',
+          attempts: ({
+            token: undefined,
+            rules: [],
+          } as unknown) as MatchAttempts,
+        }
+      );
+
+      const mockFileReport: ReportFormat = {
+        path: mockPath,
+        kind: 'file',
+        errors: [mockErr],
+        warnings: [mockWarning],
+      };
+
+      const formated = formatHuman({
+        report: mockFileReport,
+        quiet: false,
+        emoji: false,
+        color: true,
+      });
+      expect(formated).toMatch(red(` Parsing map file: ${mockPath}`));
+      expect(formated).toMatch('SyntaxError: Expected  but found <NONE>');
+      expect(formated).toMatch('--> some/path.suma:0:0');
+
+      expect(formated).toMatch(
+        yellow('test - Wrong Scope: expected foo, but got bar')
+      );
     });
 
     it('formats file with errors and warnings correctly - short output', async () => {
