@@ -12,6 +12,7 @@ import {
   parseMapId,
   parseProfile,
   ProfileHeaderStructure,
+  ProfileOutput,
   Source,
   SyntaxError,
   validateExamples,
@@ -230,6 +231,7 @@ type PreparedMap = MapToValidate & {
 type PreparedProfile = ProfileToValidate & {
   path: string;
   ast?: ProfileDocumentNode;
+  output?: ProfileOutput;
   report: FileReport;
 };
 
@@ -239,6 +241,7 @@ async function prepareLintedProfile(
   { logger }: { logger: ILogger }
 ): Promise<PreparedProfile> {
   let ast: ProfileDocumentNode | undefined = undefined;
+  let output: ProfileOutput | undefined = undefined;
   const profileSource = await findLocalProfileSource(
     superJson,
     profile.id,
@@ -268,10 +271,8 @@ async function prepareLintedProfile(
 
   //Validate examples
   if (ast) {
-    const examplesValidationResult = validateExamples(
-      ast,
-      getProfileOutput(ast)
-    );
+    output = getProfileOutput(ast);
+    const examplesValidationResult = validateExamples(ast, output);
 
     if (!examplesValidationResult.pass) {
       report.errors.push(...examplesValidationResult.errors);
@@ -282,6 +283,7 @@ async function prepareLintedProfile(
   return {
     ...profile,
     ast,
+    output,
     path,
     report,
   };
@@ -396,7 +398,7 @@ export async function lint(
     reports.push(preparedProfile.report);
 
     //Return if we have errors or warnings
-    if (!preparedProfile.ast) {
+    if (!preparedProfile.ast || !preparedProfile.output) {
       return prepareResult(reports);
     }
 
@@ -412,10 +414,7 @@ export async function lint(
       }
 
       try {
-        const result = validateMap(
-          getProfileOutput(preparedProfile.ast),
-          preparedMap.ast
-        );
+        const result = validateMap(preparedProfile.output, preparedMap.ast);
 
         reports.push(
           createProfileMapReport(result, preparedProfile.path, preparedMap.path)

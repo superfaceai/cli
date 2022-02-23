@@ -84,7 +84,7 @@ describe('Lint logic', () => {
     },
   };
 
-  const mockSyntaxErr: SyntaxError = new SyntaxError(
+  const mockSyntaxErr = new SyntaxError(
     new Source('test'),
     {
       start: {
