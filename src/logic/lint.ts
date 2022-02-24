@@ -12,7 +12,10 @@ import {
   parseMapId,
   parseProfile,
   ProfileHeaderStructure,
+  ProfileOutput,
   Source,
+  SyntaxError,
+  validateExamples,
   validateMap,
   ValidationResult,
 } from '@superfaceai/parser';
@@ -148,32 +151,42 @@ export function formatHuman({
         report.path.endsWith(EXTENSIONS.profile.source) ? 'profile' : 'map'
       } file: ${report.path}\n`
     );
+
+    // Format Errors
     for (const error of report.errors) {
-      if (short) {
-        const message = `\t${error.location.start.line}:${error.location.start.column} ${error.message}\n`;
-        buffer += color ? red(message) : message;
+      if (error instanceof SyntaxError) {
+        if (short) {
+          const message = `\t${error.location.start.line}:${error.location.start.column} ${error.message}\n`;
+          buffer += color ? red(message) : message;
+        } else {
+          buffer += color ? red(error.format()) : error.format();
+        }
       } else {
-        buffer += color ? red(error.format()) : error.format();
+        buffer += color ? red(formatIssues([error])) : formatIssues([error]);
+
+        if (report.errors.length > 0) {
+          buffer += '\n';
+        }
       }
     }
+
     if (report.errors.length > 0 && report.warnings.length > 0) {
       buffer += '\n';
     }
 
-    // TODO
+    // Format Warnings
     if (!quiet) {
-      for (const warning of report.warnings) {
-        if (typeof warning === 'string') {
-          const message = `\t${warning}\n`;
-          buffer += color ? yellow(message) : message;
-        }
-      }
+      buffer += color
+        ? yellow(formatIssues(report.warnings))
+        : formatIssues(report.warnings);
+      buffer += '\n';
     }
   } else {
     buffer += colorize(
-      `${prefix}Validating profile: ${report.profile} to map: ${report.path}\n`
+      `${prefix} Validating profile: ${report.profile} to map: ${report.path}\n`
     );
 
+    // Format Errors
     buffer += color
       ? red(formatIssues(report.errors))
       : formatIssues(report.errors);
@@ -182,6 +195,7 @@ export function formatHuman({
       buffer += '\n';
     }
 
+    // Format Warnings
     if (!quiet) {
       buffer += color
         ? yellow(formatIssues(report.warnings))
@@ -226,6 +240,7 @@ type PreparedMap = MapToValidate & {
 type PreparedProfile = ProfileToValidate & {
   path: string;
   ast?: ProfileDocumentNode;
+  output?: ProfileOutput;
   report: FileReport;
 };
 
@@ -235,6 +250,7 @@ async function prepareLintedProfile(
   { logger }: { logger: ILogger }
 ): Promise<PreparedProfile> {
   let ast: ProfileDocumentNode | undefined = undefined;
+  let output: ProfileOutput | undefined = undefined;
   const profileSource = await findLocalProfileSource(
     superJson,
     profile.id,
@@ -262,9 +278,21 @@ async function prepareLintedProfile(
     ast = await fetchProfileAST(profile.id, profile.version);
   }
 
+  //Validate examples
+  if (ast) {
+    output = getProfileOutput(ast);
+    const examplesValidationResult = validateExamples(ast, output);
+
+    if (!examplesValidationResult.pass) {
+      report.errors.push(...examplesValidationResult.errors);
+    }
+    report.warnings.push(...(examplesValidationResult.warnings ?? []));
+  }
+
   return {
     ...profile,
     ast,
+    output,
     path,
     report,
   };
@@ -375,9 +403,11 @@ export async function lint(
     const preparedProfile = await prepareLintedProfile(superJson, profile, {
       logger,
     });
+
     reports.push(preparedProfile.report);
+
     //Return if we have errors or warnings
-    if (!preparedProfile.ast) {
+    if (!preparedProfile.ast || !preparedProfile.output) {
       return prepareResult(reports);
     }
 
@@ -386,16 +416,14 @@ export async function lint(
         logger,
       });
       reports.push(preparedMap.report);
+
       //Return if we have errors or warnings
       if (!preparedMap.ast) {
         return prepareResult(reports);
       }
 
       try {
-        const result = validateMap(
-          getProfileOutput(preparedProfile.ast),
-          preparedMap.ast
-        );
+        const result = validateMap(preparedProfile.output, preparedMap.ast);
 
         reports.push(
           createProfileMapReport(result, preparedProfile.path, preparedMap.path)

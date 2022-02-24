@@ -9,8 +9,8 @@ export interface Report {
 
 export interface FileReport extends Report {
   kind: 'file';
-  errors: SyntaxError[];
-  warnings: unknown[];
+  errors: (SyntaxError | ValidationIssue)[];
+  warnings: ValidationIssue[];
 }
 
 export interface ProfileMapReport extends Report {

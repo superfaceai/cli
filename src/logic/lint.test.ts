@@ -13,10 +13,12 @@ import {
   ProfileHeaderStructure,
   Source,
   SyntaxError,
+  ValidationIssue,
   ValidationResult,
 } from '@superfaceai/parser';
 import { SyntaxErrorCategory } from '@superfaceai/parser/dist/language/error';
 import { MatchAttempts } from '@superfaceai/parser/dist/language/syntax/rule';
+import { red, yellow } from 'chalk';
 import { mocked } from 'ts-jest/utils';
 
 import { createUserError } from '../common/error';
@@ -82,12 +84,9 @@ describe('Lint logic', () => {
     },
   };
 
-  const mockSyntaxErr: SyntaxError = {
-    source: new Source('test'),
-    formatHints: () => '',
-    formatVisualization: () => '',
-    hints: [],
-    location: {
+  const mockSyntaxErr = new SyntaxError(
+    new Source('test'),
+    {
       start: {
         line: 0,
         column: 0,
@@ -99,11 +98,9 @@ describe('Lint logic', () => {
         charIndex: 0,
       },
     },
-    category: SyntaxErrorCategory.PARSER,
-    detail: '',
-    format: () => 'detail',
-    message: 'message',
-  };
+    SyntaxErrorCategory.PARSER,
+    'detail'
+  );
 
   describe('when validating header', () => {
     let mockValidProfileHeader: ProfileHeaderStructure;
@@ -425,6 +422,7 @@ describe('Lint logic', () => {
       },
       definitions: [],
     };
+
     const mockMapDocumentMatching: MapDocumentNode = {
       kind: 'MapDocument',
       astMetadata,
@@ -909,6 +907,16 @@ describe('Lint logic', () => {
   });
 
   describe('when formating for human', () => {
+    const mockWarning: ValidationIssue = {
+      kind: 'wrongScope',
+      context: {
+        path: {
+          kind: 'test',
+        },
+        expected: 'foo',
+        actual: 'bar',
+      },
+    };
     it('formats file with errors and warnings correctly', async () => {
       const mockPath = 'some/path.suma';
       const mockErr = SyntaxError.fromSyntaxRuleNoMatch(
@@ -926,7 +934,7 @@ describe('Lint logic', () => {
         path: mockPath,
         kind: 'file',
         errors: [mockErr],
-        warnings: ['ouch!'],
+        warnings: [mockWarning],
       };
 
       const formated = formatHuman({
@@ -939,7 +947,42 @@ describe('Lint logic', () => {
       expect(formated).toMatch('SyntaxError: Expected  but found <NONE>');
       expect(formated).toMatch('--> some/path.suma:0:0');
 
-      expect(formated).toMatch('ouch!');
+      expect(formated).toMatch('test - Wrong Scope: expected foo, but got bar');
+    });
+
+    it('formats file with errors and warnings correctly - with color', async () => {
+      const mockPath = 'some/path.suma';
+      const mockErr = SyntaxError.fromSyntaxRuleNoMatch(
+        new Source('mock-content', mockPath),
+        {
+          kind: 'nomatch',
+          attempts: ({
+            token: undefined,
+            rules: [],
+          } as unknown) as MatchAttempts,
+        }
+      );
+
+      const mockFileReport: ReportFormat = {
+        path: mockPath,
+        kind: 'file',
+        errors: [mockErr],
+        warnings: [mockWarning],
+      };
+
+      const formated = formatHuman({
+        report: mockFileReport,
+        quiet: false,
+        emoji: false,
+        color: true,
+      });
+      expect(formated).toMatch(red(` Parsing map file: ${mockPath}`));
+      expect(formated).toMatch('SyntaxError: Expected  but found <NONE>');
+      expect(formated).toMatch('--> some/path.suma:0:0');
+
+      expect(formated).toMatch(
+        yellow('test - Wrong Scope: expected foo, but got bar')
+      );
     });
 
     it('formats file with errors and warnings correctly - short output', async () => {
@@ -949,7 +992,7 @@ describe('Lint logic', () => {
         path: mockPath,
         kind: 'file',
         errors: [mockSyntaxErr],
-        warnings: ['ouch!'],
+        warnings: [mockWarning],
       };
 
       const formated = formatHuman({
@@ -960,8 +1003,8 @@ describe('Lint logic', () => {
         color: false,
       });
       expect(formated).toMatch(`Parsing profile file: ${mockPath}`);
-      expect(formated).toMatch('0:0 message');
-      expect(formated).toMatch('ouch!');
+      expect(formated).toMatch('0:0 detail');
+      expect(formated).toMatch('test - Wrong Scope: expected foo, but got bar');
     });
 
     it('formats file with errors and warnings correctly - quiet', async () => {
@@ -971,7 +1014,7 @@ describe('Lint logic', () => {
         path: mockPath,
         kind: 'file',
         errors: [mockSyntaxErr],
-        warnings: ['ouch!'],
+        warnings: [mockWarning],
       };
 
       const formated = formatHuman({
@@ -1010,7 +1053,7 @@ describe('Lint logic', () => {
         path: mockPath,
         kind: 'file',
         errors: [],
-        warnings: ['ouch!'],
+        warnings: [mockWarning],
       };
 
       const formated = formatHuman({
@@ -1020,7 +1063,9 @@ describe('Lint logic', () => {
         color: false,
       });
       expect(formated).toMatch(`Parsing map file: ${mockPath}`);
-      expect(formated).toMatch('ouch!');
+      expect(formated).toMatch(
+        ' Parsing map file: some/path.suma\ntest - Wrong Scope: expected foo, but got bar\n'
+      );
     });
 
     it('formats ok file correctly', async () => {
