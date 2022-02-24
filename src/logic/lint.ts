@@ -176,7 +176,7 @@ export function formatHuman({
     }
   } else {
     buffer += colorize(
-      `${prefix}Validating profile: ${report.profile} to map: ${report.path}\n`
+      `${prefix} Validating profile: ${report.profile} to map: ${report.path}\n`
     );
 
     buffer += color
