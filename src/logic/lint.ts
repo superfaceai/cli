@@ -151,6 +151,8 @@ export function formatHuman({
         report.path.endsWith(EXTENSIONS.profile.source) ? 'profile' : 'map'
       } file: ${report.path}\n`
     );
+    
+    // Format Errors
     for (const error of report.errors) {
       if (error instanceof SyntaxError) {
         if (short) {
@@ -161,13 +163,18 @@ export function formatHuman({
         }
       } else {
         buffer += color ? red(formatIssues([error])) : formatIssues([error]);
+        
+        if (report.errors.length > 0) {
+          buffer += '\n';
+        }
       }
     }
+    
     if (report.errors.length > 0 && report.warnings.length > 0) {
       buffer += '\n';
     }
 
-    // TODO
+    // Format Warnings
     if (!quiet) {
       buffer += color
         ? yellow(formatIssues(report.warnings))
@@ -179,6 +186,7 @@ export function formatHuman({
       `${prefix} Validating profile: ${report.profile} to map: ${report.path}\n`
     );
 
+    // Format Errors
     buffer += color
       ? red(formatIssues(report.errors))
       : formatIssues(report.errors);
@@ -187,6 +195,7 @@ export function formatHuman({
       buffer += '\n';
     }
 
+    // Format Warnings
     if (!quiet) {
       buffer += color
         ? yellow(formatIssues(report.warnings))
