@@ -151,7 +151,7 @@ export function formatHuman({
         report.path.endsWith(EXTENSIONS.profile.source) ? 'profile' : 'map'
       } file: ${report.path}\n`
     );
-    
+
     // Format Errors
     for (const error of report.errors) {
       if (error instanceof SyntaxError) {
@@ -163,13 +163,13 @@ export function formatHuman({
         }
       } else {
         buffer += color ? red(formatIssues([error])) : formatIssues([error]);
-        
+
         if (report.errors.length > 0) {
           buffer += '\n';
         }
       }
     }
-    
+
     if (report.errors.length > 0 && report.warnings.length > 0) {
       buffer += '\n';
     }
