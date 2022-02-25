@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [1.1.0] - 2022-02-25
 ### Added
 - Prepare files for digest authentication
 
@@ -13,7 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Lint command prints more clear result
 
 ### Fixed
-- Remove unnecessary warning when using install and configure commands 
+- Remove unnecessary warning when using install and configure commands
 
 ## [1.0.1] - 2021-11-04
 ### Changed
@@ -190,7 +192,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Transpile command
 - CI github flow
 
-[Unreleased]: https://github.com/superfaceai/cli/compare/v1.0.1...HEAD
+[Unreleased]: https://github.com/superfaceai/cli/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/superfaceai/cli/compare/v1.0.1...v1.1.0
 [1.0.1]: https://github.com/superfaceai/cli/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/superfaceai/cli/compare/v0.0.26...v1.0.0
 [0.0.26]: https://github.com/superfaceai/cli/compare/v0.0.25...v0.0.26
