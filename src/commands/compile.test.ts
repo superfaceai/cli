@@ -1,29 +1,31 @@
-import { CLIError } from '@oclif/errors';
 import { err, ok, SuperJson } from '@superfaceai/one-sdk';
 import { SDKExecutionError } from '@superfaceai/one-sdk/dist/internal/errors';
 import { mocked } from 'ts-jest/utils';
 
+import { MockLogger } from '../common';
+import { createUserError } from '../common/error';
 import { ProfileId } from '../common/profile';
 import { compile } from '../logic/compile';
 import { detectSuperJson } from '../logic/install';
+import { CommandInstance } from '../test/utils';
 import Compile from './compile';
 
-//Mock install logic
 jest.mock('../logic/install', () => ({
   detectSuperJson: jest.fn(),
 }));
-
-//Mock compile logic
 jest.mock('../logic/compile', () => ({
   compile: jest.fn(),
 }));
 
 describe('Compile CLI command', () => {
+  const userError = createUserError(false);
   afterEach(() => {
     jest.resetAllMocks();
   });
 
   describe('running compile command', () => {
+    let instance: Compile;
+    let logger: MockLogger;
     const mockProfile = 'starwars/character-information';
     const secondMockProfile = 'startrek/character-information';
     const mockProvider = 'swapi';
@@ -77,11 +79,17 @@ describe('Compile CLI command', () => {
         },
       },
     });
+
+    beforeEach(() => {
+      instance = CommandInstance(Compile);
+      logger = new MockLogger();
+    });
+
     it('throws when super.json not found', async () => {
       mocked(detectSuperJson).mockResolvedValue(undefined);
-      await expect(Compile.run([])).rejects.toEqual(
-        new CLIError('❌ Unable to compile, super.json not found')
-      );
+      await expect(
+        instance.execute({ logger, userError, flags: {} })
+      ).rejects.toThrow('Unable to compile, super.json not found');
     });
 
     it('throws when super.json not loaded correctly', async () => {
@@ -89,27 +97,18 @@ describe('Compile CLI command', () => {
       jest
         .spyOn(SuperJson, 'load')
         .mockResolvedValue(err(new SDKExecutionError('test error', [], [])));
-      await expect(Compile.run([])).rejects.toEqual(
-        new CLIError('❌ Unable to load super.json: test error')
-      );
+      await expect(
+        instance.execute({ logger, userError, flags: {} })
+      ).rejects.toThrow('Unable to load super.json: test error');
     });
-
-    it('throws error on invalid scan flag', async () => {
-      mocked(detectSuperJson).mockResolvedValue('.');
-
-      await expect(Compile.run(['-s test'])).rejects.toEqual(
-        new CLIError('Expected an integer but received:  test')
-      );
-      expect(detectSuperJson).not.toHaveBeenCalled();
-    }, 10000);
 
     it('throws error on scan flag higher than 5', async () => {
       mocked(detectSuperJson).mockResolvedValue('.');
 
-      await expect(Compile.run(['-s', '6'])).rejects.toEqual(
-        new CLIError(
-          '❌ --scan/-s : Number of levels to scan cannot be higher than 5'
-        )
+      await expect(
+        instance.execute({ logger, userError, flags: { scan: 7 } })
+      ).rejects.toThrow(
+        '--scan/-s : Number of levels to scan cannot be higher than 5'
       );
       expect(detectSuperJson).not.toHaveBeenCalled();
     }, 10000);
@@ -121,18 +120,17 @@ describe('Compile CLI command', () => {
         .mockResolvedValue(ok(new SuperJson()));
 
       await expect(
-        Compile.run([
-          '--profileId',
-          'U!0_',
-          '--providerName',
-          mockProvider,
-          '-s',
-          '3',
-        ])
-      ).rejects.toEqual(
-        new CLIError(
-          '❌ Invalid profile id: "U!0_" is not a valid lowercase identifier'
-        )
+        instance.execute({
+          logger,
+          userError,
+          flags: {
+            profileId: 'U!0_',
+            providerName: mockProvider,
+            scan: 3,
+          },
+        })
+      ).rejects.toThrow(
+        'Invalid profile id: "U!0_" is not a valid lowercase identifier'
       );
       expect(detectSuperJson).not.toHaveBeenCalled();
       expect(loadSpy).not.toHaveBeenCalled();
@@ -145,15 +143,16 @@ describe('Compile CLI command', () => {
         .mockResolvedValue(ok(new SuperJson()));
 
       await expect(
-        Compile.run([
-          '--profileId',
-          mockProfile,
-          '--providerName',
-          'U!0_',
-          '-s',
-          '3',
-        ])
-      ).rejects.toEqual(new CLIError('❌ Invalid provider name: "U!0_"'));
+        instance.execute({
+          logger,
+          userError,
+          flags: {
+            profileId: mockProfile,
+            providerName: 'U!0_',
+            scan: 3,
+          },
+        })
+      ).rejects.toThrow('Invalid provider name: "U!0_"');
       expect(detectSuperJson).not.toHaveBeenCalled();
       expect(loadSpy).not.toHaveBeenCalled();
     }, 10000);
@@ -165,11 +164,13 @@ describe('Compile CLI command', () => {
         .mockResolvedValue(ok(new SuperJson()));
 
       await expect(
-        Compile.run(['--providerName', mockProvider, '-s', '3'])
-      ).rejects.toEqual(
-        new CLIError(
-          '❌ --profileId must be specified when using --providerName'
-        )
+        instance.execute({
+          logger,
+          userError,
+          flags: { providerName: mockProvider, scan: 3 },
+        })
+      ).rejects.toThrow(
+        '--profileId must be specified when using --providerName'
       );
       expect(detectSuperJson).not.toHaveBeenCalled();
       expect(loadSpy).not.toHaveBeenCalled();
@@ -182,18 +183,17 @@ describe('Compile CLI command', () => {
         .mockResolvedValue(ok(new SuperJson()));
 
       await expect(
-        Compile.run([
-          '--profileId',
-          mockProfile,
-          '--providerName',
-          mockProvider,
-          '-s',
-          '3',
-        ])
-      ).rejects.toEqual(
-        new CLIError(
-          `❌ Unable to compile, profile: "${mockProfile}" not found in super.json`
-        )
+        instance.execute({
+          logger,
+          userError,
+          flags: {
+            profileId: mockProfile,
+            providerName: mockProvider,
+            scan: 3,
+          },
+        })
+      ).rejects.toThrow(
+        `Unable to compile, profile: "${mockProfile}" not found in super.json`
       );
       expect(detectSuperJson).toHaveBeenCalled();
       expect(loadSpy).toHaveBeenCalled();
@@ -216,18 +216,17 @@ describe('Compile CLI command', () => {
       );
 
       await expect(
-        Compile.run([
-          '--profileId',
-          mockProfile,
-          '--providerName',
-          mockProvider,
-          '-s',
-          '3',
-        ])
-      ).rejects.toEqual(
-        new CLIError(
-          `❌ Unable to compile, provider: "${mockProvider}" not found in profile: "${mockProfile}" in super.json`
-        )
+        instance.execute({
+          logger,
+          userError,
+          flags: {
+            profileId: mockProfile,
+            providerName: mockProvider,
+            scan: 3,
+          },
+        })
+      ).rejects.toThrow(
+        `Unable to compile, provider: "${mockProvider}" not found in profile: "${mockProfile}" in super.json`
       );
       expect(detectSuperJson).toHaveBeenCalled();
       expect(loadSpy).toHaveBeenCalled();
@@ -242,46 +241,50 @@ describe('Compile CLI command', () => {
         mocked(detectSuperJson).mockResolvedValue('.');
         mocked(compile).mockResolvedValue();
 
-        await expect(Compile.run(['-s', '4'])).resolves.toBeUndefined();
+        await expect(
+          instance.execute({ logger, userError, flags: { scan: 4 } })
+        ).resolves.toBeUndefined();
 
         expect(compile).toHaveBeenCalledWith(
-          [
-            {
-              path: mockSuperJson.resolvePath(`../${mockProfile}.supr`),
-              id: ProfileId.fromId(mockProfile),
-              maps: [
-                {
-                  path: mockSuperJson.resolvePath(
-                    `../${mockProfile}.${mockProvider}.suma`
-                  ),
-                  provider: mockProvider,
-                },
-                {
-                  path: mockSuperJson.resolvePath(
-                    `../${mockProfile}.${secondMockProvider}.suma`
-                  ),
-                  provider: secondMockProvider,
-                },
-              ],
-            },
-            {
-              path: mockSuperJson.resolvePath(`../${secondMockProfile}.supr`),
-              id: ProfileId.fromId(secondMockProfile),
-              maps: [
-                {
-                  path: mockSuperJson.resolvePath(
-                    `../${secondMockProfile}.${thirdMockProvider}.suma`
-                  ),
-                  provider: thirdMockProvider,
-                },
-              ],
-            },
-          ],
           {
-            logCb: expect.anything(),
-            onlyMap: undefined,
-            onlyProfile: undefined,
-          }
+            profiles: [
+              {
+                path: mockSuperJson.resolvePath(`../${mockProfile}.supr`),
+                id: ProfileId.fromId(mockProfile, { userError }),
+                maps: [
+                  {
+                    path: mockSuperJson.resolvePath(
+                      `../${mockProfile}.${mockProvider}.suma`
+                    ),
+                    provider: mockProvider,
+                  },
+                  {
+                    path: mockSuperJson.resolvePath(
+                      `../${mockProfile}.${secondMockProvider}.suma`
+                    ),
+                    provider: secondMockProvider,
+                  },
+                ],
+              },
+              {
+                path: mockSuperJson.resolvePath(`../${secondMockProfile}.supr`),
+                id: ProfileId.fromId(secondMockProfile, { userError }),
+                maps: [
+                  {
+                    path: mockSuperJson.resolvePath(
+                      `../${secondMockProfile}.${thirdMockProvider}.suma`
+                    ),
+                    provider: thirdMockProvider,
+                  },
+                ],
+              },
+            ],
+            options: {
+              onlyMap: undefined,
+              onlyProfile: undefined,
+            },
+          },
+          expect.anything()
         );
 
         expect(detectSuperJson).toHaveBeenCalledWith(process.cwd(), 4);
@@ -296,42 +299,47 @@ describe('Compile CLI command', () => {
         mocked(detectSuperJson).mockResolvedValue('.');
         mocked(compile).mockResolvedValue();
 
-        await expect(Compile.run(['--onlyMap'])).resolves.toBeUndefined();
+        await expect(
+          instance.execute({ logger, userError, flags: { onlyMap: true } })
+        ).resolves.toBeUndefined();
 
         expect(compile).toHaveBeenCalledWith(
-          [
-            {
-              path: mockSuperJson.resolvePath(`../${mockProfile}.supr`),
-              id: ProfileId.fromId(mockProfile),
-              maps: [
-                {
-                  path: mockSuperJson.resolvePath(
-                    `../${mockProfile}.${mockProvider}.suma`
-                  ),
-                  provider: mockProvider,
-                },
-                {
-                  path: mockSuperJson.resolvePath(
-                    `../${mockProfile}.${secondMockProvider}.suma`
-                  ),
-                  provider: secondMockProvider,
-                },
-              ],
-            },
-            {
-              path: mockSuperJson.resolvePath(`../${secondMockProfile}.supr`),
-              id: ProfileId.fromId(secondMockProfile),
-              maps: [
-                {
-                  path: mockSuperJson.resolvePath(
-                    `../${secondMockProfile}.${thirdMockProvider}.suma`
-                  ),
-                  provider: thirdMockProvider,
-                },
-              ],
-            },
-          ],
-          { logCb: expect.anything(), onlyMap: true, onlyProfile: undefined }
+          {
+            profiles: [
+              {
+                path: mockSuperJson.resolvePath(`../${mockProfile}.supr`),
+                id: ProfileId.fromId(mockProfile, { userError }),
+                maps: [
+                  {
+                    path: mockSuperJson.resolvePath(
+                      `../${mockProfile}.${mockProvider}.suma`
+                    ),
+                    provider: mockProvider,
+                  },
+                  {
+                    path: mockSuperJson.resolvePath(
+                      `../${mockProfile}.${secondMockProvider}.suma`
+                    ),
+                    provider: secondMockProvider,
+                  },
+                ],
+              },
+              {
+                path: mockSuperJson.resolvePath(`../${secondMockProfile}.supr`),
+                id: ProfileId.fromId(secondMockProfile, { userError }),
+                maps: [
+                  {
+                    path: mockSuperJson.resolvePath(
+                      `../${secondMockProfile}.${thirdMockProvider}.suma`
+                    ),
+                    provider: thirdMockProvider,
+                  },
+                ],
+              },
+            ],
+            options: { onlyMap: true, onlyProfile: undefined },
+          },
+          expect.anything()
         );
 
         expect(detectSuperJson).toHaveBeenCalledWith(process.cwd(), undefined);
@@ -346,42 +354,47 @@ describe('Compile CLI command', () => {
         mocked(detectSuperJson).mockResolvedValue('.');
         mocked(compile).mockResolvedValue();
 
-        await expect(Compile.run(['--onlyProfile'])).resolves.toBeUndefined();
+        await expect(
+          instance.execute({ logger, userError, flags: { onlyProfile: true } })
+        ).resolves.toBeUndefined();
 
         expect(compile).toHaveBeenCalledWith(
-          [
-            {
-              path: mockSuperJson.resolvePath(`../${mockProfile}.supr`),
-              id: ProfileId.fromId(mockProfile),
-              maps: [
-                {
-                  path: mockSuperJson.resolvePath(
-                    `../${mockProfile}.${mockProvider}.suma`
-                  ),
-                  provider: mockProvider,
-                },
-                {
-                  path: mockSuperJson.resolvePath(
-                    `../${mockProfile}.${secondMockProvider}.suma`
-                  ),
-                  provider: secondMockProvider,
-                },
-              ],
-            },
-            {
-              path: mockSuperJson.resolvePath(`../${secondMockProfile}.supr`),
-              id: ProfileId.fromId(secondMockProfile),
-              maps: [
-                {
-                  path: mockSuperJson.resolvePath(
-                    `../${secondMockProfile}.${thirdMockProvider}.suma`
-                  ),
-                  provider: thirdMockProvider,
-                },
-              ],
-            },
-          ],
-          { logCb: expect.anything(), onlyMap: undefined, onlyProfile: true }
+          {
+            profiles: [
+              {
+                path: mockSuperJson.resolvePath(`../${mockProfile}.supr`),
+                id: ProfileId.fromId(mockProfile, { userError }),
+                maps: [
+                  {
+                    path: mockSuperJson.resolvePath(
+                      `../${mockProfile}.${mockProvider}.suma`
+                    ),
+                    provider: mockProvider,
+                  },
+                  {
+                    path: mockSuperJson.resolvePath(
+                      `../${mockProfile}.${secondMockProvider}.suma`
+                    ),
+                    provider: secondMockProvider,
+                  },
+                ],
+              },
+              {
+                path: mockSuperJson.resolvePath(`../${secondMockProfile}.supr`),
+                id: ProfileId.fromId(secondMockProfile, { userError }),
+                maps: [
+                  {
+                    path: mockSuperJson.resolvePath(
+                      `../${secondMockProfile}.${thirdMockProvider}.suma`
+                    ),
+                    provider: thirdMockProvider,
+                  },
+                ],
+              },
+            ],
+            options: { onlyMap: undefined, onlyProfile: true },
+          },
+          expect.anything()
         );
 
         expect(detectSuperJson).toHaveBeenCalledWith(process.cwd(), undefined);
@@ -396,42 +409,47 @@ describe('Compile CLI command', () => {
         mocked(detectSuperJson).mockResolvedValue('.');
         mocked(compile).mockResolvedValue();
 
-        await expect(Compile.run(['-q'])).resolves.toBeUndefined();
+        await expect(
+          instance.execute({ logger, userError, flags: {} })
+        ).resolves.toBeUndefined();
 
         expect(compile).toHaveBeenCalledWith(
-          [
-            {
-              path: mockSuperJson.resolvePath(`../${mockProfile}.supr`),
-              id: ProfileId.fromId(mockProfile),
-              maps: [
-                {
-                  path: mockSuperJson.resolvePath(
-                    `../${mockProfile}.${mockProvider}.suma`
-                  ),
-                  provider: mockProvider,
-                },
-                {
-                  path: mockSuperJson.resolvePath(
-                    `../${mockProfile}.${secondMockProvider}.suma`
-                  ),
-                  provider: secondMockProvider,
-                },
-              ],
-            },
-            {
-              path: mockSuperJson.resolvePath(`../${secondMockProfile}.supr`),
-              id: ProfileId.fromId(secondMockProfile),
-              maps: [
-                {
-                  path: mockSuperJson.resolvePath(
-                    `../${secondMockProfile}.${thirdMockProvider}.suma`
-                  ),
-                  provider: thirdMockProvider,
-                },
-              ],
-            },
-          ],
-          { logCb: undefined, onlyMap: undefined, onlyProfile: undefined }
+          {
+            profiles: [
+              {
+                path: mockSuperJson.resolvePath(`../${mockProfile}.supr`),
+                id: ProfileId.fromId(mockProfile, { userError }),
+                maps: [
+                  {
+                    path: mockSuperJson.resolvePath(
+                      `../${mockProfile}.${mockProvider}.suma`
+                    ),
+                    provider: mockProvider,
+                  },
+                  {
+                    path: mockSuperJson.resolvePath(
+                      `../${mockProfile}.${secondMockProvider}.suma`
+                    ),
+                    provider: secondMockProvider,
+                  },
+                ],
+              },
+              {
+                path: mockSuperJson.resolvePath(`../${secondMockProfile}.supr`),
+                id: ProfileId.fromId(secondMockProfile, { userError }),
+                maps: [
+                  {
+                    path: mockSuperJson.resolvePath(
+                      `../${secondMockProfile}.${thirdMockProvider}.suma`
+                    ),
+                    provider: thirdMockProvider,
+                  },
+                ],
+              },
+            ],
+            options: { onlyMap: undefined, onlyProfile: undefined },
+          },
+          expect.anything()
         );
 
         expect(detectSuperJson).toHaveBeenCalledWith(process.cwd(), undefined);
@@ -449,35 +467,41 @@ describe('Compile CLI command', () => {
         mocked(compile).mockResolvedValue();
 
         await expect(
-          Compile.run(['--profileId', mockProfile])
+          instance.execute({
+            logger,
+            userError,
+            flags: { profileId: mockProfile },
+          })
         ).resolves.toBeUndefined();
 
         expect(compile).toHaveBeenCalledWith(
-          [
-            {
-              path: mockSuperJson.resolvePath(`../${mockProfile}.supr`),
-              id: ProfileId.fromId(mockProfile),
-              maps: [
-                {
-                  path: mockSuperJson.resolvePath(
-                    `../${mockProfile}.${mockProvider}.suma`
-                  ),
-                  provider: mockProvider,
-                },
-                {
-                  path: mockSuperJson.resolvePath(
-                    `../${mockProfile}.${secondMockProvider}.suma`
-                  ),
-                  provider: secondMockProvider,
-                },
-              ],
-            },
-          ],
           {
-            logCb: expect.anything(),
-            onlyMap: undefined,
-            onlyProfile: undefined,
-          }
+            profiles: [
+              {
+                path: mockSuperJson.resolvePath(`../${mockProfile}.supr`),
+                id: ProfileId.fromId(mockProfile, { userError }),
+                maps: [
+                  {
+                    path: mockSuperJson.resolvePath(
+                      `../${mockProfile}.${mockProvider}.suma`
+                    ),
+                    provider: mockProvider,
+                  },
+                  {
+                    path: mockSuperJson.resolvePath(
+                      `../${mockProfile}.${secondMockProvider}.suma`
+                    ),
+                    provider: secondMockProvider,
+                  },
+                ],
+              },
+            ],
+            options: {
+              onlyMap: undefined,
+              onlyProfile: undefined,
+            },
+          },
+          expect.anything()
         );
 
         expect(detectSuperJson).toHaveBeenCalledWith(process.cwd(), undefined);
@@ -493,31 +517,38 @@ describe('Compile CLI command', () => {
         mocked(compile).mockResolvedValue();
 
         await expect(
-          Compile.run(['--profileId', mockProfile, '--onlyMap'])
+          instance.execute({
+            logger,
+            userError,
+            flags: { profileId: mockProfile, onlyMap: true },
+          })
         ).resolves.toBeUndefined();
 
         expect(compile).toHaveBeenCalledWith(
-          [
-            {
-              path: mockSuperJson.resolvePath(`../${mockProfile}.supr`),
-              id: ProfileId.fromId(mockProfile),
-              maps: [
-                {
-                  path: mockSuperJson.resolvePath(
-                    `../${mockProfile}.${mockProvider}.suma`
-                  ),
-                  provider: mockProvider,
-                },
-                {
-                  path: mockSuperJson.resolvePath(
-                    `../${mockProfile}.${secondMockProvider}.suma`
-                  ),
-                  provider: secondMockProvider,
-                },
-              ],
-            },
-          ],
-          { logCb: expect.anything(), onlyMap: true, onlyProfile: undefined }
+          {
+            profiles: [
+              {
+                path: mockSuperJson.resolvePath(`../${mockProfile}.supr`),
+                id: ProfileId.fromId(mockProfile, { userError }),
+                maps: [
+                  {
+                    path: mockSuperJson.resolvePath(
+                      `../${mockProfile}.${mockProvider}.suma`
+                    ),
+                    provider: mockProvider,
+                  },
+                  {
+                    path: mockSuperJson.resolvePath(
+                      `../${mockProfile}.${secondMockProvider}.suma`
+                    ),
+                    provider: secondMockProvider,
+                  },
+                ],
+              },
+            ],
+            options: { onlyMap: true, onlyProfile: undefined },
+          },
+          expect.anything()
         );
 
         expect(detectSuperJson).toHaveBeenCalledWith(process.cwd(), undefined);
@@ -533,31 +564,38 @@ describe('Compile CLI command', () => {
         mocked(compile).mockResolvedValue();
 
         await expect(
-          Compile.run(['--profileId', mockProfile, '--onlyProfile'])
+          instance.execute({
+            logger,
+            userError,
+            flags: { profileId: mockProfile, onlyProfile: true },
+          })
         ).resolves.toBeUndefined();
 
         expect(compile).toHaveBeenCalledWith(
-          [
-            {
-              path: mockSuperJson.resolvePath(`../${mockProfile}.supr`),
-              id: ProfileId.fromId(mockProfile),
-              maps: [
-                {
-                  path: mockSuperJson.resolvePath(
-                    `../${mockProfile}.${mockProvider}.suma`
-                  ),
-                  provider: mockProvider,
-                },
-                {
-                  path: mockSuperJson.resolvePath(
-                    `../${mockProfile}.${secondMockProvider}.suma`
-                  ),
-                  provider: secondMockProvider,
-                },
-              ],
-            },
-          ],
-          { logCb: expect.anything(), onlyMap: undefined, onlyProfile: true }
+          {
+            profiles: [
+              {
+                path: mockSuperJson.resolvePath(`../${mockProfile}.supr`),
+                id: ProfileId.fromId(mockProfile, { userError }),
+                maps: [
+                  {
+                    path: mockSuperJson.resolvePath(
+                      `../${mockProfile}.${mockProvider}.suma`
+                    ),
+                    provider: mockProvider,
+                  },
+                  {
+                    path: mockSuperJson.resolvePath(
+                      `../${mockProfile}.${secondMockProvider}.suma`
+                    ),
+                    provider: secondMockProvider,
+                  },
+                ],
+              },
+            ],
+            options: { onlyMap: undefined, onlyProfile: true },
+          },
+          expect.anything()
         );
 
         expect(detectSuperJson).toHaveBeenCalledWith(process.cwd(), undefined);
@@ -575,34 +613,38 @@ describe('Compile CLI command', () => {
         mocked(compile).mockResolvedValue();
 
         await expect(
-          Compile.run([
-            '--profileId',
-            mockProfile,
-            '--providerName',
-            mockProvider,
-          ])
+          instance.execute({
+            logger,
+            userError,
+            flags: {
+              profileId: mockProfile,
+              providerName: mockProvider,
+            },
+          })
         ).resolves.toBeUndefined();
 
         expect(compile).toHaveBeenCalledWith(
-          [
-            {
-              path: mockSuperJson.resolvePath(`../${mockProfile}.supr`),
-              id: ProfileId.fromId(mockProfile),
-              maps: [
-                {
-                  path: mockSuperJson.resolvePath(
-                    `../${mockProfile}.${mockProvider}.suma`
-                  ),
-                  provider: mockProvider,
-                },
-              ],
-            },
-          ],
           {
-            logCb: expect.anything(),
-            onlyMap: undefined,
-            onlyProfile: undefined,
-          }
+            profiles: [
+              {
+                path: mockSuperJson.resolvePath(`../${mockProfile}.supr`),
+                id: ProfileId.fromId(mockProfile, { userError }),
+                maps: [
+                  {
+                    path: mockSuperJson.resolvePath(
+                      `../${mockProfile}.${mockProvider}.suma`
+                    ),
+                    provider: mockProvider,
+                  },
+                ],
+              },
+            ],
+            options: {
+              onlyMap: undefined,
+              onlyProfile: undefined,
+            },
+          },
+          expect.anything()
         );
 
         expect(detectSuperJson).toHaveBeenCalledWith(process.cwd(), undefined);
@@ -618,31 +660,36 @@ describe('Compile CLI command', () => {
         mocked(compile).mockResolvedValue();
 
         await expect(
-          Compile.run([
-            '--profileId',
-            mockProfile,
-            '--providerName',
-            mockProvider,
-            '--onlyMap',
-          ])
+          instance.execute({
+            logger,
+            userError,
+            flags: {
+              profileId: mockProfile,
+              providerName: mockProvider,
+              onlyMap: true,
+            },
+          })
         ).resolves.toBeUndefined();
 
         expect(compile).toHaveBeenCalledWith(
-          [
-            {
-              path: mockSuperJson.resolvePath(`../${mockProfile}.supr`),
-              id: ProfileId.fromId(mockProfile),
-              maps: [
-                {
-                  path: mockSuperJson.resolvePath(
-                    `../${mockProfile}.${mockProvider}.suma`
-                  ),
-                  provider: mockProvider,
-                },
-              ],
-            },
-          ],
-          { logCb: expect.anything(), onlyMap: true, onlyProfile: undefined }
+          {
+            profiles: [
+              {
+                path: mockSuperJson.resolvePath(`../${mockProfile}.supr`),
+                id: ProfileId.fromId(mockProfile, { userError }),
+                maps: [
+                  {
+                    path: mockSuperJson.resolvePath(
+                      `../${mockProfile}.${mockProvider}.suma`
+                    ),
+                    provider: mockProvider,
+                  },
+                ],
+              },
+            ],
+            options: { onlyMap: true, onlyProfile: undefined },
+          },
+          expect.anything()
         );
 
         expect(detectSuperJson).toHaveBeenCalledWith(process.cwd(), undefined);
@@ -658,31 +705,36 @@ describe('Compile CLI command', () => {
         mocked(compile).mockResolvedValue();
 
         await expect(
-          Compile.run([
-            '--profileId',
-            mockProfile,
-            '--providerName',
-            mockProvider,
-            '--onlyProfile',
-          ])
+          instance.execute({
+            logger,
+            userError,
+            flags: {
+              profileId: mockProfile,
+              providerName: mockProvider,
+              onlyProfile: true,
+            },
+          })
         ).resolves.toBeUndefined();
 
         expect(compile).toHaveBeenCalledWith(
-          [
-            {
-              path: mockSuperJson.resolvePath(`../${mockProfile}.supr`),
-              id: ProfileId.fromId(mockProfile),
-              maps: [
-                {
-                  path: mockSuperJson.resolvePath(
-                    `../${mockProfile}.${mockProvider}.suma`
-                  ),
-                  provider: mockProvider,
-                },
-              ],
-            },
-          ],
-          { logCb: expect.anything(), onlyMap: undefined, onlyProfile: true }
+          {
+            profiles: [
+              {
+                path: mockSuperJson.resolvePath(`../${mockProfile}.supr`),
+                id: ProfileId.fromId(mockProfile, { userError }),
+                maps: [
+                  {
+                    path: mockSuperJson.resolvePath(
+                      `../${mockProfile}.${mockProvider}.suma`
+                    ),
+                    provider: mockProvider,
+                  },
+                ],
+              },
+            ],
+            options: { onlyMap: undefined, onlyProfile: true },
+          },
+          expect.anything()
         );
 
         expect(detectSuperJson).toHaveBeenCalledWith(process.cwd(), undefined);

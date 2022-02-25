@@ -1,4 +1,3 @@
-import { CLIError } from '@oclif/errors';
 import {
   ApiKeyPlacement,
   HttpScheme,
@@ -10,6 +9,8 @@ import {
 import { ok, SuperJson } from '@superfaceai/one-sdk';
 import { mocked } from 'ts-jest/utils';
 
+import { MockLogger } from '../common';
+import { createUserError } from '../common/error';
 import { fetchProviderInfo } from '../common/http';
 import { readFile, readFileQuiet } from '../common/io';
 import { OutputStream } from '../common/output-stream';
@@ -21,16 +22,15 @@ import {
   updateEnv,
 } from './configure';
 
-//Mock http
 jest.mock('../common/http', () => ({
   fetchProviderInfo: jest.fn(),
 }));
-
 jest.mock('../common/io');
-
 jest.mock('@superfaceai/one-sdk/dist/internal/superjson');
 
 describe('Configure CLI logic', () => {
+  let logger: MockLogger;
+  const userError = createUserError(false);
   const providerName = 'test';
   const mockProviderJson: ProviderJson = {
     name: providerName,
@@ -65,6 +65,11 @@ describe('Configure CLI logic', () => {
     ],
     defaultService: 'swapidev',
   };
+
+  beforeEach(async () => {
+    logger = new MockLogger();
+  });
+
   afterEach(() => {
     jest.resetAllMocks();
   });
@@ -77,12 +82,12 @@ describe('Configure CLI logic', () => {
         .mockResolvedValue(undefined);
 
       await expect(
-        updateEnv(providerName, mockProviderJson.securitySchemes!)
+        updateEnv(providerName, mockProviderJson.securitySchemes!, { logger })
       ).resolves.toBeUndefined();
       expect(writeOnceSpy).toHaveBeenCalledTimes(1);
       expect(writeOnceSpy).toHaveBeenCalledWith(
         '.env',
-        `TEST_API_KEY=something\nTEST_TOKEN=\nTEST_USERNAME=\nTEST_PASSWORD=\nTEST_DIGEST=\n`
+        'TEST_API_KEY=something\nTEST_TOKEN=\nTEST_USERNAME=\nTEST_PASSWORD=\nTEST_DIGEST=\n'
       );
     });
 
@@ -93,12 +98,12 @@ describe('Configure CLI logic', () => {
         .mockResolvedValue(undefined);
 
       await expect(
-        updateEnv(providerName, mockProviderJson.securitySchemes!)
+        updateEnv(providerName, mockProviderJson.securitySchemes!, { logger })
       ).resolves.toBeUndefined();
       expect(writeOnceSpy).toHaveBeenCalledTimes(1);
       expect(writeOnceSpy).toHaveBeenCalledWith(
         '.env',
-        `TEST_API_KEY=\nTEST_TOKEN=\nTEST_USERNAME=\nTEST_PASSWORD=\nTEST_DIGEST=\n`
+        'TEST_API_KEY=\nTEST_TOKEN=\nTEST_USERNAME=\nTEST_PASSWORD=\nTEST_DIGEST=\n'
       );
     });
 
@@ -109,13 +114,17 @@ describe('Configure CLI logic', () => {
         .mockResolvedValue(undefined);
 
       await expect(
-        updateEnv(providerName, [
-          {
-            id: 'api',
-            type: SecurityType.APIKEY,
-            name: 'X-API-Key',
-          },
-        ] as SecurityScheme[])
+        updateEnv(
+          providerName,
+          [
+            {
+              id: 'api',
+              type: SecurityType.APIKEY,
+              name: 'X-API-Key',
+            },
+          ] as SecurityScheme[],
+          { logger }
+        )
       ).resolves.toBeUndefined();
 
       expect(writeOnceSpy).toHaveBeenCalledTimes(1);
@@ -123,8 +132,19 @@ describe('Configure CLI logic', () => {
     });
   });
   describe('when handling provider response', () => {
-    const mockSuperJson = new SuperJson();
-    const mockProfileId = ProfileId.fromId('test-profile');
+    let mockSuperJson: SuperJson;
+    const mockProfileId = ProfileId.fromId('test-profile', { userError });
+
+    beforeEach(async () => {
+      mockSuperJson = new SuperJson();
+
+      //normalized is getter on SuperJson - unable to mock or spy on
+      Object.assign(mockSuperJson, {
+        normalized: {
+          providers: {},
+        },
+      });
+    });
     it('add providers to super json', async () => {
       const setProviderSpy = jest.spyOn(SuperJson.prototype, 'setProvider');
       const setProfileProviderSpy = jest.spyOn(
@@ -133,8 +153,15 @@ describe('Configure CLI logic', () => {
       );
 
       expect(
-        handleProviderResponse(mockSuperJson, mockProfileId, mockProviderJson)
-      ).toEqual(4);
+        handleProviderResponse(
+          {
+            superJson: mockSuperJson,
+            profileId: mockProfileId,
+            response: mockProviderJson,
+          },
+          { logger }
+        )
+      ).toEqual({ numberOfConfigured: 4, providerUpdated: true });
 
       expect(setProviderSpy).toHaveBeenCalledTimes(1);
       expect(setProviderSpy).toHaveBeenCalledWith(providerName, {
@@ -146,7 +173,11 @@ describe('Configure CLI logic', () => {
             password: '$TEST_PASSWORD',
             username: '$TEST_USERNAME',
           },
-          { digest: '$TEST_DIGEST', id: 'digest' },
+          {
+            id: 'digest',
+            password: '$TEST_PASSWORD',
+            username: '$TEST_USERNAME',
+          },
         ],
       });
 
@@ -200,8 +231,15 @@ describe('Configure CLI logic', () => {
       };
 
       expect(
-        handleProviderResponse(mockSuperJson, mockProfileId, customProviderJson)
-      ).toEqual(4);
+        handleProviderResponse(
+          {
+            superJson: mockSuperJson,
+            profileId: mockProfileId,
+            response: customProviderJson,
+          },
+          { logger }
+        )
+      ).toEqual({ numberOfConfigured: 4, providerUpdated: true });
 
       expect(setProviderSpy).toHaveBeenCalledTimes(1);
       expect(setProviderSpy).toHaveBeenCalledWith('provider-test', {
@@ -213,7 +251,11 @@ describe('Configure CLI logic', () => {
             password: '$PROVIDER_TEST_PASSWORD',
             username: '$PROVIDER_TEST_USERNAME',
           },
-          { digest: '$PROVIDER_TEST_DIGEST', id: 'digest' },
+          {
+            id: 'digest',
+            password: '$PROVIDER_TEST_PASSWORD',
+            username: '$PROVIDER_TEST_USERNAME',
+          },
         ],
       });
 
@@ -281,8 +323,15 @@ describe('Configure CLI logic', () => {
       };
 
       expect(
-        handleProviderResponse(mockSuperJson, mockProfileId, customProviderJson)
-      ).toEqual(4);
+        handleProviderResponse(
+          {
+            superJson: mockSuperJson,
+            profileId: mockProfileId,
+            response: customProviderJson,
+          },
+          { logger }
+        )
+      ).toEqual({ numberOfConfigured: 4, providerUpdated: true });
 
       expect(setProviderSpy).toHaveBeenCalledTimes(1);
       expect(setProviderSpy).toHaveBeenCalledWith('provider-test', {
@@ -294,7 +343,11 @@ describe('Configure CLI logic', () => {
             password: '$PROVIDER_TEST_PASSWORD',
             username: '$PROVIDER_TEST_USERNAME',
           },
-          { digest: '$PROVIDER_TEST_DIGEST', id: 'digest' },
+          {
+            id: 'digest',
+            password: '$PROVIDER_TEST_PASSWORD',
+            username: '$PROVIDER_TEST_USERNAME',
+          },
         ],
         parameters: {
           first: '$PROVIDER_TEST_FIRST',
@@ -307,6 +360,109 @@ describe('Configure CLI logic', () => {
       expect(setProfileProviderSpy).toHaveBeenCalledWith(
         mockProfileId.id,
         'provider-test',
+        {}
+      );
+    });
+
+    it('does not overwrite existing provider', async () => {
+      const mockSecurity = {
+        id: 'basic',
+        username: 'username',
+        password: 'password',
+      };
+      //normalized is getter on SuperJson - unable to mock or spy on
+      Object.assign(mockSuperJson, {
+        normalized: {
+          providers: {
+            [mockProviderJson.name]: {
+              security: [mockSecurity],
+            },
+          },
+        },
+      });
+      const setProviderSpy = jest.spyOn(SuperJson.prototype, 'setProvider');
+      const setProfileProviderSpy = jest.spyOn(
+        SuperJson.prototype,
+        'setProfileProvider'
+      );
+
+      expect(
+        handleProviderResponse(
+          {
+            superJson: mockSuperJson,
+            profileId: mockProfileId,
+            response: mockProviderJson,
+          },
+          { logger }
+        )
+      ).toEqual({ numberOfConfigured: 0, providerUpdated: false });
+
+      expect(setProviderSpy).not.toHaveBeenCalled();
+
+      expect(setProfileProviderSpy).toHaveBeenCalledTimes(1);
+      expect(setProfileProviderSpy).toHaveBeenCalledWith(
+        mockProfileId.id,
+        providerName,
+        {}
+      );
+    });
+
+    it('overwrites existing provider with force', async () => {
+      const mockSecurity = {
+        id: 'basic',
+        username: 'username',
+        password: 'password',
+      };
+      //normalized is getter on SuperJson - unable to mock or spy on
+      Object.assign(mockSuperJson, {
+        normalized: {
+          providers: {
+            [mockProviderJson.name]: {
+              security: [mockSecurity],
+            },
+          },
+        },
+      });
+      const setProviderSpy = jest.spyOn(SuperJson.prototype, 'setProvider');
+      const setProfileProviderSpy = jest.spyOn(
+        SuperJson.prototype,
+        'setProfileProvider'
+      );
+
+      expect(
+        handleProviderResponse(
+          {
+            superJson: mockSuperJson,
+            profileId: mockProfileId,
+            response: mockProviderJson,
+            options: { force: true },
+          },
+          { logger }
+        )
+      ).toEqual({ numberOfConfigured: 4, providerUpdated: true });
+
+      expect(setProviderSpy).toHaveBeenCalledTimes(1);
+      expect(setProviderSpy).toHaveBeenCalledWith(providerName, {
+        security: [
+          { apikey: '$TEST_API_KEY', id: 'api' },
+          { id: 'bearer', token: '$TEST_TOKEN' },
+          {
+            id: 'basic',
+            password: '$TEST_PASSWORD',
+            username: '$TEST_USERNAME',
+          },
+          {
+            password: '$TEST_PASSWORD',
+            username: '$TEST_USERNAME',
+            id: 'digest',
+          },
+        ],
+      });
+
+      expect(setProfileProviderSpy).toHaveBeenCalledTimes(1);
+      expect(setProfileProviderSpy).toHaveBeenCalledWith(
+        mockProfileId.id,
+        providerName,
         {}
       );
     });
@@ -338,11 +494,14 @@ describe('Configure CLI logic', () => {
 
       expect(
         handleProviderResponse(
-          mockSuperJson,
-          mockProfileId,
-          mockProviderJsonWithSingleSchema
+          {
+            superJson: mockSuperJson,
+            profileId: mockProfileId,
+            response: mockProviderJsonWithSingleSchema,
+          },
+          { logger }
         )
-      ).toEqual(0);
+      ).toEqual({ numberOfConfigured: 0, providerUpdated: true });
 
       expect(setProviderSpy).toHaveBeenCalledTimes(1);
       expect(setProviderSpy).toHaveBeenCalledWith(providerName, {
@@ -362,22 +521,22 @@ describe('Configure CLI logic', () => {
     it('returns correct result', async () => {
       mocked(fetchProviderInfo).mockResolvedValue(mockProviderJson);
 
-      await expect(getProviderFromStore(providerName)).resolves.toEqual(
-        mockProviderJson
-      );
+      await expect(
+        getProviderFromStore(providerName, { logger, userError })
+      ).resolves.toEqual(mockProviderJson);
     });
 
     it('throws on error', async () => {
       mocked(fetchProviderInfo).mockRejectedValue(new Error('test'));
 
-      await expect(getProviderFromStore(providerName)).rejects.toEqual(
-        new CLIError('test')
-      );
+      await expect(
+        getProviderFromStore(providerName, { logger, userError })
+      ).rejects.toThrow('test');
     });
   });
 
   describe('when instaling provider', () => {
-    const mockProfileId = ProfileId.fromId('test-profile');
+    const mockProfileId = ProfileId.fromId('test-profile', { userError });
     const mockSuperJson = new SuperJson({
       profiles: {
         [mockProfileId.id]: {
@@ -420,14 +579,17 @@ describe('Configure CLI logic', () => {
         .mockResolvedValue(undefined);
 
       await expect(
-        installProvider({
-          superPath: 'some/path',
-          provider: providerName,
-          profileId: mockProfileId,
-          defaults: {
-            testUseCase: { retryPolicy: OnFail.CIRCUIT_BREAKER },
+        installProvider(
+          {
+            superPath: 'some/path',
+            provider: providerName,
+            profileId: mockProfileId,
+            defaults: {
+              testUseCase: { retryPolicy: OnFail.CIRCUIT_BREAKER },
+            },
           },
-        })
+          { logger, userError }
+        )
       ).resolves.toBeUndefined();
 
       expect(loadSpy).toHaveBeenCalledTimes(1);
@@ -452,7 +614,11 @@ describe('Configure CLI logic', () => {
             password: '$TEST_PASSWORD',
             username: '$TEST_USERNAME',
           },
-          { digest: '$TEST_DIGEST', id: 'digest' },
+          {
+            id: 'digest',
+            password: '$TEST_PASSWORD',
+            username: '$TEST_USERNAME',
+          },
         ],
       });
 
@@ -489,15 +655,18 @@ describe('Configure CLI logic', () => {
         .mockResolvedValue(undefined);
 
       await expect(
-        installProvider({
-          superPath: 'some/path',
-          provider: providerName,
-          profileId: mockProfileId,
-          defaults: {
-            testUseCase: { retryPolicy: OnFail.CIRCUIT_BREAKER },
+        installProvider(
+          {
+            superPath: 'some/path',
+            provider: providerName,
+            profileId: mockProfileId,
+            defaults: {
+              testUseCase: { retryPolicy: OnFail.CIRCUIT_BREAKER },
+            },
+            options: { updateEnv: true },
           },
-          options: { updateEnv: true },
-        })
+          { logger, userError }
+        )
       ).resolves.toBeUndefined();
 
       expect(loadSpy).toHaveBeenCalledTimes(1);
@@ -522,14 +691,18 @@ describe('Configure CLI logic', () => {
             password: '$TEST_PASSWORD',
             username: '$TEST_USERNAME',
           },
-          { digest: '$TEST_DIGEST', id: 'digest' },
+          {
+            id: 'digest',
+            password: '$TEST_PASSWORD',
+            username: '$TEST_USERNAME',
+          },
         ],
       });
 
       expect(writeOnceSpy).toHaveBeenCalledTimes(2);
       expect(writeOnceSpy).toHaveBeenCalledWith(
         '.env',
-        `TEST_API_KEY=\nTEST_TOKEN=\nTEST_USERNAME=\nTEST_PASSWORD=\nTEST_DIGEST=\n`
+        'TEST_API_KEY=\nTEST_TOKEN=\nTEST_USERNAME=\nTEST_PASSWORD=\nTEST_DIGEST=\n'
       );
     });
 
@@ -564,15 +737,18 @@ describe('Configure CLI logic', () => {
       mocked(fetchProviderInfo).mockResolvedValue(mockProviderJson);
 
       await expect(
-        installProvider({
-          superPath: 'some/path',
-          provider: providerName,
-          profileId: mockProfileId,
-          defaults: undefined,
-          options: {
-            localMap: 'maps/send-sms.twilio.suma',
+        installProvider(
+          {
+            superPath: 'some/path',
+            provider: providerName,
+            profileId: mockProfileId,
+            defaults: undefined,
+            options: {
+              localMap: 'maps/send-sms.twilio.suma',
+            },
           },
-        })
+          { logger, userError }
+        )
       ).resolves.toBeUndefined();
 
       expect(loadSpy).toHaveBeenCalledTimes(1);
@@ -597,7 +773,11 @@ describe('Configure CLI logic', () => {
             password: '$TEST_PASSWORD',
             username: '$TEST_USERNAME',
           },
-          { digest: '$TEST_DIGEST', id: 'digest' },
+          {
+            id: 'digest',
+            password: '$TEST_PASSWORD',
+            username: '$TEST_USERNAME',
+          },
         ],
       });
 
@@ -635,15 +815,18 @@ describe('Configure CLI logic', () => {
       mocked(readFile).mockResolvedValue(JSON.stringify(mockProviderJson));
 
       await expect(
-        installProvider({
-          superPath: 'some/path',
-          provider: providerName,
-          profileId: mockProfileId,
-          defaults: undefined,
-          options: {
-            localProvider: 'providers/twilio.provider.json',
+        installProvider(
+          {
+            superPath: 'some/path',
+            provider: providerName,
+            profileId: mockProfileId,
+            defaults: undefined,
+            options: {
+              localProvider: 'providers/twilio.provider.json',
+            },
           },
-        })
+          { logger, userError }
+        )
       ).resolves.toBeUndefined();
 
       expect(loadSpy).toHaveBeenCalledTimes(1);
@@ -668,7 +851,11 @@ describe('Configure CLI logic', () => {
             password: '$TEST_PASSWORD',
             username: '$TEST_USERNAME',
           },
-          { digest: '$TEST_DIGEST', id: 'digest' },
+          {
+            id: 'digest',
+            password: '$TEST_PASSWORD',
+            username: '$TEST_USERNAME',
+          },
         ],
       });
 
@@ -706,16 +893,19 @@ describe('Configure CLI logic', () => {
       mocked(fetchProviderInfo).mockResolvedValue(mockProviderJson);
 
       await expect(
-        installProvider({
-          superPath: 'some/path',
-          provider: providerName,
-          profileId: mockProfileId,
-          defaults: undefined,
-          options: {
-            localMap: 'maps/send-sms.twilio.suma',
-            updateEnv: true,
+        installProvider(
+          {
+            superPath: 'some/path',
+            provider: providerName,
+            profileId: mockProfileId,
+            defaults: undefined,
+            options: {
+              localMap: 'maps/send-sms.twilio.suma',
+              updateEnv: true,
+            },
           },
-        })
+          { logger, userError }
+        )
       ).resolves.toBeUndefined();
 
       expect(loadSpy).toHaveBeenCalledTimes(1);
@@ -740,14 +930,18 @@ describe('Configure CLI logic', () => {
             password: '$TEST_PASSWORD',
             username: '$TEST_USERNAME',
           },
-          { digest: '$TEST_DIGEST', id: 'digest' },
+          {
+            id: 'digest',
+            password: '$TEST_PASSWORD',
+            username: '$TEST_USERNAME',
+          },
         ],
       });
 
       expect(writeOnceSpy).toHaveBeenCalledTimes(2);
       expect(writeOnceSpy).toHaveBeenCalledWith(
         '.env',
-        `TEST_API_KEY=\nTEST_TOKEN=\nTEST_USERNAME=\nTEST_PASSWORD=\nTEST_DIGEST=\n`
+        'TEST_API_KEY=\nTEST_TOKEN=\nTEST_USERNAME=\nTEST_PASSWORD=\nTEST_DIGEST=\n'
       );
     });
 
@@ -771,16 +965,19 @@ describe('Configure CLI logic', () => {
       mocked(readFile).mockRejectedValue(new Error('test'));
 
       await expect(
-        installProvider({
-          superPath: 'some/path',
-          provider: providerName,
-          profileId: mockProfileId,
-          defaults: undefined,
-          options: {
-            localProvider: 'some/error/path',
+        installProvider(
+          {
+            superPath: 'some/path',
+            provider: providerName,
+            profileId: mockProfileId,
+            defaults: undefined,
+            options: {
+              localProvider: 'some/error/path',
+            },
           },
-        })
-      ).rejects.toEqual(new CLIError('test'));
+          { logger, userError }
+        )
+      ).rejects.toThrow('test');
 
       expect(fetchProviderInfo).not.toHaveBeenCalled();
 
@@ -801,15 +998,16 @@ describe('Configure CLI logic', () => {
         .mockResolvedValue(ok(mockSuperJson));
 
       await expect(
-        installProvider({
-          superPath: 'some/path',
-          provider: providerName,
-          profileId: mockProfileId,
-        })
-      ).rejects.toEqual(
-        new CLIError(
-          `❌ profile ${mockProfileId.id} not found in "some/path/super.json".`
+        installProvider(
+          {
+            superPath: 'some/path',
+            provider: providerName,
+            profileId: mockProfileId,
+          },
+          { logger, userError }
         )
+      ).rejects.toThrow(
+        `profile ${mockProfileId.id} not found in "some/path/super.json".`
       );
 
       expect(fetchProviderInfo).not.toHaveBeenCalled();
@@ -818,7 +1016,7 @@ describe('Configure CLI logic', () => {
       expect(loadSpy).toHaveBeenCalledWith('some/path/super.json');
     });
 
-    it('does not write anything if provider already exists', async () => {
+    it("does not print info about security schemes if provider hasn't been updated", async () => {
       //normalized is getter on SuperJson - unable to mock or spy on
       Object.assign(mockSuperJson, {
         normalized: {
@@ -851,21 +1049,91 @@ describe('Configure CLI logic', () => {
         .mockResolvedValue(undefined);
 
       await expect(
-        installProvider({
-          superPath: 'some/path',
-          provider: providerName,
-          profileId: mockProfileId,
-        })
+        installProvider(
+          {
+            superPath: 'some/path',
+            provider: providerName,
+            profileId: mockProfileId,
+          },
+          { logger, userError }
+        )
       ).resolves.toBeUndefined();
 
       expect(loadSpy).toHaveBeenCalledTimes(1);
       expect(loadSpy).toHaveBeenCalledWith('some/path/super.json');
 
+      expect(logger.stdout).toEqual([
+        ['fetchProvider', [providerName]],
+        ['configureProviderSecurity', [providerName]],
+        ['updateSuperJson', [undefined]],
+        ['profileProviderConfigured', [providerName, mockProfileId.toString()]],
+        ['noSecurityFoundOrAlreadyConfigured', []],
+      ]);
+
       expect(fetchProviderInfo).toHaveBeenCalledTimes(1);
 
-      expect(setProfileProviderSpy).not.toHaveBeenCalled();
+      expect(setProfileProviderSpy).toHaveBeenCalledTimes(1);
       expect(setProviderSpy).not.toHaveBeenCalled();
-      expect(writeOnceSpy).not.toHaveBeenCalled();
+      expect(writeOnceSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('prints info about security schemes if provider has been updated', async () => {
+      //normalized is getter on SuperJson - unable to mock or spy on
+      Object.assign(mockSuperJson, {
+        normalized: {
+          profiles: {
+            [mockProfileId.id]: {
+              version: '1.0.0',
+              defaults: {},
+              providers: {},
+            },
+          },
+          providers: {},
+        },
+      });
+      const loadSpy = jest
+        .spyOn(SuperJson, 'load')
+        .mockResolvedValue(ok(mockSuperJson));
+
+      mocked(fetchProviderInfo).mockResolvedValue(mockProviderJson);
+
+      const setProviderSpy = jest.spyOn(SuperJson.prototype, 'setProvider');
+      const setProfileProviderSpy = jest.spyOn(
+        SuperJson.prototype,
+        'setProfileProvider'
+      );
+
+      const writeOnceSpy = jest
+        .spyOn(OutputStream, 'writeOnce')
+        .mockResolvedValue(undefined);
+
+      await expect(
+        installProvider(
+          {
+            superPath: 'some/path',
+            provider: providerName,
+            profileId: mockProfileId,
+          },
+          { logger, userError }
+        )
+      ).resolves.toBeUndefined();
+
+      expect(loadSpy).toHaveBeenCalledTimes(1);
+      expect(loadSpy).toHaveBeenCalledWith('some/path/super.json');
+
+      expect(logger.stdout).toEqual([
+        ['fetchProvider', [providerName]],
+        ['configureProviderSecurity', [providerName]],
+        ['updateSuperJson', [undefined]],
+        ['profileProviderConfigured', [providerName, mockProfileId.toString()]],
+        ['allSecurityConfigured', []],
+      ]);
+
+      expect(fetchProviderInfo).toHaveBeenCalledTimes(1);
+
+      expect(setProfileProviderSpy).toHaveBeenCalledTimes(1);
+      expect(setProviderSpy).toHaveBeenCalledTimes(1);
+      expect(writeOnceSpy).toHaveBeenCalledTimes(1);
     });
   });
 });

@@ -13,10 +13,10 @@ import {
   constructProfileProviderSettings,
   META_FILE,
 } from '../common/document';
-import { userError } from '../common/error';
+import { UserError } from '../common/error';
 import { fetchProviderInfo } from '../common/http';
 import { readFile, readFileQuiet } from '../common/io';
-import { formatShellLog, LogCallback } from '../common/log';
+import { ILogger } from '../common/log';
 import { OutputStream } from '../common/output-stream';
 import { ProfileId } from '../common/profile';
 import { prepareEnvVariables } from '../templates/env';
@@ -24,7 +24,7 @@ import { prepareEnvVariables } from '../templates/env';
 export async function updateEnv(
   provider: string,
   securitySchemes: SecurityScheme[],
-  options?: { warnCb?: LogCallback }
+  { logger }: { logger: ILogger }
 ): Promise<void> {
   //Get .env file
   let envContent = (await readFileQuiet('.env')) || '';
@@ -34,9 +34,7 @@ export async function updateEnv(
   envContent += values
     .filter((value: string | undefined) => {
       if (!value) {
-        options?.warnCb?.(
-          `⚠️  Provider: "${provider}" contains unknown security scheme`
-        );
+        logger.warn('unknownSecurityScheme', provider);
 
         return false;
       }
@@ -55,39 +53,53 @@ export async function updateEnv(
 /**
  * Handle responses from superface registry.
  * It saves new information about provider into super.json.
- * @returns number of configured security schemes
+ * @returns number of configured security schemes and information about update of the provider settings
  */
 export function handleProviderResponse(
-  superJson: SuperJson,
-  profileId: ProfileId,
-  response: ProviderJson,
-  defaults?: ProfileProviderDefaults,
-  options?: {
-    logCb?: LogCallback;
-    warnCb?: LogCallback;
-    localMap?: string;
-    localProvider?: string;
-  }
-): number {
-  options?.logCb?.(`Installing provider: "${response.name}"`);
+  {
+    superJson,
+    profileId,
+    response,
+    defaults,
+    options,
+  }: {
+    superJson: SuperJson;
+    profileId: ProfileId;
+    response: ProviderJson;
+    defaults?: ProfileProviderDefaults;
+    options?: {
+      localMap?: string;
+      localProvider?: string;
+      force?: boolean;
+    };
+  },
+  { logger }: { logger: ILogger }
+): { providerUpdated: boolean; numberOfConfigured: number } {
+  logger.info('configureProviderSecurity', response.name);
 
   let parameters: { [key: string]: string } | undefined = undefined;
   if (response.parameters) {
     parameters = prepareProviderParameters(response.name, response.parameters);
   }
 
+  let numberOfConfigured = 0;
+  let providerUpdated = false;
   const security = response.securitySchemes
     ? prepareSecurityValues(response.name, response.securitySchemes)
     : [];
 
-  // update super.json
-  superJson.setProvider(response.name, {
-    security,
-    parameters,
-    file: options?.localProvider
-      ? superJson.relativePath(options.localProvider)
-      : undefined,
-  });
+  // update super.json - set provider if not already set or on force
+  if (options?.force || !superJson.normalized.providers[response.name]) {
+    superJson.setProvider(response.name, {
+      security,
+      parameters,
+      file: options?.localProvider
+        ? superJson.relativePath(options.localProvider)
+        : undefined,
+    });
+    numberOfConfigured = security.length;
+    providerUpdated = true;
+  }
 
   //constructProfileProviderSettings returns Record<string, ProfileProviderEntry>
   let settings = defaults
@@ -106,7 +118,7 @@ export function handleProviderResponse(
   }
   superJson.setProfileProvider(profileId.id, response.name, settings);
 
-  return security.length;
+  return { providerUpdated, numberOfConfigured };
 }
 
 /**
@@ -115,15 +127,12 @@ export function handleProviderResponse(
  */
 export async function getProviderFromStore(
   providerName: string,
-  options?: {
-    logCb?: LogCallback;
-  }
+  { logger, userError }: { logger: ILogger; userError: UserError }
 ): Promise<ProviderJson> {
-  options?.logCb?.(`Fetching provider ${providerName} from the Store`);
+  logger.info('fetchProvider', providerName);
 
   try {
     const info = await fetchProviderInfo(providerName);
-    options?.logCb?.('GET Provider Info');
 
     return info;
   } catch (error) {
@@ -136,35 +145,42 @@ export async function getProviderFromStore(
  * @param superPath - path to directory where super.json located
  * @param provider - provider name or filepath specified as argument
  */
-export async function installProvider(parameters: {
-  superPath: string;
-  provider: string;
-  profileId: ProfileId;
-  defaults?: ProfileProviderDefaults;
-  options?: {
-    logCb?: LogCallback;
-    warnCb?: LogCallback;
-    force?: boolean;
-    localMap?: string;
-    localProvider?: string;
-    updateEnv?: boolean;
-  };
-}): Promise<void> {
-  const superJsonPath = joinPath(parameters.superPath, META_FILE);
+export async function installProvider(
+  {
+    superPath,
+    provider,
+    profileId,
+    defaults,
+    options,
+  }: {
+    superPath: string;
+    provider: string;
+    profileId: ProfileId;
+    defaults?: ProfileProviderDefaults;
+    options?: {
+      force?: boolean;
+      localMap?: string;
+      localProvider?: string;
+      updateEnv?: boolean;
+    };
+  },
+  { logger, userError }: { logger: ILogger; userError: UserError }
+): Promise<void> {
+  const superJsonPath = joinPath(superPath, META_FILE);
   const loadedResult = await SuperJson.load(superJsonPath);
   const superJson = loadedResult.match(
     v => v,
     err => {
-      parameters.options?.warnCb?.(err.formatLong());
+      logger.warn('errorMessage', err.formatLong());
 
       return new SuperJson({});
     }
   );
 
   //Check profile existance
-  if (!superJson.normalized.profiles[parameters.profileId.id]) {
+  if (!superJson.normalized.profiles[profileId.id]) {
     throw userError(
-      `❌ profile ${parameters.profileId.id} not found in "${superJsonPath}".`,
+      `profile ${profileId.id} not found in "${superJsonPath}".`,
       1
     );
   }
@@ -172,9 +188,9 @@ export async function installProvider(parameters: {
   //Load provider info
   let providerInfo: ProviderJson;
   //Load from file
-  if (parameters.options?.localProvider) {
+  if (options?.localProvider) {
     try {
-      const file = await readFile(parameters.options.localProvider, {
+      const file = await readFile(options.localProvider, {
         encoding: 'utf-8',
       });
       providerInfo = assertProviderJson(JSON.parse(file));
@@ -183,92 +199,87 @@ export async function installProvider(parameters: {
     }
   } else {
     //Load from server
-    providerInfo = await getProviderFromStore(parameters.provider);
-  }
-
-  // Check existence and warn
-  if (
-    parameters.options?.force !== true &&
-    superJson.normalized.providers[providerInfo.name]
-  ) {
-    parameters.options?.warnCb?.(
-      `⚠️  Provider already exists: "${providerInfo.name}" (Use flag \`--force/-f\` for overwriting profiles)`
-    );
-
-    return;
+    providerInfo = await getProviderFromStore(provider, { logger, userError });
   }
 
   //Write provider to super.json
-  const numOfConfigured = handleProviderResponse(
-    superJson,
-    parameters.profileId,
-    providerInfo,
-    parameters.defaults,
-    parameters.options
+  const configureResult = handleProviderResponse(
+    {
+      superJson,
+      profileId,
+      response: providerInfo,
+      defaults,
+      options,
+    },
+    { logger }
   );
 
   // write new information to super.json
-  await OutputStream.writeOnce(
-    superJson.path,
-    superJson.stringified,
-    parameters.options
-  );
-  parameters.options?.logCb?.(
-    formatShellLog("echo '<updated super.json>' >", [superJson.path])
-  );
+  await OutputStream.writeOnce(superJson.path, superJson.stringified, options);
+  logger.info('updateSuperJson', superJson.path);
 
   // update .env
-  if (parameters.options?.updateEnv && providerInfo.securitySchemes) {
+  if (options?.updateEnv && providerInfo.securitySchemes) {
     await updateEnv(providerInfo.name, providerInfo.securitySchemes, {
-      warnCb: parameters.options.warnCb,
+      logger,
     });
   }
-  if (providerInfo.securitySchemes && providerInfo.securitySchemes.length > 0) {
-    // inform user about instlaled security schemes
-    if (numOfConfigured === 0) {
-      parameters.options?.logCb?.(
-        `❌ No security schemes have been configured.`
-      );
-    } else if (numOfConfigured < providerInfo.securitySchemes.length) {
-      parameters.options?.logCb?.(
-        `⚠️ Some security schemes have been configured. Configured ${numOfConfigured} out of ${providerInfo.securitySchemes.length}.`
+  logger.success(
+    'profileProviderConfigured',
+    providerInfo.name,
+    profileId.toString()
+  );
+  // inform user about installed security schemes if we have updated the provider settings
+  if (
+    configureResult.providerUpdated &&
+    providerInfo.securitySchemes &&
+    providerInfo.securitySchemes.length > 0
+  ) {
+    if (configureResult.numberOfConfigured === 0) {
+      logger.warn('noSecurityConfigured');
+    } else if (
+      configureResult.numberOfConfigured < providerInfo.securitySchemes.length
+    ) {
+      logger.warn(
+        'xOutOfYConfigured',
+        configureResult.numberOfConfigured,
+        providerInfo.securitySchemes.length
       );
     } else {
-      parameters.options?.logCb?.(
-        `🆗 All security schemes have been configured successfully.`
-      );
+      logger.success('allSecurityConfigured');
     }
   } else {
-    parameters.options?.logCb?.(`No security schemes found to configure.`);
+    logger.info('noSecurityFoundOrAlreadyConfigured');
   }
-  // inform user about configured parameters
-  if (providerInfo.parameters && providerInfo.parameters.length > 0) {
-    parameters.options?.logCb?.(
-      `Provider ${providerInfo.name} has integration parameters that must be configured. You can configure them in super.json on path: ${superJson.path} or set the environment variables as defined below.`
-    );
+  // inform user about configured parameters if we have updated the provider settings
+  if (
+    configureResult.providerUpdated &&
+    providerInfo.parameters &&
+    providerInfo.parameters.length > 0
+  ) {
+    logger.info('providerHasParameters', providerInfo.name, superJson.path);
     for (const parameter of providerInfo.parameters) {
-      let description = '';
-      if (parameter.description) {
-        description = ` with description "${parameter.description}"`;
-      }
-
       const superJsonValue =
         superJson.normalized.providers[providerInfo.name].parameters[
           parameter.name
         ];
       if (superJsonValue === undefined) {
-        parameters.options?.logCb?.(
-          `❌ Parameter ${parameter.name}${description} has not been configured.\nPlease, configure this parameter manualy in super.json on path: ${superJson.path}`
+        logger.warn(
+          'parameterNotConfigured',
+          parameter.name,
+          superJson.path,
+          parameter.description
         );
       } else {
-        parameters.options?.logCb?.(
-          `🆗 Parameter ${parameter.name}${description} has been configured to use value of environment value "${superJsonValue}".\nPlease, configure this environment value.`
+        logger.success(
+          'parameterConfigured',
+          parameter.name,
+          superJsonValue,
+          parameter.description
         );
       }
       if (parameter.default) {
-        parameters.options?.logCb?.(
-          `If you do not set the variable, the default value "${parameter.default}" will be used.`
-        );
+        logger.info('parameterHasDefault', parameter.default);
       }
     }
   }
@@ -280,11 +291,7 @@ export async function installProvider(parameters: {
 export async function reconfigureProvider(
   superJson: SuperJson,
   providerName: string,
-  target: { kind: 'local'; file: string } | { kind: 'remote' },
-  _options?: {
-    logCb?: LogCallback;
-    warnCb?: LogCallback;
-  }
+  target: { kind: 'local'; file: string } | { kind: 'remote' }
 ): Promise<void> {
   // TODO: Possibly do checks whether the remote file exists?
   superJson.swapProviderVariant(providerName, target);
@@ -299,11 +306,7 @@ export async function reconfigureProfileProvider(
   providerName: string,
   target:
     | { kind: 'local'; file: string }
-    | { kind: 'remote'; mapVariant?: string; mapRevision?: string },
-  _options?: {
-    logCb?: LogCallback;
-    warnCb?: LogCallback;
-  }
+    | { kind: 'remote'; mapVariant?: string; mapRevision?: string }
 ): Promise<void> {
   // TODO: Possibly do checks whether the remote file exists?
   superJson.swapProfileProviderVariant(profileId.id, providerName, target);

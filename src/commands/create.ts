@@ -5,19 +5,19 @@ import {
   isValidProviderName,
 } from '@superfaceai/ast';
 import { parseProfileId, VersionRange } from '@superfaceai/parser';
-import { grey, yellow } from 'chalk';
 import inquirer from 'inquirer';
 
+import { Command, Flags } from '../common/command.abstract';
 import {
   composeUsecaseName,
   DEFAULT_PROFILE_VERSION,
   DEFAULT_PROFILE_VERSION_STR,
   SUPERFACE_DIR,
   UNVERIFIED_PROVIDER_PREFIX,
-} from '../common';
-import { Command } from '../common/command.abstract';
-import { developerError, userError } from '../common/error';
+} from '../common/document';
+import { developerError, UserError } from '../common/error';
 import { exists, mkdirQuiet } from '../common/io';
+import { ILogger } from '../common/log';
 import { NORMALIZED_CWD_PATH } from '../common/path';
 import { create } from '../logic/create';
 import { initSuperface } from '../logic/init';
@@ -67,21 +67,21 @@ export default class Create extends Command {
     //Command modifiers
     init: oclifFlags.boolean({
       default: false,
-      description: `When set to true, command will initialize Superface`,
+      description: 'When set to true, command will initialize Superface',
       exclusive: ['no-init'],
     }),
     ['no-init']: oclifFlags.boolean({
       default: false,
-      description: `When set to true, command won't initialize Superface`,
+      description: "When set to true, command won't initialize Superface",
       exclusive: ['init'],
     }),
     ['no-super-json']: oclifFlags.boolean({
       default: false,
-      description: `When set to true, command won't change SuperJson file`,
+      description: "When set to true, command won't change SuperJson file",
     }),
     interactive: oclifFlags.boolean({
       char: 'i',
-      description: `When set to true, command is used in interactive mode.`,
+      description: 'When set to true, command is used in interactive mode.',
       default: false,
       exclusive: ['quiet', 'profile', 'map', 'provider'],
     }),
@@ -121,13 +121,30 @@ export default class Create extends Command {
     '$ superface create -i',
   ];
 
-  private warnCallback? = (message: string) => this.log(yellow(message));
-  private logCallback? = (message: string) => this.log(grey(message));
-
   async run(): Promise<void> {
     const { flags } = this.parse(Create);
+    await super.initialize(flags);
+    await this.execute({
+      logger: this.logger,
+      userError: this.userError,
+      flags,
+    });
+  }
 
-    if (!flags.profileId && !flags.providerName && !flags.interactive) {
+  async execute({
+    logger,
+    userError,
+    flags,
+  }: {
+    logger: ILogger;
+    userError: UserError;
+    flags: Flags<typeof Create.flags>;
+  }): Promise<void> {
+    if (
+      !flags.profileId &&
+      (!flags.providerName || flags.providerName.length === 0) &&
+      !flags.interactive
+    ) {
       throw userError('Invalid command! Specify profileId or providerName', 1);
     }
     if (flags.path && !(await exists(flags.path))) {
@@ -166,7 +183,10 @@ export default class Create extends Command {
         flags.profileId = profileInput;
       }
       //We need provider name
-      if (!flags.providerName && (flags.provider || flags.map)) {
+      if (
+        (!flags.providerName || flags.providerName.length === 0) &&
+        (flags.provider || flags.map)
+      ) {
         flags.providerName = [];
         let priority = 1;
         let exit = false;
@@ -198,11 +218,6 @@ export default class Create extends Command {
           priority++;
         }
       }
-    }
-
-    if (flags.quiet) {
-      this.logCallback = undefined;
-      this.warnCallback = undefined;
     }
     let profileId: string | undefined = undefined;
     let providerNames: string[] = [];
@@ -238,13 +253,11 @@ export default class Create extends Command {
           !provider.startsWith(UNVERIFIED_PROVIDER_PREFIX) &&
           (flags.map || flags.provider)
         ) {
-          this.warnCallback?.(
-            `Published provider name must have prefix "${UNVERIFIED_PROVIDER_PREFIX}".\nIf you are planning to publish this map or provider consider renaming it to eg: "${UNVERIFIED_PROVIDER_PREFIX}${provider}"`
-          );
+          logger.warn('unverifiedPrefix', provider, UNVERIFIED_PROVIDER_PREFIX);
         }
       }
     }
-    providerNames = flags.providerName;
+    providerNames = flags.providerName !== undefined ? flags.providerName : [];
 
     if (flags.providerFileName && providerNames.length > 1) {
       throw userError(
@@ -260,7 +273,13 @@ export default class Create extends Command {
       );
     }
     // output a warning when generating profile only and provider is specified
-    if (flags.profile && !flags.map && !flags.provider && flags.providerName) {
+    if (
+      flags.profile &&
+      !flags.map &&
+      !flags.provider &&
+      flags.providerName &&
+      flags.providerName.length > 0
+    ) {
       this.warn(
         'Provider should not be specified when generating profile only'
       );
@@ -315,7 +334,10 @@ export default class Create extends Command {
       }
 
       // if there is no specified usecase - create usecase with same name as profile name
-      usecases = flags.usecase ?? [composeUsecaseName(name)];
+      usecases =
+        flags.usecase !== undefined && flags.usecase.length > 0
+          ? flags.usecase
+          : [composeUsecaseName(name)];
       for (const usecase of usecases) {
         if (!isValidIdentifier(usecase)) {
           throw userError(`Invalid usecase name: ${usecase}`, 1);
@@ -336,14 +358,14 @@ export default class Create extends Command {
     //We do want to init
     if (flags.init) {
       if (superPath) {
-        this.warnCallback?.('Superface has been already initialized');
+        logger.warn('superfaceAlreadyInitialized');
       } else {
         initSf = true;
       }
     }
     //We prompt user
     if (!flags['no-init'] && !flags.init && !superPath) {
-      this.warnCallback?.("File 'super.json' has not been found.");
+      logger.warn('superJsonNotFound');
 
       const response: { init: boolean } = await inquirer.prompt({
         name: 'init',
@@ -356,13 +378,13 @@ export default class Create extends Command {
 
     //Init SF
     if (initSf) {
-      this.logCallback?.(
-        "Initializing superface directory with empty 'super.json'"
-      );
+      logger.info('initSuperface');
       await initSuperface(
-        NORMALIZED_CWD_PATH,
-        { profiles: {}, providers: {} },
-        { logCb: this.logCallback }
+        {
+          appPath: NORMALIZED_CWD_PATH,
+          initialDocument: { profiles: {}, providers: {} },
+        },
+        { logger }
       );
       superPath = SUPERFACE_DIR;
     }
@@ -395,10 +417,7 @@ export default class Create extends Command {
           variant: flags.variant,
         },
       },
-      {
-        logCb: this.logCallback,
-        warnCb: this.warnCallback,
-      }
+      { logger, userError }
     );
   }
 

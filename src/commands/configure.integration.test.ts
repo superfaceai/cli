@@ -1,14 +1,14 @@
-import { HttpScheme, SecurityType } from '@superfaceai/ast';
 import { SuperJson } from '@superfaceai/one-sdk';
 import { getLocal } from 'mockttp';
 import { join as joinPath } from 'path';
 
-import { ContentType } from '../common/http';
 import { exists, mkdir, mkdirQuiet, rimraf } from '../common/io';
+import { messages } from '../common/messages';
 import { OutputStream } from '../common/output-stream';
 import {
   execCLI,
   mockResponsesForProfile,
+  mockResponsesForProfileProviders,
   mockResponsesForProvider,
   setUpTempDir,
 } from '../test/utils';
@@ -21,6 +21,9 @@ describe('Configure CLI command', () => {
   const profileId = 'starwars/character-information';
   const profileVersion = '1.0.1';
   const provider = 'swapi';
+  const emptyProvider = 'empty';
+  const providerWithoutSecurity = 'provider-without-security';
+
   const providerWithParameters = 'azure-cognitive-services';
   let tempDir: string;
 
@@ -30,6 +33,19 @@ describe('Configure CLI command', () => {
     await mockResponsesForProfile(mockServer, 'starwars/character-information');
     await mockResponsesForProvider(mockServer, 'swapi');
     await mockResponsesForProvider(mockServer, 'azure-cognitive-services');
+    await mockResponsesForProvider(mockServer, emptyProvider);
+    await mockResponsesForProvider(mockServer, providerWithoutSecurity);
+
+    await mockResponsesForProfileProviders(
+      mockServer,
+      [
+        'swapi',
+        'azure-cognitive-services',
+        emptyProvider,
+        providerWithoutSecurity,
+      ],
+      'starwars/character-information'
+    );
   });
   beforeEach(async () => {
     tempDir = await setUpTempDir(TEMP_PATH);
@@ -50,18 +66,14 @@ describe('Configure CLI command', () => {
         ['install', 'starwars/character-information'],
         mockServer.url
       );
-      expect(result.stdout).toMatch(
-        'All profiles (1) have been installed successfully.'
-      );
+      expect(result.stdout).toMatch(messages.allProfilesInstalled('1'));
 
       result = await execCLI(
         tempDir,
         ['configure', provider, '-p', profileId],
         mockServer.url
       );
-      expect(result.stdout).toMatch(
-        '🆗 All security schemes have been configured successfully.'
-      );
+      expect(result.stdout).toMatch(messages.allSecurityConfigured());
       await expect(
         exists(joinPath(tempDir, 'superface', 'super.json'))
       ).resolves.toEqual(true);
@@ -87,7 +99,8 @@ describe('Configure CLI command', () => {
         },
         {
           id: 'digest',
-          digest: `$${provider.toUpperCase()}_DIGEST`,
+          username: `$${provider.toUpperCase()}_USERNAME`,
+          password: `$${provider.toUpperCase()}_PASSWORD`,
         },
       ]);
       expect(superJson.document.profiles![profileId]).toEqual({
@@ -103,31 +116,40 @@ describe('Configure CLI command', () => {
         ['install', 'starwars/character-information'],
         mockServer.url
       );
-      expect(result.stdout).toMatch(
-        'All profiles (1) have been installed successfully.'
-      );
+      expect(result.stdout).toMatch(messages.allProfilesInstalled('1'));
 
       result = await execCLI(
         tempDir,
         ['configure', providerWithParameters, '-p', profileId],
         mockServer.url
       );
+      expect(result.stdout).toMatch(messages.allSecurityConfigured());
       expect(result.stdout).toMatch(
-        '🆗 All security schemes have been configured successfully.'
+        messages.providerHasParameters(
+          providerWithParameters,
+          'superface/super.json'
+        )
       );
       expect(result.stdout).toMatch(
-        `Provider azure-cognitive-services has integration parameters that must be configured. You can configure them in super.json on path: superface/super.json or set the environment variables as defined below.`
+        messages
+          .parameterConfigured(
+            'instance',
+            '$AZURE_COGNITIVE_SERVICES_INSTANCE',
+            'Instance of your azure cognitive service'
+          )
+          .split('\n')[0]
       );
       expect(result.stdout).toMatch(
-        '🆗 Parameter version has been configured to use value of environment value "$AZURE_COGNITIVE_SERVICES_VERSION"'
-      );
-      expect(result.stdout).toContain(
-        'Please, configure this environment value.'
+        messages
+          .parameterConfigured(
+            'version',
+            '$AZURE_COGNITIVE_SERVICES_VERSION',
+            ''
+          )
+          .split('\n')[0]
       );
 
-      expect(result.stdout).toContain(
-        'If you do not set the variable, the default value "v1" will be used.'
-      );
+      expect(result.stdout).toContain(messages.parameterHasDefault('v1'));
 
       await expect(
         exists(joinPath(tempDir, 'superface', 'super.json'))
@@ -160,33 +182,12 @@ describe('Configure CLI command', () => {
     }, 30000);
 
     it('configures provider with empty security schemes correctly', async () => {
-      const emptyProvider = 'empty';
       let result = await execCLI(
         tempDir,
         ['install', 'starwars/character-information'],
         mockServer.url
       );
-      expect(result.stdout).toMatch(
-        'All profiles (1) have been installed successfully.'
-      );
-
-      //mock provider structure
-      const mockProviderInfo = {
-        name: emptyProvider,
-        services: [
-          {
-            id: 'swapidev',
-            baseUrl: 'https://swapi.dev/api',
-          },
-        ],
-        //empty
-        securitySchemes: [],
-        defaultService: 'swapidev',
-      };
-      await mockServer
-        .get('/providers/' + emptyProvider)
-        .withHeaders({ 'Content-Type': ContentType.JSON })
-        .thenJson(200, { definition: mockProviderInfo });
+      expect(result.stdout).toMatch(messages.allProfilesInstalled('1'));
 
       result = await execCLI(
         tempDir,
@@ -195,7 +196,7 @@ describe('Configure CLI command', () => {
       );
 
       expect(result.stdout).toContain(
-        'No security schemes found to configure.'
+        messages.noSecurityFoundOrAlreadyConfigured()
       );
 
       const superJson = (
@@ -213,30 +214,12 @@ describe('Configure CLI command', () => {
     }, 30000);
 
     it('configures provider without security schemes correctly', async () => {
-      const providerWithoutSecurity = 'provider-without-security';
       let result = await execCLI(
         tempDir,
         ['install', 'starwars/character-information'],
         mockServer.url
       );
-      expect(result.stdout).toMatch(
-        'All profiles (1) have been installed successfully.'
-      );
-      //mock provider structure
-      const mockProviderInfo = {
-        name: providerWithoutSecurity,
-        services: [
-          {
-            id: 'swapidev',
-            baseUrl: 'https://swapi.dev/api',
-          },
-        ],
-        defaultService: 'swapidev',
-      };
-      await mockServer
-        .get('/providers/' + providerWithoutSecurity)
-        .withHeaders({ 'Content-Type': ContentType.JSON })
-        .thenJson(200, { definition: mockProviderInfo });
+      expect(result.stdout).toMatch(messages.allProfilesInstalled('1'));
 
       result = await execCLI(
         tempDir,
@@ -245,7 +228,7 @@ describe('Configure CLI command', () => {
       );
 
       expect(result.stdout).toContain(
-        'No security schemes found to configure.'
+        messages.noSecurityFoundOrAlreadyConfigured()
       );
 
       const superJson = (
@@ -268,9 +251,7 @@ describe('Configure CLI command', () => {
         ['install', 'starwars/character-information'],
         mockServer.url
       );
-      expect(result.stdout).toMatch(
-        'All profiles (1) have been installed successfully.'
-      );
+      expect(result.stdout).toMatch(messages.allProfilesInstalled('1'));
 
       result = await execCLI(
         tempDir,
@@ -278,7 +259,7 @@ describe('Configure CLI command', () => {
         mockServer.url
       );
 
-      expect(result.stdout).toMatch('');
+      expect(result.stdout).toEqual('');
 
       await expect(
         exists(joinPath(tempDir, 'superface', 'super.json'))
@@ -305,7 +286,8 @@ describe('Configure CLI command', () => {
         },
         {
           id: 'digest',
-          digest: `$${provider.toUpperCase()}_DIGEST`,
+          username: `$${provider.toUpperCase()}_USERNAME`,
+          password: `$${provider.toUpperCase()}_PASSWORD`,
         },
       ]);
       expect(superJson.document.profiles![profileId]).toEqual({
@@ -317,7 +299,7 @@ describe('Configure CLI command', () => {
   });
 
   describe('when providers are present in super.json', () => {
-    it('errors without a force flag', async () => {
+    it('uses existing provider without a force flag', async () => {
       //set existing super.json
       const localSuperJson = {
         profiles: {
@@ -351,29 +333,41 @@ describe('Configure CLI command', () => {
         mockServer.url
       );
 
-      expect(result.stdout).toContain(`Provider already exists: "${provider}"`);
+      expect(result.stdout).toContain(
+        messages.noSecurityFoundOrAlreadyConfigured()
+      );
 
       const superJson = (
         await SuperJson.load(joinPath(tempDir, 'superface', 'super.json'))
       ).unwrap();
 
-      expect(superJson.document).toEqual(localSuperJson);
+      expect(superJson.normalized.providers[provider].security).toEqual([
+        {
+          id: 'apiKey',
+          apikey: '$TEST_API_KEY',
+        },
+      ]);
+
+      expect(superJson.document.profiles![profileId]).toEqual({
+        version: profileVersion,
+        priority: [provider],
+        providers: { [provider]: {} },
+      });
     }, 30000);
 
     it('overrides existing super.json with a force flag', async () => {
-      const simpleProvider = 'simple-provider';
       //set existing super.json
       const localSuperJson = {
         profiles: {
           [profileId]: {
             version: profileVersion,
             providers: {
-              [simpleProvider]: {},
+              [providerWithoutSecurity]: {},
             },
           },
         },
         providers: {
-          [simpleProvider]: {
+          [providerWithoutSecurity]: {
             security: [
               {
                 id: 'apiKey',
@@ -388,54 +382,25 @@ describe('Configure CLI command', () => {
         joinPath(tempDir, 'superface', 'super.json'),
         JSON.stringify(localSuperJson, undefined, 2)
       );
-      const mockProviderInfo = {
-        name: simpleProvider,
-        services: [
-          {
-            id: 'swapidev',
-            baseUrl: 'https://swapi.dev/api',
-          },
-        ],
-        securitySchemes: [
-          {
-            id: 'swapidev',
-            type: SecurityType.HTTP,
-            scheme: HttpScheme.BEARER,
-          },
-        ],
-        defaultService: 'swapidev',
-      };
 
-      await mockServer
-        .get('/providers/' + simpleProvider)
-        .withHeaders({ 'Content-Type': ContentType.JSON })
-        .thenJson(200, { definition: mockProviderInfo });
-
-      const result = await execCLI(
+      await execCLI(
         tempDir,
-        ['configure', simpleProvider, '-p', profileId, '-f'],
+        ['configure', providerWithoutSecurity, '-p', profileId, '-f'],
         mockServer.url
-      );
-
-      expect(result.stdout).not.toContain(
-        `Provider already exists: "${simpleProvider}"`
       );
 
       const superJson = (
         await SuperJson.load(joinPath(tempDir, 'superface', 'super.json'))
       ).unwrap();
 
-      expect(superJson.normalized.providers[simpleProvider].security).toEqual([
-        {
-          id: 'swapidev',
-          token: '$SIMPLE_PROVIDER_TOKEN',
-        },
-      ]);
+      expect(
+        superJson.normalized.providers[providerWithoutSecurity].security
+      ).toEqual([]);
 
       expect(superJson.document.profiles![profileId]).toEqual({
         version: profileVersion,
-        priority: [simpleProvider],
-        providers: { [simpleProvider]: {} },
+        priority: [providerWithoutSecurity],
+        providers: { [providerWithoutSecurity]: {} },
       });
     }, 30000);
   });
@@ -447,9 +412,7 @@ describe('Configure CLI command', () => {
         ['install', 'starwars/character-information'],
         mockServer.url
       );
-      expect(result.stdout).toMatch(
-        'All profiles (1) have been installed successfully.'
-      );
+      expect(result.stdout).toMatch(messages.allProfilesInstalled('1'));
 
       result = await execCLI(
         tempDir,
@@ -464,9 +427,7 @@ describe('Configure CLI command', () => {
         mockServer.url
       );
 
-      expect(result.stdout).toContain(
-        `🆗 All security schemes have been configured successfully.`
-      );
+      expect(result.stdout).toContain(messages.allSecurityConfigured());
       const superJson = (
         await SuperJson.load(joinPath(tempDir, 'superface', 'super.json'))
       ).unwrap();
@@ -490,7 +451,8 @@ describe('Configure CLI command', () => {
         },
         {
           id: 'digest',
-          digest: '$SWAPI_DIGEST',
+          password: '$SWAPI_PASSWORD',
+          username: '$SWAPI_USERNAME',
         },
       ]);
 
@@ -531,7 +493,7 @@ describe('Configure CLI command', () => {
           mockServer.url
         )
       ).rejects.toEqual(
-        expect.stringContaining('Error: Local path: "some/path" does not exist')
+        expect.stringContaining('Local path: "some/path" does not exist')
       );
 
       const finalSuperJson = (
@@ -549,9 +511,7 @@ describe('Configure CLI command', () => {
         ['install', 'starwars/character-information'],
         mockServer.url
       );
-      expect(result.stdout).toMatch(
-        'All profiles (1) have been installed successfully.'
-      );
+      expect(result.stdout).toMatch(messages.allProfilesInstalled('1'));
 
       result = await execCLI(
         tempDir,
@@ -561,14 +521,12 @@ describe('Configure CLI command', () => {
           '-p',
           profileId,
           '--localMap',
-          `../../../fixtures/valid.suma`,
+          '../../../fixtures/valid.suma',
         ],
         mockServer.url
       );
 
-      expect(result.stdout).toContain(
-        `🆗 All security schemes have been configured successfully.`
-      );
+      expect(result.stdout).toContain(messages.allSecurityConfigured());
       const superJson = (
         await SuperJson.load(joinPath(tempDir, 'superface', 'super.json'))
       ).unwrap();
@@ -589,7 +547,8 @@ describe('Configure CLI command', () => {
         },
         {
           id: 'digest',
-          digest: '$SWAPI_DIGEST',
+          password: '$SWAPI_PASSWORD',
+          username: '$SWAPI_USERNAME',
         },
       ]);
       expect(superJson.document.profiles![profileId]).toEqual({

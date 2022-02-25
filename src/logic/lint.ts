@@ -12,8 +12,10 @@ import {
   parseMapId,
   parseProfile,
   ProfileHeaderStructure,
+  ProfileOutput,
   Source,
   SyntaxError,
+  validateExamples,
   validateMap,
   ValidationResult,
 } from '@superfaceai/parser';
@@ -24,10 +26,9 @@ import {
   composeVersion,
   DEFAULT_PROFILE_VERSION_STR,
 } from '../common/document';
-import { userError } from '../common/error';
+import { UserError } from '../common/error';
 import { fetchMapAST, fetchProfileAST } from '../common/http';
-import { ListWriter } from '../common/list-writer';
-import { LogCallback } from '../common/log';
+import { ILogger } from '../common/log';
 import { MapId } from '../common/map';
 import { ProfileId } from '../common/profile';
 import {
@@ -57,7 +58,8 @@ export function isValidHeader(
 export function isValidMapId(
   profileHeader: ProfileHeaderStructure,
   mapHeader: MapHeaderNode,
-  mapPath: string
+  mapPath: string,
+  { userError }: { userError: UserError }
 ): boolean {
   const mapIdentifier = basename(mapPath, EXTENSIONS.map.source);
   const mapId = mapIdentifier.includes('@')
@@ -103,82 +105,101 @@ export const createProfileMapReport = (
         warnings: result.warnings ?? [],
       };
 
-export const createFileReport = (
-  path: string,
-  errors: SyntaxError[],
-  warnings: string[]
-): FileReport => ({
-  kind: 'file',
-  path,
-  errors,
-  warnings,
-});
-
-export function formatHuman(
-  report: ReportFormat,
-  quiet: boolean,
-  short?: boolean
-): string {
+export function formatHuman({
+  report,
+  quiet,
+  emoji,
+  color,
+  short,
+}: {
+  report: ReportFormat;
+  quiet: boolean;
+  emoji: boolean;
+  color: boolean;
+  short?: boolean;
+}): string {
   const REPORT_OK = '🆗';
   const REPORT_WARN = '⚠️';
   const REPORT_ERR = '❌';
 
   let prefix;
-  let color: (inout: string) => string;
+  const noColor = (input: string) => input;
+  let colorize: (inout: string) => string = noColor;
 
   if (report.errors.length > 0) {
-    prefix = REPORT_ERR;
-    color = red;
+    prefix = emoji ? REPORT_ERR : '';
+    if (color) {
+      colorize = red;
+    }
   } else if (report.warnings.length > 0) {
-    prefix = REPORT_WARN;
-    color = yellow;
+    prefix = emoji ? REPORT_WARN : '';
+    if (color) {
+      colorize = yellow;
+    }
   } else {
-    prefix = REPORT_OK;
-    color = green;
+    prefix = emoji ? REPORT_OK : '';
+    if (color) {
+      colorize = green;
+    }
   }
 
   let buffer = '';
 
   if (report.kind === 'file') {
-    buffer += color(
+    buffer += colorize(
       `${prefix} Parsing ${
         report.path.endsWith(EXTENSIONS.profile.source) ? 'profile' : 'map'
       } file: ${report.path}\n`
     );
+
+    // Format Errors
     for (const error of report.errors) {
-      if (short) {
-        buffer += red(
-          `\t${error.location.start.line}:${error.location.start.column} ${error.message}\n`
-        );
+      if (error instanceof SyntaxError) {
+        if (short) {
+          const message = `\t${error.location.start.line}:${error.location.start.column} ${error.message}\n`;
+          buffer += color ? red(message) : message;
+        } else {
+          buffer += color ? red(error.format()) : error.format();
+        }
       } else {
-        buffer += red(error.format());
+        buffer += color ? red(formatIssues([error])) : formatIssues([error]);
+
+        if (report.errors.length > 0) {
+          buffer += '\n';
+        }
       }
     }
+
     if (report.errors.length > 0 && report.warnings.length > 0) {
       buffer += '\n';
     }
 
-    // TODO
+    // Format Warnings
     if (!quiet) {
-      for (const warning of report.warnings) {
-        if (typeof warning === 'string') {
-          buffer += yellow(`\t${warning}\n`);
-        }
-      }
+      buffer += color
+        ? yellow(formatIssues(report.warnings))
+        : formatIssues(report.warnings);
+      buffer += '\n';
     }
   } else {
-    buffer += color(
+    buffer += colorize(
       `${prefix} Validating profile: ${report.profile} to map: ${report.path}\n`
     );
 
-    buffer += red(formatIssues(report.errors));
+    // Format Errors
+    buffer += color
+      ? red(formatIssues(report.errors))
+      : formatIssues(report.errors);
 
     if (!quiet && report.errors.length > 0 && report.warnings.length > 0) {
       buffer += '\n';
     }
 
+    // Format Warnings
     if (!quiet) {
-      buffer += yellow(formatIssues(report.warnings));
+      buffer += color
+        ? yellow(formatIssues(report.warnings))
+        : formatIssues(report.warnings);
       buffer += '\n';
     }
   }
@@ -186,16 +207,20 @@ export function formatHuman(
   return buffer;
 }
 
-export function formatJson(report: ReportFormat): string {
-  return JSON.stringify(report, (key, value) => {
-    if (key === 'source') {
-      return undefined;
-    }
+export function formatJson(input: LintResult | ReportFormat): string {
+  return JSON.stringify(
+    input,
+    (key, value) => {
+      if (key === 'source') {
+        return undefined;
+      }
 
-    // we are just passing the value along, nothing unsafe about that
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    return value;
-  });
+      // we are just passing the value along, nothing unsafe about that
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+      return value;
+    },
+    2
+  );
 }
 
 export type MapToValidate = { provider: string; variant?: string };
@@ -204,66 +229,72 @@ export type ProfileToValidate = {
   maps: MapToValidate[];
   version?: string;
 };
-type MapToLintWithAst = MapToValidate & {
+
+// Linted map and profile
+type PreparedMap = MapToValidate & {
+  path: string;
   ast?: MapDocumentNode;
-  path: string;
-  counts: [number, number][];
+  report: FileReport;
 };
-type ProfileToLintWithAst = ProfileToValidate & {
-  ast?: ProfileDocumentNode;
+
+type PreparedProfile = ProfileToValidate & {
   path: string;
-  counts: [number, number][];
+  ast?: ProfileDocumentNode;
+  output?: ProfileOutput;
+  report: FileReport;
 };
 
 async function prepareLintedProfile(
   superJson: SuperJson,
   profile: ProfileToValidate,
-  writer: ListWriter,
-  fn: (report: ReportFormat) => string,
-  options?: {
-    logCb?: LogCallback;
-  }
-): Promise<ProfileToLintWithAst> {
-  const counts: [number, number][] = [];
-  let profileAst: ProfileDocumentNode | undefined = undefined;
+  { logger }: { logger: ILogger }
+): Promise<PreparedProfile> {
+  let ast: ProfileDocumentNode | undefined = undefined;
+  let output: ProfileOutput | undefined = undefined;
   const profileSource = await findLocalProfileSource(
     superJson,
     profile.id,
     profile.version
   );
+  const path = profileSource?.path || profile.id.withVersion(profile.version);
+
+  const report: FileReport = {
+    kind: 'file',
+    path,
+    errors: [],
+    warnings: [],
+  };
   //If we have local profile we lint it
   if (profileSource) {
-    options?.logCb?.(`Profile: "${profile.id.id}" found on local file system`);
-
-    const report: FileReport = {
-      kind: 'file',
-      path: profileSource.path || profile.id.withVersion(profile.version),
-      errors: [],
-      warnings: [],
-    };
+    logger.info('localProfileFound', profile.id.id, profileSource.path);
 
     try {
-      profileAst = parseProfile(
-        new Source(profileSource.source, profileSource.path)
-      );
+      ast = parseProfile(new Source(profileSource.source, profileSource.path));
     } catch (e) {
       report.errors.push(e);
     }
-    await writer.writeElement(fn(report));
-
-    counts.push([report.errors.length, report.warnings.length]);
   } else {
-    options?.logCb?.(
-      `Loading profile: "${profile.id.id}" from Superface store`
-    );
-    profileAst = await fetchProfileAST(profile.id.id);
+    logger.info('fetchProfile', profile.id.id, profile.version);
+    ast = await fetchProfileAST(profile.id, profile.version);
+  }
+
+  //Validate examples
+  if (ast) {
+    output = getProfileOutput(ast);
+    const examplesValidationResult = validateExamples(ast, output);
+
+    if (!examplesValidationResult.pass) {
+      report.errors.push(...examplesValidationResult.errors);
+    }
+    report.warnings.push(...(examplesValidationResult.warnings ?? []));
   }
 
   return {
     ...profile,
-    ast: profileAst,
-    path: profileSource?.path || profile.id.withVersion(profile.version),
-    counts,
+    ast,
+    output,
+    path,
+    report,
   };
 }
 
@@ -271,55 +302,9 @@ async function prepareLintedMap(
   superJson: SuperJson,
   profile: ProfileToValidate,
   map: MapToValidate,
-  writer: ListWriter,
-  fn: (report: ReportFormat) => string,
-  options?: {
-    logCb?: LogCallback;
-  }
-): Promise<MapToLintWithAst> {
-  const counts: [number, number][] = [];
-  let mapAst: MapDocumentNode | undefined = undefined;
-
-  const mapSource = await findLocalMapSource(
-    superJson,
-    profile.id,
-    map.provider
-  );
-  if (mapSource) {
-    options?.logCb?.(
-      `Map for profile: "${profile.id.withVersion(
-        profile.version
-      )}" and provider: "${map.provider}" found on local filesystem`
-    );
-    const report: FileReport = {
-      kind: 'file',
-      path: mapSource.path,
-      errors: [],
-      warnings: [],
-    };
-
-    try {
-      mapAst = parseMap(new Source(mapSource.source, mapSource.path));
-    } catch (e) {
-      report.errors.push(e);
-    }
-    await writer.writeElement(fn(report));
-
-    counts.push([report.errors.length, report.warnings.length]);
-  } else {
-    options?.logCb?.(
-      `Loading map for profile: "${profile.id.withVersion(
-        profile.version
-      )}" and provider: "${map.provider}" from Superface store`
-    );
-    mapAst = await fetchMapAST(
-      profile.id.name,
-      map.provider,
-      profile.id.scope,
-      profile.version,
-      map.variant
-    );
-  }
+  { logger }: { logger: ILogger }
+): Promise<PreparedMap> {
+  let ast: MapDocumentNode | undefined = undefined;
 
   const mapId = MapId.fromName({
     profile: {
@@ -330,68 +315,119 @@ async function prepareLintedMap(
     variant: map.variant,
   });
 
+  const mapSource = await findLocalMapSource(
+    superJson,
+    profile.id,
+    map.provider
+  );
+
+  const path =
+    mapSource?.path ??
+    mapId.withVersion(profile.version || DEFAULT_PROFILE_VERSION_STR);
+
+  const report: FileReport = {
+    kind: 'file',
+    path,
+    errors: [],
+    warnings: [],
+  };
+  if (mapSource) {
+    logger.info(
+      'localMapFound',
+      profile.id.withVersion(profile.version),
+      map.provider,
+      mapSource.path
+    );
+
+    try {
+      ast = parseMap(new Source(mapSource.source, mapSource.path));
+    } catch (e) {
+      report.errors.push(e);
+    }
+  } else {
+    logger.info(
+      'fetchMap',
+      profile.id.withVersion(profile.version),
+      map.provider
+    );
+    ast = await fetchMapAST({
+      name: profile.id.name,
+      provider: map.provider,
+      scope: profile.id.scope,
+      version: profile.version,
+      variant: map.variant,
+    });
+  }
+
   return {
     ...map,
-    ast: mapAst,
-    path:
-      mapSource?.path ??
-      mapId.withVersion(profile.version || DEFAULT_PROFILE_VERSION_STR),
-    counts,
+    ast,
+    report,
+    path,
+  };
+}
+
+export type LintResult = {
+  reports: ReportFormat[];
+  total: {
+    errors: number;
+    warnings: number;
+  };
+};
+
+function prepareResult(reports: ReportFormat[]): LintResult {
+  const total = {
+    errors: 0,
+    warnings: 0,
+  };
+  reports.forEach(report => {
+    total.errors += report.errors.length;
+    total.warnings += report.warnings.length;
+  });
+
+  return {
+    reports,
+    total,
   };
 }
 
 export async function lint(
   superJson: SuperJson,
   profiles: ProfileToValidate[],
-  writer: ListWriter,
-  fn: (report: ReportFormat) => string,
-  options?: {
-    logCb?: LogCallback;
-    errCb?: LogCallback;
-  }
-): Promise<[number, number][]> {
+  { logger }: { logger: ILogger }
+): Promise<LintResult> {
   const counts: [number, number][] = [];
+  const reports: ReportFormat[] = [];
 
   for (const profile of profiles) {
-    const profileWithAst = await prepareLintedProfile(
-      superJson,
-      profile,
-      writer,
-      fn,
-      options
-    );
+    const preparedProfile = await prepareLintedProfile(superJson, profile, {
+      logger,
+    });
+
+    reports.push(preparedProfile.report);
+
     //Return if we have errors or warnings
-    if (!profileWithAst.ast) {
-      return profileWithAst.counts;
+    if (!preparedProfile.ast || !preparedProfile.output) {
+      return prepareResult(reports);
     }
 
     for (const map of profile.maps) {
-      const preparedMap = await prepareLintedMap(
-        superJson,
-        profile,
-        map,
-        writer,
-        fn,
-        options
-      );
+      const preparedMap = await prepareLintedMap(superJson, profile, map, {
+        logger,
+      });
+      reports.push(preparedMap.report);
+
       //Return if we have errors or warnings
       if (!preparedMap.ast) {
-        return preparedMap.counts;
+        return prepareResult(reports);
       }
 
       try {
-        const result = validateMap(
-          getProfileOutput(profileWithAst.ast),
-          preparedMap.ast
-        );
+        const result = validateMap(preparedProfile.output, preparedMap.ast);
 
-        const report = createProfileMapReport(
-          result,
-          profileWithAst.path,
-          preparedMap.path
+        reports.push(
+          createProfileMapReport(result, preparedProfile.path, preparedMap.path)
         );
-
-        await writer.writeElement(fn(report));
 
         counts.push([
           result.pass ? 0 : result.errors.length,
@@ -399,12 +435,14 @@ export async function lint(
         ]);
         //We catch any unexpected error from parser validator to prevent ending the loop early
       } catch (error) {
-        options?.errCb?.(
-          `\n\n\nUnexpected error during validation of map: ${preparedMap.path} to profile: ${profileWithAst.path}.\nThis error is probably not a problem in linted files but in parser itself.\nTry updating CLI and its dependencies or report an issue.\n\n\n`
+        logger.error(
+          'unexpectedLintError',
+          preparedMap.path,
+          preparedProfile.path
         );
       }
     }
   }
 
-  return counts;
+  return prepareResult(reports);
 }

@@ -1,49 +1,49 @@
-import { CLIError } from '@oclif/errors';
 import { SuperJson } from '@superfaceai/one-sdk';
 import { mocked } from 'ts-jest/utils';
 
+import { MockLogger } from '../common';
+import { createUserError } from '../common/error';
+import { PackageManager } from '../common/package-manager';
 import { ProfileId } from '../common/profile';
+import { isCompatible } from '../logic';
 import { installProvider } from '../logic/configure';
 import { initSuperface } from '../logic/init';
 import { detectSuperJson, installProfiles } from '../logic/install';
 import { interactiveInstall } from '../logic/quickstart';
-import { MockStd, mockStd } from '../test/mock-std';
+import { CommandInstance } from '../test/utils';
 import Install from './install';
 
-//Mock install logic
 jest.mock('../logic/install', () => ({
   detectSuperJson: jest.fn(),
   installProfiles: jest.fn(),
 }));
 
-//Mock configure logic
 jest.mock('../logic/configure', () => ({
   installProvider: jest.fn(),
 }));
 
-//Mock interactive install logic
 jest.mock('../logic/quickstart', () => ({
   interactiveInstall: jest.fn(),
 }));
 
-//Mock init logic
 jest.mock('../logic/init', () => ({
   initSuperface: jest.fn(),
 }));
 
+jest.mock('../logic/configure.utils', () => ({
+  isCompatible: jest.fn(),
+}));
+
 describe('Install CLI command', () => {
-  let stdout: MockStd;
-  let stderr: MockStd;
+  let logger: MockLogger;
+  let instance: Install;
+  let pm: PackageManager;
+  const userError = createUserError(false);
 
   beforeEach(async () => {
-    stdout = mockStd();
-    jest
-      .spyOn(process['stdout'], 'write')
-      .mockImplementation(stdout.implementation);
-    stderr = mockStd();
-    jest
-      .spyOn(process['stderr'], 'write')
-      .mockImplementation(stderr.implementation);
+    logger = new MockLogger();
+    pm = new PackageManager(logger);
+    instance = CommandInstance(Install);
   });
 
   afterEach(() => {
@@ -57,103 +57,138 @@ describe('Install CLI command', () => {
 
       const profileName = 'starwars/character-information';
 
-      await expect(Install.run([profileName])).resolves.toBeUndefined();
-      expect(installProfiles).toHaveBeenCalledTimes(1);
-      expect(installProfiles).toHaveBeenCalledWith({
-        superPath: 'superface',
-        requests: [
-          {
-            kind: 'store',
-            profileId: ProfileId.fromScopeName(
-              'starwars',
-              'character-information'
-            ),
+      await expect(
+        instance.execute({
+          logger,
+          pm,
+          userError,
+          args: { profileId: profileName },
+          flags: {
+            providers: [],
           },
-        ],
-        options: {
-          logCb: expect.anything(),
-          warnCb: expect.anything(),
-          tryToAuthenticate: true,
-          force: false,
+        })
+      ).resolves.toBeUndefined();
+      expect(installProfiles).toHaveBeenCalledTimes(1);
+      expect(installProfiles).toHaveBeenCalledWith(
+        {
+          superPath: 'superface',
+          requests: [
+            {
+              kind: 'store',
+              profileId: ProfileId.fromScopeName(
+                'starwars',
+                'character-information'
+              ),
+            },
+          ],
+          options: {
+            tryToAuthenticate: true,
+            force: false,
+          },
         },
-      });
+        expect.anything()
+      );
     }, 10000);
 
     it('calls install profiles correctly', async () => {
       mocked(detectSuperJson).mockResolvedValue('.');
+      mocked(isCompatible).mockResolvedValue(true);
       const profileName = 'starwars/character-information';
 
-      await expect(Install.run([profileName])).resolves.toBeUndefined();
-      expect(installProfiles).toHaveBeenCalledTimes(1);
-      expect(installProfiles).toHaveBeenCalledWith({
-        superPath: '.',
-        requests: [
-          {
-            kind: 'store',
-            profileId: ProfileId.fromScopeName(
-              'starwars',
-              'character-information'
-            ),
+      await expect(
+        instance.execute({
+          logger,
+          pm,
+          userError,
+          args: { profileId: profileName },
+          flags: {
+            providers: [],
           },
-        ],
-        options: {
-          logCb: expect.anything(),
-          warnCb: expect.anything(),
-          tryToAuthenticate: true,
-          force: false,
-        },
-      });
-    }, 10000);
-
-    it('calls install profiles correctly with quiet flag', async () => {
-      mocked(detectSuperJson).mockResolvedValue('.');
-      const profileName = 'starwars/character-information';
-
-      await expect(Install.run([profileName, '-q'])).resolves.toBeUndefined();
+        })
+      ).resolves.toBeUndefined();
       expect(installProfiles).toHaveBeenCalledTimes(1);
-      expect(installProfiles).toHaveBeenCalledWith({
-        superPath: '.',
-        requests: [
-          {
-            kind: 'store',
-            profileId: ProfileId.fromScopeName(
-              'starwars',
-              'character-information'
-            ),
+      expect(installProfiles).toHaveBeenCalledWith(
+        {
+          superPath: '.',
+          requests: [
+            {
+              kind: 'store',
+              profileId: ProfileId.fromScopeName(
+                'starwars',
+                'character-information'
+              ),
+            },
+          ],
+          options: {
+            tryToAuthenticate: true,
+            force: false,
           },
-        ],
-        options: {
-          logCb: undefined,
-          warnCb: undefined,
-          tryToAuthenticate: true,
-          force: false,
         },
-      });
+        expect.anything()
+      );
     }, 10000);
 
     it('calls install profiles correctly without profileId', async () => {
       mocked(detectSuperJson).mockResolvedValue('.');
 
-      await expect(Install.run([])).resolves.toBeUndefined();
+      await expect(
+        instance.execute({
+          logger,
+          userError,
+          pm,
+          args: {},
+          flags: {
+            providers: [],
+          },
+        })
+      ).resolves.toBeUndefined();
       expect(installProfiles).toHaveBeenCalledTimes(1);
-      expect(installProfiles).toHaveBeenCalledWith({
-        superPath: '.',
-        requests: [],
-        options: {
-          logCb: expect.any(Function),
-          warnCb: expect.any(Function),
-          tryToAuthenticate: true,
-          force: false,
+      expect(installProfiles).toHaveBeenCalledWith(
+        {
+          superPath: '.',
+          requests: [],
+          options: {
+            tryToAuthenticate: true,
+            force: false,
+          },
         },
-      });
+        expect.anything()
+      );
+    }, 10000);
+
+    it('throws error on incompatible providers', async () => {
+      mocked(detectSuperJson).mockResolvedValue('.');
+      mocked(isCompatible).mockResolvedValue(false);
+      const profileName = 'starwars/character-information';
+
+      await expect(
+        instance.execute({
+          logger,
+          pm,
+          userError,
+          args: { profileId: profileName },
+          flags: {
+            providers: ['nope'],
+          },
+        })
+      ).rejects.toThrow('EEXIT: 0');
+      expect(installProfiles).not.toHaveBeenCalled();
     }, 10000);
 
     it('throws error on empty profileId argument with providers flag', async () => {
       mocked(detectSuperJson).mockResolvedValue('.');
 
-      await expect(Install.run(['--providers', 'twilio'])).rejects.toEqual(
-        new CLIError('EEXIT: 0')
-      );
+      await expect(
+        instance.execute({
+          logger,
+          userError,
+          pm,
+          args: {},
+          flags: {
+            providers: ['twilio'],
+          },
+        })
+      ).rejects.toThrow('EEXIT: 0');
       expect(installProfiles).not.toHaveBeenCalled();
     }, 10000);
 
@@ -161,7 +196,19 @@ describe('Install CLI command', () => {
       mocked(detectSuperJson).mockResolvedValue('.');
       const profileName = 'characterInformation';
 
-      await expect(Install.run([profileName])).rejects.toThrow();
+      await expect(
+        instance.execute({
+          logger,
+          pm,
+          userError,
+          args: {
+            profileId: profileName,
+          },
+          flags: {
+            providers: [],
+          },
+        })
+      ).rejects.toThrow();
       expect(installProfiles).not.toHaveBeenCalled();
     }, 10000);
 
@@ -169,7 +216,19 @@ describe('Install CLI command', () => {
       mocked(detectSuperJson).mockResolvedValue('.');
       const profileName = 'starwars/characterInformation';
 
-      await expect(Install.run([profileName])).rejects.toThrow();
+      await expect(
+        instance.execute({
+          logger,
+          pm,
+          userError,
+          args: {
+            profileId: profileName,
+          },
+          flags: {
+            providers: [],
+          },
+        })
+      ).rejects.toThrow();
       expect(installProfiles).not.toHaveBeenCalled();
     }, 10000);
 
@@ -177,18 +236,8 @@ describe('Install CLI command', () => {
       mocked(detectSuperJson).mockResolvedValue('.');
       const profileName = 'starwars/character-information';
 
-      await expect(Install.run([profileName, '-p'])).rejects.toEqual(
-        new CLIError('Flag --providers expects a value')
-      );
-      expect(installProfiles).toHaveBeenCalledTimes(0);
-    }, 10000);
-
-    it('throws error on invalid scan flag', async () => {
-      mocked(detectSuperJson).mockResolvedValue('.');
-      const profileName = 'starwars/character-information';
-
-      await expect(Install.run([profileName, '-s test'])).rejects.toEqual(
-        new CLIError('Expected an integer but received:  test')
+      await expect(Install.run([profileName, '-p'])).rejects.toThrow(
+        'Flag --providers expects a value'
       );
       expect(installProfiles).toHaveBeenCalledTimes(0);
     }, 10000);
@@ -197,158 +246,275 @@ describe('Install CLI command', () => {
       mocked(detectSuperJson).mockResolvedValue('.');
       const profileName = 'starwars/character-information';
 
-      await expect(Install.run([profileName, '-s', '6'])).rejects.toEqual(
-        new CLIError(
-          '--scan/-s : Number of levels to scan cannot be higher than 5'
-        )
+      await expect(
+        instance.execute({
+          logger,
+          pm,
+          userError,
+          args: {
+            profileId: profileName,
+          },
+          flags: {
+            providers: [],
+            scan: 6,
+          },
+        })
+      ).rejects.toThrow(
+        '--scan/-s : Number of levels to scan cannot be higher than 5'
       );
       expect(installProfiles).toHaveBeenCalledTimes(0);
+    }, 10000);
+
+    it('calls install profiles correctly - without providers', async () => {
+      mocked(detectSuperJson).mockResolvedValue('.');
+      const profileId = ProfileId.fromId('starwars/character-information', {
+        userError,
+      });
+
+      await expect(
+        instance.execute({
+          logger,
+          pm,
+          userError,
+          flags: {
+            providers: [],
+          },
+          args: {
+            profileId: profileId.id,
+          },
+        })
+      ).resolves.toBeUndefined();
+
+      expect(logger.stdout).not.toContainEqual(['configuringProviders', []]);
+      expect(installProfiles).toHaveBeenCalledTimes(1);
+      expect(installProfiles).toHaveBeenCalledWith(
+        {
+          superPath: '.',
+          requests: [
+            {
+              kind: 'store',
+              profileId: ProfileId.fromScopeName(
+                'starwars',
+                'character-information'
+              ),
+              version: undefined,
+            },
+          ],
+          options: {
+            tryToAuthenticate: true,
+            force: false,
+          },
+        },
+        expect.anything()
+      );
     }, 10000);
 
     it('calls install profiles correctly - one invalid provider', async () => {
       mocked(detectSuperJson).mockResolvedValue('.');
       mocked(installProvider).mockResolvedValue(undefined);
+      mocked(isCompatible).mockResolvedValue(true);
       const mockProviders = ['tyntec', 'twilio', 'made.up'];
-      const profileId = ProfileId.fromId('starwars/character-information');
+      const profileId = ProfileId.fromId('starwars/character-information', {
+        userError,
+      });
 
       await expect(
-        Install.run([profileId.id, '-p', ...mockProviders])
+        instance.execute({
+          logger,
+          pm,
+          userError,
+          args: {
+            profileId: profileId.id,
+          },
+          flags: {
+            providers: mockProviders,
+          },
+        })
       ).resolves.toBeUndefined();
 
-      expect(stdout.output).toContain('Invalid provider name: made.up');
+      expect(logger.stdout).toContainEqual([
+        'invalidProviderName',
+        ['made.up'],
+      ]);
       expect(installProfiles).toHaveBeenCalledTimes(1);
-      expect(installProfiles).toHaveBeenCalledWith({
-        superPath: '.',
-        requests: [
-          {
-            kind: 'store',
-            profileId: ProfileId.fromScopeName(
-              'starwars',
-              'character-information'
-            ),
+      expect(installProfiles).toHaveBeenCalledWith(
+        {
+          superPath: '.',
+          requests: [
+            {
+              kind: 'store',
+              profileId: ProfileId.fromScopeName(
+                'starwars',
+                'character-information'
+              ),
+            },
+          ],
+          options: {
+            tryToAuthenticate: true,
+            force: false,
           },
-        ],
-        options: {
-          logCb: expect.anything(),
-          warnCb: expect.anything(),
-          tryToAuthenticate: true,
-          force: false,
         },
-      });
+        expect.anything()
+      );
       expect(installProvider).toHaveBeenCalledTimes(2);
-      expect(installProvider).toHaveBeenNthCalledWith(1, {
-        superPath: '.',
-        provider: 'tyntec',
-        profileId,
-        defaults: undefined,
-        options: {
-          logCb: expect.anything(),
-          warnCb: expect.anything(),
-          force: false,
+      expect(installProvider).toHaveBeenNthCalledWith(
+        1,
+        {
+          superPath: '.',
+          provider: 'tyntec',
+          profileId,
+          defaults: undefined,
+          options: {
+            force: false,
+          },
         },
-      });
-      expect(installProvider).toHaveBeenNthCalledWith(2, {
-        superPath: '.',
-        provider: 'twilio',
-        profileId,
-        defaults: undefined,
-        options: {
-          logCb: expect.anything(),
-          warnCb: expect.anything(),
-          force: false,
+        expect.anything()
+      );
+      expect(installProvider).toHaveBeenNthCalledWith(
+        2,
+        {
+          superPath: '.',
+          provider: 'twilio',
+          profileId,
+          defaults: undefined,
+          options: {
+            force: false,
+          },
         },
-      });
+        expect.anything()
+      );
     }, 10000);
 
     it('calls install profiles correctly - providers separated by coma and space', async () => {
       mocked(detectSuperJson).mockResolvedValue('.');
       mocked(installProvider).mockResolvedValue(undefined);
-      const profileId = ProfileId.fromId('starwars/character-information');
+      mocked(isCompatible).mockResolvedValue(true);
+      const profileId = ProfileId.fromId('starwars/character-information', {
+        userError,
+      });
 
       await expect(
-        Install.run([
-          profileId.id,
-          '-p',
-          ',tyntec, twilio, , dhl-unified ,,github,made.up,',
-        ])
+        instance.execute({
+          logger,
+          pm,
+          userError,
+          args: {
+            profileId: profileId.id,
+          },
+          flags: {
+            providers: ['tyntec', 'twilio', 'dhl-unified', 'github', 'made.up'],
+          },
+        })
       ).resolves.toBeUndefined();
 
-      expect(stdout.output).toContain('Invalid provider name: made.up');
+      expect(logger.stdout).toContainEqual([
+        'invalidProviderName',
+        ['made.up'],
+      ]);
       expect(installProfiles).toHaveBeenCalledTimes(1);
-      expect(installProfiles).toHaveBeenCalledWith({
-        superPath: '.',
-        requests: [
-          {
-            kind: 'store',
-            profileId: ProfileId.fromScopeName(
-              'starwars',
-              'character-information'
-            ),
+      expect(installProfiles).toHaveBeenCalledWith(
+        {
+          superPath: '.',
+          requests: [
+            {
+              kind: 'store',
+              profileId: ProfileId.fromScopeName(
+                'starwars',
+                'character-information'
+              ),
+            },
+          ],
+          options: {
+            tryToAuthenticate: true,
+            force: false,
           },
-        ],
-        options: {
-          logCb: expect.anything(),
-          warnCb: expect.anything(),
-          tryToAuthenticate: true,
-          force: false,
         },
-      });
+        expect.anything()
+      );
       expect(installProvider).toHaveBeenCalledTimes(4);
-      expect(installProvider).toHaveBeenNthCalledWith(1, {
-        superPath: '.',
-        provider: 'tyntec',
-        profileId,
-        defaults: undefined,
-        options: {
-          logCb: expect.anything(),
-          warnCb: expect.anything(),
-          force: false,
+      expect(installProvider).toHaveBeenNthCalledWith(
+        1,
+        {
+          superPath: '.',
+          provider: 'tyntec',
+          profileId,
+          defaults: undefined,
+          options: {
+            force: false,
+          },
         },
-      });
-      expect(installProvider).toHaveBeenNthCalledWith(2, {
-        superPath: '.',
-        provider: 'twilio',
-        profileId,
-        defaults: undefined,
-        options: {
-          logCb: expect.anything(),
-          warnCb: expect.anything(),
-          force: false,
+        expect.anything()
+      );
+      expect(installProvider).toHaveBeenNthCalledWith(
+        2,
+        {
+          superPath: '.',
+          provider: 'twilio',
+          profileId,
+          defaults: undefined,
+          options: {
+            force: false,
+          },
         },
-      });
-      expect(installProvider).toHaveBeenNthCalledWith(3, {
-        superPath: '.',
-        provider: 'dhl-unified',
-        profileId,
-        defaults: undefined,
-        options: {
-          logCb: expect.anything(),
-          warnCb: expect.anything(),
-          force: false,
+        expect.anything()
+      );
+      expect(installProvider).toHaveBeenNthCalledWith(
+        3,
+        {
+          superPath: '.',
+          provider: 'dhl-unified',
+          profileId,
+          defaults: undefined,
+          options: {
+            force: false,
+          },
         },
-      });
-      expect(installProvider).toHaveBeenNthCalledWith(4, {
-        superPath: '.',
-        provider: 'github',
-        profileId,
-        defaults: undefined,
-        options: {
-          logCb: expect.anything(),
-          warnCb: expect.anything(),
-          force: false,
+        expect.anything()
+      );
+      expect(installProvider).toHaveBeenNthCalledWith(
+        4,
+        {
+          superPath: '.',
+          provider: 'github',
+          profileId,
+          defaults: undefined,
+          options: {
+            force: false,
+          },
         },
-      });
+        expect.anything()
+      );
     }, 10000);
 
     it('calls interactive install correctly', async () => {
       await expect(
-        Install.run(['scope/profile', '-i'])
+        instance.execute({
+          logger,
+          pm,
+          userError,
+          args: { profileId: 'scope/profile' },
+          flags: {
+            interactive: true,
+            providers: [],
+          },
+        })
       ).resolves.toBeUndefined();
       expect(interactiveInstall).toHaveBeenCalledTimes(1);
     }, 10000);
 
     it('does not call interactive install when profile id argument is not set', async () => {
-      await expect(Install.run(['-i'])).rejects.toThrow('EEXIT: 0');
+      await expect(
+        instance.execute({
+          logger,
+          pm,
+          userError,
+          args: {},
+          flags: {
+            providers: [],
+            interactive: true,
+          },
+        })
+      ).rejects.toThrow('EEXIT: 1');
       expect(interactiveInstall).not.toHaveBeenCalled();
     }, 10000);
 

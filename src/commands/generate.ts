@@ -1,12 +1,12 @@
 import { flags as oclifFlags } from '@oclif/command';
 import { SuperJson } from '@superfaceai/one-sdk';
 import { parseDocumentId } from '@superfaceai/parser';
-import { bold, green, grey, yellow } from 'chalk';
 import { join as joinPath } from 'path';
 
-import { Command } from '../common/command.abstract';
+import { Command, Flags } from '../common/command.abstract';
 import { META_FILE } from '../common/document';
-import { userError } from '../common/error';
+import { UserError } from '../common/error';
+import { ILogger } from '../common/log';
 import { ProfileId } from '../common/profile';
 import { generate } from '../logic/generate';
 import { detectSuperJson } from '../logic/install';
@@ -41,21 +41,25 @@ export default class Generate extends Command {
     '$ superface generate -q',
   ];
 
-  private logCallback? = (message: string) => this.log(grey(message));
-  private warnCallback? = (message: string) => this.log(yellow(message));
-
-  private successCallback? = (message: string) =>
-    this.log(bold(green(message)));
-
   async run(): Promise<void> {
     const { flags } = this.parse(Generate);
+    await super.initialize(flags);
+    await this.execute({
+      logger: this.logger,
+      userError: this.userError,
+      flags,
+    });
+  }
 
-    if (flags.quiet) {
-      this.logCallback = undefined;
-      this.successCallback = undefined;
-      this.warnCallback = undefined;
-    }
-
+  async execute({
+    logger,
+    userError,
+    flags,
+  }: {
+    logger: ILogger;
+    userError: UserError;
+    flags: Flags<typeof Generate.flags>;
+  }): Promise<void> {
     if (flags.scan && (typeof flags.scan !== 'number' || flags.scan > 5)) {
       throw userError(
         '--scan/-s : Number of levels to scan cannot be higher than 5',
@@ -67,7 +71,7 @@ export default class Generate extends Command {
     if (!superPath) {
       throw userError('Unable to generate, super.json not found', 1);
     }
-    //Load super json
+    // Load super json
     const loadedResult = await SuperJson.load(joinPath(superPath, META_FILE));
     const superJson = loadedResult.match(
       v => v,
@@ -76,7 +80,7 @@ export default class Generate extends Command {
       }
     );
     const profiles: { id: ProfileId; version?: string }[] = [];
-    //Creat generate requests
+    // Create generate requests
     if (flags.profileId) {
       const parsedProfileId = parseDocumentId(flags.profileId);
       if (parsedProfileId.kind == 'error') {
@@ -92,7 +96,7 @@ export default class Generate extends Command {
       }
 
       profiles.push({
-        id: ProfileId.fromId(flags.profileId),
+        id: ProfileId.fromId(flags.profileId, { userError }),
         version:
           'version' in profileSettings ? profileSettings.version : undefined,
       });
@@ -101,18 +105,15 @@ export default class Generate extends Command {
         superJson.normalized.profiles
       )) {
         profiles.push({
-          id: ProfileId.fromId(profile),
+          id: ProfileId.fromId(profile, { userError }),
           version:
             'version' in profileSettings ? profileSettings.version : undefined,
         });
       }
     }
 
-    await generate(profiles, superJson, {
-      logCb: this.logCallback,
-      warnCb: this.warnCallback,
-    });
+    await generate({ profiles, superJson }, { logger });
 
-    this.successCallback?.(`🆗 types generated successfully.`);
+    logger.success('generatedSuccessfully');
   }
 }

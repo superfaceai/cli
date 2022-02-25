@@ -8,11 +8,7 @@ import {
 } from '@superfaceai/ast';
 import { VERSION as SDK_VERSION } from '@superfaceai/one-sdk';
 import { VERSION as PARSER_VERSION } from '@superfaceai/parser';
-import {
-  ServiceApiError,
-  ServiceApiErrorResponse,
-  ServiceClient,
-} from '@superfaceai/service-client';
+import { ServiceClient } from '@superfaceai/service-client';
 
 import { VERSION } from '..';
 import {
@@ -20,9 +16,8 @@ import {
   SF_API_URL_VARIABLE,
   SF_PRODUCTION,
 } from './document';
-import { userError } from './error';
-import { MapId } from './map';
 import { loadNetrc, saveNetrc } from './netrc';
+import { ProfileId } from './profile';
 
 export interface ProfileInfo {
   owner: string;
@@ -30,7 +25,7 @@ export interface ProfileInfo {
   profile_id: string;
   profile_name: string;
   profile_version: string;
-  published_at: string;
+  published_at: Date;
   published_by: string;
   url: string;
 }
@@ -93,138 +88,79 @@ export function getServicesUrl(): string {
 }
 
 export async function fetchProviders(profile: string): Promise<ProviderJson[]> {
-  const userAgent = `superface cli/${VERSION} (${process.platform}-${process.arch}) ${process.release.name}-${process.version} (with @superfaceai/one-sdk@${SDK_VERSION}, @superfaceai/parser@${PARSER_VERSION})`;
+  const response = await SuperfaceClient.getClient().getProvidersList({
+    profile,
+  });
 
-  const response = await SuperfaceClient.getClient().fetch(
-    `/providers?profile=${encodeURIComponent(profile)}`,
-    {
-      //TODO: enable auth
-      authenticate: false,
-      method: 'GET',
-      headers: {
-        'Content-Type': ContentType.JSON,
-        'User-Agent': userAgent,
-      },
-    }
-  );
-
-  await checkSuperfaceResponse(response);
-
-  return ((await response.json()) as { data: ProviderJson[] }).data;
+  return response.data.map(data => assertProviderJson(data.definition));
 }
 
-//Unable to reuse service client getProfile due to profile ID resolution - version is always defined in service client
 export async function fetchProfileInfo(
-  profileId: string,
+  profile: ProfileId,
+  version?: string,
   options?: {
     tryToAuthenticate?: boolean;
   }
 ): Promise<ProfileInfo> {
-  const response = await SuperfaceClient.getClient().fetch(`/${profileId}`, {
-    authenticate: options?.tryToAuthenticate || false,
-    method: 'GET',
-    headers: {
-      ...commonHeaders(),
-      Accept: ContentType.JSON,
-    },
-  });
-
-  await checkSuperfaceResponse(response);
-
-  return (await response.json()) as ProfileInfo;
+  return SuperfaceClient.getClient().getProfile(
+    { name: profile.name, scope: profile.scope, version },
+    {
+      authenticate: options?.tryToAuthenticate,
+    }
+  );
 }
 
 export async function fetchProfile(
-  profileId: string,
+  profile: ProfileId,
+  version?: string,
   options?: {
     tryToAuthenticate?: boolean;
   }
 ): Promise<string> {
-  const response = await SuperfaceClient.getClient().fetch(`/${profileId}`, {
-    authenticate: options?.tryToAuthenticate || false,
-    method: 'GET',
-    headers: {
-      ...commonHeaders(),
-      Accept: ContentType.PROFILE_SOURCE,
-    },
-  });
-
-  await checkSuperfaceResponse(response);
-
-  return response.text();
+  return SuperfaceClient.getClient().getProfileSource(
+    { name: profile.name, scope: profile.scope, version },
+    {
+      authenticate: options?.tryToAuthenticate,
+    }
+  );
 }
 
 export async function fetchProfileAST(
-  profileId: string,
+  profile: ProfileId,
+  version?: string,
   options?: {
     tryToAuthenticate?: boolean;
   }
 ): Promise<ProfileDocumentNode> {
-  const response = await SuperfaceClient.getClient().fetch(`/${profileId}`, {
-    authenticate: options?.tryToAuthenticate || false,
-    method: 'GET',
-    headers: {
-      ...commonHeaders(),
-      Accept: ContentType.PROFILE_AST,
-    },
-  });
+  const response = await SuperfaceClient.getClient().getProfileAST(
+    { name: profile.name, scope: profile.scope, version },
+    {
+      authenticate: options?.tryToAuthenticate,
+    }
+  );
 
-  await checkSuperfaceResponse(response);
-
-  return assertProfileDocumentNode(await response.json());
+  return assertProfileDocumentNode(JSON.parse(response));
 }
 
 export async function fetchProviderInfo(
   providerName: string
 ): Promise<ProviderJson> {
-  //TODO: user agent? Control authenticate?
   const response = await SuperfaceClient.getClient().getProvider(providerName);
 
   return assertProviderJson(response.definition);
 }
 
-async function checkSuperfaceResponse(response: Response): Promise<Response> {
-  if (!response.ok) {
-    const errorResponse = (await response.json()) as ServiceApiErrorResponse;
-    throw userError(new ServiceApiError(errorResponse).message, 1);
-  }
-
-  return response;
-}
-
-function commonHeaders(): Record<string, string> {
-  return {
-    'User-Agent': `superface cli/${VERSION} (${process.platform}-${process.arch}) ${process.release.name}-${process.version} (with @superfaceai/one-sdk@${SDK_VERSION}, @superfaceai/parser@${PARSER_VERSION})`,
-  };
-}
-export async function fetchMapAST(
-  profile: string,
-  provider: string,
-  scope?: string,
-  version?: string,
-  variant?: string
-): Promise<MapDocumentNode> {
-  const mapId = MapId.fromName({
-    profile: {
-      name: profile,
-      scope,
-    },
-    provider,
-    variant,
-  });
-  const path = '/' + mapId.withVersion(version || DEFAULT_PROFILE_VERSION_STR);
-
-  const response = await SuperfaceClient.getClient().fetch(path, {
-    //TODO: enable auth
-    authenticate: false,
-    method: 'GET',
-    headers: {
-      ...commonHeaders(),
-      Accept: ContentType.MAP_AST,
-    },
+export async function fetchMapAST(id: {
+  name: string;
+  provider: string;
+  scope?: string;
+  version?: string;
+  variant?: string;
+}): Promise<MapDocumentNode> {
+  const response = await SuperfaceClient.getClient().getMapAST({
+    ...id,
+    version: id.version || DEFAULT_PROFILE_VERSION_STR,
   });
 
-  await checkSuperfaceResponse(response);
-
-  return assertMapDocumentNode(await response.json());
+  return assertMapDocumentNode(JSON.parse(response));
 }

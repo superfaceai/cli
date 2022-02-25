@@ -3,6 +3,7 @@ import { join as joinPath, resolve } from 'path';
 
 import { mkdir, rimraf } from '../common/io';
 import { OutputStream } from '../common/output-stream';
+import { LintResult } from '../logic/lint';
 import { MockStd, mockStd } from '../test/mock-std';
 import { execCLI, setUpTempDir } from '../test/utils';
 
@@ -111,7 +112,7 @@ describe('lint CLI command', () => {
         //Expose child process stdout to mocked stdout
         { debug: true }
       )
-    ).rejects.toContain('❌ Errors were found');
+    ).rejects.toContain('Errors were found');
 
     expect(stdout.output).toContain(
       `🆗 Parsing profile file: ${resolve(fixture.strictProfile)}`
@@ -121,7 +122,7 @@ describe('lint CLI command', () => {
     );
 
     expect(stdout.output).toContain(
-      `❌ Parsing map file: ${resolve(fixture.invalidParsedMap)}\n` +
+      `Parsing map file: ${resolve(fixture.invalidParsedMap)}\n` +
         'SyntaxError: Expected `provider` but found `map`\n' +
         ` --> ${resolve(fixture.invalidParsedMap)}:3:1\n` +
         '2 | \n' +
@@ -147,7 +148,7 @@ describe('lint CLI command', () => {
         //Expose child process stdout to mocked stdout
         { debug: true }
       )
-    ).rejects.toContain('❌ Errors were found');
+    ).rejects.toContain('Errors were found');
 
     expect(stdout.output).toContain(
       `🆗 Parsing profile file: ${resolve(fixture.strictProfile)}`
@@ -157,7 +158,7 @@ describe('lint CLI command', () => {
     );
 
     expect(stdout.output).toContain(
-      `❌ Parsing map file: ${resolve(fixture.invalidParsedMap)}\n` +
+      `Parsing map file: ${resolve(fixture.invalidParsedMap)}\n` +
         '\t3:1 Expected `provider` but found `map`\n'
     );
     expect(stdout.output).toContain('Detected 1 problem\n');
@@ -173,15 +174,15 @@ describe('lint CLI command', () => {
     await expect(
       execCLI(
         tempDir,
-        ['lint', '--profileId', profileId, '--outputFormat', 'json'],
+        ['lint', '--profileId', profileId, '--outputFormat', 'json', '--quiet'],
         '',
-        //Expose child process stdout to mocked stdout
+        // Expose child process stdout to mocked stdout
         { debug: true }
       )
-    ).rejects.toContain('❌ Errors were found');
+    ).rejects.toContain('Errors were found');
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const result: Record<string, unknown> = JSON.parse(stdout.output);
+    const result: LintResult = JSON.parse(stdout.output);
     expect(result).toMatchObject({
       total: {
         errors: 1,
@@ -203,6 +204,7 @@ describe('lint CLI command', () => {
         {
           category: 'Parser',
           detail: 'Expected `provider` but found `map`',
+          hints: [],
           location: {
             end: {
               charIndex: 34,

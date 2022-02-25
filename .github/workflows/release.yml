@@ -46,13 +46,21 @@ jobs:
           RELEASE_LEVEL: ${{ github.event.inputs.release-level }}
 
       - name: Bump pre-release version
-        if: startsWith(github.event.inputs.release-level, 'pre')
+        if: startsWith(github.event.inputs.release-level, 'pre') && github.ref_name != 'dev'
         run: |
           echo "NEW_VERSION=$(npm --no-git-tag-version --preid=beta version $RELEASE_LEVEL)" >> $GITHUB_ENV
           echo "RELEASE_TAG=beta" >> $GITHUB_ENV
         env:
           RELEASE_LEVEL: ${{ github.event.inputs.release-level }}
 
+      - name: Bump rc pre-release version
+        if: startsWith(github.event.inputs.release-level, 'pre') && github.ref_name == 'dev'
+        run: |
+          echo "NEW_VERSION=$(npm --no-git-tag-version --preid=rc version $RELEASE_LEVEL)" >> $GITHUB_ENV
+          echo "RELEASE_TAG=next" >> $GITHUB_ENV
+        env:
+          RELEASE_LEVEL: ${{ github.event.inputs.release-level }}
+          
       # Update changelog unreleased section with new version
       - name: Update changelog
         if: startsWith(github.event.inputs.release-level, 'pre') != true
@@ -102,3 +110,12 @@ jobs:
           prerelease: ${{ startsWith(github.event.inputs.release-level, 'pre') }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # Trigger Daily test for released version (excluding pre releases)
+      - name: Trigger Daily Test
+        if: startsWith(github.event.inputs.release-level, 'pre') != true
+        uses: peter-evans/repository-dispatch@v1
+        with:
+          token: ${{ secrets.GH_BOT_PAT }}
+          repository: superfaceai/superface-daily
+          event-type: on-demand-test

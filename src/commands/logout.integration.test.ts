@@ -3,6 +3,7 @@ import { Netrc } from 'netrc-parser';
 import { join as joinPath } from 'path';
 
 import { mkdir, rimraf } from '../common/io';
+import { messages } from '../common/messages';
 import { execCLI, setUpTempDir } from '../test/utils';
 
 const mockServer = getLocal();
@@ -43,7 +44,7 @@ describe('Logout CLI command', () => {
         env: { NETRC_FILEPATH: NETRC_FILENAME },
       });
 
-      expect(result.stdout).toContain('🆗 You have been logged out');
+      expect(result.stdout).toContain(messages.loggoutSuccessful());
 
       const savedNetRc = new Netrc(joinPath(tempDir, NETRC_FILENAME));
       await savedNetRc.load();
@@ -56,7 +57,10 @@ describe('Logout CLI command', () => {
       const result = await execCLI(tempDir, ['logout'], mockServer.url);
 
       expect(result.stdout).toContain(
-        `Superface server responded with: No session found, couldn't log out`
+        messages.superfaceServerError(
+          'Error',
+          "No session found, couldn't log out"
+        )
       );
     });
   });

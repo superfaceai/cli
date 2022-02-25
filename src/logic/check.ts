@@ -9,10 +9,11 @@ import {
   ProviderJson,
 } from '@superfaceai/ast';
 import { SuperJson } from '@superfaceai/one-sdk';
+import { ProfileId } from '@superfaceai/parser';
 import { green, red, yellow } from 'chalk';
 
-import { composeVersion } from '..';
-import { LogCallback } from '../common/log';
+import { composeVersion } from '../common/document';
+import { ILogger } from '../common/log';
 import { isProviderParseError } from './check.utils';
 import { ProfileToValidate } from './lint';
 import {
@@ -75,63 +76,54 @@ export type CheckIssue = { kind: 'error' | 'warn'; message: string };
 export async function check(
   superJson: SuperJson,
   profiles: ProfileToValidate[],
-  options?: { logCb?: LogCallback; warnCb?: LogCallback }
+  { logger }: { logger: ILogger }
 ): Promise<CheckResult[]> {
   const finalResults: CheckResult[] = [];
 
   for (const profile of profiles) {
     //Load profile AST
     const profileFiles = await loadProfile(
-      superJson,
-      profile.id,
-      profile.version,
-      options
+      {
+        superJson,
+        profile: profile.id,
+        version: profile.version,
+      },
+      { logger }
     );
     assertProfileDocumentNode(profileFiles.ast);
 
     for (const map of profile.maps) {
-      //Load map AST
       const mapFiles = await loadMap(
-        superJson,
-        profile.id,
-        map.provider,
-        { variant: map.variant },
-        profile.version,
-        options
+        {
+          superJson,
+          profile: profile.id,
+          provider: map.provider,
+          map: { variant: map.variant },
+          version: profile.version,
+        },
+        { logger }
       );
       assertMapDocumentNode(mapFiles.ast);
 
-      //Load provider.json
-      const providerFiles = await loadProvider(
-        superJson,
-        map.provider,
-        options
-      );
+      const providerFiles = await loadProvider(superJson, map.provider, {
+        logger,
+      });
 
-      options?.logCb?.(
-        `Checking profile: "${profile.id.toString()}" and map for provider: "${
-          map.provider
-        }"`
-      );
-      //Check map and profile
+      logger.info('checkProfileAndMap', profile.id.toString(), map.provider);
       finalResults.push({
-        ...checkMapAndProfile(profileFiles.ast, mapFiles.ast, options),
+        ...checkMapAndProfile(profileFiles.ast, mapFiles.ast, { logger }),
         mapFrom: mapFiles.from,
         profileFrom: profileFiles.from,
       });
 
-      //Check map and provider
-      options?.logCb?.(`Checking provider: "${map.provider}"`);
+      logger.info('checkProvider', map.provider);
       finalResults.push({
         ...checkMapAndProvider(providerFiles.source, mapFiles.ast),
         mapFrom: mapFiles.from,
         providerFrom: providerFiles.from,
       });
 
-      //Check integration parameters
-      options?.logCb?.(
-        `Checking integration parameters of provider: "${map.provider}"`
-      );
+      logger.info('checkIntegrationParameters', map.provider);
       finalResults.push({
         ...checkIntegrationParameters(providerFiles.source, superJson),
         providerFrom: providerFiles.from,
@@ -236,14 +228,16 @@ export function checkMapAndProvider(
 export function checkMapAndProfile(
   profile: ProfileDocumentNode,
   map: MapDocumentNode,
-  options?: {
+  options: {
     strict?: boolean;
-    logCb?: LogCallback;
+    logger: ILogger;
   }
 ): CheckMapProfileResult {
   const results: CheckIssue[] = [];
-  options?.logCb?.(
-    `Checking versions of profile: "${profile.header.name}" and map for provider: "${map.header.provider}"`
+  options.logger.info(
+    'checkVersions',
+    profile.header.name,
+    map.header.provider
   );
   //Header
   if (profile.header.scope !== map.header.profile.scope) {
@@ -277,8 +271,10 @@ export function checkMapAndProfile(
       message: `Profile "${profile.header.name}" has map for provider "${map.header.provider}" with different LABEL version`,
     });
   }
-  options?.logCb?.(
-    `Checking usecase definitions in profile: "${profile.header.name}" and map for provider: "${map.header.provider}"`
+  options.logger.info(
+    'checkUsecases',
+    profile.header.name,
+    map.header.provider
   );
 
   //Definitions
@@ -321,64 +317,84 @@ export function checkMapAndProfile(
   };
 }
 
-export function formatHuman(checkResults: CheckResult[]): string {
-  const REPORT_OK = '🆗';
-  const REPORT_WARN = '⚠️';
-  const REPORT_ERR = '❌';
+export function formatHuman({
+  checkResults,
+  emoji,
+  color,
+}: {
+  checkResults: CheckResult[];
+  emoji: boolean;
+  color: boolean;
+}): string {
+  const REPORT_OK = '🆗 ';
+  const REPORT_WARN = '⚠️ ';
+  const REPORT_ERR = '❌ ';
 
   const formatCheckIssue = (issue: CheckIssue): string => {
     if (issue.kind === 'error') {
-      return red(`${REPORT_ERR} ${issue.message}\n`);
+      const message = `${emoji ? REPORT_ERR : ''}${issue.message}\n`;
+
+      return color ? red(message) : message;
     } else {
-      return yellow(`${REPORT_WARN} ${issue.message}\n`);
+      const message = `${emoji ? REPORT_WARN : ''} ${issue.message}\n`;
+
+      return color ? yellow(message) : message;
     }
   };
 
   const formatCheckResultTitle = (result: CheckResult): string => {
     let message = '';
-    //Map&Profile
+    // Map&Profile
     if (result.kind === 'profileMap') {
-      //Profile
+      // Profile
       if (result.profileFrom.kind === 'local') {
-        message += `Checking local profile ${result.profileId} at path\n${result.profileFrom.path}\n`;
+        message += `Checking local profile "${result.profileId}" at path\n"${result.profileFrom.path}"`;
       } else {
-        message += `Checking remote profile ${result.profileId} with version ${result.profileFrom.version} `;
+        message += `Checking remote profile "${
+          ProfileId.fromId(result.profileId).withoutVersion
+        }" with version "${result.profileFrom.version}" `;
       }
-      //Map
+      // Map
       if (result.mapFrom.kind === 'local') {
-        message += `and local map for provider ${result.provider} at path\n${result.mapFrom.path}`;
+        message += `and local map for provider "${result.provider}" at path\n"${result.mapFrom.path}"`;
       } else {
-        message += `and remote map with version ${result.mapFrom.version} for provider ${result.provider}`;
+        message += `and remote map with version "${result.mapFrom.version}" for provider "${result.provider}"`;
       }
-      //Map&Provider
+      // Map&Provider
     } else if (result.kind === 'mapProvider') {
-      //Map
+      // Map
       if (result.mapFrom.kind === 'local') {
-        message += `Checking local map at path\n${result.mapFrom.path}\nfor profile ${result.profileId} `;
+        message += `Checking local map at path\n"${result.mapFrom.path}"\nfor profile "${result.profileId}" `;
       } else {
-        message += `Checking remote map with version ${result.mapFrom.version} for profile ${result.profileId} `;
+        message += `Checking remote map with version "${result.mapFrom.version}" for profile "${result.profileId}" `;
       }
-      //Provider
+      // Provider
       if (result.providerFrom.kind === 'local') {
-        message += `and local provider ${result.provider} at path\n${result.providerFrom.path}`;
+        message += `and local provider "${result.provider}" at path\n"${result.providerFrom.path}" `;
       } else {
-        message += `and remote provider ${result.provider}`;
+        message += `and remote provider "${result.provider}" `;
       }
-      //Parameters
+      // Parameters
     } else {
       if (result.providerFrom.kind === 'local') {
-        message += `Checking integration parameters of local provider at path\n${result.providerFrom.path}`;
+        message += `Checking integration parameters of local provider at path\n"${result.providerFrom.path}" `;
       } else {
-        message += `Checking integration parameters of remote provider ${result.provider} `;
+        message += `Checking integration parameters of remote provider "${result.provider}" `;
       }
-      message += `and super.json at path\n${result.superJsonPath}`;
+      message += `and super.json at path\n"${result.superJsonPath}"`;
     }
     if (result.issues.length === 0) {
-      return green(`${REPORT_OK} ${message}\n`);
+      message = `${emoji ? REPORT_OK : ''}${message}\n`;
+
+      return color ? green(message) : message;
     } else if (result.issues.every(issue => issue.kind === 'warn')) {
-      return yellow(`${REPORT_WARN} ${message}\n`);
+      message = `${emoji ? REPORT_WARN : ''}${message}\n`;
+
+      return color ? yellow(message) : message;
     } else {
-      return red(`${REPORT_ERR} ${message}\n`);
+      message = `${REPORT_ERR}${message}\n`;
+
+      return color ? red(message) : message;
     }
   };
 
