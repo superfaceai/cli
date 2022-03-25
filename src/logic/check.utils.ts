@@ -113,8 +113,6 @@ export async function findLocalProviderSource(
   return;
 }
 
-export function isProviderParseError(
-  input: unknown
-): input is AssertionError {
+export function isProviderParseError(input: unknown): input is AssertionError {
   return input instanceof AssertionError;
 }

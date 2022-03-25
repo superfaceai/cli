@@ -87,7 +87,7 @@ describe('Configure CLI logic', () => {
       expect(writeOnceSpy).toHaveBeenCalledTimes(1);
       expect(writeOnceSpy).toHaveBeenCalledWith(
         '.env',
-        `TEST_API_KEY=something\nTEST_TOKEN=\nTEST_USERNAME=\nTEST_PASSWORD=\n`
+        'TEST_API_KEY=something\nTEST_TOKEN=\nTEST_USERNAME=\nTEST_PASSWORD=\n'
       );
     });
 
@@ -103,7 +103,7 @@ describe('Configure CLI logic', () => {
       expect(writeOnceSpy).toHaveBeenCalledTimes(1);
       expect(writeOnceSpy).toHaveBeenCalledWith(
         '.env',
-        `TEST_API_KEY=\nTEST_TOKEN=\nTEST_USERNAME=\nTEST_PASSWORD=\n`
+        'TEST_API_KEY=\nTEST_TOKEN=\nTEST_USERNAME=\nTEST_PASSWORD=\n'
       );
     });
 
@@ -176,7 +176,7 @@ describe('Configure CLI logic', () => {
           {
             id: 'digest',
             password: '$TEST_PASSWORD',
-            username: '$TEST_USERNAME'
+            username: '$TEST_USERNAME',
           },
         ],
       });
@@ -347,7 +347,7 @@ describe('Configure CLI logic', () => {
             id: 'digest',
             password: '$PROVIDER_TEST_PASSWORD',
             username: '$PROVIDER_TEST_USERNAME',
-          }
+          },
         ],
         parameters: {
           first: '$PROVIDER_TEST_FIRST',
@@ -702,7 +702,7 @@ describe('Configure CLI logic', () => {
       expect(writeOnceSpy).toHaveBeenCalledTimes(2);
       expect(writeOnceSpy).toHaveBeenCalledWith(
         '.env',
-        `TEST_API_KEY=\nTEST_TOKEN=\nTEST_USERNAME=\nTEST_PASSWORD=\n`
+        'TEST_API_KEY=\nTEST_TOKEN=\nTEST_USERNAME=\nTEST_PASSWORD=\n'
       );
     });
 
@@ -941,7 +941,7 @@ describe('Configure CLI logic', () => {
       expect(writeOnceSpy).toHaveBeenCalledTimes(2);
       expect(writeOnceSpy).toHaveBeenCalledWith(
         '.env',
-        `TEST_API_KEY=\nTEST_TOKEN=\nTEST_USERNAME=\nTEST_PASSWORD=\n`
+        'TEST_API_KEY=\nTEST_TOKEN=\nTEST_USERNAME=\nTEST_PASSWORD=\n'
       );
     });
 

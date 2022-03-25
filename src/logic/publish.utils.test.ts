@@ -235,7 +235,7 @@ describe('Publish logic utils', () => {
           { logger, userError }
         )
       ).toThrow(
-        ' Map AST validation failed $: must have required property "astMetadata"'
+        'Map AST validation failed $: must have required property "astMetadata"'
       );
     });
 

@@ -51,13 +51,19 @@ export function prePublishCheck(
     logger.info('assertProfile');
     assertProfileDocumentNode(params.profileAst);
   } catch (error) {
-    throw userError(`Profile AST validation failed ${error.message}`, 1);
+    throw userError(
+      `Profile AST validation failed ${(error as { message: string }).message}`,
+      1
+    );
   }
   try {
     logger.info('assertMap');
     assertMapDocumentNode(params.mapAst);
   } catch (error) {
-    throw userError(`Map AST validation failed ${error.message}`, 1);
+    throw userError(
+      `Map AST validation failed ${(error as { message: string }).message}`,
+      1
+    );
   }
 
   //Check map and profile

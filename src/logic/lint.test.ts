@@ -923,10 +923,7 @@ describe('Lint logic', () => {
         new Source('mock-content', mockPath),
         {
           kind: 'nomatch',
-          attempts: new MatchAttempts(
-            undefined,
-            []
-          )
+          attempts: new MatchAttempts(undefined, []),
         }
       );
 
