@@ -196,9 +196,7 @@ export function checkMapAndProvider(
     if (isProviderParseError(error)) {
       results.push({
         kind: 'error',
-        message: `Provider check error: ${
-          error.message
-        } on path ${error.path.join(', ')}`,
+        message: `Provider check error: ${error.message}`,
       });
     } else {
       throw error;

@@ -85,7 +85,7 @@ describe('Publish logic utils', () => {
     kind: 'ProfileDocument',
     header: {
       kind: 'ProfileHeader',
-      name: 'someName',
+      name: 'somename',
       version: {
         major: 1,
         minor: 0,
@@ -215,7 +215,7 @@ describe('Publish logic utils', () => {
           { logger, userError }
         )
       ).toThrow(
-        "Profile AST validation failed at $: expected 'astMetadata' in object, found: {}"
+        'Profile AST validation failed $: must have required property "astMetadata"'
       );
     });
 
@@ -235,7 +235,7 @@ describe('Publish logic utils', () => {
           { logger, userError }
         )
       ).toThrow(
-        "Map AST validation failed at $: expected 'astMetadata' in object, found: {}"
+        ' Map AST validation failed $: must have required property "astMetadata"'
       );
     });
 

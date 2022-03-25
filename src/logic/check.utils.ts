@@ -1,4 +1,4 @@
-import { EXTENSIONS, ProviderJson } from '@superfaceai/ast';
+import { AssertionError, EXTENSIONS, ProviderJson } from '@superfaceai/ast';
 import { SuperJson } from '@superfaceai/one-sdk';
 import { join as joinPath } from 'path';
 
@@ -114,7 +114,7 @@ export async function findLocalProviderSource(
 }
 
 export function isProviderParseError(
-  input: Record<string, unknown>
-): input is { path: string[]; message: string } {
-  return 'path' in input && 'message' in input;
+  input: unknown
+): input is AssertionError {
+  return input instanceof AssertionError;
 }

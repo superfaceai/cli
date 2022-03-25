@@ -16,7 +16,6 @@ import {
   findLocalMapSource,
   findLocalProfileSource,
   findLocalProviderSource,
-  isProviderParseError,
 } from './check.utils';
 
 jest.mock('../common/io');
@@ -59,20 +58,6 @@ describe('Check utils', () => {
     ],
     defaultService: 'test-service',
   };
-
-  describe('when checking provider parse error', () => {
-    it('returns corrrect boolean', () => {
-      expect(isProviderParseError({})).toEqual(false);
-      expect(isProviderParseError({ path: ['test'] })).toEqual(false);
-      expect(isProviderParseError({ path: ['test'], message: 'test' })).toEqual(
-        true
-      );
-      expect(isProviderParseError({ something: 'else' })).toEqual(false);
-      expect(
-        isProviderParseError({ issues: [{ path: '', message: '' }] })
-      ).toEqual(false);
-    });
-  });
 
   describe('when looking for local profile source', () => {
     it('returns source if profile with scope and version exists', async () => {
