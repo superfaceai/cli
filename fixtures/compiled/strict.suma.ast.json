@@ -2187,14 +2187,16 @@
   "astMetadata": {
     "astVersion": {
       "major": 1,
-      "minor": 1,
-      "patch": 0
+      "minor": 2,
+      "patch": 0,
+      "label": "rc.3"
     },
     "parserVersion": {
       "major": 1,
-      "minor": 1,
-      "patch": 0
+      "minor": 2,
+      "patch": 0,
+      "label": "beta.2"
     },
-    "sourceChecksum": "e946960c3b6d4143f0c2fa8ef37f5c3f93ee07ea2f4986189ef5963e1dd9ca11"
+    "sourceChecksum": "89e0d09cb5ec6d16dcc4d688c4af982ebd77739a9196a9e29edd9d585505d9b8"
   }
 }

@@ -31,7 +31,9 @@ describe('Compile CLI command', () => {
   });
 
   afterEach(async () => {
-    await rimraf(tempDir);
+    if (process.cwd() == '') {
+      await rimraf(tempDir);
+    }
   });
 
   describe('integration tests', () => {
