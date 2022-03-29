@@ -93,7 +93,7 @@ map Foo {
 		}
 
 		// https://sfspec.surge.sh/map#HTTPRespose
-		response 100 {
+		response 200 {
 			map result {
 				foo = 1
 			}
