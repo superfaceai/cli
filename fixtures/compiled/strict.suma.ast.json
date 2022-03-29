@@ -1425,7 +1425,7 @@
           "responseHandlers": [
             {
               "kind": "HttpResponseHandler",
-              "statusCode": 100,
+              "statusCode": 200,
               "statements": [
                 {
                   "kind": "OutcomeStatement",
