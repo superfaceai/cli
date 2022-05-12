@@ -611,17 +611,10 @@ export async function installProfiles(
   { logger, userError }: { logger: ILogger; userError: UserError }
 ): Promise<{ continueWithInstall: boolean }> {
   const loadedResult = await SuperJson.load(joinPath(superPath, META_FILE));
-  const superJson = loadedResult.match(
-    v => v,
-    err => {
-      logger.error('errorMessage', err.formatLong());
-
-      return undefined;
-    }
-  );
-  if (!superJson) {
+  if (loadedResult.isErr()) {
     return { continueWithInstall: false };
   }
+  const superJson = loadedResult.value;
 
   // gather requests if empty
   if (requests.length === 0) {
