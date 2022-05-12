@@ -609,16 +609,19 @@ export async function installProfiles(
     options?: InstallOptions;
   },
   { logger, userError }: { logger: ILogger; userError: UserError }
-): Promise<void> {
+): Promise<{ continueWithInstall: boolean }> {
   const loadedResult = await SuperJson.load(joinPath(superPath, META_FILE));
   const superJson = loadedResult.match(
     v => v,
     err => {
       logger.error('errorMessage', err.formatLong());
 
-      return new SuperJson({});
+      return undefined;
     }
   );
+  if (!superJson) {
+    return { continueWithInstall: false };
+  }
 
   // gather requests if empty
   if (requests.length === 0) {
@@ -666,4 +669,6 @@ export async function installProfiles(
   } else {
     logger.info('noProfilesFound');
   }
+
+  return { continueWithInstall: true };
 }
