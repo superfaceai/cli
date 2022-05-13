@@ -241,5 +241,40 @@ describe('Configure CLI command', () => {
         expect.anything()
       );
     });
+
+    it('configures provider with mapVariant flag', async () => {
+      mocked(isValidDocumentName).mockReturnValue(true);
+      mocked(detectSuperJson).mockResolvedValue(superPath);
+      mocked(isCompatible).mockResolvedValue(true);
+
+      await expect(
+        instance.execute({
+          logger,
+          userError,
+          args: { providerName: provider },
+          flags: { profile: profileId.id, force: false, 'write-env': false, mapVariant: 'generated' },
+        })
+      ).resolves.toBeUndefined();
+
+      expect(detectSuperJson).toHaveBeenCalledTimes(1);
+
+      expect(installProvider).toHaveBeenCalledTimes(1);
+      expect(installProvider).toHaveBeenCalledWith(
+        {
+          superPath,
+          provider,
+          profileId,
+          defaults: undefined,
+          options: {
+            force: false,
+            localMap: undefined,
+            localProvider: undefined,
+            updateEnv: false,
+            mapVariant: 'generated'
+          },
+        },
+        expect.anything()
+      );
+    });
   });
 });
