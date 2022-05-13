@@ -71,6 +71,7 @@ export function handleProviderResponse(
       localMap?: string;
       localProvider?: string;
       force?: boolean;
+      mapVariant?: string;
     };
   },
   { logger }: { logger: ILogger }
@@ -104,7 +105,7 @@ export function handleProviderResponse(
   //constructProfileProviderSettings returns Record<string, ProfileProviderEntry>
   let settings = defaults
     ? { defaults }
-    : constructProfileProviderSettings([response.name])[response.name];
+    : constructProfileProviderSettings([{providerName: response.name, mapVariant: options?.mapVariant}])[response.name];
 
   if (options?.localMap) {
     if (typeof settings === 'string') {
@@ -162,6 +163,7 @@ export async function installProvider(
       localMap?: string;
       localProvider?: string;
       updateEnv?: boolean;
+      mapVariant?: string;
     };
   },
   { logger, userError }: { logger: ILogger; userError: UserError }

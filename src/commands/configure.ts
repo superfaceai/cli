@@ -49,6 +49,9 @@ export default class Configure extends Command {
     localMap: oclifFlags.string({
       description: 'Optional filepath to .suma map file',
     }),
+    mapVariant: oclifFlags.string({
+      description: 'Optional map variant',
+    })
   };
 
   static examples = [
@@ -57,6 +60,7 @@ export default class Configure extends Command {
     '$ superface configure twilio -p send-sms -f',
     '$ superface configure twilio -p send-sms --localProvider providers/twilio.provider.json',
     '$ superface configure twilio -p send-sms --localMap maps/send-sms.twilio.suma',
+    '$ superface configure twilio -p send-sms --mapVariant generated',
   ];
 
   async run(): Promise<void> {
@@ -129,6 +133,7 @@ export default class Configure extends Command {
           localMap: flags.localMap,
           localProvider: flags.localProvider,
           updateEnv: flags['write-env'],
+          mapVariant: flags.mapVariant
         },
       },
       { logger, userError }
