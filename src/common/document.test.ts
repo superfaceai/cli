@@ -119,8 +119,15 @@ describe('Document functions', () => {
 
   describe('when constructing profile provider settings', () => {
     it('constructs profile provider settings correctly', async () => {
-      expect(constructProfileProviderSettings(['first', 'second'])).toEqual({
+      expect(constructProfileProviderSettings([{ providerName: 'first' },{ providerName: 'second' }])).toEqual({
         first: {},
+        second: {},
+      });
+    });
+
+    it('constructs profile provider settings with map variant correctly', async () => {
+      expect(constructProfileProviderSettings([{ providerName: 'first', mapVariant: 'generated' },{ providerName: 'second' }])).toEqual({
+        first: { mapVariant: 'generated'},
         second: {},
       });
     });
