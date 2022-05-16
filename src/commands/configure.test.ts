@@ -252,7 +252,12 @@ describe('Configure CLI command', () => {
           logger,
           userError,
           args: { providerName: provider },
-          flags: { profile: profileId.id, force: false, 'write-env': false, mapVariant: 'generated' },
+          flags: {
+            profile: profileId.id,
+            force: false,
+            'write-env': false,
+            mapVariant: 'generated',
+          },
         })
       ).resolves.toBeUndefined();
 
@@ -270,11 +275,31 @@ describe('Configure CLI command', () => {
             localMap: undefined,
             localProvider: undefined,
             updateEnv: false,
-            mapVariant: 'generated'
+            mapVariant: 'generated',
           },
         },
         expect.anything()
       );
+    });
+
+    it('does not configure on invalid mapVariant flag', async () => {
+      mocked(isValidDocumentName).mockReturnValue(false);
+      await expect(
+        instance.execute({
+          logger,
+          userError,
+          args: {
+            providerName: provider,
+          },
+          flags: {
+            profile: 'test',
+            mapVariant: 'invalid!',
+          },
+        })
+      ).rejects.toThrow('Invalid map variant');
+
+      expect(detectSuperJson).not.toHaveBeenCalled();
+      expect(installProvider).not.toHaveBeenCalled();
     });
   });
 });

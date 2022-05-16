@@ -1,5 +1,5 @@
 import { flags as oclifFlags } from '@oclif/command';
-import { isValidProviderName } from '@superfaceai/ast';
+import { isValidDocumentName, isValidProviderName } from '@superfaceai/ast';
 import { join as joinPath } from 'path';
 
 import { Command, Flags } from '../common/command.abstract';
@@ -51,7 +51,7 @@ export default class Configure extends Command {
     }),
     mapVariant: oclifFlags.string({
       description: 'Optional map variant',
-    })
+    }),
   };
 
   static examples = [
@@ -100,6 +100,10 @@ export default class Configure extends Command {
       throw userError(`Local path: "${flags.localProvider}" does not exist`, 1);
     }
 
+    if (flags.mapVariant && !isValidDocumentName(flags.mapVariant)) {
+      throw userError('Invalid map variant', 1);
+    }
+
     const profileId = ProfileId.fromId(flags.profile.trim(), { userError });
     const provider = args.providerName;
 
@@ -133,7 +137,7 @@ export default class Configure extends Command {
           localMap: flags.localMap,
           localProvider: flags.localProvider,
           updateEnv: flags['write-env'],
-          mapVariant: flags.mapVariant
+          mapVariant: flags.mapVariant,
         },
       },
       { logger, userError }
