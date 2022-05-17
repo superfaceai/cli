@@ -200,7 +200,7 @@ export default class Install extends Command {
       }
     }
 
-    await installProfiles(
+    const { continueWithInstall } = await installProfiles(
       {
         superPath,
         requests,
@@ -211,6 +211,10 @@ export default class Install extends Command {
       },
       { logger, userError }
     );
+    if (!continueWithInstall) {
+      this.exit();
+    }
+
     if (providers.length > 0) {
       logger.info('configuringProviders');
     }
