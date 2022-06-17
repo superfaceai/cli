@@ -2188,14 +2188,12 @@
     "astVersion": {
       "major": 1,
       "minor": 2,
-      "patch": 0,
-      "label": "rc.3"
+      "patch": 0
     },
     "parserVersion": {
       "major": 1,
       "minor": 2,
-      "patch": 0,
-      "label": "beta.2"
+      "patch": 0
     },
     "sourceChecksum": "89e0d09cb5ec6d16dcc4d688c4af982ebd77739a9196a9e29edd9d585505d9b8"
   }

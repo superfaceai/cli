@@ -898,33 +898,33 @@
   dependencies:
     "@sinonjs/commons" "^1.7.0"
 
-"@superfaceai/ast@1.2.0-rc.3", "@superfaceai/ast@^1.2.0-rc.3":
-  version "1.2.0-rc.3"
-  resolved "https://registry.yarnpkg.com/@superfaceai/ast/-/ast-1.2.0-rc.3.tgz#eb390cb7d1c5ac5c8e922c67b0092319cd5cc5d9"
-  integrity sha512-jRqeEAvz0wJuYYj9sBx3bGoEVQhQQI9g1Ib8oo7bNhiGRIsasDk1lmL2v5eD6FHX/EEqm3aRtI9jn5KO1f46hw==
+"@superfaceai/ast@1.2.0", "@superfaceai/ast@^1.2.0":
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/@superfaceai/ast/-/ast-1.2.0.tgz#f41823d550e0b0a05a8398be22a68b7b3912dde3"
+  integrity sha512-HMmdSUNzKuVgQ9g9YS/eiv3/CitSZks8eury8sAi2QbwT+n5f9SsVcmHxL2/QbkRCmlPpRqHJ6YSCqvBZ2fu1g==
   dependencies:
     ajv "^8.8.2"
     ajv-formats "^2.1.1"
 
-"@superfaceai/one-sdk@1.4.0-beta.1":
-  version "1.4.0-beta.1"
-  resolved "https://registry.yarnpkg.com/@superfaceai/one-sdk/-/one-sdk-1.4.0-beta.1.tgz#d85ecee1d517d7838b277d1b6cb9aac8763b1d9b"
-  integrity sha512-yL7fKFdI2ANR7p0fw75Y3xzSrjh3+ln3Am53WGju7eztQTqaaeBhKIc0UrcjPuNrN3fMsFMKQ1K884rlewkObA==
+"@superfaceai/one-sdk@1.5.2":
+  version "1.5.2"
+  resolved "https://registry.yarnpkg.com/@superfaceai/one-sdk/-/one-sdk-1.5.2.tgz#754c2bbe3363671549308674c87ba359c9f60e9f"
+  integrity sha512-8dWrcktQBrUb3Y8M6MtbCW+0a70tbSnv7+/Oh4fKIxqdvKRTfFjJ3Bv/1LsPxLHlah0pta+cA5ZTXCBkIP6iTA==
   dependencies:
-    "@superfaceai/ast" "1.2.0-rc.3"
-    "@superfaceai/parser" "1.2.0-beta.2"
+    "@superfaceai/ast" "1.2.0"
+    "@superfaceai/parser" "1.2.0"
     abort-controller "^3.0.0"
     cross-fetch "^3.1.5"
     debug "^4.3.2"
     isomorphic-form-data "^2.0.0"
     vm2 "^3.9.7"
 
-"@superfaceai/parser@1.2.0-beta.2":
-  version "1.2.0-beta.2"
-  resolved "https://registry.yarnpkg.com/@superfaceai/parser/-/parser-1.2.0-beta.2.tgz#4ea6dcb3ee4764a895ca0e50ee279c98d0253156"
-  integrity sha512-tQYLJbyNWXoOKkvGfvb5eq/KPYnRBv3s61crzF1yAQNn5MgMmroKvxPIDUmYBbIBh9RdYqkls+B5NrybOGEUDQ==
+"@superfaceai/parser@1.2.0":
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/@superfaceai/parser/-/parser-1.2.0.tgz#e89e64c9ec98ff2d1e4760c1441d88d945978a1d"
+  integrity sha512-8nQ4x15F8mygKg4BcWwzqgDVTaY5BXanvCcxirL/jKLgpGUxH+808t0KmVc2Ke9o2MdiYt/2UD2hyfpwwqN9DA==
   dependencies:
-    "@superfaceai/ast" "^1.2.0-rc.3"
+    "@superfaceai/ast" "^1.2.0"
     "@types/debug" "^4.1.5"
     debug "^4.3.3"
     typescript "^4"
