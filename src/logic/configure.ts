@@ -105,7 +105,9 @@ export function handleProviderResponse(
   //constructProfileProviderSettings returns Record<string, ProfileProviderEntry>
   let settings = defaults
     ? { defaults }
-    : constructProfileProviderSettings([{providerName: response.name, mapVariant: options?.mapVariant}])[response.name];
+    : constructProfileProviderSettings([
+        { providerName: response.name, mapVariant: options?.mapVariant },
+      ])[response.name];
 
   if (options?.localMap) {
     if (typeof settings === 'string') {
