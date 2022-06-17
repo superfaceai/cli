@@ -51,9 +51,50 @@ describe('Install CLI command', () => {
   });
 
   describe('when running install command', () => {
+    it('calls install profiles correctly - failed to install profile - does not continue with install', async () => {
+      mocked(detectSuperJson).mockResolvedValue(undefined);
+      mocked(initSuperface).mockResolvedValue(new SuperJson({}));
+      mocked(installProfiles).mockResolvedValue({ continueWithInstall: false });
+
+      const profileName = 'starwars/character-information';
+
+      await expect(
+        instance.execute({
+          logger,
+          pm,
+          userError,
+          args: { profileId: profileName },
+          flags: {
+            providers: [],
+          },
+        })
+      ).rejects.toThrow('EEXIT: 0');
+      expect(installProfiles).toHaveBeenCalledTimes(1);
+      expect(installProfiles).toHaveBeenCalledWith(
+        {
+          superPath: 'superface',
+          requests: [
+            {
+              kind: 'store',
+              profileId: ProfileId.fromScopeName(
+                'starwars',
+                'character-information'
+              ),
+            },
+          ],
+          options: {
+            tryToAuthenticate: true,
+            force: false,
+          },
+        },
+        expect.anything()
+      );
+    }, 10000);
+
     it('calls install profiles correctly - non existing super.json - create new one', async () => {
       mocked(detectSuperJson).mockResolvedValue(undefined);
       mocked(initSuperface).mockResolvedValue(new SuperJson({}));
+      mocked(installProfiles).mockResolvedValue({ continueWithInstall: true });
 
       const profileName = 'starwars/character-information';
 
@@ -93,6 +134,7 @@ describe('Install CLI command', () => {
     it('calls install profiles correctly', async () => {
       mocked(detectSuperJson).mockResolvedValue('.');
       mocked(isCompatible).mockResolvedValue(true);
+      mocked(installProfiles).mockResolvedValue({ continueWithInstall: true });
       const profileName = 'starwars/character-information';
 
       await expect(
@@ -130,6 +172,7 @@ describe('Install CLI command', () => {
 
     it('calls install profiles correctly without profileId', async () => {
       mocked(detectSuperJson).mockResolvedValue('.');
+      mocked(installProfiles).mockResolvedValue({ continueWithInstall: true });
 
       await expect(
         instance.execute({
@@ -270,6 +313,7 @@ describe('Install CLI command', () => {
       const profileId = ProfileId.fromId('starwars/character-information', {
         userError,
       });
+      mocked(installProfiles).mockResolvedValue({ continueWithInstall: true });
 
       await expect(
         instance.execute({
@@ -317,6 +361,8 @@ describe('Install CLI command', () => {
       const profileId = ProfileId.fromId('starwars/character-information', {
         userError,
       });
+
+      mocked(installProfiles).mockResolvedValue({ continueWithInstall: true });
 
       await expect(
         instance.execute({
@@ -392,6 +438,8 @@ describe('Install CLI command', () => {
       const profileId = ProfileId.fromId('starwars/character-information', {
         userError,
       });
+
+      mocked(installProfiles).mockResolvedValue({ continueWithInstall: true });
 
       await expect(
         instance.execute({

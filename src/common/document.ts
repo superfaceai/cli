@@ -129,10 +129,13 @@ export const constructProfileSettings = (
  * @param providers - list of providers
  */
 export const constructProfileProviderSettings = (
-  providers: string[]
+  providers: {
+    providerName: string,
+    mapVariant?: string,
+  }[]
 ): Record<string, ProfileProviderEntry> =>
   providers.reduce<Record<string, ProfileProviderEntry>>((acc, provider) => {
-    acc[provider] = {};
+    acc[provider.providerName] = provider.mapVariant?{ mapVariant: provider.mapVariant}:{};
 
     return acc;
   }, {});

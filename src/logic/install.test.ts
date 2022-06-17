@@ -1,6 +1,12 @@
 import { CLIError } from '@oclif/errors';
 import { AstMetadata, EXTENSIONS, ProfileDocumentNode } from '@superfaceai/ast';
-import { ok, Parser, SuperJson } from '@superfaceai/one-sdk';
+import {
+  err,
+  ok,
+  Parser,
+  SDKExecutionError,
+  SuperJson,
+} from '@superfaceai/one-sdk';
 import { join as joinPath } from 'path';
 import { mocked } from 'ts-jest/utils';
 
@@ -784,10 +790,60 @@ describe('Install CLI logic', () => {
         jest.resetAllMocks();
       });
 
+      it('does not install profile when super.json not found', async () => {
+        mocked(fetchProfileAST).mockResolvedValue(mockProfileAst);
+        mocked(fetchProfile).mockResolvedValue(mockProfile);
+        mocked(fetchProfileInfo).mockResolvedValue(mockProfileInfo);
+
+        // eslint-disable-next-line @typescript-eslint/unbound-method
+        const originalLoad = SuperJson.load;
+        const mockLoad = jest.fn();
+
+        mockLoad.mockResolvedValue(
+          err(new SDKExecutionError('test error', [], []))
+        );
+        SuperJson.load = mockLoad;
+
+        await expect(
+          installProfiles(
+            {
+              superPath: '.',
+              requests: [
+                {
+                  kind: 'store',
+                  profileId: ProfileId.fromScopeName(
+                    'starwars',
+                    'character-information'
+                  ),
+                  version: undefined,
+                },
+              ],
+            },
+            { logger, userError }
+          )
+        ).resolves.toEqual({ continueWithInstall: false });
+
+        expect(fetchProfileInfo).not.toHaveBeenCalled();
+        expect(fetchProfile).not.toHaveBeenCalled();
+        expect(fetchProfileAST).not.toHaveBeenCalled();
+
+        SuperJson.load = originalLoad;
+      }, 10000);
+
       it('installs single profile', async () => {
         mocked(fetchProfileAST).mockResolvedValue(mockProfileAst);
         mocked(fetchProfile).mockResolvedValue(mockProfile);
         mocked(fetchProfileInfo).mockResolvedValue(mockProfileInfo);
+
+        // eslint-disable-next-line @typescript-eslint/unbound-method
+        const originalLoad = SuperJson.load;
+        const mockLoad = jest.fn();
+
+        const stubSuperJson = new SuperJson({});
+
+        mockLoad.mockResolvedValue(ok(stubSuperJson));
+        SuperJson.load = mockLoad;
+
         const parsedProfileSpy = jest
           .spyOn(Parser, 'parseProfile')
           .mockResolvedValue(mockProfileAst);
@@ -812,7 +868,7 @@ describe('Install CLI logic', () => {
             },
             { logger, userError }
           )
-        ).resolves.toBeUndefined();
+        ).resolves.toEqual({ continueWithInstall: true });
 
         expect(fetchProfileInfo).toHaveBeenCalledTimes(1);
         expect(fetchProfile).toHaveBeenCalledTimes(1);
@@ -853,6 +909,7 @@ describe('Install CLI logic', () => {
             2
           )
         );
+        SuperJson.load = originalLoad;
       }, 10000);
 
       it('installs profiles from super.json', async () => {
@@ -877,7 +934,7 @@ describe('Install CLI logic', () => {
             { superPath: '.', requests: [] },
             { logger, userError }
           )
-        ).resolves.toBeUndefined();
+        ).resolves.toEqual({ continueWithInstall: true });
 
         expect(fetchProfileInfo).toHaveBeenCalledTimes(2);
         expect(fetchProfile).toHaveBeenCalledTimes(2);
