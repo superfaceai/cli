@@ -121,7 +121,7 @@ export function formatSummary({
 }): string {
   const noColor = (input: string) => input;
 
-  let buffer = `\n\nChecked ${formatWordPlurality(fileCount, 'file')}. `;
+  const buffer = `\n\nChecked ${formatWordPlurality(fileCount, 'file')}. `;
   let colorize: (inout: string) => string = noColor;
   if (errorCount > 0) {
     if (color) {
