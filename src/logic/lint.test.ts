@@ -31,6 +31,7 @@ import {
   createProfileMapReport,
   formatHuman,
   formatJson,
+  formatSummary,
   isValidHeader,
   isValidMapId,
   lint,
@@ -1146,6 +1147,47 @@ describe('Lint logic', () => {
       expect(formatJson(mockFileReport)).toEqual(
         expect.not.stringMatching('source')
       );
+    });
+  });
+  describe('when formating summary', () => {
+    const fileCount = 4;
+    it('formats summary with errors and warnings', async () => {
+      const formated = formatSummary({
+        fileCount,
+        errorCount: 1,
+        warningCount: 1,
+        color: true,
+        quiet: false,
+      });
+
+      expect(formated).toMatch('\n\nChecked 4 files.');
+      expect(formated).toMatch(red('Detected 2 problems'));
+    });
+
+    it('formats summary with warnings', async () => {
+      const formated = formatSummary({
+        fileCount,
+        errorCount: 0,
+        warningCount: 1,
+        color: true,
+        quiet: false,
+      });
+
+      expect(formated).toMatch('\n\nChecked 4 files.');
+      expect(formated).toMatch(yellow('Detected 1 problem'));
+    });
+
+    it('formats summary without errors or warnings', async () => {
+      const formated = formatSummary({
+        fileCount,
+        errorCount: 0,
+        warningCount: 0,
+        color: true,
+        quiet: false,
+      });
+
+      expect(formated).toMatch('\n\nChecked 4 files.');
+      expect(formated).toMatch('Detected 0 problems');
     });
   });
 });

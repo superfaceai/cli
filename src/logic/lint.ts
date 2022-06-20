@@ -27,6 +27,7 @@ import {
   DEFAULT_PROFILE_VERSION_STR,
 } from '../common/document';
 import { UserError } from '../common/error';
+import { formatWordPlurality } from '../common/format';
 import { fetchMapAST, fetchProfileAST } from '../common/http';
 import { ILogger } from '../common/log';
 import { MapId } from '../common/map';
@@ -104,6 +105,48 @@ export const createProfileMapReport = (
         errors: result.errors,
         warnings: result.warnings ?? [],
       };
+
+export function formatSummary({
+  fileCount,
+  errorCount,
+  warningCount,
+  quiet,
+  color,
+}: {
+  fileCount: number;
+  errorCount: number;
+  warningCount: number;
+  quiet: boolean;
+  color: boolean;
+}): string {
+  const noColor = (input: string) => input;
+
+  let buffer = `\n\nChecked ${formatWordPlurality(fileCount, 'file')}. `;
+  let colorize: (inout: string) => string = noColor;
+  if (errorCount > 0) {
+    if (color) {
+      colorize = red;
+    }
+  } else if (warningCount > 0) {
+    if (color) {
+      colorize = yellow;
+    }
+  } else {
+    if (color) {
+      colorize = green;
+    }
+  }
+
+  return (
+    buffer +
+    colorize(
+      `Detected ${formatWordPlurality(
+        errorCount + (quiet ? 0 : warningCount),
+        'problem'
+      )}\n`
+    )
+  );
+}
 
 export function formatHuman({
   report,

@@ -7,11 +7,10 @@ import { join as joinPath } from 'path';
 import { Command, Flags } from '../common/command.abstract';
 import { META_FILE } from '../common/document';
 import { developerError, UserError } from '../common/error';
-import { formatWordPlurality } from '../common/format';
 import { ILogger } from '../common/log';
 import { OutputStream } from '../common/output-stream';
 import { detectSuperJson } from '../logic/install';
-import { formatHuman, formatJson, lint } from '../logic/lint';
+import { formatHuman, formatJson, formatSummary, lint } from '../logic/lint';
 import Check from './check';
 
 type OutputFormatFlag = 'long' | 'short' | 'json';
@@ -204,13 +203,13 @@ export default class Lint extends Command {
       }
 
       await outputStream.write(
-        `\nChecked ${formatWordPlurality(
-          result.reports.length,
-          'file'
-        )}. Detected ${formatWordPlurality(
-          result.total.errors + (flags.quiet ? 0 : result.total.warnings),
-          'problem'
-        )}\n`
+        formatSummary({
+          fileCount: result.reports.length,
+          errorCount: result.total.errors,
+          warningCount: result.total.warnings,
+          quiet: !!flags.quiet,
+          color: !flags.noColor,
+        })
       );
     } else {
       await outputStream.write(formatJson(result));

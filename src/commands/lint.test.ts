@@ -7,7 +7,13 @@ import { MockLogger } from '../common/log';
 import { OutputStream } from '../common/output-stream';
 import { ProfileId } from '../common/profile';
 import { detectSuperJson } from '../logic/install';
-import { formatHuman, formatJson, lint, LintResult } from '../logic/lint';
+import {
+  formatHuman,
+  formatJson,
+  formatSummary,
+  lint,
+  LintResult,
+} from '../logic/lint';
 import { CommandInstance } from '../test/utils';
 import Lint from './lint';
 
@@ -369,7 +375,13 @@ describe('lint CLI command', () => {
           })
         );
         expect(writeSpy).toHaveBeenCalledWith(
-          '\nChecked 2 files. Detected 0 problems\n'
+          formatSummary({
+            fileCount: 2,
+            errorCount: 0,
+            warningCount: 0,
+            quiet: false,
+            color: true,
+          })
         );
 
         expect(cleanupSpy).toHaveBeenCalledTimes(1);
@@ -470,7 +482,13 @@ describe('lint CLI command', () => {
           })
         );
         expect(writeSpy).toHaveBeenCalledWith(
-          '\nChecked 2 files. Detected 0 problems\n'
+          formatSummary({
+            fileCount: 2,
+            errorCount: 0,
+            warningCount: 0,
+            quiet: false,
+            color: true,
+          })
         );
 
         expect(cleanupSpy).toHaveBeenCalledTimes(1);
@@ -571,7 +589,13 @@ describe('lint CLI command', () => {
           })
         );
         expect(writeSpy).toHaveBeenCalledWith(
-          '\nChecked 2 files. Detected 0 problems\n'
+          formatSummary({
+            fileCount: 2,
+            errorCount: 0,
+            warningCount: 0,
+            quiet: false,
+            color: true,
+          })
         );
 
         expect(cleanupSpy).toHaveBeenCalledTimes(1);
@@ -665,7 +689,13 @@ describe('lint CLI command', () => {
           })
         );
         expect(writeSpy).toHaveBeenCalledWith(
-          '\nChecked 2 files. Detected 0 problems\n'
+          formatSummary({
+            fileCount: 2,
+            errorCount: 0,
+            warningCount: 0,
+            quiet: false,
+            color: true,
+          })
         );
 
         expect(cleanupSpy).toHaveBeenCalledTimes(1);
@@ -759,7 +789,13 @@ describe('lint CLI command', () => {
           })
         );
         expect(writeSpy).toHaveBeenCalledWith(
-          '\nChecked 2 files. Detected 0 problems\n'
+          formatSummary({
+            fileCount: 2,
+            errorCount: 0,
+            warningCount: 0,
+            quiet: false,
+            color: true,
+          })
         );
 
         expect(cleanupSpy).toHaveBeenCalledTimes(1);
@@ -850,7 +886,13 @@ describe('lint CLI command', () => {
           })
         );
         expect(writeSpy).toHaveBeenCalledWith(
-          '\nChecked 2 files. Detected 0 problems\n'
+          formatSummary({
+            fileCount: 2,
+            errorCount: 0,
+            warningCount: 0,
+            quiet: false,
+            color: true,
+          })
         );
 
         expect(cleanupSpy).toHaveBeenCalledTimes(1);
@@ -1012,7 +1054,13 @@ describe('lint CLI command', () => {
           })
         );
         expect(writeSpy).toHaveBeenCalledWith(
-          '\nChecked 2 files. Detected 0 problems\n'
+          formatSummary({
+            fileCount: 2,
+            errorCount: 0,
+            warningCount: 0,
+            quiet: false,
+            color: true,
+          })
         );
 
         expect(cleanupSpy).toHaveBeenCalledTimes(1);
@@ -1103,7 +1151,13 @@ describe('lint CLI command', () => {
           })
         );
         expect(writeSpy).toHaveBeenCalledWith(
-          '\nChecked 2 files. Detected 1 problem\n'
+          formatSummary({
+            fileCount: 2,
+            errorCount: 1,
+            warningCount: 0,
+            quiet: false,
+            color: true,
+          })
         );
 
         expect(cleanupSpy).toHaveBeenCalledTimes(1);

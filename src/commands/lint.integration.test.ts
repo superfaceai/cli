@@ -296,6 +296,6 @@ describe('lint CLI command', () => {
       )}"`
     );
 
-    expect(result.stdout).toContain('Detected 0 problems\n');
+    expect(result.stdout).toMatch('Checked 3 files. Detected 0 problems\n');
   });
 });
