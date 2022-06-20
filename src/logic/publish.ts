@@ -192,20 +192,17 @@ export async function publish(
 
   if (publishing === 'provider') {
     logger.info('publishProvider', provider);
-    if (!options?.dryRun) {
-      await client.createProvider(JSON.stringify(providerFiles.source));
-    }
+    await client.createProvider(JSON.stringify(providerFiles.source), {
+      dryRun: options?.dryRun,
+    });
   } else if (publishing === 'profile' && profileFiles.from.kind === 'local') {
     logger.info('publishProfile', profile.id);
-    if (!options?.dryRun) {
-      await client.createProfile(profileFiles.from.source);
-    }
+    await client.createProfile(profileFiles.from.source, {
+      dryRun: options?.dryRun,
+    });
   } else if (publishing === 'map' && mapFiles.from.kind === 'local') {
     logger.info('publishMap', profile.id, provider);
-
-    if (!options?.dryRun) {
-      await client.createMap(mapFiles.from.source);
-    }
+    await client.createMap(mapFiles.from.source, { dryRun: options?.dryRun });
   }
 
   return;

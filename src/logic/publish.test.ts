@@ -293,7 +293,9 @@ describe('Publish logic', () => {
         )
       ).resolves.toBeUndefined();
 
-      expect(createSpy).toHaveBeenCalledWith(mockProfileSource);
+      expect(createSpy).toHaveBeenCalledWith(mockProfileSource, {
+        dryRun: undefined,
+      });
       expect(loadProfile).toHaveBeenCalledWith(
         {
           superJson: mockSuperJson,
@@ -389,7 +391,9 @@ describe('Publish logic', () => {
         )
       ).resolves.toBeUndefined();
 
-      expect(createSpy).toHaveBeenCalledWith(mockProfileSource);
+      expect(createSpy).toHaveBeenCalledWith(mockProfileSource, {
+        dryRun: undefined,
+      });
       expect(loadProfile).toHaveBeenCalledWith(
         {
           superJson: mockSuperJson,
@@ -482,7 +486,9 @@ describe('Publish logic', () => {
         )
       ).resolves.toBeUndefined();
 
-      expect(createSpy).toHaveBeenCalledWith(mockProfileSource);
+      expect(createSpy).toHaveBeenCalledWith(mockProfileSource, {
+        dryRun: undefined,
+      });
       expect(loadProfile).toHaveBeenCalledWith(
         {
           superJson: mockSuperJson,
@@ -525,7 +531,7 @@ describe('Publish logic', () => {
       );
     });
 
-    it('does not publish profile with --dry-run', async () => {
+    it('calls create profile with dry-run', async () => {
       const mockSuperJson = new SuperJson({
         profiles: {
           [mockProfileId]: {
@@ -577,7 +583,9 @@ describe('Publish logic', () => {
         )
       ).resolves.toBeUndefined();
 
-      expect(createSpy).not.toHaveBeenCalled();
+      expect(createSpy).toHaveBeenCalledWith(mockProfileSource, {
+        dryRun: true,
+      });
       expect(loadProfile).toHaveBeenCalledWith(
         {
           superJson: mockSuperJson,
@@ -719,7 +727,9 @@ describe('Publish logic', () => {
         )
       ).resolves.toBeUndefined();
 
-      expect(createSpy).toHaveBeenCalledWith(mockMapSource);
+      expect(createSpy).toHaveBeenCalledWith(mockMapSource, {
+        dryRun: undefined,
+      });
       expect(loadProfile).toHaveBeenCalledWith(
         {
           superJson: mockSuperJson,
@@ -817,7 +827,9 @@ describe('Publish logic', () => {
         )
       ).resolves.toBeUndefined();
 
-      expect(createSpy).toHaveBeenCalledWith(mockMapSource);
+      expect(createSpy).toHaveBeenCalledWith(mockMapSource, {
+        dryRun: undefined,
+      });
       expect(loadProfile).toHaveBeenCalledWith(
         {
           superJson: mockSuperJson,
@@ -913,7 +925,9 @@ describe('Publish logic', () => {
         )
       ).resolves.toBeUndefined();
 
-      expect(createSpy).toHaveBeenCalledWith(mockMapSource);
+      expect(createSpy).toHaveBeenCalledWith(mockMapSource, {
+        dryRun: undefined,
+      });
       expect(loadProfile).toHaveBeenCalledWith(
         {
           superJson: mockSuperJson,
@@ -956,7 +970,7 @@ describe('Publish logic', () => {
       );
     });
 
-    it('does not publish map with --dry-run', async () => {
+    it('calls create map with dry-run', async () => {
       const mockSuperJson = new SuperJson({
         profiles: {
           [mockProfileId]: {
@@ -1010,7 +1024,7 @@ describe('Publish logic', () => {
         )
       ).resolves.toBeUndefined();
 
-      expect(createSpy).not.toHaveBeenCalled();
+      expect(createSpy).toHaveBeenCalledWith(mockMapSource, { dryRun: true });
       expect(loadProfile).toHaveBeenCalledWith(
         {
           superJson: mockSuperJson,
@@ -1279,7 +1293,8 @@ describe('Publish logic', () => {
       ).resolves.toBeUndefined();
 
       expect(createSpy).toHaveBeenCalledWith(
-        JSON.stringify(mockProviderSource)
+        JSON.stringify(mockProviderSource),
+        { dryRun: undefined }
       );
       expect(loadProfile).toHaveBeenCalledWith(
         {
@@ -1390,7 +1405,8 @@ describe('Publish logic', () => {
       ).resolves.toBeUndefined();
 
       expect(createSpy).toHaveBeenCalledWith(
-        JSON.stringify(mockProviderSource)
+        JSON.stringify(mockProviderSource),
+        { dryRun: undefined }
       );
       expect(loadProfile).toHaveBeenCalledWith(
         {
@@ -1533,7 +1549,7 @@ describe('Publish logic', () => {
       );
     });
 
-    it('does not publish provider with --dry-run', async () => {
+    it('calls create provider with --dry-run', async () => {
       const provider = 'unverified-swapi';
       const mockProviderSource = {
         name: provider,
@@ -1598,7 +1614,10 @@ describe('Publish logic', () => {
         )
       ).resolves.toBeUndefined();
 
-      expect(createSpy).not.toHaveBeenCalled();
+      expect(createSpy).toHaveBeenCalledWith(
+        JSON.stringify(mockProviderSource),
+        { dryRun: true }
+      );
       expect(loadProfile).toHaveBeenCalledWith(
         {
           superJson: mockSuperJson,

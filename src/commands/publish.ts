@@ -69,10 +69,10 @@ export default class Publish extends Command {
   };
 
   static examples = [
-    '$ superface publish map --profileId starwars/characeter-information --providerName swapi -s 4',
-    '$ superface publish profile --profileId starwars/characeter-information --providerName swapi -f',
-    '$ superface publish provider --profileId starwars/characeter-information --providerName swapi -q',
-    '$ superface publish profile --profileId starwars/characeter-information --providerName swapi --dryRun',
+    '$ superface publish map --profileId starwars/character-information --providerName swapi -s 4',
+    '$ superface publish profile --profileId starwars/character-information --providerName swapi -f',
+    '$ superface publish provider --profileId starwars/character-information --providerName swapi -q',
+    '$ superface publish profile --profileId starwars/character-information --providerName swapi --dryRun',
   ];
 
   async run(): Promise<void> {
