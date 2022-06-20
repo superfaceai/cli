@@ -89,14 +89,14 @@ describe('lint CLI command', () => {
     );
 
     expect(result.stdout).toContain(
-      `Profile "${profileId}" found on local file system at path: \"${resolve(
+      `Profile "${profileId}" found on local file system at path: "${resolve(
         fixture.strictProfile
       )}"`
     );
     expect(result.stdout).toContain(
-      `Map for profile: "${profileId}" and provider: "${provider}" found on local file system at path: \"${resolve(
+      `Map for profile: "${profileId}" and provider: "${provider}" found on local file system at path: "${resolve(
         fixture.validMap
-      )}\"`
+      )}"`
     );
 
     expect(result.stdout).toContain('Detected 0 problems');
@@ -119,14 +119,14 @@ describe('lint CLI command', () => {
     ).rejects.toContain('Errors were found');
 
     expect(stdout.output).toContain(
-      `Profile "${profileId}" found on local file system at path: \"${resolve(
+      `Profile "${profileId}" found on local file system at path: "${resolve(
         fixture.strictProfile
       )}"`
     );
     expect(stdout.output).toContain(
-      `Map for profile: "${profileId}" and provider: "${provider}" found on local file system at path: \"${resolve(
+      `Map for profile: "${profileId}" and provider: "${provider}" found on local file system at path: "${resolve(
         fixture.validMap
-      )}\"`
+      )}"`
     );
 
     expect(stdout.output).toContain(
@@ -159,14 +159,14 @@ describe('lint CLI command', () => {
     ).rejects.toContain('Errors were found');
 
     expect(stdout.output).toContain(
-      `Profile "${profileId}" found on local file system at path: \"${resolve(
+      `Profile "${profileId}" found on local file system at path: "${resolve(
         fixture.strictProfile
       )}"`
     );
     expect(stdout.output).toContain(
-      `Map for profile: "${profileId}" and provider: "${provider}" found on local file system at path: \"${resolve(
+      `Map for profile: "${profileId}" and provider: "${provider}" found on local file system at path: "${resolve(
         fixture.validMap
-      )}\"`
+      )}"`
     );
     expect(stdout.output).toContain(
       `Parsing map file: ${resolve(fixture.invalidParsedMap)}\n` +
@@ -286,14 +286,14 @@ describe('lint CLI command', () => {
     );
 
     expect(result.stdout).toContain(
-      `Profile "${profileId}" found on local file system at path: \"${resolve(
+      `Profile "${profileId}" found on local file system at path: "${resolve(
         fixture.strictProfile
       )}"`
     );
     expect(result.stdout).toContain(
-      `Map for profile: "${profileId}" and provider: "${provider}" found on local file system at path: \"${resolve(
+      `Map for profile: "${profileId}" and provider: "${provider}" found on local file system at path: "${resolve(
         fixture.validMap
-      )}\"`
+      )}"`
     );
 
     expect(result.stdout).toContain('Detected 0 problems\n');
