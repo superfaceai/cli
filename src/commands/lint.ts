@@ -58,7 +58,7 @@ export default class Lint extends Command {
 
         return input;
       },
-    })({ default: 'long' }),
+    })({ default: 'short' }),
 
     scan: oclifFlags.integer({
       char: 's',
@@ -70,6 +70,7 @@ export default class Lint extends Command {
 
   static examples = [
     '$ superface lint',
+    '$ superface lint -f long',
     '$ superface lint --profileId starwars/character-information',
     '$ superface lint --profileId starwars/character-information --providerName swapi',
     '$ superface lint -o -2',
@@ -173,20 +174,40 @@ export default class Lint extends Command {
     });
 
     if (flags.outputFormat === 'long' || flags.outputFormat === 'short') {
-      for (const report of result.reports) {
+      //Print everything
+      if (flags.outputFormat === 'long') {
+        for (const report of result.reports) {
+          await outputStream.write(
+            formatHuman({
+              report,
+              quiet: !!flags.quiet,
+              emoji: !flags.noEmoji,
+              color: !flags.noColor,
+              short: false,
+            })
+          );
+        }
+      }
+      //Print only errors and warnings
+      for (const report of result.reports.filter(
+        r => r.errors.length || r.warnings.length
+      )) {
         await outputStream.write(
           formatHuman({
             report,
             quiet: !!flags.quiet,
             emoji: !flags.noEmoji,
             color: !flags.noColor,
-            short: flags.outputFormat === 'short',
+            short: false,
           })
         );
       }
 
       await outputStream.write(
-        `\nDetected ${formatWordPlurality(
+        `\nChecked ${formatWordPlurality(
+          result.reports.length,
+          'file'
+        )}. Detected ${formatWordPlurality(
           result.total.errors + (flags.quiet ? 0 : result.total.warnings),
           'problem'
         )}\n`

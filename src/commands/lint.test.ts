@@ -368,7 +368,9 @@ describe('lint CLI command', () => {
             short: true,
           })
         );
-        expect(writeSpy).toHaveBeenCalledWith('\nDetected 0 problems\n');
+        expect(writeSpy).toHaveBeenCalledWith(
+          '\nChecked 2 files. Detected 0 problems\n'
+        );
 
         expect(cleanupSpy).toHaveBeenCalledTimes(1);
       });
@@ -467,7 +469,9 @@ describe('lint CLI command', () => {
             short: true,
           })
         );
-        expect(writeSpy).toHaveBeenCalledWith('\nDetected 0 problems\n');
+        expect(writeSpy).toHaveBeenCalledWith(
+          '\nChecked 2 files. Detected 0 problems\n'
+        );
 
         expect(cleanupSpy).toHaveBeenCalledTimes(1);
       });
@@ -566,7 +570,9 @@ describe('lint CLI command', () => {
             short: true,
           })
         );
-        expect(writeSpy).toHaveBeenCalledWith('\nDetected 0 problems\n');
+        expect(writeSpy).toHaveBeenCalledWith(
+          '\nChecked 2 files. Detected 0 problems\n'
+        );
 
         expect(cleanupSpy).toHaveBeenCalledTimes(1);
       });
@@ -658,7 +664,9 @@ describe('lint CLI command', () => {
             short: true,
           })
         );
-        expect(writeSpy).toHaveBeenCalledWith('\nDetected 0 problems\n');
+        expect(writeSpy).toHaveBeenCalledWith(
+          '\nChecked 2 files. Detected 0 problems\n'
+        );
 
         expect(cleanupSpy).toHaveBeenCalledTimes(1);
       });
@@ -750,7 +758,9 @@ describe('lint CLI command', () => {
             short: true,
           })
         );
-        expect(writeSpy).toHaveBeenCalledWith('\nDetected 0 problems\n');
+        expect(writeSpy).toHaveBeenCalledWith(
+          '\nChecked 2 files. Detected 0 problems\n'
+        );
 
         expect(cleanupSpy).toHaveBeenCalledTimes(1);
       });
@@ -839,7 +849,9 @@ describe('lint CLI command', () => {
             short: true,
           })
         );
-        expect(writeSpy).toHaveBeenCalledWith('\nDetected 0 problems\n');
+        expect(writeSpy).toHaveBeenCalledWith(
+          '\nChecked 2 files. Detected 0 problems\n'
+        );
 
         expect(cleanupSpy).toHaveBeenCalledTimes(1);
       });
@@ -999,7 +1011,9 @@ describe('lint CLI command', () => {
             short: true,
           })
         );
-        expect(writeSpy).toHaveBeenCalledWith('\nDetected 0 problems\n');
+        expect(writeSpy).toHaveBeenCalledWith(
+          '\nChecked 2 files. Detected 0 problems\n'
+        );
 
         expect(cleanupSpy).toHaveBeenCalledTimes(1);
       });
@@ -1069,7 +1083,7 @@ describe('lint CLI command', () => {
 
         expect(detectSuperJson).toHaveBeenCalledWith(process.cwd(), 4);
         expect(loadSpy).toHaveBeenCalledTimes(1);
-        expect(writeSpy).toHaveBeenCalledTimes(3);
+        expect(writeSpy).toHaveBeenCalledTimes(4);
         expect(writeSpy).toHaveBeenCalledWith(
           formatHuman({
             report: mockResultWithErrs.reports[0],
@@ -1088,7 +1102,9 @@ describe('lint CLI command', () => {
             short: true,
           })
         );
-        expect(writeSpy).toHaveBeenCalledWith('\nDetected 1 problem\n');
+        expect(writeSpy).toHaveBeenCalledWith(
+          '\nChecked 2 files. Detected 1 problem\n'
+        );
 
         expect(cleanupSpy).toHaveBeenCalledTimes(1);
       });
