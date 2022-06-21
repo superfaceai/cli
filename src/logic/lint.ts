@@ -275,8 +275,7 @@ type PreparedProfile = ProfileToValidate & {
 
 async function prepareLintedProfile(
   superJson: SuperJson,
-  profile: ProfileToValidate,
-  { logger }: { logger: ILogger }
+  profile: ProfileToValidate
 ): Promise<PreparedProfile> {
   let ast: ProfileDocumentNode | undefined = undefined;
   let output: ProfileOutput | undefined = undefined;
@@ -295,15 +294,12 @@ async function prepareLintedProfile(
   };
   //If we have local profile we lint it
   if (profileSource) {
-    logger.info('localProfileFound', profile.id.id, profileSource.path);
-
     try {
       ast = parseProfile(new Source(profileSource.source, profileSource.path));
     } catch (e) {
       report.errors.push(e);
     }
   } else {
-    logger.info('fetchProfile', profile.id.id, profile.version);
     ast = await fetchProfileAST(profile.id, profile.version);
   }
 
@@ -330,8 +326,7 @@ async function prepareLintedProfile(
 async function prepareLintedMap(
   superJson: SuperJson,
   profile: ProfileToValidate,
-  map: MapToValidate,
-  { logger }: { logger: ILogger }
+  map: MapToValidate
 ): Promise<PreparedMap> {
   let ast: MapDocumentNode | undefined = undefined;
 
@@ -361,24 +356,12 @@ async function prepareLintedMap(
     warnings: [],
   };
   if (mapSource) {
-    logger.info(
-      'localMapFound',
-      profile.id.withVersion(profile.version),
-      map.provider,
-      mapSource.path
-    );
-
     try {
       ast = parseMap(new Source(mapSource.source, mapSource.path));
     } catch (e) {
       report.errors.push(e);
     }
   } else {
-    logger.info(
-      'fetchMap',
-      profile.id.withVersion(profile.version),
-      map.provider
-    );
     ast = await fetchMapAST({
       name: profile.id.name,
       provider: map.provider,
@@ -429,9 +412,7 @@ export async function lint(
   const reports: ReportFormat[] = [];
 
   for (const profile of profiles) {
-    const preparedProfile = await prepareLintedProfile(superJson, profile, {
-      logger,
-    });
+    const preparedProfile = await prepareLintedProfile(superJson, profile);
 
     reports.push(preparedProfile.report);
 
@@ -441,9 +422,7 @@ export async function lint(
     }
 
     for (const map of profile.maps) {
-      const preparedMap = await prepareLintedMap(superJson, profile, map, {
-        logger,
-      });
+      const preparedMap = await prepareLintedMap(superJson, profile, map);
       reports.push(preparedMap.report);
 
       //Return if we have errors or warnings
