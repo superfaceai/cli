@@ -137,7 +137,6 @@ export async function publish(
       reportStr += yellow('\n\nLint results:\n');
       reportStr += lintFormatHuman({
         report: lintReport,
-        quiet: options?.quiet ?? false,
         emoji: options?.emoji ?? false,
         color: options?.color ?? false,
       });

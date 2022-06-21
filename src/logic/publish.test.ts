@@ -1759,7 +1759,6 @@ describe('Publish logic', () => {
       expect(result).toMatch(
         lintFormatHuman({
           report: emptyLintResult,
-          quiet: false,
           emoji: false,
           color: false,
         })
@@ -1897,7 +1896,6 @@ describe('Publish logic', () => {
       expect(result).toMatch(
         lintFormatHuman({
           report: lintResult,
-          quiet: false,
           emoji: false,
           color: false,
         })

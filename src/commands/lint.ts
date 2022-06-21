@@ -179,10 +179,8 @@ export default class Lint extends Command {
           await outputStream.write(
             formatHuman({
               report,
-              quiet: !!flags.quiet,
               emoji: !flags.noEmoji,
               color: !flags.noColor,
-              short: false,
             })
           );
         }
@@ -194,10 +192,8 @@ export default class Lint extends Command {
         await outputStream.write(
           formatHuman({
             report,
-            quiet: !!flags.quiet,
             emoji: !flags.noEmoji,
             color: !flags.noColor,
-            short: false,
           })
         );
       }
@@ -207,7 +203,6 @@ export default class Lint extends Command {
           fileCount: result.reports.length,
           errorCount: result.total.errors,
           warningCount: result.total.warnings,
-          quiet: !!flags.quiet,
           color: !flags.noColor,
         })
       );

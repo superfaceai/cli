@@ -110,13 +110,11 @@ export function formatSummary({
   fileCount,
   errorCount,
   warningCount,
-  quiet,
   color,
 }: {
   fileCount: number;
   errorCount: number;
   warningCount: number;
-  quiet: boolean;
   color: boolean;
 }): string {
   const noColor = (input: string) => input;
@@ -140,26 +138,23 @@ export function formatSummary({
   return (
     buffer +
     colorize(
-      `Detected ${formatWordPlurality(
-        errorCount + (quiet ? 0 : warningCount),
-        'problem'
-      )}\n`
+      `Detected ${formatWordPlurality(errorCount + warningCount, 'problem')}\n`
     )
   );
 }
 
 export function formatHuman({
   report,
-  quiet,
+  // quiet,
   emoji,
   color,
-  short,
-}: {
+}: // short,
+{
   report: ReportFormat;
-  quiet: boolean;
+  // quiet: boolean;
   emoji: boolean;
   color: boolean;
-  short?: boolean;
+  // short?: boolean;
 }): string {
   const REPORT_OK = '🆗';
   const REPORT_WARN = '⚠️';
@@ -198,12 +193,7 @@ export function formatHuman({
     // Format Errors
     for (const error of report.errors) {
       if (error instanceof SyntaxError) {
-        if (short) {
-          const message = `\t${error.location.start.line}:${error.location.start.column} ${error.message}\n`;
-          buffer += color ? red(message) : message;
-        } else {
-          buffer += color ? red(error.format()) : error.format();
-        }
+        buffer += color ? red(error.format()) : error.format();
       } else {
         buffer += color ? red(formatIssues([error])) : formatIssues([error]);
 
@@ -218,12 +208,10 @@ export function formatHuman({
     }
 
     // Format Warnings
-    if (!quiet) {
-      buffer += color
-        ? yellow(formatIssues(report.warnings))
-        : formatIssues(report.warnings);
-      buffer += '\n';
-    }
+    buffer += color
+      ? yellow(formatIssues(report.warnings))
+      : formatIssues(report.warnings);
+    buffer += '\n';
   } else {
     buffer += colorize(
       `${prefix} Validating profile: ${report.profile} to map: ${report.path}\n`
@@ -234,17 +222,15 @@ export function formatHuman({
       ? red(formatIssues(report.errors))
       : formatIssues(report.errors);
 
-    if (!quiet && report.errors.length > 0 && report.warnings.length > 0) {
+    if (report.errors.length > 0 && report.warnings.length > 0) {
       buffer += '\n';
     }
 
     // Format Warnings
-    if (!quiet) {
-      buffer += color
-        ? yellow(formatIssues(report.warnings))
-        : formatIssues(report.warnings);
-      buffer += '\n';
-    }
+    buffer += color
+      ? yellow(formatIssues(report.warnings))
+      : formatIssues(report.warnings);
+    buffer += '\n';
   }
 
   return buffer;

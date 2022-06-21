@@ -359,19 +359,15 @@ describe('lint CLI command', () => {
         expect(writeSpy).toHaveBeenCalledWith(
           formatHuman({
             report: mockResult.reports[0],
-            quiet: false,
             emoji: true,
             color: true,
-            short: true,
           })
         );
         expect(writeSpy).toHaveBeenCalledWith(
           formatHuman({
             report: mockResult.reports[1],
-            quiet: false,
             emoji: true,
             color: true,
-            short: true,
           })
         );
         expect(writeSpy).toHaveBeenCalledWith(
@@ -379,7 +375,6 @@ describe('lint CLI command', () => {
             fileCount: 2,
             errorCount: 0,
             warningCount: 0,
-            quiet: false,
             color: true,
           })
         );
@@ -466,19 +461,15 @@ describe('lint CLI command', () => {
         expect(writeSpy).toHaveBeenCalledWith(
           formatHuman({
             report: mockResult.reports[0],
-            quiet: false,
             emoji: true,
             color: true,
-            short: true,
           })
         );
         expect(writeSpy).toHaveBeenCalledWith(
           formatHuman({
             report: mockResult.reports[1],
-            quiet: false,
             emoji: true,
             color: true,
-            short: true,
           })
         );
         expect(writeSpy).toHaveBeenCalledWith(
@@ -486,7 +477,6 @@ describe('lint CLI command', () => {
             fileCount: 2,
             errorCount: 0,
             warningCount: 0,
-            quiet: false,
             color: true,
           })
         );
@@ -573,19 +563,15 @@ describe('lint CLI command', () => {
         expect(writeSpy).toHaveBeenCalledWith(
           formatHuman({
             report: mockResult.reports[0],
-            quiet: false,
             emoji: true,
             color: true,
-            short: true,
           })
         );
         expect(writeSpy).toHaveBeenCalledWith(
           formatHuman({
             report: mockResult.reports[1],
-            quiet: false,
             emoji: true,
             color: true,
-            short: true,
           })
         );
         expect(writeSpy).toHaveBeenCalledWith(
@@ -593,7 +579,6 @@ describe('lint CLI command', () => {
             fileCount: 2,
             errorCount: 0,
             warningCount: 0,
-            quiet: false,
             color: true,
           })
         );
@@ -673,19 +658,15 @@ describe('lint CLI command', () => {
         expect(writeSpy).toHaveBeenCalledWith(
           formatHuman({
             report: mockResult.reports[0],
-            quiet: false,
             emoji: true,
             color: true,
-            short: true,
           })
         );
         expect(writeSpy).toHaveBeenCalledWith(
           formatHuman({
             report: mockResult.reports[1],
-            quiet: false,
             emoji: true,
             color: true,
-            short: true,
           })
         );
         expect(writeSpy).toHaveBeenCalledWith(
@@ -693,7 +674,6 @@ describe('lint CLI command', () => {
             fileCount: 2,
             errorCount: 0,
             warningCount: 0,
-            quiet: false,
             color: true,
           })
         );
@@ -773,19 +753,15 @@ describe('lint CLI command', () => {
         expect(writeSpy).toHaveBeenCalledWith(
           formatHuman({
             report: mockResult.reports[0],
-            quiet: false,
             emoji: true,
             color: true,
-            short: true,
           })
         );
         expect(writeSpy).toHaveBeenCalledWith(
           formatHuman({
             report: mockResult.reports[1],
-            quiet: false,
             emoji: true,
             color: true,
-            short: true,
           })
         );
         expect(writeSpy).toHaveBeenCalledWith(
@@ -793,7 +769,6 @@ describe('lint CLI command', () => {
             fileCount: 2,
             errorCount: 0,
             warningCount: 0,
-            quiet: false,
             color: true,
           })
         );
@@ -870,19 +845,15 @@ describe('lint CLI command', () => {
         expect(writeSpy).toHaveBeenCalledWith(
           formatHuman({
             report: mockResult.reports[0],
-            quiet: false,
             emoji: true,
             color: true,
-            short: true,
           })
         );
         expect(writeSpy).toHaveBeenCalledWith(
           formatHuman({
             report: mockResult.reports[1],
-            quiet: false,
             emoji: true,
             color: true,
-            short: true,
           })
         );
         expect(writeSpy).toHaveBeenCalledWith(
@@ -890,7 +861,6 @@ describe('lint CLI command', () => {
             fileCount: 2,
             errorCount: 0,
             warningCount: 0,
-            quiet: false,
             color: true,
           })
         );
@@ -1038,19 +1008,15 @@ describe('lint CLI command', () => {
         expect(writeSpy).toHaveBeenCalledWith(
           formatHuman({
             report: mockResult.reports[0],
-            quiet: false,
             emoji: true,
             color: true,
-            short: true,
           })
         );
         expect(writeSpy).toHaveBeenCalledWith(
           formatHuman({
             report: mockResult.reports[1],
-            quiet: false,
             emoji: true,
             color: true,
-            short: true,
           })
         );
         expect(writeSpy).toHaveBeenCalledWith(
@@ -1058,7 +1024,6 @@ describe('lint CLI command', () => {
             fileCount: 2,
             errorCount: 0,
             warningCount: 0,
-            quiet: false,
             color: true,
           })
         );
@@ -1135,19 +1100,15 @@ describe('lint CLI command', () => {
         expect(writeSpy).toHaveBeenCalledWith(
           formatHuman({
             report: mockResultWithErrs.reports[0],
-            quiet: false,
             emoji: true,
             color: true,
-            short: false,
           })
         );
         expect(writeSpy).toHaveBeenCalledWith(
           formatHuman({
             report: mockResultWithErrs.reports[1],
-            quiet: false,
             emoji: true,
             color: true,
-            short: true,
           })
         );
         expect(writeSpy).toHaveBeenCalledWith(
@@ -1155,7 +1116,6 @@ describe('lint CLI command', () => {
             fileCount: 2,
             errorCount: 1,
             warningCount: 0,
-            quiet: false,
             color: true,
           })
         );
