@@ -1,8 +1,7 @@
-import { Parser } from '@superfaceai/one-sdk';
-
 import { UserError } from '../common/error';
 import { exists, readFile } from '../common/io';
 import { ILogger } from '../common/log';
+import { Parser } from '../common/parser';
 import { ProfileId } from '../common/profile';
 
 export type MapToCompile = { provider: string; path: string };

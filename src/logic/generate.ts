@@ -1,10 +1,8 @@
-import { ProfileDocumentNode } from '@superfaceai/ast';
-import { SuperJson } from '@superfaceai/one-sdk';
+import { ProfileDocumentNode, SuperJsonDocument } from '@superfaceai/ast';
 import { getProfileOutput } from '@superfaceai/parser';
-import { join as joinPath } from 'path';
+import { dirname, join as joinPath, resolve as resolvePath } from 'path';
 import {
   CompilerOptions,
-  // createCompilerHost,
   createProgram,
   ModuleKind,
   ModuleResolutionKind,
@@ -33,9 +31,11 @@ export async function generate(
   {
     profiles,
     superJson,
+    superJsonPath,
   }: {
     profiles: { id: ProfileId; version?: string }[];
-    superJson: SuperJson;
+    superJson: SuperJsonDocument;
+    superJsonPath: string;
   },
   { logger }: { logger: ILogger }
 ): Promise<void> {
@@ -44,6 +44,7 @@ export async function generate(
     const loadedProfile = await loadProfile(
       {
         superJson,
+        superJsonPath,
         profile: profile.id,
         version: profile.version,
       },
@@ -55,7 +56,7 @@ export async function generate(
 
   const sdkFile = generateTypesFile(profiles.map(profile => profile.id.id));
   sources[UNCOMPILED_SDK_FILE] = sdkFile;
-  await transpileFiles(sources, superJson);
+  await transpileFiles(sources, superJsonPath);
 }
 /**
  * Generates sdk.ts file from supplied profiles
@@ -116,7 +117,7 @@ export function generateTypingsForProfile(
  */
 export async function transpileFiles(
   sources: Record<string, string>,
-  superJson: SuperJson
+  superJsonPath: string
 ): Promise<void> {
   const options: CompilerOptions = {
     declaration: true,
@@ -126,17 +127,21 @@ export async function transpileFiles(
     allowJs: true,
   };
   for (const [path, data] of Object.entries(sources)) {
-    await OutputStream.writeOnce(superJson.resolvePath(path), data, {
-      dirs: true,
-    });
+    await OutputStream.writeOnce(
+      resolvePath(dirname(superJsonPath), path),
+      data,
+      {
+        dirs: true,
+      }
+    );
   }
   const program = createProgram(
-    [superJson.resolvePath(UNCOMPILED_SDK_FILE)],
+    [resolvePath(dirname(superJsonPath), UNCOMPILED_SDK_FILE)],
     options
   );
   program.emit();
 
   for (const path of Object.keys(sources)) {
-    await rimraf(superJson.resolvePath(path));
+    await rimraf(resolvePath(dirname(superJsonPath), path));
   }
 }

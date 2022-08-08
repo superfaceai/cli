@@ -1,4 +1,3 @@
-import { SuperJson } from '@superfaceai/one-sdk';
 import inquirer from 'inquirer';
 import { mocked } from 'ts-jest/utils';
 
@@ -35,7 +34,10 @@ describe('Init CLI command', () => {
     const mockPath = 'test';
 
     it('initializes superface with prompt', async () => {
-      mocked(initSuperface).mockResolvedValue(new SuperJson({}));
+      mocked(initSuperface).mockResolvedValue({
+        superJson: {},
+        superJsonPath: '',
+      });
       mocked(generateSpecifiedProfiles).mockResolvedValue(undefined);
       const writeOnceSpy = jest
         .spyOn(OutputStream, 'writeOnce')
@@ -69,14 +71,14 @@ describe('Init CLI command', () => {
       expect(promptSpy).toHaveBeenCalledTimes(2);
 
       expect(writeOnceSpy).toHaveBeenCalledTimes(1);
-      expect(writeOnceSpy).toHaveBeenCalledWith(
-        '',
-        new SuperJson({}).stringified
-      );
+      expect(writeOnceSpy).toHaveBeenCalledWith('', JSON.stringify({}));
     });
 
     it('initializes superface with invalid profiles and providers', async () => {
-      mocked(initSuperface).mockResolvedValue(new SuperJson({}));
+      mocked(initSuperface).mockResolvedValue({
+        superJson: {},
+        superJsonPath: '',
+      });
       mocked(generateSpecifiedProfiles).mockResolvedValue(undefined);
       const writeOnceSpy = jest
         .spyOn(OutputStream, 'writeOnce')
@@ -110,14 +112,14 @@ describe('Init CLI command', () => {
       expect(promptSpy).toHaveBeenCalledTimes(2);
 
       expect(writeOnceSpy).toHaveBeenCalledTimes(1);
-      expect(writeOnceSpy).toHaveBeenCalledWith(
-        '',
-        new SuperJson({}).stringified
-      );
+      expect(writeOnceSpy).toHaveBeenCalledWith('', JSON.stringify({}));
     });
 
     it('initializes superface without prompt', async () => {
-      mocked(initSuperface).mockResolvedValue(new SuperJson({}));
+      mocked(initSuperface).mockResolvedValue({
+        superJson: {},
+        superJsonPath: '',
+      });
       mocked(generateSpecifiedProfiles).mockResolvedValue(undefined);
       const writeOnceSpy = jest
         .spyOn(OutputStream, 'writeOnce')
@@ -151,7 +153,10 @@ describe('Init CLI command', () => {
     });
 
     it('initializes superface with quiet flag', async () => {
-      mocked(initSuperface).mockResolvedValue(new SuperJson({}));
+      mocked(initSuperface).mockResolvedValue({
+        superJson: {},
+        superJsonPath: '',
+      });
       mocked(generateSpecifiedProfiles).mockResolvedValue(undefined);
       const writeOnceSpy = jest
         .spyOn(OutputStream, 'writeOnce')

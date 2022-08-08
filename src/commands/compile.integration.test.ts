@@ -1,5 +1,9 @@
 import { EXTENSIONS } from '@superfaceai/ast';
-import { SuperJson } from '@superfaceai/one-sdk';
+import {
+  loadSuperJson,
+  NodeFileSystem,
+  normalizeSuperJsonDocument,
+} from '@superfaceai/one-sdk';
 import { promises as fsp } from 'fs';
 import { join as joinPath, resolve } from 'path';
 
@@ -36,7 +40,7 @@ describe('Compile CLI command', () => {
 
   describe('integration tests', () => {
     it('compiles all', async () => {
-      const mockSuperJson = new SuperJson({
+      const mockSuperJson = {
         profiles: {
           [profileId]: {
             file: `../../../../${fixture.strictProfile}`,
@@ -47,12 +51,12 @@ describe('Compile CLI command', () => {
             },
           },
         },
-      });
+      };
 
       await mkdir(joinPath(tempDir, 'superface'));
       await OutputStream.writeOnce(
         joinPath(tempDir, 'superface', 'super.json'),
-        mockSuperJson.stringified
+        JSON.stringify(mockSuperJson, undefined, 2)
       );
       const result = await execCLI(tempDir, ['compile'], '');
       //Check stdout
@@ -64,9 +68,14 @@ describe('Compile CLI command', () => {
 
       //Check super.json
       const superJson = (
-        await SuperJson.load(joinPath(tempDir, 'superface', 'super.json'))
+        await loadSuperJson(
+          joinPath(tempDir, 'superface', 'super.json'),
+          NodeFileSystem
+        )
       ).unwrap();
-      expect(superJson.normalized).toEqual(mockSuperJson.normalized);
+      expect(normalizeSuperJsonDocument(superJson)).toEqual(
+        normalizeSuperJsonDocument(mockSuperJson)
+      );
 
       //Check output file
       const mapASTFixture = JSON.parse(
@@ -94,7 +103,7 @@ describe('Compile CLI command', () => {
     }, 10000);
 
     it('compiles single profile and its maps', async () => {
-      const mockSuperJson = new SuperJson({
+      const mockSuperJson = {
         profiles: {
           [profileId]: {
             file: `../../../../${fixture.strictProfile}`,
@@ -109,17 +118,18 @@ describe('Compile CLI command', () => {
             providers: {},
           },
         },
-      });
+      };
 
       await mkdir(joinPath(tempDir, 'superface'));
       await OutputStream.writeOnce(
         joinPath(tempDir, 'superface', 'super.json'),
-        mockSuperJson.stringified
+        JSON.stringify(mockSuperJson, undefined, 2)
       );
       const result = await execCLI(
         tempDir,
         ['compile', '--profileId', profileId],
-        ''
+        '',
+        { debug: true }
       );
       //Check stdout
       expect(result.stdout).toMatch(messages.compileMap(profileId, provider));
@@ -130,9 +140,14 @@ describe('Compile CLI command', () => {
 
       //Check super.json
       const superJson = (
-        await SuperJson.load(joinPath(tempDir, 'superface', 'super.json'))
+        await loadSuperJson(
+          joinPath(tempDir, 'superface', 'super.json'),
+          NodeFileSystem
+        )
       ).unwrap();
-      expect(superJson.normalized).toEqual(mockSuperJson.normalized);
+      expect(normalizeSuperJsonDocument(superJson)).toEqual(
+        normalizeSuperJsonDocument(mockSuperJson)
+      );
 
       //Check output file
 
@@ -180,7 +195,7 @@ describe('Compile CLI command', () => {
     }, 10000);
 
     it('compiles single profile and single map', async () => {
-      const mockSuperJson = new SuperJson({
+      const mockSuperJson = {
         profiles: {
           [profileId]: {
             file: `../../../../${fixture.strictProfile}`,
@@ -191,12 +206,12 @@ describe('Compile CLI command', () => {
             },
           },
         },
-      });
+      };
 
       await mkdir(joinPath(tempDir, 'superface'));
       await OutputStream.writeOnce(
         joinPath(tempDir, 'superface', 'super.json'),
-        mockSuperJson.stringified
+        JSON.stringify(mockSuperJson, undefined, 2)
       );
       const result = await execCLI(
         tempDir,
@@ -212,9 +227,14 @@ describe('Compile CLI command', () => {
 
       //Check super.json
       const superJson = (
-        await SuperJson.load(joinPath(tempDir, 'superface', 'super.json'))
+        await loadSuperJson(
+          joinPath(tempDir, 'superface', 'super.json'),
+          NodeFileSystem
+        )
       ).unwrap();
-      expect(superJson.normalized).toEqual(mockSuperJson.normalized);
+      expect(normalizeSuperJsonDocument(superJson)).toEqual(
+        normalizeSuperJsonDocument(mockSuperJson)
+      );
 
       //Check output files
       const profileASTFixture = JSON.parse(

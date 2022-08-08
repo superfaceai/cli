@@ -1,19 +1,24 @@
-import { EXTENSIONS, ProviderJson } from '@superfaceai/ast';
-import { SuperJson } from '@superfaceai/one-sdk';
-import { join as joinPath } from 'path';
+import { EXTENSIONS, ProviderJson, SuperJsonDocument } from '@superfaceai/ast';
+import { normalizeSuperJsonDocument } from '@superfaceai/one-sdk';
+import { dirname, join as joinPath, resolve as resolvePath } from 'path';
 
 import { exists, readdir, readFile } from '../common/io';
 import { ProfileId } from '../common/profile';
 
 export async function findLocalProfileSource(
-  superJson: SuperJson,
+  superJson: SuperJsonDocument,
+  superJsonPath: string,
   profile: ProfileId,
   version?: string
 ): Promise<{ path: string; source: string } | undefined> {
   //Check file property
-  const profileSettings = superJson.normalized.profiles[profile.id];
+  const normalized = normalizeSuperJsonDocument(superJson);
+  const profileSettings = normalized.profiles[profile.id];
   if (profileSettings !== undefined && 'file' in profileSettings) {
-    const resolvedPath = superJson.resolvePath(profileSettings.file);
+    const resolvedPath = resolvePath(
+      dirname(superJsonPath),
+      profileSettings.file
+    );
     if (await exists(resolvedPath)) {
       return {
         source: await readFile(resolvedPath, { encoding: 'utf-8' }),
@@ -29,7 +34,7 @@ export async function findLocalProfileSource(
       basePath,
       `${profile.name}@${version}${EXTENSIONS.profile.source}`
     );
-    const resolvedPath = superJson.resolvePath(path);
+    const resolvedPath = resolvePath(dirname(superJsonPath), path);
     if (await exists(resolvedPath)) {
       return {
         source: await readFile(resolvedPath, { encoding: 'utf-8' }),
@@ -38,7 +43,7 @@ export async function findLocalProfileSource(
     }
   } else {
     //Look for any version
-    const scopePath = superJson.resolvePath(basePath);
+    const scopePath = resolvePath(dirname(superJsonPath), basePath);
     if (await exists(scopePath)) {
       //Get files in profile directory
       const files = (await readdir(scopePath, { withFileTypes: true }))
@@ -51,7 +56,10 @@ export async function findLocalProfileSource(
           f.endsWith(EXTENSIONS.profile.source)
       );
       if (path) {
-        const resolvedPath = superJson.resolvePath(joinPath(basePath, path));
+        const resolvedPath = resolvePath(
+          dirname(superJsonPath),
+          joinPath(basePath, path)
+        );
         if (await exists(resolvedPath)) {
           return {
             source: await readFile(resolvedPath, { encoding: 'utf-8' }),
@@ -66,16 +74,21 @@ export async function findLocalProfileSource(
 }
 
 export async function findLocalMapSource(
-  superJson: SuperJson,
+  superJson: SuperJsonDocument,
+  superJsonPath: string,
   profile: ProfileId,
   provider: string
 ): Promise<{ path: string; source: string } | undefined> {
+  const normalized = normalizeSuperJsonDocument(superJson);
   //Check file property
-  const profileSettings = superJson.normalized.profiles[profile.id];
+  const profileSettings = normalized.profiles[profile.id];
   if (profileSettings !== undefined) {
     const profileProviderSettings = profileSettings.providers[provider];
     if (profileProviderSettings && 'file' in profileProviderSettings) {
-      const resolvedPath = superJson.resolvePath(profileProviderSettings.file);
+      const resolvedPath = resolvePath(
+        dirname(superJsonPath),
+        profileProviderSettings.file
+      );
       if (await exists(resolvedPath)) {
         return {
           source: await readFile(resolvedPath, { encoding: 'utf-8' }),
@@ -89,17 +102,22 @@ export async function findLocalMapSource(
 }
 
 export async function findLocalProviderSource(
-  superJson: SuperJson,
+  superJson: SuperJsonDocument,
+  superJsonPath: string,
   provider: string
 ): Promise<{ path: string; source: ProviderJson } | undefined> {
+  const normalized = normalizeSuperJsonDocument(superJson);
   //Check file property
-  const providerSettings = superJson.normalized.providers[provider];
+  const providerSettings = normalized.providers[provider];
   if (
     providerSettings !== undefined &&
     'file' in providerSettings &&
     providerSettings.file
   ) {
-    const resolvedPath = superJson.resolvePath(providerSettings.file);
+    const resolvedPath = resolvePath(
+      dirname(superJsonPath),
+      providerSettings.file
+    );
     if (await exists(resolvedPath)) {
       return {
         path: resolvedPath,
@@ -115,6 +133,7 @@ export async function findLocalProviderSource(
 
 export function isProviderParseError(
   input: Record<string, unknown>
-): input is { path: string[]; message: string } {
-  return 'path' in input && 'message' in input;
+): input is { errors: [message: string, path: string[]][] } {
+  // return 'path' in input && 'message' in input;
+  return 'errors' in input && Array.isArray(input.errors);
 }

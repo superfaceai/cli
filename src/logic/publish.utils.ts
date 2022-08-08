@@ -4,8 +4,8 @@ import {
   MapDocumentNode,
   ProfileDocumentNode,
   ProviderJson,
+  SuperJsonDocument,
 } from '@superfaceai/ast';
-import { Parser, SuperJson } from '@superfaceai/one-sdk';
 import {
   composeVersion,
   getProfileOutput,
@@ -19,6 +19,7 @@ import {
   fetchProviderInfo,
 } from '../common/http';
 import { ILogger } from '../common/log';
+import { Parser } from '../common/parser';
 import { ProfileId } from '../common/profile';
 import { ProfileMapReport } from '../common/report.interfaces';
 import {
@@ -43,7 +44,8 @@ export function prePublishCheck(
     profileFrom: ProfileFromMetadata;
     mapFrom: MapFromMetadata;
     providerFrom: ProviderFromMetadata;
-    superJson: SuperJson;
+    superJson: SuperJsonDocument;
+    superJsonPath: string;
   },
   { logger, userError }: { logger: ILogger; userError: UserError }
 ): CheckResult[] {
@@ -83,7 +85,7 @@ export function prePublishCheck(
   result.push({
     ...checkIntegrationParameters(params.providerJson, params.superJson),
     providerFrom: params.providerFrom,
-    superJsonPath: params.superJson.path,
+    superJsonPath: params.superJsonPath,
   });
 
   return result;
@@ -112,10 +114,12 @@ export type ProfileFromMetadata =
 export async function loadProfile(
   {
     superJson,
+    superJsonPath,
     profile,
     version,
   }: {
-    superJson: SuperJson;
+    superJson: SuperJsonDocument;
+    superJsonPath: string;
     profile: ProfileId;
     version?: string;
   },
@@ -126,7 +130,12 @@ export async function loadProfile(
 }> {
   let ast: ProfileDocumentNode;
 
-  const source = await findLocalProfileSource(superJson, profile, version);
+  const source = await findLocalProfileSource(
+    superJson,
+    superJsonPath,
+    profile,
+    version
+  );
 
   const profileId = `${profile.id}${version ? `@${version}` : ''}`;
 
@@ -163,12 +172,14 @@ export type MapFromMetadata =
 export async function loadMap(
   {
     superJson,
+    superJsonPath,
     profile,
     provider,
     map,
     version,
   }: {
-    superJson: SuperJson;
+    superJson: SuperJsonDocument;
+    superJsonPath: string;
     profile: ProfileId;
     provider: string;
     map: {
@@ -181,7 +192,12 @@ export async function loadMap(
   ast: MapDocumentNode;
   from: MapFromMetadata;
 }> {
-  const source = await findLocalMapSource(superJson, profile, provider);
+  const source = await findLocalMapSource(
+    superJson,
+    superJsonPath,
+    profile,
+    provider
+  );
   if (source) {
     const ast = await Parser.parseMap(
       source.source,
@@ -238,14 +254,19 @@ export type ProviderFromMetadata =
  * Loads provider source downloaded when source not found locally, loaded from file when found
  */
 export async function loadProvider(
-  superJson: SuperJson,
+  superJson: SuperJsonDocument,
+  superJsonPath: string,
   provider: string,
   { logger }: { logger: ILogger }
 ): Promise<{
   source: ProviderJson;
   from: ProviderFromMetadata;
 }> {
-  const providerSource = await findLocalProviderSource(superJson, provider);
+  const providerSource = await findLocalProviderSource(
+    superJson,
+    superJsonPath,
+    provider
+  );
   if (providerSource) {
     logger.info('localProviderFound', provider, providerSource.path);
 

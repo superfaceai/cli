@@ -1,8 +1,12 @@
 import { flags as oclifFlags } from '@oclif/command';
 import { isValidProviderName } from '@superfaceai/ast';
-import { SuperJson } from '@superfaceai/one-sdk';
+import {
+  loadSuperJson,
+  NodeFileSystem,
+  normalizeSuperJsonDocument,
+} from '@superfaceai/one-sdk';
 import { parseDocumentId } from '@superfaceai/parser';
-import { join as joinPath } from 'path';
+import { dirname, join as joinPath, resolve as resolvePath } from 'path';
 
 import { Command, Flags } from '../common/command.abstract';
 import { META_FILE } from '../common/document';
@@ -106,17 +110,19 @@ export default class Compile extends Command {
       throw userError('Unable to compile, super.json not found', 1);
     }
     //Load super json
-    const loadedResult = await SuperJson.load(joinPath(superPath, META_FILE));
+    const superJsonPath = joinPath(superPath, META_FILE);
+    const loadedResult = await loadSuperJson(superJsonPath, NodeFileSystem);
     const superJson = loadedResult.match(
       v => v,
       err => {
         throw userError(`Unable to load super.json: ${err.formatShort()}`, 1);
       }
     );
+    const normalized = normalizeSuperJsonDocument(superJson);
 
     //Check super.json
     if (flags.profileId) {
-      if (!superJson.normalized.profiles[flags.profileId]) {
+      if (!normalized.profiles[flags.profileId]) {
         throw userError(
           `Unable to compile, profile: "${flags.profileId}" not found in super.json`,
           1
@@ -124,9 +130,7 @@ export default class Compile extends Command {
       }
       if (flags.providerName) {
         if (
-          !superJson.normalized.profiles[flags.profileId].providers[
-            flags.providerName
-          ]
+          !normalized.profiles[flags.profileId].providers[flags.providerName]
         ) {
           throw userError(
             `Unable to compile, provider: "${flags.providerName}" not found in profile: "${flags.profileId}" in super.json`,
@@ -141,7 +145,7 @@ export default class Compile extends Command {
     //Compile every local map/profile in super.json
     if (!flags.profileId && !flags.providerName) {
       for (const [profile, profileSettings] of Object.entries(
-        superJson.normalized.profiles
+        normalized.profiles
       )) {
         if ('file' in profileSettings) {
           const maps: MapToCompile[] = [];
@@ -150,13 +154,16 @@ export default class Compile extends Command {
           )) {
             if ('file' in profileProviderSettings) {
               maps.push({
-                path: superJson.resolvePath(profileProviderSettings.file),
+                path: resolvePath(
+                  dirname(superJsonPath),
+                  profileProviderSettings.file
+                ),
                 provider,
               });
             }
           }
           profiles.push({
-            path: superJson.resolvePath(profileSettings.file),
+            path: resolvePath(dirname(superJsonPath), profileSettings.file),
             maps,
             id: ProfileId.fromId(profile, { userError }),
           });
@@ -166,7 +173,7 @@ export default class Compile extends Command {
 
     //Compile single local profile and its local maps
     if (flags.profileId && !flags.providerName) {
-      const profileSettings = superJson.normalized.profiles[flags.profileId];
+      const profileSettings = normalized.profiles[flags.profileId];
       if ('file' in profileSettings) {
         const maps: MapToCompile[] = [];
 
@@ -175,13 +182,16 @@ export default class Compile extends Command {
         )) {
           if ('file' in profileProviderSettings) {
             maps.push({
-              path: superJson.resolvePath(profileProviderSettings.file),
+              path: resolvePath(
+                dirname(superJsonPath),
+                profileProviderSettings.file
+              ),
               provider,
             });
           }
         }
         profiles.push({
-          path: superJson.resolvePath(profileSettings.file),
+          path: resolvePath(dirname(superJsonPath), profileSettings.file),
           maps,
           id: ProfileId.fromId(flags.profileId, { userError }),
         });
@@ -190,7 +200,7 @@ export default class Compile extends Command {
 
     //Compile single profile and single map
     if (flags.profileId && flags.providerName) {
-      const profileSettings = superJson.normalized.profiles[flags.profileId];
+      const profileSettings = normalized.profiles[flags.profileId];
       const profileProviderSettings =
         profileSettings.providers[flags.providerName];
       if ('file' in profileSettings) {
@@ -198,12 +208,15 @@ export default class Compile extends Command {
 
         if ('file' in profileProviderSettings) {
           maps.push({
-            path: superJson.resolvePath(profileProviderSettings.file),
+            path: resolvePath(
+              dirname(superJsonPath),
+              profileProviderSettings.file
+            ),
             provider: flags.providerName,
           });
         }
         profiles.push({
-          path: superJson.resolvePath(profileSettings.file),
+          path: resolvePath(dirname(superJsonPath), profileSettings.file),
           maps,
           id: ProfileId.fromId(flags.profileId, { userError }),
         });

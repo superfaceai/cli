@@ -1,4 +1,3 @@
-import { SuperJson } from '@superfaceai/one-sdk';
 import { getLocal } from 'mockttp';
 import { join as joinPath } from 'path';
 
@@ -56,7 +55,7 @@ describe('Generate CLI command', () => {
 
   describe('when generating types', () => {
     it('generates types for specific local profile', async () => {
-      const mockSuperJson = new SuperJson({
+      const mockSuperJson = {
         profiles: {
           [firstProfileId]: {
             file: `../../../../${sourceFixture.firstProfile}`,
@@ -64,12 +63,12 @@ describe('Generate CLI command', () => {
           },
         },
         providers: {},
-      });
+      };
 
       await mkdir(joinPath(tempDir, 'superface'));
       await OutputStream.writeOnce(
         joinPath(tempDir, 'superface', 'super.json'),
-        mockSuperJson.stringified
+        JSON.stringify(mockSuperJson, undefined, 2)
       );
       const paths = [
         joinPath(
@@ -108,7 +107,7 @@ describe('Generate CLI command', () => {
     }, 30000);
 
     it('generates types for specific remote profile', async () => {
-      const mockSuperJson = new SuperJson({
+      const mockSuperJson = {
         profiles: {
           [firstProfileId]: {
             version: firstProfileVersion,
@@ -116,12 +115,12 @@ describe('Generate CLI command', () => {
           },
         },
         providers: {},
-      });
+      };
 
       await mkdir(joinPath(tempDir, 'superface'));
       await OutputStream.writeOnce(
         joinPath(tempDir, 'superface', 'super.json'),
-        mockSuperJson.stringified
+        JSON.stringify(mockSuperJson, undefined, 2)
       );
       const paths = [
         joinPath(
@@ -160,7 +159,7 @@ describe('Generate CLI command', () => {
     }, 30000);
 
     it('generates types for super.json with remote and local profile', async () => {
-      const mockSuperJson = new SuperJson({
+      const mockSuperJson = {
         profiles: {
           [firstProfileId]: {
             version: firstProfileVersion,
@@ -171,12 +170,12 @@ describe('Generate CLI command', () => {
           },
         },
         providers: {},
-      });
+      };
 
       await mkdir(joinPath(tempDir, 'superface'));
       await OutputStream.writeOnce(
         joinPath(tempDir, 'superface', 'super.json'),
-        mockSuperJson.stringified
+        JSON.stringify(mockSuperJson, undefined, 2)
       );
       const paths = [
         joinPath(

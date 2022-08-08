@@ -4,7 +4,7 @@ import {
   MapHeaderNode,
   ProfileDocumentNode,
 } from '@superfaceai/ast';
-import { SuperJson } from '@superfaceai/one-sdk';
+// import * as SuperJson from '@superfaceai/one-sdk/dist/schema-tools/superjson/utils';
 import {
   MapDocumentId,
   parseMap,
@@ -465,7 +465,7 @@ describe('Lint logic', () => {
         'starwars',
         'character-information'
       );
-      const mockSuperJson = new SuperJson();
+      const mockSuperJson = {};
       const mockProfiles: ProfileToValidate[] = [
         {
           id: profile,
@@ -496,7 +496,7 @@ describe('Lint logic', () => {
         .mockReturnValueOnce(mockMapDocumentMatching);
 
       await expect(
-        lint(mockSuperJson, mockProfiles, { logger })
+        lint(mockSuperJson, '', mockProfiles, { logger })
       ).resolves.toEqual({
         reports: [
           {
@@ -550,7 +550,7 @@ describe('Lint logic', () => {
         'starwars',
         'character-information'
       );
-      const mockSuperJson = new SuperJson();
+      const mockSuperJson = {};
       const mockProfiles: ProfileToValidate[] = [
         {
           id: profile,
@@ -578,7 +578,7 @@ describe('Lint logic', () => {
         .mockResolvedValueOnce(mockMapDocumentMatching);
 
       await expect(
-        lint(mockSuperJson, mockProfiles, { logger })
+        lint(mockSuperJson, '', mockProfiles, { logger })
       ).resolves.toEqual({
         reports: [
           {
@@ -632,7 +632,7 @@ describe('Lint logic', () => {
         'starwars',
         'character-information'
       );
-      const mockSuperJson = new SuperJson();
+      const mockSuperJson = {};
       const mockProfiles: ProfileToValidate[] = [
         {
           id: profile,
@@ -659,7 +659,7 @@ describe('Lint logic', () => {
       mocked(fetchProfileAST).mockResolvedValue(mockProfileDocument);
 
       await expect(
-        lint(mockSuperJson, mockProfiles, { logger })
+        lint(mockSuperJson, '', mockProfiles, { logger })
       ).resolves.toEqual({
         reports: [
           {
@@ -737,7 +737,7 @@ describe('Lint logic', () => {
         'starwars',
         'character-information'
       );
-      const mockSuperJson = new SuperJson();
+      const mockSuperJson = {};
       const mockProfiles: ProfileToValidate[] = [
         {
           id: profile,
@@ -764,7 +764,7 @@ describe('Lint logic', () => {
       });
 
       await expect(
-        lint(mockSuperJson, mockProfiles, { logger })
+        lint(mockSuperJson, '', mockProfiles, { logger })
       ).resolves.toEqual({
         reports: [
           {
@@ -831,7 +831,7 @@ describe('Lint logic', () => {
         'starwars',
         'character-information'
       );
-      const mockSuperJson = new SuperJson();
+      const mockSuperJson = {};
       const mockProfiles: ProfileToValidate[] = [
         {
           id: profile,
@@ -859,7 +859,7 @@ describe('Lint logic', () => {
       });
 
       await expect(
-        lint(mockSuperJson, mockProfiles, { logger })
+        lint(mockSuperJson, '', mockProfiles, { logger })
       ).resolves.toEqual({
         reports: [
           {

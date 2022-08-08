@@ -3,7 +3,6 @@ import {
   MapDocumentNode,
   ProfileDocumentNode,
 } from '@superfaceai/ast';
-import { SuperJson } from '@superfaceai/one-sdk';
 import { ServiceApiError } from '@superfaceai/service-client';
 import { ServiceClient } from '@superfaceai/service-client/dist/client';
 import { mocked } from 'ts-jest/utils';
@@ -243,7 +242,7 @@ describe('Publish logic', () => {
     });
 
     it('publishes profile', async () => {
-      const mockSuperJson = new SuperJson({
+      const mockSuperJson = {
         profiles: {
           [mockProfileId]: {
             file: mockPath,
@@ -255,7 +254,7 @@ describe('Publish logic', () => {
         providers: {
           [mockProviderName]: {},
         },
-      });
+      };
       mocked(loadNetrc).mockReturnValue({
         refreshToken: 'RT',
         baseUrl: 'https://superface.ai',
@@ -285,6 +284,7 @@ describe('Publish logic', () => {
           {
             publishing: 'profile',
             superJson: mockSuperJson,
+            superJsonPath: '',
             profile: ProfileId.fromId(mockProfileId, { userError }),
             provider: mockProviderName,
             map: {},
@@ -299,6 +299,7 @@ describe('Publish logic', () => {
       expect(loadProfile).toHaveBeenCalledWith(
         {
           superJson: mockSuperJson,
+          superJsonPath: '',
           profile: ProfileId.fromId(mockProfileId, { userError }),
           version: undefined,
         },
@@ -307,6 +308,7 @@ describe('Publish logic', () => {
       expect(loadMap).toHaveBeenCalledWith(
         {
           superJson: mockSuperJson,
+          superJsonPath: '',
           profile: ProfileId.fromId(mockProfileId, { userError }),
           provider: mockProviderName,
           map: {},
@@ -316,6 +318,7 @@ describe('Publish logic', () => {
       );
       expect(loadProvider).toHaveBeenCalledWith(
         mockSuperJson,
+        '',
         mockProviderName,
         expect.anything()
       );
@@ -329,6 +332,7 @@ describe('Publish logic', () => {
           mapFrom: mockLocalMapFrom,
           providerFrom: mockLocalProviderFrom,
           superJson: mockSuperJson,
+          superJsonPath: '',
         },
         expect.anything()
       );
@@ -340,7 +344,7 @@ describe('Publish logic', () => {
 
     it('publishes profile with map variant', async () => {
       const variant = 'test';
-      const mockSuperJson = new SuperJson({
+      const mockSuperJson = {
         profiles: {
           [mockProfileId]: {
             file: mockPath,
@@ -354,7 +358,7 @@ describe('Publish logic', () => {
         providers: {
           [mockProviderName]: {},
         },
-      });
+      };
       mocked(loadNetrc).mockReturnValue({
         refreshToken: 'RT',
         baseUrl: 'https://superface.ai',
@@ -383,6 +387,7 @@ describe('Publish logic', () => {
           {
             publishing: 'profile',
             superJson: mockSuperJson,
+            superJsonPath: '',
             profile: ProfileId.fromId(mockProfileId, { userError }),
             provider: mockProviderName,
             map: { variant },
@@ -397,6 +402,7 @@ describe('Publish logic', () => {
       expect(loadProfile).toHaveBeenCalledWith(
         {
           superJson: mockSuperJson,
+          superJsonPath: '',
           profile: ProfileId.fromId(mockProfileId, { userError }),
           version: undefined,
         },
@@ -405,6 +411,7 @@ describe('Publish logic', () => {
       expect(loadMap).toHaveBeenCalledWith(
         {
           superJson: mockSuperJson,
+          superJsonPath: '',
           profile: ProfileId.fromId(mockProfileId, { userError }),
           provider: mockProviderName,
           map: { variant },
@@ -414,6 +421,7 @@ describe('Publish logic', () => {
       );
       expect(loadProvider).toHaveBeenCalledWith(
         mockSuperJson,
+        '',
         mockProviderName,
         expect.anything()
       );
@@ -427,6 +435,7 @@ describe('Publish logic', () => {
           mapFrom: mockRemoteMapFrom,
           providerFrom: mockRemoteProviderFrom,
           superJson: mockSuperJson,
+          superJsonPath: '',
         },
         expect.anything()
       );
@@ -437,7 +446,7 @@ describe('Publish logic', () => {
     });
 
     it('publishes profile with remote provider', async () => {
-      const mockSuperJson = new SuperJson({
+      const mockSuperJson = {
         profiles: {
           [mockProfileId]: {
             file: mockPath,
@@ -449,7 +458,7 @@ describe('Publish logic', () => {
         providers: {
           [mockProviderName]: {},
         },
-      });
+      };
       mocked(loadNetrc).mockReturnValue({
         refreshToken: 'RT',
         baseUrl: 'https://superface.ai',
@@ -478,6 +487,7 @@ describe('Publish logic', () => {
           {
             publishing: 'profile',
             superJson: mockSuperJson,
+            superJsonPath: '',
             profile: ProfileId.fromId(mockProfileId, { userError }),
             provider: mockProviderName,
             map: {},
@@ -492,6 +502,7 @@ describe('Publish logic', () => {
       expect(loadProfile).toHaveBeenCalledWith(
         {
           superJson: mockSuperJson,
+          superJsonPath: '',
           profile: ProfileId.fromId(mockProfileId, { userError }),
           version: undefined,
         },
@@ -500,6 +511,7 @@ describe('Publish logic', () => {
       expect(loadMap).toHaveBeenCalledWith(
         {
           superJson: mockSuperJson,
+          superJsonPath: '',
           profile: ProfileId.fromId(mockProfileId, { userError }),
           provider: mockProviderName,
           map: {},
@@ -509,6 +521,7 @@ describe('Publish logic', () => {
       );
       expect(loadProvider).toHaveBeenCalledWith(
         mockSuperJson,
+        '',
         mockProviderName,
         expect.anything()
       );
@@ -522,6 +535,7 @@ describe('Publish logic', () => {
           mapFrom: mockLocalMapFrom,
           providerFrom: mockRemoteProviderFrom,
           superJson: mockSuperJson,
+          superJsonPath: '',
         },
         expect.anything()
       );
@@ -532,7 +546,7 @@ describe('Publish logic', () => {
     });
 
     it('calls create profile with dry-run', async () => {
-      const mockSuperJson = new SuperJson({
+      const mockSuperJson = {
         profiles: {
           [mockProfileId]: {
             file: mockPath,
@@ -544,7 +558,7 @@ describe('Publish logic', () => {
         providers: {
           [mockProviderName]: {},
         },
-      });
+      };
       mocked(loadNetrc).mockReturnValue({
         refreshToken: 'RT',
         baseUrl: 'https://superface.ai',
@@ -573,6 +587,7 @@ describe('Publish logic', () => {
           {
             publishing: 'profile',
             superJson: mockSuperJson,
+            superJsonPath: '',
             profile: ProfileId.fromId(mockProfileId, { userError }),
             provider: mockProviderName,
             map: {},
@@ -589,6 +604,7 @@ describe('Publish logic', () => {
       expect(loadProfile).toHaveBeenCalledWith(
         {
           superJson: mockSuperJson,
+          superJsonPath: '',
           profile: ProfileId.fromId(mockProfileId, { userError }),
           version: undefined,
         },
@@ -597,6 +613,7 @@ describe('Publish logic', () => {
       expect(loadMap).toHaveBeenCalledWith(
         {
           superJson: mockSuperJson,
+          superJsonPath: '',
           profile: ProfileId.fromId(mockProfileId, { userError }),
           provider: mockProviderName,
           map: {},
@@ -606,6 +623,7 @@ describe('Publish logic', () => {
       );
       expect(loadProvider).toHaveBeenCalledWith(
         mockSuperJson,
+        '',
         mockProviderName,
         expect.anything()
       );
@@ -619,6 +637,7 @@ describe('Publish logic', () => {
           mapFrom: mockLocalMapFrom,
           providerFrom: mockLocalProviderFrom,
           superJson: mockSuperJson,
+          superJsonPath: '',
         },
         expect.anything()
       );
@@ -629,7 +648,7 @@ describe('Publish logic', () => {
     });
 
     it('throws when publishing profile and profile not found locally', async () => {
-      const mockSuperJson = new SuperJson({
+      const mockSuperJson = {
         profiles: {
           [mockProfileId]: {
             file: mockPath,
@@ -641,7 +660,7 @@ describe('Publish logic', () => {
         providers: {
           [mockProviderName]: {},
         },
-      });
+      };
 
       mocked(loadProfile).mockResolvedValue({
         ast: mockProfileDocument,
@@ -653,6 +672,7 @@ describe('Publish logic', () => {
           {
             publishing: 'profile',
             superJson: mockSuperJson,
+            superJsonPath: '',
             profile: ProfileId.fromId(mockProfileId, { userError }),
             provider: mockProviderName,
             map: {},
@@ -668,6 +688,7 @@ describe('Publish logic', () => {
       expect(loadProfile).toHaveBeenCalledWith(
         {
           superJson: mockSuperJson,
+          superJsonPath: '',
           profile: ProfileId.fromId(mockProfileId, { userError }),
           version: undefined,
         },
@@ -676,7 +697,7 @@ describe('Publish logic', () => {
     });
 
     it('publishes map', async () => {
-      const mockSuperJson = new SuperJson({
+      const mockSuperJson = {
         profiles: {
           [mockProfileId]: {
             version: DEFAULT_PROFILE_VERSION_STR,
@@ -690,7 +711,7 @@ describe('Publish logic', () => {
         providers: {
           [mockProviderName]: {},
         },
-      });
+      };
       mocked(loadNetrc).mockReturnValue({
         refreshToken: 'RT',
         baseUrl: 'https://superface.ai',
@@ -719,6 +740,7 @@ describe('Publish logic', () => {
           {
             publishing: 'map',
             superJson: mockSuperJson,
+            superJsonPath: '',
             profile: ProfileId.fromId(mockProfileId, { userError }),
             provider: mockProviderName,
             map: {},
@@ -733,6 +755,7 @@ describe('Publish logic', () => {
       expect(loadProfile).toHaveBeenCalledWith(
         {
           superJson: mockSuperJson,
+          superJsonPath: '',
           profile: ProfileId.fromId(mockProfileId, { userError }),
           version: undefined,
         },
@@ -741,6 +764,7 @@ describe('Publish logic', () => {
       expect(loadMap).toHaveBeenCalledWith(
         {
           superJson: mockSuperJson,
+          superJsonPath: '',
           profile: ProfileId.fromId(mockProfileId, { userError }),
           provider: mockProviderName,
           map: {},
@@ -750,6 +774,7 @@ describe('Publish logic', () => {
       );
       expect(loadProvider).toHaveBeenCalledWith(
         mockSuperJson,
+        '',
         mockProviderName,
         expect.anything()
       );
@@ -763,6 +788,7 @@ describe('Publish logic', () => {
           mapFrom: mockLocalMapFrom,
           providerFrom: mockRemoteProviderFrom,
           superJson: mockSuperJson,
+          superJsonPath: '',
         },
         expect.anything()
       );
@@ -775,7 +801,7 @@ describe('Publish logic', () => {
 
     it('publishes map with profile version', async () => {
       const version = '1.0.6';
-      const mockSuperJson = new SuperJson({
+      const mockSuperJson = {
         profiles: {
           [mockProfileId]: {
             version: version,
@@ -789,7 +815,7 @@ describe('Publish logic', () => {
         providers: {
           [mockProviderName]: {},
         },
-      });
+      };
       mocked(loadNetrc).mockReturnValue({
         refreshToken: 'RT',
         baseUrl: 'https://superface.ai',
@@ -818,6 +844,7 @@ describe('Publish logic', () => {
           {
             publishing: 'map',
             superJson: mockSuperJson,
+            superJsonPath: '',
             profile: ProfileId.fromId(mockProfileId, { userError }),
             provider: mockProviderName,
             map: {},
@@ -833,6 +860,7 @@ describe('Publish logic', () => {
       expect(loadProfile).toHaveBeenCalledWith(
         {
           superJson: mockSuperJson,
+          superJsonPath: '',
           profile: ProfileId.fromId(mockProfileId, { userError }),
           version,
         },
@@ -841,6 +869,7 @@ describe('Publish logic', () => {
       expect(loadMap).toHaveBeenCalledWith(
         {
           superJson: mockSuperJson,
+          superJsonPath: '',
           profile: ProfileId.fromId(mockProfileId, { userError }),
           provider: mockProviderName,
           map: {},
@@ -850,6 +879,7 @@ describe('Publish logic', () => {
       );
       expect(loadProvider).toHaveBeenCalledWith(
         mockSuperJson,
+        '',
         mockProviderName,
         expect.anything()
       );
@@ -863,6 +893,7 @@ describe('Publish logic', () => {
           mapFrom: mockLocalMapFrom,
           providerFrom: mockRemoteProviderFrom,
           superJson: mockSuperJson,
+          superJsonPath: '',
         },
         expect.anything()
       );
@@ -873,7 +904,7 @@ describe('Publish logic', () => {
     });
 
     it('publishes map with remote provider', async () => {
-      const mockSuperJson = new SuperJson({
+      const mockSuperJson = {
         profiles: {
           [mockProfileId]: {
             version: DEFAULT_PROFILE_VERSION_STR,
@@ -887,7 +918,7 @@ describe('Publish logic', () => {
         providers: {
           [mockProviderName]: {},
         },
-      });
+      };
       mocked(loadNetrc).mockReturnValue({
         refreshToken: 'RT',
         baseUrl: 'https://superface.ai',
@@ -916,6 +947,7 @@ describe('Publish logic', () => {
           {
             publishing: 'map',
             superJson: mockSuperJson,
+            superJsonPath: '',
             profile: ProfileId.fromId(mockProfileId, { userError }),
             provider: mockProviderName,
             map: {},
@@ -931,6 +963,7 @@ describe('Publish logic', () => {
       expect(loadProfile).toHaveBeenCalledWith(
         {
           superJson: mockSuperJson,
+          superJsonPath: '',
           profile: ProfileId.fromId(mockProfileId, { userError }),
           version: DEFAULT_PROFILE_VERSION_STR,
         },
@@ -939,6 +972,7 @@ describe('Publish logic', () => {
       expect(loadMap).toHaveBeenCalledWith(
         {
           superJson: mockSuperJson,
+          superJsonPath: '',
           profile: ProfileId.fromId(mockProfileId, { userError }),
           provider: mockProviderName,
           map: {},
@@ -948,6 +982,7 @@ describe('Publish logic', () => {
       );
       expect(loadProvider).toHaveBeenCalledWith(
         mockSuperJson,
+        '',
         mockProviderName,
         expect.anything()
       );
@@ -961,6 +996,7 @@ describe('Publish logic', () => {
           mapFrom: mockLocalMapFrom,
           providerFrom: mockLocalProviderFrom,
           superJson: mockSuperJson,
+          superJsonPath: '',
         },
         expect.anything()
       );
@@ -971,7 +1007,7 @@ describe('Publish logic', () => {
     });
 
     it('calls create map with dry-run', async () => {
-      const mockSuperJson = new SuperJson({
+      const mockSuperJson = {
         profiles: {
           [mockProfileId]: {
             version: DEFAULT_PROFILE_VERSION_STR,
@@ -985,7 +1021,7 @@ describe('Publish logic', () => {
         providers: {
           [mockProviderName]: {},
         },
-      });
+      };
       mocked(loadNetrc).mockReturnValue({
         refreshToken: 'RT',
         baseUrl: 'https://superface.ai',
@@ -1014,6 +1050,7 @@ describe('Publish logic', () => {
           {
             publishing: 'map',
             superJson: mockSuperJson,
+            superJsonPath: '',
             profile: ProfileId.fromId(mockProfileId, { userError }),
             provider: mockProviderName,
             map: {},
@@ -1028,6 +1065,7 @@ describe('Publish logic', () => {
       expect(loadProfile).toHaveBeenCalledWith(
         {
           superJson: mockSuperJson,
+          superJsonPath: '',
           profile: ProfileId.fromId(mockProfileId, { userError }),
           version: DEFAULT_PROFILE_VERSION_STR,
         },
@@ -1036,6 +1074,7 @@ describe('Publish logic', () => {
       expect(loadMap).toHaveBeenCalledWith(
         {
           superJson: mockSuperJson,
+          superJsonPath: '',
           profile: ProfileId.fromId(mockProfileId, { userError }),
           provider: mockProviderName,
           map: {},
@@ -1045,6 +1084,7 @@ describe('Publish logic', () => {
       );
       expect(loadProvider).toHaveBeenCalledWith(
         mockSuperJson,
+        '',
         mockProviderName,
         expect.anything()
       );
@@ -1058,6 +1098,7 @@ describe('Publish logic', () => {
           mapFrom: mockLocalMapFrom,
           providerFrom: mockLocalProviderFrom,
           superJson: mockSuperJson,
+          superJsonPath: '',
         },
         expect.anything()
       );
@@ -1068,7 +1109,7 @@ describe('Publish logic', () => {
     });
 
     it('throws when publishin map and provider without unverified prefix does not exist in superface store', async () => {
-      const mockSuperJson = new SuperJson({
+      const mockSuperJson = {
         profiles: {
           [mockProfileId]: {
             version: DEFAULT_PROFILE_VERSION_STR,
@@ -1082,7 +1123,7 @@ describe('Publish logic', () => {
         providers: {
           [mockProviderName]: {},
         },
-      });
+      };
       mocked(loadNetrc).mockReturnValue({
         refreshToken: 'RT',
         baseUrl: 'https://superface.ai',
@@ -1119,6 +1160,7 @@ describe('Publish logic', () => {
           {
             publishing: 'map',
             superJson: mockSuperJson,
+            superJsonPath: '',
             profile: ProfileId.fromId(mockProfileId, { userError }),
             provider: mockProviderName,
             map: {},
@@ -1134,6 +1176,7 @@ describe('Publish logic', () => {
       expect(loadProfile).toHaveBeenCalledWith(
         {
           superJson: mockSuperJson,
+          superJsonPath: '',
           profile: ProfileId.fromId(mockProfileId, { userError }),
           version: DEFAULT_PROFILE_VERSION_STR,
         },
@@ -1142,6 +1185,7 @@ describe('Publish logic', () => {
       expect(loadMap).toHaveBeenCalledWith(
         {
           superJson: mockSuperJson,
+          superJsonPath: '',
           profile: ProfileId.fromId(mockProfileId, { userError }),
           provider: mockProviderName,
           map: {},
@@ -1151,6 +1195,7 @@ describe('Publish logic', () => {
       );
       expect(loadProvider).toHaveBeenCalledWith(
         mockSuperJson,
+        '',
         mockProviderName,
         expect.anything()
       );
@@ -1165,6 +1210,7 @@ describe('Publish logic', () => {
           mapFrom: mockLocalMapFrom,
           providerFrom: mockLocalProviderFrom,
           superJson: mockSuperJson,
+          superJsonPath: '',
         },
         expect.anything()
       );
@@ -1176,7 +1222,7 @@ describe('Publish logic', () => {
     });
 
     it('throws when publishing map and map not found locally', async () => {
-      const mockSuperJson = new SuperJson({
+      const mockSuperJson = {
         profiles: {
           [mockProfileId]: {
             version: DEFAULT_PROFILE_VERSION_STR,
@@ -1190,7 +1236,7 @@ describe('Publish logic', () => {
         providers: {
           [mockProviderName]: {},
         },
-      });
+      };
 
       mocked(loadProfile).mockResolvedValue({
         ast: mockProfileDocument,
@@ -1206,6 +1252,7 @@ describe('Publish logic', () => {
           {
             publishing: 'map',
             superJson: mockSuperJson,
+            superJsonPath: '',
             profile: ProfileId.fromId(mockProfileId, { userError }),
             provider: mockProviderName,
             map: {},
@@ -1221,6 +1268,7 @@ describe('Publish logic', () => {
       expect(loadProfile).toHaveBeenCalledWith(
         {
           superJson: mockSuperJson,
+          superJsonPath: '',
           profile: ProfileId.fromId(mockProfileId, { userError }),
           version: DEFAULT_PROFILE_VERSION_STR,
         },
@@ -1240,7 +1288,7 @@ describe('Publish logic', () => {
         ],
         defaultService: 'default',
       };
-      const mockSuperJson = new SuperJson({
+      const mockSuperJson = {
         profiles: {
           [mockProfileId]: {
             version: DEFAULT_PROFILE_VERSION_STR,
@@ -1254,7 +1302,7 @@ describe('Publish logic', () => {
             file: mockPath,
           },
         },
-      });
+      };
       mocked(loadNetrc).mockReturnValue({
         refreshToken: 'RT',
         baseUrl: 'https://superface.ai',
@@ -1283,6 +1331,7 @@ describe('Publish logic', () => {
           {
             publishing: 'provider',
             superJson: mockSuperJson,
+            superJsonPath: '',
             profile: ProfileId.fromId(mockProfileId, { userError }),
             provider,
             map: {},
@@ -1299,6 +1348,7 @@ describe('Publish logic', () => {
       expect(loadProfile).toHaveBeenCalledWith(
         {
           superJson: mockSuperJson,
+          superJsonPath: '',
           profile: ProfileId.fromId(mockProfileId, { userError }),
           version: DEFAULT_PROFILE_VERSION_STR,
         },
@@ -1307,6 +1357,7 @@ describe('Publish logic', () => {
       expect(loadMap).toHaveBeenCalledWith(
         {
           superJson: mockSuperJson,
+          superJsonPath: '',
           profile: ProfileId.fromId(mockProfileId, { userError }),
           provider,
           map: {},
@@ -1314,7 +1365,7 @@ describe('Publish logic', () => {
         },
         expect.anything()
       );
-      expect(loadProvider).toHaveBeenCalledWith(mockSuperJson, provider, {
+      expect(loadProvider).toHaveBeenCalledWith(mockSuperJson, '', provider, {
         logger,
       });
       expect(fetchProviderInfo).not.toHaveBeenCalled();
@@ -1328,6 +1379,7 @@ describe('Publish logic', () => {
           mapFrom: mockRemoteMapFrom,
           providerFrom: mockLocalProviderFrom,
           superJson: mockSuperJson,
+          superJsonPath: '',
         },
         expect.anything()
       );
@@ -1350,7 +1402,7 @@ describe('Publish logic', () => {
         defaultService: 'default',
       };
       const variant = 'test';
-      const mockSuperJson = new SuperJson({
+      const mockSuperJson = {
         profiles: {
           [mockProfileId]: {
             version: DEFAULT_PROFILE_VERSION_STR,
@@ -1366,7 +1418,7 @@ describe('Publish logic', () => {
             file: mockPath,
           },
         },
-      });
+      };
       mocked(loadNetrc).mockReturnValue({
         refreshToken: 'RT',
         baseUrl: 'https://superface.ai',
@@ -1395,6 +1447,7 @@ describe('Publish logic', () => {
           {
             publishing: 'provider',
             superJson: mockSuperJson,
+            superJsonPath: '',
             profile: ProfileId.fromId(mockProfileId, { userError }),
             provider,
             map: { variant },
@@ -1411,6 +1464,7 @@ describe('Publish logic', () => {
       expect(loadProfile).toHaveBeenCalledWith(
         {
           superJson: mockSuperJson,
+          superJsonPath: '',
           profile: ProfileId.fromId(mockProfileId, { userError }),
           version: DEFAULT_PROFILE_VERSION_STR,
         },
@@ -1419,6 +1473,7 @@ describe('Publish logic', () => {
       expect(loadMap).toHaveBeenCalledWith(
         {
           superJson: mockSuperJson,
+          superJsonPath: '',
           profile: ProfileId.fromId(mockProfileId, { userError }),
           provider,
           map: { variant },
@@ -1426,7 +1481,7 @@ describe('Publish logic', () => {
         },
         expect.anything()
       );
-      expect(loadProvider).toHaveBeenCalledWith(mockSuperJson, provider, {
+      expect(loadProvider).toHaveBeenCalledWith(mockSuperJson, '', provider, {
         logger,
       });
       expect(fetchProviderInfo).not.toHaveBeenCalled();
@@ -1440,6 +1495,7 @@ describe('Publish logic', () => {
           mapFrom: mockRemoteMapFrom,
           providerFrom: mockLocalProviderFrom,
           superJson: mockSuperJson,
+          superJsonPath: '',
         },
         expect.anything()
       );
@@ -1450,7 +1506,7 @@ describe('Publish logic', () => {
     });
 
     it('throws when publishing provider withou unverified prefix', async () => {
-      const mockSuperJson = new SuperJson({
+      const mockSuperJson = {
         profiles: {
           [mockProfileId]: {
             version: DEFAULT_PROFILE_VERSION_STR,
@@ -1464,7 +1520,7 @@ describe('Publish logic', () => {
             file: mockPath,
           },
         },
-      });
+      };
       mocked(loadNetrc).mockReturnValue({
         refreshToken: 'RT',
         baseUrl: 'https://superface.ai',
@@ -1493,6 +1549,7 @@ describe('Publish logic', () => {
           {
             publishing: 'provider',
             superJson: mockSuperJson,
+            superJsonPath: '',
             profile: ProfileId.fromId(mockProfileId, { userError }),
             provider: mockProviderName,
             map: {},
@@ -1509,6 +1566,7 @@ describe('Publish logic', () => {
       expect(loadProfile).toHaveBeenCalledWith(
         {
           superJson: mockSuperJson,
+          superJsonPath: '',
           profile: ProfileId.fromId(mockProfileId, { userError }),
           version: DEFAULT_PROFILE_VERSION_STR,
         },
@@ -1517,6 +1575,7 @@ describe('Publish logic', () => {
       expect(loadMap).toHaveBeenCalledWith(
         {
           superJson: mockSuperJson,
+          superJsonPath: '',
           profile: ProfileId.fromId(mockProfileId, { userError }),
           provider: mockProviderName,
           map: {},
@@ -1526,6 +1585,7 @@ describe('Publish logic', () => {
       );
       expect(loadProvider).toHaveBeenCalledWith(
         mockSuperJson,
+        '',
         mockProviderName,
         expect.anything()
       );
@@ -1540,6 +1600,7 @@ describe('Publish logic', () => {
           mapFrom: mockRemoteMapFrom,
           providerFrom: mockLocalProviderFrom,
           superJson: mockSuperJson,
+          superJsonPath: '',
         },
         expect.anything()
       );
@@ -1561,7 +1622,7 @@ describe('Publish logic', () => {
         ],
         defaultService: 'default',
       };
-      const mockSuperJson = new SuperJson({
+      const mockSuperJson = {
         profiles: {
           [mockProfileId]: {
             version: DEFAULT_PROFILE_VERSION_STR,
@@ -1575,7 +1636,7 @@ describe('Publish logic', () => {
             file: mockPath,
           },
         },
-      });
+      };
       mocked(loadNetrc).mockReturnValue({
         refreshToken: 'RT',
         baseUrl: 'https://superface.ai',
@@ -1604,6 +1665,7 @@ describe('Publish logic', () => {
           {
             publishing: 'provider',
             superJson: mockSuperJson,
+            superJsonPath: '',
             profile: ProfileId.fromId(mockProfileId, { userError }),
             provider,
             map: {},
@@ -1621,6 +1683,7 @@ describe('Publish logic', () => {
       expect(loadProfile).toHaveBeenCalledWith(
         {
           superJson: mockSuperJson,
+          superJsonPath: '',
           profile: ProfileId.fromId(mockProfileId, { userError }),
           version: DEFAULT_PROFILE_VERSION_STR,
         },
@@ -1629,6 +1692,7 @@ describe('Publish logic', () => {
       expect(loadMap).toHaveBeenCalledWith(
         {
           superJson: mockSuperJson,
+          superJsonPath: '',
           profile: ProfileId.fromId(mockProfileId, { userError }),
           provider,
           map: {},
@@ -1636,7 +1700,7 @@ describe('Publish logic', () => {
         },
         expect.anything()
       );
-      expect(loadProvider).toHaveBeenCalledWith(mockSuperJson, provider, {
+      expect(loadProvider).toHaveBeenCalledWith(mockSuperJson, '', provider, {
         logger,
       });
       expect(fetchProviderInfo).not.toHaveBeenCalled();
@@ -1650,6 +1714,7 @@ describe('Publish logic', () => {
           mapFrom: mockRemoteMapFrom,
           providerFrom: mockLocalProviderFrom,
           superJson: mockSuperJson,
+          superJsonPath: '',
         },
         expect.anything()
       );
@@ -1660,7 +1725,7 @@ describe('Publish logic', () => {
     });
 
     it('throws when publishing provider and provider not found locally', async () => {
-      const mockSuperJson = new SuperJson({
+      const mockSuperJson = {
         profiles: {
           [mockProfileId]: {
             version: DEFAULT_PROFILE_VERSION_STR,
@@ -1674,7 +1739,7 @@ describe('Publish logic', () => {
             file: mockPath,
           },
         },
-      });
+      };
 
       mocked(loadProfile).mockResolvedValue({
         ast: mockProfileDocument,
@@ -1696,6 +1761,7 @@ describe('Publish logic', () => {
           {
             publishing: 'provider',
             superJson: mockSuperJson,
+            superJsonPath: '',
             profile: ProfileId.fromId(mockProfileId, { userError }),
             provider: mockProviderName,
             map: {},
@@ -1711,6 +1777,7 @@ describe('Publish logic', () => {
       expect(loadProfile).toHaveBeenCalledWith(
         {
           superJson: mockSuperJson,
+          superJsonPath: '',
           profile: ProfileId.fromId(mockProfileId, { userError }),
           version: DEFAULT_PROFILE_VERSION_STR,
         },
@@ -1719,7 +1786,7 @@ describe('Publish logic', () => {
     });
 
     it('does not publish when there are check errors', async () => {
-      const mockSuperJson = new SuperJson({
+      const mockSuperJson = {
         profiles: {
           [mockProfileId]: {
             version: DEFAULT_PROFILE_VERSION_STR,
@@ -1733,7 +1800,7 @@ describe('Publish logic', () => {
             file: mockPath,
           },
         },
-      });
+      };
 
       mocked(loadProfile).mockResolvedValue({
         ast: mockProfileDocument,
@@ -1758,6 +1825,7 @@ describe('Publish logic', () => {
         {
           publishing: 'provider',
           superJson: mockSuperJson,
+          superJsonPath: '',
           profile: ProfileId.fromId(mockProfileId, { userError }),
           provider: mockProviderName,
           map: {},
@@ -1788,6 +1856,7 @@ describe('Publish logic', () => {
       expect(loadProfile).toHaveBeenCalledWith(
         {
           superJson: mockSuperJson,
+          superJsonPath: '',
           profile: ProfileId.fromId(mockProfileId, { userError }),
           version: DEFAULT_PROFILE_VERSION_STR,
         },
@@ -1796,6 +1865,7 @@ describe('Publish logic', () => {
       expect(loadMap).toHaveBeenCalledWith(
         {
           superJson: mockSuperJson,
+          superJsonPath: '',
           profile: ProfileId.fromId(mockProfileId, { userError }),
           provider: mockProviderName,
           map: {},
@@ -1805,6 +1875,7 @@ describe('Publish logic', () => {
       );
       expect(loadProvider).toHaveBeenCalledWith(
         mockSuperJson,
+        '',
         mockProviderName,
         expect.anything()
       );
@@ -1818,6 +1889,7 @@ describe('Publish logic', () => {
           mapFrom: mockRemoteMapFrom,
           providerFrom: mockLocalProviderFrom,
           superJson: mockSuperJson,
+          superJsonPath: '',
         },
         expect.anything()
       );
@@ -1858,7 +1930,7 @@ describe('Publish logic', () => {
           },
         ],
       };
-      const mockSuperJson = new SuperJson({
+      const mockSuperJson = {
         profiles: {
           [mockProfileId]: {
             version: DEFAULT_PROFILE_VERSION_STR,
@@ -1872,7 +1944,7 @@ describe('Publish logic', () => {
             file: mockPath,
           },
         },
-      });
+      };
 
       mocked(loadProfile).mockResolvedValue({
         ast: mockProfileDocument,
@@ -1897,6 +1969,7 @@ describe('Publish logic', () => {
         {
           publishing: 'provider',
           superJson: mockSuperJson,
+          superJsonPath: '',
           profile: ProfileId.fromId(mockProfileId, { userError }),
           provider: mockProviderName,
           map: {},
@@ -1926,6 +1999,7 @@ describe('Publish logic', () => {
       expect(loadProfile).toHaveBeenCalledWith(
         {
           superJson: mockSuperJson,
+          superJsonPath: '',
           profile: ProfileId.fromId(mockProfileId, { userError }),
           version: DEFAULT_PROFILE_VERSION_STR,
         },
@@ -1934,6 +2008,7 @@ describe('Publish logic', () => {
       expect(loadMap).toHaveBeenCalledWith(
         {
           superJson: mockSuperJson,
+          superJsonPath: '',
           profile: ProfileId.fromId(mockProfileId, { userError }),
           provider: mockProviderName,
           map: {},
@@ -1943,6 +2018,7 @@ describe('Publish logic', () => {
       );
       expect(loadProvider).toHaveBeenCalledWith(
         mockSuperJson,
+        '',
         mockProviderName,
         expect.anything()
       );
@@ -1956,6 +2032,7 @@ describe('Publish logic', () => {
           mapFrom: mockRemoteMapFrom,
           providerFrom: mockLocalProviderFrom,
           superJson: mockSuperJson,
+          superJsonPath: '',
         },
         expect.anything()
       );
@@ -1966,7 +2043,7 @@ describe('Publish logic', () => {
     });
 
     it('does not publish when there are lint and check errors and json flag', async () => {
-      const mockSuperJson = new SuperJson({
+      const mockSuperJson = {
         profiles: {
           [mockProfileId]: {
             version: DEFAULT_PROFILE_VERSION_STR,
@@ -1980,7 +2057,7 @@ describe('Publish logic', () => {
             file: mockPath,
           },
         },
-      });
+      };
 
       mocked(loadProfile).mockResolvedValue({
         ast: mockProfileDocument,
@@ -2006,6 +2083,7 @@ describe('Publish logic', () => {
           {
             publishing: 'provider',
             superJson: mockSuperJson,
+            superJsonPath: '',
             profile: ProfileId.fromId(mockProfileId, { userError }),
             provider: mockProviderName,
             map: {},
@@ -2037,6 +2115,7 @@ describe('Publish logic', () => {
       expect(loadProfile).toHaveBeenCalledWith(
         {
           superJson: mockSuperJson,
+          superJsonPath: '',
           profile: ProfileId.fromId(mockProfileId, { userError }),
           version: DEFAULT_PROFILE_VERSION_STR,
         },
@@ -2045,6 +2124,7 @@ describe('Publish logic', () => {
       expect(loadMap).toHaveBeenCalledWith(
         {
           superJson: mockSuperJson,
+          superJsonPath: '',
           profile: ProfileId.fromId(mockProfileId, { userError }),
           provider: mockProviderName,
           map: {},
@@ -2054,6 +2134,7 @@ describe('Publish logic', () => {
       );
       expect(loadProvider).toHaveBeenCalledWith(
         mockSuperJson,
+        '',
         mockProviderName,
         expect.anything()
       );
@@ -2068,6 +2149,7 @@ describe('Publish logic', () => {
           mapFrom: mockRemoteMapFrom,
           providerFrom: mockLocalProviderFrom,
           superJson: mockSuperJson,
+          superJsonPath: '',
         },
         expect.anything()
       );

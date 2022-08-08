@@ -11,10 +11,12 @@ import {
   SecurityValues,
 } from '@superfaceai/ast';
 import {
+  loadSuperJson,
+  mergeProfileDefaults,
   META_FILE,
-  Parser,
+  NodeFileSystem,
+  normalizeSuperJsonDocument,
   SUPERFACE_DIR,
-  SuperJson,
 } from '@superfaceai/one-sdk';
 import { getProfileUsecases } from '@superfaceai/parser';
 import { bold } from 'chalk';
@@ -27,6 +29,7 @@ import { exists, readFile } from '../common/io';
 import { ILogger } from '../common/log';
 import { OutputStream } from '../common/output-stream';
 import { IPackageManager } from '../common/package-manager';
+import { Parser } from '../common/parser';
 import { NORMALIZED_CWD_PATH } from '../common/path';
 import { ProfileId } from '../common/profile';
 import { envVariable } from '../templates/env';
@@ -78,15 +81,17 @@ export async function interactiveInstall(
   }
 
   //Load super.json (for checks)
-  let superJson = (
-    await SuperJson.load(joinPath(superPath, META_FILE))
-  ).unwrap();
+  const superJsonPath = joinPath(superPath, META_FILE);
+  const loaded = await loadSuperJson(superJsonPath, NodeFileSystem);
+  let superJson = loaded.unwrap();
 
   logger.success('installProfile', profileArg);
 
   let installProfile = true;
   //Override existing profile
-  if (await profileExists(superJson, { id: profileId, version })) {
+  if (
+    await profileExists(superJson, superJsonPath, { id: profileId, version })
+  ) {
     if (
       !(await confirmPrompt(
         `Profile "${profileId.id}" already exists.\nDo you want to override it?:`
@@ -112,8 +117,9 @@ export async function interactiveInstall(
       },
       { logger, userError }
     );
+    const superJsonPath = joinPath(superPath, META_FILE);
     //Reload super.json
-    superJson = (await SuperJson.load(joinPath(superPath, META_FILE))).unwrap();
+    superJson = (await loadSuperJson(superJsonPath, NodeFileSystem)).unwrap();
   }
   //Ask for providers
   const possibleProviders = (await fetchProviders(profileArg)).map(p => p.name);
@@ -200,6 +206,7 @@ export async function interactiveInstall(
   //Get installed usecases
   const profileSource = await findLocalProfileSource(
     superJson,
+    superJsonPath,
     profileId,
     version
   );
@@ -239,8 +246,9 @@ export async function interactiveInstall(
 
   //Configure provider failover
   //de duplicate providers to install and providers in super json
+  let normalized = normalizeSuperJsonDocument(superJson);
   const allProviders = providersToInstall.concat(
-    Object.keys(superJson.normalized.providers).filter(
+    Object.keys(normalized.providers).filter(
       (provider: string) => providersToInstall.indexOf(provider) < 0
     )
   );
@@ -253,12 +261,16 @@ export async function interactiveInstall(
       )
     ) {
       //Add provider failover
-      superJson.mergeProfileDefaults(profileId.id, {
+      mergeProfileDefaults(superJson, profileId.id, {
         [selectedUseCase]: { providerFailover: true },
       });
-      await OutputStream.writeOnce(superJson.path, superJson.stringified, {
-        force: true,
-      });
+      await OutputStream.writeOnce(
+        superJsonPath,
+        JSON.stringify(superJson, undefined, 2),
+        {
+          force: true,
+        }
+      );
     }
   }
 
@@ -284,9 +296,10 @@ export async function interactiveInstall(
   }
 
   //Reload super.json
-  superJson = (await SuperJson.load(joinPath(superPath, META_FILE))).unwrap();
+  superJson = (await loadSuperJson(superJsonPath, NodeFileSystem)).unwrap();
+  normalized = normalizeSuperJsonDocument(superJson);
   //Get installed providers
-  const installedProviders = superJson.normalized.providers;
+  const installedProviders = normalized.providers;
   //Ask for provider security
   logger.success('configureMultipleProviderSecurity');
 

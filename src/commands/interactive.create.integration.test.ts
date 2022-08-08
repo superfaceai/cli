@@ -1,4 +1,8 @@
-import { SuperJson } from '@superfaceai/one-sdk';
+import {
+  loadSuperJson,
+  NodeFileSystem,
+  normalizeSuperJsonDocument,
+} from '@superfaceai/one-sdk';
 import { getLocal } from 'mockttp';
 import { join as joinPath } from 'path';
 
@@ -82,10 +86,13 @@ describe('Interactive create CLI command', () => {
       );
 
       const superJson = (
-        await SuperJson.load(joinPath(tempDir, 'superface', 'super.json'))
+        await loadSuperJson(
+          joinPath(tempDir, 'superface', 'super.json'),
+          NodeFileSystem
+        )
       ).unwrap();
 
-      expect(superJson.document).toEqual({
+      expect(superJson).toEqual({
         profiles: {
           [documentName]: {
             file: `../${documentName}.supr`,
@@ -135,10 +142,13 @@ describe('Interactive create CLI command', () => {
       );
 
       const superJson = (
-        await SuperJson.load(joinPath(tempDir, 'superface', 'super.json'))
+        await loadSuperJson(
+          joinPath(tempDir, 'superface', 'super.json'),
+          NodeFileSystem
+        )
       ).unwrap();
 
-      expect(superJson.document).toEqual({
+      expect(superJson).toEqual({
         profiles: {
           [documentName]: {
             file: `../${documentName}.supr`,
@@ -192,10 +202,13 @@ describe('Interactive create CLI command', () => {
       );
 
       const superJson = (
-        await SuperJson.load(joinPath(tempDir, 'superface', 'super.json'))
+        await loadSuperJson(
+          joinPath(tempDir, 'superface', 'super.json'),
+          NodeFileSystem
+        )
       ).unwrap();
 
-      expect(superJson.document).toEqual({
+      expect(superJson).toEqual({
         profiles: {
           [documentName]: {
             file: `../${documentName}.supr`,
@@ -252,9 +265,12 @@ describe('Interactive create CLI command', () => {
       );
 
       const superJson = (
-        await SuperJson.load(joinPath(tempDir, 'superface', 'super.json'))
+        await loadSuperJson(
+          joinPath(tempDir, 'superface', 'super.json'),
+          NodeFileSystem
+        )
       ).unwrap();
-      expect(superJson.normalized).toEqual({
+      expect(normalizeSuperJsonDocument(superJson)).toEqual({
         profiles: {
           [documentName]: {
             defaults: {},
@@ -330,10 +346,13 @@ describe('Interactive create CLI command', () => {
       expect(createdFile).toEqual(providerTemplate.empty(provider));
 
       const superJson = (
-        await SuperJson.load(joinPath(tempDir, 'superface', 'super.json'))
+        await loadSuperJson(
+          joinPath(tempDir, 'superface', 'super.json'),
+          NodeFileSystem
+        )
       ).unwrap();
 
-      expect(superJson.normalized).toEqual({
+      expect(normalizeSuperJsonDocument(superJson)).toEqual({
         profiles: {
           [documentName]: {
             defaults: {},
@@ -410,10 +429,13 @@ describe('Interactive create CLI command', () => {
       );
 
       const superJson = (
-        await SuperJson.load(joinPath(tempDir, 'superface', 'super.json'))
+        await loadSuperJson(
+          joinPath(tempDir, 'superface', 'super.json'),
+          NodeFileSystem
+        )
       ).unwrap();
 
-      expect(superJson.normalized).toEqual({
+      expect(normalizeSuperJsonDocument(superJson)).toEqual({
         profiles: {
           [documentName]: {
             defaults: {},
@@ -491,10 +513,13 @@ describe('Interactive create CLI command', () => {
       );
 
       const superJson = (
-        await SuperJson.load(joinPath(tempDir, 'superface', 'super.json'))
+        await loadSuperJson(
+          joinPath(tempDir, 'superface', 'super.json'),
+          NodeFileSystem
+        )
       ).unwrap();
 
-      expect(superJson.normalized).toEqual({
+      expect(normalizeSuperJsonDocument(superJson)).toEqual({
         profiles: {
           [documentName]: {
             file: `../${documentName}.supr`,
@@ -578,10 +603,13 @@ describe('Interactive create CLI command', () => {
       );
 
       const superJson = (
-        await SuperJson.load(joinPath(tempDir, 'superface', 'super.json'))
+        await loadSuperJson(
+          joinPath(tempDir, 'superface', 'super.json'),
+          NodeFileSystem
+        )
       ).unwrap();
 
-      expect(superJson.normalized).toEqual({
+      expect(normalizeSuperJsonDocument(superJson)).toEqual({
         profiles: {
           [documentName]: {
             file: `../${documentName}.supr`,
@@ -668,10 +696,13 @@ describe('Interactive create CLI command', () => {
       );
 
       const superJson = (
-        await SuperJson.load(joinPath(tempDir, 'superface', 'super.json'))
+        await loadSuperJson(
+          joinPath(tempDir, 'superface', 'super.json'),
+          NodeFileSystem
+        )
       ).unwrap();
 
-      expect(superJson.normalized).toEqual({
+      expect(normalizeSuperJsonDocument(superJson)).toEqual({
         profiles: {
           [documentName]: {
             file: `../${documentName}.supr`,

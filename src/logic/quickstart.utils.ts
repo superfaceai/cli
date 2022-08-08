@@ -1,12 +1,13 @@
-import { EXTENSIONS } from '@superfaceai/ast';
-import { SuperJson } from '@superfaceai/one-sdk';
-import { join as joinPath } from 'path';
+import { EXTENSIONS, SuperJsonDocument } from '@superfaceai/ast';
+import { normalizeSuperJsonDocument } from '@superfaceai/one-sdk';
+import { dirname, join as joinPath, resolve as resolvePath } from 'path';
 
 import { exists, readdir } from '../common/io';
 import { ProfileId } from '../common/profile';
 
 export async function profileExists(
-  superJson: SuperJson,
+  superJson: SuperJsonDocument,
+  superJsonPath: string,
   profile: { id: ProfileId; version?: string }
 ): Promise<boolean> {
   //Check source file
@@ -16,12 +17,13 @@ export async function profileExists(
       'grid',
       `${profile.id.id}@${profile.version}${EXTENSIONS.profile.source}`
     );
-    if (await exists(superJson.resolvePath(path))) {
+    if (await exists(resolvePath(dirname(superJsonPath), path))) {
       return true;
     }
   } else {
     //Look for any version
-    const scopePath = superJson.resolvePath(
+    const scopePath = resolvePath(
+      dirname(superJsonPath),
       joinPath('grid', profile.id.scope ?? '')
     );
 
@@ -35,7 +37,10 @@ export async function profileExists(
       if (
         path &&
         (await exists(
-          superJson.resolvePath(joinPath('grid', profile.id.scope ?? '', path))
+          resolvePath(
+            dirname(superJsonPath),
+            joinPath('grid', profile.id.scope ?? '', path)
+          )
         ))
       ) {
         return true;
@@ -44,9 +49,12 @@ export async function profileExists(
   }
 
   //Check file property
-  const profileSettings = superJson.normalized.profiles[`${profile.id.id}`];
+  const normalized = normalizeSuperJsonDocument(superJson);
+  const profileSettings = normalized.profiles[`${profile.id.id}`];
   if (profileSettings !== undefined && 'file' in profileSettings) {
-    if (await exists(superJson.resolvePath(profileSettings.file))) {
+    if (
+      await exists(resolvePath(dirname(superJsonPath), profileSettings.file))
+    ) {
       return true;
     }
   }
@@ -55,11 +63,12 @@ export async function profileExists(
 }
 
 export function providerExists(
-  superJson: SuperJson,
+  superJson: SuperJsonDocument,
   provider: string
 ): boolean {
   //Check source file
-  if (superJson.normalized.providers[provider]) {
+  const normalized = normalizeSuperJsonDocument(superJson);
+  if (normalized.providers[provider]) {
     return true;
   }
 

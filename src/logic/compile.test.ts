@@ -1,9 +1,9 @@
-import { Parser } from '@superfaceai/one-sdk';
 import { mocked } from 'ts-jest/utils';
 
 import { MockLogger } from '..';
 import { createUserError } from '../common/error';
 import { exists, readFile } from '../common/io';
+import { Parser } from '../common/parser';
 import { ProfileId } from '../common/profile';
 import { compile, ProfileToCompile } from './compile';
 
@@ -11,7 +11,7 @@ jest.mock('../common/io', () => ({
   readFile: jest.fn(),
   exists: jest.fn(),
 }));
-jest.mock('@superfaceai/one-sdk/dist/internal/parser');
+jest.mock('../common/parser');
 
 describe('Compile CLI logic', () => {
   let logger: MockLogger;

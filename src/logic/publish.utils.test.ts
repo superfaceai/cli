@@ -3,7 +3,6 @@ import {
   MapDocumentNode,
   ProfileDocumentNode,
 } from '@superfaceai/ast';
-import { Parser, SuperJson } from '@superfaceai/one-sdk';
 import { mocked } from 'ts-jest/utils';
 
 import { MockLogger } from '../common';
@@ -13,6 +12,7 @@ import {
   fetchProfileAST,
   fetchProviderInfo,
 } from '../common/http';
+import { Parser } from '../common/parser';
 import { ProfileId } from '../common/profile';
 import { ProfileMapReport } from '../common/report.interfaces';
 import {
@@ -85,7 +85,7 @@ describe('Publish logic utils', () => {
     kind: 'ProfileDocument',
     header: {
       kind: 'ProfileHeader',
-      name: 'someName',
+      name: 'some',
       version: {
         major: 1,
         minor: 0,
@@ -165,13 +165,13 @@ describe('Publish logic utils', () => {
 
   const mockProfileSource = 'profile source';
   const mockMapSource = 'map source';
-  const mockSuperJson = new SuperJson({
+  const mockSuperJson = {
     providers: {
       ['swapi']: {},
       ['someName']: {},
       [mockProviderName]: {},
     },
-  });
+  };
 
   const mockProfileFrom: ProfileFromMetadata = {
     kind: 'local',
@@ -211,12 +211,11 @@ describe('Publish logic utils', () => {
             providerFrom: mockProviderFrom,
             mapFrom: mockMapFrom,
             superJson: mockSuperJson,
+            superJsonPath: '',
           },
           { logger, userError }
         )
-      ).toThrow(
-        "Profile AST validation failed at $: expected 'astMetadata' in object, found: {}"
-      );
+      ).toThrow('must have required property "astMetadata"');
     });
 
     it('throws error on invalid map document structure', async () => {
@@ -231,12 +230,11 @@ describe('Publish logic utils', () => {
             providerFrom: mockProviderFrom,
             mapFrom: mockMapFrom,
             superJson: mockSuperJson,
+            superJsonPath: '',
           },
           { logger, userError }
         )
-      ).toThrow(
-        "Map AST validation failed at $: expected 'astMetadata' in object, found: {}"
-      );
+      ).toThrow('must have required property "astMetadata"');
     });
 
     it('returns empty array on valid documents', async () => {
@@ -251,6 +249,7 @@ describe('Publish logic utils', () => {
             providerFrom: mockProviderFrom,
             mapFrom: mockMapFrom,
             superJson: mockSuperJson,
+            superJsonPath: '',
           },
           { logger, userError }
         )
@@ -293,6 +292,7 @@ describe('Publish logic utils', () => {
             providerFrom: mockProviderFrom,
             mapFrom: mockMapFrom,
             superJson: mockSuperJson,
+            superJsonPath: '',
           },
           { logger, userError }
         )
@@ -323,6 +323,7 @@ describe('Publish logic utils', () => {
             providerFrom: mockProviderFrom,
             mapFrom: mockMapFrom,
             superJson: mockSuperJson,
+            superJsonPath: '',
           },
           { logger, userError }
         )
@@ -343,6 +344,7 @@ describe('Publish logic utils', () => {
             providerFrom: mockProviderFrom,
             mapFrom: mockMapFrom,
             superJson: mockSuperJson,
+            superJsonPath: '',
           },
           { logger, userError }
         )
@@ -373,6 +375,7 @@ describe('Publish logic utils', () => {
             providerFrom: mockProviderFrom,
             mapFrom: mockMapFrom,
             superJson: mockSuperJson,
+            superJsonPath: '',
           },
           { logger, userError }
         )
@@ -393,6 +396,7 @@ describe('Publish logic utils', () => {
             providerFrom: mockProviderFrom,
             mapFrom: mockMapFrom,
             superJson: mockSuperJson,
+            superJsonPath: '',
           },
           { logger, userError }
         )
@@ -436,6 +440,7 @@ describe('Publish logic utils', () => {
         loadProfile(
           {
             superJson: mockSuperJson,
+            superJsonPath: '',
             profile: mockProfile,
             version: undefined,
           },
@@ -473,6 +478,7 @@ describe('Publish logic utils', () => {
         loadProfile(
           {
             superJson: mockSuperJson,
+            superJsonPath: '',
             profile: mockProfile,
             version: undefined,
           },
@@ -509,6 +515,7 @@ describe('Publish logic utils', () => {
         loadMap(
           {
             superJson: mockSuperJson,
+            superJsonPath: '',
             profile: mockProfile,
             provider: mockProviderName,
             map: {},
@@ -550,6 +557,7 @@ describe('Publish logic utils', () => {
         loadMap(
           {
             superJson: mockSuperJson,
+            superJsonPath: '',
             profile: mockProfile,
             provider: mockProviderName,
             map: {},
@@ -589,7 +597,7 @@ describe('Publish logic utils', () => {
       });
 
       await expect(
-        loadProvider(mockSuperJson, mockProviderName, { logger })
+        loadProvider(mockSuperJson, '', mockProviderName, { logger })
       ).resolves.toEqual({
         source: validProviderSource,
         from: {
@@ -608,7 +616,7 @@ describe('Publish logic utils', () => {
       mocked(fetchProviderInfo).mockResolvedValue(validProviderSource);
 
       await expect(
-        loadProvider(mockSuperJson, mockProviderName, { logger })
+        loadProvider(mockSuperJson, '', mockProviderName, { logger })
       ).resolves.toEqual({
         source: validProviderSource,
         from: {

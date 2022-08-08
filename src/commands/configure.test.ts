@@ -1,5 +1,4 @@
 import { isValidDocumentName } from '@superfaceai/ast';
-import { SuperJson } from '@superfaceai/one-sdk';
 import { mocked } from 'ts-jest/utils';
 
 import { createUserError } from '../common/error';
@@ -198,7 +197,10 @@ describe('Configure CLI command', () => {
     it('configures provider with superface initialization', async () => {
       mocked(isValidDocumentName).mockReturnValue(true);
       mocked(detectSuperJson).mockResolvedValue(undefined);
-      mocked(initSuperface).mockResolvedValue(new SuperJson());
+      mocked(initSuperface).mockResolvedValue({
+        superJson: {},
+        superJsonPath: '',
+      });
       mocked(isCompatible).mockResolvedValue(true);
 
       await expect(

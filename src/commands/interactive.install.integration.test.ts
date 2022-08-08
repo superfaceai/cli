@@ -1,5 +1,5 @@
 import { EXTENSIONS, OnFail } from '@superfaceai/ast';
-import { SuperJson } from '@superfaceai/one-sdk';
+import { loadSuperJson, NodeFileSystem } from '@superfaceai/one-sdk';
 import { getLocal } from 'mockttp';
 import { join as joinPath } from 'path';
 
@@ -153,10 +153,13 @@ describe.skip('Interactive install CLI command', () => {
 
       //Check super.json
       const superJson = (
-        await SuperJson.load(joinPath(tempDir, 'superface', 'super.json'))
+        await loadSuperJson(
+          joinPath(tempDir, 'superface', 'super.json'),
+          NodeFileSystem
+        )
       ).unwrap();
 
-      expect(superJson.document).toEqual({
+      expect(superJson).toEqual({
         profiles: {
           [`${profile.scope}/${profile.name}`]: {
             version: profile.version,
@@ -371,10 +374,13 @@ describe.skip('Interactive install CLI command', () => {
 
       //Check super.json
       const superJson = (
-        await SuperJson.load(joinPath(tempDir, 'superface', 'super.json'))
+        await loadSuperJson(
+          joinPath(tempDir, 'superface', 'super.json'),
+          NodeFileSystem
+        )
       ).unwrap();
 
-      expect(superJson.document).toEqual({
+      expect(superJson).toEqual({
         profiles: {
           [`${profile.scope}/${profile.name}`]: {
             version: profile.version,

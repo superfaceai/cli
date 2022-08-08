@@ -6,5 +6,4 @@ module.exports = {
     "/dist/",
   ],
   testTimeout: 10000,
-  testPathIgnorePatterns: ['integration'],
 };

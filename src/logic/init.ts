@@ -1,5 +1,5 @@
 import { SuperJsonDocument } from '@superfaceai/ast';
-import { SuperJson } from '@superfaceai/one-sdk';
+import { loadSuperJson, NodeFileSystem } from '@superfaceai/one-sdk';
 import { parseProfileId } from '@superfaceai/parser';
 import { join as joinPath } from 'path';
 
@@ -46,7 +46,7 @@ export async function initSuperface(
     };
   },
   { logger }: { logger: ILogger }
-): Promise<SuperJson> {
+): Promise<{ superJson: SuperJsonDocument; superJsonPath: string }> {
   // create the base path
   {
     const created = await mkdir(appPath, { recursive: true });
@@ -68,7 +68,7 @@ export async function initSuperface(
   {
     const created = await OutputStream.writeIfAbsent(
       superJsonPath,
-      () => new SuperJson(initialDocument ?? {}).stringified,
+      () => JSON.stringify(initialDocument ?? {}, undefined, 2),
       { force: options?.force }
     );
 
@@ -93,7 +93,11 @@ export async function initSuperface(
     }
   }
 
-  return SuperJson.load(superJsonPath).then(v => v.unwrap());
+  const result = await loadSuperJson(superJsonPath, NodeFileSystem).then(v =>
+    v.unwrap()
+  );
+
+  return { superJson: result, superJsonPath };
 }
 
 /**
@@ -107,10 +111,12 @@ export async function generateSpecifiedProfiles(
   {
     path,
     superJson,
+    superJsonPath,
     profileIds,
   }: {
     path: string;
-    superJson: SuperJson;
+    superJson: SuperJsonDocument;
+    superJsonPath: string;
     profileIds: string[];
   },
   { logger, userError }: { logger: ILogger; userError: UserError }
@@ -131,6 +137,7 @@ export async function generateSpecifiedProfiles(
         version,
         usecaseNames: [composeUsecaseName(name)],
         superJson,
+        superJsonPath,
       },
       { logger }
     );

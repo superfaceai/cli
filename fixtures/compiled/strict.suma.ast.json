@@ -1425,7 +1425,7 @@
           "responseHandlers": [
             {
               "kind": "HttpResponseHandler",
-              "statusCode": 100,
+              "statusCode": 200,
               "statements": [
                 {
                   "kind": "OutcomeStatement",
@@ -2187,14 +2187,14 @@
   "astMetadata": {
     "astVersion": {
       "major": 1,
-      "minor": 1,
+      "minor": 2,
       "patch": 0
     },
     "parserVersion": {
       "major": 1,
-      "minor": 1,
+      "minor": 2,
       "patch": 0
     },
-    "sourceChecksum": "e946960c3b6d4143f0c2fa8ef37f5c3f93ee07ea2f4986189ef5963e1dd9ca11"
+    "sourceChecksum": "bfd83d45dcc6e3ce124163f9e2029574fe239a5c7dac6b71b1a6261b4342e68b"
   }
 }
