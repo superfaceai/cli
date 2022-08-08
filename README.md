@@ -58,6 +58,7 @@ npx @superfaceai/cli install [profileId eg. communication/send-email]
 * [`superface check`](#superface-check)
 * [`superface configure PROVIDERNAME`](#superface-configure-providername)
 * [`superface create`](#superface-create)
+* [`superface compile`](#superface-compile)
 * [`superface init [NAME]`](#superface-init-name)
 * [`superface install [PROFILEID]`](#superface-install-profileid)
 * [`superface lint`](#superface-lint)
@@ -190,6 +191,41 @@ EXAMPLES
 ```
 
 _See code: [src/commands/create.ts](https://github.com/superfaceai/cli/tree/main/src/commands/create.ts)_
+
+## `superface compile`
+
+Compiles locally linked maps and profiles in `super.json`.
+
+When running without `--profileId` flag, all locally linked files are compiled. When running with `--profileId`, a single local profile source file, and all its local maps are compiled. When running with `--profileId` and `--providerName`, a single local profile and a single local map are compiled.
+
+```
+
+USAGE
+  $ superface compile
+
+OPTIONS
+  -h, --help                   show CLI help
+  -q, --quiet                  When set to true, disables the shell echo output of action.
+  -s, --scan=scan              When number provided, scan for super.json outside cwd within range represented by this number.
+  --noColor                    When set to true, disables all colored output.
+  --noEmoji                    When set to true, disables displaying emoji in output.
+  --onlyMap                    Compile only a map/maps
+  --onlyProfile                Compile only a profile/profiles
+  --profileId=profileId        Profile Id in format [scope/](optional)[name]
+  --providerName=providerName  Name of provider. This argument is used to compile map
+
+EXAMPLES
+  $ superface compile
+  $ superface compile --profileId starwars/character-information --profile
+  $ superface compile --profileId starwars/character-information --profile -q
+  $ superface compile --profileId starwars/character-information --providerName swapi --onlyMap
+  $ superface compile --profileId starwars/character-information --providerName swapi --onlyMap --onlyProfile
+```
+
+_See code: [src/commands/compile.ts](https://github.com/superfaceai/cli/tree/main/src/commands/compile.ts)_
+
+
+
 
 ## `superface init [NAME]`
 
