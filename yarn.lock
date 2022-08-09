@@ -906,20 +906,19 @@
     ajv "^8.8.2"
     ajv-formats "^2.1.1"
 
-"@superfaceai/one-sdk@1.5.2":
-  version "1.5.2"
-  resolved "https://registry.yarnpkg.com/@superfaceai/one-sdk/-/one-sdk-1.5.2.tgz#754c2bbe3363671549308674c87ba359c9f60e9f"
-  integrity sha512-8dWrcktQBrUb3Y8M6MtbCW+0a70tbSnv7+/Oh4fKIxqdvKRTfFjJ3Bv/1LsPxLHlah0pta+cA5ZTXCBkIP6iTA==
+"@superfaceai/one-sdk@^2.0.0-rc.0":
+  version "2.0.0-rc.0"
+  resolved "https://registry.yarnpkg.com/@superfaceai/one-sdk/-/one-sdk-2.0.0-rc.0.tgz#13ce09260de8344b22361f719b96db478ec7700f"
+  integrity sha512-uhnRNRUCwV7rdGb8i0ALJtF8Hr+GHG2MLgMbZkrUsOHQ1cwY/xV4WLr5TVnhJJW4nV9H5s1xEonpOexlRAl5CQ==
   dependencies:
     "@superfaceai/ast" "1.2.0"
-    "@superfaceai/parser" "1.2.0"
     abort-controller "^3.0.0"
     cross-fetch "^3.1.5"
     debug "^4.3.2"
     isomorphic-form-data "^2.0.0"
     vm2 "^3.9.7"
 
-"@superfaceai/parser@1.2.0", "@superfaceai/parser@^1.2.0":
+"@superfaceai/parser@^1.2.0":
   version "1.2.0"
   resolved "https://registry.yarnpkg.com/@superfaceai/parser/-/parser-1.2.0.tgz#e89e64c9ec98ff2d1e4760c1441d88d945978a1d"
   integrity sha512-8nQ4x15F8mygKg4BcWwzqgDVTaY5BXanvCcxirL/jKLgpGUxH+808t0KmVc2Ke9o2MdiYt/2UD2hyfpwwqN9DA==
