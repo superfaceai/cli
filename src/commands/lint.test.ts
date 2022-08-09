@@ -7,7 +7,13 @@ import { MockLogger } from '../common/log';
 import { OutputStream } from '../common/output-stream';
 import { ProfileId } from '../common/profile';
 import { detectSuperJson } from '../logic/install';
-import { formatHuman, formatJson, lint, LintResult } from '../logic/lint';
+import {
+  formatHuman,
+  formatJson,
+  formatSummary,
+  lint,
+  LintResult,
+} from '../logic/lint';
 import { CommandInstance } from '../test/utils';
 import Lint from './lint';
 
@@ -353,22 +359,25 @@ describe('lint CLI command', () => {
         expect(writeSpy).toHaveBeenCalledWith(
           formatHuman({
             report: mockResult.reports[0],
-            quiet: false,
             emoji: true,
             color: true,
-            short: true,
           })
         );
         expect(writeSpy).toHaveBeenCalledWith(
           formatHuman({
             report: mockResult.reports[1],
-            quiet: false,
             emoji: true,
             color: true,
-            short: true,
           })
         );
-        expect(writeSpy).toHaveBeenCalledWith('\nDetected 0 problems\n');
+        expect(writeSpy).toHaveBeenCalledWith(
+          formatSummary({
+            fileCount: 2,
+            errorCount: 0,
+            warningCount: 0,
+            color: true,
+          })
+        );
 
         expect(cleanupSpy).toHaveBeenCalledTimes(1);
       });
@@ -452,22 +461,25 @@ describe('lint CLI command', () => {
         expect(writeSpy).toHaveBeenCalledWith(
           formatHuman({
             report: mockResult.reports[0],
-            quiet: false,
             emoji: true,
             color: true,
-            short: true,
           })
         );
         expect(writeSpy).toHaveBeenCalledWith(
           formatHuman({
             report: mockResult.reports[1],
-            quiet: false,
             emoji: true,
             color: true,
-            short: true,
           })
         );
-        expect(writeSpy).toHaveBeenCalledWith('\nDetected 0 problems\n');
+        expect(writeSpy).toHaveBeenCalledWith(
+          formatSummary({
+            fileCount: 2,
+            errorCount: 0,
+            warningCount: 0,
+            color: true,
+          })
+        );
 
         expect(cleanupSpy).toHaveBeenCalledTimes(1);
       });
@@ -551,22 +563,25 @@ describe('lint CLI command', () => {
         expect(writeSpy).toHaveBeenCalledWith(
           formatHuman({
             report: mockResult.reports[0],
-            quiet: false,
             emoji: true,
             color: true,
-            short: true,
           })
         );
         expect(writeSpy).toHaveBeenCalledWith(
           formatHuman({
             report: mockResult.reports[1],
-            quiet: false,
             emoji: true,
             color: true,
-            short: true,
           })
         );
-        expect(writeSpy).toHaveBeenCalledWith('\nDetected 0 problems\n');
+        expect(writeSpy).toHaveBeenCalledWith(
+          formatSummary({
+            fileCount: 2,
+            errorCount: 0,
+            warningCount: 0,
+            color: true,
+          })
+        );
 
         expect(cleanupSpy).toHaveBeenCalledTimes(1);
       });
@@ -643,22 +658,25 @@ describe('lint CLI command', () => {
         expect(writeSpy).toHaveBeenCalledWith(
           formatHuman({
             report: mockResult.reports[0],
-            quiet: false,
             emoji: true,
             color: true,
-            short: true,
           })
         );
         expect(writeSpy).toHaveBeenCalledWith(
           formatHuman({
             report: mockResult.reports[1],
-            quiet: false,
             emoji: true,
             color: true,
-            short: true,
           })
         );
-        expect(writeSpy).toHaveBeenCalledWith('\nDetected 0 problems\n');
+        expect(writeSpy).toHaveBeenCalledWith(
+          formatSummary({
+            fileCount: 2,
+            errorCount: 0,
+            warningCount: 0,
+            color: true,
+          })
+        );
 
         expect(cleanupSpy).toHaveBeenCalledTimes(1);
       });
@@ -735,22 +753,25 @@ describe('lint CLI command', () => {
         expect(writeSpy).toHaveBeenCalledWith(
           formatHuman({
             report: mockResult.reports[0],
-            quiet: false,
             emoji: true,
             color: true,
-            short: true,
           })
         );
         expect(writeSpy).toHaveBeenCalledWith(
           formatHuman({
             report: mockResult.reports[1],
-            quiet: false,
             emoji: true,
             color: true,
-            short: true,
           })
         );
-        expect(writeSpy).toHaveBeenCalledWith('\nDetected 0 problems\n');
+        expect(writeSpy).toHaveBeenCalledWith(
+          formatSummary({
+            fileCount: 2,
+            errorCount: 0,
+            warningCount: 0,
+            color: true,
+          })
+        );
 
         expect(cleanupSpy).toHaveBeenCalledTimes(1);
       });
@@ -824,22 +845,25 @@ describe('lint CLI command', () => {
         expect(writeSpy).toHaveBeenCalledWith(
           formatHuman({
             report: mockResult.reports[0],
-            quiet: false,
             emoji: true,
             color: true,
-            short: true,
           })
         );
         expect(writeSpy).toHaveBeenCalledWith(
           formatHuman({
             report: mockResult.reports[1],
-            quiet: false,
             emoji: true,
             color: true,
-            short: true,
           })
         );
-        expect(writeSpy).toHaveBeenCalledWith('\nDetected 0 problems\n');
+        expect(writeSpy).toHaveBeenCalledWith(
+          formatSummary({
+            fileCount: 2,
+            errorCount: 0,
+            warningCount: 0,
+            color: true,
+          })
+        );
 
         expect(cleanupSpy).toHaveBeenCalledTimes(1);
       });
@@ -984,22 +1008,25 @@ describe('lint CLI command', () => {
         expect(writeSpy).toHaveBeenCalledWith(
           formatHuman({
             report: mockResult.reports[0],
-            quiet: false,
             emoji: true,
             color: true,
-            short: true,
           })
         );
         expect(writeSpy).toHaveBeenCalledWith(
           formatHuman({
             report: mockResult.reports[1],
-            quiet: false,
             emoji: true,
             color: true,
-            short: true,
           })
         );
-        expect(writeSpy).toHaveBeenCalledWith('\nDetected 0 problems\n');
+        expect(writeSpy).toHaveBeenCalledWith(
+          formatSummary({
+            fileCount: 2,
+            errorCount: 0,
+            warningCount: 0,
+            color: true,
+          })
+        );
 
         expect(cleanupSpy).toHaveBeenCalledTimes(1);
       });
@@ -1069,26 +1096,29 @@ describe('lint CLI command', () => {
 
         expect(detectSuperJson).toHaveBeenCalledWith(process.cwd(), 4);
         expect(loadSpy).toHaveBeenCalledTimes(1);
-        expect(writeSpy).toHaveBeenCalledTimes(3);
+        expect(writeSpy).toHaveBeenCalledTimes(4);
         expect(writeSpy).toHaveBeenCalledWith(
           formatHuman({
             report: mockResultWithErrs.reports[0],
-            quiet: false,
             emoji: true,
             color: true,
-            short: false,
           })
         );
         expect(writeSpy).toHaveBeenCalledWith(
           formatHuman({
             report: mockResultWithErrs.reports[1],
-            quiet: false,
             emoji: true,
             color: true,
-            short: true,
           })
         );
-        expect(writeSpy).toHaveBeenCalledWith('\nDetected 1 problem\n');
+        expect(writeSpy).toHaveBeenCalledWith(
+          formatSummary({
+            fileCount: 2,
+            errorCount: 1,
+            warningCount: 0,
+            color: true,
+          })
+        );
 
         expect(cleanupSpy).toHaveBeenCalledTimes(1);
       });

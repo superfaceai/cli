@@ -88,13 +88,6 @@ describe('lint CLI command', () => {
       ''
     );
 
-    expect(result.stdout).toContain(
-      `🆗 Parsing profile file: ${resolve(fixture.strictProfile)}`
-    );
-    expect(result.stdout).toContain(
-      `🆗 Parsing map file: ${resolve(fixture.validMap)}`
-    );
-
     expect(result.stdout).toContain('Detected 0 problems');
   });
 
@@ -113,13 +106,6 @@ describe('lint CLI command', () => {
         { debug: true }
       )
     ).rejects.toContain('Errors were found');
-
-    expect(stdout.output).toContain(
-      `🆗 Parsing profile file: ${resolve(fixture.strictProfile)}`
-    );
-    expect(stdout.output).toContain(
-      `🆗 Parsing map file: ${resolve(fixture.validMap)}`
-    );
 
     expect(stdout.output).toContain(
       `Parsing map file: ${resolve(fixture.invalidParsedMap)}\n` +
@@ -143,7 +129,7 @@ describe('lint CLI command', () => {
     await expect(
       execCLI(
         tempDir,
-        ['lint', '--profileId', profileId, '--outputFormat', 'short'],
+        ['lint', '--profileId', profileId],
         '',
         //Expose child process stdout to mocked stdout
         { debug: true }
@@ -151,15 +137,13 @@ describe('lint CLI command', () => {
     ).rejects.toContain('Errors were found');
 
     expect(stdout.output).toContain(
-      `🆗 Parsing profile file: ${resolve(fixture.strictProfile)}`
-    );
-    expect(stdout.output).toContain(
-      `🆗 Parsing map file: ${resolve(fixture.validMap)}`
-    );
-
-    expect(stdout.output).toContain(
       `Parsing map file: ${resolve(fixture.invalidParsedMap)}\n` +
-        '\t3:1 Expected `provider` but found `map`\n'
+        'SyntaxError: Expected `provider` but found `map`\n' +
+        ` --> ${resolve(fixture.invalidParsedMap)}:3:1\n` +
+        '2 | \n' +
+        '3 | map Foo {\n' +
+        '  | ^^^      \n' +
+        '4 | 	\n'
     );
     expect(stdout.output).toContain('Detected 1 problem\n');
   });
@@ -246,7 +230,7 @@ describe('lint CLI command', () => {
     await expect(
       execCLI(
         tempDir,
-        ['lint', '--profileId', profileId, '--output', '-2'],
+        ['lint', '--profileId', profileId, '--output', '-2', '-f', 'long'],
         '',
         //Expose child process stdout to mocked stdout
         { debug: true }
@@ -269,13 +253,7 @@ describe('lint CLI command', () => {
       ''
     );
 
-    expect(result.stdout).toContain(
-      `🆗 Parsing profile file: ${resolve(fixture.strictProfile)}`
-    );
-    expect(result.stdout).toContain(
-      `🆗 Parsing map file: ${resolve(fixture.validMap)}`
-    );
-
-    expect(result.stdout).toContain('Detected 0 problems\n');
+    expect(result.stdout).toContain('Checked 3 files.');
+    expect(result.stdout).toContain('Detected 0 problems');
   });
 });

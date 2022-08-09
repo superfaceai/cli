@@ -31,6 +31,7 @@ import {
   createProfileMapReport,
   formatHuman,
   formatJson,
+  formatSummary,
   isValidHeader,
   isValidMapId,
   lint,
@@ -939,7 +940,7 @@ describe('Lint logic', () => {
 
       const formated = formatHuman({
         report: mockFileReport,
-        quiet: false,
+
         emoji: false,
         color: false,
       });
@@ -972,7 +973,7 @@ describe('Lint logic', () => {
 
       const formated = formatHuman({
         report: mockFileReport,
-        quiet: false,
+
         emoji: false,
         color: true,
       });
@@ -983,48 +984,6 @@ describe('Lint logic', () => {
       expect(formated).toMatch(
         yellow('test - Wrong Scope: expected foo, but got bar')
       );
-    });
-
-    it('formats file with errors and warnings correctly - short output', async () => {
-      const mockPath = 'some/path.supr';
-
-      const mockFileReport: ReportFormat = {
-        path: mockPath,
-        kind: 'file',
-        errors: [mockSyntaxErr],
-        warnings: [mockWarning],
-      };
-
-      const formated = formatHuman({
-        report: mockFileReport,
-        quiet: false,
-        short: true,
-        emoji: false,
-        color: false,
-      });
-      expect(formated).toMatch(`Parsing profile file: ${mockPath}`);
-      expect(formated).toMatch('0:0 detail');
-      expect(formated).toMatch('test - Wrong Scope: expected foo, but got bar');
-    });
-
-    it('formats file with errors and warnings correctly - quiet', async () => {
-      const mockPath = 'some/path.suma';
-
-      const mockFileReport: ReportFormat = {
-        path: mockPath,
-        kind: 'file',
-        errors: [mockSyntaxErr],
-        warnings: [mockWarning],
-      };
-
-      const formated = formatHuman({
-        report: mockFileReport,
-        quiet: true,
-        emoji: false,
-        color: false,
-      });
-      expect(formated).toMatch('Parsing map file: some/path.suma');
-      expect(formated).toMatch('detail');
     });
 
     it('formats file with errors correctly', async () => {
@@ -1038,7 +997,7 @@ describe('Lint logic', () => {
       };
       const formated = formatHuman({
         report: mockFileReport,
-        quiet: false,
+
         emoji: false,
         color: false,
       });
@@ -1058,7 +1017,7 @@ describe('Lint logic', () => {
 
       const formated = formatHuman({
         report: mockFileReport,
-        quiet: false,
+
         emoji: false,
         color: false,
       });
@@ -1080,7 +1039,7 @@ describe('Lint logic', () => {
 
       const formated = formatHuman({
         report: mockFileReport,
-        quiet: false,
+
         emoji: false,
         color: false,
       });
@@ -1122,7 +1081,7 @@ describe('Lint logic', () => {
 
       const formated = formatHuman({
         report: mockFileReport,
-        quiet: false,
+
         emoji: false,
         color: false,
       });
@@ -1146,6 +1105,44 @@ describe('Lint logic', () => {
       expect(formatJson(mockFileReport)).toEqual(
         expect.not.stringMatching('source')
       );
+    });
+  });
+  describe('when formating summary', () => {
+    const fileCount = 4;
+    it('formats summary with errors and warnings', async () => {
+      const formated = formatSummary({
+        fileCount,
+        errorCount: 1,
+        warningCount: 1,
+        color: true,
+      });
+
+      expect(formated).toMatch('\n\nChecked 4 files.');
+      expect(formated).toMatch(red('Detected 2 problems'));
+    });
+
+    it('formats summary with warnings', async () => {
+      const formated = formatSummary({
+        fileCount,
+        errorCount: 0,
+        warningCount: 1,
+        color: true,
+      });
+
+      expect(formated).toMatch('\n\nChecked 4 files.');
+      expect(formated).toMatch(yellow('Detected 1 problem'));
+    });
+
+    it('formats summary without errors or warnings', async () => {
+      const formated = formatSummary({
+        fileCount,
+        errorCount: 0,
+        warningCount: 0,
+        color: true,
+      });
+
+      expect(formated).toMatch('\n\nChecked 4 files.');
+      expect(formated).toMatch('Detected 0 problems');
     });
   });
 });
