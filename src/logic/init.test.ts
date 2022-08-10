@@ -57,9 +57,7 @@ describe('Init logic', () => {
       expect(mkdir).toHaveBeenCalledTimes(1);
       expect(mkdir).toHaveBeenCalledWith(mockAppPath, { recursive: true });
 
-      expect(mkdirQuiet).toHaveBeenNthCalledWith(1, 'test/superface');
-      expect(mkdirQuiet).toHaveBeenNthCalledWith(2, 'test/superface/grid');
-      expect(mkdirQuiet).toHaveBeenNthCalledWith(3, 'test/superface/types');
+      expect(mkdirQuiet).toHaveBeenCalledWith('test/superface');
 
       expect(writeIfAbsentSpy).toHaveBeenCalledTimes(1);
       expect(writeIfAbsentSpy).toHaveBeenCalledWith(
@@ -122,7 +120,7 @@ describe('Init logic', () => {
       expect(createProfile).toHaveBeenNthCalledWith(
         1,
         {
-          basePath: 'test/superface/grid',
+          basePath: 'test',
           profile: ProfileId.fromScopeName(undefined, 'first-test-name'),
           version: { major: 1 },
           usecaseNames: [composeUsecaseName('first-test-name')],
@@ -134,7 +132,7 @@ describe('Init logic', () => {
       expect(createProfile).toHaveBeenNthCalledWith(
         2,
         {
-          basePath: 'test/superface/grid',
+          basePath: 'test',
           profile: ProfileId.fromScopeName(undefined, 'second-test-name'),
           version: { major: 2 },
           usecaseNames: [composeUsecaseName('second-test-name')],

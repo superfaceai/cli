@@ -5,10 +5,8 @@ import { join as joinPath } from 'path';
 
 import {
   composeUsecaseName,
-  GRID_DIR,
   META_FILE,
   SUPERFACE_DIR,
-  TYPES_DIR,
 } from '../common/document';
 import { UserError } from '../common/error';
 import { mkdir, mkdirQuiet } from '../common/io';
@@ -26,9 +24,6 @@ import { createProfile } from './create';
  * appPath/
  *   superface/
  *     super.json
- *     grid/
- *     build/
- *     types/
  * ```
  *
  * For convenience, returns SuperJson instance read from the super.json path.
@@ -77,22 +72,6 @@ export async function initSuperface(
     }
   }
 
-  // create subdirs
-  {
-    const gridPath = joinPath(appPath, GRID_DIR);
-    const created = await mkdirQuiet(gridPath);
-    if (created) {
-      logger.info('mkdir', gridPath);
-    }
-  }
-  {
-    const typesPath = joinPath(appPath, TYPES_DIR);
-    const created = await mkdirQuiet(typesPath);
-    if (created) {
-      logger.info('mkdir', typesPath);
-    }
-  }
-
   const result = await loadSuperJson(superJsonPath, NodeFileSystem).then(v =>
     v.unwrap()
   );
@@ -132,7 +111,7 @@ export async function generateSpecifiedProfiles(
 
     await createProfile(
       {
-        basePath: joinPath(path, GRID_DIR),
+        basePath: path,
         profile: ProfileId.fromScopeName(scope, name),
         version,
         usecaseNames: [composeUsecaseName(name)],
