@@ -574,7 +574,7 @@ async function fetchStoreRequestCheckedOrDeferred(
     }`;
 
     await OutputStream.writeOnce(
-      joinPath(cachePath, profilePath),
+      joinPath(cachePath, 'profiles', profilePath),
       JSON.stringify(fetched.ast, undefined, 2),
       {
         dirs: true,
