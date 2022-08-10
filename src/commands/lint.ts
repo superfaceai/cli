@@ -11,11 +11,10 @@ import { join as joinPath } from 'path';
 import { Command, Flags } from '../common/command.abstract';
 import { META_FILE } from '../common/document';
 import { developerError, UserError } from '../common/error';
-import { formatWordPlurality } from '../common/format';
 import { ILogger } from '../common/log';
 import { OutputStream } from '../common/output-stream';
 import { detectSuperJson } from '../logic/install';
-import { formatHuman, formatJson, lint } from '../logic/lint';
+import { formatHuman, formatJson, formatSummary, lint } from '../logic/lint';
 import Check from './check';
 
 type OutputFormatFlag = 'long' | 'short' | 'json';
@@ -62,7 +61,7 @@ export default class Lint extends Command {
 
         return input;
       },
-    })({ default: 'long' }),
+    })({ default: 'short' }),
 
     scan: oclifFlags.integer({
       char: 's',
@@ -74,6 +73,7 @@ export default class Lint extends Command {
 
   static examples = [
     '$ superface lint',
+    '$ superface lint -f long',
     '$ superface lint --profileId starwars/character-information',
     '$ superface lint --profileId starwars/character-information --providerName swapi',
     '$ superface lint -o -2',
@@ -177,23 +177,38 @@ export default class Lint extends Command {
     });
 
     if (flags.outputFormat === 'long' || flags.outputFormat === 'short') {
-      for (const report of result.reports) {
+      //Print everything
+      if (flags.outputFormat === 'long') {
+        for (const report of result.reports) {
+          await outputStream.write(
+            formatHuman({
+              report,
+              emoji: !flags.noEmoji,
+              color: !flags.noColor,
+            })
+          );
+        }
+      }
+      //Print only errors and warnings
+      for (const report of result.reports.filter(
+        r => r.errors.length || r.warnings.length
+      )) {
         await outputStream.write(
           formatHuman({
             report,
-            quiet: !!flags.quiet,
             emoji: !flags.noEmoji,
             color: !flags.noColor,
-            short: flags.outputFormat === 'short',
           })
         );
       }
 
       await outputStream.write(
-        `\nDetected ${formatWordPlurality(
-          result.total.errors + (flags.quiet ? 0 : result.total.warnings),
-          'problem'
-        )}\n`
+        formatSummary({
+          fileCount: result.reports.length,
+          errorCount: result.total.errors,
+          warningCount: result.total.warnings,
+          color: !flags.noColor,
+        })
       );
     } else {
       await outputStream.write(formatJson(result));
