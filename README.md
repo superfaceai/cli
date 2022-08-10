@@ -435,7 +435,7 @@ EXAMPLES
   $ superface login -f
 ```
 
-_See code: [dist/commands/login.js](https://github.com/superfaceai/cli/blob/v1.1.1/dist/commands/login.js)_
+_See code: [src/commands/login.ts](https://github.com/superfaceai/cli/tree/main/src/commands/login.ts)_
 
 ## `superface logout`
 

@@ -5,7 +5,7 @@ import {
 } from '@superfaceai/one-sdk';
 import { join as joinPath } from 'path';
 
-import { exists, mkdir, readFile } from '../common/io';
+import { exists, mkdir, readFile, rimraf } from '../common/io';
 import { messages } from '../common/messages';
 import { OutputStream } from '../common/output-stream';
 import { execCLI, setUpTempDir } from '../test/utils';
@@ -43,7 +43,7 @@ describe('Compile CLI command', () => {
   });
 
   afterEach(async () => {
-    //await rimraf(tempDir);
+    await rimraf(tempDir);
   });
 
   describe('integration tests', () => {
