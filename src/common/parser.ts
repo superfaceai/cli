@@ -30,7 +30,12 @@ export class Parser {
       providerName: string;
       scope?: string;
     },
-    cachePath: string = joinPath(process.cwd(), 'superface', '.cache')
+    cachePath: string = joinPath(
+      process.cwd(),
+      'node_modules',
+      'superface',
+      '.cache'
+    )
   ): Promise<MapDocumentNode> {
     const sourceChecksum = new Source(input, fileName).checksum();
     const profileCachePath = joinPath(
@@ -73,13 +78,11 @@ export class Parser {
       console.log(e);
     }
     if (!isMapDocumentNode(parsedMap)) {
-      const parserAstVersion = `${PARSED_AST_VERSION.major}.${
-        PARSED_AST_VERSION.minor
-      }.${PARSED_AST_VERSION.patch}${
-        PARSED_AST_VERSION.label !== undefined
+      const parserAstVersion = `${PARSED_AST_VERSION.major}.${PARSED_AST_VERSION.minor
+        }.${PARSED_AST_VERSION.patch}${PARSED_AST_VERSION.label !== undefined
           ? '-' + PARSED_AST_VERSION.label
           : ''
-      }`;
+        }`;
       throw new Error(
         `Parsed map is not valid. This can be caused by not matching versions of package @superfaceai/ast.\nVersion of AST in Parser used to parse map: ${parserAstVersion}.\nVersion of AST used to validation: ${AstVersion}`
       );
@@ -101,7 +104,7 @@ export class Parser {
       profileName: string;
       scope?: string;
     },
-    cachePath: string = joinPath(process.cwd(), 'superface', '.cache')
+    cachePath: string = joinPath(process.cwd(), 'node_modules', 'superface', '.cache')
   ): Promise<ProfileDocumentNode> {
     const sourceChecksum = new Source(input, fileName).checksum();
     const scopeCachePath = joinPath(
@@ -140,13 +143,11 @@ export class Parser {
     // And write parsed file to cache
     parsedProfile = parseProfile(new Source(input, fileName));
     if (!isProfileDocumentNode(parsedProfile)) {
-      const parserAstVersion = `${PARSED_AST_VERSION.major}.${
-        PARSED_AST_VERSION.minor
-      }.${PARSED_AST_VERSION.patch}${
-        PARSED_AST_VERSION.label !== undefined
+      const parserAstVersion = `${PARSED_AST_VERSION.major}.${PARSED_AST_VERSION.minor
+        }.${PARSED_AST_VERSION.patch}${PARSED_AST_VERSION.label !== undefined
           ? '-' + PARSED_AST_VERSION.label
           : ''
-      }`;
+        }`;
       throw new Error(
         `Parsed profile is not valid. This can be caused by not matching versions of package @superfaceai/ast.\nVersion of AST in Parser used to parse profile: ${parserAstVersion}.\nVersion of AST used to validation: ${AstVersion}`
       );
