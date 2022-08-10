@@ -9,6 +9,9 @@ import {
 import {
   composeVersion,
   getProfileOutput,
+  parseMap,
+  parseProfile,
+  Source,
   validateMap,
 } from '@superfaceai/parser';
 
@@ -19,7 +22,6 @@ import {
   fetchProviderInfo,
 } from '../common/http';
 import { ILogger } from '../common/log';
-import { Parser } from '../common/parser';
 import { ProfileId } from '../common/profile';
 import { ProfileMapReport } from '../common/report.interfaces';
 import {
@@ -140,10 +142,7 @@ export async function loadProfile(
   const profileId = `${profile.id}${version ? `@${version}` : ''}`;
 
   if (source) {
-    ast = await Parser.parseProfile(source.source, profileId, {
-      profileName: profile.name,
-      scope: profile.scope,
-    });
+    ast = parseProfile(new Source(source.source, profileId));
     logger.info('localProfileFound', profileId, source.path);
 
     return { ast, from: { kind: 'local', ...source } };
@@ -199,14 +198,8 @@ export async function loadMap(
     provider
   );
   if (source) {
-    const ast = await Parser.parseMap(
-      source.source,
-      `${profile.name}.${provider}`,
-      {
-        profileName: profile.name,
-        scope: profile.scope,
-        providerName: provider,
-      }
+    const ast = parseMap(
+      new Source(source.source, `${profile.name}.${provider}`)
     );
     logger.info(
       'localMapFound',

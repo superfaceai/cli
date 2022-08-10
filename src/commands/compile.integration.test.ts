@@ -125,10 +125,10 @@ describe('Compile CLI command', () => {
       const mockSuperJson = {
         profiles: {
           [profileId]: {
-            file: `../profile.supr`,
+            file: '../profile.supr',
             providers: {
               [provider]: {
-                file: `../map.suma`,
+                file: '../map.suma',
               },
             },
           },
@@ -209,10 +209,10 @@ describe('Compile CLI command', () => {
       const mockSuperJson = {
         profiles: {
           [profileId]: {
-            file: `../profile.supr`,
+            file: '../profile.supr',
             providers: {
               [provider]: {
-                file: `../map.suma`,
+                file: '../map.suma',
               },
             },
           },

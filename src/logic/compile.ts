@@ -1,10 +1,10 @@
 import { EXTENSIONS } from '@superfaceai/ast';
+import { parseMap, parseProfile, Source } from '@superfaceai/parser';
 
 import { UserError } from '../common/error';
 import { exists, readFile } from '../common/io';
 import { ILogger } from '../common/log';
 import { OutputStream } from '../common/output-stream';
-import { Parser } from '../common/parser';
 import { ProfileId } from '../common/profile';
 
 export type MapToCompile = { provider: string; path: string };
@@ -27,8 +27,6 @@ export async function compile(
   },
   { logger, userError }: { logger: ILogger; userError: UserError }
 ): Promise<void> {
-  //Clear cache
-  await Parser.clearCache();
   for (const profile of profiles) {
     //Compile profile
     if (!options?.onlyMap) {
@@ -60,11 +58,7 @@ export async function compile(
         );
       }
       const source = await readFile(profileSourcePath, { encoding: 'utf-8' });
-      //TODO: force? log AST/Parser version?
-      const profileAst = await Parser.parseProfile(source, profileSourcePath, {
-        profileName: profile.id.name,
-        scope: profile.id.scope,
-      });
+      const profileAst = parseProfile(new Source(source, profileSourcePath));
 
       await OutputStream.writeOnce(
         profileAstPath,
@@ -105,12 +99,7 @@ export async function compile(
           );
         }
         const source = await readFile(mapSourcePath, { encoding: 'utf-8' });
-        //TODO: force? log AST/Parser version?
-        const mapAst = await Parser.parseMap(source, map.path, {
-          profileName: profile.id.name,
-          providerName: map.provider,
-          scope: profile.id.scope,
-        });
+        const mapAst = parseMap(new Source(source, map.path));
 
         await OutputStream.writeOnce(
           mapAstPath,

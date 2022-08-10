@@ -4,14 +4,16 @@ import {
   SuperJsonDocument,
 } from '@superfaceai/ast';
 import {
+  DEFAULT_CACHE_PATH,
   loadSuperJson,
   mergeProfile,
   NodeFileSystem,
   normalizeSuperJsonDocument,
+  versionToString,
 } from '@superfaceai/one-sdk';
+import { parseProfile, Source } from '@superfaceai/parser';
 import createDebug from 'debug';
 import {
-  basename,
   dirname,
   join as joinPath,
   normalize,
@@ -24,7 +26,6 @@ import {
   META_FILE,
   SUPER_PATH,
   SUPERFACE_DIR,
-  trimExtension,
 } from '../common/document';
 import { UserError } from '../common/error';
 import {
@@ -36,7 +37,6 @@ import {
 import { exists, isAccessible, readFile } from '../common/io';
 import { ILogger } from '../common/log';
 import { OutputStream } from '../common/output-stream';
-import { Parser } from '../common/parser';
 import { resolveSuperfaceRelativePath } from '../common/path';
 import { ProfileId } from '../common/profile';
 import { arrayFilterUndefined } from '../common/util';
@@ -156,14 +156,14 @@ export async function resolveInstallationRequests(
     requests: (LocalRequest | StoreRequest)[];
     options?: InstallOptions;
   },
-  { logger, userError }: { logger: ILogger; userError: UserError }
+  { logger }: { logger: ILogger }
 ): Promise<number> {
   // phase 1 - read local requests
   const phase1 = await Promise.all(
     requests.map(async request => {
       installDebug('Install phase 1:', request);
       if (request.kind === 'local') {
-        return readLocalRequest(superJson, request, { logger, userError });
+        return readLocalRequest(superJson, request, { logger });
       }
 
       return request;
@@ -245,19 +245,12 @@ export async function resolveInstallationRequests(
 async function readLocalRequest(
   _superJson: SuperJsonDocument,
   request: LocalRequest,
-  { logger, userError }: { logger: ILogger; userError: UserError }
+  { logger }: { logger: ILogger }
 ): Promise<LocalRequestRead | undefined> {
   try {
     const profileSource = await readFile(request.path, { encoding: 'utf-8' });
 
-    // TODO: this should be extracted from the file header or not needed at all
-    const profileIdStr = trimExtension(basename(request.path), { userError });
-    const profileId = ProfileId.fromId(profileIdStr, { userError });
-
-    const profileAst = await Parser.parseProfile(profileSource, request.path, {
-      profileName: profileId.name,
-      scope: profileId.scope,
-    });
+    const profileAst = parseProfile(new Source(profileSource, request.path));
 
     return {
       ...request,
@@ -492,10 +485,7 @@ export async function getProfileFromStore(
     } catch (error) {
       logger.warn('fetchProfileAstFailed', profileIdStr);
       //We try to parse profile on our own
-      ast = await Parser.parseProfile(profile, profileIdStr, {
-        profileName: profileId.name,
-        scope: profileId.scope,
-      });
+      ast = parseProfile(new Source(profile, profileIdStr));
     }
   } catch (error) {
     logger.error('couldNotFetch', profileIdStr, error);
@@ -571,10 +561,29 @@ async function fetchStoreRequestCheckedOrDeferred(
   }
 
   // cache the profile
-  await Parser.parseProfile(fetched.profile, request.profileId.id, {
-    profileName: request.profileId.name,
-    scope: request.profileId.scope,
-  });
+  try {
+    const cachePath = DEFAULT_CACHE_PATH({
+      // eslint-disable-next-line @typescript-eslint/unbound-method
+      path: { join: joinPath, cwd: process.cwd },
+    });
+    const profilePath = `${ProfileId.fromScopeName(
+      request.profileId.scope,
+      request.profileId.name
+    ).toString()}@${versionToString(fetched.ast.header.version)}${
+      EXTENSIONS.profile.build
+    }`;
+
+    await OutputStream.writeOnce(
+      joinPath(cachePath, profilePath),
+      JSON.stringify(fetched.ast, undefined, 2),
+      {
+        dirs: true,
+      }
+    );
+  } catch (err) {
+    console.log('err', err);
+    void err;
+  }
 
   return {
     ...request,
@@ -613,10 +622,7 @@ export async function getExistingProfileIds(
               profileSettings.file
             );
             const content = await readFile(filePath, { encoding: 'utf-8' });
-            const { header } = await Parser.parseProfile(content, filePath, {
-              profileName: profileId.name,
-              scope: profileId.scope,
-            });
+            const { header } = parseProfile(new Source(content, filePath));
 
             return {
               profileId: ProfileId.fromScopeName(header.scope, header.name),
@@ -692,7 +698,7 @@ export async function installProfiles(
       requests,
       options,
     },
-    { logger, userError }
+    { logger }
   );
 
   if (installed > 0) {

@@ -1,10 +1,10 @@
+import { parseMap, parseProfile, Source } from '@superfaceai/parser';
 import { mocked } from 'ts-jest/utils';
 
 import { MockLogger } from '..';
 import { createUserError } from '../common/error';
 import { exists, readFile } from '../common/io';
 import { OutputStream } from '../common/output-stream';
-import { Parser } from '../common/parser';
 import { ProfileId } from '../common/profile';
 import { mockMapDocumentNode } from '../test/map-document-node';
 import { mockProfileDocumentNode } from '../test/profile-document-node';
@@ -14,8 +14,11 @@ jest.mock('../common/io', () => ({
   readFile: jest.fn(),
   exists: jest.fn(),
 }));
-jest.mock('../common/parser');
-
+jest.mock('@superfaceai/parser', () => ({
+  ...jest.requireActual('@superfaceai/parser'),
+  parseProfile: jest.fn(),
+  parseMap: jest.fn(),
+}));
 describe('Compile CLI logic', () => {
   let logger: MockLogger;
   const userError = createUserError(false);
@@ -23,14 +26,13 @@ describe('Compile CLI logic', () => {
   const mockMap = mockMapDocumentNode();
 
   const writeOnceSpy = jest.spyOn(OutputStream, 'writeOnce');
-  const clearCacheSpy = jest.spyOn(Parser, 'clearCache');
-  const parseMapSpy = jest.spyOn(Parser, 'parseMap');
-  const parseProfileSpy = jest.spyOn(Parser, 'parseProfile');
+  const parseMapSpy = mocked(parseMap);
+  const parseProfileSpy = mocked(parseProfile);
 
   beforeEach(() => {
     writeOnceSpy.mockResolvedValue(undefined);
-    parseMapSpy.mockResolvedValue(mockMap);
-    parseProfileSpy.mockResolvedValue(mockProfile);
+    parseMapSpy.mockReturnValue(mockMap);
+    parseProfileSpy.mockReturnValue(mockProfile);
 
     logger = new MockLogger();
   });
@@ -87,55 +89,41 @@ describe('Compile CLI logic', () => {
       ).resolves.toBeUndefined();
       expect(parseProfileSpy).toHaveBeenNthCalledWith(
         1,
-        mockProfileContent,
-        profiles[0].path,
-        { profileName: 'profile', scope: 'first' }
+        new Source(mockProfileContent, profiles[0].path)
       );
       expect(parseProfileSpy).toHaveBeenNthCalledWith(
         2,
-        mockProfileContent,
-        profiles[1].path,
-        { profileName: 'profile', scope: 'second' }
+        new Source(mockProfileContent, profiles[1].path)
       );
       expect(parseProfileSpy).toHaveBeenNthCalledWith(
         3,
-        mockProfileContent,
-        // reads source
-        'third/profile.supr',
-        { profileName: 'profile', scope: 'third' }
+        new Source(
+          mockProfileContent,
+          // reads source
+          'third/profile.supr'
+        )
       );
 
       expect(parseMapSpy).toHaveBeenNthCalledWith(
         1,
-        mockMapContent,
-        profiles[0].maps[0].path,
-        { profileName: 'profile', scope: 'first', providerName: 'first' }
+        new Source(mockMapContent, profiles[0].maps[0].path)
       );
       expect(parseMapSpy).toHaveBeenNthCalledWith(
         2,
-        mockMapContent,
-        profiles[0].maps[1].path,
-        { profileName: 'profile', scope: 'first', providerName: 'second' }
+        new Source(mockMapContent, profiles[0].maps[1].path)
       );
       expect(parseMapSpy).toHaveBeenNthCalledWith(
         3,
-        mockMapContent,
-        profiles[1].maps[0].path,
-        { profileName: 'profile', scope: 'second', providerName: 'first' }
+        new Source(mockMapContent, profiles[1].maps[0].path)
       );
       expect(parseMapSpy).toHaveBeenNthCalledWith(
         4,
-        mockMapContent,
-        profiles[1].maps[1].path,
-        { profileName: 'profile', scope: 'second', providerName: 'second' }
+        new Source(mockMapContent, profiles[1].maps[1].path)
       );
       expect(parseMapSpy).toHaveBeenNthCalledWith(
         5,
-        mockMapContent,
-        profiles[2].maps[0].path,
-        { profileName: 'profile', scope: 'third', providerName: 'first' }
+        new Source(mockMapContent, profiles[2].maps[0].path)
       );
-      expect(clearCacheSpy).toHaveBeenCalled();
       expect(writeOnceSpy).toHaveBeenCalledWith(
         'first/profile.supr.ast.json',
         JSON.stringify(mockProfile, undefined, 2)
@@ -190,35 +178,24 @@ describe('Compile CLI logic', () => {
 
       expect(parseMapSpy).toHaveBeenNthCalledWith(
         1,
-        mockMapContent,
-        profiles[0].maps[0].path,
-        { profileName: 'profile', scope: 'first', providerName: 'first' }
+        new Source(mockMapContent, profiles[0].maps[0].path)
       );
       expect(parseMapSpy).toHaveBeenNthCalledWith(
         2,
-        mockMapContent,
-        profiles[0].maps[1].path,
-        { profileName: 'profile', scope: 'first', providerName: 'second' }
+        new Source(mockMapContent, profiles[0].maps[1].path)
       );
       expect(parseMapSpy).toHaveBeenNthCalledWith(
         3,
-        mockMapContent,
-        profiles[1].maps[0].path,
-        { profileName: 'profile', scope: 'second', providerName: 'first' }
+        new Source(mockMapContent, profiles[1].maps[0].path)
       );
       expect(parseMapSpy).toHaveBeenNthCalledWith(
         4,
-        mockMapContent,
-        profiles[1].maps[1].path,
-        { profileName: 'profile', scope: 'second', providerName: 'second' }
+        new Source(mockMapContent, profiles[1].maps[1].path)
       );
       expect(parseMapSpy).toHaveBeenNthCalledWith(
         5,
-        mockMapContent,
-        profiles[2].maps[0].path,
-        { profileName: 'profile', scope: 'third', providerName: 'first' }
+        new Source(mockMapContent, profiles[2].maps[0].path)
       );
-      expect(clearCacheSpy).toHaveBeenCalled();
       expect(writeOnceSpy).toHaveBeenCalledWith(
         'first/profile/first/map.suma.ast.json',
         JSON.stringify(mockMap, undefined, 2)
@@ -261,25 +238,21 @@ describe('Compile CLI logic', () => {
       ).resolves.toBeUndefined();
       expect(parseProfileSpy).toHaveBeenNthCalledWith(
         1,
-        mockProfileContent,
-        profiles[0].path,
-        { profileName: 'profile', scope: 'first' }
+        new Source(mockProfileContent, profiles[0].path)
       );
       expect(parseProfileSpy).toHaveBeenNthCalledWith(
         2,
-        mockProfileContent,
-        profiles[1].path,
-        { profileName: 'profile', scope: 'second' }
+        new Source(mockProfileContent, profiles[1].path)
       );
       expect(parseProfileSpy).toHaveBeenNthCalledWith(
         3,
-        mockProfileContent,
-        // reads source
-        'third/profile.supr',
-        { profileName: 'profile', scope: 'third' }
+        new Source(
+          mockProfileContent,
+          // reads source
+          'third/profile.supr'
+        )
       );
 
-      expect(clearCacheSpy).toHaveBeenCalled();
       expect(parseMapSpy).not.toHaveBeenCalled();
       expect(writeOnceSpy).toHaveBeenCalledWith(
         'first/profile.supr.ast.json',
@@ -317,7 +290,6 @@ describe('Compile CLI logic', () => {
       expect(parseProfileSpy).not.toHaveBeenCalled();
 
       expect(parseMapSpy).not.toHaveBeenCalled();
-      expect(clearCacheSpy).toHaveBeenCalled();
       expect(writeOnceSpy).not.toHaveBeenCalled();
     });
 
@@ -332,7 +304,6 @@ describe('Compile CLI logic', () => {
       expect(parseProfileSpy).not.toHaveBeenCalled();
 
       expect(parseMapSpy).not.toHaveBeenCalled();
-      expect(clearCacheSpy).toHaveBeenCalled();
       expect(writeOnceSpy).not.toHaveBeenCalled();
     });
 
@@ -358,14 +329,10 @@ describe('Compile CLI logic', () => {
       ).rejects.toThrow(
         'Path: "profile/first/map.ts" uses unsupported extension. Please use file with ".suma" extension.'
       );
-      expect(parseProfileSpy).toHaveBeenNthCalledWith(
-        1,
-        mockProfileContent,
-        'profile.supr',
-        { profileName: 'profile', scope: 'first' }
+      expect(parseProfileSpy).toHaveBeenCalledWith(
+        new Source(mockProfileContent, 'profile.supr')
       );
       expect(parseMapSpy).not.toHaveBeenCalled();
-      expect(clearCacheSpy).toHaveBeenCalled();
       expect(writeOnceSpy).toHaveBeenCalledTimes(1);
     });
 
@@ -384,15 +351,11 @@ describe('Compile CLI logic', () => {
       ).rejects.toThrow(
         'Path: "first/profile/first/map.suma" for map first/profile.first does not exist'
       );
-      expect(parseProfileSpy).toHaveBeenNthCalledWith(
-        1,
-        mockProfileContent,
-        profiles[0].path,
-        { profileName: 'profile', scope: 'first' }
+      expect(parseProfileSpy).toHaveBeenCalledWith(
+        new Source(mockProfileContent, profiles[0].path)
       );
 
       expect(parseMapSpy).not.toHaveBeenCalled();
-      expect(clearCacheSpy).toHaveBeenCalled();
       expect(writeOnceSpy).toHaveBeenCalledTimes(1);
     });
   });
