@@ -28,12 +28,7 @@ import {
   SUPERFACE_DIR,
 } from '../common/document';
 import { UserError } from '../common/error';
-import {
-  fetchProfile,
-  fetchProfileAST,
-  fetchProfileInfo,
-  ProfileInfo,
-} from '../common/http';
+import { fetchProfileAST, fetchProfileInfo, ProfileInfo } from '../common/http';
 import { exists, isAccessible, readFile } from '../common/io';
 import { ILogger } from '../common/log';
 import { OutputStream } from '../common/output-stream';
@@ -114,7 +109,6 @@ type StoreRequestChecked = StoreRequestVersionKnown & {
 type StoreRequestDeferredCheck = StoreRequestVersionUnknown;
 type StoreRequestFetched = StoreRequestChecked & {
   info: ProfileInfo;
-  profileSource: string;
   profileAst: ProfileDocumentNode;
 };
 
@@ -440,7 +434,6 @@ async function checkStoreRequest(
 
 export type ProfileResponse = {
   info: ProfileInfo;
-  profile: string;
   ast: ProfileDocumentNode;
 };
 export async function getProfileFromStore(
@@ -461,7 +454,6 @@ export async function getProfileFromStore(
 
   // fetch the profile
   let info: ProfileInfo;
-  let profile: string;
   let ast: ProfileDocumentNode;
   logger.info('fetchProfile', profileIdStr);
 
@@ -470,32 +462,25 @@ export async function getProfileFromStore(
       tryToAuthenticate: options?.tryToAuthenticate,
     });
     logger.info('fetchProfileInfo', profileIdStr);
+  } catch (error) {
+    logger.error('fetchProfileInfoFailed', profileIdStr, error);
 
-    profile = await fetchProfile(profileId, version, {
+    return undefined;
+  }
+  try {
+    //This can fail due to validation issues, ast and parser version issues
+    ast = await fetchProfileAST(profileId, version, {
       tryToAuthenticate: options?.tryToAuthenticate,
     });
-    logger.info('fetchProfileSource', profileIdStr);
-
-    try {
-      //This can fail due to validation issues, ast and parser version issues
-      ast = await fetchProfileAST(profileId, version, {
-        tryToAuthenticate: options?.tryToAuthenticate,
-      });
-      logger.info('fetchProfileAst', profileIdStr);
-    } catch (error) {
-      logger.warn('fetchProfileAstFailed', profileIdStr);
-      //We try to parse profile on our own
-      ast = parseProfile(new Source(profile, profileIdStr));
-    }
+    logger.info('fetchProfileAst', profileIdStr);
   } catch (error) {
-    logger.error('couldNotFetch', profileIdStr, error);
+    logger.error('fetchProfileAstFailed', profileIdStr, error);
 
     return undefined;
   }
 
   return {
     info,
-    profile,
     ast,
   };
 }
@@ -548,18 +533,6 @@ async function fetchStoreRequestCheckedOrDeferred(
     request = checked;
   }
 
-  // save the downloaded data
-  try {
-    await OutputStream.writeOnce(request.sourcePath, fetched.profile, {
-      dirs: true,
-    });
-    logger.info('writeProfile', request.sourcePath);
-  } catch (err) {
-    logger.error('unableToWriteProfile', request.profileId.id, err);
-
-    return undefined;
-  }
-
   // cache the profile
   try {
     const cachePath = DEFAULT_CACHE_PATH({
@@ -588,7 +561,6 @@ async function fetchStoreRequestCheckedOrDeferred(
   return {
     ...request,
     info: fetched.info,
-    profileSource: fetched.profile,
     profileAst: fetched.ast,
   };
 }

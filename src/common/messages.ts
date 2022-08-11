@@ -80,12 +80,14 @@ const lint = {
 const fetch = {
   fetchProfileInfo: (profile: string) =>
     `Fetching profile info of profile: "${profile}" from Superface registry`,
-  fetchProfileSource: (profile: string) =>
-    `Fetching profile source for: "${profile}" from Superface registry`,
   fetchProfileAst: (profile: string) =>
     `Fetching compiled profile for: "${profile}" from Superface registry`,
-  fetchProfileAstFailed: (profile: string) =>
-    `Fetching compiled profile for: "${profile}" failed, trying to parse source file`,
+  fetchProfileAstFailed: (profile: string, error: unknown) =>
+    // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+    `Fetching compiled profile for: "${profile}" failed: "${error}"`,
+  fetchProfileInfoFailed: (profile: string, error: unknown) =>
+    // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+    `Fetching profile info of profile: "${profile}" failed: "${error}"`,
   fetchProfile: (profile: string, version?: string) => {
     if (version) {
       return `Fetching profile: "${profile}" with version: "${version}" from Superface registry`;
