@@ -212,8 +212,6 @@ describe('Install CLI logic', () => {
     it('gets profile', async () => {
       mocked(fetchProfileInfo).mockResolvedValue(mockProfileInfo);
       mocked(fetchProfileAST).mockResolvedValue(mockProfileAst);
-      const mockProfile = 'mock profile';
-      mocked(fetchProfile).mockResolvedValue(mockProfile);
 
       const profileId = ProfileId.fromScopeName(
         'starwars',
@@ -225,14 +223,10 @@ describe('Install CLI logic', () => {
       ).resolves.toEqual({
         ast: mockProfileAst,
         info: mockProfileInfo,
-        profile: mockProfile,
       });
-      expect(fetchProfile).toHaveBeenCalledTimes(1);
       expect(fetchProfileAST).toHaveBeenCalledTimes(1);
       expect(fetchProfileInfo).toHaveBeenCalledTimes(1);
-      expect(fetchProfile).toHaveBeenCalledWith(profileId, undefined, {
-        tryToAuthenticate: undefined,
-      });
+
       expect(fetchProfileInfo).toHaveBeenCalledWith(profileId, undefined, {
         tryToAuthenticate: undefined,
       });
@@ -262,7 +256,6 @@ describe('Install CLI logic', () => {
       ).resolves.toEqual({
         ast: mockProfileAst,
         info: mockProfileInfo,
-        profile: mockProfile,
       });
       expect(fetchProfile).toHaveBeenCalledTimes(1);
       expect(fetchProfileAST).toHaveBeenCalledTimes(1);
@@ -284,9 +277,6 @@ describe('Install CLI logic', () => {
     it('gets profile with auth', async () => {
       mocked(fetchProfileInfo).mockResolvedValue(mockProfileInfo);
       mocked(fetchProfileAST).mockResolvedValue(mockProfileAst);
-      //mock profile
-      const mockProfile = 'mock profile';
-      mocked(fetchProfile).mockResolvedValue(mockProfile);
 
       const profileId = ProfileId.fromScopeName(
         'starwars',
@@ -306,14 +296,9 @@ describe('Install CLI logic', () => {
       ).resolves.toEqual({
         ast: mockProfileAst,
         info: mockProfileInfo,
-        profile: mockProfile,
       });
-      expect(fetchProfile).toHaveBeenCalledTimes(1);
       expect(fetchProfileAST).toHaveBeenCalledTimes(1);
       expect(fetchProfileInfo).toHaveBeenCalledTimes(1);
-      expect(fetchProfile).toHaveBeenCalledWith(profileId, undefined, {
-        tryToAuthenticate: true,
-      });
       expect(fetchProfileInfo).toHaveBeenCalledWith(profileId, undefined, {
         tryToAuthenticate: true,
       });
@@ -452,9 +437,7 @@ describe('Install CLI logic', () => {
           }
         }
       );
-      const fetchProfileMock = mocked(fetchProfile).mockResolvedValue(
-        'mock profile'
-      );
+
       const fetchProfileASTMock = mocked(fetchProfileAST).mockResolvedValue({
         kind: 'ProfileDocument',
         astMetadata,
@@ -516,7 +499,6 @@ describe('Install CLI logic', () => {
       });
 
       expect(fetchProfileInfoMock).toHaveBeenCalledTimes(3);
-      expect(fetchProfileMock).toHaveBeenCalledTimes(2);
       expect(fetchProfileASTMock).toHaveBeenCalledTimes(2);
 
       expect(logger.stderr).toContainEqual([
@@ -845,7 +827,6 @@ describe('Install CLI logic', () => {
         mocked(fetchProfileAST).mockResolvedValue(
           mockProfileAst({ major: 1, minor: 0, patch: 1 })
         );
-        mocked(fetchProfile).mockResolvedValue(mockProfile);
         mocked(fetchProfileInfo).mockResolvedValue(mockProfileInfo);
 
         const stubSuperJson = {};
@@ -878,11 +859,8 @@ describe('Install CLI logic', () => {
         ).resolves.toEqual({ continueWithInstall: true });
 
         expect(fetchProfileInfo).toHaveBeenCalledTimes(1);
-        expect(fetchProfile).toHaveBeenCalledTimes(1);
         expect(fetchProfileAST).toHaveBeenCalledTimes(1);
-        expect(fetchProfile).toHaveBeenCalledWith(profileId, undefined, {
-          tryToAuthenticate: undefined,
-        });
+
         expect(fetchProfileInfo).toHaveBeenCalledWith(profileId, undefined, {
           tryToAuthenticate: undefined,
         });
@@ -890,13 +868,7 @@ describe('Install CLI logic', () => {
           tryToAuthenticate: undefined,
         });
         //actual path is changing
-        expect(mockWrite).toHaveBeenCalledWith(
-          expect.stringMatching('character-information'),
-          mockProfile,
-          {
-            dirs: true,
-          }
-        );
+
         expect(mockWrite).toHaveBeenCalledWith(
           expect.stringContaining('character-information@1.0.1.supr.ast.json'),
           JSON.stringify(
@@ -928,7 +900,6 @@ describe('Install CLI logic', () => {
         mocked(fetchProfileAST)
           .mockResolvedValueOnce(mockProfileAst({ major: 1 }))
           .mockResolvedValueOnce(mockProfileAst({ major: 2 }));
-        mocked(fetchProfile).mockResolvedValue(mockProfile);
         mocked(fetchProfileInfo).mockResolvedValue(mockProfileInfo);
 
         const stubSuperJson = {};
@@ -957,20 +928,8 @@ describe('Install CLI logic', () => {
         ).resolves.toEqual({ continueWithInstall: true });
 
         expect(fetchProfileInfo).toHaveBeenCalledTimes(2);
-        expect(fetchProfile).toHaveBeenCalledTimes(2);
         expect(fetchProfileAST).toHaveBeenCalledTimes(2);
-        expect(fetchProfile).toHaveBeenNthCalledWith(
-          1,
-          ProfileId.fromId('starwars/first', { userError }),
-          '1.0.0',
-          { tryToAuthenticate: undefined }
-        );
-        expect(fetchProfile).toHaveBeenNthCalledWith(
-          2,
-          ProfileId.fromId('starwars/second', { userError }),
-          '2.0.0',
-          { tryToAuthenticate: undefined }
-        );
+
         expect(fetchProfileInfo).toHaveBeenNthCalledWith(
           1,
           ProfileId.fromId('starwars/first', { userError }),
@@ -999,18 +958,6 @@ describe('Install CLI logic', () => {
         // actual path is changing
         expect(mockWrite).toHaveBeenNthCalledWith(
           1,
-          expect.stringContaining('first@1.0.0.supr'),
-          mockProfile,
-          { dirs: true }
-        );
-        expect(mockWrite).toHaveBeenNthCalledWith(
-          2,
-          expect.stringContaining('second@2.0.0.supr'),
-          mockProfile,
-          { dirs: true }
-        );
-        expect(mockWrite).toHaveBeenNthCalledWith(
-          3,
           expect.stringContaining('first@1.0.0.supr.ast.json'),
           JSON.stringify(mockProfileAst({ major: 1 }), undefined, 2),
           {
@@ -1018,7 +965,7 @@ describe('Install CLI logic', () => {
           }
         );
         expect(mockWrite).toHaveBeenNthCalledWith(
-          4,
+          2,
           expect.stringContaining('second@2.0.0.supr.ast.json'),
           JSON.stringify(mockProfileAst({ major: 2 }), undefined, 2),
           {
@@ -1026,7 +973,7 @@ describe('Install CLI logic', () => {
           }
         );
         expect(mockWrite).toHaveBeenNthCalledWith(
-          5,
+          3,
           'super.json',
           JSON.stringify(
             {

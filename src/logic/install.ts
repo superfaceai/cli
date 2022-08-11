@@ -114,7 +114,6 @@ type StoreRequestChecked = StoreRequestVersionKnown & {
 type StoreRequestDeferredCheck = StoreRequestVersionUnknown;
 type StoreRequestFetched = StoreRequestChecked & {
   info: ProfileInfo;
-  profileSource: string;
   profileAst: ProfileDocumentNode;
 };
 
@@ -440,7 +439,6 @@ async function checkStoreRequest(
 
 export type ProfileResponse = {
   info: ProfileInfo;
-  profile: string;
   ast: ProfileDocumentNode;
 };
 export async function getProfileFromStore(
@@ -461,7 +459,6 @@ export async function getProfileFromStore(
 
   // fetch the profile
   let info: ProfileInfo;
-  let profile: string;
   let ast: ProfileDocumentNode;
   logger.info('fetchProfile', profileIdStr);
 
@@ -471,11 +468,6 @@ export async function getProfileFromStore(
     });
     logger.info('fetchProfileInfo', profileIdStr);
 
-    profile = await fetchProfile(profileId, version, {
-      tryToAuthenticate: options?.tryToAuthenticate,
-    });
-    logger.info('fetchProfileSource', profileIdStr);
-
     try {
       //This can fail due to validation issues, ast and parser version issues
       ast = await fetchProfileAST(profileId, version, {
@@ -484,7 +476,12 @@ export async function getProfileFromStore(
       logger.info('fetchProfileAst', profileIdStr);
     } catch (error) {
       logger.warn('fetchProfileAstFailed', profileIdStr);
-      //We try to parse profile on our own
+      //We try to get source and parse profile on our own
+      const profile = await fetchProfile(profileId, version, {
+        tryToAuthenticate: options?.tryToAuthenticate,
+      });
+      logger.info('fetchProfileSource', profileIdStr);
+
       ast = parseProfile(new Source(profile, profileIdStr));
     }
   } catch (error) {
@@ -495,7 +492,6 @@ export async function getProfileFromStore(
 
   return {
     info,
-    profile,
     ast,
   };
 }
@@ -548,18 +544,6 @@ async function fetchStoreRequestCheckedOrDeferred(
     request = checked;
   }
 
-  // save the downloaded data
-  try {
-    await OutputStream.writeOnce(request.sourcePath, fetched.profile, {
-      dirs: true,
-    });
-    logger.info('writeProfile', request.sourcePath);
-  } catch (err) {
-    logger.error('unableToWriteProfile', request.profileId.id, err);
-
-    return undefined;
-  }
-
   // cache the profile
   try {
     const cachePath = DEFAULT_CACHE_PATH({
@@ -588,7 +572,6 @@ async function fetchStoreRequestCheckedOrDeferred(
   return {
     ...request,
     info: fetched.info,
-    profileSource: fetched.profile,
     profileAst: fetched.ast,
   };
 }

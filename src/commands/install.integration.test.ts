@@ -2,7 +2,7 @@ import { loadSuperJson, NodeFileSystem } from '@superfaceai/one-sdk';
 import { getLocal } from 'mockttp';
 import { join as joinPath } from 'path';
 
-import { exists, mkdir, mkdirQuiet, rimraf } from '../common/io';
+import { exists, mkdir, mkdirQuiet } from '../common/io';
 import { OutputStream } from '../common/output-stream';
 import {
   execCLI,
@@ -37,7 +37,7 @@ describe('Install CLI command', () => {
   });
 
   afterEach(async () => {
-    await rimraf(tempDir);
+    // await rimraf(tempDir);
   });
 
   afterAll(async () => {
@@ -57,14 +57,17 @@ describe('Install CLI command', () => {
       await expect(
         exists(joinPath(tempDir, 'superface', 'super.json'))
       ).resolves.toBe(true);
+
       await expect(
         exists(
           joinPath(
             tempDir,
+            'node_modules',
+            '.cache',
             'superface',
-            'grid',
+            'profiles',
             'starwars',
-            'character-information@1.0.1.supr'
+            'character-information@1.0.1.supr.ast.json'
           )
         )
       ).resolves.toBe(true);
@@ -87,10 +90,12 @@ describe('Install CLI command', () => {
         exists(
           joinPath(
             tempDir,
+            'node_modules',
+            '.cache',
             'superface',
-            'grid',
+            'profiles',
             'starwars',
-            'character-information@1.0.2.supr'
+            'character-information@1.0.2.supr.ast.json'
           )
         )
       ).resolves.toBe(true);
