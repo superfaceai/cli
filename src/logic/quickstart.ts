@@ -18,7 +18,7 @@ import {
   normalizeSuperJsonDocument,
   SUPERFACE_DIR,
 } from '@superfaceai/one-sdk';
-import { getProfileUsecases } from '@superfaceai/parser';
+import { getProfileUsecases, parseProfile, Source } from '@superfaceai/parser';
 import { bold } from 'chalk';
 import inquirer from 'inquirer';
 import { join as joinPath } from 'path';
@@ -29,7 +29,6 @@ import { exists, readFile } from '../common/io';
 import { ILogger } from '../common/log';
 import { OutputStream } from '../common/output-stream';
 import { IPackageManager } from '../common/package-manager';
-import { Parser } from '../common/parser';
 import { NORMALIZED_CWD_PATH } from '../common/path';
 import { ProfileId } from '../common/profile';
 import { envVariable } from '../templates/env';
@@ -213,13 +212,8 @@ export async function interactiveInstall(
   if (!profileSource) {
     throw developerError('Profile source not found after installation', 1);
   }
-  const profileAst = await Parser.parseProfile(
-    profileSource.source,
-    profileId.id,
-    {
-      profileName: profileId.name,
-      scope: profileId.scope,
-    }
+  const profileAst = parseProfile(
+    new Source(profileSource.source, profileId.id)
   );
   const profileUsecases = getProfileUsecases(profileAst);
   //Check usecase
