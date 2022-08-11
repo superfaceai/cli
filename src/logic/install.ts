@@ -28,12 +28,7 @@ import {
   SUPERFACE_DIR,
 } from '../common/document';
 import { UserError } from '../common/error';
-import {
-  fetchProfile,
-  fetchProfileAST,
-  fetchProfileInfo,
-  ProfileInfo,
-} from '../common/http';
+import { fetchProfileAST, fetchProfileInfo, ProfileInfo } from '../common/http';
 import { exists, isAccessible, readFile } from '../common/io';
 import { ILogger } from '../common/log';
 import { OutputStream } from '../common/output-stream';
@@ -467,25 +462,19 @@ export async function getProfileFromStore(
       tryToAuthenticate: options?.tryToAuthenticate,
     });
     logger.info('fetchProfileInfo', profileIdStr);
-
-    try {
-      //This can fail due to validation issues, ast and parser version issues
-      ast = await fetchProfileAST(profileId, version, {
-        tryToAuthenticate: options?.tryToAuthenticate,
-      });
-      logger.info('fetchProfileAst', profileIdStr);
-    } catch (error) {
-      logger.warn('fetchProfileAstFailed', profileIdStr);
-      //We try to get source and parse profile on our own
-      const profile = await fetchProfile(profileId, version, {
-        tryToAuthenticate: options?.tryToAuthenticate,
-      });
-      logger.info('fetchProfileSource', profileIdStr);
-
-      ast = parseProfile(new Source(profile, profileIdStr));
-    }
   } catch (error) {
-    logger.error('couldNotFetch', profileIdStr, error);
+    logger.error('fetchProfileInfoFailed', profileIdStr, error);
+
+    return undefined;
+  }
+  try {
+    //This can fail due to validation issues, ast and parser version issues
+    ast = await fetchProfileAST(profileId, version, {
+      tryToAuthenticate: options?.tryToAuthenticate,
+    });
+    logger.info('fetchProfileAst', profileIdStr);
+  } catch (error) {
+    logger.error('fetchProfileAstFailed', profileIdStr, error);
 
     return undefined;
   }

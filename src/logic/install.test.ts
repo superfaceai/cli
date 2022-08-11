@@ -234,16 +234,9 @@ describe('Install CLI logic', () => {
       });
     }, 10000);
 
-    it('gets profile when AST validation failed', async () => {
+    it('returns undefined when AST validation failed', async () => {
       mocked(fetchProfileInfo).mockResolvedValue(mockProfileInfo);
       mocked(fetchProfileAST).mockRejectedValue(new Error('validation error'));
-      //mock profile
-      const mockProfile = 'mock profile';
-      mocked(fetchProfile).mockResolvedValue(mockProfile);
-
-      const parseProfileSpy = mocked(parseProfile).mockReturnValue(
-        mockProfileAst
-      );
 
       const profileId = ProfileId.fromScopeName(
         'starwars',
@@ -252,25 +245,15 @@ describe('Install CLI logic', () => {
 
       await expect(
         getProfileFromStore({ profileId }, { logger })
-      ).resolves.toEqual({
-        ast: mockProfileAst,
-        info: mockProfileInfo,
-      });
-      expect(fetchProfile).toHaveBeenCalledTimes(1);
+      ).resolves.toBeUndefined();
       expect(fetchProfileAST).toHaveBeenCalledTimes(1);
       expect(fetchProfileInfo).toHaveBeenCalledTimes(1);
-      expect(fetchProfile).toHaveBeenCalledWith(profileId, undefined, {
-        tryToAuthenticate: undefined,
-      });
       expect(fetchProfileInfo).toHaveBeenCalledWith(profileId, undefined, {
         tryToAuthenticate: undefined,
       });
       expect(fetchProfileAST).toHaveBeenCalledWith(profileId, undefined, {
         tryToAuthenticate: undefined,
       });
-      expect(parseProfileSpy).toHaveBeenCalledWith(
-        new Source(mockProfile, profileId.id)
-      );
     }, 10000);
 
     it('gets profile with auth', async () => {
@@ -505,7 +488,7 @@ describe('Install CLI logic', () => {
         ['se/cond', 'second.supr'],
       ]);
       expect(logger.stderr).toContainEqual([
-        'couldNotFetch',
+        'fetchProfileInfoFailed',
         ['none', 'none does not exist'],
       ]);
       expect(logger.stderr).toContainEqual([
