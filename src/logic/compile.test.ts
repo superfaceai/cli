@@ -1,4 +1,10 @@
-import { parseMap, parseProfile, Source } from '@superfaceai/parser';
+import {
+  parseMap,
+  parseProfile,
+  Source,
+  SyntaxError,
+} from '@superfaceai/parser';
+import { SyntaxErrorCategory } from '@superfaceai/parser/dist/language/error';
 import { mocked } from 'ts-jest/utils';
 
 import { MockLogger } from '..';
@@ -24,6 +30,24 @@ describe('Compile CLI logic', () => {
   const userError = createUserError(false);
   const mockProfile = mockProfileDocumentNode();
   const mockMap = mockMapDocumentNode();
+
+  const mockSyntaxError = (content: string) =>
+    new SyntaxError(
+      new Source(content),
+      {
+        start: {
+          line: 0,
+          column: 0,
+          charIndex: 0,
+        },
+        end: {
+          line: 0,
+          column: 0,
+          charIndex: 0,
+        },
+      },
+      SyntaxErrorCategory.PARSER
+    );
 
   const writeOnceSpy = jest.spyOn(OutputStream, 'writeOnce');
   const parseMapSpy = mocked(parseMap);
@@ -357,6 +381,59 @@ describe('Compile CLI logic', () => {
 
       expect(parseMapSpy).not.toHaveBeenCalled();
       expect(writeOnceSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('logs compilation error', async () => {
+      mocked(exists).mockResolvedValue(true);
+      mocked(readFile).mockImplementation(path => {
+        if (path.toString().endsWith('.suma')) {
+          return Promise.resolve(mockMapContent);
+        }
+
+        return Promise.resolve(mockProfileContent);
+      });
+
+      parseMapSpy.mockImplementation(() => {
+        throw mockSyntaxError(mockMapContent);
+      });
+
+      parseProfileSpy.mockImplementation(() => {
+        throw mockSyntaxError(mockProfileContent);
+      });
+
+      await expect(
+        compile(
+          {
+            profiles: [
+              {
+                path: 'first/profile.supr',
+                id: ProfileId.fromScopeName('first', 'profile'),
+                maps: [
+                  { path: 'first/profile/first/map.suma', provider: 'first' },
+                ],
+              },
+            ],
+          },
+          { logger, userError }
+        )
+      ).resolves.toBeUndefined();
+
+      expect(parseProfileSpy).toHaveBeenCalledWith(
+        new Source(mockProfileContent, 'first/profile.supr')
+      );
+
+      expect(parseMapSpy).toHaveBeenCalledWith(
+        new Source(mockMapContent, 'first/profile/first/map.suma')
+      );
+      expect(writeOnceSpy).not.toHaveBeenCalled();
+      expect(logger.stderr).toContainEqual([
+        'profileCompilationFailed',
+        expect.anything(),
+      ]);
+      expect(logger.stderr).toContainEqual([
+        'mapCompilationFailed',
+        expect.anything(),
+      ]);
     });
   });
 });

@@ -1,3 +1,5 @@
+import { SyntaxError } from '@superfaceai/parser';
+
 const common = {
   initSuperface: () =>
     'Initializing superface directory with empty "super.json"',
@@ -249,6 +251,27 @@ const compile = {
   compileMap: (profile: string, provider: string) =>
     `Compiling map for profile: "${profile}" and provider: "${provider}"`,
   compiledSuccessfully: () => 'compiled successfully',
+  profileCompilationFailed: (
+    profileId: string,
+    path: string,
+    error: unknown
+  ) => {
+    const errorMessage =
+      error instanceof SyntaxError ? error.format() : String(error);
+
+    return `Compilatiom of profile: "${profileId}" at path: "${path}" failed with: ${errorMessage}`;
+  },
+  mapCompilationFailed: (
+    profileId: string,
+    provider: string,
+    path: string,
+    error: unknown
+  ) => {
+    const errorMessage =
+      error instanceof SyntaxError ? error.format() : String(error);
+
+    return `Compilatiom of map for profile: "${profileId}" and provider: "${provider}" at path: "${path}" failed with: ${errorMessage}`;
+  },
 };
 
 const generate = {

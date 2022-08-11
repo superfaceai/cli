@@ -1,4 +1,8 @@
-import { EXTENSIONS } from '@superfaceai/ast';
+import {
+  EXTENSIONS,
+  MapDocumentNode,
+  ProfileDocumentNode,
+} from '@superfaceai/ast';
 import { parseMap, parseProfile, Source } from '@superfaceai/parser';
 
 import { UserError } from '../common/error';
@@ -58,12 +62,24 @@ export async function compile(
         );
       }
       const source = await readFile(profileSourcePath, { encoding: 'utf-8' });
-      const profileAst = parseProfile(new Source(source, profileSourcePath));
+      let profileAst: ProfileDocumentNode | undefined;
+      try {
+        profileAst = parseProfile(new Source(source, profileSourcePath));
+      } catch (error) {
+        logger.error(
+          'profileCompilationFailed',
+          profile.id.toString(),
+          profileSourcePath,
+          error
+        );
+      }
 
-      await OutputStream.writeOnce(
-        profileAstPath,
-        JSON.stringify(profileAst, undefined, 2)
-      );
+      if (profileAst !== undefined) {
+        await OutputStream.writeOnce(
+          profileAstPath,
+          JSON.stringify(profileAst, undefined, 2)
+        );
+      }
     }
     //Compile maps
     if (!options?.onlyProfile) {
@@ -99,12 +115,25 @@ export async function compile(
           );
         }
         const source = await readFile(mapSourcePath, { encoding: 'utf-8' });
-        const mapAst = parseMap(new Source(source, map.path));
+        let mapAst: MapDocumentNode | undefined;
+        try {
+          mapAst = parseMap(new Source(source, map.path));
+        } catch (error) {
+          logger.error(
+            'mapCompilationFailed',
+            profile.id.toString(),
+            map.provider,
+            mapSourcePath,
+            error
+          );
+        }
 
-        await OutputStream.writeOnce(
-          mapAstPath,
-          JSON.stringify(mapAst, undefined, 2)
-        );
+        if (mapAst !== undefined) {
+          await OutputStream.writeOnce(
+            mapAstPath,
+            JSON.stringify(mapAst, undefined, 2)
+          );
+        }
       }
     }
   }
