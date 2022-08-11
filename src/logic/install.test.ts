@@ -226,7 +226,6 @@ describe('Install CLI logic', () => {
       });
       expect(fetchProfileAST).toHaveBeenCalledTimes(1);
       expect(fetchProfileInfo).toHaveBeenCalledTimes(1);
-
       expect(fetchProfileInfo).toHaveBeenCalledWith(profileId, undefined, {
         tryToAuthenticate: undefined,
       });

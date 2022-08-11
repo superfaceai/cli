@@ -2,7 +2,7 @@ import { loadSuperJson, NodeFileSystem } from '@superfaceai/one-sdk';
 import { getLocal } from 'mockttp';
 import { join as joinPath } from 'path';
 
-import { exists, mkdir, mkdirQuiet } from '../common/io';
+import { exists, mkdir, mkdirQuiet, rimraf } from '../common/io';
 import { OutputStream } from '../common/output-stream';
 import {
   execCLI,
@@ -37,7 +37,7 @@ describe('Install CLI command', () => {
   });
 
   afterEach(async () => {
-    // await rimraf(tempDir);
+    await rimraf(tempDir);
   });
 
   afterAll(async () => {
