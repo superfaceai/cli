@@ -16,7 +16,7 @@ import {
   swapProfileProviderVariant,
   swapProviderVariant,
 } from '@superfaceai/one-sdk';
-import { join as joinPath, relative as relativePath } from 'path';
+import { dirname, join as joinPath, relative as relativePath } from 'path';
 
 import {
   constructProfileProviderSettings,
@@ -110,7 +110,7 @@ export function handleProviderResponse(
         security,
         parameters,
         file: options?.localProvider
-          ? relativePath(superJsonPath, options.localProvider)
+          ? relativePath(dirname(superJsonPath), options.localProvider)
           : undefined,
       },
       NodeFileSystem
@@ -129,11 +129,13 @@ export function handleProviderResponse(
 
   if (options?.localMap) {
     if (typeof settings === 'string') {
-      settings = { file: relativePath(superJsonPath, options.localMap) };
+      settings = {
+        file: relativePath(dirname(superJsonPath), options.localMap),
+      };
     } else {
       settings = {
         ...settings,
-        file: relativePath(superJsonPath, options.localMap),
+        file: relativePath(dirname(superJsonPath), options.localMap),
       };
     }
   }
