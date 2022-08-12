@@ -145,36 +145,7 @@ export default class Compile extends Command {
       for (const [profile, profileSettings] of Object.entries(
         normalized.profiles
       )) {
-        if ('file' in profileSettings) {
-          const maps: MapToCompile[] = [];
-          for (const [provider, profileProviderSettings] of Object.entries(
-            profileSettings.providers
-          )) {
-            if ('file' in profileProviderSettings) {
-              maps.push({
-                path: resolvePath(
-                  dirname(superJsonPath),
-                  profileProviderSettings.file
-                ),
-                provider,
-              });
-            }
-          }
-          profiles.push({
-            path: resolvePath(dirname(superJsonPath), profileSettings.file),
-            maps,
-            id: ProfileId.fromId(profile, { userError }),
-          });
-        }
-      }
-    }
-
-    //Compile single local profile and its local maps
-    if (flags.profileId && !flags.providerName) {
-      const profileSettings = normalized.profiles[flags.profileId];
-      if ('file' in profileSettings) {
         const maps: MapToCompile[] = [];
-
         for (const [provider, profileProviderSettings] of Object.entries(
           profileSettings.providers
         )) {
@@ -189,11 +160,42 @@ export default class Compile extends Command {
           }
         }
         profiles.push({
-          path: resolvePath(dirname(superJsonPath), profileSettings.file),
+          path:
+            'file' in profileSettings
+              ? resolvePath(dirname(superJsonPath), profileSettings.file)
+              : undefined,
           maps,
-          id: ProfileId.fromId(flags.profileId, { userError }),
+          id: ProfileId.fromId(profile, { userError }),
         });
       }
+    }
+
+    //Compile single local profile and its local maps
+    if (flags.profileId && !flags.providerName) {
+      const profileSettings = normalized.profiles[flags.profileId];
+      const maps: MapToCompile[] = [];
+
+      for (const [provider, profileProviderSettings] of Object.entries(
+        profileSettings.providers
+      )) {
+        if ('file' in profileProviderSettings) {
+          maps.push({
+            path: resolvePath(
+              dirname(superJsonPath),
+              profileProviderSettings.file
+            ),
+            provider,
+          });
+        }
+      }
+      profiles.push({
+        path:
+          'file' in profileSettings
+            ? resolvePath(dirname(superJsonPath), profileSettings.file)
+            : undefined,
+        maps,
+        id: ProfileId.fromId(flags.profileId, { userError }),
+      });
     }
 
     //Compile single profile and single map
@@ -201,24 +203,25 @@ export default class Compile extends Command {
       const profileSettings = normalized.profiles[flags.profileId];
       const profileProviderSettings =
         profileSettings.providers[flags.providerName];
-      if ('file' in profileSettings) {
-        const maps: MapToCompile[] = [];
+      const maps: MapToCompile[] = [];
 
-        if ('file' in profileProviderSettings) {
-          maps.push({
-            path: resolvePath(
-              dirname(superJsonPath),
-              profileProviderSettings.file
-            ),
-            provider: flags.providerName,
-          });
-        }
-        profiles.push({
-          path: resolvePath(dirname(superJsonPath), profileSettings.file),
-          maps,
-          id: ProfileId.fromId(flags.profileId, { userError }),
+      if ('file' in profileProviderSettings) {
+        maps.push({
+          path: resolvePath(
+            dirname(superJsonPath),
+            profileProviderSettings.file
+          ),
+          provider: flags.providerName,
         });
       }
+      profiles.push({
+        path:
+          'file' in profileSettings
+            ? resolvePath(dirname(superJsonPath), profileSettings.file)
+            : undefined,
+        maps,
+        id: ProfileId.fromId(flags.profileId, { userError }),
+      });
     }
 
     await compile(
