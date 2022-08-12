@@ -15,7 +15,7 @@ export type MapToCompile = { provider: string; path: string };
 export type ProfileToCompile = {
   id: ProfileId;
   maps: MapToCompile[];
-  path: string;
+  path?: string;
 };
 
 export async function compile(
@@ -33,7 +33,7 @@ export async function compile(
 ): Promise<void> {
   for (const profile of profiles) {
     //Compile profile
-    if (!options?.onlyMap) {
+    if (!options?.onlyMap && profile.path !== undefined) {
       let profileSourcePath: string, profileAstPath: string;
       //We assume source and build files living next to each other
       if (profile.path.endsWith(EXTENSIONS.profile.source)) {

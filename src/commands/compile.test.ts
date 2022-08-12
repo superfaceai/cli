@@ -275,6 +275,11 @@ describe('Compile CLI command', () => {
                   },
                 ],
               },
+              {
+                path: undefined,
+                id: ProfileId.fromId('other/profile', { userError }),
+                maps: [],
+              },
             ],
             options: {
               onlyMap: undefined,
@@ -331,6 +336,11 @@ describe('Compile CLI command', () => {
                   },
                 ],
               },
+              {
+                path: undefined,
+                id: ProfileId.fromId('other/profile', { userError }),
+                maps: [],
+              },
             ],
             options: { onlyMap: true, onlyProfile: undefined },
           },
@@ -384,6 +394,11 @@ describe('Compile CLI command', () => {
                   },
                 ],
               },
+              {
+                path: undefined,
+                id: ProfileId.fromId('other/profile', { userError }),
+                maps: [],
+              },
             ],
             options: { onlyMap: undefined, onlyProfile: true },
           },
@@ -436,6 +451,11 @@ describe('Compile CLI command', () => {
                     provider: thirdMockProvider,
                   },
                 ],
+              },
+              {
+                path: undefined,
+                id: ProfileId.fromId('other/profile', { userError }),
+                maps: [],
               },
             ],
             options: { onlyMap: undefined, onlyProfile: undefined },
