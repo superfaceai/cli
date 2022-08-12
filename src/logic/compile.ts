@@ -108,7 +108,8 @@ export async function compile(
         }
         if (!(await exists(mapSourcePath))) {
           throw userError(
-            `Path: "${mapSourcePath}" for map ${profile.id.toString()}.${map.provider
+            `Path: "${mapSourcePath}" for map ${profile.id.toString()}.${
+              map.provider
             } does not exist`,
             1
           );

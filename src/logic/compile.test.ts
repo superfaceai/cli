@@ -93,6 +93,13 @@ describe('Compile CLI logic', () => {
           { path: 'third/profile/first/map.suma.ast.json', provider: 'first' },
         ],
       },
+      {
+        path: undefined,
+        id: ProfileId.fromScopeName('remote', 'profile'),
+        maps: [
+          { path: 'remote/profile/first/map.suma.ast.json', provider: 'first' },
+        ],
+      },
     ];
 
     it('compiles maps and profiles', async () => {
@@ -111,6 +118,7 @@ describe('Compile CLI logic', () => {
       await expect(
         compile({ profiles }, { logger, userError })
       ).resolves.toBeUndefined();
+      expect(parseProfileSpy).toHaveBeenCalledTimes(3);
       expect(parseProfileSpy).toHaveBeenNthCalledWith(
         1,
         new Source(mockProfileContent, profiles[0].path)
@@ -148,6 +156,10 @@ describe('Compile CLI logic', () => {
         5,
         new Source(mockMapContent, profiles[2].maps[0].path)
       );
+      expect(parseMapSpy).toHaveBeenNthCalledWith(
+        6,
+        new Source(mockMapContent, profiles[3].maps[0].path)
+      );
       expect(writeOnceSpy).toHaveBeenCalledWith(
         'first/profile.supr.ast.json',
         JSON.stringify(mockProfile, undefined, 2)
@@ -181,6 +193,10 @@ describe('Compile CLI logic', () => {
 
       expect(writeOnceSpy).toHaveBeenCalledWith(
         'third/profile/first/map.suma.ast.json',
+        JSON.stringify(mockMap, undefined, 2)
+      );
+      expect(writeOnceSpy).toHaveBeenCalledWith(
+        'remote/profile/first/map.suma.ast.json',
         JSON.stringify(mockMap, undefined, 2)
       );
     });
