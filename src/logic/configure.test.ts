@@ -803,7 +803,7 @@ describe('Configure CLI logic', () => {
         mockProfileId.id,
         providerName,
         {
-          file: '../../../maps/send-sms.twilio.suma',
+          file: '../../maps/send-sms.twilio.suma',
         },
         expect.anything()
       );
@@ -898,7 +898,7 @@ describe('Configure CLI logic', () => {
         mockSuperJson,
         providerName,
         {
-          file: '../../../providers/twilio.provider.json',
+          file: '../../providers/twilio.provider.json',
           parameters: undefined,
           security: [
             { apikey: '$TEST_API_KEY', id: 'api' },
@@ -978,7 +978,7 @@ describe('Configure CLI logic', () => {
         mockProfileId.id,
         providerName,
         {
-          file: '../../../maps/send-sms.twilio.suma',
+          file: '../../maps/send-sms.twilio.suma',
         },
         expect.anything()
       );
