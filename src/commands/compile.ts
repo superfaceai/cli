@@ -198,7 +198,7 @@ export default class Compile extends Command {
       });
     }
 
-    //Compile single profile and single map
+    //Compile single local profile and single local map
     if (flags.profileId && flags.providerName) {
       const profileSettings = normalized.profiles[flags.profileId];
       const profileProviderSettings =
