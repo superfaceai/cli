@@ -3,7 +3,7 @@ import {
   MapDocumentNode,
   ProfileDocumentNode,
 } from '@superfaceai/ast';
-import { Parser, SuperJson } from '@superfaceai/one-sdk';
+import { parseMap, parseProfile, Source } from '@superfaceai/parser';
 import { mocked } from 'ts-jest/utils';
 
 import { MockLogger } from '../common';
@@ -41,6 +41,12 @@ jest.mock('../common/http', () => ({
   fetchProfileAST: jest.fn(),
   fetchMapAST: jest.fn(),
   fetchProviderInfo: jest.fn(),
+}));
+
+jest.mock('@superfaceai/parser', () => ({
+  ...jest.requireActual('@superfaceai/parser'),
+  parseProfile: jest.fn(),
+  parseMap: jest.fn(),
 }));
 
 describe('Publish logic utils', () => {
@@ -85,7 +91,7 @@ describe('Publish logic utils', () => {
     kind: 'ProfileDocument',
     header: {
       kind: 'ProfileHeader',
-      name: 'someName',
+      name: 'some',
       version: {
         major: 1,
         minor: 0,
@@ -165,13 +171,13 @@ describe('Publish logic utils', () => {
 
   const mockProfileSource = 'profile source';
   const mockMapSource = 'map source';
-  const mockSuperJson = new SuperJson({
+  const mockSuperJson = {
     providers: {
       ['swapi']: {},
       ['someName']: {},
       [mockProviderName]: {},
     },
-  });
+  };
 
   const mockProfileFrom: ProfileFromMetadata = {
     kind: 'local',
@@ -211,12 +217,11 @@ describe('Publish logic utils', () => {
             providerFrom: mockProviderFrom,
             mapFrom: mockMapFrom,
             superJson: mockSuperJson,
+            superJsonPath: '',
           },
           { logger, userError }
         )
-      ).toThrow(
-        "Profile AST validation failed at $: expected 'astMetadata' in object, found: {}"
-      );
+      ).toThrow('must have required property "astMetadata"');
     });
 
     it('throws error on invalid map document structure', async () => {
@@ -231,12 +236,11 @@ describe('Publish logic utils', () => {
             providerFrom: mockProviderFrom,
             mapFrom: mockMapFrom,
             superJson: mockSuperJson,
+            superJsonPath: '',
           },
           { logger, userError }
         )
-      ).toThrow(
-        "Map AST validation failed at $: expected 'astMetadata' in object, found: {}"
-      );
+      ).toThrow('must have required property "astMetadata"');
     });
 
     it('returns empty array on valid documents', async () => {
@@ -251,6 +255,7 @@ describe('Publish logic utils', () => {
             providerFrom: mockProviderFrom,
             mapFrom: mockMapFrom,
             superJson: mockSuperJson,
+            superJsonPath: '',
           },
           { logger, userError }
         )
@@ -293,6 +298,7 @@ describe('Publish logic utils', () => {
             providerFrom: mockProviderFrom,
             mapFrom: mockMapFrom,
             superJson: mockSuperJson,
+            superJsonPath: '',
           },
           { logger, userError }
         )
@@ -323,6 +329,7 @@ describe('Publish logic utils', () => {
             providerFrom: mockProviderFrom,
             mapFrom: mockMapFrom,
             superJson: mockSuperJson,
+            superJsonPath: '',
           },
           { logger, userError }
         )
@@ -343,6 +350,7 @@ describe('Publish logic utils', () => {
             providerFrom: mockProviderFrom,
             mapFrom: mockMapFrom,
             superJson: mockSuperJson,
+            superJsonPath: '',
           },
           { logger, userError }
         )
@@ -373,6 +381,7 @@ describe('Publish logic utils', () => {
             providerFrom: mockProviderFrom,
             mapFrom: mockMapFrom,
             superJson: mockSuperJson,
+            superJsonPath: '',
           },
           { logger, userError }
         )
@@ -393,6 +402,7 @@ describe('Publish logic utils', () => {
             providerFrom: mockProviderFrom,
             mapFrom: mockMapFrom,
             superJson: mockSuperJson,
+            superJsonPath: '',
           },
           { logger, userError }
         )
@@ -428,14 +438,15 @@ describe('Publish logic utils', () => {
         source: mockProfileSource,
         path: 'mock profile path',
       });
-      const parseProfileSpy = jest
-        .spyOn(Parser, 'parseProfile')
-        .mockResolvedValue(validProfileDocument);
+      const parseProfileSpy = mocked(parseProfile).mockReturnValue(
+        validProfileDocument
+      );
 
       await expect(
         loadProfile(
           {
             superJson: mockSuperJson,
+            superJsonPath: '',
             profile: mockProfile,
             version: undefined,
           },
@@ -451,12 +462,7 @@ describe('Publish logic utils', () => {
       });
 
       expect(parseProfileSpy).toHaveBeenCalledWith(
-        mockProfileSource,
-        mockProfile.id,
-        {
-          profileName: mockProfile.name,
-          scope: mockProfile.scope,
-        }
+        new Source(mockProfileSource, mockProfile.id)
       );
       expect(logger.stdout).toContainEqual([
         'localProfileFound',
@@ -467,12 +473,14 @@ describe('Publish logic utils', () => {
     it('loads AST from store', async () => {
       mocked(findLocalProfileSource).mockResolvedValue(undefined);
       mocked(fetchProfileAST).mockResolvedValue(validProfileDocument);
-      const parseProfileSpy = jest.spyOn(Parser, 'parseProfile');
-
+      const parseProfileSpy = mocked(parseProfile).mockReturnValue(
+        validProfileDocument
+      );
       await expect(
         loadProfile(
           {
             superJson: mockSuperJson,
+            superJsonPath: '',
             profile: mockProfile,
             version: undefined,
           },
@@ -501,14 +509,13 @@ describe('Publish logic utils', () => {
         source: mockMapSource,
         path: 'mock map path',
       });
-      const parseMapSpy = jest
-        .spyOn(Parser, 'parseMap')
-        .mockResolvedValue(validMapDocument);
+      const parseMapSpy = mocked(parseMap).mockReturnValue(validMapDocument);
 
       await expect(
         loadMap(
           {
             superJson: mockSuperJson,
+            superJsonPath: '',
             profile: mockProfile,
             provider: mockProviderName,
             map: {},
@@ -526,13 +533,7 @@ describe('Publish logic utils', () => {
       });
 
       expect(parseMapSpy).toHaveBeenCalledWith(
-        mockMapSource,
-        `${mockProfile.name}.${mockProviderName}`,
-        {
-          profileName: mockProfile.name,
-          scope: mockProfile.scope,
-          providerName: mockProviderName,
-        }
+        new Source(mockMapSource, `${mockProfile.name}.${mockProviderName}`)
       );
 
       expect(logger.stdout).toContainEqual([
@@ -544,12 +545,13 @@ describe('Publish logic utils', () => {
     it('loads AST from store', async () => {
       mocked(findLocalMapSource).mockResolvedValue(undefined);
       mocked(fetchMapAST).mockResolvedValue(validMapDocument);
-      const parseMapSpy = jest.spyOn(Parser, 'parseMap');
+      const parseMapSpy = mocked(parseMap).mockReturnValue(validMapDocument);
 
       await expect(
         loadMap(
           {
             superJson: mockSuperJson,
+            superJsonPath: '',
             profile: mockProfile,
             provider: mockProviderName,
             map: {},
@@ -589,7 +591,7 @@ describe('Publish logic utils', () => {
       });
 
       await expect(
-        loadProvider(mockSuperJson, mockProviderName, { logger })
+        loadProvider(mockSuperJson, '', mockProviderName, { logger })
       ).resolves.toEqual({
         source: validProviderSource,
         from: {
@@ -608,7 +610,7 @@ describe('Publish logic utils', () => {
       mocked(fetchProviderInfo).mockResolvedValue(validProviderSource);
 
       await expect(
-        loadProvider(mockSuperJson, mockProviderName, { logger })
+        loadProvider(mockSuperJson, '', mockProviderName, { logger })
       ).resolves.toEqual({
         source: validProviderSource,
         from: {

@@ -126,21 +126,26 @@ export default class Configure extends Command {
     }
 
     logger.info('configureProviderToSuperJson', joinPath(superPath, META_FILE));
-    await installProvider(
-      {
-        superPath,
-        provider,
-        profileId,
-        defaults: undefined,
-        options: {
-          force: flags.force,
-          localMap: flags.localMap,
-          localProvider: flags.localProvider,
-          updateEnv: flags['write-env'],
-          mapVariant: flags.mapVariant,
+    try {
+      await installProvider(
+        {
+          superPath,
+          provider,
+          profileId,
+          defaults: undefined,
+          options: {
+            force: flags.force,
+            localMap: flags.localMap,
+            localProvider: flags.localProvider,
+            updateEnv: flags['write-env'],
+            mapVariant: flags.mapVariant,
+          },
         },
-      },
-      { logger, userError }
-    );
+        { logger, userError }
+      );
+    } catch (e) {
+      console.trace(e);
+      throw e;
+    }
   }
 }

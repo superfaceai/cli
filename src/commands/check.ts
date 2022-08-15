@@ -1,6 +1,13 @@
 import { flags as oclifFlags } from '@oclif/command';
-import { isValidProviderName } from '@superfaceai/ast';
-import { SuperJson } from '@superfaceai/one-sdk';
+import {
+  isValidProviderName,
+  NormalizedSuperJsonDocument,
+} from '@superfaceai/ast';
+import {
+  loadSuperJson,
+  NodeFileSystem,
+  normalizeSuperJsonDocument,
+} from '@superfaceai/one-sdk';
 import { parseDocumentId } from '@superfaceai/parser';
 import { join as joinPath } from 'path';
 
@@ -107,17 +114,19 @@ export default class Check extends Command {
     if (!superPath) {
       throw userError('Unable to check, super.json not found', 1);
     }
-    const loadedResult = await SuperJson.load(joinPath(superPath, META_FILE));
+    const superJsonPath = joinPath(superPath, META_FILE);
+    const loadedResult = await loadSuperJson(superJsonPath, NodeFileSystem);
     const superJson = loadedResult.match(
       v => v,
       err => {
         throw userError(`Unable to load super.json: ${err.formatShort()}`, 1);
       }
     );
+    const normalized = normalizeSuperJsonDocument(superJson);
 
     //Check super.json
     if (flags.profileId) {
-      if (!superJson.normalized.profiles[flags.profileId]) {
+      if (!normalized.profiles[flags.profileId]) {
         throw userError(
           `Unable to check, profile: "${flags.profileId}" not found in super.json`,
           1
@@ -125,16 +134,14 @@ export default class Check extends Command {
       }
       if (flags.providerName) {
         if (
-          !superJson.normalized.profiles[flags.profileId].providers[
-            flags.providerName
-          ]
+          !normalized.profiles[flags.profileId].providers[flags.providerName]
         ) {
           throw userError(
             `Unable to check, provider: "${flags.providerName}" not found in profile: "${flags.profileId}" in super.json`,
             1
           );
         }
-        if (!superJson.normalized.providers[flags.providerName]) {
+        if (!normalized.providers[flags.providerName]) {
           throw userError(
             `Unable to check, provider: "${flags.providerName}" not found in super.json`,
             1
@@ -145,14 +152,14 @@ export default class Check extends Command {
 
     const profilesToValidate = Check.prepareProfilesToValidate(
       {
-        superJson,
+        superJson: normalized,
         profileId: flags.profileId,
         providerName: flags.providerName,
       },
       { userError }
     );
 
-    const result = await check(superJson, profilesToValidate, {
+    const result = await check(superJson, superJsonPath, profilesToValidate, {
       logger,
     });
     if (flags.json) {
@@ -183,7 +190,7 @@ export default class Check extends Command {
       profileId,
       providerName,
     }: {
-      superJson: SuperJson;
+      superJson: NormalizedSuperJsonDocument;
       profileId?: string;
       providerName?: string;
     },
@@ -193,7 +200,7 @@ export default class Check extends Command {
     //validate every local map/profile in super.json
     if (!profileId && !providerName) {
       for (const [profile, profileSettings] of Object.entries(
-        superJson.normalized.profiles
+        superJson.profiles
       )) {
         if ('file' in profileSettings) {
           const maps: MapToValidate[] = [];
@@ -214,7 +221,7 @@ export default class Check extends Command {
 
     //Validate single profile and its maps
     if (profileId && !providerName) {
-      const profileSettings = superJson.normalized.profiles[profileId];
+      const profileSettings = superJson.profiles[profileId];
       const maps: MapToValidate[] = [];
       for (const [provider, profileProviderSettings] of Object.entries(
         profileSettings.providers
@@ -240,7 +247,7 @@ export default class Check extends Command {
     }
     //Validate single profile and single map
     if (profileId && providerName) {
-      const profileSettings = superJson.normalized.profiles[profileId];
+      const profileSettings = superJson.profiles[profileId];
       const profileProviderSettings = profileSettings.providers[providerName];
       const maps: MapToValidate[] = [];
       if ('file' in profileProviderSettings) {

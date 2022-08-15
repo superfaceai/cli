@@ -7,8 +7,9 @@ import {
   MapDocumentNode,
   ProfileDocumentNode,
   ProviderJson,
+  SuperJsonDocument,
 } from '@superfaceai/ast';
-import { SuperJson } from '@superfaceai/one-sdk';
+import { normalizeSuperJsonDocument } from '@superfaceai/one-sdk';
 import { ProfileId } from '@superfaceai/parser';
 import { green, red, yellow } from 'chalk';
 
@@ -74,7 +75,8 @@ export type CheckResult =
 export type CheckIssue = { kind: 'error' | 'warn'; message: string };
 
 export async function check(
-  superJson: SuperJson,
+  superJson: SuperJsonDocument,
+  superJsonPath: string,
   profiles: ProfileToValidate[],
   { logger }: { logger: ILogger }
 ): Promise<CheckResult[]> {
@@ -85,6 +87,7 @@ export async function check(
     const profileFiles = await loadProfile(
       {
         superJson,
+        superJsonPath,
         profile: profile.id,
         version: profile.version,
       },
@@ -96,6 +99,7 @@ export async function check(
       const mapFiles = await loadMap(
         {
           superJson,
+          superJsonPath,
           profile: profile.id,
           provider: map.provider,
           map: { variant: map.variant },
@@ -105,9 +109,14 @@ export async function check(
       );
       assertMapDocumentNode(mapFiles.ast);
 
-      const providerFiles = await loadProvider(superJson, map.provider, {
-        logger,
-      });
+      const providerFiles = await loadProvider(
+        superJson,
+        superJsonPath,
+        map.provider,
+        {
+          logger,
+        }
+      );
 
       logger.info('checkProfileAndMap', profile.id.toString(), map.provider);
       finalResults.push({
@@ -127,7 +136,7 @@ export async function check(
       finalResults.push({
         ...checkIntegrationParameters(providerFiles.source, superJson),
         providerFrom: providerFiles.from,
-        superJsonPath: superJson.path,
+        superJsonPath,
       });
     }
   }
@@ -137,10 +146,11 @@ export async function check(
 
 export function checkIntegrationParameters(
   provider: ProviderJson,
-  superJson: SuperJson
+  superJson: SuperJsonDocument
 ): CheckIntegrationParametersResult {
   const providerParameters = provider.parameters ?? [];
-  const superJsonProvider = superJson.normalized.providers[provider.name];
+  const normalized = normalizeSuperJsonDocument(superJson);
+  const superJsonProvider = normalized.providers[provider.name];
   //If there is no provider with passed name there is high probability of not matching provider name in super.json and provider.json
   if (!superJsonProvider) {
     return {
@@ -193,12 +203,15 @@ export function checkMapAndProvider(
   try {
     assertProviderJson(provider);
   } catch (error) {
+    // console.log(require('util').inspect(error, false, 10));
     if (isProviderParseError(error)) {
-      results.push({
-        kind: 'error',
-        message: `Provider check error: ${
-          error.message
-        } on path ${error.path.join(', ')}`,
+      error.errors.forEach(([message, path]) => {
+        results.push({
+          kind: 'error',
+          message: `Provider check error: ${message} on path ${path.join(
+            ', '
+          )}`,
+        });
       });
     } else {
       throw error;

@@ -4,7 +4,7 @@ import {
   MapHeaderNode,
   ProfileDocumentNode,
 } from '@superfaceai/ast';
-import { SuperJson } from '@superfaceai/one-sdk';
+// import * as SuperJson from '@superfaceai/one-sdk/dist/schema-tools/superjson/utils';
 import {
   MapDocumentId,
   parseMap,
@@ -31,6 +31,7 @@ import {
   createProfileMapReport,
   formatHuman,
   formatJson,
+  formatSummary,
   isValidHeader,
   isValidMapId,
   lint,
@@ -465,7 +466,7 @@ describe('Lint logic', () => {
         'starwars',
         'character-information'
       );
-      const mockSuperJson = new SuperJson();
+      const mockSuperJson = {};
       const mockProfiles: ProfileToValidate[] = [
         {
           id: profile,
@@ -496,7 +497,7 @@ describe('Lint logic', () => {
         .mockReturnValueOnce(mockMapDocumentMatching);
 
       await expect(
-        lint(mockSuperJson, mockProfiles, { logger })
+        lint(mockSuperJson, '', mockProfiles, { logger })
       ).resolves.toEqual({
         reports: [
           {
@@ -550,7 +551,7 @@ describe('Lint logic', () => {
         'starwars',
         'character-information'
       );
-      const mockSuperJson = new SuperJson();
+      const mockSuperJson = {};
       const mockProfiles: ProfileToValidate[] = [
         {
           id: profile,
@@ -578,7 +579,7 @@ describe('Lint logic', () => {
         .mockResolvedValueOnce(mockMapDocumentMatching);
 
       await expect(
-        lint(mockSuperJson, mockProfiles, { logger })
+        lint(mockSuperJson, '', mockProfiles, { logger })
       ).resolves.toEqual({
         reports: [
           {
@@ -632,7 +633,7 @@ describe('Lint logic', () => {
         'starwars',
         'character-information'
       );
-      const mockSuperJson = new SuperJson();
+      const mockSuperJson = {};
       const mockProfiles: ProfileToValidate[] = [
         {
           id: profile,
@@ -659,7 +660,7 @@ describe('Lint logic', () => {
       mocked(fetchProfileAST).mockResolvedValue(mockProfileDocument);
 
       await expect(
-        lint(mockSuperJson, mockProfiles, { logger })
+        lint(mockSuperJson, '', mockProfiles, { logger })
       ).resolves.toEqual({
         reports: [
           {
@@ -737,7 +738,7 @@ describe('Lint logic', () => {
         'starwars',
         'character-information'
       );
-      const mockSuperJson = new SuperJson();
+      const mockSuperJson = {};
       const mockProfiles: ProfileToValidate[] = [
         {
           id: profile,
@@ -764,7 +765,7 @@ describe('Lint logic', () => {
       });
 
       await expect(
-        lint(mockSuperJson, mockProfiles, { logger })
+        lint(mockSuperJson, '', mockProfiles, { logger })
       ).resolves.toEqual({
         reports: [
           {
@@ -831,7 +832,7 @@ describe('Lint logic', () => {
         'starwars',
         'character-information'
       );
-      const mockSuperJson = new SuperJson();
+      const mockSuperJson = {};
       const mockProfiles: ProfileToValidate[] = [
         {
           id: profile,
@@ -859,7 +860,7 @@ describe('Lint logic', () => {
       });
 
       await expect(
-        lint(mockSuperJson, mockProfiles, { logger })
+        lint(mockSuperJson, '', mockProfiles, { logger })
       ).resolves.toEqual({
         reports: [
           {
@@ -939,7 +940,7 @@ describe('Lint logic', () => {
 
       const formated = formatHuman({
         report: mockFileReport,
-        quiet: false,
+
         emoji: false,
         color: false,
       });
@@ -972,7 +973,7 @@ describe('Lint logic', () => {
 
       const formated = formatHuman({
         report: mockFileReport,
-        quiet: false,
+
         emoji: false,
         color: true,
       });
@@ -983,48 +984,6 @@ describe('Lint logic', () => {
       expect(formated).toMatch(
         yellow('test - Wrong Scope: expected foo, but got bar')
       );
-    });
-
-    it('formats file with errors and warnings correctly - short output', async () => {
-      const mockPath = 'some/path.supr';
-
-      const mockFileReport: ReportFormat = {
-        path: mockPath,
-        kind: 'file',
-        errors: [mockSyntaxErr],
-        warnings: [mockWarning],
-      };
-
-      const formated = formatHuman({
-        report: mockFileReport,
-        quiet: false,
-        short: true,
-        emoji: false,
-        color: false,
-      });
-      expect(formated).toMatch(`Parsing profile file: ${mockPath}`);
-      expect(formated).toMatch('0:0 detail');
-      expect(formated).toMatch('test - Wrong Scope: expected foo, but got bar');
-    });
-
-    it('formats file with errors and warnings correctly - quiet', async () => {
-      const mockPath = 'some/path.suma';
-
-      const mockFileReport: ReportFormat = {
-        path: mockPath,
-        kind: 'file',
-        errors: [mockSyntaxErr],
-        warnings: [mockWarning],
-      };
-
-      const formated = formatHuman({
-        report: mockFileReport,
-        quiet: true,
-        emoji: false,
-        color: false,
-      });
-      expect(formated).toMatch('Parsing map file: some/path.suma');
-      expect(formated).toMatch('detail');
     });
 
     it('formats file with errors correctly', async () => {
@@ -1038,7 +997,7 @@ describe('Lint logic', () => {
       };
       const formated = formatHuman({
         report: mockFileReport,
-        quiet: false,
+
         emoji: false,
         color: false,
       });
@@ -1058,7 +1017,7 @@ describe('Lint logic', () => {
 
       const formated = formatHuman({
         report: mockFileReport,
-        quiet: false,
+
         emoji: false,
         color: false,
       });
@@ -1080,7 +1039,7 @@ describe('Lint logic', () => {
 
       const formated = formatHuman({
         report: mockFileReport,
-        quiet: false,
+
         emoji: false,
         color: false,
       });
@@ -1122,7 +1081,7 @@ describe('Lint logic', () => {
 
       const formated = formatHuman({
         report: mockFileReport,
-        quiet: false,
+
         emoji: false,
         color: false,
       });
@@ -1146,6 +1105,44 @@ describe('Lint logic', () => {
       expect(formatJson(mockFileReport)).toEqual(
         expect.not.stringMatching('source')
       );
+    });
+  });
+  describe('when formating summary', () => {
+    const fileCount = 4;
+    it('formats summary with errors and warnings', async () => {
+      const formated = formatSummary({
+        fileCount,
+        errorCount: 1,
+        warningCount: 1,
+        color: true,
+      });
+
+      expect(formated).toMatch('\n\nChecked 4 files.');
+      expect(formated).toMatch(red('Detected 2 problems'));
+    });
+
+    it('formats summary with warnings', async () => {
+      const formated = formatSummary({
+        fileCount,
+        errorCount: 0,
+        warningCount: 1,
+        color: true,
+      });
+
+      expect(formated).toMatch('\n\nChecked 4 files.');
+      expect(formated).toMatch(yellow('Detected 1 problem'));
+    });
+
+    it('formats summary without errors or warnings', async () => {
+      const formated = formatSummary({
+        fileCount,
+        errorCount: 0,
+        warningCount: 0,
+        color: true,
+      });
+
+      expect(formated).toMatch('\n\nChecked 4 files.');
+      expect(formated).toMatch('Detected 0 problems');
     });
   });
 });

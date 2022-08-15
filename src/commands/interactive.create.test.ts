@@ -1,4 +1,3 @@
-import { SuperJson } from '@superfaceai/one-sdk';
 import inquirer from 'inquirer';
 import { mocked } from 'ts-jest/utils';
 
@@ -37,7 +36,10 @@ describe('Interactive create CLI command', () => {
 
   describe('when running create command', () => {
     it('creates profile with one usecase (with usecase name from cli) with path flag', async () => {
-      mocked(initSuperface).mockResolvedValue(new SuperJson({}));
+      mocked(initSuperface).mockResolvedValue({
+        superJson: {},
+        superJsonPath: '',
+      });
       documentName = 'sendsms';
       jest
         .spyOn(inquirer, 'prompt')
@@ -91,7 +93,10 @@ describe('Interactive create CLI command', () => {
     });
 
     it('creates profile with one usecase', async () => {
-      mocked(initSuperface).mockResolvedValue(new SuperJson({}));
+      mocked(initSuperface).mockResolvedValue({
+        superJson: {},
+        superJsonPath: '',
+      });
       documentName = 'sms/service';
       jest
         .spyOn(inquirer, 'prompt')
@@ -144,7 +149,10 @@ describe('Interactive create CLI command', () => {
     });
 
     it('creates profile with multiple usecases', async () => {
-      mocked(initSuperface).mockResolvedValue(new SuperJson({}));
+      mocked(initSuperface).mockResolvedValue({
+        superJson: {},
+        superJsonPath: '',
+      });
       documentName = 'sms/service';
 
       jest
@@ -198,7 +206,10 @@ describe('Interactive create CLI command', () => {
     });
 
     it('creates map with one provider (with provider name from cli) and variant', async () => {
-      mocked(initSuperface).mockResolvedValue(new SuperJson({}));
+      mocked(initSuperface).mockResolvedValue({
+        superJson: {},
+        superJsonPath: '',
+      });
       documentName = 'sms/service';
       provider = 'twilio';
 
@@ -258,7 +269,10 @@ describe('Interactive create CLI command', () => {
     });
 
     it('creates multiple maps', async () => {
-      mocked(initSuperface).mockResolvedValue(new SuperJson({}));
+      mocked(initSuperface).mockResolvedValue({
+        superJson: {},
+        superJsonPath: '',
+      });
       documentName = 'sms/service';
 
       jest
@@ -318,7 +332,10 @@ describe('Interactive create CLI command', () => {
     });
 
     it('creates map with one usecase and provider', async () => {
-      mocked(initSuperface).mockResolvedValue(new SuperJson({}));
+      mocked(initSuperface).mockResolvedValue({
+        superJson: {},
+        superJsonPath: '',
+      });
       documentName = 'sms/service';
       provider = 'twilio';
 
@@ -376,7 +393,10 @@ describe('Interactive create CLI command', () => {
     });
 
     it('creates map with mutiple usecases and one provider', async () => {
-      mocked(initSuperface).mockResolvedValue(new SuperJson({}));
+      mocked(initSuperface).mockResolvedValue({
+        superJson: {},
+        superJsonPath: '',
+      });
       documentName = 'sms/service';
       provider = 'twilio';
 
@@ -433,7 +453,10 @@ describe('Interactive create CLI command', () => {
     });
 
     it('creates profile & map with one provider (with provider name from cli)', async () => {
-      mocked(initSuperface).mockResolvedValue(new SuperJson({}));
+      mocked(initSuperface).mockResolvedValue({
+        superJson: {},
+        superJsonPath: '',
+      });
       documentName = 'sms/service';
       provider = 'twilio';
 
@@ -491,7 +514,10 @@ describe('Interactive create CLI command', () => {
     });
 
     it('creates profile & map with one usecase', async () => {
-      mocked(initSuperface).mockResolvedValue(new SuperJson({}));
+      mocked(initSuperface).mockResolvedValue({
+        superJson: {},
+        superJsonPath: '',
+      });
       documentName = 'sms/service';
       provider = 'twilio';
 
@@ -549,7 +575,10 @@ describe('Interactive create CLI command', () => {
     });
 
     it('creates profile & map with multiple usecases', async () => {
-      mocked(initSuperface).mockResolvedValue(new SuperJson({}));
+      mocked(initSuperface).mockResolvedValue({
+        superJson: {},
+        superJsonPath: '',
+      });
       documentName = 'sms/service';
       provider = 'twilio';
 

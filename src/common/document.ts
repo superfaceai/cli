@@ -30,9 +30,6 @@ export const SUPERFACE_DIR = 'superface';
 export const META_FILE = 'super.json';
 export const UNCOMPILED_SDK_FILE = 'sdk.ts';
 export const SUPER_PATH = joinPath(SUPERFACE_DIR, META_FILE);
-export const GRID_DIR = joinPath(SUPERFACE_DIR, 'grid');
-export const TYPES_DIR = joinPath(SUPERFACE_DIR, 'types');
-export const BUILD_DIR = joinPath(SUPERFACE_DIR, 'build');
 
 /**
  * If flag is `DocumentTypeFlag.UNKNOWN` and `path` is defined, then calls `inferDocumentType(path)`
@@ -130,12 +127,14 @@ export const constructProfileSettings = (
  */
 export const constructProfileProviderSettings = (
   providers: {
-    providerName: string,
-    mapVariant?: string,
+    providerName: string;
+    mapVariant?: string;
   }[]
 ): Record<string, ProfileProviderEntry> =>
   providers.reduce<Record<string, ProfileProviderEntry>>((acc, provider) => {
-    acc[provider.providerName] = provider.mapVariant?{ mapVariant: provider.mapVariant}:{};
+    acc[provider.providerName] = provider.mapVariant
+      ? { mapVariant: provider.mapVariant }
+      : {};
 
     return acc;
   }, {});

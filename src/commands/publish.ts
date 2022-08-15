@@ -1,6 +1,10 @@
 import { flags } from '@oclif/command';
 import { EXTENSIONS, isValidProviderName } from '@superfaceai/ast';
-import { SuperJson } from '@superfaceai/one-sdk';
+import {
+  loadSuperJson,
+  NodeFileSystem,
+  normalizeSuperJsonDocument,
+} from '@superfaceai/one-sdk';
 import { parseDocumentId } from '@superfaceai/parser';
 import inquirer from 'inquirer';
 import { join as joinPath } from 'path';
@@ -69,10 +73,10 @@ export default class Publish extends Command {
   };
 
   static examples = [
-    '$ superface publish map --profileId starwars/characeter-information --providerName swapi -s 4',
-    '$ superface publish profile --profileId starwars/characeter-information --providerName swapi -f',
-    '$ superface publish provider --profileId starwars/characeter-information --providerName swapi -q',
-    '$ superface publish profile --profileId starwars/characeter-information --providerName swapi --dryRun',
+    '$ superface publish map --profileId starwars/character-information --providerName swapi -s 4',
+    '$ superface publish profile --profileId starwars/character-information --providerName swapi -f',
+    '$ superface publish provider --profileId starwars/character-information --providerName swapi -q',
+    '$ superface publish profile --profileId starwars/character-information --providerName swapi --dryRun',
   ];
 
   async run(): Promise<void> {
@@ -122,7 +126,8 @@ export default class Publish extends Command {
     if (!superPath) {
       throw userError('Unable to publish, super.json not found', 1);
     }
-    const loadedResult = await SuperJson.load(joinPath(superPath, META_FILE));
+    const superJsonPath = joinPath(superPath, META_FILE);
+    const loadedResult = await loadSuperJson(superJsonPath, NodeFileSystem);
     const superJson = loadedResult.match(
       v => v,
       err => {
@@ -131,7 +136,8 @@ export default class Publish extends Command {
     );
 
     //Check if there is defined capability in super.json
-    const profileSettings = superJson.normalized.profiles[flags.profileId];
+    const normalized = normalizeSuperJsonDocument(superJson);
+    const profileSettings = normalized.profiles[flags.profileId];
     if (!profileSettings) {
       throw userError(
         `Unable to publish, profile: "${flags.profileId}" not found in super.json`,
@@ -147,7 +153,7 @@ export default class Publish extends Command {
       );
     }
 
-    const providerSettings = superJson.normalized.providers[flags.providerName];
+    const providerSettings = normalized.providers[flags.providerName];
     if (!providerSettings) {
       throw userError(
         `Unable to publish, provider: "${flags.providerName}" not found in super.json`,
@@ -237,6 +243,7 @@ export default class Publish extends Command {
       {
         publishing: documentType,
         superJson,
+        superJsonPath,
         profile: ProfileId.fromId(flags.profileId, { userError }),
         provider: flags.providerName,
         map,
@@ -289,11 +296,15 @@ export default class Publish extends Command {
           kind: 'remote',
         });
       }
-      await OutputStream.writeOnce(superJson.path, superJson.stringified, {
-        force: flags.force,
-      });
+      await OutputStream.writeOnce(
+        superJsonPath,
+        JSON.stringify(superJson, undefined, 2),
+        {
+          force: flags.force,
+        }
+      );
 
-      logger.info('updateSuperJson', superJson.path);
+      logger.info('updateSuperJson', superJsonPath);
     }
   }
 }

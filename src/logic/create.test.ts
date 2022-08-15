@@ -1,6 +1,11 @@
-import { EXTENSIONS } from '@superfaceai/ast';
-import { err, ok, SuperJson } from '@superfaceai/one-sdk';
-import { SDKExecutionError } from '@superfaceai/one-sdk/dist/internal/errors';
+import { EXTENSIONS, SuperJsonDocument } from '@superfaceai/ast';
+import {
+  err,
+  normalizeSuperJsonDocument,
+  ok,
+  SDKExecutionError,
+} from '@superfaceai/one-sdk';
+import * as SuperJson from '@superfaceai/one-sdk/dist/schema-tools/superjson/utils';
 
 import { MockLogger } from '../common';
 import { createUserError } from '../common/error';
@@ -29,7 +34,7 @@ describe('Create logic', () => {
         userError,
       });
       const mockVersion = { major: 1 };
-      const mockSuperJson = new SuperJson({});
+      const mockSuperJson = {};
       const mockUsecaseNames = ['test-usecase'];
       const writeIfAbsentSpy = jest
         .spyOn(OutputStream, 'writeIfAbsent')
@@ -68,7 +73,7 @@ describe('Create logic', () => {
         userError,
       });
       const mockVersion = { major: 1 };
-      const mockSuperJson = new SuperJson({});
+      const mockSuperJson = {};
       const mockUsecaseNames = ['test-usecase'];
       const writeIfAbsentSpy = jest
         .spyOn(OutputStream, 'writeIfAbsent')
@@ -108,7 +113,7 @@ describe('Create logic', () => {
         userError,
       });
       const mockVersion = { major: 1 };
-      const mockSuperJson = new SuperJson({});
+      const mockSuperJson = {};
       const mockUsecaseNames = ['test-usecase'];
       const writeIfAbsentSpy = jest
         .spyOn(OutputStream, 'writeIfAbsent')
@@ -145,7 +150,7 @@ describe('Create logic', () => {
       const mockBasePath = 'test-path';
       const mockProfile = ProfileId.fromId('test-name', { userError });
       const mockVersion = { major: 1 };
-      const mockSuperJson = new SuperJson({});
+      const mockSuperJson = {};
       const mockUsecaseNames = ['test-usecase'];
       const writeIfAbsentSpy = jest
         .spyOn(OutputStream, 'writeIfAbsent')
@@ -184,7 +189,7 @@ describe('Create logic', () => {
         provider: 'twilio',
         version: { major: 1 },
       };
-      const mockSuperJson = new SuperJson({});
+      const mockSuperJson = {};
       const mockUsecaseNames = ['test-usecase'];
       const writeIfAbsentSpy = jest
         .spyOn(OutputStream, 'writeIfAbsent')
@@ -222,7 +227,7 @@ describe('Create logic', () => {
         provider: 'twilio',
         version: { major: 1 },
       };
-      const mockSuperJson = new SuperJson({});
+      const mockSuperJson = {};
       const mockUsecaseNames = ['test-usecase'];
       const writeIfAbsentSpy = jest
         .spyOn(OutputStream, 'writeIfAbsent')
@@ -261,7 +266,7 @@ describe('Create logic', () => {
         version: { major: 1 },
         variant: 'bugfix',
       };
-      const mockSuperJson = new SuperJson({});
+      const mockSuperJson = {};
       const mockUsecaseNames = ['test-usecase'];
       const writeIfAbsentSpy = jest
         .spyOn(OutputStream, 'writeIfAbsent')
@@ -301,7 +306,7 @@ describe('Create logic', () => {
         version: { major: 1 },
         variant: 'bugfix',
       };
-      const mockSuperJson = new SuperJson({});
+      const mockSuperJson = {};
       const mockUsecaseNames = ['test-usecase'];
       const writeIfAbsentSpy = jest
         .spyOn(OutputStream, 'writeIfAbsent')
@@ -342,7 +347,7 @@ describe('Create logic', () => {
         version: { major: 1 },
         variant: 'bugfix',
       };
-      const mockSuperJson = new SuperJson({});
+      const mockSuperJson = {};
       const mockUsecaseNames = ['test-usecase'];
       const writeIfAbsentSpy = jest
         .spyOn(OutputStream, 'writeIfAbsent')
@@ -378,7 +383,7 @@ describe('Create logic', () => {
     it('creates empty provider', async () => {
       const mockBasePath = 'test-path';
       const mockName = 'twilio';
-      const mockSuperJson = new SuperJson({});
+      const mockSuperJson = {};
       const writeIfAbsentSpy = jest
         .spyOn(OutputStream, 'writeIfAbsent')
         .mockResolvedValue(true);
@@ -408,7 +413,7 @@ describe('Create logic', () => {
       const mockBasePath = 'test-path';
       const mockFilename = 'test-provider';
       const mockName = 'twilio';
-      const mockSuperJson = new SuperJson({});
+      const mockSuperJson = {};
       const writeIfAbsentSpy = jest
         .spyOn(OutputStream, 'writeIfAbsent')
         .mockResolvedValue(true);
@@ -439,7 +444,7 @@ describe('Create logic', () => {
       const mockBasePath = 'test-path';
       const mockFilename = 'test-provider.json';
       const mockName = 'twilio';
-      const mockSuperJson = new SuperJson({});
+      const mockSuperJson = {};
       const writeIfAbsentSpy = jest
         .spyOn(OutputStream, 'writeIfAbsent')
         .mockResolvedValue(true);
@@ -487,10 +492,10 @@ describe('Create logic', () => {
       };
       variant?: string;
     };
-    let mockSuperJson: SuperJson;
+    let mockSuperJson: SuperJsonDocument;
 
     beforeEach(() => {
-      mockSuperJson = new SuperJson({});
+      mockSuperJson = {};
       document = {
         scope: mockScope,
         name: mockName,
@@ -503,9 +508,10 @@ describe('Create logic', () => {
         },
       };
     });
+
     it('creates one provider correctly', async () => {
       const loadSpy = jest
-        .spyOn(SuperJson, 'load')
+        .spyOn(SuperJson, 'loadSuperJson')
         .mockResolvedValue(ok(mockSuperJson));
       const writeIfAbsentSpy = jest
         .spyOn(OutputStream, 'writeIfAbsent')
@@ -532,11 +538,11 @@ describe('Create logic', () => {
       expect(loadSpy).toHaveBeenCalledTimes(1);
 
       expect(writeOnceSpy).toHaveBeenCalledTimes(1);
-      expect(mockSuperJson.normalized).toEqual({
+      expect(normalizeSuperJsonDocument(mockSuperJson)).toEqual({
         profiles: {},
         providers: {
           provider: {
-            file: './provider.provider.json',
+            file: '../provider.provider.json',
             security: [],
             parameters: {},
           },
@@ -554,7 +560,7 @@ describe('Create logic', () => {
 
     it('creates one provider correctly with filename', async () => {
       const loadSpy = jest
-        .spyOn(SuperJson, 'load')
+        .spyOn(SuperJson, 'loadSuperJson')
         .mockResolvedValue(ok(mockSuperJson));
       const writeIfAbsentSpy = jest
         .spyOn(OutputStream, 'writeIfAbsent')
@@ -584,11 +590,11 @@ describe('Create logic', () => {
       expect(loadSpy).toHaveBeenCalledTimes(1);
 
       expect(writeOnceSpy).toHaveBeenCalledTimes(1);
-      expect(mockSuperJson.normalized).toEqual({
+      expect(normalizeSuperJsonDocument(mockSuperJson)).toEqual({
         profiles: {},
         providers: {
           provider: {
-            file: `./${mockFilename}.json`,
+            file: `../${mockFilename}.json`,
             security: [],
             parameters: {},
           },
@@ -606,7 +612,7 @@ describe('Create logic', () => {
 
     it('creates multiple providers correctly', async () => {
       const loadSpy = jest
-        .spyOn(SuperJson, 'load')
+        .spyOn(SuperJson, 'loadSuperJson')
         .mockResolvedValue(ok(mockSuperJson));
       const writeIfAbsentSpy = jest
         .spyOn(OutputStream, 'writeIfAbsent')
@@ -635,16 +641,16 @@ describe('Create logic', () => {
       expect(loadSpy).toHaveBeenCalledTimes(1);
 
       expect(writeOnceSpy).toHaveBeenCalledTimes(1);
-      expect(mockSuperJson.normalized).toEqual({
+      expect(normalizeSuperJsonDocument(mockSuperJson)).toEqual({
         profiles: {},
         providers: {
           provider: {
-            file: './provider.provider.json',
+            file: '../provider.provider.json',
             security: [],
             parameters: {},
           },
           secondProvider: {
-            file: './secondProvider.provider.json',
+            file: '../secondProvider.provider.json',
             security: [],
             parameters: {},
           },
@@ -669,7 +675,7 @@ describe('Create logic', () => {
 
     it('creates profile correctly', async () => {
       const loadSpy = jest
-        .spyOn(SuperJson, 'load')
+        .spyOn(SuperJson, 'loadSuperJson')
         .mockResolvedValue(ok(mockSuperJson));
       const writeIfAbsentSpy = jest
         .spyOn(OutputStream, 'writeIfAbsent')
@@ -696,12 +702,12 @@ describe('Create logic', () => {
       expect(loadSpy).toHaveBeenCalledTimes(1);
 
       expect(writeOnceSpy).toHaveBeenCalledTimes(1);
-      expect(mockSuperJson.normalized).toEqual({
+      expect(normalizeSuperJsonDocument(mockSuperJson)).toEqual({
         profiles: {
           'test-scope/test-name': {
             priority: [],
             defaults: {},
-            file: `./${mockScope}/${mockName}.supr`,
+            file: `../${mockScope}/${mockName}.supr`,
             providers: {},
           },
         },
@@ -722,7 +728,7 @@ describe('Create logic', () => {
 
     it('creates profile with file name correctly', async () => {
       const loadSpy = jest
-        .spyOn(SuperJson, 'load')
+        .spyOn(SuperJson, 'loadSuperJson')
         .mockResolvedValue(ok(mockSuperJson));
       const writeIfAbsentSpy = jest
         .spyOn(OutputStream, 'writeIfAbsent')
@@ -752,12 +758,12 @@ describe('Create logic', () => {
       expect(loadSpy).toHaveBeenCalledTimes(1);
 
       expect(writeOnceSpy).toHaveBeenCalledTimes(1);
-      expect(mockSuperJson.normalized).toEqual({
+      expect(normalizeSuperJsonDocument(mockSuperJson)).toEqual({
         profiles: {
           'test-scope/test-name': {
             priority: [],
             defaults: {},
-            file: `./${mockFilename}.supr`,
+            file: `../${mockFilename}.supr`,
             providers: {},
           },
         },
@@ -778,7 +784,7 @@ describe('Create logic', () => {
 
     it('creates profile correctly - uses new super json instance', async () => {
       const loadSpy = jest
-        .spyOn(SuperJson, 'load')
+        .spyOn(SuperJson, 'loadSuperJson')
         .mockResolvedValue(err(new SDKExecutionError('mock err', [], [])));
       const writeIfAbsentSpy = jest
         .spyOn(OutputStream, 'writeIfAbsent')
@@ -805,7 +811,7 @@ describe('Create logic', () => {
       expect(loadSpy).toHaveBeenCalledTimes(1);
 
       expect(writeOnceSpy).toHaveBeenCalledTimes(1);
-      expect(mockSuperJson.normalized).toEqual({
+      expect(normalizeSuperJsonDocument(mockSuperJson)).toEqual({
         profiles: {},
         providers: {},
       });
@@ -824,7 +830,7 @@ describe('Create logic', () => {
 
     it('creates map and provider correctly', async () => {
       const loadSpy = jest
-        .spyOn(SuperJson, 'load')
+        .spyOn(SuperJson, 'loadSuperJson')
         .mockResolvedValue(ok(mockSuperJson));
       const writeIfAbsentSpy = jest
         .spyOn(OutputStream, 'writeIfAbsent')
@@ -852,7 +858,7 @@ describe('Create logic', () => {
 
       expect(writeOnceSpy).toHaveBeenCalledTimes(1);
 
-      expect(mockSuperJson.normalized).toEqual({
+      expect(normalizeSuperJsonDocument(mockSuperJson)).toEqual({
         profiles: {
           'test-scope/test-name': {
             version: '0.0.0',
@@ -861,14 +867,14 @@ describe('Create logic', () => {
             providers: {
               [mockProvider]: {
                 defaults: {},
-                file: `./${mockScope}/${mockName}.provider.suma`,
+                file: `../${mockScope}/${mockName}.provider.suma`,
               },
             },
           },
         },
         providers: {
           provider: {
-            file: './provider.provider.json',
+            file: '../provider.provider.json',
             security: [],
             parameters: {},
           },
@@ -896,7 +902,7 @@ describe('Create logic', () => {
 
     it('creates map correctly', async () => {
       const loadSpy = jest
-        .spyOn(SuperJson, 'load')
+        .spyOn(SuperJson, 'loadSuperJson')
         .mockResolvedValue(ok(mockSuperJson));
       const writeIfAbsentSpy = jest
         .spyOn(OutputStream, 'writeIfAbsent')
@@ -924,7 +930,7 @@ describe('Create logic', () => {
 
       expect(writeOnceSpy).toHaveBeenCalledTimes(1);
 
-      expect(mockSuperJson.normalized).toEqual({
+      expect(normalizeSuperJsonDocument(mockSuperJson)).toEqual({
         profiles: {
           'test-scope/test-name': {
             version: '0.0.0',
@@ -933,7 +939,7 @@ describe('Create logic', () => {
             providers: {
               [mockProvider]: {
                 defaults: {},
-                file: `./${mockScope}/${mockName}.provider.suma`,
+                file: `../${mockScope}/${mockName}.provider.suma`,
               },
             },
           },
@@ -956,7 +962,7 @@ describe('Create logic', () => {
 
     it('creates map with file name correctly', async () => {
       const loadSpy = jest
-        .spyOn(SuperJson, 'load')
+        .spyOn(SuperJson, 'loadSuperJson')
         .mockResolvedValue(ok(mockSuperJson));
       const writeIfAbsentSpy = jest
         .spyOn(OutputStream, 'writeIfAbsent')
@@ -987,7 +993,7 @@ describe('Create logic', () => {
 
       expect(writeOnceSpy).toHaveBeenCalledTimes(1);
 
-      expect(mockSuperJson.normalized).toEqual({
+      expect(normalizeSuperJsonDocument(mockSuperJson)).toEqual({
         profiles: {
           'test-scope/test-name': {
             version: '0.0.0',
@@ -996,7 +1002,7 @@ describe('Create logic', () => {
             providers: {
               [mockProvider]: {
                 defaults: {},
-                file: `./${mockFilename}.suma`,
+                file: `../${mockFilename}.suma`,
               },
             },
           },
@@ -1017,7 +1023,7 @@ describe('Create logic', () => {
 
     it('creates map and profile correctly', async () => {
       const loadSpy = jest
-        .spyOn(SuperJson, 'load')
+        .spyOn(SuperJson, 'loadSuperJson')
         .mockResolvedValue(ok(mockSuperJson));
       const writeIfAbsentSpy = jest
         .spyOn(OutputStream, 'writeIfAbsent')
@@ -1045,16 +1051,16 @@ describe('Create logic', () => {
 
       expect(writeOnceSpy).toHaveBeenCalledTimes(1);
 
-      expect(mockSuperJson.normalized).toEqual({
+      expect(normalizeSuperJsonDocument(mockSuperJson)).toEqual({
         profiles: {
           'test-scope/test-name': {
-            file: `./${mockScope}/${mockName}.supr`,
+            file: `../${mockScope}/${mockName}.supr`,
             defaults: {},
             priority: [mockProvider],
             providers: {
               [mockProvider]: {
                 defaults: {},
-                file: `./${mockScope}/${mockName}.provider.suma`,
+                file: `../${mockScope}/${mockName}.provider.suma`,
               },
             },
           },
@@ -1097,7 +1103,7 @@ describe('Create logic', () => {
       };
 
       const loadSpy = jest
-        .spyOn(SuperJson, 'load')
+        .spyOn(SuperJson, 'loadSuperJson')
         .mockResolvedValue(ok(mockSuperJson));
       const writeIfAbsentSpy = jest
         .spyOn(OutputStream, 'writeIfAbsent')
@@ -1127,7 +1133,7 @@ describe('Create logic', () => {
 
       expect(writeOnceSpy).toHaveBeenCalledTimes(0);
 
-      expect(mockSuperJson.normalized).toEqual({
+      expect(normalizeSuperJsonDocument(mockSuperJson)).toEqual({
         profiles: {},
         providers: {},
       });
@@ -1149,7 +1155,7 @@ describe('Create logic', () => {
       };
 
       const loadSpy = jest
-        .spyOn(SuperJson, 'load')
+        .spyOn(SuperJson, 'loadSuperJson')
         .mockResolvedValue(ok(mockSuperJson));
       const writeIfAbsentSpy = jest
         .spyOn(OutputStream, 'writeIfAbsent')
@@ -1179,7 +1185,7 @@ describe('Create logic', () => {
 
       expect(writeOnceSpy).toHaveBeenCalledTimes(0);
 
-      expect(mockSuperJson.normalized).toEqual({
+      expect(normalizeSuperJsonDocument(mockSuperJson)).toEqual({
         profiles: {},
         providers: {},
       });
@@ -1200,7 +1206,7 @@ describe('Create logic', () => {
       };
 
       const loadSpy = jest
-        .spyOn(SuperJson, 'load')
+        .spyOn(SuperJson, 'loadSuperJson')
         .mockResolvedValue(ok(mockSuperJson));
       const writeIfAbsentSpy = jest
         .spyOn(OutputStream, 'writeIfAbsent')
@@ -1228,7 +1234,7 @@ describe('Create logic', () => {
 
       expect(writeOnceSpy).toHaveBeenCalledTimes(0);
 
-      expect(mockSuperJson.normalized).toEqual({
+      expect(normalizeSuperJsonDocument(mockSuperJson)).toEqual({
         profiles: {},
         providers: {},
       });
@@ -1249,7 +1255,7 @@ describe('Create logic', () => {
       };
 
       const loadSpy = jest
-        .spyOn(SuperJson, 'load')
+        .spyOn(SuperJson, 'loadSuperJson')
         .mockResolvedValue(ok(mockSuperJson));
       const writeIfAbsentSpy = jest
         .spyOn(OutputStream, 'writeIfAbsent')
@@ -1279,7 +1285,7 @@ describe('Create logic', () => {
 
       expect(writeOnceSpy).toHaveBeenCalledTimes(0);
 
-      expect(mockSuperJson.normalized).toEqual({
+      expect(normalizeSuperJsonDocument(mockSuperJson)).toEqual({
         profiles: {},
         providers: {},
       });
@@ -1301,7 +1307,7 @@ describe('Create logic', () => {
       };
 
       const loadSpy = jest
-        .spyOn(SuperJson, 'load')
+        .spyOn(SuperJson, 'loadSuperJson')
         .mockResolvedValue(ok(mockSuperJson));
       const writeIfAbsentSpy = jest
         .spyOn(OutputStream, 'writeIfAbsent')
@@ -1331,7 +1337,7 @@ describe('Create logic', () => {
 
       expect(writeOnceSpy).toHaveBeenCalledTimes(0);
 
-      expect(mockSuperJson.normalized).toEqual({
+      expect(normalizeSuperJsonDocument(mockSuperJson)).toEqual({
         profiles: {},
         providers: {},
       });

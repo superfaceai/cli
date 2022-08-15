@@ -1,4 +1,4 @@
-import { SuperJson } from '@superfaceai/one-sdk';
+import { SuperJsonDocument } from '@superfaceai/ast';
 import { ServiceApiError } from '@superfaceai/service-client';
 import { yellow } from 'chalk';
 
@@ -27,6 +27,7 @@ export async function publish(
   {
     publishing,
     superJson,
+    superJsonPath,
     profile,
     provider,
     map,
@@ -34,8 +35,8 @@ export async function publish(
     options,
   }: {
     publishing: 'map' | 'profile' | 'provider';
-
-    superJson: SuperJson;
+    superJson: SuperJsonDocument;
+    superJsonPath: string;
     profile: ProfileId;
     provider: string;
     map: {
@@ -54,7 +55,7 @@ export async function publish(
 ): Promise<string | undefined> {
   // Profile
   const profileFiles = await loadProfile(
-    { superJson, profile, version },
+    { superJson, superJsonPath, profile, version },
     { logger }
   );
   if (profileFiles.from.kind !== 'local' && publishing === 'profile') {
@@ -66,7 +67,7 @@ export async function publish(
 
   // Map
   const mapFiles = await loadMap(
-    { superJson, profile, provider, map, version },
+    { superJson, superJsonPath, profile, provider, map, version },
     { logger }
   );
   if (mapFiles.from.kind !== 'local' && publishing == 'map') {
@@ -77,7 +78,9 @@ export async function publish(
   }
 
   // Provider
-  const providerFiles = await loadProvider(superJson, provider, { logger });
+  const providerFiles = await loadProvider(superJson, superJsonPath, provider, {
+    logger,
+  });
 
   if (providerFiles.from.kind === 'remote' && publishing === 'provider') {
     throw userError(
@@ -97,6 +100,7 @@ export async function publish(
       mapFrom: mapFiles.from,
       profileFrom: profileFiles.from,
       superJson,
+      superJsonPath,
     },
     { logger, userError }
   );
@@ -137,7 +141,6 @@ export async function publish(
       reportStr += yellow('\n\nLint results:\n');
       reportStr += lintFormatHuman({
         report: lintReport,
-        quiet: options?.quiet ?? false,
         emoji: options?.emoji ?? false,
         color: options?.color ?? false,
       });
@@ -192,20 +195,17 @@ export async function publish(
 
   if (publishing === 'provider') {
     logger.info('publishProvider', provider);
-    if (!options?.dryRun) {
-      await client.createProvider(JSON.stringify(providerFiles.source));
-    }
+    await client.createProvider(JSON.stringify(providerFiles.source), {
+      dryRun: options?.dryRun,
+    });
   } else if (publishing === 'profile' && profileFiles.from.kind === 'local') {
     logger.info('publishProfile', profile.id);
-    if (!options?.dryRun) {
-      await client.createProfile(profileFiles.from.source);
-    }
+    await client.createProfile(profileFiles.from.source, {
+      dryRun: options?.dryRun,
+    });
   } else if (publishing === 'map' && mapFiles.from.kind === 'local') {
     logger.info('publishMap', profile.id, provider);
-
-    if (!options?.dryRun) {
-      await client.createMap(mapFiles.from.source);
-    }
+    await client.createMap(mapFiles.from.source, { dryRun: options?.dryRun });
   }
 
   return;
