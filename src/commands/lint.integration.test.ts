@@ -1,4 +1,3 @@
-import { SuperJson } from '@superfaceai/one-sdk';
 import { join as joinPath, resolve } from 'path';
 
 import { mkdir, rimraf } from '../common/io';
@@ -32,7 +31,7 @@ describe('lint CLI command', () => {
     },
   };
 
-  const mockSuperJson = new SuperJson({
+  const mockSuperJson = {
     profiles: {
       [profileId]: {
         file: `../../../../${fixture.strictProfile}`,
@@ -46,7 +45,7 @@ describe('lint CLI command', () => {
         },
       },
     },
-  });
+  };
   let tempDir: string;
 
   let stderr: MockStd;
@@ -79,7 +78,7 @@ describe('lint CLI command', () => {
     await mkdir(joinPath(tempDir, 'superface'));
     await OutputStream.writeOnce(
       joinPath(tempDir, 'superface', 'super.json'),
-      mockSuperJson.stringified
+      JSON.stringify(mockSuperJson, undefined, 2)
     );
 
     const result = await execCLI(
@@ -95,7 +94,7 @@ describe('lint CLI command', () => {
     await mkdir(joinPath(tempDir, 'superface'));
     await OutputStream.writeOnce(
       joinPath(tempDir, 'superface', 'super.json'),
-      mockSuperJson.stringified
+      JSON.stringify(mockSuperJson, undefined, 2)
     );
     await expect(
       execCLI(
@@ -123,7 +122,7 @@ describe('lint CLI command', () => {
     await mkdir(joinPath(tempDir, 'superface'));
     await OutputStream.writeOnce(
       joinPath(tempDir, 'superface', 'super.json'),
-      mockSuperJson.stringified
+      JSON.stringify(mockSuperJson, undefined, 2)
     );
 
     await expect(
@@ -152,7 +151,7 @@ describe('lint CLI command', () => {
     await mkdir(joinPath(tempDir, 'superface'));
     await OutputStream.writeOnce(
       joinPath(tempDir, 'superface', 'super.json'),
-      mockSuperJson.stringified
+      JSON.stringify(mockSuperJson, undefined, 2)
     );
 
     await expect(
@@ -208,7 +207,7 @@ describe('lint CLI command', () => {
   });
 
   it('lints a valid file and outputs it to stderr', async () => {
-    const mockSuperJson = new SuperJson({
+    const mockSuperJson = {
       profiles: {
         [profileId]: {
           file: `../../../../${fixture.strictProfile}`,
@@ -219,12 +218,12 @@ describe('lint CLI command', () => {
           },
         },
       },
-    });
+    };
 
     await mkdir(joinPath(tempDir, 'superface'));
     await OutputStream.writeOnce(
       joinPath(tempDir, 'superface', 'super.json'),
-      mockSuperJson.stringified
+      JSON.stringify(mockSuperJson, undefined, 2)
     );
 
     await expect(
@@ -244,7 +243,7 @@ describe('lint CLI command', () => {
     await mkdir(joinPath(tempDir, 'superface'));
     await OutputStream.writeOnce(
       joinPath(tempDir, 'superface', 'super.json'),
-      mockSuperJson.stringified
+      JSON.stringify(mockSuperJson, undefined, 2)
     );
 
     const result = await execCLI(

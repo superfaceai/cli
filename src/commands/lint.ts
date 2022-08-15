@@ -1,6 +1,10 @@
 import { flags as oclifFlags } from '@oclif/command';
 import { isValidProviderName } from '@superfaceai/ast';
-import { SuperJson } from '@superfaceai/one-sdk';
+import {
+  loadSuperJson,
+  NodeFileSystem,
+  normalizeSuperJsonDocument,
+} from '@superfaceai/one-sdk';
 import { parseDocumentId } from '@superfaceai/parser';
 import { join as joinPath } from 'path';
 
@@ -127,16 +131,18 @@ export default class Lint extends Command {
       throw userError('Unable to lint, super.json not found', 1);
     }
     //Load super json
-    const loadedResult = await SuperJson.load(joinPath(superPath, META_FILE));
+    const superJsonPath = joinPath(superPath, META_FILE);
+    const loadedResult = await loadSuperJson(superJsonPath, NodeFileSystem);
     const superJson = loadedResult.match(
       v => v,
       err => {
         throw userError(`Unable to load super.json: ${err.formatShort()}`, 1);
       }
     );
+    const normalized = normalizeSuperJsonDocument(superJson);
     //Check super.json
     if (flags.profileId) {
-      if (!superJson.normalized.profiles[flags.profileId]) {
+      if (!normalized.profiles[flags.profileId]) {
         throw userError(
           `Unable to lint, profile: "${flags.profileId}" not found in super.json`,
           1
@@ -144,9 +150,7 @@ export default class Lint extends Command {
       }
       if (flags.providerName) {
         if (
-          !superJson.normalized.profiles[flags.profileId].providers[
-            flags.providerName
-          ]
+          !normalized.profiles[flags.profileId].providers[flags.providerName]
         ) {
           throw userError(
             `Unable to lint, provider: "${flags.providerName}" not found in profile: "${flags.profileId}" in super.json`,
@@ -157,7 +161,7 @@ export default class Lint extends Command {
     }
     const profiles = Check.prepareProfilesToValidate(
       {
-        superJson,
+        superJson: normalized,
         profileId: flags.profileId,
         providerName: flags.providerName,
       },
@@ -168,7 +172,7 @@ export default class Lint extends Command {
       append: flags.append,
     });
 
-    const result = await lint(superJson, profiles, {
+    const result = await lint(superJson, superJsonPath, profiles, {
       logger,
     });
 

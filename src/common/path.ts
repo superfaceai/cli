@@ -1,10 +1,10 @@
-import { SuperJson } from '@superfaceai/one-sdk';
 import {
   dirname,
   format as formatPath,
   isAbsolute,
   normalize,
   parse as parsePath,
+  relative as relativePath,
   resolve,
 } from 'path';
 
@@ -15,21 +15,21 @@ export const NORMALIZED_CWD_PATH = normalize('./');
  * @param superJson SuperJson to be used to resolution
  * @returns relative path from super.json. Starts with ./ if original path leads to superface directory
  */
-export function resolveSuperfaceRelatedPath(
-  path: string,
-  superJson: SuperJson
+export function resolveSuperfaceRelativePath(
+  superJsonPath: string,
+  path: string
 ): string {
   //Make input path absolute
   if (!isAbsolute(path)) {
     path = resolve(process.cwd(), path);
   }
   //Absolute path to super.json
-  const superfacePath = resolve(superJson.path);
+  const superfacePath = resolve(superJsonPath);
   //If path leads to superface directory
   if (path.startsWith(dirname(superfacePath))) {
-    return NORMALIZED_CWD_PATH + superJson.relativePath(path);
+    return NORMALIZED_CWD_PATH + relativePath(dirname(superJsonPath), path);
   } else {
-    return superJson.relativePath(path);
+    return relativePath(dirname(superJsonPath), path);
   }
 }
 /**

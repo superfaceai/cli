@@ -1,5 +1,5 @@
-import { err, ok, SuperJson } from '@superfaceai/one-sdk';
-import { SDKExecutionError } from '@superfaceai/one-sdk/dist/internal/errors';
+import { err, ok, SDKExecutionError } from '@superfaceai/one-sdk';
+import * as SuperJson from '@superfaceai/one-sdk/dist/schema-tools/superjson/utils';
 import { mocked } from 'ts-jest/utils';
 
 import { createUserError } from '../common/error';
@@ -124,7 +124,7 @@ describe('lint CLI command', () => {
     it('throws when super.json not loaded correctly', async () => {
       mocked(detectSuperJson).mockResolvedValue('.');
       jest
-        .spyOn(SuperJson, 'load')
+        .spyOn(SuperJson, 'loadSuperJson')
         .mockResolvedValue(err(new SDKExecutionError('test error', [], [])));
       await expect(
         instance.execute({
@@ -132,7 +132,7 @@ describe('lint CLI command', () => {
           userError,
           flags: defaultFlags,
         })
-      ).rejects.toThrow('Unable to load super.json: test error');
+      ).rejects.toThrow('test error');
     });
 
     it('throws error on scan flag higher than 5', async () => {
@@ -153,8 +153,8 @@ describe('lint CLI command', () => {
     it('throws error on invalid profile id', async () => {
       mocked(detectSuperJson).mockResolvedValue('.');
       const loadSpy = jest
-        .spyOn(SuperJson, 'load')
-        .mockResolvedValue(ok(new SuperJson()));
+        .spyOn(SuperJson, 'loadSuperJson')
+        .mockResolvedValue(ok({}));
 
       await expect(
         instance.execute({
@@ -177,8 +177,8 @@ describe('lint CLI command', () => {
     it('throws error on missing profile id', async () => {
       mocked(detectSuperJson).mockResolvedValue('.');
       const loadSpy = jest
-        .spyOn(SuperJson, 'load')
-        .mockResolvedValue(ok(new SuperJson()));
+        .spyOn(SuperJson, 'loadSuperJson')
+        .mockResolvedValue(ok({}));
 
       await expect(
         Lint.run(['--providerName', 'test', '-s', '3'])
@@ -192,8 +192,8 @@ describe('lint CLI command', () => {
     it('throws error on invalid provider name', async () => {
       mocked(detectSuperJson).mockResolvedValue('.');
       const loadSpy = jest
-        .spyOn(SuperJson, 'load')
-        .mockResolvedValue(ok(new SuperJson()));
+        .spyOn(SuperJson, 'loadSuperJson')
+        .mockResolvedValue(ok({}));
 
       await expect(
         instance.execute({
@@ -214,8 +214,8 @@ describe('lint CLI command', () => {
     it('throws error on missing profile id in super.json', async () => {
       mocked(detectSuperJson).mockResolvedValue('.');
       const loadSpy = jest
-        .spyOn(SuperJson, 'load')
-        .mockResolvedValue(ok(new SuperJson()));
+        .spyOn(SuperJson, 'loadSuperJson')
+        .mockResolvedValue(ok({}));
 
       await expect(
         instance.execute({
@@ -237,18 +237,16 @@ describe('lint CLI command', () => {
 
     it('throws error on missing provider id in super.json', async () => {
       mocked(detectSuperJson).mockResolvedValue('.');
-      const loadSpy = jest.spyOn(SuperJson, 'load').mockResolvedValue(
-        ok(
-          new SuperJson({
-            profiles: {
-              [profileId]: {
-                version: '1.0.0',
-                defaults: {},
-              },
+      const loadSpy = jest.spyOn(SuperJson, 'loadSuperJson').mockResolvedValue(
+        ok({
+          profiles: {
+            [profileId]: {
+              version: '1.0.0',
+              defaults: {},
             },
-            providers: {},
-          })
-        )
+          },
+          providers: {},
+        })
       );
 
       await expect(
@@ -276,7 +274,7 @@ describe('lint CLI command', () => {
         const mockLocalProvider = 'swapi';
         const secondMockLocalProvider = 'starwarsapi';
         const mockProvider = 'startrek';
-        const mockSuperJson = new SuperJson({
+        const mockSuperJson = {
           profiles: {
             [mockLocalProfile]: {
               file: `../${mockLocalProfile}.supr`,
@@ -309,9 +307,9 @@ describe('lint CLI command', () => {
               security: [],
             },
           },
-        });
+        };
         const loadSpy = jest
-          .spyOn(SuperJson, 'load')
+          .spyOn(SuperJson, 'loadSuperJson')
           .mockResolvedValue(ok(mockSuperJson));
 
         mocked(detectSuperJson).mockResolvedValue('.');
@@ -337,6 +335,7 @@ describe('lint CLI command', () => {
         expect(lint).toHaveBeenCalledTimes(1);
         expect(lint).toHaveBeenCalledWith(
           mockSuperJson,
+          'super.json',
           [
             {
               id: ProfileId.fromId(mockLocalProfile, { userError }),
@@ -388,7 +387,7 @@ describe('lint CLI command', () => {
         const mockLocalProfile = 'starwars/character-information';
         const mockLocalProvider = 'swapi';
         const mockProvider = 'starwarsapi';
-        const mockSuperJson = new SuperJson({
+        const mockSuperJson = {
           profiles: {
             [mockLocalProfile]: {
               file: `../${mockLocalProfile}.supr`,
@@ -412,9 +411,9 @@ describe('lint CLI command', () => {
               security: [],
             },
           },
-        });
+        };
         const loadSpy = jest
-          .spyOn(SuperJson, 'load')
+          .spyOn(SuperJson, 'loadSuperJson')
           .mockResolvedValue(ok(mockSuperJson));
 
         mocked(detectSuperJson).mockResolvedValue('.');
@@ -441,6 +440,7 @@ describe('lint CLI command', () => {
         expect(lint).toHaveBeenCalledTimes(1);
         expect(lint).toHaveBeenCalledWith(
           mockSuperJson,
+          'super.json',
           [
             {
               id: ProfileId.fromId(mockLocalProfile, { userError }),
@@ -489,7 +489,7 @@ describe('lint CLI command', () => {
         const mockLocalProvider = 'swapi';
         const mockProvider = 'starwarsapi';
         const version = '1.0.2';
-        const mockSuperJson = new SuperJson({
+        const mockSuperJson = {
           profiles: {
             [mockProfile]: {
               version,
@@ -513,9 +513,9 @@ describe('lint CLI command', () => {
               security: [],
             },
           },
-        });
+        };
         const loadSpy = jest
-          .spyOn(SuperJson, 'load')
+          .spyOn(SuperJson, 'loadSuperJson')
           .mockResolvedValue(ok(mockSuperJson));
 
         mocked(detectSuperJson).mockResolvedValue('.');
@@ -542,6 +542,7 @@ describe('lint CLI command', () => {
         expect(lint).toHaveBeenCalledTimes(1);
         expect(lint).toHaveBeenCalledWith(
           mockSuperJson,
+          'super.json',
           [
             {
               id: ProfileId.fromId(mockProfile, { userError }),
@@ -591,7 +592,7 @@ describe('lint CLI command', () => {
       it('lints local profile and local map', async () => {
         const mockLocalProfile = 'starwars/character-information';
         const mockLocalProvider = 'swapi';
-        const mockSuperJson = new SuperJson({
+        const mockSuperJson = {
           profiles: {
             [mockLocalProfile]: {
               file: `../${mockLocalProfile}.supr`,
@@ -609,9 +610,9 @@ describe('lint CLI command', () => {
               security: [],
             },
           },
-        });
+        };
         const loadSpy = jest
-          .spyOn(SuperJson, 'load')
+          .spyOn(SuperJson, 'loadSuperJson')
           .mockResolvedValue(ok(mockSuperJson));
 
         mocked(detectSuperJson).mockResolvedValue('.');
@@ -639,6 +640,7 @@ describe('lint CLI command', () => {
         expect(lint).toHaveBeenCalledTimes(1);
         expect(lint).toHaveBeenCalledWith(
           mockSuperJson,
+          'super.json',
           [
             {
               id: ProfileId.fromId(mockLocalProfile, { userError }),
@@ -685,7 +687,7 @@ describe('lint CLI command', () => {
         const mockProfile = 'starwars/character-information';
         const mockLocalProvider = 'swapi';
         const version = '1.0.2';
-        const mockSuperJson = new SuperJson({
+        const mockSuperJson = {
           profiles: {
             [mockProfile]: {
               version,
@@ -703,9 +705,9 @@ describe('lint CLI command', () => {
               security: [],
             },
           },
-        });
+        };
         const loadSpy = jest
-          .spyOn(SuperJson, 'load')
+          .spyOn(SuperJson, 'loadSuperJson')
           .mockResolvedValue(ok(mockSuperJson));
 
         mocked(detectSuperJson).mockResolvedValue('.');
@@ -733,6 +735,7 @@ describe('lint CLI command', () => {
         expect(lint).toHaveBeenCalledTimes(1);
         expect(lint).toHaveBeenCalledWith(
           mockSuperJson,
+          'super.json',
           [
             {
               id: ProfileId.fromId(mockProfile, { userError }),
@@ -781,7 +784,7 @@ describe('lint CLI command', () => {
         const mockProvider = 'swapi';
         const version = '1.0.2';
         const mapVariant = 'test';
-        const mockSuperJson = new SuperJson({
+        const mockSuperJson = {
           profiles: {
             [mockProfile]: {
               version,
@@ -799,9 +802,9 @@ describe('lint CLI command', () => {
               security: [],
             },
           },
-        });
+        };
         const loadSpy = jest
-          .spyOn(SuperJson, 'load')
+          .spyOn(SuperJson, 'loadSuperJson')
           .mockResolvedValue(ok(mockSuperJson));
 
         mocked(detectSuperJson).mockResolvedValue('.');
@@ -829,6 +832,7 @@ describe('lint CLI command', () => {
         expect(lint).toHaveBeenCalledTimes(1);
         expect(lint).toHaveBeenCalledWith(
           mockSuperJson,
+          'super.json',
           [
             {
               id: ProfileId.fromId(mockProfile, { userError }),
@@ -873,7 +877,7 @@ describe('lint CLI command', () => {
         const mockProvider = 'swapi';
         const version = '1.0.2';
         const mapVariant = 'test';
-        const mockSuperJson = new SuperJson({
+        const mockSuperJson = {
           profiles: {
             [mockProfile]: {
               version,
@@ -891,9 +895,9 @@ describe('lint CLI command', () => {
               security: [],
             },
           },
-        });
+        };
         const loadSpy = jest
-          .spyOn(SuperJson, 'load')
+          .spyOn(SuperJson, 'loadSuperJson')
           .mockResolvedValue(ok(mockSuperJson));
 
         mocked(detectSuperJson).mockResolvedValue('.');
@@ -921,6 +925,7 @@ describe('lint CLI command', () => {
         expect(lint).toHaveBeenCalledTimes(1);
         expect(lint).toHaveBeenCalledWith(
           mockSuperJson,
+          'super.json',
           [
             {
               id: ProfileId.fromId(mockProfile, { userError }),
@@ -944,7 +949,7 @@ describe('lint CLI command', () => {
         const mockProvider = 'swapi';
         const version = '1.0.2';
         const mapVariant = 'test';
-        const mockSuperJson = new SuperJson({
+        const mockSuperJson = {
           profiles: {
             [mockProfile]: {
               version,
@@ -962,9 +967,9 @@ describe('lint CLI command', () => {
               security: [],
             },
           },
-        });
+        };
         const loadSpy = jest
-          .spyOn(SuperJson, 'load')
+          .spyOn(SuperJson, 'loadSuperJson')
           .mockResolvedValue(ok(mockSuperJson));
 
         mocked(detectSuperJson).mockResolvedValue('.');
@@ -992,6 +997,7 @@ describe('lint CLI command', () => {
         expect(lint).toHaveBeenCalledTimes(1);
         expect(lint).toHaveBeenCalledWith(
           mockSuperJson,
+          'super.json',
           [
             {
               id: ProfileId.fromId(mockProfile, { userError }),
@@ -1036,7 +1042,7 @@ describe('lint CLI command', () => {
         const mockProvider = 'swapi';
         const version = '1.0.2';
         const mapVariant = 'test';
-        const mockSuperJson = new SuperJson({
+        const mockSuperJson = {
           profiles: {
             [mockProfile]: {
               version,
@@ -1054,9 +1060,9 @@ describe('lint CLI command', () => {
               security: [],
             },
           },
-        });
+        };
         const loadSpy = jest
-          .spyOn(SuperJson, 'load')
+          .spyOn(SuperJson, 'loadSuperJson')
           .mockResolvedValue(ok(mockSuperJson));
 
         mocked(detectSuperJson).mockResolvedValue('.');
@@ -1084,6 +1090,7 @@ describe('lint CLI command', () => {
         expect(lint).toHaveBeenCalledTimes(1);
         expect(lint).toHaveBeenCalledWith(
           mockSuperJson,
+          'super.json',
           [
             {
               id: ProfileId.fromId(mockProfile, { userError }),

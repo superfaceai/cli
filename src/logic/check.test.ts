@@ -7,7 +7,6 @@ import {
   ProviderJson,
   SecurityType,
 } from '@superfaceai/ast';
-import { SuperJson } from '@superfaceai/one-sdk';
 import { mocked } from 'ts-jest/utils';
 
 import { MockLogger, UNVERIFIED_PROVIDER_PREFIX } from '../common';
@@ -260,7 +259,7 @@ describe('Check logic', () => {
       const mockProfile = {
         name: 'character-information',
       };
-      const mockSuperJson = new SuperJson({
+      const mockSuperJson = {
         profiles: {
           [profile.name]: {
             file: '',
@@ -276,7 +275,7 @@ describe('Check logic', () => {
             file: '',
           },
         },
-      });
+      };
       mocked(loadMap).mockResolvedValue({
         from: mockLocalMapFrom,
         ast: mockMapDocumentWithUnverified,
@@ -293,6 +292,7 @@ describe('Check logic', () => {
       await expect(
         check(
           mockSuperJson,
+          '',
           [
             {
               id: ProfileId.fromScopeName(undefined, mockProfile.name),
@@ -329,12 +329,14 @@ describe('Check logic', () => {
 
       expect(loadProvider).toHaveBeenCalledWith(
         mockSuperJson,
+        '',
         unverifiedProvider,
         expect.anything()
       );
       expect(loadProfile).toHaveBeenCalledWith(
         {
           superJson: mockSuperJson,
+          superJsonPath: '',
           profile: ProfileId.fromScopeName(undefined, mockProfile.name),
           version: undefined,
         },
@@ -343,6 +345,7 @@ describe('Check logic', () => {
       expect(loadMap).toHaveBeenCalledWith(
         {
           superJson: mockSuperJson,
+          superJsonPath: '',
           profile: ProfileId.fromScopeName(undefined, mockProfile.name),
           provider: unverifiedProvider,
           map: { variant: undefined },
@@ -356,7 +359,7 @@ describe('Check logic', () => {
     });
 
     it('returns correctly formated result when we use remote files', async () => {
-      const mockSuperJson = new SuperJson({
+      const mockSuperJson = {
         profiles: {
           [`${profile.scope}/${profile.name}`]: {
             file: '',
@@ -372,7 +375,7 @@ describe('Check logic', () => {
             file: '',
           },
         },
-      });
+      };
       mocked(loadMap).mockResolvedValue({
         ast: mockMapDocumentWithUnverified,
         from: mockRemoteMapFrom,
@@ -389,6 +392,7 @@ describe('Check logic', () => {
       await expect(
         check(
           mockSuperJson,
+          '',
           [
             {
               id: ProfileId.fromScopeName(profile.scope, profile.name),
@@ -426,12 +430,14 @@ describe('Check logic', () => {
 
       expect(loadProvider).toHaveBeenCalledWith(
         mockSuperJson,
+        '',
         unverifiedProvider,
         expect.anything()
       );
       expect(loadProfile).toHaveBeenCalledWith(
         {
           superJson: mockSuperJson,
+          superJsonPath: '',
           profile: ProfileId.fromScopeName(profile.scope, profile.name),
           version: profile.version,
         },
@@ -440,6 +446,7 @@ describe('Check logic', () => {
       expect(loadMap).toHaveBeenCalledWith(
         {
           superJson: mockSuperJson,
+          superJsonPath: '',
           profile: ProfileId.fromScopeName(profile.scope, profile.name),
           provider: unverifiedProvider,
           map: { variant },
@@ -450,7 +457,7 @@ describe('Check logic', () => {
     });
 
     it('throws error on invalid map document', async () => {
-      const mockSuperJson = new SuperJson({
+      const mockSuperJson = {
         profiles: {
           [`${profile.scope}/${profile.name}`]: {
             file: '',
@@ -466,7 +473,7 @@ describe('Check logic', () => {
             file: '',
           },
         },
-      });
+      };
       mocked(loadMap).mockResolvedValue({
         ast: {} as MapDocumentNode,
         from: mockRemoteMapFrom,
@@ -483,6 +490,7 @@ describe('Check logic', () => {
       await expect(
         check(
           mockSuperJson,
+          '',
           [
             {
               id: ProfileId.fromScopeName(profile.scope, profile.name),
@@ -498,6 +506,7 @@ describe('Check logic', () => {
       expect(loadProfile).toHaveBeenCalledWith(
         {
           superJson: mockSuperJson,
+          superJsonPath: '',
           profile: ProfileId.fromScopeName(profile.scope, profile.name),
           version: profile.version,
         },
@@ -506,6 +515,7 @@ describe('Check logic', () => {
       expect(loadMap).toHaveBeenCalledWith(
         {
           superJson: mockSuperJson,
+          superJsonPath: '',
           profile: ProfileId.fromScopeName(profile.scope, profile.name),
           provider,
           map: { variant },
@@ -518,7 +528,7 @@ describe('Check logic', () => {
     });
 
     it('throws error on invalid profile document', async () => {
-      const mockSuperJson = new SuperJson({
+      const mockSuperJson = {
         profiles: {
           [`${profile.scope}/${profile.name}`]: {
             file: '',
@@ -534,7 +544,7 @@ describe('Check logic', () => {
             file: '',
           },
         },
-      });
+      };
       mocked(loadMap).mockResolvedValue({
         ast: mockMapDocument,
         from: mockRemoteMapFrom,
@@ -550,6 +560,7 @@ describe('Check logic', () => {
       await expect(
         check(
           mockSuperJson,
+          '',
           [
             {
               id: ProfileId.fromScopeName(profile.scope, profile.name),
@@ -565,6 +576,7 @@ describe('Check logic', () => {
       expect(loadProfile).toHaveBeenCalledWith(
         {
           superJson: mockSuperJson,
+          superJsonPath: '',
           profile: ProfileId.fromScopeName(profile.scope, profile.name),
           version: profile.version,
         },
@@ -576,7 +588,7 @@ describe('Check logic', () => {
     });
 
     it('add error result on invalid provider json', async () => {
-      const mockSuperJson = new SuperJson({
+      const mockSuperJson = {
         profiles: {
           [`${profile.scope}/${profile.name}`]: {
             file: '',
@@ -592,7 +604,7 @@ describe('Check logic', () => {
             file: '',
           },
         },
-      });
+      };
       mocked(isProviderParseError).mockReturnValue(true);
       mocked(loadMap).mockResolvedValue({
         ast: mockMapDocumentWithUnverified,
@@ -611,6 +623,7 @@ describe('Check logic', () => {
         (
           await check(
             mockSuperJson,
+            '',
             [
               {
                 id: ProfileId.fromScopeName(profile.scope, profile.name),
@@ -625,12 +638,14 @@ describe('Check logic', () => {
 
       expect(loadProvider).toHaveBeenCalledWith(
         mockSuperJson,
+        '',
         provider,
         expect.anything()
       );
       expect(loadProfile).toHaveBeenCalledWith(
         {
           superJson: mockSuperJson,
+          superJsonPath: '',
           profile: ProfileId.fromScopeName(profile.scope, profile.name),
           version: profile.version,
         },
@@ -639,6 +654,7 @@ describe('Check logic', () => {
       expect(loadMap).toHaveBeenCalledWith(
         {
           superJson: mockSuperJson,
+          superJsonPath: '',
           profile: ProfileId.fromScopeName(profile.scope, profile.name),
           provider,
           map: { variant },
@@ -1159,7 +1175,7 @@ describe('Check logic', () => {
 
   describe('when checking integration parameters', () => {
     it('returns empty result if there are no integration parameters', async () => {
-      const mockSuperJson = new SuperJson({
+      const mockSuperJson = {
         profiles: {
           [profile.name]: {
             file: '',
@@ -1175,7 +1191,7 @@ describe('Check logic', () => {
             file: '',
           },
         },
-      });
+      };
       expect(
         checkIntegrationParameters(mockProviderJson, mockSuperJson)
       ).toEqual({
@@ -1186,7 +1202,7 @@ describe('Check logic', () => {
     });
 
     it('returns result with warnings if there are extra integration parameters in super.json', async () => {
-      const mockSuperJson = new SuperJson({
+      const mockSuperJson = {
         profiles: {
           [profile.name]: {
             file: '',
@@ -1206,7 +1222,7 @@ describe('Check logic', () => {
             },
           },
         },
-      });
+      };
 
       const mockProviderJson: ProviderJson = {
         name: provider,
@@ -1234,7 +1250,7 @@ describe('Check logic', () => {
     });
 
     it('returns result with errors if there are integration parameters missing in super.json', async () => {
-      const mockSuperJson = new SuperJson({
+      const mockSuperJson = {
         profiles: {
           [profile.name]: {
             file: '',
@@ -1254,7 +1270,7 @@ describe('Check logic', () => {
             },
           },
         },
-      });
+      };
 
       const mockProviderJson: ProviderJson = {
         name: provider,
@@ -1289,7 +1305,7 @@ describe('Check logic', () => {
     });
 
     it('returns result with error if there are not matching provider names super.json and provider.json', async () => {
-      const mockSuperJson = new SuperJson({
+      const mockSuperJson = {
         profiles: {
           [profile.name]: {
             file: '',
@@ -1308,7 +1324,7 @@ describe('Check logic', () => {
             },
           },
         },
-      });
+      };
 
       const mockProviderJson: ProviderJson = {
         name: 'different',

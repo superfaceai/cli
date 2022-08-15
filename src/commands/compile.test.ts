@@ -1,5 +1,6 @@
-import { err, ok, SuperJson } from '@superfaceai/one-sdk';
-import { SDKExecutionError } from '@superfaceai/one-sdk/dist/internal/errors';
+import { err, ok, SDKExecutionError } from '@superfaceai/one-sdk';
+import * as SuperJson from '@superfaceai/one-sdk/dist/schema-tools/superjson/utils';
+import { resolve as resolvePath } from 'path';
 import { mocked } from 'ts-jest/utils';
 
 import { MockLogger } from '../common';
@@ -31,7 +32,7 @@ describe('Compile CLI command', () => {
     const mockProvider = 'swapi';
     const secondMockProvider = 'starwarsapi';
     const thirdMockProvider = 'startrek';
-    const mockSuperJson = new SuperJson({
+    const mockSuperJson = {
       profiles: {
         [mockProfile]: {
           file: `../${mockProfile}.supr`,
@@ -78,7 +79,7 @@ describe('Compile CLI command', () => {
           security: [],
         },
       },
-    });
+    };
 
     beforeEach(() => {
       instance = CommandInstance(Compile);
@@ -95,7 +96,7 @@ describe('Compile CLI command', () => {
     it('throws when super.json not loaded correctly', async () => {
       mocked(detectSuperJson).mockResolvedValue('.');
       jest
-        .spyOn(SuperJson, 'load')
+        .spyOn(SuperJson, 'loadSuperJson')
         .mockResolvedValue(err(new SDKExecutionError('test error', [], [])));
       await expect(
         instance.execute({ logger, userError, flags: {} })
@@ -116,8 +117,8 @@ describe('Compile CLI command', () => {
     it('throws error on invalid profile id', async () => {
       mocked(detectSuperJson).mockResolvedValue('.');
       const loadSpy = jest
-        .spyOn(SuperJson, 'load')
-        .mockResolvedValue(ok(new SuperJson()));
+        .spyOn(SuperJson, 'loadSuperJson')
+        .mockResolvedValue(ok({}));
 
       await expect(
         instance.execute({
@@ -139,8 +140,8 @@ describe('Compile CLI command', () => {
     it('throws error on invalid provider name', async () => {
       mocked(detectSuperJson).mockResolvedValue('.');
       const loadSpy = jest
-        .spyOn(SuperJson, 'load')
-        .mockResolvedValue(ok(new SuperJson()));
+        .spyOn(SuperJson, 'loadSuperJson')
+        .mockResolvedValue(ok({}));
 
       await expect(
         instance.execute({
@@ -160,8 +161,8 @@ describe('Compile CLI command', () => {
     it('throws error when provider name is specified but profile id is not', async () => {
       mocked(detectSuperJson).mockResolvedValue('.');
       const loadSpy = jest
-        .spyOn(SuperJson, 'load')
-        .mockResolvedValue(ok(new SuperJson()));
+        .spyOn(SuperJson, 'loadSuperJson')
+        .mockResolvedValue(ok({}));
 
       await expect(
         instance.execute({
@@ -179,8 +180,8 @@ describe('Compile CLI command', () => {
     it('throws error on missing profile id in super.json', async () => {
       mocked(detectSuperJson).mockResolvedValue('.');
       const loadSpy = jest
-        .spyOn(SuperJson, 'load')
-        .mockResolvedValue(ok(new SuperJson()));
+        .spyOn(SuperJson, 'loadSuperJson')
+        .mockResolvedValue(ok({}));
 
       await expect(
         instance.execute({
@@ -201,18 +202,16 @@ describe('Compile CLI command', () => {
 
     it('throws error on missing provider id in super.json', async () => {
       mocked(detectSuperJson).mockResolvedValue('.');
-      const loadSpy = jest.spyOn(SuperJson, 'load').mockResolvedValue(
-        ok(
-          new SuperJson({
-            profiles: {
-              [mockProfile]: {
-                version: '1.0.0',
-                defaults: {},
-              },
+      const loadSpy = jest.spyOn(SuperJson, 'loadSuperJson').mockResolvedValue(
+        ok({
+          profiles: {
+            [mockProfile]: {
+              version: '1.0.0',
+              defaults: {},
             },
-            providers: {},
-          })
-        )
+          },
+          providers: {},
+        })
       );
 
       await expect(
@@ -235,7 +234,7 @@ describe('Compile CLI command', () => {
     describe('compiling whole super json', () => {
       it('compiles all local profiles and maps file from super.json and scan flag', async () => {
         const loadSpy = jest
-          .spyOn(SuperJson, 'load')
+          .spyOn(SuperJson, 'loadSuperJson')
           .mockResolvedValue(ok(mockSuperJson));
 
         mocked(detectSuperJson).mockResolvedValue('.');
@@ -249,17 +248,15 @@ describe('Compile CLI command', () => {
           {
             profiles: [
               {
-                path: mockSuperJson.resolvePath(`../${mockProfile}.supr`),
+                path: resolvePath(`../${mockProfile}.supr`),
                 id: ProfileId.fromId(mockProfile, { userError }),
                 maps: [
                   {
-                    path: mockSuperJson.resolvePath(
-                      `../${mockProfile}.${mockProvider}.suma`
-                    ),
+                    path: resolvePath(`../${mockProfile}.${mockProvider}.suma`),
                     provider: mockProvider,
                   },
                   {
-                    path: mockSuperJson.resolvePath(
+                    path: resolvePath(
                       `../${mockProfile}.${secondMockProvider}.suma`
                     ),
                     provider: secondMockProvider,
@@ -267,16 +264,21 @@ describe('Compile CLI command', () => {
                 ],
               },
               {
-                path: mockSuperJson.resolvePath(`../${secondMockProfile}.supr`),
+                path: resolvePath(`../${secondMockProfile}.supr`),
                 id: ProfileId.fromId(secondMockProfile, { userError }),
                 maps: [
                   {
-                    path: mockSuperJson.resolvePath(
+                    path: resolvePath(
                       `../${secondMockProfile}.${thirdMockProvider}.suma`
                     ),
                     provider: thirdMockProvider,
                   },
                 ],
+              },
+              {
+                path: undefined,
+                id: ProfileId.fromId('other/profile', { userError }),
+                maps: [],
               },
             ],
             options: {
@@ -293,7 +295,7 @@ describe('Compile CLI command', () => {
 
       it('compiles local profiles and maps file from super.json - only maps', async () => {
         const loadSpy = jest
-          .spyOn(SuperJson, 'load')
+          .spyOn(SuperJson, 'loadSuperJson')
           .mockResolvedValue(ok(mockSuperJson));
 
         mocked(detectSuperJson).mockResolvedValue('.');
@@ -307,17 +309,15 @@ describe('Compile CLI command', () => {
           {
             profiles: [
               {
-                path: mockSuperJson.resolvePath(`../${mockProfile}.supr`),
+                path: resolvePath(`../${mockProfile}.supr`),
                 id: ProfileId.fromId(mockProfile, { userError }),
                 maps: [
                   {
-                    path: mockSuperJson.resolvePath(
-                      `../${mockProfile}.${mockProvider}.suma`
-                    ),
+                    path: resolvePath(`../${mockProfile}.${mockProvider}.suma`),
                     provider: mockProvider,
                   },
                   {
-                    path: mockSuperJson.resolvePath(
+                    path: resolvePath(
                       `../${mockProfile}.${secondMockProvider}.suma`
                     ),
                     provider: secondMockProvider,
@@ -325,16 +325,21 @@ describe('Compile CLI command', () => {
                 ],
               },
               {
-                path: mockSuperJson.resolvePath(`../${secondMockProfile}.supr`),
+                path: resolvePath(`../${secondMockProfile}.supr`),
                 id: ProfileId.fromId(secondMockProfile, { userError }),
                 maps: [
                   {
-                    path: mockSuperJson.resolvePath(
+                    path: resolvePath(
                       `../${secondMockProfile}.${thirdMockProvider}.suma`
                     ),
                     provider: thirdMockProvider,
                   },
                 ],
+              },
+              {
+                path: undefined,
+                id: ProfileId.fromId('other/profile', { userError }),
+                maps: [],
               },
             ],
             options: { onlyMap: true, onlyProfile: undefined },
@@ -348,7 +353,7 @@ describe('Compile CLI command', () => {
 
       it('compiles local profiles and maps file from super.json - only profiles', async () => {
         const loadSpy = jest
-          .spyOn(SuperJson, 'load')
+          .spyOn(SuperJson, 'loadSuperJson')
           .mockResolvedValue(ok(mockSuperJson));
 
         mocked(detectSuperJson).mockResolvedValue('.');
@@ -362,17 +367,15 @@ describe('Compile CLI command', () => {
           {
             profiles: [
               {
-                path: mockSuperJson.resolvePath(`../${mockProfile}.supr`),
+                path: resolvePath(`../${mockProfile}.supr`),
                 id: ProfileId.fromId(mockProfile, { userError }),
                 maps: [
                   {
-                    path: mockSuperJson.resolvePath(
-                      `../${mockProfile}.${mockProvider}.suma`
-                    ),
+                    path: resolvePath(`../${mockProfile}.${mockProvider}.suma`),
                     provider: mockProvider,
                   },
                   {
-                    path: mockSuperJson.resolvePath(
+                    path: resolvePath(
                       `../${mockProfile}.${secondMockProvider}.suma`
                     ),
                     provider: secondMockProvider,
@@ -380,16 +383,21 @@ describe('Compile CLI command', () => {
                 ],
               },
               {
-                path: mockSuperJson.resolvePath(`../${secondMockProfile}.supr`),
+                path: resolvePath(`../${secondMockProfile}.supr`),
                 id: ProfileId.fromId(secondMockProfile, { userError }),
                 maps: [
                   {
-                    path: mockSuperJson.resolvePath(
+                    path: resolvePath(
                       `../${secondMockProfile}.${thirdMockProvider}.suma`
                     ),
                     provider: thirdMockProvider,
                   },
                 ],
+              },
+              {
+                path: undefined,
+                id: ProfileId.fromId('other/profile', { userError }),
+                maps: [],
               },
             ],
             options: { onlyMap: undefined, onlyProfile: true },
@@ -403,7 +411,7 @@ describe('Compile CLI command', () => {
 
       it('compiles local profiles and maps file from super.json - quiet flag', async () => {
         const loadSpy = jest
-          .spyOn(SuperJson, 'load')
+          .spyOn(SuperJson, 'loadSuperJson')
           .mockResolvedValue(ok(mockSuperJson));
 
         mocked(detectSuperJson).mockResolvedValue('.');
@@ -417,17 +425,15 @@ describe('Compile CLI command', () => {
           {
             profiles: [
               {
-                path: mockSuperJson.resolvePath(`../${mockProfile}.supr`),
+                path: resolvePath(`../${mockProfile}.supr`),
                 id: ProfileId.fromId(mockProfile, { userError }),
                 maps: [
                   {
-                    path: mockSuperJson.resolvePath(
-                      `../${mockProfile}.${mockProvider}.suma`
-                    ),
+                    path: resolvePath(`../${mockProfile}.${mockProvider}.suma`),
                     provider: mockProvider,
                   },
                   {
-                    path: mockSuperJson.resolvePath(
+                    path: resolvePath(
                       `../${mockProfile}.${secondMockProvider}.suma`
                     ),
                     provider: secondMockProvider,
@@ -435,16 +441,21 @@ describe('Compile CLI command', () => {
                 ],
               },
               {
-                path: mockSuperJson.resolvePath(`../${secondMockProfile}.supr`),
+                path: resolvePath(`../${secondMockProfile}.supr`),
                 id: ProfileId.fromId(secondMockProfile, { userError }),
                 maps: [
                   {
-                    path: mockSuperJson.resolvePath(
+                    path: resolvePath(
                       `../${secondMockProfile}.${thirdMockProvider}.suma`
                     ),
                     provider: thirdMockProvider,
                   },
                 ],
+              },
+              {
+                path: undefined,
+                id: ProfileId.fromId('other/profile', { userError }),
+                maps: [],
               },
             ],
             options: { onlyMap: undefined, onlyProfile: undefined },
@@ -460,7 +471,7 @@ describe('Compile CLI command', () => {
     describe('compiling single profile', () => {
       it('compiles single local profile and its maps', async () => {
         const loadSpy = jest
-          .spyOn(SuperJson, 'load')
+          .spyOn(SuperJson, 'loadSuperJson')
           .mockResolvedValue(ok(mockSuperJson));
 
         mocked(detectSuperJson).mockResolvedValue('.');
@@ -478,17 +489,15 @@ describe('Compile CLI command', () => {
           {
             profiles: [
               {
-                path: mockSuperJson.resolvePath(`../${mockProfile}.supr`),
+                path: resolvePath(`../${mockProfile}.supr`),
                 id: ProfileId.fromId(mockProfile, { userError }),
                 maps: [
                   {
-                    path: mockSuperJson.resolvePath(
-                      `../${mockProfile}.${mockProvider}.suma`
-                    ),
+                    path: resolvePath(`../${mockProfile}.${mockProvider}.suma`),
                     provider: mockProvider,
                   },
                   {
-                    path: mockSuperJson.resolvePath(
+                    path: resolvePath(
                       `../${mockProfile}.${secondMockProvider}.suma`
                     ),
                     provider: secondMockProvider,
@@ -510,7 +519,7 @@ describe('Compile CLI command', () => {
 
       it('compiles single local profile and its maps - only maps', async () => {
         const loadSpy = jest
-          .spyOn(SuperJson, 'load')
+          .spyOn(SuperJson, 'loadSuperJson')
           .mockResolvedValue(ok(mockSuperJson));
 
         mocked(detectSuperJson).mockResolvedValue('.');
@@ -528,17 +537,15 @@ describe('Compile CLI command', () => {
           {
             profiles: [
               {
-                path: mockSuperJson.resolvePath(`../${mockProfile}.supr`),
+                path: resolvePath(`../${mockProfile}.supr`),
                 id: ProfileId.fromId(mockProfile, { userError }),
                 maps: [
                   {
-                    path: mockSuperJson.resolvePath(
-                      `../${mockProfile}.${mockProvider}.suma`
-                    ),
+                    path: resolvePath(`../${mockProfile}.${mockProvider}.suma`),
                     provider: mockProvider,
                   },
                   {
-                    path: mockSuperJson.resolvePath(
+                    path: resolvePath(
                       `../${mockProfile}.${secondMockProvider}.suma`
                     ),
                     provider: secondMockProvider,
@@ -557,7 +564,7 @@ describe('Compile CLI command', () => {
 
       it('compiles single local profile and its maps - only profiles', async () => {
         const loadSpy = jest
-          .spyOn(SuperJson, 'load')
+          .spyOn(SuperJson, 'loadSuperJson')
           .mockResolvedValue(ok(mockSuperJson));
 
         mocked(detectSuperJson).mockResolvedValue('.');
@@ -575,17 +582,15 @@ describe('Compile CLI command', () => {
           {
             profiles: [
               {
-                path: mockSuperJson.resolvePath(`../${mockProfile}.supr`),
+                path: resolvePath(`../${mockProfile}.supr`),
                 id: ProfileId.fromId(mockProfile, { userError }),
                 maps: [
                   {
-                    path: mockSuperJson.resolvePath(
-                      `../${mockProfile}.${mockProvider}.suma`
-                    ),
+                    path: resolvePath(`../${mockProfile}.${mockProvider}.suma`),
                     provider: mockProvider,
                   },
                   {
-                    path: mockSuperJson.resolvePath(
+                    path: resolvePath(
                       `../${mockProfile}.${secondMockProvider}.suma`
                     ),
                     provider: secondMockProvider,
@@ -606,7 +611,7 @@ describe('Compile CLI command', () => {
     describe('compiling single profile and single map', () => {
       it('compiles single local profile and single local map', async () => {
         const loadSpy = jest
-          .spyOn(SuperJson, 'load')
+          .spyOn(SuperJson, 'loadSuperJson')
           .mockResolvedValue(ok(mockSuperJson));
 
         mocked(detectSuperJson).mockResolvedValue('.');
@@ -627,13 +632,11 @@ describe('Compile CLI command', () => {
           {
             profiles: [
               {
-                path: mockSuperJson.resolvePath(`../${mockProfile}.supr`),
+                path: resolvePath(`../${mockProfile}.supr`),
                 id: ProfileId.fromId(mockProfile, { userError }),
                 maps: [
                   {
-                    path: mockSuperJson.resolvePath(
-                      `../${mockProfile}.${mockProvider}.suma`
-                    ),
+                    path: resolvePath(`../${mockProfile}.${mockProvider}.suma`),
                     provider: mockProvider,
                   },
                 ],
@@ -653,7 +656,7 @@ describe('Compile CLI command', () => {
 
       it('compiles single local profile and single local map - only maps', async () => {
         const loadSpy = jest
-          .spyOn(SuperJson, 'load')
+          .spyOn(SuperJson, 'loadSuperJson')
           .mockResolvedValue(ok(mockSuperJson));
 
         mocked(detectSuperJson).mockResolvedValue('.');
@@ -675,13 +678,11 @@ describe('Compile CLI command', () => {
           {
             profiles: [
               {
-                path: mockSuperJson.resolvePath(`../${mockProfile}.supr`),
+                path: resolvePath(`../${mockProfile}.supr`),
                 id: ProfileId.fromId(mockProfile, { userError }),
                 maps: [
                   {
-                    path: mockSuperJson.resolvePath(
-                      `../${mockProfile}.${mockProvider}.suma`
-                    ),
+                    path: resolvePath(`../${mockProfile}.${mockProvider}.suma`),
                     provider: mockProvider,
                   },
                 ],
@@ -698,7 +699,7 @@ describe('Compile CLI command', () => {
 
       it('compiles single local profile and single local map - only profiles', async () => {
         const loadSpy = jest
-          .spyOn(SuperJson, 'load')
+          .spyOn(SuperJson, 'loadSuperJson')
           .mockResolvedValue(ok(mockSuperJson));
 
         mocked(detectSuperJson).mockResolvedValue('.');
@@ -720,13 +721,11 @@ describe('Compile CLI command', () => {
           {
             profiles: [
               {
-                path: mockSuperJson.resolvePath(`../${mockProfile}.supr`),
+                path: resolvePath(`../${mockProfile}.supr`),
                 id: ProfileId.fromId(mockProfile, { userError }),
                 maps: [
                   {
-                    path: mockSuperJson.resolvePath(
-                      `../${mockProfile}.${mockProvider}.suma`
-                    ),
+                    path: resolvePath(`../${mockProfile}.${mockProvider}.suma`),
                     provider: mockProvider,
                   },
                 ],

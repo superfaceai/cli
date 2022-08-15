@@ -171,7 +171,7 @@ export default class Init extends Command {
 
     const path = args.name ? joinPath('.', args.name) : '.';
 
-    const superJson = await initSuperface(
+    const { superJson, superJsonPath } = await initSuperface(
       {
         appPath: path,
         initialDocument: {
@@ -183,10 +183,13 @@ export default class Init extends Command {
 
     if (profiles.length > 0) {
       await generateSpecifiedProfiles(
-        { path, superJson, profileIds: profiles },
+        { path, superJson, superJsonPath, profileIds: profiles },
         { logger, userError }
       );
-      await OutputStream.writeOnce(superJson.path, superJson.stringified);
+      await OutputStream.writeOnce(
+        superJsonPath,
+        JSON.stringify(superJson, undefined, 2)
+      );
     }
   }
 }

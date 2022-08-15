@@ -3,8 +3,8 @@ import {
   MapDocumentNode,
   MapHeaderNode,
   ProfileDocumentNode,
+  SuperJsonDocument,
 } from '@superfaceai/ast';
-import { SuperJson } from '@superfaceai/one-sdk';
 import {
   formatIssues,
   getProfileOutput,
@@ -274,13 +274,15 @@ type PreparedProfile = ProfileToValidate & {
 };
 
 async function prepareLintedProfile(
-  superJson: SuperJson,
+  superJson: SuperJsonDocument,
+  superJsonPath: string,
   profile: ProfileToValidate
 ): Promise<PreparedProfile> {
   let ast: ProfileDocumentNode | undefined = undefined;
   let output: ProfileOutput | undefined = undefined;
   const profileSource = await findLocalProfileSource(
     superJson,
+    superJsonPath,
     profile.id,
     profile.version
   );
@@ -324,7 +326,8 @@ async function prepareLintedProfile(
 }
 
 async function prepareLintedMap(
-  superJson: SuperJson,
+  superJson: SuperJsonDocument,
+  superJsonPath: string,
   profile: ProfileToValidate,
   map: MapToValidate
 ): Promise<PreparedMap> {
@@ -341,6 +344,7 @@ async function prepareLintedMap(
 
   const mapSource = await findLocalMapSource(
     superJson,
+    superJsonPath,
     profile.id,
     map.provider
   );
@@ -404,7 +408,8 @@ function prepareResult(reports: ReportFormat[]): LintResult {
 }
 
 export async function lint(
-  superJson: SuperJson,
+  superJson: SuperJsonDocument,
+  superJsonPath: string,
   profiles: ProfileToValidate[],
   { logger }: { logger: ILogger }
 ): Promise<LintResult> {
@@ -412,7 +417,11 @@ export async function lint(
   const reports: ReportFormat[] = [];
 
   for (const profile of profiles) {
-    const preparedProfile = await prepareLintedProfile(superJson, profile);
+    const preparedProfile = await prepareLintedProfile(
+      superJson,
+      superJsonPath,
+      profile
+    );
 
     reports.push(preparedProfile.report);
 
@@ -422,7 +431,12 @@ export async function lint(
     }
 
     for (const map of profile.maps) {
-      const preparedMap = await prepareLintedMap(superJson, profile, map);
+      const preparedMap = await prepareLintedMap(
+        superJson,
+        superJsonPath,
+        profile,
+        map
+      );
       reports.push(preparedMap.report);
 
       //Return if we have errors or warnings

@@ -1,4 +1,4 @@
-import { SuperJson } from '@superfaceai/one-sdk';
+import { SuperJsonDocument } from '@superfaceai/ast';
 import { ServiceApiError } from '@superfaceai/service-client';
 import { yellow } from 'chalk';
 
@@ -27,6 +27,7 @@ export async function publish(
   {
     publishing,
     superJson,
+    superJsonPath,
     profile,
     provider,
     map,
@@ -34,8 +35,8 @@ export async function publish(
     options,
   }: {
     publishing: 'map' | 'profile' | 'provider';
-
-    superJson: SuperJson;
+    superJson: SuperJsonDocument;
+    superJsonPath: string;
     profile: ProfileId;
     provider: string;
     map: {
@@ -54,7 +55,7 @@ export async function publish(
 ): Promise<string | undefined> {
   // Profile
   const profileFiles = await loadProfile(
-    { superJson, profile, version },
+    { superJson, superJsonPath, profile, version },
     { logger }
   );
   if (profileFiles.from.kind !== 'local' && publishing === 'profile') {
@@ -66,7 +67,7 @@ export async function publish(
 
   // Map
   const mapFiles = await loadMap(
-    { superJson, profile, provider, map, version },
+    { superJson, superJsonPath, profile, provider, map, version },
     { logger }
   );
   if (mapFiles.from.kind !== 'local' && publishing == 'map') {
@@ -77,7 +78,9 @@ export async function publish(
   }
 
   // Provider
-  const providerFiles = await loadProvider(superJson, provider, { logger });
+  const providerFiles = await loadProvider(superJson, superJsonPath, provider, {
+    logger,
+  });
 
   if (providerFiles.from.kind === 'remote' && publishing === 'provider') {
     throw userError(
@@ -97,6 +100,7 @@ export async function publish(
       mapFrom: mapFiles.from,
       profileFrom: profileFiles.from,
       superJson,
+      superJsonPath,
     },
     { logger, userError }
   );

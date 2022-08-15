@@ -1,18 +1,17 @@
-import { SuperJson } from '@superfaceai/one-sdk';
 import { join as joinPath, resolve } from 'path';
 
 import { mkdir, rimraf } from '../common/io';
 import { setUpTempDir } from '../test/utils';
 import { OutputStream } from './output-stream';
-import { resolveSuperfaceRelatedPath } from './path';
+import { resolveSuperfaceRelativePath } from './path';
 
 describe('Configure CLI command', () => {
   //File specific path
   const TEMP_PATH = joinPath('test', 'tmp');
   const CWD = process.cwd();
   let tempDir: string;
-  const mockSuperJson = new SuperJson();
-  let superJson: SuperJson;
+  const mockSuperJson = {};
+  const superJsonPath = joinPath('superface', 'super.json');
 
   beforeAll(async () => {
     await mkdir(TEMP_PATH, { recursive: true });
@@ -26,7 +25,7 @@ describe('Configure CLI command', () => {
     await mkdir('superface');
     await OutputStream.writeOnce(
       joinPath('superface', 'super.json'),
-      mockSuperJson.stringified
+      JSON.stringify(mockSuperJson, undefined, 2)
     );
 
     //Set up file inside superface directory
@@ -35,11 +34,6 @@ describe('Configure CLI command', () => {
       joinPath('superface', 'second', 'profile.supr'),
       'content'
     );
-  });
-  beforeEach(async () => {
-    superJson = (
-      await SuperJson.load(joinPath('superface', 'super.json'))
-    ).unwrap();
   });
 
   afterAll(async () => {
@@ -50,27 +44,30 @@ describe('Configure CLI command', () => {
   describe('when resolving superface related path', () => {
     it('returns correct path for relative path to file outside superface directory', async () => {
       expect(
-        resolveSuperfaceRelatedPath('./first/profile.supr', superJson)
+        resolveSuperfaceRelativePath(superJsonPath, './first/profile.supr')
       ).toEqual('../first/profile.supr');
     });
     it('returns correct path for absolute path to file outside superface directory', async () => {
       expect(
-        resolveSuperfaceRelatedPath(resolve('./first/profile.supr'), superJson)
+        resolveSuperfaceRelativePath(
+          superJsonPath,
+          resolve('./first/profile.supr')
+        )
       ).toEqual('../first/profile.supr');
     });
     it('returns correct path for relative path to file inside superface directory', async () => {
       expect(
-        resolveSuperfaceRelatedPath(
-          './superface/second/profile.supr',
-          superJson
+        resolveSuperfaceRelativePath(
+          superJsonPath,
+          './superface/second/profile.supr'
         )
       ).toEqual('./second/profile.supr');
     });
     it('returns correct path for absolute path to file inside superface directory', async () => {
       expect(
-        resolveSuperfaceRelatedPath(
-          resolve('./superface/second/profile.supr'),
-          superJson
+        resolveSuperfaceRelativePath(
+          superJsonPath,
+          resolve('./superface/second/profile.supr')
         )
       ).toEqual('./second/profile.supr');
     });

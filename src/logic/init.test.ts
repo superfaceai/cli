@@ -1,4 +1,5 @@
-import { ok, SuperJson } from '@superfaceai/one-sdk';
+import { ok } from '@superfaceai/one-sdk';
+import * as SuperJson from '@superfaceai/one-sdk/dist/schema-tools/superjson/utils';
 import { parseProfileId } from '@superfaceai/parser';
 import { mocked } from 'ts-jest/utils';
 
@@ -43,8 +44,8 @@ describe('Init logic', () => {
         .spyOn(OutputStream, 'writeIfAbsent')
         .mockResolvedValue(true);
       const loadSpy = jest
-        .spyOn(SuperJson, 'load')
-        .mockResolvedValue(ok(new SuperJson({})));
+        .spyOn(SuperJson, 'loadSuperJson')
+        .mockResolvedValue(ok({}));
 
       mocked(mkdirQuiet).mockResolvedValue(true);
       mocked(mkdir).mockResolvedValue('test');
@@ -56,9 +57,7 @@ describe('Init logic', () => {
       expect(mkdir).toHaveBeenCalledTimes(1);
       expect(mkdir).toHaveBeenCalledWith(mockAppPath, { recursive: true });
 
-      expect(mkdirQuiet).toHaveBeenNthCalledWith(1, 'test/superface');
-      expect(mkdirQuiet).toHaveBeenNthCalledWith(2, 'test/superface/grid');
-      expect(mkdirQuiet).toHaveBeenNthCalledWith(3, 'test/superface/types');
+      expect(mkdirQuiet).toHaveBeenCalledWith('test/superface');
 
       expect(writeIfAbsentSpy).toHaveBeenCalledTimes(1);
       expect(writeIfAbsentSpy).toHaveBeenCalledWith(
@@ -68,7 +67,10 @@ describe('Init logic', () => {
       );
 
       expect(loadSpy).toHaveBeenCalledTimes(1);
-      expect(loadSpy).toHaveBeenCalledWith('test/superface/super.json');
+      expect(loadSpy).toHaveBeenCalledWith(
+        'test/superface/super.json',
+        expect.anything()
+      );
     });
   });
 
@@ -95,7 +97,7 @@ describe('Init logic', () => {
         });
       mocked(createProfile).mockResolvedValue(undefined);
       const mockPath = 'test';
-      const mockSuperJson = new SuperJson({});
+      const mockSuperJson = {};
       const mockProfileIds = ['first-profile-id', 'second-profile-id'];
 
       await expect(
@@ -103,6 +105,7 @@ describe('Init logic', () => {
           {
             path: mockPath,
             superJson: mockSuperJson,
+            superJsonPath: '',
             profileIds: mockProfileIds,
           },
           { logger, userError }
@@ -117,22 +120,24 @@ describe('Init logic', () => {
       expect(createProfile).toHaveBeenNthCalledWith(
         1,
         {
-          basePath: 'test/superface/grid',
+          basePath: 'test',
           profile: ProfileId.fromScopeName(undefined, 'first-test-name'),
           version: { major: 1 },
           usecaseNames: [composeUsecaseName('first-test-name')],
           superJson: mockSuperJson,
+          superJsonPath: '',
         },
         expect.anything()
       );
       expect(createProfile).toHaveBeenNthCalledWith(
         2,
         {
-          basePath: 'test/superface/grid',
+          basePath: 'test',
           profile: ProfileId.fromScopeName(undefined, 'second-test-name'),
           version: { major: 2 },
           usecaseNames: [composeUsecaseName('second-test-name')],
           superJson: mockSuperJson,
+          superJsonPath: '',
         },
         expect.anything()
       );
@@ -145,7 +150,7 @@ describe('Init logic', () => {
       });
       mocked(createProfile).mockResolvedValue(undefined);
       const mockPath = 'test';
-      const mockSuperJson = new SuperJson({});
+      const mockSuperJson = {};
       const mockProfileIds = ['first-profile-id'];
 
       await expect(
@@ -153,6 +158,7 @@ describe('Init logic', () => {
           {
             path: mockPath,
             superJson: mockSuperJson,
+            superJsonPath: '',
             profileIds: mockProfileIds,
           },
           { logger, userError }

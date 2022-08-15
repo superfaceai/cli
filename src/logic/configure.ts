@@ -5,9 +5,18 @@ import {
   ProfileProviderDefaults,
   ProviderJson,
   SecurityScheme,
+  SuperJsonDocument,
 } from '@superfaceai/ast';
-import { SuperJson } from '@superfaceai/one-sdk';
-import { join as joinPath } from 'path';
+import {
+  loadSuperJson,
+  NodeFileSystem,
+  normalizeSuperJsonDocument,
+  setProfileProvider,
+  setProvider,
+  swapProfileProviderVariant,
+  swapProviderVariant,
+} from '@superfaceai/one-sdk';
+import { dirname, join as joinPath, relative as relativePath } from 'path';
 
 import {
   constructProfileProviderSettings,
@@ -58,12 +67,14 @@ export async function updateEnv(
 export function handleProviderResponse(
   {
     superJson,
+    superJsonPath,
     profileId,
     response,
     defaults,
     options,
   }: {
-    superJson: SuperJson;
+    superJson: SuperJsonDocument;
+    superJsonPath: string;
     profileId: ProfileId;
     response: ProviderJson;
     defaults?: ProfileProviderDefaults;
@@ -89,15 +100,22 @@ export function handleProviderResponse(
     ? prepareSecurityValues(response.name, response.securitySchemes)
     : [];
 
+  const normalized = normalizeSuperJsonDocument(superJson);
   // update super.json - set provider if not already set or on force
-  if (options?.force || !superJson.normalized.providers[response.name]) {
-    superJson.setProvider(response.name, {
-      security,
-      parameters,
-      file: options?.localProvider
-        ? superJson.relativePath(options.localProvider)
-        : undefined,
-    });
+  if (options?.force || !normalized.providers[response.name]) {
+    setProvider(
+      superJson,
+      response.name,
+      {
+        security,
+        parameters,
+        file: options?.localProvider
+          ? relativePath(dirname(superJsonPath), options.localProvider)
+          : undefined,
+      },
+      NodeFileSystem
+    );
+
     numberOfConfigured = security.length;
     providerUpdated = true;
   }
@@ -111,15 +129,23 @@ export function handleProviderResponse(
 
   if (options?.localMap) {
     if (typeof settings === 'string') {
-      settings = { file: superJson.relativePath(options.localMap) };
+      settings = {
+        file: relativePath(dirname(superJsonPath), options.localMap),
+      };
     } else {
       settings = {
         ...settings,
-        file: superJson.relativePath(options.localMap),
+        file: relativePath(dirname(superJsonPath), options.localMap),
       };
     }
   }
-  superJson.setProfileProvider(profileId.id, response.name, settings);
+  setProfileProvider(
+    superJson,
+    profileId.id,
+    response.name,
+    settings,
+    NodeFileSystem
+  );
 
   return { providerUpdated, numberOfConfigured };
 }
@@ -171,22 +197,26 @@ export async function installProvider(
   { logger, userError }: { logger: ILogger; userError: UserError }
 ): Promise<void> {
   const superJsonPath = joinPath(superPath, META_FILE);
-  const loadedResult = await SuperJson.load(superJsonPath);
+  const loadedResult = await loadSuperJson(superJsonPath, NodeFileSystem);
   const superJson = loadedResult.match(
     v => v,
     err => {
       logger.warn('errorMessage', err.formatLong());
 
-      return new SuperJson({});
+      return {};
     }
   );
 
   //Check profile existance
-  if (!superJson.normalized.profiles[profileId.id]) {
-    throw userError(
-      `profile ${profileId.id} not found in "${superJsonPath}".`,
-      1
-    );
+  {
+    const normalized = normalizeSuperJsonDocument(superJson);
+
+    if (!normalized.profiles[profileId.id]) {
+      throw userError(
+        `profile ${profileId.id} not found in "${superJsonPath}".`,
+        1
+      );
+    }
   }
 
   //Load provider info
@@ -210,6 +240,7 @@ export async function installProvider(
   const configureResult = handleProviderResponse(
     {
       superJson,
+      superJsonPath,
       profileId,
       response: providerInfo,
       defaults,
@@ -219,8 +250,12 @@ export async function installProvider(
   );
 
   // write new information to super.json
-  await OutputStream.writeOnce(superJson.path, superJson.stringified, options);
-  logger.info('updateSuperJson', superJson.path);
+  await OutputStream.writeOnce(
+    superJsonPath,
+    JSON.stringify(superJson, undefined, 2),
+    options
+  );
+  logger.info('updateSuperJson', superJsonPath);
 
   // update .env
   if (options?.updateEnv && providerInfo.securitySchemes) {
@@ -255,35 +290,37 @@ export async function installProvider(
   } else {
     logger.info('noSecurityFoundOrAlreadyConfigured');
   }
+
   // inform user about configured parameters if we have updated the provider settings
-  if (
-    configureResult.providerUpdated &&
-    providerInfo.parameters &&
-    providerInfo.parameters.length > 0
-  ) {
-    logger.info('providerHasParameters', providerInfo.name, superJson.path);
-    for (const parameter of providerInfo.parameters) {
-      const superJsonValue =
-        superJson.normalized.providers[providerInfo.name].parameters[
-          parameter.name
-        ];
-      if (superJsonValue === undefined) {
-        logger.warn(
-          'parameterNotConfigured',
-          parameter.name,
-          superJson.path,
-          parameter.description
-        );
-      } else {
-        logger.success(
-          'parameterConfigured',
-          parameter.name,
-          superJsonValue,
-          parameter.description
-        );
-      }
-      if (parameter.default) {
-        logger.info('parameterHasDefault', parameter.default);
+  {
+    const normalized = normalizeSuperJsonDocument(superJson);
+    if (
+      configureResult.providerUpdated &&
+      providerInfo.parameters &&
+      providerInfo.parameters.length > 0
+    ) {
+      logger.info('providerHasParameters', providerInfo.name, superJsonPath);
+      for (const parameter of providerInfo.parameters) {
+        const superJsonValue =
+          normalized.providers[providerInfo.name].parameters[parameter.name];
+        if (superJsonValue === undefined) {
+          logger.warn(
+            'parameterNotConfigured',
+            parameter.name,
+            superJsonPath,
+            parameter.description
+          );
+        } else {
+          logger.success(
+            'parameterConfigured',
+            parameter.name,
+            superJsonValue,
+            parameter.description
+          );
+        }
+        if (parameter.default) {
+          logger.info('parameterHasDefault', parameter.default);
+        }
       }
     }
   }
@@ -293,19 +330,19 @@ export async function installProvider(
  * Reconfigure provider from local to remote or from remote to local.
  */
 export async function reconfigureProvider(
-  superJson: SuperJson,
+  superJson: SuperJsonDocument,
   providerName: string,
   target: { kind: 'local'; file: string } | { kind: 'remote' }
 ): Promise<void> {
   // TODO: Possibly do checks whether the remote file exists?
-  superJson.swapProviderVariant(providerName, target);
+  swapProviderVariant(superJson, providerName, target, NodeFileSystem);
 }
 
 /**
  * Reconfigure profile provider from local to remote or from remote to local.
  */
 export async function reconfigureProfileProvider(
-  superJson: SuperJson,
+  superJson: SuperJsonDocument,
   profileId: ProfileId,
   providerName: string,
   target:
@@ -313,5 +350,11 @@ export async function reconfigureProfileProvider(
     | { kind: 'remote'; mapVariant?: string; mapRevision?: string }
 ): Promise<void> {
   // TODO: Possibly do checks whether the remote file exists?
-  superJson.swapProfileProviderVariant(profileId.id, providerName, target);
+  swapProfileProviderVariant(
+    superJson,
+    profileId.id,
+    providerName,
+    target,
+    NodeFileSystem
+  );
 }

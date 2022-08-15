@@ -1,5 +1,9 @@
 import { flags as oclifFlags } from '@oclif/command';
-import { SuperJson } from '@superfaceai/one-sdk';
+import {
+  loadSuperJson,
+  NodeFileSystem,
+  normalizeSuperJsonDocument,
+} from '@superfaceai/one-sdk';
 import { parseDocumentId } from '@superfaceai/parser';
 import { join as joinPath } from 'path';
 
@@ -72,13 +76,15 @@ export default class Generate extends Command {
       throw userError('Unable to generate, super.json not found', 1);
     }
     // Load super json
-    const loadedResult = await SuperJson.load(joinPath(superPath, META_FILE));
+    const superJsonPath = joinPath(superPath, META_FILE);
+    const loadedResult = await loadSuperJson(superJsonPath, NodeFileSystem);
     const superJson = loadedResult.match(
       v => v,
       err => {
         throw userError(`Unable to load super.json: ${err.formatShort()}`, 1);
       }
     );
+    const normalized = normalizeSuperJsonDocument(superJson);
     const profiles: { id: ProfileId; version?: string }[] = [];
     // Create generate requests
     if (flags.profileId) {
@@ -86,7 +92,7 @@ export default class Generate extends Command {
       if (parsedProfileId.kind == 'error') {
         throw userError(`Invalid profile id: ${parsedProfileId.message}`, 1);
       }
-      const profileSettings = superJson.normalized.profiles[flags.profileId];
+      const profileSettings = normalized.profiles[flags.profileId];
 
       if (!profileSettings) {
         throw userError(
@@ -102,7 +108,7 @@ export default class Generate extends Command {
       });
     } else {
       for (const [profile, profileSettings] of Object.entries(
-        superJson.normalized.profiles
+        normalized.profiles
       )) {
         profiles.push({
           id: ProfileId.fromId(profile, { userError }),
@@ -112,7 +118,7 @@ export default class Generate extends Command {
       }
     }
 
-    await generate({ profiles, superJson }, { logger });
+    await generate({ profiles, superJson, superJsonPath }, { logger });
 
     logger.success('generatedSuccessfully');
   }
