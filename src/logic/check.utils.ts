@@ -1,9 +1,79 @@
-import { EXTENSIONS, ProviderJson, SuperJsonDocument } from '@superfaceai/ast';
+import {
+  assertProfileDocumentNode,
+  EXTENSIONS,
+  ProfileDocumentNode,
+  ProviderJson,
+  SuperJsonDocument,
+} from '@superfaceai/ast';
 import { normalizeSuperJsonDocument } from '@superfaceai/one-sdk';
 import { dirname, join as joinPath, resolve as resolvePath } from 'path';
 
 import { exists, readdir, readFile } from '../common/io';
 import { ProfileId } from '../common/profile';
+
+export async function findLocalProfileAst(
+  superJson: SuperJsonDocument,
+  superJsonPath: string,
+  profile: ProfileId,
+  version?: string
+): Promise<{ path: string; ast: ProfileDocumentNode } | undefined> {
+  //Check file property
+  const normalized = normalizeSuperJsonDocument(superJson);
+  const profileSettings = normalized.profiles[profile.id];
+  if (profileSettings !== undefined && 'file' in profileSettings) {
+    const path = profileSettings.file.endsWith(EXTENSIONS.profile.source)
+      ? profileSettings.file.replace(
+          EXTENSIONS.profile.source,
+          EXTENSIONS.profile.build
+        )
+      : profileSettings.file;
+    const resolvedPath = resolvePath(dirname(superJsonPath), path);
+    if (await exists(resolvedPath)) {
+      return {
+        ast: assertProfileDocumentNode(
+          JSON.parse(await readFile(resolvedPath, { encoding: 'utf-8' }))
+        ),
+        path: resolvedPath,
+      };
+    }
+  }
+
+  //try to look in the cache file
+  const cachePath = joinPath(
+    process.cwd(),
+    'node_modules',
+    '.cache',
+    'superface',
+    'profiles'
+  );
+  const basePath = profile.scope
+    ? joinPath(cachePath, profile.scope)
+    : cachePath;
+
+  //use passed version or version from super.json
+  const superJsonVersion =
+    profileSettings !== undefined && 'version' in profileSettings
+      ? profileSettings.version
+      : undefined;
+  const resolvedVersion = version ?? superJsonVersion;
+  if (resolvedVersion) {
+    const path = joinPath(
+      basePath,
+      `${profile.name}@${resolvedVersion}${EXTENSIONS.profile.build}`
+    );
+    const resolvedPath = resolvePath(dirname(superJsonPath), path);
+    if (await exists(resolvedPath)) {
+      return {
+        ast: assertProfileDocumentNode(
+          JSON.parse(await readFile(resolvedPath, { encoding: 'utf-8' }))
+        ),
+        path: resolvedPath,
+      };
+    }
+  }
+
+  return;
+}
 
 export async function findLocalProfileSource(
   superJson: SuperJsonDocument,
