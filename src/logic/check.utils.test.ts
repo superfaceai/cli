@@ -574,7 +574,7 @@ describe('Check utils', () => {
       expect(exists).not.toHaveBeenCalled();
     });
 
-    it('returns undefined file does not exist', async () => {
+    it('returns undefined if file does not exist', async () => {
       const mockSuperJson = {
         profiles: {
           [profileId.toString()]: {
@@ -593,7 +593,7 @@ describe('Check utils', () => {
       );
     });
 
-    it('returns undefined file does not exist and ast is not cached', async () => {
+    it('returns undefined if file does not exist and ast is not cached', async () => {
       const mockSuperJson = {
         profiles: {
           [profileId.toString()]: {
