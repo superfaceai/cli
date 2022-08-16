@@ -245,47 +245,40 @@ describe('Compile CLI command', () => {
         ).resolves.toBeUndefined();
 
         expect(compile).toHaveBeenCalledWith(
-          {
-            profiles: [
-              {
-                path: resolvePath(`../${mockProfile}.supr`),
-                id: ProfileId.fromId(mockProfile, { userError }),
-                maps: [
-                  {
-                    path: resolvePath(`../${mockProfile}.${mockProvider}.suma`),
-                    provider: mockProvider,
-                  },
-                  {
-                    path: resolvePath(
-                      `../${mockProfile}.${secondMockProvider}.suma`
-                    ),
-                    provider: secondMockProvider,
-                  },
-                ],
-              },
-              {
-                path: resolvePath(`../${secondMockProfile}.supr`),
-                id: ProfileId.fromId(secondMockProfile, { userError }),
-                maps: [
-                  {
-                    path: resolvePath(
-                      `../${secondMockProfile}.${thirdMockProvider}.suma`
-                    ),
-                    provider: thirdMockProvider,
-                  },
-                ],
-              },
-              {
-                path: undefined,
-                id: ProfileId.fromId('other/profile', { userError }),
-                maps: [],
-              },
-            ],
-            options: {
-              onlyMap: undefined,
-              onlyProfile: undefined,
+          [
+            {
+              path: resolvePath(`../${mockProfile}.supr`),
+              profileId: ProfileId.fromId(mockProfile, { userError }),
+              kind: 'profile',
             },
-          },
+
+            {
+              path: resolvePath(`../${mockProfile}.${mockProvider}.suma`),
+              provider: mockProvider,
+              profileId: ProfileId.fromId(mockProfile, { userError }),
+              kind: 'map',
+            },
+            {
+              path: resolvePath(`../${mockProfile}.${secondMockProvider}.suma`),
+              provider: secondMockProvider,
+              profileId: ProfileId.fromId(mockProfile, { userError }),
+              kind: 'map',
+            },
+
+            {
+              path: resolvePath(`../${secondMockProfile}.supr`),
+              profileId: ProfileId.fromId(secondMockProfile, { userError }),
+              kind: 'profile',
+            },
+            {
+              path: resolvePath(
+                `../${secondMockProfile}.${thirdMockProvider}.suma`
+              ),
+              profileId: ProfileId.fromId(secondMockProfile, { userError }),
+              kind: 'map',
+              provider: thirdMockProvider,
+            },
+          ],
           expect.anything()
         );
 
@@ -306,44 +299,29 @@ describe('Compile CLI command', () => {
         ).resolves.toBeUndefined();
 
         expect(compile).toHaveBeenCalledWith(
-          {
-            profiles: [
-              {
-                path: resolvePath(`../${mockProfile}.supr`),
-                id: ProfileId.fromId(mockProfile, { userError }),
-                maps: [
-                  {
-                    path: resolvePath(`../${mockProfile}.${mockProvider}.suma`),
-                    provider: mockProvider,
-                  },
-                  {
-                    path: resolvePath(
-                      `../${mockProfile}.${secondMockProvider}.suma`
-                    ),
-                    provider: secondMockProvider,
-                  },
-                ],
-              },
-              {
-                path: resolvePath(`../${secondMockProfile}.supr`),
-                id: ProfileId.fromId(secondMockProfile, { userError }),
-                maps: [
-                  {
-                    path: resolvePath(
-                      `../${secondMockProfile}.${thirdMockProvider}.suma`
-                    ),
-                    provider: thirdMockProvider,
-                  },
-                ],
-              },
-              {
-                path: undefined,
-                id: ProfileId.fromId('other/profile', { userError }),
-                maps: [],
-              },
-            ],
-            options: { onlyMap: true, onlyProfile: undefined },
-          },
+          [
+            {
+              path: resolvePath(`../${mockProfile}.${mockProvider}.suma`),
+              provider: mockProvider,
+              profileId: ProfileId.fromId(mockProfile, { userError }),
+              kind: 'map',
+            },
+            {
+              path: resolvePath(`../${mockProfile}.${secondMockProvider}.suma`),
+              provider: secondMockProvider,
+              profileId: ProfileId.fromId(mockProfile, { userError }),
+              kind: 'map',
+            },
+
+            {
+              path: resolvePath(
+                `../${secondMockProfile}.${thirdMockProvider}.suma`
+              ),
+              provider: thirdMockProvider,
+              profileId: ProfileId.fromId(secondMockProfile, { userError }),
+              kind: 'map',
+            },
+          ],
           expect.anything()
         );
 
@@ -364,44 +342,18 @@ describe('Compile CLI command', () => {
         ).resolves.toBeUndefined();
 
         expect(compile).toHaveBeenCalledWith(
-          {
-            profiles: [
-              {
-                path: resolvePath(`../${mockProfile}.supr`),
-                id: ProfileId.fromId(mockProfile, { userError }),
-                maps: [
-                  {
-                    path: resolvePath(`../${mockProfile}.${mockProvider}.suma`),
-                    provider: mockProvider,
-                  },
-                  {
-                    path: resolvePath(
-                      `../${mockProfile}.${secondMockProvider}.suma`
-                    ),
-                    provider: secondMockProvider,
-                  },
-                ],
-              },
-              {
-                path: resolvePath(`../${secondMockProfile}.supr`),
-                id: ProfileId.fromId(secondMockProfile, { userError }),
-                maps: [
-                  {
-                    path: resolvePath(
-                      `../${secondMockProfile}.${thirdMockProvider}.suma`
-                    ),
-                    provider: thirdMockProvider,
-                  },
-                ],
-              },
-              {
-                path: undefined,
-                id: ProfileId.fromId('other/profile', { userError }),
-                maps: [],
-              },
-            ],
-            options: { onlyMap: undefined, onlyProfile: true },
-          },
+          [
+            {
+              path: resolvePath(`../${mockProfile}.supr`),
+              profileId: ProfileId.fromId(mockProfile, { userError }),
+              kind: 'profile',
+            },
+            {
+              path: resolvePath(`../${secondMockProfile}.supr`),
+              profileId: ProfileId.fromId(secondMockProfile, { userError }),
+              kind: 'profile',
+            },
+          ],
           expect.anything()
         );
 
@@ -422,44 +374,39 @@ describe('Compile CLI command', () => {
         ).resolves.toBeUndefined();
 
         expect(compile).toHaveBeenCalledWith(
-          {
-            profiles: [
-              {
-                path: resolvePath(`../${mockProfile}.supr`),
-                id: ProfileId.fromId(mockProfile, { userError }),
-                maps: [
-                  {
-                    path: resolvePath(`../${mockProfile}.${mockProvider}.suma`),
-                    provider: mockProvider,
-                  },
-                  {
-                    path: resolvePath(
-                      `../${mockProfile}.${secondMockProvider}.suma`
-                    ),
-                    provider: secondMockProvider,
-                  },
-                ],
-              },
-              {
-                path: resolvePath(`../${secondMockProfile}.supr`),
-                id: ProfileId.fromId(secondMockProfile, { userError }),
-                maps: [
-                  {
-                    path: resolvePath(
-                      `../${secondMockProfile}.${thirdMockProvider}.suma`
-                    ),
-                    provider: thirdMockProvider,
-                  },
-                ],
-              },
-              {
-                path: undefined,
-                id: ProfileId.fromId('other/profile', { userError }),
-                maps: [],
-              },
-            ],
-            options: { onlyMap: undefined, onlyProfile: undefined },
-          },
+          [
+            {
+              path: resolvePath(`../${mockProfile}.supr`),
+              profileId: ProfileId.fromId(mockProfile, { userError }),
+              kind: 'profile',
+            },
+
+            {
+              path: resolvePath(`../${mockProfile}.${mockProvider}.suma`),
+              provider: mockProvider,
+              profileId: ProfileId.fromId(mockProfile, { userError }),
+              kind: 'map',
+            },
+            {
+              path: resolvePath(`../${mockProfile}.${secondMockProvider}.suma`),
+              provider: secondMockProvider,
+              profileId: ProfileId.fromId(mockProfile, { userError }),
+              kind: 'map',
+            },
+            {
+              path: resolvePath(`../${secondMockProfile}.supr`),
+              profileId: ProfileId.fromId(secondMockProfile, { userError }),
+              kind: 'profile',
+            },
+            {
+              path: resolvePath(
+                `../${secondMockProfile}.${thirdMockProvider}.suma`
+              ),
+              profileId: ProfileId.fromId(secondMockProfile, { userError }),
+              kind: 'map',
+              provider: thirdMockProvider,
+            },
+          ],
           expect.anything()
         );
 
@@ -486,30 +433,26 @@ describe('Compile CLI command', () => {
         ).resolves.toBeUndefined();
 
         expect(compile).toHaveBeenCalledWith(
-          {
-            profiles: [
-              {
-                path: resolvePath(`../${mockProfile}.supr`),
-                id: ProfileId.fromId(mockProfile, { userError }),
-                maps: [
-                  {
-                    path: resolvePath(`../${mockProfile}.${mockProvider}.suma`),
-                    provider: mockProvider,
-                  },
-                  {
-                    path: resolvePath(
-                      `../${mockProfile}.${secondMockProvider}.suma`
-                    ),
-                    provider: secondMockProvider,
-                  },
-                ],
-              },
-            ],
-            options: {
-              onlyMap: undefined,
-              onlyProfile: undefined,
+          [
+            {
+              path: resolvePath(`../${mockProfile}.supr`),
+              profileId: ProfileId.fromId(mockProfile, { userError }),
+              kind: 'profile',
             },
-          },
+            {
+              path: resolvePath(`../${mockProfile}.${mockProvider}.suma`),
+              profileId: ProfileId.fromId(mockProfile, { userError }),
+              provider: mockProvider,
+              kind: 'map',
+            },
+            {
+              path: resolvePath(`../${mockProfile}.${secondMockProvider}.suma`),
+              profileId: ProfileId.fromId(mockProfile, { userError }),
+
+              provider: secondMockProvider,
+              kind: 'map',
+            },
+          ],
           expect.anything()
         );
 
@@ -534,27 +477,20 @@ describe('Compile CLI command', () => {
         ).resolves.toBeUndefined();
 
         expect(compile).toHaveBeenCalledWith(
-          {
-            profiles: [
-              {
-                path: resolvePath(`../${mockProfile}.supr`),
-                id: ProfileId.fromId(mockProfile, { userError }),
-                maps: [
-                  {
-                    path: resolvePath(`../${mockProfile}.${mockProvider}.suma`),
-                    provider: mockProvider,
-                  },
-                  {
-                    path: resolvePath(
-                      `../${mockProfile}.${secondMockProvider}.suma`
-                    ),
-                    provider: secondMockProvider,
-                  },
-                ],
-              },
-            ],
-            options: { onlyMap: true, onlyProfile: undefined },
-          },
+          [
+            {
+              path: resolvePath(`../${mockProfile}.${mockProvider}.suma`),
+              provider: mockProvider,
+              profileId: ProfileId.fromId(mockProfile, { userError }),
+              kind: 'map',
+            },
+            {
+              path: resolvePath(`../${mockProfile}.${secondMockProvider}.suma`),
+              provider: secondMockProvider,
+              profileId: ProfileId.fromId(mockProfile, { userError }),
+              kind: 'map',
+            },
+          ],
           expect.anything()
         );
 
@@ -579,27 +515,13 @@ describe('Compile CLI command', () => {
         ).resolves.toBeUndefined();
 
         expect(compile).toHaveBeenCalledWith(
-          {
-            profiles: [
-              {
-                path: resolvePath(`../${mockProfile}.supr`),
-                id: ProfileId.fromId(mockProfile, { userError }),
-                maps: [
-                  {
-                    path: resolvePath(`../${mockProfile}.${mockProvider}.suma`),
-                    provider: mockProvider,
-                  },
-                  {
-                    path: resolvePath(
-                      `../${mockProfile}.${secondMockProvider}.suma`
-                    ),
-                    provider: secondMockProvider,
-                  },
-                ],
-              },
-            ],
-            options: { onlyMap: undefined, onlyProfile: true },
-          },
+          [
+            {
+              path: resolvePath(`../${mockProfile}.supr`),
+              profileId: ProfileId.fromId(mockProfile, { userError }),
+              kind: 'profile',
+            },
+          ],
           expect.anything()
         );
 
@@ -629,24 +551,19 @@ describe('Compile CLI command', () => {
         ).resolves.toBeUndefined();
 
         expect(compile).toHaveBeenCalledWith(
-          {
-            profiles: [
-              {
-                path: resolvePath(`../${mockProfile}.supr`),
-                id: ProfileId.fromId(mockProfile, { userError }),
-                maps: [
-                  {
-                    path: resolvePath(`../${mockProfile}.${mockProvider}.suma`),
-                    provider: mockProvider,
-                  },
-                ],
-              },
-            ],
-            options: {
-              onlyMap: undefined,
-              onlyProfile: undefined,
+          [
+            {
+              path: resolvePath(`../${mockProfile}.supr`),
+              profileId: ProfileId.fromId(mockProfile, { userError }),
+              kind: 'profile',
             },
-          },
+            {
+              path: resolvePath(`../${mockProfile}.${mockProvider}.suma`),
+              provider: mockProvider,
+              profileId: ProfileId.fromId(mockProfile, { userError }),
+              kind: 'map',
+            },
+          ],
           expect.anything()
         );
 
@@ -675,21 +592,14 @@ describe('Compile CLI command', () => {
         ).resolves.toBeUndefined();
 
         expect(compile).toHaveBeenCalledWith(
-          {
-            profiles: [
-              {
-                path: resolvePath(`../${mockProfile}.supr`),
-                id: ProfileId.fromId(mockProfile, { userError }),
-                maps: [
-                  {
-                    path: resolvePath(`../${mockProfile}.${mockProvider}.suma`),
-                    provider: mockProvider,
-                  },
-                ],
-              },
-            ],
-            options: { onlyMap: true, onlyProfile: undefined },
-          },
+          [
+            {
+              path: resolvePath(`../${mockProfile}.${mockProvider}.suma`),
+              provider: mockProvider,
+              profileId: ProfileId.fromId(mockProfile, { userError }),
+              kind: 'map',
+            },
+          ],
           expect.anything()
         );
 
@@ -718,21 +628,13 @@ describe('Compile CLI command', () => {
         ).resolves.toBeUndefined();
 
         expect(compile).toHaveBeenCalledWith(
-          {
-            profiles: [
-              {
-                path: resolvePath(`../${mockProfile}.supr`),
-                id: ProfileId.fromId(mockProfile, { userError }),
-                maps: [
-                  {
-                    path: resolvePath(`../${mockProfile}.${mockProvider}.suma`),
-                    provider: mockProvider,
-                  },
-                ],
-              },
-            ],
-            options: { onlyMap: undefined, onlyProfile: true },
-          },
+          [
+            {
+              path: resolvePath(`../${mockProfile}.supr`),
+              profileId: ProfileId.fromId(mockProfile, { userError }),
+              kind: 'profile',
+            },
+          ],
           expect.anything()
         );
 
