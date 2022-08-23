@@ -1,7 +1,7 @@
 import { join, normalize, relative } from 'path';
 
 import { execShell, exists } from './io';
-import { ILogger } from './log';
+import type { ILogger } from './log';
 
 export interface IPackageManager {
   packageJsonExists(): Promise<boolean>;
@@ -18,7 +18,7 @@ export class PackageManager implements IPackageManager {
 
   public async packageJsonExists(): Promise<boolean> {
     const path = await this.getPath();
-    if (path && (await exists(join(path, 'package.json')))) {
+    if (path !== undefined && (await exists(join(path, 'package.json')))) {
       return true;
     }
 
@@ -30,7 +30,7 @@ export class PackageManager implements IPackageManager {
       return this.usedPackageManager;
     }
     const path = await this.getPath();
-    if (!path) {
+    if (path === undefined) {
       return;
     }
 
@@ -87,7 +87,7 @@ export class PackageManager implements IPackageManager {
     const command =
       pm === 'yarn' ? `yarn add ${packageName}` : `npm install ${packageName}`;
 
-    const path = (await this.getPath()) || process.cwd();
+    const path = (await this.getPath()) ?? process.cwd();
     // Install package to package.json on discovered path or on cwd
     this.logger.info('installPackageOnPath', packageName, path, command);
     const result = await execShell(command, { cwd: path });
@@ -103,7 +103,7 @@ export class PackageManager implements IPackageManager {
   }
 
   private async getPath(): Promise<string | undefined> {
-    if (this.path) {
+    if (this.path !== undefined) {
       return this.path;
     }
 

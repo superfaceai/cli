@@ -1,3 +1,4 @@
+import type { RetryPolicy, SecurityValues } from '@superfaceai/ast';
 import {
   BackoffKind,
   isApiKeySecurityValues,
@@ -7,8 +8,6 @@ import {
   isValidDocumentName,
   isValidVersionString,
   OnFail,
-  RetryPolicy,
-  SecurityValues,
 } from '@superfaceai/ast';
 import {
   loadSuperJson,
@@ -23,12 +22,13 @@ import { bold } from 'chalk';
 import inquirer from 'inquirer';
 import { join as joinPath } from 'path';
 
-import { developerError, UserError } from '../common/error';
+import type { UserError } from '../common/error';
+import { developerError } from '../common/error';
 import { fetchProviders, getServicesUrl } from '../common/http';
 import { exists, readFile } from '../common/io';
-import { ILogger } from '../common/log';
+import type { ILogger } from '../common/log';
 import { OutputStream } from '../common/output-stream';
-import { IPackageManager } from '../common/package-manager';
+import type { IPackageManager } from '../common/package-manager';
 import { NORMALIZED_CWD_PATH } from '../common/path';
 import { ProfileId } from '../common/profile';
 import { envVariable } from '../templates/env';
@@ -64,10 +64,10 @@ export async function interactiveInstall(
     return;
   }
   let envContent = '';
-  //Super.json path
+  // Super.json path
   let superPath = await detectSuperJson(process.cwd());
-  if (!superPath) {
-    //Init SF
+  if (superPath === undefined) {
+    // Init SF
     logger.success('initSuperface');
     await initSuperface(
       {
@@ -79,7 +79,7 @@ export async function interactiveInstall(
     superPath = SUPERFACE_DIR;
   }
 
-  //Load super.json (for checks)
+  // Load super.json (for checks)
   const superJsonPath = joinPath(superPath, META_FILE);
   const loaded = await loadSuperJson(superJsonPath, NodeFileSystem);
   let superJson = loaded.unwrap();
@@ -87,7 +87,7 @@ export async function interactiveInstall(
   logger.success('installProfile', profileArg);
 
   let installProfile = true;
-  //Override existing profile
+  // Override existing profile
   if (
     await profileExists(superJson, superJsonPath, { id: profileId, version })
   ) {
@@ -98,7 +98,7 @@ export async function interactiveInstall(
     )
       installProfile = false;
   }
-  //Install profile
+  // Install profile
   if (installProfile) {
     await installProfiles(
       {
@@ -117,10 +117,10 @@ export async function interactiveInstall(
       { logger, userError }
     );
     const superJsonPath = joinPath(superPath, META_FILE);
-    //Reload super.json
+    // Reload super.json
     superJson = (await loadSuperJson(superJsonPath, NodeFileSystem)).unwrap();
   }
-  //Ask for providers
+  // Ask for providers
   const possibleProviders = (await fetchProviders(profileArg)).map(p => p.name);
 
   const priorityToString: Map<number, string> = new Map([
@@ -138,7 +138,7 @@ export async function interactiveInstall(
       name: string;
       value: { name?: string; priority?: number; exit: boolean };
     }[] = possibleProviders
-      //Remove already configured and mock provider
+      // Remove already configured and mock provider
       .filter(
         provider =>
           !providersWithPriority.find(
@@ -151,7 +151,7 @@ export async function interactiveInstall(
           value: { name: provider, priority, exit: false },
         };
       });
-    //Add exit choice
+    // Add exit choice
     choices.push({
       name: bold('<<done>>'),
       value: { name: undefined, priority: undefined, exit: true },
@@ -164,9 +164,9 @@ export async function interactiveInstall(
       message:
         priority === 1
           ? `Select providers you would like to use. You can end selection by choosing "<<done>>".\nSelect ${
-              priorityToString.get(priority) || priority
+              priorityToString.get(priority) ?? priority
             } provider:`
-          : `Select ${priorityToString.get(priority) || priority} provider:`,
+          : `Select ${priorityToString.get(priority) ?? priority} provider:`,
       type: 'list',
       choices,
     });
@@ -185,11 +185,11 @@ export async function interactiveInstall(
     priority++;
   }
 
-  //Configure providers
+  // Configure providers
   logger.success('installMultipleProviders');
   const providersToInstall: string[] = [];
   for (const provider of providersWithPriority) {
-    //Override existing provider
+    // Override existing provider
     if (providerExists(superJson, provider.name)) {
       if (
         !(await confirmPrompt(
@@ -202,7 +202,7 @@ export async function interactiveInstall(
     providersToInstall.push(provider.name);
   }
 
-  //Get installed usecases
+  // Get installed usecases
   const profileSource = await findLocalProfileSource(
     superJson,
     superJsonPath,
@@ -216,7 +216,7 @@ export async function interactiveInstall(
     new Source(profileSource.source, profileId.id)
   );
   const profileUsecases = getProfileUsecases(profileAst);
-  //Check usecase
+  // Check usecase
   if (profileUsecases.length === 0) {
     throw userError(
       'Profile AST does not contain any use cases - misconfigured profile file',
@@ -224,7 +224,7 @@ export async function interactiveInstall(
     );
   }
 
-  //Select usecase to configure
+  // Select usecase to configure
   let selectedUseCase: string | undefined = undefined;
   if (profileUsecases.length > 1) {
     const useCaseResponse: { useCase: string } = await inquirer.prompt({
@@ -238,15 +238,15 @@ export async function interactiveInstall(
     selectedUseCase = profileUsecases[0].name;
   }
 
-  //Configure provider failover
-  //de duplicate providers to install and providers in super json
+  // Configure provider failover
+  // de duplicate providers to install and providers in super json
   let normalized = normalizeSuperJsonDocument(superJson);
   const allProviders = providersToInstall.concat(
     Object.keys(normalized.providers).filter(
       (provider: string) => providersToInstall.indexOf(provider) < 0
     )
   );
-  //TODO: check also already installed providers - distinct with providers to install
+  // TODO: check also already installed providers - distinct with providers to install
   if (allProviders.length > 1) {
     if (
       await confirmPrompt(
@@ -254,7 +254,7 @@ export async function interactiveInstall(
         { default: true }
       )
     ) {
-      //Add provider failover
+      // Add provider failover
       mergeProfileDefaults(superJson, profileId.id, {
         [selectedUseCase]: { providerFailover: true },
       });
@@ -268,9 +268,9 @@ export async function interactiveInstall(
     }
   }
 
-  //Configure retry policies && install providers
+  // Configure retry policies && install providers
   for (const provider of providersToInstall) {
-    //Install provider
+    // Install provider
     await installProvider(
       {
         superPath,
@@ -289,42 +289,42 @@ export async function interactiveInstall(
     );
   }
 
-  //Reload super.json
+  // Reload super.json
   superJson = (await loadSuperJson(superJsonPath, NodeFileSystem)).unwrap();
   normalized = normalizeSuperJsonDocument(superJson);
-  //Get installed providers
+  // Get installed providers
   const installedProviders = normalized.providers;
-  //Ask for provider security
+  // Ask for provider security
   logger.success('configureMultipleProviderSecurity');
 
-  //Get .env file
+  // Get .env file
   if (await exists('.env')) {
     envContent = await readFile('.env', { encoding: 'utf-8' });
   }
   let selectedSchema: SecurityValues;
   for (const provider of Object.keys(installedProviders)) {
-    //Do not change provider that user dont want to overide from instaledProviders array
+    // Do not change provider that user dont want to overide from instaledProviders array
     if (!providersToInstall.includes(provider)) {
       continue;
     }
     logger.info('configureProviderSecurity', provider);
-    //Select security schema
+    // Select security schema
     if (
-      installedProviders[provider].security &&
+      installedProviders[provider].security !== undefined &&
       installedProviders[provider].security.length > 0
     ) {
-      //If thre is only one schema use it
+      // If thre is only one schema use it
       if (installedProviders[provider].security.length === 1) {
         selectedSchema = installedProviders[provider].security[0];
       } else {
-        //Let user select schema
+        // Let user select schema
         selectedSchema = await selectSecuritySchema(
           provider,
           installedProviders[provider].security
         );
       }
 
-      //Set env variables for selected schema
+      // Set env variables for selected schema
       envContent = await resolveSecurityEnvValues(
         provider,
         selectedSchema,
@@ -335,10 +335,10 @@ export async function interactiveInstall(
       logger.success('noAuthProvider', provider);
     }
   }
-  //Check/init package-manager
+  // Check/init package-manager
   if (!(await pm.packageJsonExists())) {
     logger.warn('packageJsonNotFound');
-    //Prompt user for package manager initialization
+    // Prompt user for package manager initialization
     const response: {
       pm: 'yarn' | 'npm' | 'exit';
     } = await inquirer.prompt({
@@ -360,11 +360,11 @@ export async function interactiveInstall(
 
     await pm.init(response.pm);
   }
-  //Install SDK
+  // Install SDK
   logger.success('installPackage', '@superfaceai/one-sdk');
   await pm.installPackage('@superfaceai/one-sdk');
 
-  //Prompt user for dotenv installation
+  // Prompt user for dotenv installation
   if (
     await confirmPrompt(
       'Superface CLI would like to install dotenv package (https://github.com/motdotla/dotenv#readme).\nThis package is used to load superface secrets from .env file. You can use different one or install it manually later.\nWould you like to install it now?:',
@@ -375,7 +375,7 @@ export async function interactiveInstall(
     await pm.installPackage('dotenv');
   }
 
-  //Prompt user for optional SDK token
+  // Prompt user for optional SDK token
   logger.success('configurePackage', '@superfaceai/one-sdk');
 
   const tokenEnvName = 'SUPERFACE_SDK_TOKEN';
@@ -386,7 +386,7 @@ export async function interactiveInstall(
       message:
         '(Optional) Enter your SDK token generated at https://superface.ai:',
       type: 'password',
-      validate: input => {
+      validate: (input: string) => {
         const tokenRegexp = /^(sfs)_([^_]+)_([0-9A-F]{8})$/i;
         if (!input) {
           return true;
@@ -399,7 +399,7 @@ export async function interactiveInstall(
       },
     });
 
-    if (tokenResponse.token) {
+    if (tokenResponse.token !== undefined) {
       envContent += envVariable(tokenEnvName, tokenResponse.token);
       logger.success('configuredWithSdkToken', tokenEnvName);
     } else {
@@ -407,12 +407,12 @@ export async function interactiveInstall(
     }
   }
 
-  //Write .env file
+  // Write .env file
   await OutputStream.writeOnce('.env', envContent);
 
   logger.success('superfaceConfigureSuccess');
 
-  //Lead to docs page
+  // Lead to docs page
   logger.success(
     'capabilityDocsUrl',
     new URL(profileId.id, getServicesUrl()).href
@@ -423,7 +423,7 @@ async function selectRetryPolicy(
   provider: string,
   selectedUseCase: string
 ): Promise<RetryPolicy> {
-  //Select retry policy
+  // Select retry policy
   const policyResponse: { policy: OnFail } = await inquirer.prompt({
     name: 'policy',
     message: `Select a failure policy for provider ${provider} and use case: ${selectedUseCase}:`,
@@ -437,7 +437,7 @@ async function selectRetryPolicy(
   if (policyResponse.policy === OnFail.NONE) {
     return { kind: OnFail.NONE };
   } else if (policyResponse.policy === OnFail.CIRCUIT_BREAKER) {
-    //You want to customize?
+    // You want to customize?
     if (
       await confirmPrompt(
         'Do you want to customize circuit breaker parameters?:',
@@ -537,13 +537,13 @@ async function getPromptedValue(
   }
   const variableName = envVariableName.substring(1);
   if (envContent.includes(`${variableName}=`)) {
-    //Do we want to override?
+    // Do we want to override?
     if (
       await confirmPrompt(
         `Value of ${variableName} for ${provider} is already set.\nDo you want to override it?:`
       )
     ) {
-      //Delete set row
+      // Delete set row
       envContent = envContent
         .split('\n')
         .filter(row => !row.includes(`${variableName}=`))
@@ -582,7 +582,7 @@ async function resolveSecurityEnvValues(
         logger,
       }
     );
-    //Digest and basic have same structure
+    // Digest and basic have same structure
   } else if (
     isBasicAuthSecurityValues(schema) ||
     isDigestSecurityValues(schema)
@@ -647,11 +647,12 @@ async function confirmPrompt(
 ): Promise<boolean> {
   const prompt: { continue: boolean } = await inquirer.prompt({
     name: 'continue',
-    message: message
-      ? `${message}`
-      : 'Do you want to continue with installation?:',
+    message:
+      message !== undefined
+        ? `${message}`
+        : 'Do you want to continue with installation?:',
     type: 'confirm',
-    default: options?.default || false,
+    default: options?.default ?? false,
   });
 
   return prompt.continue;

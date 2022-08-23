@@ -1,11 +1,13 @@
+import type {
+  ProviderJson,
+  SecurityScheme,
+  SuperJsonDocument,
+} from '@superfaceai/ast';
 import {
   ApiKeyPlacement,
   HttpScheme,
   OnFail,
-  ProviderJson,
-  SecurityScheme,
   SecurityType,
-  SuperJsonDocument,
 } from '@superfaceai/ast';
 import { ok } from '@superfaceai/one-sdk';
 import * as SuperJsonMutate from '@superfaceai/one-sdk/dist/schema-tools/superjson/mutate';
@@ -135,6 +137,7 @@ describe('Configure CLI logic', () => {
       expect(writeOnceSpy).toHaveBeenCalledWith('.env', '');
     });
   });
+
   describe('when handling provider response', () => {
     let mockSuperJson: SuperJsonDocument;
     const mockProfileId = ProfileId.fromId('test-profile', { userError });

@@ -1,15 +1,12 @@
-import {
-  EXTENSIONS,
-  MapDocumentNode,
-  ProfileDocumentNode,
-} from '@superfaceai/ast';
+import type { MapDocumentNode, ProfileDocumentNode } from '@superfaceai/ast';
+import { EXTENSIONS } from '@superfaceai/ast';
 import { parseMap, parseProfile, Source } from '@superfaceai/parser';
 
-import { UserError } from '../common/error';
+import type { UserError } from '../common/error';
 import { exists, readFile } from '../common/io';
-import { ILogger } from '../common/log';
+import type { ILogger } from '../common/log';
 import { OutputStream } from '../common/output-stream';
-import { ProfileId } from '../common/profile';
+import type { ProfileId } from '../common/profile';
 
 export type MapToCompile = { provider: string; path: string };
 export type ProfileToCompile = {
@@ -32,10 +29,10 @@ export async function compile(
   { logger, userError }: { logger: ILogger; userError: UserError }
 ): Promise<void> {
   for (const profile of profiles) {
-    //Compile profile
-    if (!options?.onlyMap && profile.path !== undefined) {
+    // Compile profile
+    if (options?.onlyMap === undefined && profile.path !== undefined) {
       let profileSourcePath: string, profileAstPath: string;
-      //We assume source and build files living next to each other
+      // We assume source and build files living next to each other
       if (profile.path.endsWith(EXTENSIONS.profile.source)) {
         profileSourcePath = profile.path;
         profileAstPath = profile.path.replace(
@@ -81,13 +78,13 @@ export async function compile(
         );
       }
     }
-    //Compile maps
-    if (!options?.onlyProfile) {
+    // Compile maps
+    if (options?.onlyProfile === undefined) {
       for (const map of profile.maps) {
         logger.info('compileMap', profile.id.toString(), map.provider);
 
         let mapSourcePath: string, mapAstPath: string;
-        //We assume .suma and .suma.ast.json files living next to each other
+        // We assume .suma and .suma.ast.json files living next to each other
         if (map.path.endsWith(EXTENSIONS.map.source)) {
           mapSourcePath = map.path;
           mapAstPath = map.path.replace(

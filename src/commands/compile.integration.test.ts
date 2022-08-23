@@ -11,7 +11,7 @@ import { OutputStream } from '../common/output-stream';
 import { execCLI, setUpTempDir } from '../test/utils';
 
 describe('Compile CLI command', () => {
-  //File specific path
+  // File specific path
   const TEMP_PATH = joinPath('test', 'tmp');
   const profileId = 'starwars/character-information';
   const provider = 'swapi';
@@ -66,26 +66,26 @@ describe('Compile CLI command', () => {
         joinPath(tempDir, 'superface', 'super.json'),
         JSON.stringify(mockSuperJson, undefined, 2)
       );
-      //Copy profile source
+      // Copy profile source
       await OutputStream.writeOnce(
         joinPath(tempDir, 'profile.supr'),
         await readFile(fixture.strictProfile, { encoding: 'utf-8' })
       );
-      //Copy map source
+      // Copy map source
       await OutputStream.writeOnce(
         joinPath(tempDir, 'map.suma'),
         await readFile(fixture.strictMap, { encoding: 'utf-8' })
       );
 
       const result = await execCLI(tempDir, ['compile'], '');
-      //Check stdout
+      // Check stdout
       expect(result.stdout).toMatch(messages.compileMap(profileId, provider));
 
       expect(result.stdout).toContain(messages.compileProfile(profileId));
 
       expect(result.stdout).toContain(messages.compiledSuccessfully());
 
-      //Check super.json
+      // Check super.json
       const superJson = (
         await loadSuperJson(
           joinPath(tempDir, 'superface', 'super.json'),
@@ -96,7 +96,7 @@ describe('Compile CLI command', () => {
         normalizeSuperJsonDocument(mockSuperJson)
       );
 
-      //Check output files
+      // Check output files
       await expect(
         exists(joinPath(tempDir, 'profile.supr.ast.json'))
       ).resolves.toEqual(true);
@@ -145,12 +145,12 @@ describe('Compile CLI command', () => {
         JSON.stringify(mockSuperJson, undefined, 2)
       );
 
-      //Copy profile source
+      // Copy profile source
       await OutputStream.writeOnce(
         joinPath(tempDir, 'profile.supr'),
         await readFile(fixture.strictProfile, { encoding: 'utf-8' })
       );
-      //Copy map source
+      // Copy map source
       await OutputStream.writeOnce(
         joinPath(tempDir, 'map.suma'),
         await readFile(fixture.strictMap, { encoding: 'utf-8' })
@@ -162,14 +162,14 @@ describe('Compile CLI command', () => {
         '',
         { debug: true }
       );
-      //Check stdout
+      // Check stdout
       expect(result.stdout).toMatch(messages.compileMap(profileId, provider));
 
       expect(result.stdout).toContain(messages.compileProfile(profileId));
 
       expect(result.stdout).toContain(messages.compiledSuccessfully());
 
-      //Check super.json
+      // Check super.json
       const superJson = (
         await loadSuperJson(
           joinPath(tempDir, 'superface', 'super.json'),
@@ -180,7 +180,7 @@ describe('Compile CLI command', () => {
         normalizeSuperJsonDocument(mockSuperJson)
       );
 
-      //Check output files
+      // Check output files
       await expect(
         exists(joinPath(tempDir, 'profile.supr.ast.json'))
       ).resolves.toEqual(true);
@@ -225,12 +225,12 @@ describe('Compile CLI command', () => {
         JSON.stringify(mockSuperJson, undefined, 2)
       );
 
-      //Copy profile source
+      // Copy profile source
       await OutputStream.writeOnce(
         joinPath(tempDir, 'profile.supr'),
         await readFile(fixture.strictProfile, { encoding: 'utf-8' })
       );
-      //Copy map source
+      // Copy map source
       await OutputStream.writeOnce(
         joinPath(tempDir, 'map.suma'),
         await readFile(fixture.strictMap, { encoding: 'utf-8' })
@@ -241,14 +241,14 @@ describe('Compile CLI command', () => {
         ['compile', '--profileId', profileId, '--providerName', provider],
         ''
       );
-      //Check stdout
+      // Check stdout
       expect(result.stdout).toMatch(messages.compileMap(profileId, provider));
 
       expect(result.stdout).toContain(messages.compileProfile(profileId));
 
       expect(result.stdout).toContain(messages.compiledSuccessfully());
 
-      //Check super.json
+      // Check super.json
       const superJson = (
         await loadSuperJson(
           joinPath(tempDir, 'superface', 'super.json'),
@@ -259,7 +259,7 @@ describe('Compile CLI command', () => {
         normalizeSuperJsonDocument(mockSuperJson)
       );
 
-      //Check output files
+      // Check output files
       await expect(
         exists(joinPath(tempDir, 'profile.supr.ast.json'))
       ).resolves.toEqual(true);

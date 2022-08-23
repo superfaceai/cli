@@ -2,12 +2,13 @@ import { join as joinPath, resolve } from 'path';
 
 import { mkdir, rimraf } from '../common/io';
 import { OutputStream } from '../common/output-stream';
-import { LintResult } from '../logic/lint';
-import { MockStd, mockStd } from '../test/mock-std';
+import type { LintResult } from '../logic/lint';
+import type { MockStd } from '../test/mock-std';
+import { mockStd } from '../test/mock-std';
 import { execCLI, setUpTempDir } from '../test/utils';
 
 describe('lint CLI command', () => {
-  //File specific path
+  // File specific path
   const TEMP_PATH = joinPath('test', 'tmp');
 
   const profileId = 'starwars/character-information';
@@ -101,7 +102,7 @@ describe('lint CLI command', () => {
         tempDir,
         ['lint', '--profileId', profileId],
         '',
-        //Expose child process stdout to mocked stdout
+        // Expose child process stdout to mocked stdout
         { debug: true }
       )
     ).rejects.toContain('Errors were found');
@@ -130,7 +131,7 @@ describe('lint CLI command', () => {
         tempDir,
         ['lint', '--profileId', profileId],
         '',
-        //Expose child process stdout to mocked stdout
+        // Expose child process stdout to mocked stdout
         { debug: true }
       )
     ).rejects.toContain('Errors were found');
@@ -231,7 +232,7 @@ describe('lint CLI command', () => {
         tempDir,
         ['lint', '--profileId', profileId, '--output', '-2', '-f', 'long'],
         '',
-        //Expose child process stdout to mocked stdout
+        // Expose child process stdout to mocked stdout
         { debug: true }
       )
     ).rejects.toContain(

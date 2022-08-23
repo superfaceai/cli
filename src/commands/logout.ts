@@ -1,20 +1,21 @@
 import { ServiceClientError } from '@superfaceai/service-client';
 
-import { Command, Flags } from '../common/command.abstract';
-import { UserError } from '../common/error';
+import type { Flags } from '../common/command.abstract';
+import { Command } from '../common/command.abstract';
+import type { UserError } from '../common/error';
 import { SuperfaceClient } from '../common/http';
-import { ILogger } from '../common/log';
+import type { ILogger } from '../common/log';
 
 export default class Logout extends Command {
-  static strict = false;
+  public static strict = false;
 
-  static description = 'Logs out logged in user';
+  public static description = 'Logs out logged in user';
 
-  static args = [];
+  public static args = [];
 
-  static examples = ['$ superface logout'];
+  public static examples = ['$ superface logout'];
 
-  async run(): Promise<void> {
+  public async run(): Promise<void> {
     const { flags } = this.parse(Logout);
     await super.initialize(flags);
     await this.execute({
@@ -24,7 +25,7 @@ export default class Logout extends Command {
     });
   }
 
-  async execute({
+  public async execute({
     logger,
     userError,
     flags: _,

@@ -1,12 +1,13 @@
-import { SuperJsonDocument } from '@superfaceai/ast';
+import type { SuperJsonDocument } from '@superfaceai/ast';
 import { ServiceApiError } from '@superfaceai/service-client';
 import { yellow } from 'chalk';
 
-import { ILogger, UNVERIFIED_PROVIDER_PREFIX } from '../common';
-import { UserError } from '../common/error';
+import type { ILogger } from '../common';
+import { UNVERIFIED_PROVIDER_PREFIX } from '../common';
+import type { UserError } from '../common/error';
 import { fetchProviderInfo, SuperfaceClient } from '../common/http';
 import { loadNetrc } from '../common/netrc';
-import { ProfileId } from '../common/profile';
+import type { ProfileId } from '../common/profile';
 import {
   formatHuman as checkFormatHuman,
   formatJson as checkFormatJson,
@@ -114,7 +115,7 @@ export async function publish(
     lintReport.errors.length !== 0 ||
     lintReport.warnings.length !== 0
   ) {
-    if (options?.json) {
+    if (options?.json !== undefined) {
       return JSON.stringify({
         check: {
           reports: checkFormatJson(checkReports),
@@ -135,42 +136,45 @@ export async function publish(
       let reportStr = yellow('Check results:\n');
       reportStr += checkFormatHuman({
         checkResults: checkReports,
-        emoji: !!options?.emoji,
-        color: !!options?.color,
+        emoji: options?.emoji === true,
+        color: options?.color === true,
       });
       reportStr += yellow('\n\nLint results:\n');
       reportStr += lintFormatHuman({
         report: lintReport,
-        emoji: options?.emoji ?? false,
-        color: options?.color ?? false,
+        emoji: options?.emoji === true,
+        color: options?.color === true,
       });
 
       return reportStr;
     }
   }
 
-  //check if user is logged in
+  // check if user is logged in
   const netRc = loadNetrc();
-  if (!netRc.refreshToken && !process.env.SUPERFACE_REFRESH_TOKEN) {
+  if (
+    netRc.refreshToken === undefined &&
+    process.env.SUPERFACE_REFRESH_TOKEN === undefined
+  ) {
     throw userError(
       `You have to be logged in to publish ${publishing}. Please run: "sf login"`,
       1
     );
   }
 
-  //Check provider name
+  // Check provider name
   if (publishing === 'map') {
-    //If we are working with local provider and name does not start with unverified we check existance of provider in SF register
+    // If we are working with local provider and name does not start with unverified we check existance of provider in SF register
     if (
       !mapFiles.ast.header.provider.startsWith(UNVERIFIED_PROVIDER_PREFIX) &&
       providerFiles.from.kind === 'local'
     ) {
       try {
         await fetchProviderInfo(mapFiles.ast.header.provider);
-        //Log if provider exists in SF and user is using local one
+        // Log if provider exists in SF and user is using local one
         logger.info('localAndRemoteProvider', mapFiles.ast.header.provider);
       } catch (error) {
-        //If provider does not exists in SF register (is not verified) it must start with unverified
+        // If provider does not exists in SF register (is not verified) it must start with unverified
         if (error instanceof ServiceApiError && error.status === 404) {
           throw userError(
             `Provider: ${mapFiles.ast.header.provider} does not exist in Superface store and it does not start with: ${UNVERIFIED_PROVIDER_PREFIX} prefix.\nPlease, rename provider: ${mapFiles.ast.header.provider} or use existing provider.`,

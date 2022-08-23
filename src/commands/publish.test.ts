@@ -22,18 +22,18 @@ import { CommandInstance } from '../test/utils';
 import Install from './install';
 import Publish from './publish';
 
-//Mock configure logic
+// Mock configure logic
 jest.mock('../logic/configure', () => ({
   reconfigureProvider: jest.fn(),
   reconfigureProfileProvider: jest.fn(),
 }));
 
-//Mock publish logic
+// Mock publish logic
 jest.mock('../logic/publish', () => ({
   publish: jest.fn(),
 }));
 
-//Mock install logic
+// Mock install logic
 jest.mock('../logic/install', () => ({
   detectSuperJson: jest.fn(),
 }));

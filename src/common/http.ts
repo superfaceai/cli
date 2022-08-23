@@ -1,10 +1,12 @@
+import type {
+  MapDocumentNode,
+  ProfileDocumentNode,
+  ProviderJson,
+} from '@superfaceai/ast';
 import {
   assertMapDocumentNode,
   assertProfileDocumentNode,
   assertProviderJson,
-  MapDocumentNode,
-  ProfileDocumentNode,
-  ProviderJson,
 } from '@superfaceai/ast';
 import { VERSION as SDK_VERSION } from '@superfaceai/one-sdk';
 import { VERSION as PARSER_VERSION } from '@superfaceai/parser';
@@ -17,7 +19,7 @@ import {
   SF_PRODUCTION,
 } from './document';
 import { loadNetrc, saveNetrc } from './netrc';
-import { ProfileId } from './profile';
+import type { ProfileId } from './profile';
 
 export interface ProfileInfo {
   owner: string;
@@ -48,14 +50,14 @@ export class SuperfaceClient {
   public static getClient(): ServiceClient {
     if (!SuperfaceClient.serviceClient) {
       const userAgent = `superface cli/${VERSION} (${process.platform}-${process.arch}) ${process.release.name}-${process.version} (with @superfaceai/one-sdk@${SDK_VERSION}, @superfaceai/parser@${PARSER_VERSION})`;
-      //Use refresh token from env if found
-      if (process.env.SUPERFACE_REFRESH_TOKEN) {
+      // Use refresh token from env if found
+      if (process.env.SUPERFACE_REFRESH_TOKEN !== undefined) {
         SuperfaceClient.serviceClient = new ServiceClient({
-          //still use getStoreUrl function to cover cases when user sets baseUrl and refresh token thru env
+          // still use getStoreUrl function to cover cases when user sets baseUrl and refresh token thru env
           baseUrl: getServicesUrl(),
           refreshToken: process.env.SUPERFACE_REFRESH_TOKEN,
           commonHeaders: { 'User-Agent': userAgent },
-          //Do not use seveNetrc - refresh token from enviroment should not be saved
+          // Do not use seveNetrc - refresh token from enviroment should not be saved
         });
       } else {
         const netrcRecord = loadNetrc();
@@ -74,9 +76,9 @@ export class SuperfaceClient {
 export function getServicesUrl(): string {
   const envUrl = process.env[SF_API_URL_VARIABLE];
 
-  if (envUrl) {
+  if (envUrl !== undefined) {
     const passedValue = new URL(envUrl).href;
-    //remove ending /
+    // remove ending /
     if (passedValue.endsWith('/')) {
       return passedValue.substring(0, passedValue.length - 1);
     }
@@ -159,7 +161,7 @@ export async function fetchMapAST(id: {
 }): Promise<MapDocumentNode> {
   const response = await SuperfaceClient.getClient().getMapAST({
     ...id,
-    version: id.version || DEFAULT_PROFILE_VERSION_STR,
+    version: id.version ?? DEFAULT_PROFILE_VERSION_STR,
   });
 
   return assertMapDocumentNode(JSON.parse(response));

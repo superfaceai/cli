@@ -7,13 +7,8 @@ import { MockLogger } from '../common/log';
 import { OutputStream } from '../common/output-stream';
 import { ProfileId } from '../common/profile';
 import { detectSuperJson } from '../logic/install';
-import {
-  formatHuman,
-  formatJson,
-  formatSummary,
-  lint,
-  LintResult,
-} from '../logic/lint';
+import type { LintResult } from '../logic/lint';
+import { formatHuman, formatJson, formatSummary, lint } from '../logic/lint';
 import { CommandInstance } from '../test/utils';
 import Lint from './lint';
 

@@ -26,7 +26,7 @@ import {
 const mockServer = getLocal();
 
 describe.skip('Interactive install CLI command', () => {
-  //File specific path
+  // File specific path
   const TEMP_PATH = joinPath('test', 'tmp');
   let tempDir: string;
   const profile = {
@@ -38,18 +38,18 @@ describe.skip('Interactive install CLI command', () => {
   beforeAll(async () => {
     await mkdir(TEMP_PATH, { recursive: true });
     await mockServer.start();
-    //Profile with version
+    // Profile with version
     await mockResponsesForProfile(
       mockServer,
       `${profile.scope}/${profile.name}@${profile.version}`
     );
-    //Providers list with version
+    // Providers list with version
     await mockResponsesForProfileProviders(
       mockServer,
       ['mailchimp', 'sendgrid', 'mock', 'mailgun'],
       `${profile.scope}/${profile.name}@${profile.version}`
     );
-    //Mock provider
+    // Mock provider
     await mockResponsesForProvider(mockServer, 'mock');
     await mockResponsesForProvider(mockServer, 'mailchimp');
     await mockResponsesForProvider(mockServer, 'sendgrid');
@@ -58,7 +58,7 @@ describe.skip('Interactive install CLI command', () => {
 
   beforeEach(async () => {
     tempDir = await setUpTempDir(TEMP_PATH);
-    //Init package.json
+    // Init package.json
     await execFile('npm', ['init', '-y'], {
       cwd: `./${tempDir}`,
     });
@@ -84,22 +84,22 @@ describe.skip('Interactive install CLI command', () => {
         mockServer.url,
         {
           inputs: [
-            //Select sendgrid provider
+            // Select sendgrid provider
             { value: DOWN, timeout: 10000 },
             { value: ENTER, timeout: 500 },
-            //exit
+            // exit
             { value: UP, timeout: 10000 },
-            //Confirm selection
+            // Confirm selection
             { value: ENTER, timeout: 500 },
-            //None
+            // None
             { value: ENTER, timeout: 6000 },
-            //Sendgrid token
+            // Sendgrid token
             { value: 'sendgridToken', timeout: 3000 },
             { value: ENTER, timeout: 500 },
-            //Confirm dotenv installation
+            // Confirm dotenv installation
             { value: 'y', timeout: 4000 },
             { value: ENTER, timeout: 500 },
-            //Correct SDK token
+            // Correct SDK token
             {
               value:
                 'sfs_bb064dd57c302911602dd097bc29bedaea6a021c25a66992d475ed959aa526c7_37bce8b5',
@@ -111,7 +111,7 @@ describe.skip('Interactive install CLI command', () => {
         }
       );
 
-      //Check output
+      // Check output
       expect(result.stdout).toMatch(
         'All profiles (1) have been installed successfully.'
       );
@@ -127,7 +127,7 @@ describe.skip('Interactive install CLI command', () => {
         'Now you can follow our documentation to use installed capability:'
       );
       expect(result.stdout).toMatch(`${profile.scope}/${profile.name}`);
-      //Check file existance
+      // Check file existance
       await expect(
         exists(joinPath(tempDir, 'superface', 'super.json'))
       ).resolves.toBe(true);
@@ -151,7 +151,7 @@ describe.skip('Interactive install CLI command', () => {
         exists(joinPath(tempDir, 'package-lock.json'))
       ).resolves.toBe(true);
 
-      //Check super.json
+      // Check super.json
       const superJson = (
         await loadSuperJson(
           joinPath(tempDir, 'superface', 'super.json'),
@@ -188,12 +188,12 @@ describe.skip('Interactive install CLI command', () => {
           },
         },
       });
-      //Check .env
+      // Check .env
       const env = await readFile(joinPath(tempDir, '.env'), {
         encoding: 'utf-8',
       });
       expect(env).toMatch('SENDGRID_TOKEN=sendgridToken\n');
-      //Check package.json
+      // Check package.json
       const packageFile = (
         await readFile(joinPath(tempDir, 'package.json'))
       ).toString();
@@ -204,12 +204,12 @@ describe.skip('Interactive install CLI command', () => {
     }, 60000);
 
     it('installs the profile, overrides existing super.json and updates .env', async () => {
-      //Existing env
+      // Existing env
       await OutputStream.writeOnce(
         joinPath(tempDir, '.env'),
         'TEST=test\nSENDGRID_TOKEN=token\nMAILGUN_USERNAME=username\nMAILGUN_PASSWORD=password\nANOTHER_TEST=anotherTest\n'
       );
-      //Existing super.json
+      // Existing super.json
       await mkdirQuiet(joinPath(tempDir, 'superface'));
       await OutputStream.writeOnce(
         joinPath(tempDir, 'superface', 'super.json'),
@@ -261,7 +261,7 @@ describe.skip('Interactive install CLI command', () => {
           },
         })
       );
-      //Existing profile source file
+      // Existing profile source file
       await mkdirQuiet(joinPath(tempDir, 'superface', 'grid'));
       await mkdirQuiet(joinPath(tempDir, 'superface', 'grid', profile.scope));
       await OutputStream.writeOnce(
@@ -285,34 +285,34 @@ describe.skip('Interactive install CLI command', () => {
         mockServer.url,
         {
           inputs: [
-            //Confirm profile override
+            // Confirm profile override
             { value: 'y', timeout: 4000 },
             { value: ENTER, timeout: 500 },
-            //Select sendgrid provider
+            // Select sendgrid provider
             { value: DOWN, timeout: 10000 },
             { value: ENTER, timeout: 500 },
-            //exit
+            // exit
             { value: UP, timeout: 6000 },
-            //Confirm selection
+            // Confirm selection
             { value: ENTER, timeout: 500 },
-            //Confirm first provider override
+            // Confirm first provider override
             { value: 'y', timeout: 6000 },
             { value: ENTER, timeout: 500 },
-            //Select usecase
+            // Select usecase
             { value: ENTER, timeout: 1100 },
             // //Confirm provider failover
             { value: ENTER, timeout: 1200 },
 
-            //Confirm env override
+            // Confirm env override
             { value: 'y', timeout: 4000 },
             { value: ENTER, timeout: 500 },
-            //Sendgrid token
+            // Sendgrid token
             { value: 'newSendgridToken', timeout: 4000 },
             { value: ENTER, timeout: 500 },
-            //Confirm dotenv installation
+            // Confirm dotenv installation
             { value: 'y', timeout: 4000 },
             { value: ENTER, timeout: 500 },
-            //SDK token
+            // SDK token
             {
               value:
                 'sfs_bb064dd57c302911602dd097bc29bedaea6a021c25a66992d475ed959aa526c7_37bce8b5',
@@ -323,7 +323,7 @@ describe.skip('Interactive install CLI command', () => {
         }
       );
 
-      //Check output
+      // Check output
       expect(result.stdout).toMatch(
         'Profile "communication/send-email" already exists.'
       );
@@ -348,7 +348,7 @@ describe.skip('Interactive install CLI command', () => {
         'Now you can follow our documentation to use installed capability:'
       );
       expect(result.stdout).toMatch(`${profile.scope}/${profile.name}`);
-      //Check file existance
+      // Check file existance
       await expect(
         exists(joinPath(tempDir, 'superface', 'super.json'))
       ).resolves.toBe(true);
@@ -372,7 +372,7 @@ describe.skip('Interactive install CLI command', () => {
         exists(joinPath(tempDir, 'package-lock.json'))
       ).resolves.toBe(true);
 
-      //Check super.json
+      // Check super.json
       const superJson = (
         await loadSuperJson(
           joinPath(tempDir, 'superface', 'super.json'),
@@ -441,7 +441,7 @@ describe.skip('Interactive install CLI command', () => {
           },
         },
       });
-      //Check .env
+      // Check .env
       const env = await readFile(joinPath(tempDir, '.env'), {
         encoding: 'utf-8',
       });
@@ -452,7 +452,7 @@ describe.skip('Interactive install CLI command', () => {
       expect(env).toMatch(
         'SENDGRID_TOKEN=newSendgridToken\nSUPERFACE_SDK_TOKEN=sfs_bb064dd57c302911602dd097bc29bedaea6a021c25a66992d475ed959aa526c7_37bce8b5\n'
       );
-      //Check package.json
+      // Check package.json
       const packageFile = (
         await readFile(joinPath(tempDir, 'package.json'))
       ).toString();

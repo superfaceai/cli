@@ -1,8 +1,10 @@
 import { Command as OclifCommand, flags } from '@oclif/command';
-import * as Parser from '@oclif/parser';
+import type * as Parser from '@oclif/parser';
 
-import { createUserError, UserError } from './error';
-import { DummyLogger, ILogger, StdoutLogger } from './log';
+import type { UserError } from './error';
+import { createUserError } from './error';
+import type { ILogger } from './log';
+import { DummyLogger, StdoutLogger } from './log';
 
 type FlagType<T> = T extends Parser.flags.IOptionFlag<infer V>
   ? V
@@ -25,7 +27,7 @@ export abstract class Command extends OclifCommand {
   protected logger: ILogger = new DummyLogger();
   protected userError: UserError = createUserError(true);
 
-  static flags = {
+  public static flags = {
     quiet: flags.boolean({
       char: 'q',
       description:
@@ -43,12 +45,15 @@ export abstract class Command extends OclifCommand {
     help: flags.help({ char: 'h' }),
   };
 
-  async initialize(flags: Flags<typeof Command.flags>): Promise<void> {
-    if (!flags.quiet) {
-      this.logger = new StdoutLogger(!flags.noColor, !flags.noEmoji);
+  public async initialize(flags: Flags<typeof Command.flags>): Promise<void> {
+    if (flags.quiet !== true) {
+      this.logger = new StdoutLogger(
+        flags.noColor !== true,
+        flags.noEmoji !== true
+      );
     }
 
-    if (flags.noEmoji) {
+    if (flags.noEmoji === true) {
       this.userError = createUserError(false);
     }
   }

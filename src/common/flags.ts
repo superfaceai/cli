@@ -1,5 +1,5 @@
 import { flags } from '@oclif/command';
-import { Definition, IOptionFlag } from '@oclif/command/lib/flags';
+import type { Definition, IOptionFlag } from '@oclif/command/lib/flags';
 
 import { developerError } from './error';
 

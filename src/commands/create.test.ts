@@ -40,7 +40,7 @@ describe('Create CLI command', () => {
   });
 
   describe('when running create command', () => {
-    //Init, no init flags
+    // Init, no init flags
     it('creates profile with one usecase (with usecase name from cli) and no init flag', async () => {
       mocked(initSuperface).mockResolvedValue({
         superJson: {},
@@ -88,6 +88,7 @@ describe('Create CLI command', () => {
       expect(promptSpy).not.toHaveBeenCalled();
       expect(initSuperface).not.toHaveBeenCalled();
     });
+
     it('creates profile with one usecase and init flag', async () => {
       mocked(initSuperface).mockResolvedValue({
         superJson: {},
@@ -124,7 +125,7 @@ describe('Create CLI command', () => {
             version: { label: undefined, major: 1, minor: 0, patch: 0 },
           },
           paths:
-            //Pass the super path
+            // Pass the super path
             { basePath: undefined, superPath: 'superface' },
           fileNames: {
             map: undefined,
@@ -176,7 +177,7 @@ describe('Create CLI command', () => {
             version: { label: undefined, major: 1, minor: 0, patch: 0 },
           },
           paths:
-            //Pass the super path
+            // Pass the super path
             { basePath: undefined, superPath: 'superface' },
           fileNames: {
             map: undefined,
@@ -189,6 +190,7 @@ describe('Create CLI command', () => {
       expect(promptSpy).toHaveBeenCalledTimes(1);
       expect(initSuperface).toHaveBeenCalledTimes(1);
     });
+
     it('creates map with one usecase and no init or no-init flag, user does not confirm prompt', async () => {
       mocked(initSuperface).mockResolvedValue({
         superJson: {},
@@ -238,7 +240,8 @@ describe('Create CLI command', () => {
       expect(promptSpy).toHaveBeenCalledTimes(1);
       expect(initSuperface).not.toHaveBeenCalled();
     });
-    //No-super-json flag
+
+    // No-super-json flag
     it('creates map with one usecase and  no-super.json flag', async () => {
       mocked(initSuperface).mockResolvedValue({
         superJson: {},
@@ -286,11 +289,12 @@ describe('Create CLI command', () => {
         },
         expect.anything()
       );
-      //We prompt user and init SF but not pass path to create logic
+      // We prompt user and init SF but not pass path to create logic
       expect(promptSpy).toHaveBeenCalledTimes(1);
       expect(initSuperface).toHaveBeenCalled();
     });
-    //Profile
+
+    // Profile
     it('creates profile with one usecase (with usecase name from cli) and quiet flag', async () => {
       mocked(initSuperface).mockResolvedValue({
         superJson: {},
@@ -477,7 +481,7 @@ describe('Create CLI command', () => {
       );
     });
 
-    //Map
+    // Map
     it('creates one map', async () => {
       mocked(initSuperface).mockResolvedValue({
         superJson: {},
@@ -572,7 +576,8 @@ describe('Create CLI command', () => {
         expect.anything()
       );
     });
-    //Provider
+
+    // Provider
     it('creates one provider', async () => {
       mocked(initSuperface).mockResolvedValue({
         superJson: {},
@@ -661,7 +666,8 @@ describe('Create CLI command', () => {
         expect.anything()
       );
     });
-    //Profile and provider
+
+    // Profile and provider
     it('creates profile and provider with one usecase', async () => {
       mocked(initSuperface).mockResolvedValue({
         superJson: {},
@@ -807,7 +813,8 @@ describe('Create CLI command', () => {
         expect.anything()
       );
     });
-    //Profile and map
+
+    // Profile and map
     it('creates profile & map with one usecase', async () => {
       mocked(initSuperface).mockResolvedValue({
         superJson: {},
@@ -950,7 +957,8 @@ describe('Create CLI command', () => {
         expect.anything()
       );
     });
-    //Map and provider
+
+    // Map and provider
     it('creates map with one provider (with provider name from cli) and variant', async () => {
       mocked(initSuperface).mockResolvedValue({
         superJson: {},
@@ -1094,7 +1102,8 @@ describe('Create CLI command', () => {
         expect.anything()
       );
     });
-    //Map, profile and provider
+
+    // Map, profile and provider
     it('creates profile & map with one provider (with provider name from cli)', async () => {
       mocked(initSuperface).mockResolvedValue({
         superJson: {},

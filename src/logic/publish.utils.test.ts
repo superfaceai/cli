@@ -1,4 +1,4 @@
-import {
+import type {
   AstMetadata,
   MapDocumentNode,
   ProfileDocumentNode,
@@ -14,21 +14,23 @@ import {
   fetchProviderInfo,
 } from '../common/http';
 import { ProfileId } from '../common/profile';
-import { ProfileMapReport } from '../common/report.interfaces';
+import type { ProfileMapReport } from '../common/report.interfaces';
 import {
   findLocalMapSource,
   findLocalProfileSource,
   findLocalProviderSource,
 } from './check.utils';
+import type {
+  MapFromMetadata,
+  ProfileFromMetadata,
+  ProviderFromMetadata,
+} from './publish.utils';
 import {
   loadMap,
   loadProfile,
   loadProvider,
-  MapFromMetadata,
   prePublishCheck,
   prePublishLint,
-  ProfileFromMetadata,
-  ProviderFromMetadata,
 } from './publish.utils';
 
 jest.mock('./check.utils', () => ({

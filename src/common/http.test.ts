@@ -1,13 +1,9 @@
-import {
-  ApiKeyPlacement,
-  AstMetadata,
-  HttpScheme,
-  ProviderJson,
-  SecurityType,
-} from '@superfaceai/ast';
+import type { AstMetadata, ProviderJson } from '@superfaceai/ast';
+import { ApiKeyPlacement, HttpScheme, SecurityType } from '@superfaceai/ast';
 import { ServiceApiError, ServiceClient } from '@superfaceai/service-client';
 import { mocked } from 'ts-jest/utils';
 
+import type { SuperfaceClient } from '../common/http';
 import {
   ContentType,
   fetchMapAST,
@@ -17,7 +13,6 @@ import {
   fetchProviderInfo,
   fetchProviders,
   getServicesUrl,
-  SuperfaceClient,
 } from '../common/http';
 import { mockResponse } from '../test/utils';
 import { DEFAULT_PROFILE_VERSION_STR } from './document';
@@ -76,7 +71,7 @@ describe('SuperfaceClient', () => {
           refreshTokenUpdatedHandler: undefined,
         },
       });
-      if (originalValue) {
+      if (originalValue !== undefined) {
         process.env.SUPERFACE_REFRESH_TOKEN = originalValue;
       }
     });
@@ -109,14 +104,16 @@ describe('HTTP functions', () => {
     const originalValue = process.env.SUPERFACE_API_URL;
 
     afterAll(() => {
-      if (originalValue) {
+      if (originalValue !== undefined) {
         process.env.SUPERFACE_API_URL = originalValue;
       }
     });
+
     it('returns url from env with backslash', async () => {
       process.env.SUPERFACE_API_URL = 'https://test/url.ai/';
       expect(getServicesUrl()).toEqual('https://test/url.ai');
     });
+
     it('returns url from env without backslash', async () => {
       process.env.SUPERFACE_API_URL = 'https://test/url.ai';
       expect(getServicesUrl()).toEqual('https://test/url.ai');
@@ -127,6 +124,7 @@ describe('HTTP functions', () => {
       expect(getServicesUrl()).toEqual('https://superface.ai');
     });
   });
+
   describe('when fetching providers', () => {
     const mockProviderJson: ProviderJson = {
       name: 'swapi',
@@ -209,7 +207,7 @@ describe('HTTP functions', () => {
   });
 
   describe('when fetching profile info', () => {
-    //mock profile info
+    // mock profile info
     const mockProfileInfo = {
       profile_id: 'starwars/character-information@1.0.1',
       profile_name: 'starwars/character-information',
@@ -220,6 +218,7 @@ describe('HTTP functions', () => {
       published_at: '2021-01-29T08:10:50.925Z',
       published_by: 'Ondrej Musil <mail@ondrejmusil.cz>',
     };
+
     it('calls superface client correctly', async () => {
       const fetchSpy = jest
         .spyOn(ServiceClient.prototype, 'fetch')
@@ -364,7 +363,7 @@ describe('HTTP functions', () => {
   });
 
   describe('when fetching profile ast', () => {
-    //mock profile ast
+    // mock profile ast
     const mockProfileAst = {
       astMetadata,
       kind: 'ProfileDocument',
@@ -411,6 +410,7 @@ describe('HTTP functions', () => {
         },
       });
     }, 10000);
+
     it('calls superface client correctly with enabled authentication', async () => {
       const fetchSpy = jest
         .spyOn(ServiceClient.prototype, 'fetch')
@@ -546,6 +546,7 @@ describe('HTTP functions', () => {
         ],
       },
     };
+
     it('calls superface client correctly', async () => {
       const provider = 'mailchimp';
       const fetchSpy = jest
@@ -691,7 +692,7 @@ describe('HTTP functions', () => {
     const version = '1.0.2';
     const variant = 'test';
 
-    //mock map ast
+    // mock map ast
     const mockMapDocument = {
       kind: 'MapDocument',
       astMetadata,

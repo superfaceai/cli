@@ -23,7 +23,7 @@ import {
 const mockServer = getLocal();
 
 describe('Interactive create CLI command', () => {
-  //File specific path
+  // File specific path
   const TEMP_PATH = joinPath('test', 'tmp');
   let documentName, provider;
   let tempDir: string;
@@ -54,18 +54,18 @@ describe('Interactive create CLI command', () => {
 
       const result = await execCLI(tempDir, ['create', '-i'], mockServer.url, {
         inputs: [
-          //Create profile
+          // Create profile
           { value: ENTER, timeout: 2000 },
-          //Create map
+          // Create map
           { value: 'n', timeout: 2000 },
           { value: ENTER, timeout: 200 },
-          //Create provider
+          // Create provider
           { value: 'n', timeout: 2000 },
           { value: ENTER, timeout: 200 },
-          //Profile
+          // Profile
           { value: documentName, timeout: 2000 },
           { value: ENTER, timeout: 200 },
-          //Init superface
+          // Init superface
           { value: ENTER, timeout: 200 },
         ],
       });
@@ -111,18 +111,18 @@ describe('Interactive create CLI command', () => {
         mockServer.url,
         {
           inputs: [
-            //Create profile
+            // Create profile
             { value: ENTER, timeout: 2000 },
-            //Create map
+            // Create map
             { value: 'n', timeout: 2000 },
             { value: ENTER, timeout: 100 },
-            //Create provider
+            // Create provider
             { value: 'n', timeout: 2000 },
             { value: ENTER, timeout: 100 },
-            //Profile
+            // Profile
             { value: documentName, timeout: 2000 },
             { value: ENTER, timeout: 200 },
-            //Init superface
+            // Init superface
             { value: ENTER, timeout: 500 },
           ],
         }
@@ -167,18 +167,18 @@ describe('Interactive create CLI command', () => {
         mockServer.url,
         {
           inputs: [
-            //Create profile
+            // Create profile
             { value: ENTER, timeout: 2000 },
-            //Create map
+            // Create map
             { value: 'n', timeout: 2000 },
             { value: ENTER, timeout: 200 },
-            //Create provider
+            // Create provider
             { value: 'n', timeout: 2000 },
             { value: ENTER, timeout: 200 },
-            //Profile
+            // Profile
             { value: documentName, timeout: 2000 },
             { value: ENTER, timeout: 500 },
-            //Init superface
+            // Init superface
             { value: ENTER, timeout: 200 },
           ],
         }
@@ -224,22 +224,22 @@ describe('Interactive create CLI command', () => {
 
       const result = await execCLI(tempDir, ['create', '-i'], mockServer.url, {
         inputs: [
-          //Create profile
+          // Create profile
           { value: 'n', timeout: 2000 },
           { value: ENTER, timeout: 200 },
-          //Create map
+          // Create map
           { value: ENTER, timeout: 2000 },
-          //Create provider
+          // Create provider
           { value: 'n', timeout: 2000 },
           { value: ENTER, timeout: 200 },
-          //Profile
+          // Profile
           { value: documentName, timeout: 2000 },
           { value: ENTER, timeout: 200 },
-          //Provider
+          // Provider
           { value: provider, timeout: 2000 },
           { value: ENTER, timeout: 200 },
           { value: ENTER, timeout: 200 },
-          //Init superface
+          // Init superface
           { value: ENTER, timeout: 200 },
         ],
       });
@@ -298,21 +298,21 @@ describe('Interactive create CLI command', () => {
         mockServer.url,
         {
           inputs: [
-            //Create profile
+            // Create profile
             { value: 'n', timeout: 1000 },
             { value: ENTER, timeout: 200 },
-            //Create map
+            // Create map
             { value: ENTER, timeout: 1000 },
-            //Create provider
+            // Create provider
             { value: ENTER, timeout: 1000 },
-            //Profile
+            // Profile
             { value: documentName, timeout: 2000 },
             { value: ENTER, timeout: 200 },
-            //Provider
+            // Provider
             { value: provider, timeout: 2000 },
             { value: ENTER, timeout: 200 },
             { value: ENTER, timeout: 200 },
-            //Init superface
+            // Init superface
             { value: ENTER, timeout: 200 },
           ],
         }
@@ -386,22 +386,22 @@ describe('Interactive create CLI command', () => {
         mockServer.url,
         {
           inputs: [
-            //Create profile
+            // Create profile
             { value: 'n', timeout: 1000 },
             { value: ENTER, timeout: 200 },
-            //Create map
+            // Create map
             { value: ENTER, timeout: 1000 },
-            //Create provider
+            // Create provider
             { value: 'n', timeout: 1000 },
             { value: ENTER, timeout: 200 },
-            //Profile
+            // Profile
             { value: documentName, timeout: 2000 },
             { value: ENTER, timeout: 200 },
-            //Provider
+            // Provider
             { value: provider, timeout: 2000 },
             { value: ENTER, timeout: 200 },
             { value: ENTER, timeout: 200 },
-            //Init superface
+            // Init superface
             { value: ENTER, timeout: 200 },
           ],
         }
@@ -459,21 +459,21 @@ describe('Interactive create CLI command', () => {
 
       const result = await execCLI(tempDir, ['create', '-i'], mockServer.url, {
         inputs: [
-          //Create profile
+          // Create profile
           { value: ENTER, timeout: 1000 },
-          //Create map
+          // Create map
           { value: ENTER, timeout: 1000 },
-          //Create provider
+          // Create provider
           { value: 'n', timeout: 1000 },
           { value: ENTER, timeout: 200 },
-          //Profile
+          // Profile
           { value: documentName, timeout: 2000 },
           { value: ENTER, timeout: 200 },
-          //Provider
+          // Provider
           { value: provider, timeout: 2000 },
           { value: ENTER, timeout: 200 },
           { value: ENTER, timeout: 200 },
-          //Init superface
+          // Init superface
           { value: ENTER, timeout: 200 },
         ],
       });
@@ -547,21 +547,21 @@ describe('Interactive create CLI command', () => {
         mockServer.url,
         {
           inputs: [
-            //Create profile
+            // Create profile
             { value: ENTER, timeout: 1000 },
-            //Create map
+            // Create map
             { value: ENTER, timeout: 1000 },
-            //Create provider
+            // Create provider
             { value: 'n', timeout: 1000 },
             { value: ENTER, timeout: 200 },
-            //Profile
+            // Profile
             { value: documentName, timeout: 2000 },
             { value: ENTER, timeout: 200 },
-            //Provider
+            // Provider
             { value: provider, timeout: 2000 },
             { value: ENTER, timeout: 200 },
             { value: ENTER, timeout: 200 },
-            //Init superface
+            // Init superface
             { value: ENTER, timeout: 200 },
           ],
         }
@@ -637,21 +637,21 @@ describe('Interactive create CLI command', () => {
         mockServer.url,
         {
           inputs: [
-            //Create profile
+            // Create profile
             { value: ENTER, timeout: 2000 },
-            //Create map
+            // Create map
             { value: ENTER, timeout: 2000 },
-            //Create provider
+            // Create provider
             { value: 'n', timeout: 2000 },
             { value: ENTER, timeout: 500 },
-            //Profile
+            // Profile
             { value: documentName, timeout: 2000 },
             { value: ENTER, timeout: 500 },
-            //Provider
+            // Provider
             { value: provider, timeout: 2000 },
             { value: ENTER, timeout: 200 },
             { value: ENTER, timeout: 200 },
-            //Init superface
+            // Init superface
             { value: ENTER, timeout: 200 },
           ],
         }

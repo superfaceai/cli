@@ -1,4 +1,4 @@
-import { SuperJsonDocument } from '@superfaceai/ast';
+import type { SuperJsonDocument } from '@superfaceai/ast';
 import { loadSuperJson, NodeFileSystem } from '@superfaceai/one-sdk';
 import { join } from 'path';
 import { Writable } from 'stream';
@@ -28,13 +28,13 @@ describe('IO functions', () => {
   let INITIAL_CWD: string;
   let INITIAL_SUPER_JSON: SuperJsonDocument;
 
-  //Mock writable stream for testing backpressure
+  // Mock writable stream for testing backpressure
   class MockWritable extends Writable {
     constructor(private writeMore: boolean) {
       super();
     }
 
-    write(_chunk: any): boolean {
+    public write(_chunk: any): boolean {
       return this.writeMore;
     }
   }

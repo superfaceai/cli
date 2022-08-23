@@ -54,7 +54,7 @@ describe('Login CLI command', () => {
   });
 
   afterAll(() => {
-    if (originalValue) {
+    if (originalValue !== undefined) {
       process.env.SUPERFACE_REFRESH_TOKEN = originalValue;
     }
   });
@@ -102,6 +102,7 @@ describe('Login CLI command', () => {
       expect(logoutSpy).not.toHaveBeenCalled();
       expect(logger.stdout).toContainEqual(['loggedInSuccessfully', []]);
     });
+
     it('calls login correctly - existing record in netrc and force flag', async () => {
       mocked(getServicesUrl).mockReturnValue(mockBaseUrlWithExistingRecord);
       const logoutSpy = jest.spyOn(ServiceClient.prototype, 'logout');

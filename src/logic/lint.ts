@@ -1,23 +1,25 @@
-import {
-  EXTENSIONS,
+import type {
   MapDocumentNode,
   MapHeaderNode,
   ProfileDocumentNode,
   SuperJsonDocument,
 } from '@superfaceai/ast';
+import { EXTENSIONS } from '@superfaceai/ast';
+import type {
+  ProfileHeaderStructure,
+  ProfileOutput,
+  ValidationResult,
+} from '@superfaceai/parser';
 import {
   formatIssues,
   getProfileOutput,
   parseMap,
   parseMapId,
   parseProfile,
-  ProfileHeaderStructure,
-  ProfileOutput,
   Source,
   SyntaxError,
   validateExamples,
   validateMap,
-  ValidationResult,
 } from '@superfaceai/parser';
 import { green, red, yellow } from 'chalk';
 import { basename } from 'path';
@@ -26,20 +28,20 @@ import {
   composeVersion,
   DEFAULT_PROFILE_VERSION_STR,
 } from '../common/document';
-import { UserError } from '../common/error';
+import type { UserError } from '../common/error';
 import { formatWordPlurality } from '../common/format';
 import { fetchMapAST, fetchProfileAST } from '../common/http';
-import { ILogger } from '../common/log';
+import type { ILogger } from '../common/log';
 import { MapId } from '../common/map';
-import { ProfileId } from '../common/profile';
-import {
+import type { ProfileId } from '../common/profile';
+import type {
   FileReport,
   ProfileMapReport,
   ReportFormat,
 } from '../common/report.interfaces';
 import { findLocalMapSource, findLocalProfileSource } from './check.utils';
 
-//TODO: rewrite to return validation issue?
+// TODO: rewrite to return validation issue?
 export function isValidHeader(
   profileHeader: ProfileHeaderStructure,
   mapHeader: MapHeaderNode
@@ -55,7 +57,7 @@ export function isValidHeader(
 
   return true;
 }
-//TODO: rewrite to return validation issue?
+// TODO: rewrite to return validation issue?
 export function isValidMapId(
   profileHeader: ProfileHeaderStructure,
   mapHeader: MapHeaderNode,
@@ -286,7 +288,7 @@ async function prepareLintedProfile(
     profile.id,
     profile.version
   );
-  const path = profileSource?.path || profile.id.withVersion(profile.version);
+  const path = profileSource?.path ?? profile.id.withVersion(profile.version);
 
   const report: FileReport = {
     kind: 'file',
@@ -294,7 +296,7 @@ async function prepareLintedProfile(
     errors: [],
     warnings: [],
   };
-  //If we have local profile we lint it
+  // If we have local profile we lint it
   if (profileSource) {
     try {
       ast = parseProfile(new Source(profileSource.source, profileSource.path));
@@ -305,7 +307,7 @@ async function prepareLintedProfile(
     ast = await fetchProfileAST(profile.id, profile.version);
   }
 
-  //Validate examples
+  // Validate examples
   if (ast) {
     output = getProfileOutput(ast);
     const examplesValidationResult = validateExamples(ast, output);
@@ -351,7 +353,7 @@ async function prepareLintedMap(
 
   const path =
     mapSource?.path ??
-    mapId.withVersion(profile.version || DEFAULT_PROFILE_VERSION_STR);
+    mapId.withVersion(profile.version ?? DEFAULT_PROFILE_VERSION_STR);
 
   const report: FileReport = {
     kind: 'file',
@@ -425,7 +427,7 @@ export async function lint(
 
     reports.push(preparedProfile.report);
 
-    //Return if we have errors or warnings
+    // Return if we have errors or warnings
     if (!preparedProfile.ast || !preparedProfile.output) {
       return prepareResult(reports);
     }
@@ -439,7 +441,7 @@ export async function lint(
       );
       reports.push(preparedMap.report);
 
-      //Return if we have errors or warnings
+      // Return if we have errors or warnings
       if (!preparedMap.ast) {
         return prepareResult(reports);
       }
@@ -455,7 +457,7 @@ export async function lint(
           result.pass ? 0 : result.errors.length,
           result.warnings?.length ?? 0,
         ]);
-        //We catch any unexpected error from parser validator to prevent ending the loop early
+        // We catch any unexpected error from parser validator to prevent ending the loop early
       } catch (error) {
         logger.error(
           'unexpectedLintError',

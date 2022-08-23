@@ -10,14 +10,17 @@ jest.mock('path', () => ({
   ...jest.requireActual<Record<string, unknown>>('path'),
   join: jest.fn(),
 }));
+
 describe('Package manager', () => {
   let packageManager: PackageManager;
   let logger: MockLogger;
+
   beforeEach(() => {
     logger = new MockLogger();
     packageManager = new PackageManager(logger);
     jest.resetModules();
   });
+
   afterEach(() => {
     jest.resetAllMocks();
   });
@@ -85,7 +88,7 @@ describe('Package manager', () => {
         .mockResolvedValueOnce({ stderr: '', stdout: 'some-logs' });
 
       mocked(join).mockReturnValue('some/path/package-lock.json');
-      //Package.lock does not exist
+      // Package.lock does not exist
       mocked(exists).mockResolvedValue(false);
 
       await expect(packageManager.init('npm')).resolves.toEqual(true);
@@ -108,7 +111,7 @@ describe('Package manager', () => {
         .mockResolvedValueOnce({ stderr: 'some warning', stdout: '' });
 
       mocked(join).mockReturnValue('some/path/yarn.lock');
-      //Package.lock does not exist
+      // Package.lock does not exist
       mocked(exists).mockResolvedValue(false);
 
       await expect(packageManager.init('yarn')).resolves.toEqual(true);
@@ -133,9 +136,9 @@ describe('Package manager', () => {
         .mockResolvedValueOnce({ stderr: '', stdout: '' });
 
       mocked(join).mockReturnValue('some/path/yarn.lock');
-      //Package.lock does not exist
+      // Package.lock does not exist
       mocked(exists)
-        //Yarn.lock exist
+        // Yarn.lock exist
         .mockResolvedValue(true);
 
       await expect(packageManager.init('yarn')).resolves.toEqual(false);
@@ -147,6 +150,7 @@ describe('Package manager', () => {
       expect(logger.stdout).toEqual([]);
     });
   });
+
   describe('when getting used package manager', () => {
     it('returns undefined - err on npm prefix', async () => {
       mocked(execShell).mockResolvedValue({
@@ -179,6 +183,7 @@ describe('Package manager', () => {
       expect(logger.stderr).toEqual([]);
     });
   });
+
   describe('when installing package', () => {
     it('installs package with yarn and empty stdout, stderror', async () => {
       mocked(execShell)
@@ -232,12 +237,12 @@ describe('Package manager', () => {
       ]);
       expect(logger.stderr).toEqual([]);
 
-      //Second install to check caching
+      // Second install to check caching
       await expect(
         packageManager.installPackage('@superfaceai/one-sdk')
       ).resolves.toEqual(true);
 
-      //execShell is called three times (it only calls npm prefix once)
+      // execShell is called three times (it only calls npm prefix once)
       expect(execShell).toHaveBeenCalledTimes(3);
       expect(execShell).toHaveBeenNthCalledWith(
         3,

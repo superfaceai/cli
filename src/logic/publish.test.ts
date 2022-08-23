@@ -1,4 +1,4 @@
-import {
+import type {
   AstMetadata,
   MapDocumentNode,
   ProfileDocumentNode,
@@ -16,9 +16,9 @@ import { createUserError } from '../common/error';
 import { fetchProviderInfo, getServicesUrl } from '../common/http';
 import { loadNetrc } from '../common/netrc';
 import { ProfileId } from '../common/profile';
-import { ProfileMapReport } from '../common/report.interfaces';
+import type { ProfileMapReport } from '../common/report.interfaces';
+import type { CheckResult } from './check';
 import {
-  CheckResult,
   formatHuman as checkFormatHuman,
   formatJson as checkFormatJson,
 } from './check';
@@ -27,15 +27,17 @@ import {
   formatJson as lintFormatJson,
 } from './lint';
 import { publish } from './publish';
+import type {
+  MapFromMetadata,
+  ProfileFromMetadata,
+  ProviderFromMetadata,
+} from './publish.utils';
 import {
   loadMap,
   loadProfile,
   loadProvider,
-  MapFromMetadata,
   prePublishCheck,
   prePublishLint,
-  ProfileFromMetadata,
-  ProviderFromMetadata,
 } from './publish.utils';
 
 jest.mock('../common/netrc');

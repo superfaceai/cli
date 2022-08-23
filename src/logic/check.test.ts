@@ -1,12 +1,10 @@
-import {
-  ApiKeyPlacement,
+import type {
   AstMetadata,
-  HttpScheme,
   MapDocumentNode,
   ProfileDocumentNode,
   ProviderJson,
-  SecurityType,
 } from '@superfaceai/ast';
+import { ApiKeyPlacement, HttpScheme, SecurityType } from '@superfaceai/ast';
 import { mocked } from 'ts-jest/utils';
 
 import { MockLogger, UNVERIFIED_PROVIDER_PREFIX } from '../common';
@@ -16,24 +14,22 @@ import {
   fetchProviderInfo,
 } from '../common/http';
 import { ProfileId } from '../common/profile';
+import type { CheckResult } from './check';
 import {
   check,
   checkIntegrationParameters,
   checkMapAndProfile,
   checkMapAndProvider,
-  CheckResult,
   formatHuman,
   formatJson,
 } from './check';
 import { isProviderParseError } from './check.utils';
-import {
-  loadMap,
-  loadProfile,
-  loadProvider,
+import type {
   MapFromMetadata,
   ProfileFromMetadata,
   ProviderFromMetadata,
 } from './publish.utils';
+import { loadMap, loadProfile, loadProvider } from './publish.utils';
 
 jest.mock('./publish.utils', () => ({
   loadMap: jest.fn(),
@@ -849,7 +845,7 @@ describe('Check logic', () => {
         emoji: false,
         color: false,
       });
-      //First title
+      // First title
       expect(formated).toMatch(
         `Checking remote profile "${profile.scope}/${profile.name}" with version "${profile.version}" and remote map with version "${profile.version}" for provider "${provider}"`
       );

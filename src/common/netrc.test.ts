@@ -15,7 +15,7 @@ const mockSave = jest.fn();
 const mockLoad = jest.fn();
 jest.mock('netrc-parser', () => {
   return {
-    //Netrc is not default export so we need this
+    // Netrc is not default export so we need this
     Netrc: jest.fn().mockImplementation(() => {
       return {
         loadSync: mockLoadSync,
@@ -31,6 +31,7 @@ jest.mock('netrc-parser', () => {
     }),
   };
 });
+
 describe('NetRc functions', () => {
   describe('when loading netrc record', () => {
     it('calls netrc correctly with existing record', () => {
@@ -41,6 +42,7 @@ describe('NetRc functions', () => {
       });
       expect(mockLoadSync).toHaveBeenCalled();
     });
+
     it('calls netrc correctly with empty record', () => {
       mocked(getServicesUrl).mockReturnValue(mockBaseUrlWithEmptyRecord);
       expect(loadNetrc()).toEqual({

@@ -3,21 +3,22 @@ import { isValidDocumentName, isValidProviderName } from '@superfaceai/ast';
 import { join as joinPath } from 'path';
 
 import { isCompatible } from '..';
-import { Command, Flags } from '../common/command.abstract';
+import type { Flags } from '../common/command.abstract';
+import { Command } from '../common/command.abstract';
 import { META_FILE, SUPERFACE_DIR } from '../common/document';
-import { UserError } from '../common/error';
-import { ILogger } from '../common/log';
-import { IPackageManager, PackageManager } from '../common/package-manager';
+import type { UserError } from '../common/error';
+import type { ILogger } from '../common/log';
+import type { IPackageManager } from '../common/package-manager';
+import { PackageManager } from '../common/package-manager';
 import { NORMALIZED_CWD_PATH } from '../common/path';
 import { ProfileId } from '../common/profile';
 import { installProvider } from '../logic/configure';
 import { initSuperface } from '../logic/init';
-import {
-  detectSuperJson,
-  installProfiles,
+import type {
   LocalRequest as LocalInstallRequest,
   StoreRequest as StoreInstallRequest,
 } from '../logic/install';
+import { detectSuperJson, installProfiles } from '../logic/install';
 import { interactiveInstall } from '../logic/quickstart';
 
 const parseProviders = (logger: ILogger, providers?: string[]): string[] => {
@@ -43,10 +44,10 @@ const parseProviders = (logger: ILogger, providers?: string[]): string[] => {
 };
 
 export default class Install extends Command {
-  static description =
+  public static description =
     'Automatically initializes superface directory in current working directory if needed, communicates with Superface Store API, stores profiles and compiled files to a local system. Install without any arguments tries to install profiles and providers listed in super.json';
 
-  static args = [
+  public static args = [
     {
       name: 'profileId',
       required: false,
@@ -56,7 +57,7 @@ export default class Install extends Command {
     },
   ];
 
-  static flags = {
+  public static flags = {
     ...Command.flags,
     providers: oclifFlags.string({
       char: 'p',
@@ -93,7 +94,7 @@ export default class Install extends Command {
     help: oclifFlags.help({ char: 'h' }),
   };
 
-  static examples = [
+  public static examples = [
     '$ superface install',
     '$ superface install sms/service@1.0',
     '$ superface install sms/service@1.0 --providers twilio tyntec',
@@ -101,7 +102,7 @@ export default class Install extends Command {
     '$ superface install --local sms/service.supr',
   ];
 
-  async run(): Promise<void> {
+  public async run(): Promise<void> {
     const { flags, args } = this.parse(Install);
     await super.initialize(flags);
     const pm = new PackageManager(this.logger);
@@ -114,7 +115,7 @@ export default class Install extends Command {
     });
   }
 
-  async execute({
+  public async execute({
     logger,
     userError,
     pm,
@@ -127,15 +128,18 @@ export default class Install extends Command {
     flags: Flags<typeof Install.flags>;
     args: { profileId?: string };
   }): Promise<void> {
-    if (flags.scan && (typeof flags.scan !== 'number' || flags.scan > 5)) {
+    if (
+      flags.scan !== undefined &&
+      (typeof flags.scan !== 'number' || flags.scan > 5)
+    ) {
       throw userError(
         '--scan/-s : Number of levels to scan cannot be higher than 5',
         1
       );
     }
 
-    if (flags.interactive) {
-      if (!args.profileId) {
+    if (flags.interactive === true) {
+      if (args.profileId === undefined) {
         logger.warn('missingInteractiveFlag');
         this.exit(1);
       }
@@ -150,13 +154,17 @@ export default class Install extends Command {
     const providers = parseProviders(logger, flags.providers);
 
     const profileArg = args.profileId;
-    if (profileArg !== undefined && !flags.local && providers.length > 0) {
+    if (
+      profileArg !== undefined &&
+      flags.local !== true &&
+      providers.length > 0
+    ) {
       if (!(await isCompatible(profileArg, providers, { logger }))) {
         this.exit();
       }
     }
 
-    if (!superPath) {
+    if (superPath === undefined) {
       logger.info('initSuperface');
       await initSuperface(
         {
@@ -172,7 +180,7 @@ export default class Install extends Command {
 
     const requests: (LocalInstallRequest | StoreInstallRequest)[] = [];
     if (profileArg !== undefined) {
-      if (flags.local) {
+      if (flags.local === true) {
         requests.push({
           kind: 'local',
           path: profileArg,
@@ -193,7 +201,7 @@ export default class Install extends Command {
         });
       }
     } else {
-      //Do not install providers without profile
+      // Do not install providers without profile
       if (providers.length > 0) {
         logger.warn('unableToInstallWithoutProfile');
         this.exit();
@@ -205,7 +213,7 @@ export default class Install extends Command {
         superPath,
         requests,
         options: {
-          force: !!flags.force,
+          force: flags.force === true,
           tryToAuthenticate: true,
         },
       },
@@ -226,7 +234,7 @@ export default class Install extends Command {
           profileId: ProfileId.fromId(profileArg as string, { userError }),
           defaults: undefined,
           options: {
-            force: !!flags.force,
+            force: flags.force === true,
           },
         },
         { logger, userError }

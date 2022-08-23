@@ -14,7 +14,8 @@ import { OutputStream } from '../common/output-stream';
 import { ProfileId } from '../common/profile';
 import { mockMapDocumentNode } from '../test/map-document-node';
 import { mockProfileDocumentNode } from '../test/profile-document-node';
-import { compile, ProfileToCompile } from './compile';
+import type { ProfileToCompile } from './compile';
+import { compile } from './compile';
 
 jest.mock('../common/io', () => ({
   readFile: jest.fn(),
@@ -25,6 +26,7 @@ jest.mock('@superfaceai/parser', () => ({
   parseProfile: jest.fn(),
   parseMap: jest.fn(),
 }));
+
 describe('Compile CLI logic', () => {
   let logger: MockLogger;
   const userError = createUserError(false);

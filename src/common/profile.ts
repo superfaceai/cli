@@ -1,6 +1,6 @@
 import { parseDocumentId } from '@superfaceai/parser';
 
-import { UserError } from './error';
+import type { UserError } from './error';
 
 export class ProfileId {
   public readonly scope?: string;
@@ -29,14 +29,14 @@ export class ProfileId {
   private constructor(scope: string | undefined, name: string) {
     this.scope = scope;
     this.name = name;
-    this.id = scope ? `${scope}/${name}` : name;
+    this.id = scope !== undefined ? `${scope}/${name}` : name;
   }
 
-  withVersion(version?: string): string {
-    return `${this.id}${version ? `@${version}` : ''}`;
+  public withVersion(version?: string): string {
+    return `${this.id}${version !== undefined ? `@${version}` : ''}`;
   }
 
-  toString(): string {
+  public toString(): string {
     return this.id;
   }
 }

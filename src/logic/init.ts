@@ -1,4 +1,4 @@
-import { SuperJsonDocument } from '@superfaceai/ast';
+import type { SuperJsonDocument } from '@superfaceai/ast';
 import { loadSuperJson, NodeFileSystem } from '@superfaceai/one-sdk';
 import { parseProfileId } from '@superfaceai/parser';
 import { join as joinPath } from 'path';
@@ -8,9 +8,9 @@ import {
   META_FILE,
   SUPERFACE_DIR,
 } from '../common/document';
-import { UserError } from '../common/error';
+import type { UserError } from '../common/error';
 import { mkdir, mkdirQuiet } from '../common/io';
-import { ILogger } from '../common/log';
+import type { ILogger } from '../common/log';
 import { OutputStream } from '../common/output-stream';
 import { ProfileId } from '../common/profile';
 import { createProfile } from './create';
@@ -45,7 +45,7 @@ export async function initSuperface(
   // create the base path
   {
     const created = await mkdir(appPath, { recursive: true });
-    if (created) {
+    if (created !== undefined) {
       logger.info('mkdir', appPath);
     }
   }

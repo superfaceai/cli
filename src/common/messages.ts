@@ -89,14 +89,14 @@ const fetch = {
     // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
     `Fetching profile info of profile: "${profile}" failed: "${error}"`,
   fetchProfile: (profile: string, version?: string) => {
-    if (version) {
+    if (version !== undefined) {
       return `Fetching profile: "${profile}" with version: "${version}" from Superface registry`;
     }
 
     return `Fetching profile: "${profile}" from Superface registry`;
   },
   fetchMap: (profile: string, provider: string, astVersion?: string) => {
-    if (astVersion) {
+    if (astVersion !== undefined) {
       return `Fetching map for profile: "${profile}" and provider: "${provider}" with version: "${astVersion}" from Superface registry`;
     }
 
@@ -148,11 +148,13 @@ const configure = {
     description?: string
   ) =>
     `Parameter: "${name}"${
-      description ? ` with description: "${description}"` : ''
+      description !== undefined ? ` with description: "${description}"` : ''
     } has not been configured\nPlease, configure this parameter manually in "super.json" in: "${superJsonPath}"`,
   parameterConfigured: (name: string, value: string, description?: string) =>
     `Parameter: "${name}"${
-      description ? ` with description: "${description}"` : ''
+      description !== undefined && description !== ''
+        ? ` with description: "${description}"`
+        : ''
     } has been configured to use value of environment value "${value}".\nPlease configure this environment value`,
   parameterHasDefault: (defaultValue: string) =>
     `If you do not set the variable, the default value: "${defaultValue}" will be used`,
