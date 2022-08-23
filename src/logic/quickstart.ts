@@ -17,7 +17,7 @@ import {
   normalizeSuperJsonDocument,
   SUPERFACE_DIR,
 } from '@superfaceai/one-sdk';
-import { getProfileUsecases, parseProfile, Source } from '@superfaceai/parser';
+import { getProfileUsecases } from '@superfaceai/parser';
 import { bold } from 'chalk';
 import inquirer from 'inquirer';
 import { join as joinPath } from 'path';
@@ -32,7 +32,7 @@ import type { IPackageManager } from '../common/package-manager';
 import { NORMALIZED_CWD_PATH } from '../common/path';
 import { ProfileId } from '../common/profile';
 import { envVariable } from '../templates/env';
-import { findLocalProfileSource } from './check.utils';
+import { findLocalProfileAst } from './check.utils';
 import { installProvider } from './configure';
 import { initSuperface } from './init';
 import { detectSuperJson, installProfiles } from './install';
@@ -203,19 +203,16 @@ export async function interactiveInstall(
   }
 
   // Get installed usecases
-  const profileSource = await findLocalProfileSource(
+  const profileAst = await findLocalProfileAst(
     superJson,
     superJsonPath,
     profileId,
     version
   );
-  if (!profileSource) {
-    throw developerError('Profile source not found after installation', 1);
+  if (!profileAst) {
+    throw developerError('Compiled profile not found after installation', 1);
   }
-  const profileAst = parseProfile(
-    new Source(profileSource.source, profileId.id)
-  );
-  const profileUsecases = getProfileUsecases(profileAst);
+  const profileUsecases = getProfileUsecases(profileAst.ast);
   // Check usecase
   if (profileUsecases.length === 0) {
     throw userError(
