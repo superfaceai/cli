@@ -19,13 +19,13 @@ export function resolveSuperfaceRelativePath(
   superJsonPath: string,
   path: string
 ): string {
-  //Make input path absolute
+  // Make input path absolute
   if (!isAbsolute(path)) {
     path = resolve(process.cwd(), path);
   }
-  //Absolute path to super.json
+  // Absolute path to super.json
   const superfacePath = resolve(superJsonPath);
-  //If path leads to superface directory
+  // If path leads to superface directory
   if (path.startsWith(dirname(superfacePath))) {
     return NORMALIZED_CWD_PATH + relativePath(dirname(superJsonPath), path);
   } else {

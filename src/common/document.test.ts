@@ -21,6 +21,7 @@ jest.mock('@superfaceai/parser', () => ({
 
 describe('Document functions', () => {
   const userError = createUserError(false);
+
   afterEach(async () => {
     jest.resetAllMocks();
   });

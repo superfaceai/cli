@@ -20,7 +20,7 @@ import {
 const mockServer = getLocal();
 
 describe('Configure CLI command', () => {
-  //File specific path
+  // File specific path
   const TEMP_PATH = joinPath('test', 'tmp');
   const profileId = 'starwars/character-information';
   const profileVersion = '1.0.1';
@@ -50,6 +50,7 @@ describe('Configure CLI command', () => {
       'starwars/character-information'
     );
   });
+
   beforeEach(async () => {
     tempDir = await setUpTempDir(TEMP_PATH);
   });
@@ -88,7 +89,7 @@ describe('Configure CLI command', () => {
         )
       ).unwrap();
 
-      //Check super.json
+      // Check super.json
       expect(
         normalizeSuperJsonDocument(superJson).providers[provider].security
       ).toEqual([
@@ -172,7 +173,7 @@ describe('Configure CLI command', () => {
       ).unwrap();
       const normalized = normalizeSuperJsonDocument(superJson);
 
-      //Check super.json
+      // Check super.json
       expect(normalized.providers[providerWithParameters].security).toEqual([
         {
           id: 'azure-subscription-key',
@@ -288,7 +289,7 @@ describe('Configure CLI command', () => {
       ).unwrap();
       const normalized = normalizeSuperJsonDocument(superJson);
 
-      //Check super.json
+      // Check super.json
       expect(normalized.providers[provider].security).toEqual([
         {
           id: 'api',
@@ -319,7 +320,7 @@ describe('Configure CLI command', () => {
 
   describe('when providers are present in super.json', () => {
     it('uses existing provider without a force flag', async () => {
-      //set existing super.json
+      // set existing super.json
       const localSuperJson = {
         profiles: {
           [profileId]: {
@@ -379,7 +380,7 @@ describe('Configure CLI command', () => {
     }, 30000);
 
     it('overrides existing super.json with a force flag', async () => {
-      //set existing super.json
+      // set existing super.json
       const localSuperJson = {
         profiles: {
           [profileId]: {
@@ -496,7 +497,7 @@ describe('Configure CLI command', () => {
     }, 30000);
 
     it('does not load provider data from nonexistent file', async () => {
-      //set existing super.json
+      // set existing super.json
       const localSuperJson = {
         profiles: {
           [profileId]: {

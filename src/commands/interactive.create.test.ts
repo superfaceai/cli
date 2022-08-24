@@ -43,15 +43,15 @@ describe('Interactive create CLI command', () => {
       documentName = 'sendsms';
       jest
         .spyOn(inquirer, 'prompt')
-        //Create profile
+        // Create profile
         .mockResolvedValueOnce({ create: true })
-        //Create map
+        // Create map
         .mockResolvedValueOnce({ create: false })
-        //Create provider
+        // Create provider
         .mockResolvedValueOnce({ create: false })
-        //Profile ID
+        // Profile ID
         .mockResolvedValueOnce({ input: documentName })
-        //Init
+        // Init
         .mockResolvedValueOnce({ init: true });
 
       await mkdirQuiet('test');
@@ -100,15 +100,15 @@ describe('Interactive create CLI command', () => {
       documentName = 'sms/service';
       jest
         .spyOn(inquirer, 'prompt')
-        //Create profile
+        // Create profile
         .mockResolvedValueOnce({ create: true })
-        //Create map
+        // Create map
         .mockResolvedValueOnce({ create: false })
-        //Create provider
+        // Create provider
         .mockResolvedValueOnce({ create: false })
-        //Profile ID
+        // Profile ID
         .mockResolvedValueOnce({ input: documentName })
-        //Init
+        // Init
         .mockResolvedValueOnce({ init: true });
 
       await expect(
@@ -157,15 +157,15 @@ describe('Interactive create CLI command', () => {
 
       jest
         .spyOn(inquirer, 'prompt')
-        //Create profile
+        // Create profile
         .mockResolvedValueOnce({ create: true })
-        //Create map
+        // Create map
         .mockResolvedValueOnce({ create: false })
-        //Create provider
+        // Create provider
         .mockResolvedValueOnce({ create: false })
-        //Profile ID
+        // Profile ID
         .mockResolvedValueOnce({ input: documentName })
-        //Init
+        // Init
         .mockResolvedValueOnce({ init: true });
 
       await expect(
@@ -215,18 +215,18 @@ describe('Interactive create CLI command', () => {
 
       jest
         .spyOn(inquirer, 'prompt')
-        //Create profile
+        // Create profile
         .mockResolvedValueOnce({ create: false })
-        //Create map
+        // Create map
         .mockResolvedValueOnce({ create: true })
-        //Create provider
+        // Create provider
         .mockResolvedValueOnce({ create: false })
-        //Profile ID
+        // Profile ID
         .mockResolvedValueOnce({ input: documentName })
-        //Provider
+        // Provider
         .mockResolvedValueOnce({ input: provider })
         .mockResolvedValueOnce({ input: undefined })
-        //Init
+        // Init
         .mockResolvedValueOnce({ init: true });
 
       await expect(
@@ -277,19 +277,19 @@ describe('Interactive create CLI command', () => {
 
       jest
         .spyOn(inquirer, 'prompt')
-        //Create profile
+        // Create profile
         .mockResolvedValueOnce({ create: false })
-        //Create map
+        // Create map
         .mockResolvedValueOnce({ create: true })
-        //Create provider
+        // Create provider
         .mockResolvedValueOnce({ create: false })
-        //Profile ID
+        // Profile ID
         .mockResolvedValueOnce({ input: documentName })
-        //Provider
+        // Provider
         .mockResolvedValueOnce({ input: 'twilio' })
         .mockResolvedValueOnce({ input: 'tyntec' })
         .mockResolvedValueOnce({ input: undefined })
-        //Init
+        // Init
         .mockResolvedValueOnce({ init: true });
 
       await expect(
@@ -341,18 +341,18 @@ describe('Interactive create CLI command', () => {
 
       jest
         .spyOn(inquirer, 'prompt')
-        //Create profile
+        // Create profile
         .mockResolvedValueOnce({ create: false })
-        //Create map
+        // Create map
         .mockResolvedValueOnce({ create: true })
-        //Create provider
+        // Create provider
         .mockResolvedValueOnce({ create: true })
-        //Profile ID
+        // Profile ID
         .mockResolvedValueOnce({ input: documentName })
-        //Provider
+        // Provider
         .mockResolvedValueOnce({ input: provider })
         .mockResolvedValueOnce({ input: undefined })
-        //Init
+        // Init
         .mockResolvedValueOnce({ init: true });
 
       await expect(
@@ -402,18 +402,18 @@ describe('Interactive create CLI command', () => {
 
       jest
         .spyOn(inquirer, 'prompt')
-        //Create profile
+        // Create profile
         .mockResolvedValueOnce({ create: false })
-        //Create map
+        // Create map
         .mockResolvedValueOnce({ create: true })
-        //Create provider
+        // Create provider
         .mockResolvedValueOnce({ create: true })
-        //Profile ID
+        // Profile ID
         .mockResolvedValueOnce({ input: documentName })
-        //Provider
+        // Provider
         .mockResolvedValueOnce({ input: 'twilio' })
         .mockResolvedValueOnce({ input: undefined })
-        //Init
+        // Init
         .mockResolvedValueOnce({ init: true });
 
       await expect(
@@ -462,18 +462,18 @@ describe('Interactive create CLI command', () => {
 
       jest
         .spyOn(inquirer, 'prompt')
-        //Create profile
+        // Create profile
         .mockResolvedValueOnce({ create: true })
-        //Create map
+        // Create map
         .mockResolvedValueOnce({ create: true })
-        //Create provider
+        // Create provider
         .mockResolvedValueOnce({ create: true })
-        //Profile ID
+        // Profile ID
         .mockResolvedValueOnce({ input: documentName })
-        //Provider
+        // Provider
         .mockResolvedValueOnce({ input: provider })
         .mockResolvedValueOnce({ input: undefined })
-        //Init
+        // Init
         .mockResolvedValueOnce({ init: true });
 
       await expect(
@@ -523,18 +523,18 @@ describe('Interactive create CLI command', () => {
 
       jest
         .spyOn(inquirer, 'prompt')
-        //Create profile
+        // Create profile
         .mockResolvedValueOnce({ create: true })
-        //Create map
+        // Create map
         .mockResolvedValueOnce({ create: true })
-        //Create provider
+        // Create provider
         .mockResolvedValueOnce({ create: false })
-        //Profile ID
+        // Profile ID
         .mockResolvedValueOnce({ input: documentName })
-        //Provider
+        // Provider
         .mockResolvedValueOnce({ input: 'twilio' })
         .mockResolvedValueOnce({ input: undefined })
-        //Init
+        // Init
         .mockResolvedValueOnce({ init: true });
 
       await expect(
@@ -584,18 +584,18 @@ describe('Interactive create CLI command', () => {
 
       jest
         .spyOn(inquirer, 'prompt')
-        //Create profile
+        // Create profile
         .mockResolvedValueOnce({ create: true })
-        //Create map
+        // Create map
         .mockResolvedValueOnce({ create: true })
-        //Create provider
+        // Create provider
         .mockResolvedValueOnce({ create: false })
-        //Profile ID
+        // Profile ID
         .mockResolvedValueOnce({ input: documentName })
-        //Provider
+        // Provider
         .mockResolvedValueOnce({ input: provider })
         .mockResolvedValueOnce({ input: undefined })
-        //Init
+        // Init
         .mockResolvedValueOnce({ init: true });
 
       await expect(
@@ -669,7 +669,7 @@ describe('Interactive create CLI command', () => {
     it('throws error on invalid variant', async () => {
       jest
         .spyOn(inquirer, 'prompt')
-        //Init
+        // Init
         .mockResolvedValueOnce({ init: true });
 
       await expect(
@@ -689,17 +689,17 @@ describe('Interactive create CLI command', () => {
     it('throws error on invalid provider name', async () => {
       jest
         .spyOn(inquirer, 'prompt')
-        //Create profile
+        // Create profile
         .mockResolvedValueOnce({ create: true })
-        //Create map
+        // Create map
         .mockResolvedValueOnce({ create: true })
-        //Create provider
+        // Create provider
         .mockResolvedValueOnce({ create: false })
-        //Profile ID
+        // Profile ID
         .mockResolvedValueOnce({ input: 'sms/service' })
-        //Provider name
+        // Provider name
         .mockResolvedValueOnce({ input: 'vT_7!' })
-        //Init
+        // Init
         .mockResolvedValueOnce({ init: true });
 
       await expect(Create.run(['-i'])).rejects.toThrow(
@@ -712,17 +712,17 @@ describe('Interactive create CLI command', () => {
 
       jest
         .spyOn(inquirer, 'prompt')
-        //Create profile
+        // Create profile
         .mockResolvedValueOnce({ create: true })
-        //Create map
+        // Create map
         .mockResolvedValueOnce({ create: true })
-        //Create provider
+        // Create provider
         .mockResolvedValueOnce({ create: false })
-        //Profile ID
+        // Profile ID
         .mockResolvedValueOnce({ input: documentName })
-        //Provider name
+        // Provider name
         .mockResolvedValueOnce({ input: 'twilio' })
-        //Init
+        // Init
         .mockResolvedValueOnce({ init: true });
       await expect(Create.run(['-u', 'SendSMS', '-i'])).rejects.toThrow(
         '"vT_7!" is not a valid lowercase identifier'
@@ -734,17 +734,17 @@ describe('Interactive create CLI command', () => {
 
       jest
         .spyOn(inquirer, 'prompt')
-        //Create profile
+        // Create profile
         .mockResolvedValueOnce({ create: true })
-        //Create map
+        // Create map
         .mockResolvedValueOnce({ create: true })
-        //Create provider
+        // Create provider
         .mockResolvedValueOnce({ create: false })
-        //Profile ID
+        // Profile ID
         .mockResolvedValueOnce({ input: documentName })
-        //Provider name
+        // Provider name
         .mockResolvedValueOnce({ input: 'twilio' })
-        //Init
+        // Init
         .mockResolvedValueOnce({ init: true });
 
       await expect(
@@ -757,17 +757,17 @@ describe('Interactive create CLI command', () => {
 
       jest
         .spyOn(inquirer, 'prompt')
-        //Create profile
+        // Create profile
         .mockResolvedValueOnce({ create: true })
-        //Create map
+        // Create map
         .mockResolvedValueOnce({ create: true })
-        //Create provider
+        // Create provider
         .mockResolvedValueOnce({ create: false })
-        //Profile ID
+        // Profile ID
         .mockResolvedValueOnce({ input: documentName })
-        //Provider name
+        // Provider name
         .mockResolvedValueOnce({ input: 'twilio' })
-        //Init
+        // Init
         .mockResolvedValueOnce({ init: true });
 
       await expect(Create.run(['-u', '7_L§', '-i'])).rejects.toThrow(

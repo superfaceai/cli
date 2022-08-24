@@ -1,15 +1,12 @@
-import {
-  EXTENSIONS,
-  MapDocumentNode,
-  ProfileDocumentNode,
-} from '@superfaceai/ast';
+import type { MapDocumentNode, ProfileDocumentNode } from '@superfaceai/ast';
+import { EXTENSIONS } from '@superfaceai/ast';
 import { parseMap, parseProfile, Source } from '@superfaceai/parser';
 
-import { UserError } from '../common/error';
+import type { UserError } from '../common/error';
 import { exists, readFile } from '../common/io';
-import { ILogger } from '../common/log';
+import type { ILogger } from '../common/log';
 import { OutputStream } from '../common/output-stream';
-import { ProfileId } from '../common/profile';
+import type { ProfileId } from '../common/profile';
 
 export type FileToCompile =
   | { kind: 'map'; profileId: ProfileId; provider: string; path: string }
@@ -21,7 +18,7 @@ export async function compile(
 ): Promise<void> {
   for (const file of files) {
     let sourcePath: string, astPath: string;
-    //We assume source and build files living next to each other
+    // We assume source and build files living next to each other
     if (file.path.endsWith(EXTENSIONS[file.kind].source)) {
       sourcePath = file.path;
       astPath = file.path.replace(

@@ -1,8 +1,5 @@
-import {
-  AuthToken,
-  CLILoginResponse,
-  VerificationStatus,
-} from '@superfaceai/service-client';
+import type { AuthToken, CLILoginResponse } from '@superfaceai/service-client';
+import { VerificationStatus } from '@superfaceai/service-client';
 import { getLocal } from 'mockttp';
 import { Netrc } from 'netrc-parser';
 import { join as joinPath } from 'path';
@@ -18,7 +15,7 @@ import {
 const mockServer = getLocal();
 
 describe('Login CLI command', () => {
-  //File specific path
+  // File specific path
   const TEMP_PATH = joinPath('test', 'tmp');
   let tempDir: string;
   const mockRefreshToken = 'RT';
@@ -27,9 +24,10 @@ describe('Login CLI command', () => {
   beforeAll(async () => {
     await mkdir(TEMP_PATH, { recursive: true });
   });
+
   beforeEach(async () => {
     await mockServer.start();
-    //Test specific netrc
+    // Test specific netrc
     tempDir = await setUpTempDir(TEMP_PATH, true);
     NETRC_FILENAME = '.netrc';
   });
@@ -63,7 +61,7 @@ describe('Login CLI command', () => {
       const result = await execCLI(tempDir, ['login'], mockServer.url, {
         env: { NETRC_FILEPATH: NETRC_FILENAME },
         inputs: [
-          //Do not open browser
+          // Do not open browser
           { value: 'n', timeout: 3000 },
           { value: ENTER, timeout: 500 },
         ],
@@ -90,7 +88,7 @@ describe('Login CLI command', () => {
     });
 
     it('logs in when netrc is not empty', async () => {
-      //Set mock refresh token in netrc
+      // Set mock refresh token in netrc
       const netRc = new Netrc(joinPath(tempDir, NETRC_FILENAME));
       await netRc.load();
       netRc.machines[mockServer.url] = { password: 'oldRT' };
@@ -118,7 +116,7 @@ describe('Login CLI command', () => {
       const result = await execCLI(tempDir, ['login'], mockServer.url, {
         env: { NETRC_FILEPATH: NETRC_FILENAME },
         inputs: [
-          //Do not open browser
+          // Do not open browser
           { value: 'n', timeout: 3000 },
           { value: ENTER, timeout: 500 },
         ],
@@ -166,7 +164,7 @@ describe('Login CLI command', () => {
         execCLI(tempDir, ['login'], mockServer.url, {
           env: { NETRC_FILEPATH: NETRC_FILENAME },
           inputs: [
-            //Do not open browser
+            // Do not open browser
             { value: 'n', timeout: 3000 },
             { value: ENTER, timeout: 500 },
           ],
@@ -203,7 +201,7 @@ describe('Login CLI command', () => {
         execCLI(tempDir, ['login'], mockServer.url, {
           env: { NETRC_FILEPATH: NETRC_FILENAME },
           inputs: [
-            //Do not open browser
+            // Do not open browser
             { value: 'n', timeout: 3000 },
             { value: ENTER, timeout: 500 },
           ],
@@ -236,7 +234,7 @@ describe('Login CLI command', () => {
         execCLI(tempDir, ['login'], mockServer.url, {
           env: { NETRC_FILEPATH: NETRC_FILENAME },
           inputs: [
-            //Do not open browser
+            // Do not open browser
             { value: 'n', timeout: 3000 },
             { value: ENTER, timeout: 500 },
           ],

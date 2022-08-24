@@ -20,6 +20,7 @@ jest.mock('../logic/compile', () => ({
 
 describe('Compile CLI command', () => {
   const userError = createUserError(false);
+
   afterEach(() => {
     jest.resetAllMocks();
   });

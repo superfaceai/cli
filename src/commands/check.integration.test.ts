@@ -17,7 +17,7 @@ import {
 const mockServer = getLocal();
 
 describe('Check CLI command', () => {
-  //File specific path
+  // File specific path
   const TEMP_PATH = joinPath('test', 'tmp');
   let tempDir: string;
   const provider = `${UNVERIFIED_PROVIDER_PREFIX}swapi`;
@@ -73,6 +73,7 @@ describe('Check CLI command', () => {
       provider
     );
   });
+
   beforeEach(async () => {
     tempDir = await setUpTempDir(TEMP_PATH);
   });
@@ -84,6 +85,7 @@ describe('Check CLI command', () => {
   afterAll(async () => {
     await mockServer.stop();
   });
+
   describe('when checking capability', () => {
     it('checks capability with local map, profile and provider', async () => {
       const mockSuperJson = {
@@ -244,7 +246,7 @@ describe('Check CLI command', () => {
         messages.fetchMap(profileId, provider, '1.0.0')
       );
       expect(result.stdout).toContain(messages.fetchProvider(provider));
-      //Map and profile
+      // Map and profile
       expect(result.stdout).toMatch(
         `🆗 Checking local profile "${profileId}@1.0.1" at path`
       );
@@ -255,7 +257,7 @@ describe('Check CLI command', () => {
         `and remote map with version "1.0.0" for provider "${provider}"`
       );
 
-      //Map and provider
+      // Map and provider
       expect(result.stdout).toMatch(
         `🆗 Checking remote map with version "1.0.0" for profile "${profileId}" and remote provider "${provider}"`
       );

@@ -1,8 +1,5 @@
-import {
-  EXTENSIONS,
-  ProfileDocumentNode,
-  SuperJsonDocument,
-} from '@superfaceai/ast';
+import type { ProfileDocumentNode, SuperJsonDocument } from '@superfaceai/ast';
+import { EXTENSIONS } from '@superfaceai/ast';
 import {
   DEFAULT_CACHE_PATH,
   loadSuperJson,
@@ -27,10 +24,11 @@ import {
   SUPER_PATH,
   SUPERFACE_DIR,
 } from '../common/document';
-import { UserError } from '../common/error';
-import { fetchProfileAST, fetchProfileInfo, ProfileInfo } from '../common/http';
+import type { UserError } from '../common/error';
+import type { ProfileInfo } from '../common/http';
+import { fetchProfileAST, fetchProfileInfo } from '../common/http';
 import { exists, isAccessible, readFile } from '../common/io';
-import { ILogger } from '../common/log';
+import type { ILogger } from '../common/log';
 import { OutputStream } from '../common/output-stream';
 import { resolveSuperfaceRelativePath } from '../common/path';
 import { ProfileId } from '../common/profile';
@@ -256,7 +254,6 @@ async function readLocalRequest(
       profileAst,
     };
   } catch (err) {
-    // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
     logger.warn('couldNotReadProfile', request.path, err);
 
     return undefined;
@@ -468,7 +465,7 @@ export async function getProfileFromStore(
     return undefined;
   }
   try {
-    //This can fail due to validation issues, ast and parser version issues
+    // This can fail due to validation issues, ast and parser version issues
     ast = await fetchProfileAST(profileId, version, {
       tryToAuthenticate: options?.tryToAuthenticate,
     });

@@ -8,7 +8,7 @@ import { execCLI, mockResponsesForProfile, setUpTempDir } from '../test/utils';
 const mockServer = getLocal();
 
 describe('Generate CLI command', () => {
-  //File specific path
+  // File specific path
   const TEMP_PATH = joinPath('test', 'tmp');
   let tempDir: string;
   const firstProfileId = 'starwars/character-information';
@@ -29,6 +29,7 @@ describe('Generate CLI command', () => {
       'send-email@1.0.1.supr'
     ),
   };
+
   beforeAll(async () => {
     await mkdir(TEMP_PATH, { recursive: true });
     await mockServer.start();

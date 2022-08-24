@@ -7,7 +7,8 @@ export function header(
   version: string,
   variant?: string
 ): string {
-  const variantAssignment = variant ? `variant = "${variant}"\n` : '';
+  const variantAssignment =
+    variant !== undefined ? `variant = "${variant}"\n` : '';
 
   return `profile = "${name}@${version}"
 provider = "${provider}"

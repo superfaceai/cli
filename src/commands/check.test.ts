@@ -10,14 +10,16 @@ import { mocked } from 'ts-jest/utils';
 import { createUserError } from '../common/error';
 import { MockLogger } from '../common/log';
 import { ProfileId } from '../common/profile';
-import { check, CheckResult, formatHuman, formatJson } from '../logic/check';
+import type { CheckResult } from '../logic/check';
+import { check, formatHuman, formatJson } from '../logic/check';
 import { detectSuperJson } from '../logic/install';
-import {
+import type {
   MapFromMetadata,
   ProfileFromMetadata,
   ProviderFromMetadata,
 } from '../logic/publish.utils';
-import { MockStd, mockStd } from '../test/mock-std';
+import type { MockStd } from '../test/mock-std';
+import { mockStd } from '../test/mock-std';
 import { CommandInstance } from '../test/utils';
 import Check from './check';
 

@@ -1,10 +1,11 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-explicit-any */
-import { EXTENSIONS, ProviderJson } from '@superfaceai/ast';
-import { AuthToken, CLILoginResponse } from '@superfaceai/service-client';
+import type { ProviderJson } from '@superfaceai/ast';
+import { EXTENSIONS } from '@superfaceai/ast';
+import type { AuthToken, CLILoginResponse } from '@superfaceai/service-client';
 import { execFile } from 'child_process';
 import concat from 'concat-stream';
 import { Headers, Response } from 'cross-fetch';
-import { Mockttp } from 'mockttp';
+import type { Mockttp } from 'mockttp';
 import { constants } from 'os';
 import { join as joinPath, relative } from 'path';
 
@@ -75,15 +76,18 @@ export async function mockResponsesForMap(
   mapVariant?: string,
   path = joinPath('fixtures', 'profiles')
 ): Promise<void> {
-  const url = `${profile.scope ? `${profile.scope}/` : ''}${
+  const url = `${profile.scope !== undefined ? `${profile.scope}/` : ''}${
     profile.name
-  }.${provider}${mapVariant ? `.${mapVariant}` : ''}@${
-    profile.version ? profile.version : DEFAULT_PROFILE_VERSION_STR
+  }.${provider}${mapVariant !== undefined ? `.${mapVariant}` : ''}@${
+    profile.version !== undefined
+      ? profile.version
+      : DEFAULT_PROFILE_VERSION_STR
   }`;
 
-  const basePath = profile.scope
-    ? joinPath(path, profile.scope, 'maps', `${provider}.${profile.name}`)
-    : joinPath(path, profile.name, 'maps', `${provider}.${profile.name}`);
+  const basePath =
+    profile.scope !== undefined
+      ? joinPath(path, profile.scope, 'maps', `${provider}.${profile.name}`)
+      : joinPath(path, profile.name, 'maps', `${provider}.${profile.name}`);
 
   const mapInfo = JSON.parse(
     await readFile(basePath + '.json', { encoding: 'utf-8' })
@@ -269,7 +273,7 @@ export async function execCLI(
 
   // Creates a loop to feed user inputs to the child process in order to get results from the tool
   const loop = (userInputs: { value: string; timeout: number }[]) => {
-    if (killIOTimeout) {
+    if (killIOTimeout !== undefined) {
       clearTimeout(killIOTimeout);
     }
 
@@ -289,7 +293,7 @@ export async function execCLI(
     currentInputTimeout = setTimeout(() => {
       childProcess.stdin?.write(userInputs[0].value);
       // Log debug I/O statements on tests
-      if (options?.debug) {
+      if (options?.debug === true) {
         console.log(
           `\n\ninput: ${formatInput(userInputs[0].value)} \ntimeout: ${
             userInputs[0].timeout
@@ -322,8 +326,8 @@ export async function execCLI(
   }
 
   return new Promise((resolve, reject) => {
-    //Debug
-    if (options?.debug) {
+    // Debug
+    if (options?.debug === true) {
       childProcess.stdout?.on('data', chunk => process.stdout.write(chunk));
       childProcess.stderr?.on('data', chunk => process.stderr.write(chunk));
     }
@@ -331,7 +335,7 @@ export async function execCLI(
     childProcess.stderr?.once('data', (err: string | Buffer) => {
       childProcess.stdin?.end();
 
-      if (currentInputTimeout) {
+      if (currentInputTimeout !== undefined) {
         clearTimeout(currentInputTimeout);
       }
       reject(err.toString());
@@ -346,7 +350,7 @@ export async function execCLI(
 
     childProcess.stdout?.pipe(
       concat(result => {
-        if (killIOTimeout) {
+        if (killIOTimeout !== undefined) {
           clearTimeout(killIOTimeout);
         }
 
@@ -371,7 +375,10 @@ export function mockResponse(
     headers: new Headers(headers),
   };
 
-  return new Response(data ? JSON.stringify(data) : undefined, ResponseInit);
+  return new Response(
+    data !== undefined ? JSON.stringify(data) : undefined,
+    ResponseInit
+  );
 }
 
 /**
@@ -384,7 +391,7 @@ export async function setUpTempDir(
   const randomDigits = Math.floor(Math.random() * 100000).toString();
   const directory = joinPath(path, `test-${randomDigits}`);
   await mkdir(directory, { recursive: true });
-  //set mock .netrc
+  // set mock .netrc
   if (withNetrc) {
     await OutputStream.writeOnce(joinPath(directory, '.netrc'), '');
   }

@@ -1,4 +1,5 @@
-import { EXTENSIONS, SuperJsonDocument } from '@superfaceai/ast';
+import type { SuperJsonDocument } from '@superfaceai/ast';
+import { EXTENSIONS } from '@superfaceai/ast';
 import {
   err,
   normalizeSuperJsonDocument,
@@ -19,6 +20,7 @@ import { create, createMap, createProfile, createProviderJson } from './create';
 describe('Create logic', () => {
   let logger: MockLogger;
   const userError = createUserError(false);
+
   afterEach(() => {
     jest.resetAllMocks();
   });
@@ -379,6 +381,7 @@ describe('Create logic', () => {
       );
     });
   });
+
   describe('when creating provider json', () => {
     it('creates empty provider', async () => {
       const mockBasePath = 'test-path';

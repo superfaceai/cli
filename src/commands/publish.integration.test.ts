@@ -23,7 +23,7 @@ import {
 const mockServer = getLocal();
 
 describe('Publish CLI command', () => {
-  //File specific path
+  // File specific path
   const TEMP_PATH = joinPath('test', 'tmp');
   let tempDir: string;
   let NETRC_FILENAME: string;
@@ -118,12 +118,13 @@ describe('Publish CLI command', () => {
     );
     await mockResponsesForPublish(mockServer);
   });
+
   beforeEach(async () => {
-    //Test specific netrc
+    // Test specific netrc
     tempDir = await setUpTempDir(TEMP_PATH, true);
     NETRC_FILENAME = '.netrc';
 
-    //Set mock refresh token in netrc
+    // Set mock refresh token in netrc
     const netRc = new Netrc(joinPath(tempDir, NETRC_FILENAME));
     await netRc.load();
     netRc.machines[mockServer.url] = { password: mockRefreshToken };
@@ -137,6 +138,7 @@ describe('Publish CLI command', () => {
   afterAll(async () => {
     await mockServer.stop();
   });
+
   describe('when publishing profile', () => {
     it('publishes profile with local map and provider', async () => {
       const mockSuperJson = {
@@ -176,10 +178,10 @@ describe('Publish CLI command', () => {
         mockServer.url,
         {
           inputs: [
-            //Confirm publish
+            // Confirm publish
             { value: 'y', timeout: 4000 },
             { value: ENTER, timeout: 500 },
-            //Confirm transition
+            // Confirm transition
             { value: 'y', timeout: 4000 },
             { value: ENTER, timeout: 500 },
           ],
@@ -205,7 +207,7 @@ describe('Publish CLI command', () => {
       expect(result.stdout).toContain(messages.publishProfile(profileId.id));
       expect(result.stdout).toContain(messages.publishSuccessful('profile'));
 
-      //Check super.json
+      // Check super.json
       const superJson = (
         await loadSuperJson(
           joinPath(tempDir, 'superface', 'super.json'),
@@ -266,10 +268,10 @@ describe('Publish CLI command', () => {
         mockServer.url,
         {
           inputs: [
-            //Confirm publish
+            // Confirm publish
             { value: 'y', timeout: 4000 },
             { value: ENTER, timeout: 500 },
-            //Confirm transition
+            // Confirm transition
             { value: 'y', timeout: 4000 },
             { value: ENTER, timeout: 500 },
           ],
@@ -288,7 +290,7 @@ describe('Publish CLI command', () => {
       expect(result.stdout).toContain(messages.publishProfile(profileId.id));
       expect(result.stdout).toContain(messages.publishSuccessful('profile'));
 
-      //Check super.json
+      // Check super.json
       const superJson = (
         await loadSuperJson(
           joinPath(tempDir, 'superface', 'super.json'),
@@ -349,10 +351,10 @@ describe('Publish CLI command', () => {
         mockServer.url,
         {
           inputs: [
-            //Confirm publish
+            // Confirm publish
             { value: 'y', timeout: 4000 },
             { value: ENTER, timeout: 500 },
-            //Confirm transition
+            // Confirm transition
             { value: 'y', timeout: 4000 },
             { value: ENTER, timeout: 500 },
           ],
@@ -380,7 +382,7 @@ describe('Publish CLI command', () => {
       );
       expect(result.stdout).toContain(messages.publishSuccessful('map'));
 
-      //Check super.json
+      // Check super.json
       const superJson = (
         await loadSuperJson(
           joinPath(tempDir, 'superface', 'super.json'),
@@ -442,10 +444,10 @@ describe('Publish CLI command', () => {
         mockServer.url,
         {
           inputs: [
-            //Confirm publish
+            // Confirm publish
             { value: 'y', timeout: 4000 },
             { value: ENTER, timeout: 500 },
-            //Confirm transition
+            // Confirm transition
             { value: 'y', timeout: 4000 },
             { value: ENTER, timeout: 500 },
           ],
@@ -470,7 +472,7 @@ describe('Publish CLI command', () => {
       );
       expect(result.stdout).toContain(messages.publishSuccessful('map'));
 
-      //Check super.json
+      // Check super.json
       const superJson = (
         await loadSuperJson(
           joinPath(tempDir, 'superface', 'super.json'),
@@ -532,10 +534,10 @@ describe('Publish CLI command', () => {
         mockServer.url,
         {
           inputs: [
-            //Confirm publish
+            // Confirm publish
             { value: 'y', timeout: 4000 },
             { value: ENTER, timeout: 500 },
-            //Confirm transition
+            // Confirm transition
             { value: 'y', timeout: 4000 },
             { value: ENTER, timeout: 500 },
           ],
@@ -563,7 +565,7 @@ describe('Publish CLI command', () => {
       );
       expect(result.stdout).toContain(messages.publishSuccessful('provider'));
 
-      //Check super.json
+      // Check super.json
       const superJson = (
         await loadSuperJson(
           joinPath(tempDir, 'superface', 'super.json'),
@@ -625,10 +627,10 @@ describe('Publish CLI command', () => {
         mockServer.url,
         {
           inputs: [
-            //Confirm publish
+            // Confirm publish
             { value: 'y', timeout: 4000 },
             { value: ENTER, timeout: 500 },
-            //Confirm transition
+            // Confirm transition
             { value: 'y', timeout: 4000 },
             { value: ENTER, timeout: 500 },
           ],
@@ -657,7 +659,7 @@ describe('Publish CLI command', () => {
       );
       expect(result.stdout).toContain(messages.publishSuccessful('provider'));
 
-      //Check super.json
+      // Check super.json
       const superJson = (
         await loadSuperJson(
           joinPath(tempDir, 'superface', 'super.json'),

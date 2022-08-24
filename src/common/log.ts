@@ -1,6 +1,7 @@
 import { green, grey, red, yellow } from 'chalk';
 
-import { MessageArgs, MessageKeys, messages } from './messages';
+import type { MessageArgs, MessageKeys } from './messages';
+import { messages } from './messages';
 
 export interface ILogger {
   info<K extends MessageKeys>(template: K, ...args: MessageArgs<K>): void;
@@ -19,22 +20,34 @@ export class StdoutLogger implements ILogger {
     private readonly emoji: boolean
   ) {}
 
-  info<K extends MessageKeys>(template: K, ...args: MessageArgs<K>): void {
+  public info<K extends MessageKeys>(
+    template: K,
+    ...args: MessageArgs<K>
+  ): void {
     const message = this.getMessage(template, ...args);
     process.stdout.write(this.formatInfo(message));
   }
 
-  success<K extends MessageKeys>(template: K, ...args: MessageArgs<K>): void {
+  public success<K extends MessageKeys>(
+    template: K,
+    ...args: MessageArgs<K>
+  ): void {
     const message = this.getMessage(template, ...args);
     process.stdout.write(this.formatSuccess(message));
   }
 
-  warn<K extends MessageKeys>(template: K, ...args: MessageArgs<K>): void {
+  public warn<K extends MessageKeys>(
+    template: K,
+    ...args: MessageArgs<K>
+  ): void {
     const message = this.getMessage(template, ...args);
     process.stdout.write(this.formatWarn(message));
   }
 
-  error<K extends MessageKeys>(template: K, ...args: MessageArgs<K>): void {
+  public error<K extends MessageKeys>(
+    template: K,
+    ...args: MessageArgs<K>
+  ): void {
     const message = this.getMessage(template, ...args);
     process.stderr.write(this.formatError(message));
   }
@@ -75,10 +88,25 @@ export class StdoutLogger implements ILogger {
 
 /* eslint-disable @typescript-eslint/no-empty-function */
 export class DummyLogger implements ILogger {
-  info<K extends MessageKeys>(_template: K, ..._args: MessageArgs<K>): void {}
-  success<K extends MessageKeys>(_template: K, ..._arg: MessageArgs<K>): void {}
-  warn<K extends MessageKeys>(_template: K, ..._args: MessageArgs<K>): void {}
-  error<K extends MessageKeys>(_template: K, ..._args: MessageArgs<K>): void {}
+  public info<K extends MessageKeys>(
+    _template: K,
+    ..._args: MessageArgs<K>
+  ): void {}
+
+  public success<K extends MessageKeys>(
+    _template: K,
+    ..._arg: MessageArgs<K>
+  ): void {}
+
+  public warn<K extends MessageKeys>(
+    _template: K,
+    ..._args: MessageArgs<K>
+  ): void {}
+
+  public error<K extends MessageKeys>(
+    _template: K,
+    ..._args: MessageArgs<K>
+  ): void {}
 }
 /* eslint-enable @typescript-eslint/no-empty-function */
 
@@ -91,19 +119,31 @@ export class MockLogger implements ILogger {
     [message: MessageKeys, args: MessageArgs<MessageKeys>]
   > = [];
 
-  info<K extends MessageKeys>(template: K, ...args: MessageArgs<K>): void {
+  public info<K extends MessageKeys>(
+    template: K,
+    ...args: MessageArgs<K>
+  ): void {
     this.stdout.push([template, args]);
   }
 
-  success<K extends MessageKeys>(template: K, ...args: MessageArgs<K>): void {
+  public success<K extends MessageKeys>(
+    template: K,
+    ...args: MessageArgs<K>
+  ): void {
     this.stdout.push([template, args]);
   }
 
-  warn<K extends MessageKeys>(template: K, ...args: MessageArgs<K>): void {
+  public warn<K extends MessageKeys>(
+    template: K,
+    ...args: MessageArgs<K>
+  ): void {
     this.stdout.push([template, args]);
   }
 
-  error<K extends MessageKeys>(template: K, ...args: MessageArgs<K>): void {
+  public error<K extends MessageKeys>(
+    template: K,
+    ...args: MessageArgs<K>
+  ): void {
     this.stderr.push([template, args]);
   }
 }
