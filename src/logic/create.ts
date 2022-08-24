@@ -66,9 +66,8 @@ export async function createProfile(
   );
 
   if (created) {
-    console.log(logger);
     logger.success('createProfile', profile.withVersion(versionStr), filePath);
-    if (superJson && superJsonPath !== undefined) {
+    if (superJson !== undefined && superJsonPath !== undefined) {
       mergeProfile(
         superJson,
         profile.id,
