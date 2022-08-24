@@ -1,24 +1,19 @@
-import {
+import type {
   DocumentedStructureType,
   ProfileOutput,
   StructureType,
 } from '@superfaceai/parser';
-import {
-  addSyntheticLeadingComment,
+import type {
   ArrayTypeNode,
   CallExpression,
-  createPrinter,
-  EmitHint,
   ExportDeclaration,
   Expression,
-  factory,
   FalseLiteral,
   Identifier,
   ImportDeclaration,
   KeywordTypeNode,
   LiteralTypeNode,
   Node,
-  NodeFlags,
   NumericLiteral,
   ObjectLiteralElementLike,
   ObjectLiteralExpression,
@@ -27,7 +22,6 @@ import {
   SpreadAssignment,
   Statement,
   StringLiteral,
-  SyntaxKind,
   TrueLiteral,
   TypeAliasDeclaration,
   TypeLiteralNode,
@@ -36,6 +30,14 @@ import {
   TypeReferenceNode,
   UnionTypeNode,
   VariableStatement,
+} from 'typescript';
+import {
+  addSyntheticLeadingComment,
+  createPrinter,
+  EmitHint,
+  factory,
+  NodeFlags,
+  SyntaxKind,
 } from 'typescript';
 
 /*
@@ -293,7 +295,7 @@ export function propertySignature(
   const signature = factory.createPropertySignature(
     undefined,
     id(name),
-    required ? undefined : questionToken,
+    required === true ? undefined : questionToken,
     type
   );
 

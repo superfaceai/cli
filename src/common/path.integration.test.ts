@@ -6,7 +6,7 @@ import { OutputStream } from './output-stream';
 import { resolveSuperfaceRelativePath } from './path';
 
 describe('Configure CLI command', () => {
-  //File specific path
+  // File specific path
   const TEMP_PATH = joinPath('test', 'tmp');
   const CWD = process.cwd();
   let tempDir: string;
@@ -17,18 +17,18 @@ describe('Configure CLI command', () => {
     await mkdir(TEMP_PATH, { recursive: true });
     tempDir = await setUpTempDir(TEMP_PATH);
     process.chdir(tempDir);
-    //Set up file outside superface directory
+    // Set up file outside superface directory
     await mkdir('first');
     await OutputStream.writeOnce(joinPath('first', 'profile.supr'), 'content');
 
-    //Set up superface folder
+    // Set up superface folder
     await mkdir('superface');
     await OutputStream.writeOnce(
       joinPath('superface', 'super.json'),
       JSON.stringify(mockSuperJson, undefined, 2)
     );
 
-    //Set up file inside superface directory
+    // Set up file inside superface directory
     await mkdir(joinPath('superface', 'second'));
     await OutputStream.writeOnce(
       joinPath('superface', 'second', 'profile.supr'),
@@ -47,6 +47,7 @@ describe('Configure CLI command', () => {
         resolveSuperfaceRelativePath(superJsonPath, './first/profile.supr')
       ).toEqual('../first/profile.supr');
     });
+
     it('returns correct path for absolute path to file outside superface directory', async () => {
       expect(
         resolveSuperfaceRelativePath(
@@ -55,6 +56,7 @@ describe('Configure CLI command', () => {
         )
       ).toEqual('../first/profile.supr');
     });
+
     it('returns correct path for relative path to file inside superface directory', async () => {
       expect(
         resolveSuperfaceRelativePath(
@@ -63,6 +65,7 @@ describe('Configure CLI command', () => {
         )
       ).toEqual('./second/profile.supr');
     });
+
     it('returns correct path for absolute path to file inside superface directory', async () => {
       expect(
         resolveSuperfaceRelativePath(

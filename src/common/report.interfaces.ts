@@ -1,4 +1,4 @@
-import { SyntaxError, ValidationIssue } from '@superfaceai/parser';
+import type { SyntaxError, ValidationIssue } from '@superfaceai/parser';
 
 export type ReportKind = 'file' | 'compatibility';
 

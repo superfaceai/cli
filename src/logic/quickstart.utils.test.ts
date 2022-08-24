@@ -6,6 +6,7 @@ import { ProfileId } from '../common/profile';
 import { profileExists, providerExists } from './quickstart.utils';
 
 jest.mock('../common/io');
+
 describe('Quickstart logic', () => {
   const userError = createUserError(false);
 

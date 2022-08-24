@@ -1,23 +1,25 @@
-import {
+import type {
   AstMetadata,
   MapDocumentNode,
   MapHeaderNode,
   ProfileDocumentNode,
 } from '@superfaceai/ast';
 // import * as SuperJson from '@superfaceai/one-sdk/dist/schema-tools/superjson/utils';
-import {
+import type {
   MapDocumentId,
-  parseMap,
-  parseMapId,
-  parseProfile,
   ProfileHeaderStructure,
-  Source,
-  SyntaxError,
   ValidationIssue,
   ValidationResult,
 } from '@superfaceai/parser';
+import {
+  parseMap,
+  parseMapId,
+  parseProfile,
+  Source,
+  SyntaxError,
+} from '@superfaceai/parser';
 import { SyntaxErrorCategory } from '@superfaceai/parser/dist/language/error';
-import { MatchAttempts } from '@superfaceai/parser/dist/language/syntax/rule';
+import type { MatchAttempts } from '@superfaceai/parser/dist/language/syntax/rule';
 import { red, yellow } from 'chalk';
 import { mocked } from 'ts-jest/utils';
 
@@ -25,8 +27,9 @@ import { createUserError } from '../common/error';
 import { fetchMapAST, fetchProfileAST } from '../common/http';
 import { MockLogger } from '../common/log';
 import { ProfileId } from '../common/profile';
-import { ReportFormat } from '../common/report.interfaces';
+import type { ReportFormat } from '../common/report.interfaces';
 import { findLocalMapSource, findLocalProfileSource } from './check.utils';
+import type { ProfileToValidate } from './lint';
 import {
   createProfileMapReport,
   formatHuman,
@@ -35,7 +38,6 @@ import {
   isValidHeader,
   isValidMapId,
   lint,
-  ProfileToValidate,
 } from './lint';
 
 jest.mock('../common/io', () => ({
@@ -171,6 +173,7 @@ describe('Lint logic', () => {
   describe('when validating map id', () => {
     let mockValidProfileHeader: ProfileHeaderStructure;
     let mocValidMapHeader: MapHeaderNode;
+
     beforeEach(() => {
       mockValidProfileHeader = {
         name: 'mockProfileHeader',
@@ -804,6 +807,7 @@ describe('Lint logic', () => {
         total: { errors: 1, warnings: 0 },
       });
     });
+
     it('returns correct counts, corrupted map', async () => {
       const mockSyntaxErr: SyntaxError = {
         source: new Source('test'),
@@ -918,6 +922,7 @@ describe('Lint logic', () => {
         actual: 'bar',
       },
     };
+
     it('formats file with errors and warnings correctly', async () => {
       const mockPath = 'some/path.suma';
       const mockErr = SyntaxError.fromSyntaxRuleNoMatch(
@@ -1092,6 +1097,7 @@ describe('Lint logic', () => {
       expect(formated).toMatch(' - Wrong Scope: expected this, but got that');
     });
   });
+
   describe('when formating json', () => {
     const mockPath = 'some/path';
 
@@ -1101,14 +1107,17 @@ describe('Lint logic', () => {
       errors: [mockSyntaxErr],
       warnings: [],
     };
+
     it('formats json correctly', async () => {
       expect(formatJson(mockFileReport)).toEqual(
         expect.not.stringMatching('source')
       );
     });
   });
+
   describe('when formating summary', () => {
     const fileCount = 4;
+
     it('formats summary with errors and warnings', async () => {
       const formated = formatSummary({
         fileCount,

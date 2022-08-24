@@ -1,16 +1,17 @@
 import { flags as oclifFlags } from '@oclif/command';
 import { Netrc } from 'netrc-parser';
 
-import { Command, Flags } from '../common/command.abstract';
-import { UserError } from '../common/error';
+import type { Flags } from '../common/command.abstract';
+import { Command } from '../common/command.abstract';
+import type { UserError } from '../common/error';
 import { getServicesUrl, SuperfaceClient } from '../common/http';
-import { ILogger } from '../common/log';
+import type { ILogger } from '../common/log';
 import { login } from '../logic/login';
 
 export default class Login extends Command {
-  static description = 'Login to superface server';
+  public static description = 'Login to superface server';
 
-  static flags = {
+  public static flags = {
     ...Command.flags,
     force: oclifFlags.boolean({
       char: 'f',
@@ -20,9 +21,9 @@ export default class Login extends Command {
     }),
   };
 
-  static examples = ['$ superface login', '$ superface login -f'];
+  public static examples = ['$ superface login', '$ superface login -f'];
 
-  async run(): Promise<void> {
+  public async run(): Promise<void> {
     const { flags } = this.parse(Login);
     await super.initialize(flags);
     await this.execute({
@@ -32,7 +33,7 @@ export default class Login extends Command {
     });
   }
 
-  async execute({
+  public async execute({
     logger,
     userError,
     flags,
@@ -41,19 +42,22 @@ export default class Login extends Command {
     flags: Flags<typeof Login.flags>;
     userError: UserError;
   }): Promise<void> {
-    if (process.env.SUPERFACE_REFRESH_TOKEN) {
+    if (process.env.SUPERFACE_REFRESH_TOKEN !== undefined) {
       logger.warn('usinfSfRefreshToken');
     } else {
       const storeUrl = getServicesUrl();
-      //environment variable for specific netrc file
+      // environment variable for specific netrc file
       const netrc = new Netrc(process.env.NETRC_FILEPATH);
       await netrc.load();
       const previousEntry = netrc.machines[storeUrl];
       try {
-        //check if already logged in and logout
-        if (previousEntry && previousEntry.password) {
+        // check if already logged in and logout
+        if (
+          previousEntry !== undefined &&
+          previousEntry.password !== undefined
+        ) {
           logger.info('alreadyLoggedIn');
-          //logout from service client
+          // logout from service client
           await SuperfaceClient.getClient().logout();
         }
       } catch (err) {

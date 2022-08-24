@@ -1,5 +1,6 @@
 import { CLIError } from '@oclif/errors';
-import { AstMetadata, EXTENSIONS, ProfileDocumentNode } from '@superfaceai/ast';
+import type { AstMetadata, ProfileDocumentNode } from '@superfaceai/ast';
+import { EXTENSIONS } from '@superfaceai/ast';
 import {
   err,
   mergeProfile,
@@ -8,7 +9,8 @@ import {
   SDKExecutionError,
 } from '@superfaceai/one-sdk';
 import * as SuperJson from '@superfaceai/one-sdk/dist/schema-tools/superjson/utils';
-import { parseProfile, Source } from '@superfaceai/parser';
+import type { Source } from '@superfaceai/parser';
+import { parseProfile } from '@superfaceai/parser';
 import { join as joinPath, resolve as resolvePath } from 'path';
 import { mocked } from 'ts-jest/utils';
 
@@ -80,11 +82,11 @@ describe('Install CLI logic', () => {
 
     beforeAll(async () => {
       INITIAL_CWD = process.cwd();
-      //Mock static side of OutputStream
+      // Mock static side of OutputStream
       const mockWrite = jest.fn();
       OutputStream.writeOnce = mockWrite;
 
-      //create mock nested paths
+      // create mock nested paths
       let path = joinPath(
         'fixtures',
         'install',
@@ -335,7 +337,7 @@ describe('Install CLI logic', () => {
       };
       mocked(readFile).mockResolvedValueOnce('.');
 
-      //We are running static function inside of promise all - we can't be sure about order of calls
+      // We are running static function inside of promise all - we can't be sure about order of calls
       mocked(parseProfile).mockImplementation((source: Source) => {
         if (source.fileName.includes('first')) {
           return {
@@ -709,7 +711,7 @@ describe('Install CLI logic', () => {
       const originalWriteOnce = OutputStream.writeOnce;
       const mockWrite = jest.fn();
 
-      //mock profile info
+      // mock profile info
       const mockProfileInfo = {
         profile_id: 'starwars/character-information@1.0.1',
         profile_name: 'starwars/character-information',
@@ -720,7 +722,7 @@ describe('Install CLI logic', () => {
         published_at: new Date(),
         published_by: 'Ondrej Musil <mail@ondrejmusil.cz>',
       };
-      //mock profile ast
+      // mock profile ast
       const mockProfileAst = ({
         major,
         minor,
@@ -757,7 +759,7 @@ describe('Install CLI logic', () => {
           end: { line: 1, column: 1, charIndex: 0 },
         },
       });
-      //mock profile
+      // mock profile
       const mockProfile = 'mock profile';
 
       beforeEach(async () => {
@@ -849,7 +851,7 @@ describe('Install CLI logic', () => {
         expect(fetchProfileAST).toHaveBeenCalledWith(profileId, undefined, {
           tryToAuthenticate: undefined,
         });
-        //actual path is changing
+        // actual path is changing
 
         expect(mockWrite).toHaveBeenCalledWith(
           expect.stringContaining('character-information@1.0.1.supr.ast.json'),

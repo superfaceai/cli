@@ -31,16 +31,16 @@ export class MapId {
     this.variant = variant;
 
     this.id = `${this.profileId.id}.${this.provider}`;
-    if (this.variant) {
+    if (this.variant !== undefined) {
       this.id += `.${this.variant}`;
     }
   }
 
-  withVersion(version?: string): string {
-    return `${this.id}${version ? `@${version}` : ''}`;
+  public withVersion(version?: string): string {
+    return `${this.id}${version !== undefined ? `@${version}` : ''}`;
   }
 
-  toString(): string {
+  public toString(): string {
     return this.id;
   }
 }

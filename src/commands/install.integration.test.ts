@@ -157,7 +157,7 @@ describe('Install CLI command', () => {
     it('errors without a force flag', async () => {
       const profileId = 'starwars/character-information';
 
-      //set existing super.json
+      // set existing super.json
       const localSuperJson = {
         profiles: {
           [profileId]: {

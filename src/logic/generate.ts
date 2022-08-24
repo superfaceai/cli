@@ -1,8 +1,8 @@
-import { ProfileDocumentNode, SuperJsonDocument } from '@superfaceai/ast';
+import type { ProfileDocumentNode, SuperJsonDocument } from '@superfaceai/ast';
 import { getProfileOutput } from '@superfaceai/parser';
 import { dirname, join as joinPath, resolve as resolvePath } from 'path';
+import type { CompilerOptions } from 'typescript';
 import {
-  CompilerOptions,
   createProgram,
   ModuleKind,
   ModuleResolutionKind,
@@ -11,9 +11,9 @@ import {
 
 import { UNCOMPILED_SDK_FILE } from '../common/document';
 import { rimraf } from '../common/io';
-import { ILogger } from '../common/log';
+import type { ILogger } from '../common/log';
 import { OutputStream } from '../common/output-stream';
-import { ProfileId } from '../common/profile';
+import type { ProfileId } from '../common/profile';
 import {
   camelize,
   createProfileType,

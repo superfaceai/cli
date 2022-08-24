@@ -1,11 +1,11 @@
+import type { ProviderJson } from '@superfaceai/ast';
 import {
   ApiKeyPlacement,
   EXTENSIONS,
   HttpScheme,
-  ProviderJson,
   SecurityType,
 } from '@superfaceai/ast';
-import * as fs from 'fs';
+import type * as fs from 'fs';
 import { mocked } from 'ts-jest/utils';
 
 import { DEFAULT_PROFILE_VERSION_STR } from '../common';
@@ -21,10 +21,12 @@ import {
 } from './check.utils';
 
 jest.mock('../common/io');
+
 describe('Check utils', () => {
   afterEach(() => {
     jest.resetAllMocks();
   });
+
   const profileId = ProfileId.fromScopeName(
     'starwars',
     'character-information'
@@ -99,6 +101,7 @@ describe('Check utils', () => {
         expect.stringContaining(`grid/${profileId.id}@${version}`)
       );
     });
+
     it('returns undefinde if profile with scope and version does nit exist in grid', async () => {
       const mockSuperJson = {};
       mocked(exists).mockResolvedValue(false);
@@ -307,6 +310,7 @@ describe('Check utils', () => {
         )
       );
     });
+
     it('returns source if profile with scope and version exists in super json file property', async () => {
       const testPath = `my/beloved/test/path/to/${profileId.id}@${version}`;
       const mockSuperJson = {
@@ -563,6 +567,7 @@ describe('Check utils', () => {
       expect(exists).not.toHaveBeenCalled();
     });
   });
+
   describe('when looking for local profile ast', () => {
     it('returns undefined if version and file is not defined', async () => {
       const mockSuperJson = {};
@@ -676,6 +681,7 @@ describe('Check utils', () => {
         )
       );
     });
+
     it('returns ast if profile with scope and version is used from super.json', async () => {
       const mockSuperJson = {
         profiles: {

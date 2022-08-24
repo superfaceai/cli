@@ -4,12 +4,13 @@ import { rimraf, streamEnd, streamWrite } from '../common/io';
 import { OutputStream } from '../common/output-stream';
 import { SUPER_PATH } from './document';
 
-//Mock only streamWrite and streamEnd response
+// Mock only streamWrite and streamEnd response
 jest.mock('../common/io', () => ({
   ...jest.requireActual<Record<string, unknown>>('../common/io'),
   streamWrite: jest.fn(),
   streamEnd: jest.fn(),
 }));
+
 describe('OutputStream', () => {
   const WORKING_DIR = join('fixtures', 'io');
 
@@ -103,7 +104,7 @@ describe('OutputStream', () => {
     }, 10000);
 
     it('returns true if there is force flag', async () => {
-      //create file
+      // create file
       expect(
         await OutputStream.writeIfAbsent('test/test.json', 'testData1', {
           dirs: true,

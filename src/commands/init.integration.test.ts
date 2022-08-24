@@ -4,7 +4,8 @@ import { join as joinPath } from 'path';
 import { SUPER_PATH, SUPERFACE_DIR } from '../common/document';
 import { access, exists, rimraf } from '../common/io';
 import { messages } from '../common/messages';
-import { MockStd, mockStd } from '../test/mock-std';
+import type { MockStd } from '../test/mock-std';
+import { mockStd } from '../test/mock-std';
 import Init from './init';
 
 describe('Init CLI command', () => {
