@@ -1,8 +1,8 @@
-import { EnumModel } from './enum.model';
-import { ListModel } from './list.model';
-import { ObjectModel } from './object.model';
-import { ScalarModel } from './scalar.model';
-import { UnionModel } from './union.model';
+import type { EnumModel } from './enum.model';
+import type { ListModel } from './list.model';
+import type { ObjectModel } from './object.model';
+import type { ScalarModel } from './scalar.model';
+import type { UnionModel } from './union.model';
 
 export enum ModelType {
   OBJECT = 'Object',
@@ -21,7 +21,7 @@ export type Model =
   | null;
 
 export interface ModelBase {
-  name?: string; //available only for named models
+  name?: string; // available only for named models
   description?: string;
-  modelType: ModelType; //model discriminator
+  modelType: ModelType; // model discriminator
 }

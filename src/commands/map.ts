@@ -1,14 +1,11 @@
 import { flags as oclifFlags } from '@oclif/command';
-import { Command } from '../common/command.abstract';
-import type { Flags } from '../common/command.abstract';
-import type { UserError } from '../common/error';
-import { parseDocumentId } from '@superfaceai/parser';
+import type {
+  ProfileDocumentNode} from '@superfaceai/ast';
 import {
   assertProfileDocumentNode,
   assertProviderJson,
   EXTENSIONS,
-  isValidProviderName,
-  ProfileDocumentNode,
+  isValidProviderName
 } from '@superfaceai/ast';
 import {
   loadSuperJson,
@@ -16,14 +13,18 @@ import {
   NodeFileSystem,
   normalizeSuperJsonDocument,
 } from '@superfaceai/one-sdk';
+import { parseDocumentId , parseProfile, Source } from '@superfaceai/parser';
 import { dirname, join as joinPath, resolve as resolvePath } from 'path';
-import { detectSuperJson } from '../logic/install';
-import { parseProfile, Source } from '@superfaceai/parser';
-import { readFile } from '../common/io';
-import { ProfileASTAdapter } from '../stolen-from-air/profile-adapter';
 import { inspect } from 'util';
-import { serializeMap } from '../templates/map/prepare-map';
+
+import type { Flags } from '../common/command.abstract';
+import { Command } from '../common/command.abstract';
+import type { UserError } from '../common/error';
+import { readFile } from '../common/io';
 import { OutputStream } from '../common/output-stream';
+import { detectSuperJson } from '../logic/install';
+import { ProfileASTAdapter } from '../stolen-from-air/profile-adapter';
+import { serializeMap } from '../templates/map/prepare-map';
 
 export default class Map extends Command {
   public static strict = true;

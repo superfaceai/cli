@@ -1,41 +1,46 @@
-import {
+import type {
   ComlinkLiteralNode,
   EnumDefinitionNode,
   ListDefinitionNode,
   ModelTypeNameNode,
   NamedFieldDefinitionNode,
   NamedModelDefinitionNode,
-  NonNullDefinitionNode,
   ObjectDefinitionNode,
   PrimitiveTypeNameNode,
   ProfileDocumentNode,
   Type,
   UnionDefinitionNode,
-  UseCaseDefinitionNode,
+  UseCaseDefinitionNode} from '@superfaceai/ast';
+import {
+  NonNullDefinitionNode
 } from '@superfaceai/ast';
-import { ProfileHeader } from './header';
-import { EnumModel } from './models/enum.model';
-import { ListModel } from './models/list.model';
-import { Model, ModelType } from './models/model-base';
-import { ObjectModel } from './models/object.model';
-import { ScalarModel, ScalarType } from './models/scalar.model';
-import { UnionModel } from './models/union.model';
-import { Profile } from './profile';
-import { UseCase } from './usecase';
-import { UseCaseBase } from './usecase-base';
-import { UseCaseDetail, UseCaseSlot } from './usecase-detail';
-import { UseCaseSlotExample } from './usecase-example';
+
+import type { ProfileHeader } from './header';
+import type { EnumModel } from './models/enum.model';
+import type { ListModel } from './models/list.model';
+import type { Model} from './models/model-base';
+import { ModelType } from './models/model-base';
+import type { ObjectModel } from './models/object.model';
+import type { ScalarModel} from './models/scalar.model';
+import { ScalarType } from './models/scalar.model';
+import type { UnionModel } from './models/union.model';
+import type { Profile } from './profile';
+import type { UseCase } from './usecase';
+import type { UseCaseBase } from './usecase-base';
+import type { UseCaseDetail, UseCaseSlot } from './usecase-detail';
+import type { UseCaseSlotExample } from './usecase-example';
 
 export class ProfileASTAdapter implements Profile {
   private options: ProfileDocumentNode;
   private namedModelDefinitionsCache!: {
     [key: string]: NamedModelDefinitionNode;
   };
+
   private namedFieldDefinitionsCache!: {
     [key: string]: NamedFieldDefinitionNode;
   };
 
-  public constructor(options: ProfileDocumentNode) {
+  constructor(options: ProfileDocumentNode) {
     this.options = options;
   }
 
@@ -57,7 +62,8 @@ export class ProfileASTAdapter implements Profile {
 
   public getUseCaseList(): UseCase[] {
     const ast = this.options;
-    return ast.definitions
+    
+return ast.definitions
       .filter(definition => {
         return definition.kind === 'UseCaseDefinition';
       })
@@ -66,7 +72,8 @@ export class ProfileASTAdapter implements Profile {
 
   public getUseCaseDetailList(): UseCaseDetail[] {
     const ast = this.options;
-    return ast.definitions
+    
+return ast.definitions
       .filter(definition => {
         return definition.kind === 'UseCaseDefinition';
       })
@@ -110,14 +117,16 @@ export class ProfileASTAdapter implements Profile {
     modelName: string
   ): NamedModelDefinitionNode {
     if (!this.namedModelDefinitionsCache) this.populateCache();
-    return this.namedModelDefinitionsCache[modelName];
+    
+return this.namedModelDefinitionsCache[modelName];
   }
 
   private findNamedFieldDefinition(
     fieldName: string
   ): NamedFieldDefinitionNode | null {
     if (!this.namedFieldDefinitionsCache) this.populateCache();
-    return this.namedFieldDefinitionsCache[fieldName] || null;
+    
+return this.namedFieldDefinitionsCache[fieldName] || null;
   }
 
   private getFieldsOverview(item?: Type): string[] {
@@ -139,7 +148,8 @@ export class ProfileASTAdapter implements Profile {
         return this.getFieldsOverview(item.elementType);
       case 'ModelTypeName': {
         const node = this.findNamedModelDefinition(item.name);
-        return node ? this.getFieldsOverview(node.type) : [item.name];
+        
+return node ? this.getFieldsOverview(node.type) : [item.name];
       }
       case 'NonNullDefinition':
         return this.getFieldsOverview(item.type);
@@ -171,23 +181,24 @@ export class ProfileASTAdapter implements Profile {
     }
     switch (astType.kind) {
       case 'ObjectDefinition':
-        return this.getObjectModelDetails(astType as ObjectDefinitionNode);
+        return this.getObjectModelDetails(astType );
       case 'PrimitiveTypeName':
-        return this.getScalarModelDetails(astType as PrimitiveTypeNameNode);
+        return this.getScalarModelDetails(astType );
       case 'ListDefinition':
-        return this.getListModelDetails(astType as ListDefinitionNode);
+        return this.getListModelDetails(astType );
       case 'EnumDefinition':
-        return this.getEnumModelDetails(astType as EnumDefinitionNode);
+        return this.getEnumModelDetails(astType );
       case 'ModelTypeName': {
         const node = this.findNamedModelDefinition(astType.name);
-        return node ? this.getGenericModelDetails(node.type) : null;
+        
+return node ? this.getGenericModelDetails(node.type) : null;
       }
       case 'NonNullDefinition':
         return this.getGenericModelDetails(
-          (astType as NonNullDefinitionNode).type
+          (astType ).type
         );
       case 'UnionDefinition':
-        return this.getUnionModelDetails(astType as UnionDefinitionNode);
+        return this.getUnionModelDetails(astType );
       default:
         return null;
     }
@@ -277,7 +288,8 @@ export class ProfileASTAdapter implements Profile {
 
   private pluralizeFirstWord(phrase: string): string {
     const [firstWord, ...words] = phrase.split(' ');
-    return [`${firstWord}s`, ...words].join(' ');
+    
+return [`${firstWord}s`, ...words].join(' ');
   }
 
   private getUseCaseSlot(item: Model): UseCaseSlot {
@@ -361,7 +373,8 @@ export class ProfileASTAdapter implements Profile {
       }
       case ModelType.LIST: {
         const elementExample = this.getUseCaseSlotExample(item.elementModel);
-        return elementExample;
+        
+return elementExample;
       }
       case ModelType.ENUM:
         return item.enumElemets?.[0]?.value || null;
@@ -399,11 +412,11 @@ export class ProfileASTAdapter implements Profile {
         slot.value.kind === 'UseCaseExample'
     );
     const successExampleNode = exampleNodes.find(
-      example => !!example.value?.result
+      example => Boolean(example.value?.result)
     )?.value;
 
     const errorExampleNode = exampleNodes.find(
-      example => !!example.value?.error
+      example => Boolean(example.value?.error)
     )?.value;
 
     console.log('err', errorExampleNode);
@@ -443,7 +456,8 @@ export class ProfileASTAdapter implements Profile {
       }
       case 'ComlinkListLiteral': {
         const elementExample = this.parseLiteralExample(exampleNode.items[0]);
-        return elementExample;
+        
+return elementExample;
       }
       case 'ComlinkPrimitiveLiteral':
         return exampleNode.value;

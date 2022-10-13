@@ -1,4 +1,4 @@
-import { ModelBase, ModelType } from './model-base';
+import type { ModelBase, ModelType } from './model-base';
 
 export interface EnumElement {
   title?: string;

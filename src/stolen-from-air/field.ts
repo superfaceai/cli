@@ -1,4 +1,4 @@
-import { Model } from './models/model-base';
+import type { Model } from './models/model-base';
 
 export interface Field<T extends Model> {
   description?: string;

@@ -1,14 +1,14 @@
-import { Template } from '../template-renderer';
+import type { Template } from '../template-renderer';
 import documentation from './documentation';
+import error from './error';
 import field from './field';
+import mapHeader from './header';
+import http from './http';
 import input from './input';
 import mapDocument from './map';
-import mapHeader from './header';
-import usecase from './usecase';
 import result from './result';
-import http from './http';
 import resultField from './result-field';
-import error from './error';
+import usecase from './usecase';
 
 const templateSet: Template[] = [
   { name: 'MapDocument', template: mapDocument },

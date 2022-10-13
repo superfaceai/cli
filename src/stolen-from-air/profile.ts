@@ -1,6 +1,6 @@
-import { ProfileHeader } from './header';
-import { UseCase } from './usecase';
-import { UseCaseDetail } from './usecase-detail';
+import type { ProfileHeader } from './header';
+import type { UseCase } from './usecase';
+import type { UseCaseDetail } from './usecase-detail';
 
 export interface Profile {
   getProfileHeader(): ProfileHeader;

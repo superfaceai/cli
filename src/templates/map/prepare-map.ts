@@ -1,6 +1,5 @@
-import { UseCaseDetail } from '../../stolen-from-air';
+import type { UseCaseDetail } from '../../stolen-from-air';
 import { makeRenderer } from './template-renderer';
-
 import MAP_TEMPLATE from './templates';
 
 export function serializeMap(input: {

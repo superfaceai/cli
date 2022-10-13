@@ -1,7 +1,7 @@
 import Handlebars from 'handlebars';
 
 import { HELPERS } from './helpers';
-import { Template } from './template.interface';
+import type { Template } from './template.interface';
 
 export function makeRenderer(
   templates: Template[] = [],

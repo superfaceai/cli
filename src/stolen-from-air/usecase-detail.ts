@@ -1,5 +1,5 @@
-import { UseCaseBase } from './usecase-base';
-import { UseCaseSlotExample } from './usecase-example';
+import type { UseCaseBase } from './usecase-base';
+import type { UseCaseSlotExample } from './usecase-example';
 
 type Field = {
   fieldName: string;

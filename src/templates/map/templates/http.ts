@@ -1,4 +1,4 @@
-//TODO: This can be divided into more pertials
+// TODO: This can be divided into more pertials
 export default `// mock HTTP call
 http METHOD "/endpoint" {
   {{#if defaultSecurityId}}
