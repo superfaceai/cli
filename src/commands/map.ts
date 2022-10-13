@@ -1,11 +1,10 @@
 import { flags as oclifFlags } from '@oclif/command';
-import type {
-  ProfileDocumentNode} from '@superfaceai/ast';
+import type { ProfileDocumentNode } from '@superfaceai/ast';
 import {
   assertProfileDocumentNode,
   assertProviderJson,
   EXTENSIONS,
-  isValidProviderName
+  isValidProviderName,
 } from '@superfaceai/ast';
 import {
   loadSuperJson,
@@ -13,7 +12,7 @@ import {
   NodeFileSystem,
   normalizeSuperJsonDocument,
 } from '@superfaceai/one-sdk';
-import { parseDocumentId , parseProfile, Source } from '@superfaceai/parser';
+import { parseDocumentId, parseProfile, Source } from '@superfaceai/parser';
 import { dirname, join as joinPath, resolve as resolvePath } from 'path';
 import { inspect } from 'util';
 
@@ -210,7 +209,9 @@ async function loadProfileAst(
   if (path.endsWith(EXTENSIONS.profile.source)) {
     ast = parseProfile(new Source(source, path));
   } else if (path.endsWith(EXTENSIONS.profile.build)) {
-    ast = JSON.parse(await readFile(path, { encoding: 'utf-8' }));
+    ast = assertProfileDocumentNode(
+      JSON.parse(await readFile(path, { encoding: 'utf-8' }))
+    );
   } else {
     throw userError('Unknown profile file extension', 1);
   }

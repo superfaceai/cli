@@ -10,18 +10,16 @@ import type {
   ProfileDocumentNode,
   Type,
   UnionDefinitionNode,
-  UseCaseDefinitionNode} from '@superfaceai/ast';
-import {
-  NonNullDefinitionNode
+  UseCaseDefinitionNode,
 } from '@superfaceai/ast';
 
 import type { ProfileHeader } from './header';
 import type { EnumModel } from './models/enum.model';
 import type { ListModel } from './models/list.model';
-import type { Model} from './models/model-base';
+import type { Model } from './models/model-base';
 import { ModelType } from './models/model-base';
 import type { ObjectModel } from './models/object.model';
-import type { ScalarModel} from './models/scalar.model';
+import type { ScalarModel } from './models/scalar.model';
 import { ScalarType } from './models/scalar.model';
 import type { UnionModel } from './models/union.model';
 import type { Profile } from './profile';
@@ -32,16 +30,18 @@ import type { UseCaseSlotExample } from './usecase-example';
 
 export class ProfileASTAdapter implements Profile {
   private options: ProfileDocumentNode;
-  private namedModelDefinitionsCache!: {
+  private namedModelDefinitionsCache: {
     [key: string]: NamedModelDefinitionNode;
   };
 
-  private namedFieldDefinitionsCache!: {
+  private namedFieldDefinitionsCache: {
     [key: string]: NamedFieldDefinitionNode;
   };
 
   constructor(options: ProfileDocumentNode) {
     this.options = options;
+    this.namedFieldDefinitionsCache = {};
+    this.namedModelDefinitionsCache = {};
   }
 
   public getProfileHeader(): ProfileHeader {
@@ -62,8 +62,8 @@ export class ProfileASTAdapter implements Profile {
 
   public getUseCaseList(): UseCase[] {
     const ast = this.options;
-    
-return ast.definitions
+
+    return ast.definitions
       .filter(definition => {
         return definition.kind === 'UseCaseDefinition';
       })
@@ -72,8 +72,8 @@ return ast.definitions
 
   public getUseCaseDetailList(): UseCaseDetail[] {
     const ast = this.options;
-    
-return ast.definitions
+
+    return ast.definitions
       .filter(definition => {
         return definition.kind === 'UseCaseDefinition';
       })
@@ -116,17 +116,19 @@ return ast.definitions
   private findNamedModelDefinition(
     modelName: string
   ): NamedModelDefinitionNode {
-    if (!this.namedModelDefinitionsCache) this.populateCache();
-    
-return this.namedModelDefinitionsCache[modelName];
+    if (Object.keys(this.namedModelDefinitionsCache).length === 0)
+      this.populateCache();
+
+    return this.namedModelDefinitionsCache[modelName];
   }
 
   private findNamedFieldDefinition(
     fieldName: string
   ): NamedFieldDefinitionNode | null {
-    if (!this.namedFieldDefinitionsCache) this.populateCache();
-    
-return this.namedFieldDefinitionsCache[fieldName] || null;
+    if (Object.keys(this.namedFieldDefinitionsCache).length === 0)
+      this.populateCache();
+
+    return this.namedFieldDefinitionsCache[fieldName] ?? null;
   }
 
   private getFieldsOverview(item?: Type): string[] {
@@ -139,8 +141,8 @@ return this.namedFieldDefinitionsCache[fieldName] || null;
 
           // always prefer inlined metadata over named field definition
           return (
-            field?.documentation?.title ||
-            namedFieldNode?.documentation?.title ||
+            field?.documentation?.title ??
+            namedFieldNode?.documentation?.title ??
             field.fieldName
           );
         });
@@ -148,8 +150,8 @@ return this.namedFieldDefinitionsCache[fieldName] || null;
         return this.getFieldsOverview(item.elementType);
       case 'ModelTypeName': {
         const node = this.findNamedModelDefinition(item.name);
-        
-return node ? this.getFieldsOverview(node.type) : [item.name];
+
+        return this.getFieldsOverview(node.type);
       }
       case 'NonNullDefinition':
         return this.getFieldsOverview(item.type);
@@ -181,24 +183,22 @@ return node ? this.getFieldsOverview(node.type) : [item.name];
     }
     switch (astType.kind) {
       case 'ObjectDefinition':
-        return this.getObjectModelDetails(astType );
+        return this.getObjectModelDetails(astType);
       case 'PrimitiveTypeName':
-        return this.getScalarModelDetails(astType );
+        return this.getScalarModelDetails(astType);
       case 'ListDefinition':
-        return this.getListModelDetails(astType );
+        return this.getListModelDetails(astType);
       case 'EnumDefinition':
-        return this.getEnumModelDetails(astType );
+        return this.getEnumModelDetails(astType);
       case 'ModelTypeName': {
         const node = this.findNamedModelDefinition(astType.name);
-        
-return node ? this.getGenericModelDetails(node.type) : null;
+
+        return this.getGenericModelDetails(node.type);
       }
       case 'NonNullDefinition':
-        return this.getGenericModelDetails(
-          (astType ).type
-        );
+        return this.getGenericModelDetails(astType.type);
       case 'UnionDefinition':
-        return this.getUnionModelDetails(astType );
+        return this.getUnionModelDetails(astType);
       default:
         return null;
     }
@@ -227,8 +227,15 @@ return node ? this.getGenericModelDetails(node.type) : null;
           const namedFieldNode = this.findNamedFieldDefinition(field.fieldName);
 
           const model = this.getGenericModelDetails(
-            field.type || namedFieldNode?.type || undefined
+            field.type ?? namedFieldNode?.type ?? undefined
           );
+
+          const description: string | undefined =
+            field?.documentation?.title !== undefined
+              ? field?.documentation?.description ?? field?.documentation?.title
+              : namedFieldNode !== null
+              ? namedFieldNode.documentation?.description
+              : undefined;
 
           return {
             fieldName: field.fieldName,
@@ -242,9 +249,7 @@ return node ? this.getGenericModelDetails(node.type) : null;
             //      while the inline definition only has a title. These 2 definitions
             //      could possibly have different meanings, mixing title from one
             //      with the description from the other is not desirable.
-            description: field?.documentation?.title
-              ? field?.documentation?.description || field?.documentation?.title
-              : namedFieldNode?.documentation?.description,
+            description,
           };
         }),
     } as ObjectModel;
@@ -281,15 +286,15 @@ return node ? this.getGenericModelDetails(node.type) : null;
 
     return {
       ...this.mapUseCaseBase(usecase),
-      ...(inputs ? { inputs } : null),
-      ...(outputs ? { outputs } : null),
+      ...inputs,
+      ...outputs,
     };
   }
 
   private pluralizeFirstWord(phrase: string): string {
     const [firstWord, ...words] = phrase.split(' ');
-    
-return [`${firstWord}s`, ...words].join(' ');
+
+    return [`${firstWord}s`, ...words].join(' ');
   }
 
   private getUseCaseSlot(item: Model): UseCaseSlot {
@@ -361,7 +366,7 @@ return [`${firstWord}s`, ...words].join(' ');
 
     switch (item.modelType) {
       case ModelType.OBJECT: {
-        return (item.fields || []).reduce(
+        return item.fields.reduce(
           (objectExample, field) =>
             Object.assign(objectExample, {
               [field.fieldName]: this.getUseCaseSlotExample(
@@ -373,11 +378,11 @@ return [`${firstWord}s`, ...words].join(' ');
       }
       case ModelType.LIST: {
         const elementExample = this.getUseCaseSlotExample(item.elementModel);
-        
-return elementExample;
+
+        return elementExample;
       }
       case ModelType.ENUM:
-        return item.enumElemets?.[0]?.value || null;
+        return item.enumElemets?.[0]?.value ?? null;
       case ModelType.SCALAR:
         return item.scalarType
           ? SCALAR_MAPPING[item.scalarType]
@@ -401,9 +406,10 @@ return elementExample;
       result?: ComlinkLiteralNode;
     };
   } {
-    let successExample = undefined,
-      errorExample = undefined;
-    if (!usecase.examples?.length)
+    let successExample = undefined;
+    let errorExample = undefined;
+
+    if (usecase.examples === undefined || usecase.examples.length === 0)
       return { successExample: undefined, errorExample: undefined };
 
     const exampleNodes = usecase.examples.filter(
@@ -411,12 +417,12 @@ return elementExample;
         slot.kind === 'UseCaseSlotDefinition' &&
         slot.value.kind === 'UseCaseExample'
     );
-    const successExampleNode = exampleNodes.find(
-      example => Boolean(example.value?.result)
+    const successExampleNode = exampleNodes.find(example =>
+      Boolean(example.value?.result)
     )?.value;
 
-    const errorExampleNode = exampleNodes.find(
-      example => Boolean(example.value?.error)
+    const errorExampleNode = exampleNodes.find(example =>
+      Boolean(example.value?.error)
     )?.value;
 
     console.log('err', errorExampleNode);
@@ -446,7 +452,7 @@ return elementExample;
   ): UseCaseSlotExample {
     switch (exampleNode?.kind) {
       case 'ComlinkObjectLiteral': {
-        return (exampleNode.fields || []).reduce(
+        return exampleNode.fields.reduce(
           (objectExample, field) =>
             Object.assign(objectExample, {
               [field.key[0]]: this.parseLiteralExample(field?.value),
@@ -456,8 +462,8 @@ return elementExample;
       }
       case 'ComlinkListLiteral': {
         const elementExample = this.parseLiteralExample(exampleNode.items[0]);
-        
-return elementExample;
+
+        return elementExample;
       }
       case 'ComlinkPrimitiveLiteral':
         return exampleNode.value;
