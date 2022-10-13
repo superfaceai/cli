@@ -1,6 +1,8 @@
 // TODO: This can be divided into more pertials
-export default `// mock HTTP call
+export default `//   vvvvvv
 http METHOD "/endpoint" {
+//   ^^^^^^  change HTTP method and path
+
   {{#if defaultSecurityId}}
   security "{{defaultSecurityId}}"
   {{/if }}

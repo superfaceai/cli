@@ -1,7 +1,7 @@
 export default `{{#if input }}
-// input
-{{#each input.fields}}
-{{>Field }}
+// use inputs
+{{#each input.fields }}
+{{>Field location="input"}}
 {{/each}}
 {{/if }}
 {{#unless input }}

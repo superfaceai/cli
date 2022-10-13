@@ -1,7 +1,7 @@
 export default `{{#if error }}
-// error
+// map error values
 {{#each error.fields}}
-{{>Field }}
+{{>Field location="error" }}
 
 {{/each}}
 

@@ -1,7 +1,7 @@
 export default `{{#if result }}
-// result
+// map result values
 {{#each result.fields}}
-{{>Field }}
+{{>Field location="body"}}
 
 {{/each}}
 
