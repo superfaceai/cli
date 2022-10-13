@@ -21,7 +21,6 @@ const templateSet: Template[] = [
   { name: 'Http', template: http },
   { name: 'ResultField', template: resultField },
   { name: 'Error', template: error },
-
 ];
 
 export default templateSet;

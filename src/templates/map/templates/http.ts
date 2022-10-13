@@ -10,9 +10,9 @@ http METHOD "/endpoint" {
   request {
     {{#if input }}
     // pass input values
-    body {}
     query {}
     headers {}
+    body {}
     {{/if }}
   }
   // handle success response

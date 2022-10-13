@@ -1,9 +1,9 @@
 export default `{{> Documentation}}
 map {{name}} { 
- {{>Input .}}
+  {{>Input .}}
 
- {{>Http .}}
+  {{>Http .}}
 
- {{>Result .}}
- {{>Error .}}
+  {{>Result .}}
+  {{>Error .}}
 }`;

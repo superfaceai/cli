@@ -294,14 +294,14 @@ export class ProfileASTAdapter implements Profile {
             required: field.required ?? false,
             ...(field?.model?.modelType === ModelType.SCALAR
               ? {
-                type: field?.model?.scalarType,
-              }
+                  type: field?.model?.scalarType,
+                }
               : field?.model?.modelType === ModelType.ENUM
-                ? {
+              ? {
                   type: 'enum',
                   typeValues: field.model.enumElemets.map(el => el.value),
                 }
-                : null),
+              : null),
           })),
         };
       case ModelType.LIST: {
@@ -406,7 +406,7 @@ export class ProfileASTAdapter implements Profile {
       example => !!example.value?.error
     )?.value;
 
-    console.log('err', errorExampleNode)
+    console.log('err', errorExampleNode);
 
     if (successExampleNode !== undefined) {
       successExample = {

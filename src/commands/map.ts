@@ -23,6 +23,7 @@ import { readFile } from '../common/io';
 import { ProfileASTAdapter } from '../stolen-from-air/profile-adapter';
 import { inspect } from 'util';
 import { serializeMap } from '../templates/map/prepare-map';
+import { OutputStream } from '../common/output-stream';
 
 export default class Map extends Command {
   public static strict = true;
@@ -183,6 +184,14 @@ export default class Map extends Command {
     });
 
     console.log('prepared', prepared);
+
+    const crt = await OutputStream.writeIfAbsent(
+      `poc/${flags.profileId}.${flags.providerName}${EXTENSIONS.map.source}`,
+      prepared,
+      { dirs: true }
+    );
+
+    console.log('crt', crt);
   }
 }
 
