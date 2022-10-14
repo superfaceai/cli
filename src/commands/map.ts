@@ -24,6 +24,7 @@ import { OutputStream } from '../common/output-stream';
 import { detectSuperJson } from '../logic/install';
 import { ProfileASTAdapter } from '../stolen-from-air/profile-adapter';
 import { serializeMap } from '../templates/map/prepare-map';
+import { serializeMockMap } from '../templates/map/prepare-mock-map';
 
 export default class Map extends Command {
   public static strict = true;
@@ -185,6 +186,20 @@ export default class Map extends Command {
 
     console.log('prepared', prepared);
 
+    const mock = serializeMockMap({
+      version: {
+        major: 1,
+        minor: 0,
+      },
+      name: flags.profileId,
+      usecases: details.map(d => ({
+        name: d.name,
+        example: d.successExample?.result,
+      })),
+    });
+
+    console.log('mock', mock);
+
     const crt = await OutputStream.writeIfAbsent(
       `poc/${flags.profileId}.${flags.providerName}${EXTENSIONS.map.source}`,
       prepared,
@@ -192,6 +207,14 @@ export default class Map extends Command {
     );
 
     console.log('crt', crt);
+
+    const crtMock = await OutputStream.writeIfAbsent(
+      `poc/${flags.profileId}.mock${EXTENSIONS.map.source}`,
+      mock,
+      { dirs: true }
+    );
+
+    console.log('crt', crtMock);
   }
 }
 
