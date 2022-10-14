@@ -9,6 +9,7 @@ http METHOD "/endpoint" {
   {{#unless defaultSecurityId }}
   security "specify security"
   {{/unless }}
+
   request {
     {{#if input }}
     // pass input values
@@ -17,10 +18,10 @@ http METHOD "/endpoint" {
     body {}
     {{/if }}
   }
-  // handle success response
+
+  // handle responses - edit status code and optional content type
   response 200 "content-type" {
-    // map result values
-    map result {
+    return map result {
       {{#if result }}
       {{#each result.fields}}
       {{>ResultField }}
@@ -32,10 +33,8 @@ http METHOD "/endpoint" {
     }
   }
 
-  // handle error response
   response 500 "content-type" {
-    // map error values
-    map error {
+    return map error {
       {{#if error }}
       {{#each error.fields}}
       {{>ResultField }}
@@ -46,4 +45,5 @@ http METHOD "/endpoint" {
       {{/unless }}
     }
   }
-}`;
+}
+`;
