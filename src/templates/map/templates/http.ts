@@ -7,7 +7,7 @@ http METHOD "/endpoint" {
   security "{{defaultSecurityId}}"
   {{/if }}
   {{#unless defaultSecurityId }}
-  security "specify security"
+  security "specify security identifier"
   {{/unless }}
 
   request {
@@ -19,7 +19,7 @@ http METHOD "/endpoint" {
     {{/if }}
   }
 
-  // handle responses - edit status code and optional content type
+  // map HTTP call response to a result or error
   response 200 "content-type" {
     return map result {
       {{#if result }}

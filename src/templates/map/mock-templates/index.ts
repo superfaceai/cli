@@ -1,13 +1,13 @@
 import type { Template } from '../template-renderer';
 import array from './array';
+import boolean from './boolean';
 import header from './header';
 import mockMap from './mock-map';
-import object from './object';
 import number from './number';
+import object from './object';
 import result from './result';
-import usecase from './usecase';
 import string from './string';
-import boolean from './boolean';
+import usecase from './usecase';
 
 const templateSet: Template[] = [
   { name: 'MockMapDocument', template: mockMap },

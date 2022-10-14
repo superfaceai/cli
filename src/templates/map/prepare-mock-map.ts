@@ -1,4 +1,5 @@
 import { inspect } from 'util';
+
 import type {
   ExampleArray,
   ExampleObject,
@@ -9,8 +10,8 @@ import type {
   ParsedUseCaseSlotExample,
   UseCaseSlotExample,
 } from '../../stolen-from-air';
-import { makeRenderer } from './template-renderer';
 import MOCK_MAP_TEMPLATE from './mock-templates';
+import { makeRenderer } from './template-renderer';
 
 export function serializeMockMap(input: {
   version: {
