@@ -1,7 +1,1 @@
-export default `{
-  {{#each properties}}{{#ifeq kind "string"}}{{name}} {{../use}} {{>String }},
-  {{/ifeq}}{{#ifeq kind "number"}}{{name}} {{../use}} {{>Number }},
-  {{/ifeq}}{{#ifeq kind "boolean"}}{{name}} {{../use}} {{>Boolean }},
-  {{/ifeq}}{{#ifeq kind "object"}}{{name}} = {{>Object use=":"}},
-  {{/ifeq}}{{#ifeq kind "array"}}{{name}} = {{>Array use=":"}},{{/ifeq}}{{/each}}
-}`;
+export default `{{openObject}}{{#each properties}}{{#ifeq kind "string"}}{{newLine (inc ../intent 2) }}{{name}}{{../use}} {{>String }},{{/ifeq}}{{#ifeq kind "number"}}{{newLine (inc ../intent 2) }}{{name}}{{../use}} {{>Number }},{{/ifeq}}{{#ifeq kind "boolean"}}{{newLine (inc ../intent 2) }}{{name}}{{../use}} {{>Boolean }},{{/ifeq}}{{#ifeq kind "object"}}{{newLine (inc ../intent 2) }}{{name}}{{../use}} {{>Object use=":" intent= (inc ../intent 2) }},{{/ifeq}}{{#ifeq kind "array"}}{{newLine (inc ../intent 2) }}{{name}}{{../use}} {{>Array use=":" intent= (inc ../intent 2) }},{{/ifeq}}{{/each}}{{newLine intent}}{{closeObject}}`;

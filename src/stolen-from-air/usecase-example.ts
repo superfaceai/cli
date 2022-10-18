@@ -35,7 +35,11 @@ export type ParsedExampleBoolean = {
 export type ParsedExampleObject = {
   kind: 'object';
   properties: Array<
-    { name: string } & (ParsedExampleArray | ParsedExamplePrimitive)
+    { name: string } & (
+      | ParsedExampleArray
+      | ParsedExamplePrimitive
+      | ParsedExampleObject
+    )
   >;
 };
 

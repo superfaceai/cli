@@ -1,5 +1,1 @@
-export default `[
-{{#each items}}{{#ifeq kind "primitive"}}{{name}} {{use}} {{>Primitive }} {{/ifeq}}
-{{#ifeq kind "object"}}{{name}} = {{>Object use=":"}} {{/ifeq}}
-{{#ifeq kind "array"}}{{name}} = {{>Array use=":"}} {{/ifeq}}{{/each}})
-]`;
+export default `[{{#each items}}{{newLine (inc ../intent 2) }}{{#ifeq kind "primitive"}}{{>Primitive }},{{/ifeq}}{{#ifeq kind "object"}}{{>Object use=":" intent=(inc ../intent 2) }},{{/ifeq}}{{#ifeq kind "array"}}{{>Array use=":" intent= (inc ../intent 2) }},{{/ifeq}}{{/each}}{{newLine intent}}]`;

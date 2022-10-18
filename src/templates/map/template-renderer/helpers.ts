@@ -64,6 +64,31 @@ export const HELPERS = [
       return `'${value}'`;
     },
   },
+  {
+    name: 'newLine',
+    helper: function (value: number) {
+      return `\n${' '.repeat(value)}`;
+    },
+  },
+  {
+    name: 'inc',
+    helper: function (value: any = 0, amount = 2) {
+      return parseInt(value) + amount;
+    },
+  },
+
+  {
+    name: 'openObject',
+    helper: function () {
+      return `{`;
+    },
+  },
+  {
+    name: 'closeObject',
+    helper: function () {
+      return `}`;
+    },
+  },
 ];
 
 export default HELPERS;

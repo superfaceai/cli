@@ -1,5 +1,8 @@
 import type {
+  ComlinkListLiteralNode,
   ComlinkLiteralNode,
+  ComlinkObjectLiteralNode,
+  ComlinkPrimitiveLiteralNode,
   EnumDefinitionNode,
   ListDefinitionNode,
   ModelTypeNameNode,
@@ -12,6 +15,7 @@ import type {
   UnionDefinitionNode,
   UseCaseDefinitionNode,
 } from '@superfaceai/ast';
+import { inspect } from 'util';
 
 import type { ProfileHeader } from './header';
 import type { EnumModel } from './models/enum.model';
@@ -26,7 +30,13 @@ import type { Profile } from './profile';
 import type { UseCase } from './usecase';
 import type { UseCaseBase } from './usecase-base';
 import type { UseCaseDetail, UseCaseSlot } from './usecase-detail';
-import type { UseCaseSlotExample } from './usecase-example';
+import type {
+  ParsedExampleArray,
+  ParsedExampleObject,
+  ParsedExamplePrimitive,
+  ParsedUseCaseSlotExample,
+  UseCaseSlotExample,
+} from './usecase-example';
 
 export class ProfileASTAdapter implements Profile {
   private options: ProfileDocumentNode;
@@ -425,7 +435,10 @@ export class ProfileASTAdapter implements Profile {
       Boolean(example.value?.error)
     )?.value;
 
-    console.log('err', errorExampleNode);
+    console.log(
+      'succ node',
+      inspect(successExampleNode?.result?.value, true, 20)
+    );
 
     if (successExampleNode !== undefined) {
       successExample = {
@@ -447,28 +460,88 @@ export class ProfileASTAdapter implements Profile {
     };
   }
 
+  private parseObjectLiteral(
+    node: ComlinkObjectLiteralNode
+  ): ParsedExampleObject {
+    const properties: ({ name: string } & (
+      | ParsedExampleArray
+      | ParsedExamplePrimitive
+      | ParsedExampleObject
+    ))[] = [];
+    for (const field of node.fields) {
+      if (field.value.kind === 'ComlinkPrimitiveLiteral') {
+        properties.push({
+          name: field.key.join('.'),
+          ...this.parsePrimitiveLiteral(field.value),
+        });
+      } else if (field.value.kind === 'ComlinkListLiteral') {
+        properties.push({
+          name: field.key.join('.'),
+          ...this.parseListLiteral(field.value),
+        });
+      } else {
+        properties.push({
+          name: field.key.join('.'),
+          ...this.parseObjectLiteral(field.value),
+        });
+      }
+    }
+
+    return {
+      kind: 'object',
+      properties,
+    };
+  }
+
+  private parseListLiteral(node: ComlinkListLiteralNode): ParsedExampleArray {
+    const items: (
+      | ParsedExampleArray
+      | ParsedExampleObject
+      | ParsedExamplePrimitive
+    )[] = [];
+
+    for (const item of node.items) {
+      if (item.kind === 'ComlinkPrimitiveLiteral') {
+        items.push(this.parsePrimitiveLiteral(item));
+      } else if (item.kind === 'ComlinkListLiteral') {
+        items.push(this.parseListLiteral(node));
+      } else {
+        items.push(this.parseObjectLiteral(item));
+      }
+    }
+
+    return {
+      kind: 'array',
+      items,
+    };
+  }
+
+  private parsePrimitiveLiteral(
+    node: ComlinkPrimitiveLiteralNode
+  ): ParsedExamplePrimitive {
+    if (typeof node.value === 'boolean') {
+      return { kind: 'boolean', value: node.value };
+    } else if (typeof node.value === 'number') {
+      return { kind: 'number', value: node.value };
+    }
+
+    return { kind: 'string', value: node.value };
+  }
+
   private parseLiteralExample(
     exampleNode: ComlinkLiteralNode
-  ): UseCaseSlotExample {
+  ): ParsedUseCaseSlotExample {
     switch (exampleNode?.kind) {
       case 'ComlinkObjectLiteral': {
-        return exampleNode.fields.reduce(
-          (objectExample, field) =>
-            Object.assign(objectExample, {
-              [field.key[0]]: this.parseLiteralExample(field?.value),
-            }),
-          {}
-        );
+        return this.parseObjectLiteral(exampleNode);
       }
       case 'ComlinkListLiteral': {
-        const elementExample = this.parseLiteralExample(exampleNode.items[0]);
-
-        return elementExample;
+        return this.parseListLiteral(exampleNode);
       }
       case 'ComlinkPrimitiveLiteral':
-        return exampleNode.value;
+        return this.parsePrimitiveLiteral(exampleNode);
       default:
-        return null;
+        throw new Error('unknown type');
     }
   }
 
@@ -509,41 +582,5 @@ export class ProfileASTAdapter implements Profile {
           : undefined,
       },
     };
-    // const useCaseDetailError =
-    //   resolvedErrorTree !== undefined
-    //     ? {
-    //       error: this.getUseCaseSlot(resolvedErrorTree),
-    //       errorExample: errorExample
-    //         ? this.parseLiteralExample(errorExample.input)
-    //         : this.getUseCaseSlotExample(resolvedErrorTree),
-    //     }
-    //     : null;
-
-    // const useCaseDetailInput =
-    //   resolvedInputTree !== undefined
-    //     ? {
-    //       input: this.getUseCaseSlot(resolvedInputTree),
-    //       inputExample: inputExample
-    //         ? this.parseLiteralExample(inputExample)
-    //         : this.getUseCaseSlotExample(resolvedInputTree),
-    //     }
-    //     : null;
-
-    // const useCaseDetailResult =
-    //   resolvedResultTree !== undefined
-    //     ? {
-    //       result: this.getUseCaseSlot(resolvedResultTree),
-    //       resultExample: resultExample
-    //         ? this.parseLiteralExample(resultExample)
-    //         : this.getUseCaseSlotExample(resolvedResultTree),
-    //     }
-    //     : null;
-
-    // return {
-    //   ...this.mapUseCaseBase(usecase),
-    //   ...useCaseDetailInput,
-    //   ...useCaseDetailResult,
-    //   ...useCaseDetailError
-    // };
   }
 }

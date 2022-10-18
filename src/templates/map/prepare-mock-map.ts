@@ -24,21 +24,13 @@ export function serializeMockMap(input: {
     example?: UseCaseSlotExample;
   }[];
 }): string {
-  const parsed = input.usecases.map(u => ({
-    name: u.name,
-    example: parse(u.example),
-  }));
-  const parsedInput = {
-    ...input,
-    usecases: parsed,
-  };
-  console.log('parsed', inspect(parsedInput, true, 20));
+  console.log('usecases', inspect(input.usecases, true, 20));
   const render = makeRenderer(MOCK_MAP_TEMPLATE, 'MockMapDocument');
 
-  return render(parsedInput);
+  return render(input);
 }
 
-function parse(example?: UseCaseSlotExample): ParsedUseCaseSlotExample {
+export function parse(example?: UseCaseSlotExample): ParsedUseCaseSlotExample {
   if (example === undefined || example === null) {
     return;
   }
