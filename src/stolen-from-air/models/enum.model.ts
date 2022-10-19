@@ -7,5 +7,5 @@ export interface EnumElement {
 
 export interface EnumModel extends ModelBase {
   modelType: ModelType.ENUM;
-  enumElemets: EnumElement[];
+  enumElements: EnumElement[];
 }

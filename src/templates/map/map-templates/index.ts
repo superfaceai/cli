@@ -1,14 +1,16 @@
 import type { Template } from '../template-renderer';
 import documentation from './documentation';
-import error from './error';
+import _enum from './enum';
 import field from './field';
 import mapHeader from './header';
 import http from './http';
 import input from './input';
+import list from './list';
 import mapDocument from './map';
-import result from './result';
-import resultField from './result-field';
+import object from './object';
+import scalar from './scalar';
 import usecase from './usecase';
+import value from './value';
 
 const templateSet: Template[] = [
   { name: 'MapDocument', template: mapDocument },
@@ -17,10 +19,12 @@ const templateSet: Template[] = [
   { name: 'Documentation', template: documentation },
   { name: 'Input', template: input },
   { name: 'Field', template: field },
-  { name: 'Result', template: result },
   { name: 'Http', template: http },
-  { name: 'ResultField', template: resultField },
-  { name: 'Error', template: error },
+  { name: 'Scalar', template: scalar },
+  { name: 'Array', template: list },
+  { name: 'Object', template: object },
+  { name: 'Enum', template: _enum },
+  { name: 'Value', template: value },
 ];
 
 export default templateSet;

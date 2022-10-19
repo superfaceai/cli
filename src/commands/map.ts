@@ -14,7 +14,6 @@ import {
 } from '@superfaceai/one-sdk';
 import { parseDocumentId, parseProfile, Source } from '@superfaceai/parser';
 import { dirname, join as joinPath, resolve as resolvePath } from 'path';
-import { inspect } from 'util';
 
 import type { Flags } from '../common/command.abstract';
 import { Command } from '../common/command.abstract';
@@ -164,8 +163,6 @@ export default class Map extends Command {
 
     const details = adapter.getUseCaseDetailList();
 
-    console.log('details', inspect(details, true, 20));
-
     let defaultSecurityId: string | undefined = undefined;
 
     if (provider.securitySchemes !== undefined) {
@@ -197,8 +194,6 @@ export default class Map extends Command {
         example: d.successExample?.result,
       })),
     });
-
-    console.log('mock', mock);
 
     const crt = await OutputStream.writeIfAbsent(
       `poc/${flags.profileId}.${flags.providerName}${EXTENSIONS.map.source}`,

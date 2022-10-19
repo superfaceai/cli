@@ -1,57 +1,36 @@
-export type ExamplePrimitive = string | number | boolean;
+export type ExampleScalar = ExampleBoolean | ExampleNumber | ExampleString;
 
-export type ExampleObject = Record<string, ExampleArray | ExamplePrimitive>;
-
-export type ExampleArray = Array<
-  ExampleArray | ExampleObject | ExamplePrimitive
->;
-
-export type UseCaseSlotExample =
-  | ExampleObject
-  | ExampleArray
-  | ExamplePrimitive
-  | null;
-
-export type ParsedExamplePrimitive =
-  | ParsedExampleBoolean
-  | ParsedExampleNumber
-  | ParsedExampleString;
-
-export type ParsedExampleString = {
+export type ExampleString = {
   kind: 'string';
   value: string;
 };
 
-export type ParsedExampleNumber = {
+export type ExampleNumber = {
   kind: 'number';
   value: number;
 };
 
-export type ParsedExampleBoolean = {
+export type ExampleBoolean = {
   kind: 'boolean';
   value: boolean;
 };
 
-export type ParsedExampleObject = {
+export type ExampleObject = {
   kind: 'object';
-  properties: Array<
-    { name: string } & (
-      | ParsedExampleArray
-      | ParsedExamplePrimitive
-      | ParsedExampleObject
-    )
-  >;
+  properties: ({ name: string } & (
+    | ExampleArray
+    | ExampleScalar
+    | ExampleObject
+  ))[];
 };
 
-export type ParsedExampleArray = {
+export type ExampleArray = {
   kind: 'array';
-  items: Array<
-    ParsedExampleArray | ParsedExampleObject | ParsedExamplePrimitive
-  >;
+  items: (ExampleArray | ExampleObject | ExampleScalar)[];
 };
 
-export type ParsedUseCaseSlotExample =
-  | ParsedExampleArray
-  | ParsedExampleObject
-  | ParsedExamplePrimitive
+export type UseCaseSlotExample =
+  | ExampleArray
+  | ExampleObject
+  | ExampleScalar
   | undefined;

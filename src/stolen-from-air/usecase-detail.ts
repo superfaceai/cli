@@ -1,24 +1,12 @@
+import type { Model } from './models';
 import type { UseCaseBase } from './usecase-base';
 import type { UseCaseSlotExample } from './usecase-example';
 
-type Field = {
-  fieldName: string;
-  type?: 'string' | 'number' | 'boolean' | 'enum';
-  typeValues?: (string | number | boolean)[];
-  description?: string;
-  required: boolean;
-};
-
-export type UseCaseSlot = {
-  title: string;
-  fields?: Field[];
-};
-
 /** Use case details */
 export interface UseCaseDetail extends UseCaseBase {
-  input?: UseCaseSlot;
-  result?: UseCaseSlot;
-  error?: UseCaseSlot;
+  input?: Model;
+  result?: Model;
+  error?: Model;
   errorExample?: {
     input?: UseCaseSlotExample;
     error?: UseCaseSlotExample;

@@ -23,19 +23,18 @@ import type { ListModel } from './models/list.model';
 import type { Model } from './models/model-base';
 import { ModelType } from './models/model-base';
 import type { ObjectModel } from './models/object.model';
-import type { ScalarModel } from './models/scalar.model';
-import { ScalarType } from './models/scalar.model';
+import type { ScalarModel , ScalarType } from './models/scalar.model';
 import type { UnionModel } from './models/union.model';
 import type { Profile } from './profile';
 import type { UseCase } from './usecase';
 import type { UseCaseBase } from './usecase-base';
-import type { UseCaseDetail, UseCaseSlot } from './usecase-detail';
+import type { UseCaseDetail } from './usecase-detail';
 import type {
-  ParsedExampleArray,
-  ParsedExampleObject,
-  ParsedExamplePrimitive,
-  ParsedUseCaseSlotExample,
+  ExampleArray,
+  ExampleObject,
+  ExampleScalar,
   UseCaseSlotExample,
+  // UseCaseSlotExample,
 } from './usecase-example';
 
 export class ProfileASTAdapter implements Profile {
@@ -224,7 +223,7 @@ export class ProfileASTAdapter implements Profile {
   private getListModelDetails(list: ListDefinitionNode): ListModel {
     return {
       modelType: ModelType.LIST,
-      elementModel: this.getGenericModelDetails(list.elementType),
+      model: this.getGenericModelDetails(list.elementType),
     } as ListModel;
   }
 
@@ -246,8 +245,8 @@ export class ProfileASTAdapter implements Profile {
               : namedFieldNode !== null
               ? namedFieldNode.documentation?.description
               : undefined;
-
-          return {
+          
+return {
             fieldName: field.fieldName,
             required: field.required,
             model: model,
@@ -268,7 +267,7 @@ export class ProfileASTAdapter implements Profile {
   private getEnumModelDetails(object: EnumDefinitionNode): EnumModel {
     return {
       modelType: ModelType.ENUM,
-      enumElemets: object.values.map(({ value, documentation }) => ({
+      enumElements: object.values.map(({ value, documentation }) => ({
         value,
         title: documentation?.title,
       })),
@@ -301,108 +300,55 @@ export class ProfileASTAdapter implements Profile {
     };
   }
 
-  private pluralizeFirstWord(phrase: string): string {
-    const [firstWord, ...words] = phrase.split(' ');
+  // private pluralizeFirstWord(phrase: string): string {
+  //   const [firstWord, ...words] = phrase.split(' ');
 
-    return [`${firstWord}s`, ...words].join(' ');
-  }
+  //   return [`${firstWord}s`, ...words].join(' ');
+  // }
 
-  private getUseCaseSlot(item: Model): UseCaseSlot {
-    if (item === null) {
-      throw new Error('Item is null');
-    }
-    switch (item.modelType) {
-      case ModelType.OBJECT:
-        return {
-          title: 'object',
-          fields: item.fields.map(field => ({
-            fieldName: field.fieldName,
-            description: field.description,
-            required: field.required ?? false,
-            ...(field?.model?.modelType === ModelType.SCALAR
-              ? {
-                  type: field?.model?.scalarType,
-                }
-              : field?.model?.modelType === ModelType.ENUM
-              ? {
-                  type: 'enum',
-                  typeValues: field.model.enumElemets.map(el => el.value),
-                }
-              : null),
-          })),
-        };
-      case ModelType.LIST: {
-        const elementSlot = this.getUseCaseSlot(item.elementModel);
+  // private getUseCaseSlot(item: Model): UseCaseSlot {
+  //   if (item === null) {
+  //     throw new Error('Item is null');
+  //   }
+  //   switch (item.modelType) {
+  //     case ModelType.OBJECT:
+  //       console.log('fields', item.fields.map(f => f.fieldName).join(', '));
+  //       return {
+  //         title: 'object',
+  //         fields: item.fields.map(field => ({
+  //           fieldName: field.fieldName,
+  //           description: field.description,
+  //           required: field.required ?? false,
+  //           ...(field?.model?.modelType !== undefined
+  //             ? this.getUseCaseSlot(field.model)
+  //             : {}),
+  //         })),
+  //       };
+  //     case ModelType.LIST: {
+  //       const elementSlot = this.getUseCaseSlot(item.elementModel);
 
-        return {
-          title: `list of ${this.pluralizeFirstWord(elementSlot.title)}`,
-          ...(elementSlot.fields ? { fields: elementSlot.fields } : null),
-        };
-      }
-      case ModelType.ENUM:
-        return {
-          title: 'enum',
-          fields: item.enumElemets.map(enumEl => ({
-            fieldName: String(enumEl.value),
-            description: enumEl.title,
-            required: false,
-          })),
-        };
-      case ModelType.SCALAR:
-        return {
-          title: item.scalarType,
-        };
-      case ModelType.UNION:
-        return this.getUseCaseSlot(item.types[0]);
-    }
-  }
-
-  private getUseCaseSlotExample(item: Model): UseCaseSlotExample {
-    if (item === null) {
-      throw new Error('Item is null');
-    }
-    const DEFAULT_OBJECT_FIELD: Model = {
-      modelType: ModelType.SCALAR,
-      scalarType: ScalarType.STRING,
-    };
-
-    const SCALAR_MAPPING: {
-      [key in ScalarType]: string | number | boolean;
-    } = {
-      [ScalarType.STRING]: '',
-      [ScalarType.NUMBER]: 42,
-      [ScalarType.BOOLEAN]: true,
-    };
-
-    switch (item.modelType) {
-      case ModelType.OBJECT: {
-        return item.fields.reduce(
-          (objectExample, field) =>
-            Object.assign(objectExample, {
-              [field.fieldName]: this.getUseCaseSlotExample(
-                field?.model || DEFAULT_OBJECT_FIELD
-              ),
-            }),
-          {}
-        );
-      }
-      case ModelType.LIST: {
-        const elementExample = this.getUseCaseSlotExample(item.elementModel);
-
-        return elementExample;
-      }
-      case ModelType.ENUM:
-        return item.enumElemets?.[0]?.value ?? null;
-      case ModelType.SCALAR:
-        return item.scalarType
-          ? SCALAR_MAPPING[item.scalarType]
-          : SCALAR_MAPPING[ScalarType.STRING];
-      case ModelType.UNION:
-        return this.getUseCaseSlotExample(item.types[0]);
-      default:
-        return null;
-    }
-  }
+  //       return {
+  //         title: `list of ${this.pluralizeFirstWord(elementSlot.title)}`,
+  //         ...(elementSlot.fields ? { fields: elementSlot.fields } : null),
+  //       };
+  //     }
+  //     case ModelType.ENUM:
+  //       return {
+  //         title: 'enum',
+  //         fields: item.enumElemets.map(enumEl => ({
+  //           fieldName: String(enumEl.value),
+  //           description: enumEl.title,
+  //           required: false,
+  //         })),
+  //       };
+  //     case ModelType.SCALAR:
+  //       return {
+  //         title: item.scalarType,
+  //       };
+  //     case ModelType.UNION:
+  //       return this.getUseCaseSlot(item.types[0]);
+  //   }
+  // }
 
   private findUseCaseExample(
     usecase: UseCaseDefinitionNode
@@ -435,11 +381,6 @@ export class ProfileASTAdapter implements Profile {
       Boolean(example.value?.error)
     )?.value;
 
-    console.log(
-      'succ node',
-      inspect(successExampleNode?.result?.value, true, 20)
-    );
-
     if (successExampleNode !== undefined) {
       successExample = {
         input: successExampleNode.input?.value,
@@ -460,13 +401,11 @@ export class ProfileASTAdapter implements Profile {
     };
   }
 
-  private parseObjectLiteral(
-    node: ComlinkObjectLiteralNode
-  ): ParsedExampleObject {
+  private parseObjectLiteral(node: ComlinkObjectLiteralNode): ExampleObject {
     const properties: ({ name: string } & (
-      | ParsedExampleArray
-      | ParsedExamplePrimitive
-      | ParsedExampleObject
+      | ExampleArray
+      | ExampleScalar
+      | ExampleObject
     ))[] = [];
     for (const field of node.fields) {
       if (field.value.kind === 'ComlinkPrimitiveLiteral') {
@@ -493,12 +432,8 @@ export class ProfileASTAdapter implements Profile {
     };
   }
 
-  private parseListLiteral(node: ComlinkListLiteralNode): ParsedExampleArray {
-    const items: (
-      | ParsedExampleArray
-      | ParsedExampleObject
-      | ParsedExamplePrimitive
-    )[] = [];
+  private parseListLiteral(node: ComlinkListLiteralNode): ExampleArray {
+    const items: (ExampleArray | ExampleObject | ExampleScalar)[] = [];
 
     for (const item of node.items) {
       if (item.kind === 'ComlinkPrimitiveLiteral') {
@@ -518,7 +453,7 @@ export class ProfileASTAdapter implements Profile {
 
   private parsePrimitiveLiteral(
     node: ComlinkPrimitiveLiteralNode
-  ): ParsedExamplePrimitive {
+  ): ExampleScalar {
     if (typeof node.value === 'boolean') {
       return { kind: 'boolean', value: node.value };
     } else if (typeof node.value === 'number') {
@@ -530,7 +465,7 @@ export class ProfileASTAdapter implements Profile {
 
   private parseLiteralExample(
     exampleNode: ComlinkLiteralNode
-  ): ParsedUseCaseSlotExample {
+  ): UseCaseSlotExample {
     switch (exampleNode?.kind) {
       case 'ComlinkObjectLiteral': {
         return this.parseObjectLiteral(exampleNode);
@@ -554,6 +489,8 @@ export class ProfileASTAdapter implements Profile {
       usecase?.result?.value
     );
 
+    console.log('res tree', inspect(resolvedResultTree, true, 20));
+
     const resolvedErrorTree = this.getGenericModelDetails(
       usecase?.error?.value
     );
@@ -562,9 +499,9 @@ export class ProfileASTAdapter implements Profile {
 
     return {
       ...this.mapUseCaseBase(usecase),
-      error: this.getUseCaseSlot(resolvedErrorTree),
-      input: this.getUseCaseSlot(resolvedInputTree),
-      result: this.getUseCaseSlot(resolvedResultTree),
+      error: resolvedErrorTree,
+      input: resolvedInputTree,
+      result: resolvedResultTree,
       successExample: {
         input: successExample?.input
           ? this.parseLiteralExample(successExample.input)
