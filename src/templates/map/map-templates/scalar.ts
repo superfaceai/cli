@@ -1,1 +1,1 @@
-export default `{{fieldName}}{{use}} {{>Value type=model.scalarType}}, // {{#if required}}required {{/if }}{{#unless required }}optional {{/unless }}{{model.scalarType}}`;
+export default `{{#if fieldName}}{{fieldName}}{{use}} {{/if}}{{>Value type=scalarType}}, // {{#if required}}required {{/if }}{{#unless required }}optional {{/unless }}{{scalarType}}`;

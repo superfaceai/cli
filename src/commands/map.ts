@@ -142,11 +142,7 @@ export default class Map extends Command {
     }
     file = resolvePath(dirname(superJsonPath), profileSettings.file);
 
-    console.log('file', file);
-
     const ast = await loadProfileAst(file, { userError });
-
-    console.log('AST', ast);
 
     // Load provider
     const providerSettings = normalized.providers[flags.providerName];
