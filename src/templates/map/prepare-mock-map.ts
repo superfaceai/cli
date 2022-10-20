@@ -14,6 +14,6 @@ export function serializeMockMap(input: {
   }[];
 }): string {
   const render = makeRenderer(MOCK_MAP_TEMPLATE, 'MockMapDocument');
-  
-return render(input);
+
+  return render(input);
 }

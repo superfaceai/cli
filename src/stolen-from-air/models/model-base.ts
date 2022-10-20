@@ -23,5 +23,6 @@ export type Model =
 export interface ModelBase {
   name?: string; // available only for named models
   description?: string;
+  nonNull: boolean;
   modelType: ModelType; // model discriminator
 }

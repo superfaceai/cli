@@ -23,7 +23,7 @@ import type { ListModel } from './models/list.model';
 import type { Model } from './models/model-base';
 import { ModelType } from './models/model-base';
 import type { ObjectModel } from './models/object.model';
-import type { ScalarModel , ScalarType } from './models/scalar.model';
+import type { ScalarModel, ScalarType } from './models/scalar.model';
 import type { UnionModel } from './models/union.model';
 import type { Profile } from './profile';
 import type { UseCase } from './usecase';
@@ -34,7 +34,6 @@ import type {
   ExampleObject,
   ExampleScalar,
   UseCaseSlotExample,
-  // UseCaseSlotExample,
 } from './usecase-example';
 
 export class ProfileASTAdapter implements Profile {
@@ -186,50 +185,62 @@ export class ProfileASTAdapter implements Profile {
     }
   }
 
-  private getGenericModelDetails(astType?: Type): Model {
+  private getGenericModelDetails(astType?: Type, nonNull?: boolean): Model {
     if (astType === undefined) {
       return null;
     }
     switch (astType.kind) {
       case 'ObjectDefinition':
-        return this.getObjectModelDetails(astType);
+        return this.getObjectModelDetails(astType, nonNull);
       case 'PrimitiveTypeName':
-        return this.getScalarModelDetails(astType);
+        return this.getScalarModelDetails(astType, nonNull);
       case 'ListDefinition':
-        return this.getListModelDetails(astType);
+        return this.getListModelDetails(astType, nonNull);
       case 'EnumDefinition':
-        return this.getEnumModelDetails(astType);
+        return this.getEnumModelDetails(astType, nonNull);
       case 'ModelTypeName': {
         const node = this.findNamedModelDefinition(astType.name);
 
         return this.getGenericModelDetails(node.type);
       }
       case 'NonNullDefinition':
-        return this.getGenericModelDetails(astType.type);
+        return this.getGenericModelDetails(astType.type, true);
       case 'UnionDefinition':
-        return this.getUnionModelDetails(astType);
+        return this.getUnionModelDetails(astType, nonNull);
       default:
         return null;
     }
   }
 
-  private getScalarModelDetails(primitive: PrimitiveTypeNameNode): ScalarModel {
+  private getScalarModelDetails(
+    primitive: PrimitiveTypeNameNode,
+    nonNull?: boolean
+  ): ScalarModel {
     return {
       modelType: ModelType.SCALAR,
+      nonNull,
       scalarType: primitive.name as ScalarType,
     } as ScalarModel;
   }
 
-  private getListModelDetails(list: ListDefinitionNode): ListModel {
+  private getListModelDetails(
+    list: ListDefinitionNode,
+    nonNull?: boolean
+  ): ListModel {
     return {
       modelType: ModelType.LIST,
+      nonNull,
       model: this.getGenericModelDetails(list.elementType),
     } as ListModel;
   }
 
-  private getObjectModelDetails(object: ObjectDefinitionNode): ObjectModel {
+  private getObjectModelDetails(
+    object: ObjectDefinitionNode,
+    nonNull?: boolean
+  ): ObjectModel {
     return {
       modelType: ModelType.OBJECT,
+      nonNull,
       fields: object.fields
         .filter(item => item.kind === 'FieldDefinition')
         .map(field => {
@@ -245,10 +256,11 @@ export class ProfileASTAdapter implements Profile {
               : namedFieldNode !== null
               ? namedFieldNode.documentation?.description
               : undefined;
-          
-return {
+
+          return {
             fieldName: field.fieldName,
             required: field.required,
+            nonNull: model?.nonNull,
             model: model,
 
             // If the field has an inline title provided, use the description
@@ -264,9 +276,13 @@ return {
     } as ObjectModel;
   }
 
-  private getEnumModelDetails(object: EnumDefinitionNode): EnumModel {
+  private getEnumModelDetails(
+    object: EnumDefinitionNode,
+    nonNull?: boolean
+  ): EnumModel {
     return {
       modelType: ModelType.ENUM,
+      nonNull: nonNull ?? false,
       enumElements: object.values.map(({ value, documentation }) => ({
         value,
         title: documentation?.title,
@@ -274,10 +290,14 @@ return {
     };
   }
 
-  private getUnionModelDetails(object: UnionDefinitionNode): UnionModel {
+  private getUnionModelDetails(
+    object: UnionDefinitionNode,
+    nonNull?: boolean
+  ): UnionModel {
     return {
+      nonNull: nonNull ?? true,
       modelType: ModelType.UNION,
-      types: object.types.map(this.getGenericModelDetails.bind(this)),
+      types: object.types.map(t => this.getGenericModelDetails(t)),
     };
   }
 
