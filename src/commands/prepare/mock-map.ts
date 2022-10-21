@@ -1,11 +1,6 @@
 import { flags as oclifFlags } from '@oclif/command';
 import type { ProfileDocumentNode } from '@superfaceai/ast';
-import {
-  assertProfileDocumentNode,
-  assertProviderJson,
-  EXTENSIONS,
-  isValidProviderName,
-} from '@superfaceai/ast';
+import { assertProfileDocumentNode, EXTENSIONS } from '@superfaceai/ast';
 import {
   loadSuperJson,
   META_FILE,
@@ -14,7 +9,6 @@ import {
 } from '@superfaceai/one-sdk';
 import { parseDocumentId, parseProfile, Source } from '@superfaceai/parser';
 import { dirname, join as joinPath, resolve as resolvePath } from 'path';
-import { inspect } from 'util';
 
 import type { Flags } from '../../common/command.abstract';
 import { Command } from '../../common/command.abstract';
@@ -23,13 +17,13 @@ import { readFile } from '../../common/io';
 import { OutputStream } from '../../common/output-stream';
 import { detectSuperJson } from '../../logic/install';
 import { ProfileASTAdapter } from '../../stolen-from-air/profile-adapter';
-import { serializeMap } from '../../templates/map/prepare-map';
+import { serializeMockMap } from '../../templates/map/prepare-mock-map';
 
-export class Map extends Command {
+export class MockMap extends Command {
   public static strict = true;
 
   public static description =
-    'Creates map, based on profile and provider on a local filesystem.';
+    'Creates empty map, profile or/and provider on a local filesystem.';
 
   public static flags = {
     ...Command.flags,
@@ -38,11 +32,7 @@ export class Map extends Command {
       description: 'Profile Id in format [scope](optional)/[name]',
       required: true,
     }),
-    providerName: oclifFlags.string({
-      description:
-        'Names of providers. This argument is used to create maps and/or providers',
-      required: true,
-    }),
+
     scan: oclifFlags.integer({
       char: 's',
       description:
@@ -52,7 +42,7 @@ export class Map extends Command {
   };
 
   public async run(): Promise<void> {
-    const { flags } = this.parse(Map);
+    const { flags } = this.parse(MockMap);
     await super.initialize(flags);
     await this.execute({
       // logger: this.logger,
@@ -68,22 +58,12 @@ export class Map extends Command {
   }: {
     // logger: ILogger;
     userError: UserError;
-    flags: Flags<typeof Map.flags>;
+    flags: Flags<typeof MockMap.flags>;
   }): Promise<void> {
     // Check inputs
     const parsedProfileId = parseDocumentId(flags.profileId);
     if (parsedProfileId.kind == 'error') {
       throw userError(`Invalid profile id: ${parsedProfileId.message}`, 1);
-    }
-
-    if (!isValidProviderName(flags.providerName)) {
-      throw userError(`Invalid provider name: "${flags.providerName}"`, 1);
-    }
-    if (flags.profileId == undefined) {
-      throw userError(
-        '--profileId must be specified when using --providerName',
-        1
-      );
     }
 
     if (
@@ -118,13 +98,6 @@ export class Map extends Command {
       );
     }
 
-    if (normalized.providers[flags.providerName] === undefined) {
-      throw userError(
-        `Unable to prepare, provider: "${flags.providerName}" not found in super.json`,
-        1
-      );
-    }
-
     // Load profile
     let file: string | undefined;
     const profileSettings = normalized.profiles[flags.profileId];
@@ -136,16 +109,6 @@ export class Map extends Command {
 
     const ast = await loadProfileAst(file, { userError });
 
-    // Load provider
-    const providerSettings = normalized.providers[flags.providerName];
-    if (!('file' in providerSettings) || providerSettings.file === undefined) {
-      throw userError('Provider is not local', 1);
-    }
-    file = resolvePath(dirname(superJsonPath), providerSettings.file);
-    const provider = assertProviderJson(
-      JSON.parse(await readFile(file, { encoding: 'utf-8' }))
-    );
-
     // TODO: move this to logic
 
     // TODO: Adapter should probably be separate package
@@ -154,55 +117,25 @@ export class Map extends Command {
 
     const useCases = adapter.getUseCaseDetailList();
 
-    // Resolve provider json
-
-    // security
-    let securityIds: string[] | undefined = undefined;
-
-    if (provider.securitySchemes !== undefined) {
-      if (provider.securitySchemes.length === 1) {
-        securityIds = [provider.securitySchemes[0].id];
-      }
-
-      if (provider.securitySchemes.length > 1) {
-        securityIds = provider.securitySchemes.map(s => s.id);
-      }
-    }
-
-    console.log('security', inspect(securityIds, true, 20));
-
-    // parameters
-    let integrationParameters: string[] | undefined = undefined;
-
-    if (provider.parameters !== undefined) {
-      integrationParameters = provider.parameters.map(p => p.name);
-    }
-
-    const prepared = serializeMap({
-      profile: {
-        version: {
-          major: ast.header.version.major,
-          minor: ast.header.version.minor,
-        },
-        name: flags.profileId,
-        useCases,
+    const mock = serializeMockMap({
+      version: {
+        major: 1,
+        minor: 0,
       },
-      provider: {
-        name: provider.name,
-        integrationParameters,
-        securityIds,
-      },
+      name: flags.profileId,
+      usecases: useCases.map(d => ({
+        name: d.name,
+        example: d.successExample?.result,
+      })),
     });
 
-    console.log('prepared', prepared);
-
-    const crt = await OutputStream.writeIfAbsent(
-      `poc/${flags.profileId}.${flags.providerName}${EXTENSIONS.map.source}`,
-      prepared,
+    const crtMock = await OutputStream.writeIfAbsent(
+      `poc/${flags.profileId}.mock${EXTENSIONS.map.source}`,
+      mock,
       { dirs: true }
     );
 
-    console.log('crt', crt);
+    console.log('crt', crtMock);
   }
 }
 
