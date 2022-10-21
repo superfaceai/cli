@@ -181,10 +181,9 @@ export class Map extends Command {
 
     const prepared = serializeMap({
       profile: {
-        // TODO: use version from AST
         version: {
-          major: 1,
-          minor: 0,
+          major: ast.header.version.major,
+          minor: ast.header.version.minor,
         },
         name: flags.profileId,
         useCases,
