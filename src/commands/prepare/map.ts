@@ -14,18 +14,19 @@ import {
 } from '@superfaceai/one-sdk';
 import { parseDocumentId, parseProfile, Source } from '@superfaceai/parser';
 import { dirname, join as joinPath, resolve as resolvePath } from 'path';
+import { inspect } from 'util';
 
-import type { Flags } from '../common/command.abstract';
-import { Command } from '../common/command.abstract';
-import type { UserError } from '../common/error';
-import { readFile } from '../common/io';
-import { OutputStream } from '../common/output-stream';
-import { detectSuperJson } from '../logic/install';
-import { ProfileASTAdapter } from '../stolen-from-air/profile-adapter';
-import { serializeMap } from '../templates/map/prepare-map';
-import { serializeMockMap } from '../templates/map/prepare-mock-map';
+import type { Flags } from '../../common/command.abstract';
+import { Command } from '../../common/command.abstract';
+import type { UserError } from '../../common/error';
+import { readFile } from '../../common/io';
+import { OutputStream } from '../../common/output-stream';
+import { detectSuperJson } from '../../logic/install';
+import { ProfileASTAdapter } from '../../stolen-from-air/profile-adapter';
+import { serializeMap } from '../../templates/map/prepare-map';
+import { serializeMockMap } from '../../templates/map/prepare-mock-map';
 
-export default class Map extends Command {
+export class Map extends Command {
   public static strict = true;
 
   public static description =
@@ -71,23 +72,19 @@ export default class Map extends Command {
     flags: Flags<typeof Map.flags>;
   }): Promise<void> {
     // Check inputs
-    if (flags.profileId !== undefined) {
-      const parsedProfileId = parseDocumentId(flags.profileId);
-      if (parsedProfileId.kind == 'error') {
-        throw userError(`Invalid profile id: ${parsedProfileId.message}`, 1);
-      }
+    const parsedProfileId = parseDocumentId(flags.profileId);
+    if (parsedProfileId.kind == 'error') {
+      throw userError(`Invalid profile id: ${parsedProfileId.message}`, 1);
     }
 
-    if (flags.providerName !== undefined) {
-      if (!isValidProviderName(flags.providerName)) {
-        throw userError(`Invalid provider name: "${flags.providerName}"`, 1);
-      }
-      if (flags.profileId == undefined) {
-        throw userError(
-          '--profileId must be specified when using --providerName',
-          1
-        );
-      }
+    if (!isValidProviderName(flags.providerName)) {
+      throw userError(`Invalid provider name: "${flags.providerName}"`, 1);
+    }
+    if (flags.profileId == undefined) {
+      throw userError(
+        '--profileId must be specified when using --providerName',
+        1
+      );
     }
 
     if (
@@ -115,22 +112,18 @@ export default class Map extends Command {
     const normalized = normalizeSuperJsonDocument(superJson);
 
     // Check super.json
-    if (flags.profileId !== undefined) {
-      if (normalized.profiles[flags.profileId] === undefined) {
-        throw userError(
-          `Unable to prepare, profile: "${flags.profileId}" not found in super.json`,
-          1
-        );
-      }
+    if (normalized.profiles[flags.profileId] === undefined) {
+      throw userError(
+        `Unable to prepare, profile: "${flags.profileId}" not found in super.json`,
+        1
+      );
     }
 
-    if (flags.providerName !== undefined) {
-      if (normalized.providers[flags.providerName] === undefined) {
-        throw userError(
-          `Unable to prepare, provider: "${flags.providerName}" not found in super.json`,
-          1
-        );
-      }
+    if (normalized.providers[flags.providerName] === undefined) {
+      throw userError(
+        `Unable to prepare, provider: "${flags.providerName}" not found in super.json`,
+        1
+      );
     }
 
     // Load profile
@@ -154,27 +147,53 @@ export default class Map extends Command {
       JSON.parse(await readFile(file, { encoding: 'utf-8' }))
     );
 
-    // Adapter should probably be separate package
+    // TODO: move this to logic
+
+    // TODO: Adapter should probably be separate package
+    // Parse profile AST
     const adapter = new ProfileASTAdapter(ast);
 
-    const details = adapter.getUseCaseDetailList();
+    const useCases = adapter.getUseCaseDetailList();
 
-    let defaultSecurityId: string | undefined = undefined;
+    // Resolve provider json
+
+    // security
+    let securityIds: string[] | undefined = undefined;
 
     if (provider.securitySchemes !== undefined) {
-      if (provider.securitySchemes.length === 0) {
-        defaultSecurityId = provider.securitySchemes[0].id;
+      if (provider.securitySchemes.length === 1) {
+        securityIds = [provider.securitySchemes[0].id];
+      }
+
+      if (provider.securitySchemes.length > 1) {
+        securityIds = provider.securitySchemes.map(s => s.id);
       }
     }
+
+    console.log('security', inspect(securityIds, true, 20));
+
+    // parameters
+    let integrationParameters: string[] | undefined = undefined;
+
+    if (provider.parameters !== undefined) {
+      integrationParameters = provider.parameters.map(p => p.name);
+    }
+
     const prepared = serializeMap({
-      version: {
-        major: 1,
-        minor: 0,
+      profile: {
+        // TODO: use version from AST
+        version: {
+          major: 1,
+          minor: 0,
+        },
+        name: flags.profileId,
+        useCases,
       },
-      name: flags.profileId,
-      provider: provider.name,
-      defaultSecurityId,
-      details,
+      provider: {
+        name: provider.name,
+        integrationParameters,
+        securityIds,
+      },
     });
 
     console.log('prepared', prepared);
@@ -185,7 +204,7 @@ export default class Map extends Command {
         minor: 0,
       },
       name: flags.profileId,
-      usecases: details.map(d => ({
+      usecases: useCases.map(d => ({
         name: d.name,
         example: d.successExample?.result,
       })),

@@ -2,13 +2,9 @@
 export default `//   vvvvvv
 http METHOD "/endpoint" {
 //   ^^^^^^  change HTTP method and path
-
-  {{#if defaultSecurityId}}
-  security "{{defaultSecurityId}}"
+  {{#if provider.securityIds}}
+  security {{>Security securityIds=provider.securityIds}}
   {{/if }}
-  {{#unless defaultSecurityId }}
-  security "specify security identifier"
-  {{/unless }}
 
   request {
     {{#if input }}
@@ -21,6 +17,7 @@ http METHOD "/endpoint" {
 
   // map HTTP call response to a result or error
   response 200 "content-type" {
+  //       ^^^ ^^^^^^^^^^^^^^ change status code and content type
     return map result {{#if result }}{{#ifeq result.modelType "Scalar"}}{{>Scalar result.model }}{{/ifeq}}{{#ifeq result.modelType "Object"}}{{>Object result use=" =" intent=4 }}{{/ifeq}}{{#ifeq result.modelType "List"}}{{>Array result.model use=":" intent=4 }}{{/ifeq}}{{newLine 2}}{{/if }}
     {{#unless result }}
     //empty result
