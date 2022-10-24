@@ -1,29 +1,15 @@
 import { flags as oclifFlags } from '@oclif/command';
-import type { ProfileDocumentNode } from '@superfaceai/ast';
-import {
-  assertProfileDocumentNode,
-  assertProviderJson,
-  EXTENSIONS,
-  isValidProviderName,
-} from '@superfaceai/ast';
-import {
-  loadSuperJson,
-  META_FILE,
-  NodeFileSystem,
-  normalizeSuperJsonDocument,
-} from '@superfaceai/one-sdk';
-import { parseDocumentId, parseProfile, Source } from '@superfaceai/parser';
-import { dirname, join as joinPath, resolve as resolvePath } from 'path';
-import { inspect } from 'util';
+import { isValidProviderName } from '@superfaceai/ast';
+import { normalizeSuperJsonDocument } from '@superfaceai/one-sdk';
+import { parseDocumentId } from '@superfaceai/parser';
 
+import type { ILogger } from '../../common';
+import { loadSuperJson } from '../../common';
 import type { Flags } from '../../common/command.abstract';
 import { Command } from '../../common/command.abstract';
 import type { UserError } from '../../common/error';
-import { readFile } from '../../common/io';
-import { OutputStream } from '../../common/output-stream';
-import { detectSuperJson } from '../../logic/install';
-import { ProfileASTAdapter } from '../../stolen-from-air/profile-adapter';
-import { serializeMap } from '../../templates/map/prepare-map';
+import { ProfileId } from '../../common/profile';
+import { prepareMap } from '../../logic/prepare/map';
 
 export class Map extends Command {
   public static strict = true;
@@ -55,18 +41,18 @@ export class Map extends Command {
     const { flags } = this.parse(Map);
     await super.initialize(flags);
     await this.execute({
-      // logger: this.logger,
+      logger: this.logger,
       userError: this.userError,
       flags,
     });
   }
 
   public async execute({
-    // logger,
+    logger,
     userError,
     flags,
   }: {
-    // logger: ILogger;
+    logger: ILogger;
     userError: UserError;
     flags: Flags<typeof Map.flags>;
   }): Promise<void> {
@@ -95,19 +81,11 @@ export class Map extends Command {
         1
       );
     }
-    const superPath = await detectSuperJson(process.cwd(), flags.scan);
-    if (superPath === undefined) {
-      throw userError('Unable to lint, super.json not found', 1);
-    }
-    // Load super json
-    const superJsonPath = joinPath(superPath, META_FILE);
-    const loadedResult = await loadSuperJson(superJsonPath, NodeFileSystem);
-    const superJson = loadedResult.match(
-      v => v,
-      err => {
-        throw userError(`Unable to load super.json: ${err.formatShort()}`, 1);
-      }
-    );
+    const { superJson, superJsonPath } = await loadSuperJson({
+      scan: flags.scan,
+      userError,
+    });
+
     const normalized = normalizeSuperJsonDocument(superJson);
 
     // Check super.json
@@ -125,107 +103,26 @@ export class Map extends Command {
       );
     }
 
-    // Load profile
-    let file: string | undefined;
-    const profileSettings = normalized.profiles[flags.profileId];
-
-    if (!('file' in profileSettings)) {
-      throw userError('Profile is not local', 1);
-    }
-    file = resolvePath(dirname(superJsonPath), profileSettings.file);
-
-    const ast = await loadProfileAst(file, { userError });
-
-    // Load provider
-    const providerSettings = normalized.providers[flags.providerName];
-    if (!('file' in providerSettings) || providerSettings.file === undefined) {
-      throw userError('Provider is not local', 1);
-    }
-    file = resolvePath(dirname(superJsonPath), providerSettings.file);
-    const provider = assertProviderJson(
-      JSON.parse(await readFile(file, { encoding: 'utf-8' }))
-    );
-
-    // TODO: move this to logic
-
-    // TODO: Adapter should probably be separate package
-    // Parse profile AST
-    const adapter = new ProfileASTAdapter(ast);
-
-    const useCases = adapter.getUseCaseDetailList();
-
-    // Resolve provider json
-
-    // security
-    let securityIds: string[] | undefined = undefined;
-
-    if (provider.securitySchemes !== undefined) {
-      if (provider.securitySchemes.length === 1) {
-        securityIds = [provider.securitySchemes[0].id];
-      }
-
-      if (provider.securitySchemes.length > 1) {
-        securityIds = provider.securitySchemes.map(s => s.id);
-      }
-    }
-
-    console.log('security', inspect(securityIds, true, 20));
-
-    // parameters
-    let integrationParameters: string[] | undefined = undefined;
-
-    if (provider.parameters !== undefined) {
-      integrationParameters = provider.parameters.map(p => p.name);
-    }
-
-    const prepared = serializeMap({
-      profile: {
-        version: {
-          major: ast.header.version.major,
-          minor: ast.header.version.minor,
+    await prepareMap(
+      {
+        id: {
+          profile: ProfileId.fromId(flags.profileId, { userError }),
+          provider: flags.providerName,
+          // TODO: pass variant
+          variant: undefined,
         },
-        name: flags.profileId,
-        useCases,
+        superJson,
+        superJsonPath,
+        options: {
+          // TODO: use flags
+          force: false,
+          station: false,
+        },
       },
-      provider: {
-        name: provider.name,
-        integrationParameters,
-        securityIds,
-      },
-    });
-
-    console.log('prepared', prepared);
-
-    const crt = await OutputStream.writeIfAbsent(
-      `poc/${flags.profileId}.${flags.providerName}${EXTENSIONS.map.source}`,
-      prepared,
-      { dirs: true }
+      {
+        userError,
+        logger,
+      }
     );
-
-    console.log('crt', crt);
   }
-}
-
-async function loadProfileAst(
-  path: string,
-  {
-    userError,
-  }: {
-    userError: UserError;
-  }
-): Promise<ProfileDocumentNode> {
-  const source = await readFile(path, { encoding: 'utf-8' });
-
-  let ast: ProfileDocumentNode;
-  if (path.endsWith(EXTENSIONS.profile.source)) {
-    ast = parseProfile(new Source(source, path));
-  } else if (path.endsWith(EXTENSIONS.profile.build)) {
-    ast = assertProfileDocumentNode(
-      JSON.parse(await readFile(path, { encoding: 'utf-8' }))
-    );
-  } else {
-    throw userError('Unknown profile file extension', 1);
-  }
-
-  return assertProfileDocumentNode(ast);
 }

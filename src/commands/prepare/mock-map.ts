@@ -1,23 +1,14 @@
 import { flags as oclifFlags } from '@oclif/command';
-import type { ProfileDocumentNode } from '@superfaceai/ast';
-import { assertProfileDocumentNode, EXTENSIONS } from '@superfaceai/ast';
-import {
-  loadSuperJson,
-  META_FILE,
-  NodeFileSystem,
-  normalizeSuperJsonDocument,
-} from '@superfaceai/one-sdk';
-import { parseDocumentId, parseProfile, Source } from '@superfaceai/parser';
-import { dirname, join as joinPath, resolve as resolvePath } from 'path';
+import { normalizeSuperJsonDocument } from '@superfaceai/one-sdk';
+import { parseDocumentId } from '@superfaceai/parser';
 
+import type { ILogger } from '../../common';
+import { loadSuperJson } from '../../common';
 import type { Flags } from '../../common/command.abstract';
 import { Command } from '../../common/command.abstract';
 import type { UserError } from '../../common/error';
-import { readFile } from '../../common/io';
-import { OutputStream } from '../../common/output-stream';
-import { detectSuperJson } from '../../logic/install';
-import { ProfileASTAdapter } from '../../stolen-from-air/profile-adapter';
-import { serializeMockMap } from '../../templates/map/prepare-mock-map';
+import { ProfileId } from '../../common/profile';
+import { prepareMockMap } from '../../logic/prepare/mock-map';
 
 export class MockMap extends Command {
   public static strict = true;
@@ -45,18 +36,18 @@ export class MockMap extends Command {
     const { flags } = this.parse(MockMap);
     await super.initialize(flags);
     await this.execute({
-      // logger: this.logger,
+      logger: this.logger,
       userError: this.userError,
       flags,
     });
   }
 
   public async execute({
-    // logger,
+    logger,
     userError,
     flags,
   }: {
-    // logger: ILogger;
+    logger: ILogger;
     userError: UserError;
     flags: Flags<typeof MockMap.flags>;
   }): Promise<void> {
@@ -75,19 +66,11 @@ export class MockMap extends Command {
         1
       );
     }
-    const superPath = await detectSuperJson(process.cwd(), flags.scan);
-    if (superPath === undefined) {
-      throw userError('Unable to lint, super.json not found', 1);
-    }
-    // Load super json
-    const superJsonPath = joinPath(superPath, META_FILE);
-    const loadedResult = await loadSuperJson(superJsonPath, NodeFileSystem);
-    const superJson = loadedResult.match(
-      v => v,
-      err => {
-        throw userError(`Unable to load super.json: ${err.formatShort()}`, 1);
-      }
-    );
+    const { superJson, superJsonPath } = await loadSuperJson({
+      scan: flags.scan,
+      userError,
+    });
+
     const normalized = normalizeSuperJsonDocument(superJson);
 
     // Check super.json
@@ -98,67 +81,23 @@ export class MockMap extends Command {
       );
     }
 
-    // Load profile
-    let file: string | undefined;
-    const profileSettings = normalized.profiles[flags.profileId];
-
-    if (!('file' in profileSettings)) {
-      throw userError('Profile is not local', 1);
-    }
-    file = resolvePath(dirname(superJsonPath), profileSettings.file);
-
-    const ast = await loadProfileAst(file, { userError });
-
-    // TODO: move this to logic
-
-    // TODO: Adapter should probably be separate package
-    // Parse profile AST
-    const adapter = new ProfileASTAdapter(ast);
-
-    const useCases = adapter.getUseCaseDetailList();
-
-    const mock = serializeMockMap({
-      version: {
-        major: 1,
-        minor: 0,
+    await prepareMockMap(
+      {
+        id: {
+          profile: ProfileId.fromId(flags.profileId, { userError }),
+        },
+        superJson,
+        superJsonPath,
+        options: {
+          // TODO: use flags
+          force: false,
+          station: false,
+        },
       },
-      name: flags.profileId,
-      usecases: useCases.map(d => ({
-        name: d.name,
-        example: d.successExample?.result,
-      })),
-    });
-
-    const crtMock = await OutputStream.writeIfAbsent(
-      `poc/${flags.profileId}.mock${EXTENSIONS.map.source}`,
-      mock,
-      { dirs: true }
+      {
+        userError,
+        logger,
+      }
     );
-
-    console.log('crt', crtMock);
   }
-}
-
-async function loadProfileAst(
-  path: string,
-  {
-    userError,
-  }: {
-    userError: UserError;
-  }
-): Promise<ProfileDocumentNode> {
-  const source = await readFile(path, { encoding: 'utf-8' });
-
-  let ast: ProfileDocumentNode;
-  if (path.endsWith(EXTENSIONS.profile.source)) {
-    ast = parseProfile(new Source(source, path));
-  } else if (path.endsWith(EXTENSIONS.profile.build)) {
-    ast = assertProfileDocumentNode(
-      JSON.parse(await readFile(path, { encoding: 'utf-8' }))
-    );
-  } else {
-    throw userError('Unknown profile file extension', 1);
-  }
-
-  return assertProfileDocumentNode(ast);
 }

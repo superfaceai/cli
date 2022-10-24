@@ -320,56 +320,6 @@ export class ProfileASTAdapter implements Profile {
     };
   }
 
-  // private pluralizeFirstWord(phrase: string): string {
-  //   const [firstWord, ...words] = phrase.split(' ');
-
-  //   return [`${firstWord}s`, ...words].join(' ');
-  // }
-
-  // private getUseCaseSlot(item: Model): UseCaseSlot {
-  //   if (item === null) {
-  //     throw new Error('Item is null');
-  //   }
-  //   switch (item.modelType) {
-  //     case ModelType.OBJECT:
-  //       console.log('fields', item.fields.map(f => f.fieldName).join(', '));
-  //       return {
-  //         title: 'object',
-  //         fields: item.fields.map(field => ({
-  //           fieldName: field.fieldName,
-  //           description: field.description,
-  //           required: field.required ?? false,
-  //           ...(field?.model?.modelType !== undefined
-  //             ? this.getUseCaseSlot(field.model)
-  //             : {}),
-  //         })),
-  //       };
-  //     case ModelType.LIST: {
-  //       const elementSlot = this.getUseCaseSlot(item.elementModel);
-
-  //       return {
-  //         title: `list of ${this.pluralizeFirstWord(elementSlot.title)}`,
-  //         ...(elementSlot.fields ? { fields: elementSlot.fields } : null),
-  //       };
-  //     }
-  //     case ModelType.ENUM:
-  //       return {
-  //         title: 'enum',
-  //         fields: item.enumElemets.map(enumEl => ({
-  //           fieldName: String(enumEl.value),
-  //           description: enumEl.title,
-  //           required: false,
-  //         })),
-  //       };
-  //     case ModelType.SCALAR:
-  //       return {
-  //         title: item.scalarType,
-  //       };
-  //     case ModelType.UNION:
-  //       return this.getUseCaseSlot(item.types[0]);
-  //   }
-  // }
-
   private findUseCaseExample(
     usecase: UseCaseDefinitionNode
   ): {
