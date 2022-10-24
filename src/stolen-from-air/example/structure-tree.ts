@@ -67,8 +67,8 @@ export class ExampleBuilder {
         if (foundNode.type === undefined) {
           throw new Error('Type not found');
         }
-        
-return this.visit(foundNode.type);
+
+        return this.visit(foundNode.type);
       }
       case 'NonNullDefinition':
         return this.visit(node.type);
@@ -89,20 +89,20 @@ return this.visit(foundNode.type);
     if (typeof node.values[0].value === 'boolean') {
       return {
         kind: 'boolean',
-        value: true,
+        value: node.values[0].value,
       };
     }
 
     if (typeof node.values[0].value === 'number') {
       return {
         kind: 'number',
-        value: 0,
+        value: node.values[0].value,
       };
     }
-    
-return {
+
+    return {
       kind: 'string',
-      value: '',
+      value: node.values[0].value,
     };
   }
 
@@ -127,8 +127,8 @@ return {
         value: 0,
       };
     }
-    
-return {
+
+    return {
       kind: 'string',
       value: '',
     };
