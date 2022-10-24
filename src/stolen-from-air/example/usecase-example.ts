@@ -29,7 +29,7 @@ export type ExampleArray = {
   items: (ExampleArray | ExampleObject | ExampleScalar)[];
 };
 
-export type UseCaseSlotExample =
+export type UseCaseExample =
   | ExampleArray
   | ExampleObject
   | ExampleScalar

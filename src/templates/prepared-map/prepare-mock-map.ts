@@ -1,4 +1,5 @@
 import type { ProfileDocumentNode } from '@superfaceai/ast';
+import { inspect } from 'util';
 
 import { ProfileId } from '../../common/profile';
 import { ProfileASTAdapter } from '../../stolen-from-air/profile-adapter';
@@ -17,6 +18,8 @@ export function serializeMockMap(profile: ProfileDocumentNode): string {
       example: d.successExample?.result,
     })),
   };
+
+  console.log('in', inspect(input, true, 20));
 
   const render = makeRenderer(MOCK_MAP_TEMPLATE, 'MockMapDocument');
 

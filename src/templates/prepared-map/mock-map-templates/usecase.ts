@@ -1,3 +1,3 @@
 export default `map {{name}} { 
-  {{>Result example }}
+  {{#if example}}{{>Result example }}{{/if}}
 }`;

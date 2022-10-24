@@ -3,7 +3,7 @@ export * from './header';
 export * from './profile';
 export * from './usecase-base';
 export * from './usecase-detail';
-export * from './usecase-example';
+export * from './example/usecase-example';
 export * from './usecase';
 export * from './models';
 export * from './meta';

@@ -81,5 +81,11 @@ export async function prepareMap(
       },
       NodeFileSystem
     );
+
+    await OutputStream.writeOnce(
+      superJsonPath,
+      JSON.stringify(superJson, undefined, 2)
+    );
+    logger.info('updateSuperJson', superJsonPath);
   }
 }

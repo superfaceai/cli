@@ -1,6 +1,6 @@
+import type { UseCaseExample } from './example/usecase-example';
 import type { Model } from './models';
 import type { UseCaseBase } from './usecase-base';
-import type { UseCaseSlotExample } from './usecase-example';
 
 /** Use case details */
 export interface UseCaseDetail extends UseCaseBase {
@@ -8,11 +8,11 @@ export interface UseCaseDetail extends UseCaseBase {
   result?: Model;
   error?: Model;
   errorExample?: {
-    input?: UseCaseSlotExample;
-    error?: UseCaseSlotExample;
+    input?: UseCaseExample;
+    error?: UseCaseExample;
   };
   successExample?: {
-    input?: UseCaseSlotExample;
-    result?: UseCaseSlotExample;
+    input?: UseCaseExample;
+    result?: UseCaseExample;
   };
 }

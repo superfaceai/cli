@@ -1,8 +1,4 @@
 import type {
-  ComlinkListLiteralNode,
-  ComlinkLiteralNode,
-  ComlinkObjectLiteralNode,
-  ComlinkPrimitiveLiteralNode,
   EnumDefinitionNode,
   ListDefinitionNode,
   ModelTypeNameNode,
@@ -17,6 +13,7 @@ import type {
 } from '@superfaceai/ast';
 import { inspect } from 'util';
 
+import { buildUseCaseExamples } from './example/build';
 import type { ProfileHeader } from './header';
 import type { EnumModel } from './models/enum.model';
 import type { ListModel } from './models/list.model';
@@ -29,12 +26,6 @@ import type { Profile } from './profile';
 import type { UseCase } from './usecase';
 import type { UseCaseBase } from './usecase-base';
 import type { UseCaseDetail } from './usecase-detail';
-import type {
-  ExampleArray,
-  ExampleObject,
-  ExampleScalar,
-  UseCaseSlotExample,
-} from './usecase-example';
 
 export class ProfileASTAdapter implements Profile {
   private options: ProfileDocumentNode;
@@ -320,136 +311,6 @@ export class ProfileASTAdapter implements Profile {
     };
   }
 
-  private findUseCaseExample(
-    usecase: UseCaseDefinitionNode
-  ): {
-    errorExample?: {
-      input?: ComlinkLiteralNode;
-      error?: ComlinkLiteralNode;
-    };
-    successExample?: {
-      input?: ComlinkLiteralNode;
-      result?: ComlinkLiteralNode;
-    };
-  } {
-    let successExample = undefined;
-    let errorExample = undefined;
-
-    if (usecase.examples === undefined || usecase.examples.length === 0)
-      return { successExample: undefined, errorExample: undefined };
-
-    const exampleNodes = usecase.examples.filter(
-      slot =>
-        slot.kind === 'UseCaseSlotDefinition' &&
-        slot.value.kind === 'UseCaseExample'
-    );
-    const successExampleNode = exampleNodes.find(example =>
-      Boolean(example.value?.result)
-    )?.value;
-
-    const errorExampleNode = exampleNodes.find(example =>
-      Boolean(example.value?.error)
-    )?.value;
-
-    if (successExampleNode !== undefined) {
-      successExample = {
-        input: successExampleNode.input?.value,
-        result: successExampleNode.result?.value,
-      };
-    }
-
-    if (errorExampleNode !== undefined) {
-      errorExample = {
-        input: errorExampleNode.input?.value,
-        error: errorExampleNode.error?.value,
-      };
-    }
-
-    return {
-      successExample,
-      errorExample,
-    };
-  }
-
-  private parseObjectLiteral(node: ComlinkObjectLiteralNode): ExampleObject {
-    const properties: ({ name: string } & (
-      | ExampleArray
-      | ExampleScalar
-      | ExampleObject
-    ))[] = [];
-    for (const field of node.fields) {
-      if (field.value.kind === 'ComlinkPrimitiveLiteral') {
-        properties.push({
-          name: field.key.join('.'),
-          ...this.parsePrimitiveLiteral(field.value),
-        });
-      } else if (field.value.kind === 'ComlinkListLiteral') {
-        properties.push({
-          name: field.key.join('.'),
-          ...this.parseListLiteral(field.value),
-        });
-      } else {
-        properties.push({
-          name: field.key.join('.'),
-          ...this.parseObjectLiteral(field.value),
-        });
-      }
-    }
-
-    return {
-      kind: 'object',
-      properties,
-    };
-  }
-
-  private parseListLiteral(node: ComlinkListLiteralNode): ExampleArray {
-    const items: (ExampleArray | ExampleObject | ExampleScalar)[] = [];
-
-    for (const item of node.items) {
-      if (item.kind === 'ComlinkPrimitiveLiteral') {
-        items.push(this.parsePrimitiveLiteral(item));
-      } else if (item.kind === 'ComlinkListLiteral') {
-        items.push(this.parseListLiteral(node));
-      } else {
-        items.push(this.parseObjectLiteral(item));
-      }
-    }
-
-    return {
-      kind: 'array',
-      items,
-    };
-  }
-
-  private parsePrimitiveLiteral(
-    node: ComlinkPrimitiveLiteralNode
-  ): ExampleScalar {
-    if (typeof node.value === 'boolean') {
-      return { kind: 'boolean', value: node.value };
-    } else if (typeof node.value === 'number') {
-      return { kind: 'number', value: node.value };
-    }
-
-    return { kind: 'string', value: node.value };
-  }
-
-  private parseLiteralExample(
-    exampleNode: ComlinkLiteralNode
-  ): UseCaseSlotExample {
-    switch (exampleNode?.kind) {
-      case 'ComlinkObjectLiteral': {
-        return this.parseObjectLiteral(exampleNode);
-      }
-      case 'ComlinkListLiteral': {
-        return this.parseListLiteral(exampleNode);
-      }
-      case 'ComlinkPrimitiveLiteral':
-        return this.parsePrimitiveLiteral(exampleNode);
-      default:
-        throw new Error('unknown type');
-    }
-  }
-
   private mapUseCaseDetail(usecase: UseCaseDefinitionNode): UseCaseDetail {
     const resolvedInputTree = this.getGenericModelDetails(
       usecase?.input?.value
@@ -465,29 +326,12 @@ export class ProfileASTAdapter implements Profile {
       usecase?.error?.value
     );
 
-    const { successExample, errorExample } = this.findUseCaseExample(usecase);
-
     return {
       ...this.mapUseCaseBase(usecase),
       error: resolvedErrorTree,
       input: resolvedInputTree,
       result: resolvedResultTree,
-      successExample: {
-        input: successExample?.input
-          ? this.parseLiteralExample(successExample.input)
-          : undefined,
-        result: successExample?.result
-          ? this.parseLiteralExample(successExample.result)
-          : undefined,
-      },
-      errorExample: {
-        input: errorExample?.input
-          ? this.parseLiteralExample(errorExample.input)
-          : undefined,
-        error: errorExample?.error
-          ? this.parseLiteralExample(errorExample.error)
-          : undefined,
-      },
+      ...buildUseCaseExamples(usecase),
     };
   }
 }
