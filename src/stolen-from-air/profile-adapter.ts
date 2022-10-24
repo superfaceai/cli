@@ -11,7 +11,6 @@ import type {
   UnionDefinitionNode,
   UseCaseDefinitionNode,
 } from '@superfaceai/ast';
-import { inspect } from 'util';
 
 import { buildUseCaseExamples } from './example/build';
 import type { ProfileHeader } from './header';
@@ -245,8 +244,8 @@ export class ProfileASTAdapter implements Profile {
             field?.documentation?.title !== undefined
               ? field?.documentation?.description ?? field?.documentation?.title
               : namedFieldNode !== null
-              ? namedFieldNode.documentation?.description
-              : undefined;
+                ? namedFieldNode.documentation?.description
+                : undefined;
 
           return {
             fieldName: field.fieldName,
@@ -320,8 +319,6 @@ export class ProfileASTAdapter implements Profile {
       usecase?.result?.value
     );
 
-    console.log('res tree', inspect(resolvedResultTree, true, 20));
-
     const resolvedErrorTree = this.getGenericModelDetails(
       usecase?.error?.value
     );
@@ -331,7 +328,7 @@ export class ProfileASTAdapter implements Profile {
       error: resolvedErrorTree,
       input: resolvedInputTree,
       result: resolvedResultTree,
-      ...buildUseCaseExamples(usecase),
+      ...buildUseCaseExamples(this.options, usecase.useCaseName),
     };
   }
 }

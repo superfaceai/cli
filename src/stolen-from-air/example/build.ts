@@ -1,190 +1,69 @@
 import type {
-  ComlinkListLiteralNode,
-  ComlinkLiteralNode,
-  ComlinkObjectLiteralNode,
-  ComlinkPrimitiveLiteralNode,
+  ProfileDocumentNode,
   UseCaseDefinitionNode,
 } from '@superfaceai/ast';
 
-import type {
-  ExampleArray,
-  ExampleObject,
-  ExampleScalar,
-  UseCaseExample,
-} from './usecase-example';
+import { visit } from './example-tree';
+import { ExampleBuilder } from './structure-tree';
+import type { UseCaseExample } from './usecase-example';
 
 export function buildUseCaseExamples(
-  usecase: UseCaseDefinitionNode
+  ast: ProfileDocumentNode,
+  usecaseName: string
 ): {
-  errorExample?: {
+  errorExample: {
     input?: UseCaseExample;
     error?: UseCaseExample;
   };
-  successExample?: {
+  successExample: {
     input?: UseCaseExample;
     result?: UseCaseExample;
   };
 } {
-  const errorExample: {
-    input?: UseCaseExample;
-    error?: UseCaseExample;
-  } = {};
-  const successExample: {
-    input?: UseCaseExample;
-    result?: UseCaseExample;
-  } = {};
+  const u = ast.definitions
+    .filter((d): d is UseCaseDefinitionNode => d.kind === 'UseCaseDefinition')
+    .find(d => d.useCaseName === usecaseName);
 
-  const examples = findUseCaseExample(usecase);
-  const successExampleNode = examples.successExample;
-  const errorExampleNode = examples.errorExample;
-
-  if (successExampleNode?.input !== undefined) {
-    successExample.input = parseLiteralExample(successExampleNode.input);
+  if (u === undefined) {
+    throw new Error(`UseCase with name ${usecaseName} not found`);
   }
 
-  if (successExampleNode?.result !== undefined) {
-    successExample.result = parseLiteralExample(successExampleNode?.result);
+  let errorInput: UseCaseExample;
+  let successInput: UseCaseExample;
+  let error: UseCaseExample;
+  let result: UseCaseExample;
+
+  const exampleTree = visit(u);
+  const builder: ExampleBuilder = new ExampleBuilder(ast);
+
+  if (exampleTree.successExample?.input !== undefined) {
+    successInput = exampleTree.successExample.input;
+  } else {
+    successInput =
+      u.input !== undefined ? builder.visit(u.input.value) : undefined;
   }
 
-  if (errorExampleNode?.input !== undefined) {
-    errorExample.input = parseLiteralExample(errorExampleNode.input);
+  if (exampleTree.successExample?.result !== undefined) {
+    result = exampleTree.successExample.result;
+  } else {
+    result = u.result !== undefined ? builder.visit(u.result.value) : undefined;
   }
 
-  if (errorExampleNode?.error !== undefined) {
-    errorExample.error = parseLiteralExample(errorExampleNode?.error);
-  }
-
-  //TODO: build examples from original structure
-  return { successExample, errorExample };
-}
-
-function parseObjectLiteral(node: ComlinkObjectLiteralNode): ExampleObject {
-  const properties: ({ name: string } & (
-    | ExampleArray
-    | ExampleScalar
-    | ExampleObject
-  ))[] = [];
-  for (const field of node.fields) {
-    if (field.value.kind === 'ComlinkPrimitiveLiteral') {
-      properties.push({
-        name: field.key.join('.'),
-        ...parsePrimitiveLiteral(field.value),
-      });
-    } else if (field.value.kind === 'ComlinkListLiteral') {
-      properties.push({
-        name: field.key.join('.'),
-        ...parseListLiteral(field.value),
-      });
-    } else {
-      properties.push({
-        name: field.key.join('.'),
-        ...parseObjectLiteral(field.value),
-      });
-    }
+  if (exampleTree.errorExample?.input !== undefined) {
+    errorInput =
+      u.input !== undefined ? builder.visit(u.input.value) : undefined;
+  } else {
+    error = u.error !== undefined ? builder.visit(u.error.value) : undefined;
   }
 
   return {
-    kind: 'object',
-    properties,
-  };
-}
-
-function parseListLiteral(node: ComlinkListLiteralNode): ExampleArray {
-  const items: (ExampleArray | ExampleObject | ExampleScalar)[] = [];
-
-  for (const item of node.items) {
-    if (item.kind === 'ComlinkPrimitiveLiteral') {
-      items.push(parsePrimitiveLiteral(item));
-    } else if (item.kind === 'ComlinkListLiteral') {
-      items.push(parseListLiteral(node));
-    } else {
-      items.push(parseObjectLiteral(item));
-    }
-  }
-
-  return {
-    kind: 'array',
-    items,
-  };
-}
-
-function parsePrimitiveLiteral(
-  node: ComlinkPrimitiveLiteralNode
-): ExampleScalar {
-  if (typeof node.value === 'boolean') {
-    return { kind: 'boolean', value: node.value };
-  } else if (typeof node.value === 'number') {
-    return { kind: 'number', value: node.value };
-  }
-
-  return { kind: 'string', value: node.value };
-}
-
-function parseLiteralExample(exampleNode?: ComlinkLiteralNode): UseCaseExample {
-  if (exampleNode === undefined) {
-    return undefined;
-  }
-  switch (exampleNode?.kind) {
-    case 'ComlinkObjectLiteral': {
-      return parseObjectLiteral(exampleNode);
-    }
-    case 'ComlinkListLiteral': {
-      return parseListLiteral(exampleNode);
-    }
-    case 'ComlinkPrimitiveLiteral':
-      return parsePrimitiveLiteral(exampleNode);
-    default:
-      throw new Error('unknown type');
-  }
-}
-
-function findUseCaseExample(
-  usecase: UseCaseDefinitionNode
-): {
-  errorExample?: {
-    input?: ComlinkLiteralNode;
-    error?: ComlinkLiteralNode;
-  };
-  successExample?: {
-    input?: ComlinkLiteralNode;
-    result?: ComlinkLiteralNode;
-  };
-} {
-  let successExample = undefined;
-  let errorExample = undefined;
-
-  if (usecase.examples === undefined || usecase.examples.length === 0)
-    return { successExample: undefined, errorExample: undefined };
-
-  const exampleNodes = usecase.examples.filter(
-    slot =>
-      slot.kind === 'UseCaseSlotDefinition' &&
-      slot.value.kind === 'UseCaseExample'
-  );
-  const successExampleNode = exampleNodes.find(example =>
-    Boolean(example.value?.result)
-  )?.value;
-
-  const errorExampleNode = exampleNodes.find(example =>
-    Boolean(example.value?.error)
-  )?.value;
-
-  if (successExampleNode !== undefined) {
-    successExample = {
-      input: successExampleNode.input?.value,
-      result: successExampleNode.result?.value,
-    };
-  }
-
-  if (errorExampleNode !== undefined) {
-    errorExample = {
-      input: errorExampleNode.input?.value,
-      error: errorExampleNode.error?.value,
-    };
-  }
-
-  return {
-    successExample,
-    errorExample,
+    errorExample: {
+      input: errorInput,
+      error,
+    },
+    successExample: {
+      input: successInput,
+      result,
+    },
   };
 }
