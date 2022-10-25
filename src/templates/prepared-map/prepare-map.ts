@@ -1,7 +1,7 @@
 import type { ProfileDocumentNode, ProviderJson } from '@superfaceai/ast';
 
 import { ProfileId } from '../../common/profile';
-import { ProfileASTAdapter } from '../../stolen-from-air/profile-adapter';
+import { prepareUseCaseDetails } from '../../stolen-from-air';
 import MAP_TEMPLATE from './map-templates';
 import { makeRenderer } from './template-renderer';
 
@@ -36,7 +36,7 @@ export function serializeMap(
       },
       name: ProfileId.fromScopeName(profile.header.scope, profile.header.name)
         .id,
-      useCases: new ProfileASTAdapter(profile).getUseCaseDetailList(),
+      useCases: prepareUseCaseDetails(profile),
     },
     provider: {
       name: provider.name,
