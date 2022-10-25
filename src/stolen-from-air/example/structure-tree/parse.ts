@@ -17,17 +17,14 @@ import type {
   UseCaseExample,
 } from '../usecase-example';
 
-let namedModelDefinitionsCache: {
-  [key: string]: NamedModelDefinitionNode;
-};
-
-let namedFieldDefinitionsCache: {
-  [key: string]: NamedFieldDefinitionNode;
-};
-
 export function parse(ast: ProfileDocumentNode, type: Type): UseCaseExample {
-  namedModelDefinitionsCache = {};
-  namedFieldDefinitionsCache = {};
+  const namedModelDefinitionsCache: {
+    [key: string]: NamedModelDefinitionNode;
+  } = {};
+
+  const namedFieldDefinitionsCache: {
+    [key: string]: NamedFieldDefinitionNode;
+  } = {};
 
   ast.definitions.forEach(definition => {
     if (definition.kind === 'NamedFieldDefinition') {
@@ -37,53 +34,81 @@ export function parse(ast: ProfileDocumentNode, type: Type): UseCaseExample {
     }
   });
 
-  return visit(type);
-}
-
-function findNamedModelDefinition(modelName: string): NamedModelDefinitionNode {
-  return namedModelDefinitionsCache[modelName];
-}
-
-function findNamedFieldDefinition(fieldName: string): NamedFieldDefinitionNode {
-  return namedFieldDefinitionsCache[fieldName];
+  return visit(type, namedModelDefinitionsCache, namedFieldDefinitionsCache);
 }
 
 export function visit(
-  node: Type
+  node: Type,
+  namedModelDefinitionsCache: {
+    [key: string]: NamedModelDefinitionNode;
+  },
+  namedFieldDefinitionsCache: {
+    [key: string]: NamedFieldDefinitionNode;
+  }
 ): ExampleArray | ExampleObject | ExampleScalar {
   switch (node.kind) {
     case 'ObjectDefinition':
-      return visitObjecDefinition(node);
+      return visitObjecDefinition(
+        node,
+        namedModelDefinitionsCache,
+        namedFieldDefinitionsCache
+      );
     case 'PrimitiveTypeName':
       return visitPrimitiveNode(node);
     case 'ListDefinition':
-      return visitListNode(node);
+      return visitListNode(
+        node,
+        namedModelDefinitionsCache,
+        namedFieldDefinitionsCache
+      );
     case 'EnumDefinition':
       return visitEnumNode(node);
     case 'ModelTypeName': {
-      const foundNode = findNamedModelDefinition(node.name);
+      const foundNode = namedModelDefinitionsCache[node.name];
       if (foundNode.type === undefined) {
         throw new Error('Type not found');
       }
 
-      return visit(foundNode.type);
+      return visit(
+        foundNode.type,
+        namedModelDefinitionsCache,
+        namedFieldDefinitionsCache
+      );
     }
     case 'NonNullDefinition':
-      return visit(node.type);
+      return visit(
+        node.type,
+        namedModelDefinitionsCache,
+        namedFieldDefinitionsCache
+      );
     case 'UnionDefinition':
-      return visitUnionNode(node);
+      return visitUnionNode(
+        node,
+        namedModelDefinitionsCache,
+        namedFieldDefinitionsCache
+      );
     default:
       throw new Error(`Invalid kind: ${node?.kind ?? 'undefined'}`);
   }
 }
 
 function visitUnionNode(
-  node: UnionDefinitionNode
+  node: UnionDefinitionNode,
+  namedModelDefinitionsCache: {
+    [key: string]: NamedModelDefinitionNode;
+  },
+  namedFieldDefinitionsCache: {
+    [key: string]: NamedFieldDefinitionNode;
+  }
 ): ExampleArray | ExampleObject | ExampleScalar {
-  return visit(node.types[0]);
+  return visit(
+    node.types[0],
+    namedModelDefinitionsCache,
+    namedFieldDefinitionsCache
+  );
 }
 
-function visitEnumNode(node: EnumDefinitionNode): ExampleScalar {
+export function visitEnumNode(node: EnumDefinitionNode): ExampleScalar {
   if (typeof node.values[0].value === 'boolean') {
     return {
       kind: 'boolean',
@@ -104,14 +129,30 @@ function visitEnumNode(node: EnumDefinitionNode): ExampleScalar {
   };
 }
 
-function visitListNode(list: ListDefinitionNode): ExampleArray {
+export function visitListNode(
+  list: ListDefinitionNode,
+  namedModelDefinitionsCache: {
+    [key: string]: NamedModelDefinitionNode;
+  },
+  namedFieldDefinitionsCache: {
+    [key: string]: NamedFieldDefinitionNode;
+  }
+): ExampleArray {
   return {
     kind: 'array',
-    items: [visit(list.elementType)],
+    items: [
+      visit(
+        list.elementType,
+        namedModelDefinitionsCache,
+        namedFieldDefinitionsCache
+      ),
+    ],
   };
 }
 
-function visitPrimitiveNode(primitive: PrimitiveTypeNameNode): ExampleScalar {
+export function visitPrimitiveNode(
+  primitive: PrimitiveTypeNameNode
+): ExampleScalar {
   if (primitive.name === 'boolean') {
     return {
       kind: 'boolean',
@@ -132,16 +173,28 @@ function visitPrimitiveNode(primitive: PrimitiveTypeNameNode): ExampleScalar {
   };
 }
 
-function visitObjecDefinition(object: ObjectDefinitionNode): ExampleObject {
+export function visitObjecDefinition(
+  object: ObjectDefinitionNode,
+  namedModelDefinitionsCache: {
+    [key: string]: NamedModelDefinitionNode;
+  },
+  namedFieldDefinitionsCache: {
+    [key: string]: NamedFieldDefinitionNode;
+  }
+): ExampleObject {
   return {
     kind: 'object',
     properties: object.fields.map(field => {
-      const namedFieldNode = findNamedFieldDefinition(field.fieldName);
+      const namedFieldNode = namedFieldDefinitionsCache[field.fieldName];
       const type = field.type ?? namedFieldNode?.type;
       if (type === undefined) {
         throw new Error('Type is undefined');
       }
-      const model = visit(type);
+      const model = visit(
+        type,
+        namedModelDefinitionsCache,
+        namedFieldDefinitionsCache
+      );
 
       return {
         name: field.fieldName,
