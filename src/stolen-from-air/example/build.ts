@@ -5,7 +5,7 @@ import type {
 } from '@superfaceai/ast';
 
 import { parseLiteralExample } from './example-tree';
-import { ExampleBuilder } from './structure-tree';
+import { parse as parseType } from './structure-tree';
 import type { UseCaseExample } from './usecase-example';
 
 export function buildUseCaseExamples(
@@ -38,14 +38,12 @@ export function buildUseCaseExamples(
 
   const examples = findUseCaseExample(useCase);
 
-  const builder: ExampleBuilder = new ExampleBuilder(ast);
-
   if (examples.successExample?.input !== undefined) {
     successInput = parseLiteralExample(examples.successExample.input);
   } else {
     successInput =
       useCase.input !== undefined
-        ? builder.visit(useCase.input.value)
+        ? parseType(ast, useCase.input.value)
         : undefined;
   }
 
@@ -54,7 +52,7 @@ export function buildUseCaseExamples(
   } else {
     result =
       useCase.result !== undefined
-        ? builder.visit(useCase.result.value)
+        ? parseType(ast, useCase.result.value)
         : undefined;
   }
 
@@ -63,7 +61,7 @@ export function buildUseCaseExamples(
   } else {
     errorInput =
       useCase.input !== undefined
-        ? builder.visit(useCase.input.value)
+        ? parseType(ast, useCase.input.value)
         : undefined;
   }
 
@@ -72,7 +70,7 @@ export function buildUseCaseExamples(
   } else {
     error =
       useCase.error !== undefined
-        ? builder.visit(useCase.error.value)
+        ? parseType(ast, useCase.error.value)
         : undefined;
   }
 

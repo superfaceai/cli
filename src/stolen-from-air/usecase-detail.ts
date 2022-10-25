@@ -1,9 +1,11 @@
 import type { UseCaseExample } from './example/usecase-example';
 import type { Model } from './models';
-import type { UseCaseBase } from './usecase-base';
 
 /** Use case details */
-export interface UseCaseDetail extends UseCaseBase {
+export interface UseCaseDetail {
+  name: string;
+  title?: string;
+  description?: string;
   input?: Model;
   result?: Model;
   error?: Model;

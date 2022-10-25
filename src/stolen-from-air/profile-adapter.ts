@@ -1,7 +1,6 @@
 import type {
   EnumDefinitionNode,
   ListDefinitionNode,
-  ModelTypeNameNode,
   NamedFieldDefinitionNode,
   NamedModelDefinitionNode,
   ObjectDefinitionNode,
@@ -13,7 +12,6 @@ import type {
 } from '@superfaceai/ast';
 
 import { buildUseCaseExamples } from './example/build';
-import type { ProfileHeader } from './header';
 import type { EnumModel } from './models/enum.model';
 import type { ListModel } from './models/list.model';
 import type { Model } from './models/model-base';
@@ -21,12 +19,9 @@ import { ModelType } from './models/model-base';
 import type { ObjectModel } from './models/object.model';
 import type { ScalarModel, ScalarType } from './models/scalar.model';
 import type { UnionModel } from './models/union.model';
-import type { Profile } from './profile';
-import type { UseCase } from './usecase';
-import type { UseCaseBase } from './usecase-base';
 import type { UseCaseDetail } from './usecase-detail';
 
-export class ProfileASTAdapter implements Profile {
+export class ProfileASTAdapter {
   private options: ProfileDocumentNode;
   private namedModelDefinitionsCache: {
     [key: string]: NamedModelDefinitionNode;
@@ -42,60 +37,12 @@ export class ProfileASTAdapter implements Profile {
     this.namedModelDefinitionsCache = {};
   }
 
-  public getProfileHeader(): ProfileHeader {
-    const ast = this.options;
-    const header = {
-      name: this.getProfileName(ast),
-      scope: this.getProfileScope(ast),
-      title: this.getProfileTitle(ast),
-      version: this.getProfileVersion(ast),
-      description: this.getProfileDescription(ast),
-    };
-
-    return {
-      profileId: header.scope ? `${header.scope}/${header.name}` : header.name,
-      ...header,
-    };
-  }
-
-  public getUseCaseList(): UseCase[] {
-    const ast = this.options;
-
-    return ast.definitions
-      .filter(definition => {
-        return definition.kind === 'UseCaseDefinition';
-      })
-      .map(usecase => this.getUseCase(usecase as UseCaseDefinitionNode));
-  }
-
   public getUseCaseDetailList(): UseCaseDetail[] {
-    const ast = this.options;
-
-    return ast.definitions
+    return this.options.definitions
       .filter(definition => {
         return definition.kind === 'UseCaseDefinition';
       })
       .map(usecase => this.mapUseCaseDetail(usecase as UseCaseDefinitionNode));
-  }
-
-  private getProfileName(ast: ProfileDocumentNode): string {
-    return ast.header.name;
-  }
-
-  private getProfileScope(ast: ProfileDocumentNode): string {
-    return ast.header.scope ?? '';
-  }
-
-  private getProfileTitle(ast: ProfileDocumentNode): string {
-    return ast.header?.documentation?.title ?? '';
-  }
-
-  private getProfileVersion(ast: ProfileDocumentNode): string {
-    return `${ast.header.version.major}.${ast.header.version.minor}.${ast.header.version.patch}`;
-  }
-
-  private getProfileDescription(ast: ProfileDocumentNode): string {
-    return ast.header?.documentation?.description ?? '';
   }
 
   private populateCache(): void {
@@ -127,52 +74,6 @@ export class ProfileASTAdapter implements Profile {
       this.populateCache();
 
     return this.namedFieldDefinitionsCache[fieldName] ?? null;
-  }
-
-  private getFieldsOverview(item?: Type): string[] {
-    if (item === undefined) return [];
-
-    switch (item.kind) {
-      case 'ObjectDefinition':
-        return item.fields.map(field => {
-          const namedFieldNode = this.findNamedFieldDefinition(field.fieldName);
-
-          // always prefer inlined metadata over named field definition
-          return (
-            field?.documentation?.title ??
-            namedFieldNode?.documentation?.title ??
-            field.fieldName
-          );
-        });
-      case 'ListDefinition':
-        return this.getFieldsOverview(item.elementType);
-      case 'ModelTypeName': {
-        const node = this.findNamedModelDefinition(item.name);
-
-        return this.getFieldsOverview(node.type);
-      }
-      case 'NonNullDefinition':
-        return this.getFieldsOverview(item.type);
-      case 'PrimitiveTypeName':
-        return [item.name];
-      case 'EnumDefinition':
-        return [
-          item.values.map(enumValue => String(enumValue.value)).join(', '),
-        ];
-      case 'UnionDefinition':
-        // TODO: Solve union type rendering: https://github.com/superfaceai/air/issues/123
-        if (item.types.every(type => type.kind === 'ModelTypeName')) {
-          return [
-            (item.types as ModelTypeNameNode[])
-              .map(type => type.name)
-              .join(' or '),
-          ];
-        } else {
-          return ['more result variants'];
-        }
-      default:
-        return [];
-    }
   }
 
   private getGenericModelDetails(astType?: Type, nonNull?: boolean): Model {
@@ -291,25 +192,6 @@ export class ProfileASTAdapter implements Profile {
     };
   }
 
-  private mapUseCaseBase(usecase: UseCaseDefinitionNode): UseCaseBase {
-    return {
-      name: usecase.useCaseName,
-      title: usecase?.documentation?.title,
-      description: usecase?.documentation?.description,
-    };
-  }
-
-  private getUseCase(usecase: UseCaseDefinitionNode): UseCase {
-    const inputs = this.getFieldsOverview(usecase?.input?.value);
-    const outputs = this.getFieldsOverview(usecase?.result?.value);
-
-    return {
-      ...this.mapUseCaseBase(usecase),
-      ...inputs,
-      ...outputs,
-    };
-  }
-
   private mapUseCaseDetail(usecase: UseCaseDefinitionNode): UseCaseDetail {
     const resolvedInputTree = this.getGenericModelDetails(
       usecase?.input?.value
@@ -324,7 +206,9 @@ export class ProfileASTAdapter implements Profile {
     );
 
     return {
-      ...this.mapUseCaseBase(usecase),
+      name: usecase.useCaseName,
+      title: usecase?.documentation?.title,
+      description: usecase?.documentation?.description,
       error: resolvedErrorTree,
       input: resolvedInputTree,
       result: resolvedResultTree,
