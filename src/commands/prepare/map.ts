@@ -35,6 +35,17 @@ export class Map extends Command {
         'When number provided, scan for super.json outside cwd within range represented by this number.',
       required: false,
     }),
+    force: oclifFlags.boolean({
+      char: 'f',
+      description:
+        'When set to true and when profile exists in local filesystem, overwrites them.',
+      default: false,
+    }),
+    station: oclifFlags.boolean({
+      default: false,
+      description:
+        'When set to true, command will create map in folder structure of Superface station',
+    }),
   };
 
   public async run(): Promise<void> {
@@ -114,9 +125,8 @@ export class Map extends Command {
         superJson,
         superJsonPath,
         options: {
-          // TODO: use flags
-          force: false,
-          station: false,
+          force: flags.force,
+          station: flags.station,
         },
       },
       {

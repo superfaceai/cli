@@ -4,7 +4,7 @@ import type {
   NamedModelDefinitionNode,
 } from '@superfaceai/ast';
 
-import type { ListModel} from './models';
+import type { ListModel } from './models';
 import { ModelType } from './models';
 import { getTypeDetails } from './prepare-usecase-detail';
 
