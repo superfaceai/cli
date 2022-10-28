@@ -1,33 +1,14 @@
 import type { ProfileDocumentNode, ProviderJson } from '@superfaceai/ast';
 
 import { ProfileId } from '../../common/profile';
-import { prepareUseCaseDetails } from '../../stolen-from-air';
 import MAP_TEMPLATE from './map-templates';
 import { makeRenderer } from './template-renderer';
+import { prepareUseCaseDetails } from './usecase-detail';
 
 export function serializeMap(
   profile: ProfileDocumentNode,
   provider: ProviderJson
 ): string {
-  // security
-  let securityIds: string[] | undefined = undefined;
-
-  if (provider.securitySchemes !== undefined) {
-    if (provider.securitySchemes.length === 1) {
-      securityIds = [provider.securitySchemes[0].id];
-    }
-
-    if (provider.securitySchemes.length > 1) {
-      securityIds = provider.securitySchemes.map(s => s.id);
-    }
-  }
-  // parameters
-  let integrationParameters: string[] | undefined = undefined;
-
-  if (provider.parameters !== undefined) {
-    integrationParameters = provider.parameters.map(p => p.name);
-  }
-
   const input = {
     profile: {
       version: {
@@ -40,8 +21,14 @@ export function serializeMap(
     },
     provider: {
       name: provider.name,
-      securityIds,
-      integrationParameters,
+      securityIds:
+        provider.securitySchemes !== undefined
+          ? provider.securitySchemes.map(s => s.id)
+          : undefined,
+      integrationParameters:
+        provider.parameters !== undefined
+          ? provider.parameters.map(p => p.name)
+          : undefined,
     },
   };
 
