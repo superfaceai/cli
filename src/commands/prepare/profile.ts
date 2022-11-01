@@ -118,7 +118,7 @@ export class Profile extends Command {
       flags.scan
     );
     if (superPath === undefined) {
-      throw userError('Unable to compile, super.json not found', 1);
+      throw userError('Unable to prepare profile, super.json not found', 1);
     }
     // Load super json
     const superJsonPath = joinPath(superPath, META_FILE);
