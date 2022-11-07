@@ -1,71 +1,95 @@
-import { Parser } from '@superfaceai/one-sdk';
+import type { MapDocumentNode, ProfileDocumentNode } from '@superfaceai/ast';
+import { EXTENSIONS } from '@superfaceai/ast';
+import { parseMap, parseProfile, Source } from '@superfaceai/parser';
 
-import { UserError } from '../common/error';
+import type { UserError } from '../common/error';
 import { exists, readFile } from '../common/io';
-import { ILogger } from '../common/log';
-import { ProfileId } from '../common/profile';
+import type { ILogger } from '../common/log';
+import { OutputStream } from '../common/output-stream';
+import type { ProfileId } from '../common/profile';
 
-export type MapToCompile = { provider: string; path: string };
-export type ProfileToCompile = {
-  id: ProfileId;
-  maps: MapToCompile[];
-  path: string;
-};
+export type FileToCompile =
+  | { kind: 'map'; profileId: ProfileId; provider: string; path: string }
+  | { kind: 'profile'; profileId: ProfileId; path: string };
 
 export async function compile(
-  {
-    profiles,
-    options,
-  }: {
-    profiles: ProfileToCompile[];
-    options?: {
-      onlyMap?: boolean;
-      onlyProfile?: boolean;
-    };
-  },
+  files: FileToCompile[],
   { logger, userError }: { logger: ILogger; userError: UserError }
 ): Promise<void> {
-  //Clear cache
-  await Parser.clearCache();
-  for (const profile of profiles) {
-    //Compile profile
-    if (!options?.onlyMap) {
-      logger.info('compileProfile', profile.id.toString());
-      if (!(await exists(profile.path))) {
+  for (const file of files) {
+    let sourcePath: string, astPath: string;
+    // We assume source and build files living next to each other
+    if (file.path.endsWith(EXTENSIONS[file.kind].source)) {
+      sourcePath = file.path;
+      astPath = file.path.replace(
+        EXTENSIONS[file.kind].source,
+        EXTENSIONS[file.kind].build
+      );
+    } else if (file.path.endsWith(EXTENSIONS[file.kind].build)) {
+      astPath = file.path;
+      sourcePath = file.path.replace(
+        EXTENSIONS[file.kind].build,
+        EXTENSIONS[file.kind].source
+      );
+    } else {
+      throw userError(
+        `Path: "${
+          file.path
+        }" uses unsupported extension. Please use file with "${
+          EXTENSIONS[file.kind].source
+        }" extension.`,
+        1
+      );
+    }
+
+    if (file.kind === 'profile') {
+      logger.info('compileProfile', file.profileId.id.toString());
+    } else {
+      logger.info('compileMap', file.profileId.id.toString(), file.provider);
+    }
+    if (!(await exists(sourcePath))) {
+      if (file.kind === 'profile') {
         throw userError(
-          `Path: "${
-            profile.path
-          }" for profile ${profile.id.toString()} does not exist`,
+          `Path: "${sourcePath}" for profile ${file.profileId.id.toString()} does not exist`,
+          1
+        );
+      } else {
+        throw userError(
+          `Path: "${sourcePath}" for map ${file.profileId.id.toString()}.${
+            file.provider
+          } does not exist`,
           1
         );
       }
-      const source = await readFile(profile.path, { encoding: 'utf-8' });
-      //TODO: force? log AST/Parser version?
-      await Parser.parseProfile(source, profile.path, {
-        profileName: profile.id.name,
-        scope: profile.id.scope,
-      });
     }
-    //Compile maps
-    if (!options?.onlyProfile) {
-      for (const map of profile.maps) {
-        logger.info('compileMap', profile.id.toString(), map.provider);
-        if (!(await exists(map.path))) {
-          throw userError(
-            `Path: "${map.path}" for map ${profile.id.toString()}.${
-              map.provider
-            } does not exist`,
-            1
-          );
-        }
-        const source = await readFile(map.path, { encoding: 'utf-8' });
-        //TODO: force? log AST/Parser version?
-        await Parser.parseMap(source, map.path, {
-          profileName: profile.id.name,
-          providerName: map.provider,
-          scope: profile.id.scope,
-        });
+    const source = await readFile(sourcePath, { encoding: 'utf-8' });
+    let ast: ProfileDocumentNode | MapDocumentNode | undefined;
+    try {
+      ast =
+        file.kind === 'map'
+          ? parseMap(new Source(source, sourcePath))
+          : parseProfile(new Source(source, sourcePath));
+    } catch (error) {
+      if (file.kind === 'profile') {
+        logger.error(
+          'profileCompilationFailed',
+          file.profileId.id.toString(),
+          sourcePath,
+          error
+        );
+      } else {
+        logger.error(
+          'mapCompilationFailed',
+          file.profileId.id.toString(),
+          file.provider,
+          sourcePath,
+          error
+        );
       }
+    }
+
+    if (ast !== undefined) {
+      await OutputStream.writeOnce(astPath, JSON.stringify(ast, undefined, 2));
     }
   }
 }

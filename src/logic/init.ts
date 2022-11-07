@@ -1,18 +1,16 @@
-import { SuperJsonDocument } from '@superfaceai/ast';
-import { SuperJson } from '@superfaceai/one-sdk';
+import type { SuperJsonDocument } from '@superfaceai/ast';
+import { loadSuperJson, NodeFileSystem } from '@superfaceai/one-sdk';
 import { parseProfileId } from '@superfaceai/parser';
 import { join as joinPath } from 'path';
 
 import {
   composeUsecaseName,
-  GRID_DIR,
   META_FILE,
   SUPERFACE_DIR,
-  TYPES_DIR,
 } from '../common/document';
-import { UserError } from '../common/error';
+import type { UserError } from '../common/error';
 import { mkdir, mkdirQuiet } from '../common/io';
-import { ILogger } from '../common/log';
+import type { ILogger } from '../common/log';
 import { OutputStream } from '../common/output-stream';
 import { ProfileId } from '../common/profile';
 import { createProfile } from './create';
@@ -26,9 +24,6 @@ import { createProfile } from './create';
  * appPath/
  *   superface/
  *     super.json
- *     grid/
- *     build/
- *     types/
  * ```
  *
  * For convenience, returns SuperJson instance read from the super.json path.
@@ -46,11 +41,11 @@ export async function initSuperface(
     };
   },
   { logger }: { logger: ILogger }
-): Promise<SuperJson> {
+): Promise<{ superJson: SuperJsonDocument; superJsonPath: string }> {
   // create the base path
   {
     const created = await mkdir(appPath, { recursive: true });
-    if (created) {
+    if (created !== undefined) {
       logger.info('mkdir', appPath);
     }
   }
@@ -68,7 +63,7 @@ export async function initSuperface(
   {
     const created = await OutputStream.writeIfAbsent(
       superJsonPath,
-      () => new SuperJson(initialDocument ?? {}).stringified,
+      () => JSON.stringify(initialDocument ?? {}, undefined, 2),
       { force: options?.force }
     );
 
@@ -77,23 +72,11 @@ export async function initSuperface(
     }
   }
 
-  // create subdirs
-  {
-    const gridPath = joinPath(appPath, GRID_DIR);
-    const created = await mkdirQuiet(gridPath);
-    if (created) {
-      logger.info('mkdir', gridPath);
-    }
-  }
-  {
-    const typesPath = joinPath(appPath, TYPES_DIR);
-    const created = await mkdirQuiet(typesPath);
-    if (created) {
-      logger.info('mkdir', typesPath);
-    }
-  }
+  const result = await loadSuperJson(superJsonPath, NodeFileSystem).then(v =>
+    v.unwrap()
+  );
 
-  return SuperJson.load(superJsonPath).then(v => v.unwrap());
+  return { superJson: result, superJsonPath };
 }
 
 /**
@@ -107,10 +90,12 @@ export async function generateSpecifiedProfiles(
   {
     path,
     superJson,
+    superJsonPath,
     profileIds,
   }: {
     path: string;
-    superJson: SuperJson;
+    superJson: SuperJsonDocument;
+    superJsonPath: string;
     profileIds: string[];
   },
   { logger, userError }: { logger: ILogger; userError: UserError }
@@ -126,11 +111,12 @@ export async function generateSpecifiedProfiles(
 
     await createProfile(
       {
-        basePath: joinPath(path, GRID_DIR),
+        basePath: path,
         profile: ProfileId.fromScopeName(scope, name),
         version,
         usecaseNames: [composeUsecaseName(name)],
         superJson,
+        superJsonPath,
       },
       { logger }
     );

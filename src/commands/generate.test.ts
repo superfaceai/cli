@@ -1,5 +1,5 @@
-import { err, ok, SuperJson } from '@superfaceai/one-sdk';
-import { SDKExecutionError } from '@superfaceai/one-sdk/dist/internal/errors';
+import { err, ok, SDKExecutionError } from '@superfaceai/one-sdk';
+import * as SuperJson from '@superfaceai/one-sdk/dist/schema-tools/superjson/utils';
 import { mocked } from 'ts-jest/utils';
 
 import { MockLogger } from '..';
@@ -50,7 +50,7 @@ describe('Generate CLI command', () => {
     it('throws when super.json not loaded correctly', async () => {
       mocked(detectSuperJson).mockResolvedValue('.');
       jest
-        .spyOn(SuperJson, 'load')
+        .spyOn(SuperJson, 'loadSuperJson')
         .mockResolvedValue(err(new SDKExecutionError('test error', [], [])));
       await expect(
         instance.execute({
@@ -84,8 +84,8 @@ describe('Generate CLI command', () => {
     it('throws error on invalid profile id', async () => {
       mocked(detectSuperJson).mockResolvedValue('.');
       const loadSpy = jest
-        .spyOn(SuperJson, 'load')
-        .mockResolvedValue(ok(new SuperJson()));
+        .spyOn(SuperJson, 'loadSuperJson')
+        .mockResolvedValue(ok({}));
 
       await expect(
         instance.execute({
@@ -106,8 +106,8 @@ describe('Generate CLI command', () => {
     it('throws error when profile Id not found in super.json', async () => {
       mocked(detectSuperJson).mockResolvedValue('.');
       const loadSpy = jest
-        .spyOn(SuperJson, 'load')
-        .mockResolvedValue(ok(new SuperJson()));
+        .spyOn(SuperJson, 'loadSuperJson')
+        .mockResolvedValue(ok({}));
 
       await expect(
         instance.execute({
@@ -126,16 +126,16 @@ describe('Generate CLI command', () => {
     it('generates types for specified local profile', async () => {
       mocked(detectSuperJson).mockResolvedValue('.');
       const mockPath = 'path/to/profile.supr';
-      const mockSuperJson = new SuperJson({
+      const mockSuperJson = {
         profiles: {
           [profileId]: {
             file: mockPath,
           },
         },
         providers: {},
-      });
+      };
       const loadSpy = jest
-        .spyOn(SuperJson, 'load')
+        .spyOn(SuperJson, 'loadSuperJson')
         .mockResolvedValue(ok(mockSuperJson));
 
       await expect(
@@ -159,6 +159,7 @@ describe('Generate CLI command', () => {
             },
           ],
           superJson: mockSuperJson,
+          superJsonPath: 'super.json',
         },
         expect.anything()
       );
@@ -168,16 +169,16 @@ describe('Generate CLI command', () => {
     it('generates types for specified remote profile', async () => {
       mocked(detectSuperJson).mockResolvedValue('.');
       const version = '1.0.8';
-      const mockSuperJson = new SuperJson({
+      const mockSuperJson = {
         profiles: {
           [profileId]: {
             version,
           },
         },
         providers: {},
-      });
+      };
       const loadSpy = jest
-        .spyOn(SuperJson, 'load')
+        .spyOn(SuperJson, 'loadSuperJson')
         .mockResolvedValue(ok(mockSuperJson));
 
       await expect(
@@ -198,6 +199,7 @@ describe('Generate CLI command', () => {
             { id: ProfileId.fromId(profileId, { userError }), version },
           ],
           superJson: mockSuperJson,
+          superJsonPath: 'super.json',
         },
         expect.anything()
       );
@@ -208,7 +210,7 @@ describe('Generate CLI command', () => {
       mocked(detectSuperJson).mockResolvedValue('.');
       const version = '1.0.8';
       const mockPath = 'path/to/profile.supr';
-      const mockSuperJson = new SuperJson({
+      const mockSuperJson = {
         profiles: {
           [profileId]: {
             version,
@@ -218,9 +220,9 @@ describe('Generate CLI command', () => {
           },
         },
         providers: {},
-      });
+      };
       const loadSpy = jest
-        .spyOn(SuperJson, 'load')
+        .spyOn(SuperJson, 'loadSuperJson')
         .mockResolvedValue(ok(mockSuperJson));
 
       await expect(
@@ -241,6 +243,7 @@ describe('Generate CLI command', () => {
             { id: ProfileId.fromId('other', { userError }) },
           ],
           superJson: mockSuperJson,
+          superJsonPath: 'super.json',
         },
         expect.anything()
       );
@@ -251,7 +254,7 @@ describe('Generate CLI command', () => {
       mocked(detectSuperJson).mockResolvedValue('.');
       const version = '1.0.8';
       const mockPath = 'path/to/profile.supr';
-      const mockSuperJson = new SuperJson({
+      const mockSuperJson = {
         profiles: {
           [profileId]: {
             version,
@@ -261,9 +264,9 @@ describe('Generate CLI command', () => {
           },
         },
         providers: {},
-      });
+      };
       const loadSpy = jest
-        .spyOn(SuperJson, 'load')
+        .spyOn(SuperJson, 'loadSuperJson')
         .mockResolvedValue(ok(mockSuperJson));
 
       await expect(
@@ -288,6 +291,7 @@ describe('Generate CLI command', () => {
             },
           ],
           superJson: mockSuperJson,
+          superJsonPath: 'super.json',
         },
         expect.anything()
       );

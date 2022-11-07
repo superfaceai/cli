@@ -1,10 +1,9 @@
-import {
+import type {
   CLILoginResponse,
-  ServiceClient,
-  VerificationStatus,
   VerifyResponse,
 } from '@superfaceai/service-client';
-import { ChildProcess } from 'child_process';
+import { ServiceClient, VerificationStatus } from '@superfaceai/service-client';
+import type { ChildProcess } from 'child_process';
 import { EventEmitter } from 'events';
 import inquirer from 'inquirer';
 import * as open from 'open';
@@ -103,7 +102,7 @@ describe('Login logic', () => {
 
         await expect(login({}, { logger, userError })).resolves.toBeUndefined();
 
-        //Browser emits error
+        // Browser emits error
         childProcess.emit('error', { message: mockErrorMessage });
 
         expect(initSpy).toHaveBeenCalledTimes(1);
@@ -131,7 +130,7 @@ describe('Login logic', () => {
 
         await expect(login({}, { logger, userError })).resolves.toBeUndefined();
 
-        //Browser emits error
+        // Browser emits error
         childProcess.emit('close');
 
         expect(initSpy).toHaveBeenCalledTimes(1);
@@ -301,7 +300,7 @@ describe('Login logic', () => {
 
       await expect(login({}, { logger, userError })).rejects.toThrow(
         `Attempt to login ended with: ${mockInitResponse.title}: ${
-          mockInitResponse.detail || ''
+          mockInitResponse.detail ?? ''
         }`
       );
 

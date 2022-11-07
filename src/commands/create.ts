@@ -4,10 +4,12 @@ import {
   isValidIdentifier,
   isValidProviderName,
 } from '@superfaceai/ast';
-import { parseProfileId, VersionRange } from '@superfaceai/parser';
+import type { VersionRange } from '@superfaceai/parser';
+import { parseProfileId } from '@superfaceai/parser';
 import inquirer from 'inquirer';
 
-import { Command, Flags } from '../common/command.abstract';
+import type { Flags } from '../common/command.abstract';
+import { Command } from '../common/command.abstract';
 import {
   composeUsecaseName,
   DEFAULT_PROFILE_VERSION,
@@ -15,23 +17,24 @@ import {
   SUPERFACE_DIR,
   UNVERIFIED_PROVIDER_PREFIX,
 } from '../common/document';
-import { developerError, UserError } from '../common/error';
+import type { UserError } from '../common/error';
+import { developerError } from '../common/error';
 import { exists, mkdirQuiet } from '../common/io';
-import { ILogger } from '../common/log';
+import type { ILogger } from '../common/log';
 import { NORMALIZED_CWD_PATH } from '../common/path';
 import { create } from '../logic/create';
 import { initSuperface } from '../logic/init';
 import { detectSuperJson } from '../logic/install';
 
 export default class Create extends Command {
-  static strict = true;
+  public static strict = true;
 
-  static description =
+  public static description =
     'Creates empty map, profile or/and provider on a local filesystem.';
 
-  static flags = {
+  public static flags = {
     ...Command.flags,
-    //Inputs
+    // Inputs
     profileId: oclifFlags.string({
       description: 'Profile Id in format [scope](optional)/[name]',
     }),
@@ -40,7 +43,7 @@ export default class Create extends Command {
       description:
         'Names of providers. This argument is used to create maps and/or providers',
     }),
-    //What do we create
+    // What do we create
     profile: oclifFlags.boolean({
       description: 'Create a profile',
     }),
@@ -64,7 +67,7 @@ export default class Create extends Command {
       default: DEFAULT_PROFILE_VERSION_STR,
       description: 'Version of a profile',
     }),
-    //Command modifiers
+    // Command modifiers
     init: oclifFlags.boolean({
       default: false,
       description: 'When set to true, command will initialize Superface',
@@ -110,7 +113,7 @@ export default class Create extends Command {
     }),
   };
 
-  static examples = [
+  public static examples = [
     '$ superface create --profileId sms/service --profile',
     '$ superface create --profileId sms/service --profile -v 1.1-rev133 -u SendSMS ReceiveSMS',
     '$ superface create --profileId sms/service --providerName twilio --map',
@@ -121,7 +124,7 @@ export default class Create extends Command {
     '$ superface create -i',
   ];
 
-  async run(): Promise<void> {
+  public async run(): Promise<void> {
     const { flags } = this.parse(Create);
     await super.initialize(flags);
     await this.execute({
@@ -131,7 +134,7 @@ export default class Create extends Command {
     });
   }
 
-  async execute({
+  public async execute({
     logger,
     userError,
     flags,
@@ -141,21 +144,26 @@ export default class Create extends Command {
     flags: Flags<typeof Create.flags>;
   }): Promise<void> {
     if (
-      !flags.profileId &&
-      (!flags.providerName || flags.providerName.length === 0) &&
-      !flags.interactive
+      flags.profileId === undefined &&
+      (flags.providerName === undefined || flags.providerName.length === 0) &&
+      flags.interactive !== true
     ) {
       throw userError('Invalid command! Specify profileId or providerName', 1);
     }
-    if (flags.path && !(await exists(flags.path))) {
+    if (flags.path !== undefined && !(await exists(flags.path))) {
       throw userError(
         `Invalid command! Path "${flags.path}" does not exist`,
         1
       );
     }
 
-    //Not creating anything
-    if (!flags.provider && !flags.profile && !flags.map && !flags.interactive) {
+    // Not creating anything
+    if (
+      flags.provider !== true &&
+      flags.profile !== true &&
+      flags.map !== true &&
+      flags.interactive !== true
+    ) {
       this.warn(
         'Create command without flag --profile or --provider or --map or --interactive does not do anything'
       );
@@ -163,8 +171,8 @@ export default class Create extends Command {
       return;
     }
 
-    //Interactive
-    if (flags.interactive) {
+    // Interactive
+    if (flags.interactive === true) {
       flags.profile = await this.confirmPrompt(
         'Do you want to create a profile?'
       );
@@ -172,19 +180,19 @@ export default class Create extends Command {
       flags.provider = await this.confirmPrompt(
         'Do you want to create a provider?'
       );
-      //We need profile Id
-      if (!flags.profileId && (flags.profile || flags.map)) {
+      // We need profile Id
+      if (flags.profileId === undefined && (flags.profile || flags.map)) {
         const profileInput = await this.inputPrompt(
           'Enter profile Id in format [scope](optional)/[name]'
         );
-        if (!profileInput) {
+        if (profileInput === undefined) {
           throw userError('Invalid command! Profile Id must be defined', 1);
         }
         flags.profileId = profileInput;
       }
-      //We need provider name
+      // We need provider name
       if (
-        (!flags.providerName || flags.providerName.length === 0) &&
+        (flags.providerName === undefined || flags.providerName.length === 0) &&
         (flags.provider || flags.map)
       ) {
         flags.providerName = [];
@@ -200,11 +208,11 @@ export default class Create extends Command {
         while (!exit) {
           const providerInput = await this.inputPrompt(
             `Enter provider name of ${
-              priorityToString.get(priority) || priority
+              priorityToString.get(priority) ?? priority
             } provider.\nExit loop by pressing enter without any input.`
           );
-          if (!providerInput) {
-            //We don't have any name
+          if (providerInput === undefined || providerInput === '') {
+            // We don't have any name
             if (priority === 1) {
               throw userError(
                 'Invalid command! At least one provider must be defined',
@@ -222,26 +230,26 @@ export default class Create extends Command {
     let profileId: string | undefined = undefined;
     let providerNames: string[] = [];
 
-    //Check inputs
-    if (flags.map && !flags.profileId) {
+    // Check inputs
+    if (flags.map === true && flags.profileId === undefined) {
       throw userError('--profileId= must be provided when creating map', 1);
     }
-    if (flags.map && !flags.providerName) {
+    if (flags.map === true && flags.providerName === undefined) {
       throw userError('--providerName= must be provided when creating map', 1);
     }
-    if (flags.provider && !flags.providerName) {
+    if (flags.provider === true && flags.providerName === undefined) {
       throw userError(
         '--providerName= must be provided when creating provider',
         1
       );
     }
-    if (flags.profileId) {
+    if (flags.profileId !== undefined) {
       if (flags.profileId === 'profile' || flags.profileId === 'map') {
         throw userError('ProfileId is reserved!', 1);
       }
       profileId = flags.profileId;
     }
-    if (flags.providerName) {
+    if (flags.providerName !== undefined) {
       for (const provider of flags.providerName) {
         if (provider === 'profile' || provider === 'map') {
           throw userError(`ProviderName "${provider}" is reserved!`, 1);
@@ -251,7 +259,7 @@ export default class Create extends Command {
         }
         if (
           !provider.startsWith(UNVERIFIED_PROVIDER_PREFIX) &&
-          (flags.map || flags.provider)
+          (flags.map === true || flags.provider === true)
         ) {
           logger.warn('unverifiedPrefix', provider, UNVERIFIED_PROVIDER_PREFIX);
         }
@@ -259,14 +267,14 @@ export default class Create extends Command {
     }
     providerNames = flags.providerName !== undefined ? flags.providerName : [];
 
-    if (flags.providerFileName && providerNames.length > 1) {
+    if (flags.providerFileName !== undefined && providerNames.length > 1) {
       throw userError(
         `Unable to create mutiple providers with same file name: "${flags.providerFileName}"`,
         1
       );
     }
 
-    if (flags.mapFileName && providerNames.length > 1) {
+    if (flags.mapFileName !== undefined && providerNames.length > 1) {
       throw userError(
         `Unable to create mutiple maps with same file name: "${flags.mapFileName}"`,
         1
@@ -274,10 +282,10 @@ export default class Create extends Command {
     }
     // output a warning when generating profile only and provider is specified
     if (
-      flags.profile &&
-      !flags.map &&
-      !flags.provider &&
-      flags.providerName &&
+      flags.profile === true &&
+      flags.map !== true &&
+      flags.provider !== true &&
+      flags.providerName !== undefined &&
       flags.providerName.length > 0
     ) {
       this.warn(
@@ -286,7 +294,7 @@ export default class Create extends Command {
       providerNames = [];
 
       // output a warning when variant is specified as well
-      if (flags.variant) {
+      if (flags.variant !== undefined) {
         this.warn(
           'Variant should not be specified when generating profile only'
         );
@@ -296,9 +304,9 @@ export default class Create extends Command {
 
     // output a warning when generating map only and version is not in default format
     if (
-      !flags.profile &&
-      flags.map &&
-      !flags.provider &&
+      flags.profile !== true &&
+      flags.map === true &&
+      flags.provider !== true &&
       flags.version !== DEFAULT_PROFILE_VERSION_STR
     ) {
       this.warn(
@@ -311,7 +319,7 @@ export default class Create extends Command {
       name: string | undefined = undefined;
     let version: VersionRange | undefined = DEFAULT_PROFILE_VERSION;
     let usecases: string[] = [];
-    if (profileId) {
+    if (profileId !== undefined) {
       // parse profile Id
       const parsedProfileId = parseProfileId(`${profileId}@${flags.version}`);
       if (parsedProfileId.kind === 'error') {
@@ -324,11 +332,11 @@ export default class Create extends Command {
       name = parsedProfileId.value.name;
 
       // parse variant
-      if (flags.variant && !isValidDocumentName(flags.variant)) {
+      if (flags.variant !== undefined && !isValidDocumentName(flags.variant)) {
         throw userError(`Invalid map variant: ${flags.variant}`, 1);
       }
 
-      //just a sane check
+      // just a sane check
       if (version === undefined) {
         throw developerError('Version must be present', 1);
       }
@@ -346,7 +354,7 @@ export default class Create extends Command {
     }
 
     // create scope directory if it already doesn't exist and we don't have specific path
-    if (scope && !flags.path) {
+    if (scope !== undefined && flags.path === undefined) {
       await mkdirQuiet(scope);
     }
 
@@ -355,16 +363,20 @@ export default class Create extends Command {
       process.cwd(),
       flags.scan
     );
-    //We do want to init
-    if (flags.init) {
-      if (superPath) {
+    // We do want to init
+    if (flags.init === true) {
+      if (superPath !== undefined) {
         logger.warn('superfaceAlreadyInitialized');
       } else {
         initSf = true;
       }
     }
-    //We prompt user
-    if (!flags['no-init'] && !flags.init && !superPath) {
+    // We prompt user
+    if (
+      flags['no-init'] !== true &&
+      flags.init !== true &&
+      superPath === undefined
+    ) {
       logger.warn('superJsonNotFound');
 
       const response: { init: boolean } = await inquirer.prompt({
@@ -376,7 +388,7 @@ export default class Create extends Command {
       initSf = response.init;
     }
 
-    //Init SF
+    // Init SF
     if (initSf) {
       logger.info('initSuperface');
       await initSuperface(
@@ -389,16 +401,16 @@ export default class Create extends Command {
       superPath = SUPERFACE_DIR;
     }
 
-    //Do not change superJson
-    if (flags['no-super-json']) {
+    // Do not change superJson
+    if (flags['no-super-json'] === true) {
       superPath = undefined;
     }
 
     await create(
       {
-        provider: !!flags.provider,
-        map: !!flags.map,
-        profile: !!flags.profile,
+        provider: flags.provider === true,
+        map: flags.map === true,
+        profile: flags.profile === true,
         fileNames: {
           map: flags.mapFileName,
           profile: flags.profileFileName,
@@ -421,7 +433,7 @@ export default class Create extends Command {
     );
   }
 
-  async inputPrompt(message: string): Promise<string | undefined> {
+  public async inputPrompt(message: string): Promise<string | undefined> {
     const prompt: { input: string | undefined } = await inquirer.prompt({
       name: 'input',
       message,
@@ -432,7 +444,7 @@ export default class Create extends Command {
     return prompt.input;
   }
 
-  async confirmPrompt(message: string): Promise<boolean> {
+  public async confirmPrompt(message: string): Promise<boolean> {
     const prompt: { create: boolean } = await inquirer.prompt({
       name: 'create',
       message,

@@ -1,4 +1,3 @@
-import { SuperJson } from '@superfaceai/one-sdk';
 import { getLocal } from 'mockttp';
 import { join as joinPath } from 'path';
 
@@ -18,7 +17,7 @@ import {
 const mockServer = getLocal();
 
 describe('Check CLI command', () => {
-  //File specific path
+  // File specific path
   const TEMP_PATH = joinPath('test', 'tmp');
   let tempDir: string;
   const provider = `${UNVERIFIED_PROVIDER_PREFIX}swapi`;
@@ -74,6 +73,7 @@ describe('Check CLI command', () => {
       provider
     );
   });
+
   beforeEach(async () => {
     tempDir = await setUpTempDir(TEMP_PATH);
   });
@@ -85,9 +85,10 @@ describe('Check CLI command', () => {
   afterAll(async () => {
     await mockServer.stop();
   });
+
   describe('when checking capability', () => {
     it('checks capability with local map, profile and provider', async () => {
-      const mockSuperJson = new SuperJson({
+      const mockSuperJson = {
         profiles: {
           [profileId]: {
             file: `../../../../${sourceFixture.profile}`,
@@ -103,12 +104,12 @@ describe('Check CLI command', () => {
             file: `../../../../${sourceFixture.provider}`,
           },
         },
-      });
+      };
 
       await mkdir(joinPath(tempDir, 'superface'));
       await OutputStream.writeOnce(
         joinPath(tempDir, 'superface', 'super.json'),
-        mockSuperJson.stringified
+        JSON.stringify(mockSuperJson, undefined, 2)
       );
 
       const result = await execCLI(
@@ -158,7 +159,7 @@ describe('Check CLI command', () => {
     });
 
     it('checks capability with local map', async () => {
-      const mockSuperJson = new SuperJson({
+      const mockSuperJson = {
         profiles: {
           [profileId]: {
             version: profileVersion,
@@ -172,12 +173,12 @@ describe('Check CLI command', () => {
         providers: {
           [provider]: {},
         },
-      });
+      };
 
       await mkdir(joinPath(tempDir, 'superface'));
       await OutputStream.writeOnce(
         joinPath(tempDir, 'superface', 'super.json'),
-        mockSuperJson.stringified
+        JSON.stringify(mockSuperJson, undefined, 2)
       );
 
       const result = await execCLI(
@@ -210,7 +211,7 @@ describe('Check CLI command', () => {
     });
 
     it('checks capability with local profile', async () => {
-      const mockSuperJson = new SuperJson({
+      const mockSuperJson = {
         profiles: {
           [profileId]: {
             file: `../../../../${sourceFixture.profile}`,
@@ -222,12 +223,12 @@ describe('Check CLI command', () => {
         providers: {
           [provider]: {},
         },
-      });
+      };
 
       await mkdir(joinPath(tempDir, 'superface'));
       await OutputStream.writeOnce(
         joinPath(tempDir, 'superface', 'super.json'),
-        mockSuperJson.stringified
+        JSON.stringify(mockSuperJson, undefined, 2)
       );
 
       const result = await execCLI(
@@ -245,7 +246,7 @@ describe('Check CLI command', () => {
         messages.fetchMap(profileId, provider, '1.0.0')
       );
       expect(result.stdout).toContain(messages.fetchProvider(provider));
-      //Map and profile
+      // Map and profile
       expect(result.stdout).toMatch(
         `🆗 Checking local profile "${profileId}@1.0.1" at path`
       );
@@ -256,14 +257,14 @@ describe('Check CLI command', () => {
         `and remote map with version "1.0.0" for provider "${provider}"`
       );
 
-      //Map and provider
+      // Map and provider
       expect(result.stdout).toMatch(
         `🆗 Checking remote map with version "1.0.0" for profile "${profileId}" and remote provider "${provider}"`
       );
     });
 
     it('checks capability with local provider', async () => {
-      const mockSuperJson = new SuperJson({
+      const mockSuperJson = {
         profiles: {
           [profileId]: {
             version: profileVersion,
@@ -277,12 +278,12 @@ describe('Check CLI command', () => {
             file: `../../../../${sourceFixture.provider}`,
           },
         },
-      });
+      };
 
       await mkdir(joinPath(tempDir, 'superface'));
       await OutputStream.writeOnce(
         joinPath(tempDir, 'superface', 'super.json'),
-        mockSuperJson.stringified
+        JSON.stringify(mockSuperJson, undefined, 2)
       );
 
       const result = await execCLI(
@@ -314,7 +315,7 @@ describe('Check CLI command', () => {
     });
 
     it('checks capability with local map, profile and provider and --json flag', async () => {
-      const mockSuperJson = new SuperJson({
+      const mockSuperJson = {
         profiles: {
           [profileId]: {
             file: `../../../../${sourceFixture.profile}`,
@@ -330,12 +331,12 @@ describe('Check CLI command', () => {
             file: `../../../../${sourceFixture.provider}`,
           },
         },
-      });
+      };
 
       await mkdir(joinPath(tempDir, 'superface'));
       await OutputStream.writeOnce(
         joinPath(tempDir, 'superface', 'super.json'),
-        mockSuperJson.stringified
+        JSON.stringify(mockSuperJson, undefined, 2)
       );
 
       const result = await execCLI(

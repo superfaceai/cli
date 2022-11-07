@@ -1,6 +1,6 @@
 import { EXTENSIONS } from '@superfaceai/ast';
-import { err, ok, SuperJson } from '@superfaceai/one-sdk';
-import { SDKExecutionError } from '@superfaceai/one-sdk/dist/internal/errors';
+import { err, ok, SDKExecutionError } from '@superfaceai/one-sdk';
+import * as SuperJson from '@superfaceai/one-sdk/dist/schema-tools/superjson/utils';
 import inquirer from 'inquirer';
 import { mocked } from 'ts-jest/utils';
 
@@ -22,18 +22,18 @@ import { CommandInstance } from '../test/utils';
 import Install from './install';
 import Publish from './publish';
 
-//Mock configure logic
+// Mock configure logic
 jest.mock('../logic/configure', () => ({
   reconfigureProvider: jest.fn(),
   reconfigureProfileProvider: jest.fn(),
 }));
 
-//Mock publish logic
+// Mock publish logic
 jest.mock('../logic/publish', () => ({
   publish: jest.fn(),
 }));
 
-//Mock install logic
+// Mock install logic
 jest.mock('../logic/install', () => ({
   detectSuperJson: jest.fn(),
 }));
@@ -66,7 +66,7 @@ describe('Publish CLI command', () => {
         .spyOn(inquirer, 'prompt')
         .mockResolvedValueOnce({ upload: false });
       mocked(detectSuperJson).mockResolvedValue('.');
-      const mockSuperJson = new SuperJson({
+      const mockSuperJson = {
         profiles: {
           [profileId]: {
             file: mockProfilePath,
@@ -80,9 +80,9 @@ describe('Publish CLI command', () => {
         providers: {
           [providerName]: {},
         },
-      });
+      };
       const loadSpy = jest
-        .spyOn(SuperJson, 'load')
+        .spyOn(SuperJson, 'loadSuperJson')
         .mockResolvedValue(ok(mockSuperJson));
 
       await expect(
@@ -108,8 +108,8 @@ describe('Publish CLI command', () => {
         .mockResolvedValueOnce({ upload: true });
       mocked(detectSuperJson).mockResolvedValue('.');
       const loadSpy = jest
-        .spyOn(SuperJson, 'load')
-        .mockResolvedValue(ok(new SuperJson()));
+        .spyOn(SuperJson, 'loadSuperJson')
+        .mockResolvedValue(ok({}));
 
       await expect(
         instance.execute({
@@ -136,8 +136,8 @@ describe('Publish CLI command', () => {
         .mockResolvedValueOnce({ upload: true });
       mocked(detectSuperJson).mockResolvedValue('.');
       const loadSpy = jest
-        .spyOn(SuperJson, 'load')
-        .mockResolvedValue(ok(new SuperJson()));
+        .spyOn(SuperJson, 'loadSuperJson')
+        .mockResolvedValue(ok({}));
 
       await expect(
         instance.execute({
@@ -181,7 +181,7 @@ describe('Publish CLI command', () => {
         .mockResolvedValueOnce({ upload: true });
       mocked(detectSuperJson).mockResolvedValue('.');
       jest
-        .spyOn(SuperJson, 'load')
+        .spyOn(SuperJson, 'loadSuperJson')
         .mockResolvedValue(err(new SDKExecutionError('test', [], [])));
       await expect(
         instance.execute({
@@ -227,8 +227,8 @@ describe('Publish CLI command', () => {
         .mockResolvedValueOnce({ upload: true });
       mocked(detectSuperJson).mockResolvedValue('.');
       const loadSpy = jest
-        .spyOn(SuperJson, 'load')
-        .mockResolvedValue(ok(new SuperJson()));
+        .spyOn(SuperJson, 'loadSuperJson')
+        .mockResolvedValue(ok({}));
 
       await expect(
         instance.execute({
@@ -255,7 +255,7 @@ describe('Publish CLI command', () => {
         .spyOn(inquirer, 'prompt')
         .mockResolvedValueOnce({ upload: true });
       mocked(detectSuperJson).mockResolvedValue('.');
-      const mockSuperJson = new SuperJson({
+      const mockSuperJson = {
         profiles: {
           [profileId]: {
             file: mockPath,
@@ -267,9 +267,9 @@ describe('Publish CLI command', () => {
         providers: {
           [providerName]: {},
         },
-      });
+      };
       const loadSpy = jest
-        .spyOn(SuperJson, 'load')
+        .spyOn(SuperJson, 'loadSuperJson')
         .mockResolvedValue(ok(mockSuperJson));
 
       await expect(
@@ -295,15 +295,15 @@ describe('Publish CLI command', () => {
         .spyOn(inquirer, 'prompt')
         .mockResolvedValueOnce({ upload: true });
       mocked(detectSuperJson).mockResolvedValue('.');
-      const mockSuperJson = new SuperJson({
+      const mockSuperJson = {
         profiles: {
           [profileId]: {
             file: '',
           },
         },
-      });
+      };
       const loadSpy = jest
-        .spyOn(SuperJson, 'load')
+        .spyOn(SuperJson, 'loadSuperJson')
         .mockResolvedValue(ok(mockSuperJson));
 
       await expect(
@@ -331,7 +331,7 @@ describe('Publish CLI command', () => {
         .spyOn(inquirer, 'prompt')
         .mockResolvedValueOnce({ upload: true });
       mocked(detectSuperJson).mockResolvedValue('.');
-      const mockSuperJson = new SuperJson({
+      const mockSuperJson = {
         profiles: {
           [profileId]: {
             version: DEFAULT_PROFILE_VERSION_STR,
@@ -345,9 +345,9 @@ describe('Publish CLI command', () => {
         providers: {
           [providerName]: {},
         },
-      });
+      };
       const loadSpy = jest
-        .spyOn(SuperJson, 'load')
+        .spyOn(SuperJson, 'loadSuperJson')
         .mockResolvedValue(ok(mockSuperJson));
 
       await expect(
@@ -374,7 +374,7 @@ describe('Publish CLI command', () => {
         .spyOn(inquirer, 'prompt')
         .mockResolvedValueOnce({ upload: true });
       mocked(detectSuperJson).mockResolvedValue('.');
-      const mockSuperJson = new SuperJson({
+      const mockSuperJson = {
         profiles: {
           [profileId]: {
             file: '',
@@ -383,9 +383,9 @@ describe('Publish CLI command', () => {
             },
           },
         },
-      });
+      };
       const loadSpy = jest
-        .spyOn(SuperJson, 'load')
+        .spyOn(SuperJson, 'loadSuperJson')
         .mockResolvedValue(ok(mockSuperJson));
 
       await expect(
@@ -414,7 +414,7 @@ describe('Publish CLI command', () => {
         .spyOn(inquirer, 'prompt')
         .mockResolvedValueOnce({ upload: true });
       mocked(detectSuperJson).mockResolvedValue('.');
-      const mockSuperJson = new SuperJson({
+      const mockSuperJson = {
         profiles: {
           [profileId]: {
             version: DEFAULT_PROFILE_VERSION_STR,
@@ -428,9 +428,9 @@ describe('Publish CLI command', () => {
             file: mockPath,
           },
         },
-      });
+      };
       const loadSpy = jest
-        .spyOn(SuperJson, 'load')
+        .spyOn(SuperJson, 'loadSuperJson')
         .mockResolvedValue(ok(mockSuperJson));
 
       await expect(
@@ -457,7 +457,7 @@ describe('Publish CLI command', () => {
         .spyOn(inquirer, 'prompt')
         .mockResolvedValueOnce({ upload: true });
       mocked(detectSuperJson).mockResolvedValue('.');
-      const mockSuperJson = new SuperJson({
+      const mockSuperJson = {
         profiles: {
           [profileId]: {
             version: DEFAULT_PROFILE_VERSION_STR,
@@ -469,9 +469,9 @@ describe('Publish CLI command', () => {
         providers: {
           [providerName]: {},
         },
-      });
+      };
       const loadSpy = jest
-        .spyOn(SuperJson, 'load')
+        .spyOn(SuperJson, 'loadSuperJson')
         .mockResolvedValue(ok(mockSuperJson));
 
       await expect(
@@ -498,7 +498,7 @@ describe('Publish CLI command', () => {
         .spyOn(inquirer, 'prompt')
         .mockResolvedValueOnce({ upload: true });
       mocked(detectSuperJson).mockResolvedValue('.');
-      const mockSuperJson = new SuperJson({
+      const mockSuperJson = {
         profiles: {
           [profileId]: {
             version: DEFAULT_PROFILE_VERSION_STR,
@@ -510,9 +510,9 @@ describe('Publish CLI command', () => {
         providers: {
           [providerName]: {},
         },
-      });
+      };
       const loadSpy = jest
-        .spyOn(SuperJson, 'load')
+        .spyOn(SuperJson, 'loadSuperJson')
         .mockResolvedValue(ok(mockSuperJson));
 
       await expect(
@@ -539,7 +539,7 @@ describe('Publish CLI command', () => {
         .spyOn(inquirer, 'prompt')
         .mockResolvedValueOnce({ upload: true });
       mocked(detectSuperJson).mockResolvedValue('.');
-      const mockSuperJson = new SuperJson({
+      const mockSuperJson = {
         profiles: {
           [profileId]: {
             version: DEFAULT_PROFILE_VERSION_STR,
@@ -553,9 +553,9 @@ describe('Publish CLI command', () => {
             file: 'path/to/provider.json',
           },
         },
-      });
+      };
       const loadSpy = jest
-        .spyOn(SuperJson, 'load')
+        .spyOn(SuperJson, 'loadSuperJson')
         .mockResolvedValue(ok(mockSuperJson));
 
       await expect(
@@ -582,7 +582,7 @@ describe('Publish CLI command', () => {
         .spyOn(inquirer, 'prompt')
         .mockResolvedValueOnce({ upload: true });
       mocked(detectSuperJson).mockResolvedValue('.');
-      const mockSuperJson = new SuperJson({
+      const mockSuperJson = {
         profiles: {
           [profileId]: {
             version: DEFAULT_PROFILE_VERSION_STR,
@@ -594,9 +594,9 @@ describe('Publish CLI command', () => {
         providers: {
           [providerName]: {},
         },
-      });
+      };
       const loadSpy = jest
-        .spyOn(SuperJson, 'load')
+        .spyOn(SuperJson, 'loadSuperJson')
         .mockResolvedValue(ok(mockSuperJson));
 
       await expect(
@@ -627,7 +627,7 @@ describe('Publish CLI command', () => {
         .mockResolvedValueOnce({ upload: true })
         .mockResolvedValue({ continue: true });
       mocked(detectSuperJson).mockResolvedValue('.');
-      const mockSuperJson = new SuperJson({
+      const mockSuperJson = {
         profiles: {
           [profileId]: {
             file: mockProfilePath,
@@ -639,9 +639,9 @@ describe('Publish CLI command', () => {
         providers: {
           [providerName]: {},
         },
-      });
+      };
       const loadSpy = jest
-        .spyOn(SuperJson, 'load')
+        .spyOn(SuperJson, 'loadSuperJson')
         .mockResolvedValue(ok(mockSuperJson));
       mocked(publish).mockResolvedValue(undefined);
       const writeOnceSpy = jest
@@ -669,6 +669,7 @@ describe('Publish CLI command', () => {
         {
           publishing: 'profile',
           superJson: mockSuperJson,
+          superJsonPath: 'super.json',
           profile: ProfileId.fromId(profileId, { userError }),
           provider: providerName,
           map: {
@@ -696,7 +697,7 @@ describe('Publish CLI command', () => {
         .mockResolvedValue({ continue: true });
 
       mocked(detectSuperJson).mockResolvedValue('.');
-      const mockSuperJson = new SuperJson({
+      const mockSuperJson = {
         profiles: {
           [profileId]: {
             version: DEFAULT_PROFILE_VERSION_STR,
@@ -710,9 +711,9 @@ describe('Publish CLI command', () => {
         providers: {
           [providerName]: {},
         },
-      });
+      };
       const loadSpy = jest
-        .spyOn(SuperJson, 'load')
+        .spyOn(SuperJson, 'loadSuperJson')
         .mockResolvedValue(ok(mockSuperJson));
       mocked(publish).mockResolvedValue(undefined);
       const writeOnceSpy = jest
@@ -739,6 +740,7 @@ describe('Publish CLI command', () => {
       expect(publish).toHaveBeenCalledWith(
         {
           publishing: 'map',
+          superJsonPath: 'super.json',
           superJson: mockSuperJson,
           profile: ProfileId.fromId(profileId, { userError }),
           provider: providerName,
@@ -762,7 +764,7 @@ describe('Publish CLI command', () => {
         { kind: 'remote' }
       );
       expect(writeOnceSpy).toHaveBeenCalledWith(
-        mockSuperJson.path,
+        'super.json',
         expect.any(String),
         { force: undefined }
       );
@@ -776,7 +778,7 @@ describe('Publish CLI command', () => {
         .mockResolvedValue({ continue: true });
 
       mocked(detectSuperJson).mockResolvedValue('.');
-      const mockSuperJson = new SuperJson({
+      const mockSuperJson = {
         profiles: {
           [profileId]: {
             version: DEFAULT_PROFILE_VERSION_STR,
@@ -790,9 +792,9 @@ describe('Publish CLI command', () => {
             file: mockProviderPath,
           },
         },
-      });
+      };
       const loadSpy = jest
-        .spyOn(SuperJson, 'load')
+        .spyOn(SuperJson, 'loadSuperJson')
         .mockResolvedValue(ok(mockSuperJson));
       mocked(publish).mockResolvedValue(undefined);
       const writeOnceSpy = jest
@@ -818,6 +820,7 @@ describe('Publish CLI command', () => {
         {
           publishing: 'provider',
           superJson: mockSuperJson,
+          superJsonPath: 'super.json',
           profile: ProfileId.fromId(profileId, { userError }),
           provider: providerName,
           map: {
@@ -840,7 +843,7 @@ describe('Publish CLI command', () => {
         { kind: 'remote' }
       );
       expect(writeOnceSpy).toHaveBeenCalledWith(
-        mockSuperJson.path,
+        'super.json',
         expect.any(String),
         { force: undefined }
       );
@@ -849,7 +852,7 @@ describe('Publish CLI command', () => {
     it('calls publish correctly when publishing map with force flag', async () => {
       const promptSpy = jest.spyOn(inquirer, 'prompt');
       mocked(detectSuperJson).mockResolvedValue('.');
-      const mockSuperJson = new SuperJson({
+      const mockSuperJson = {
         profiles: {
           [profileId]: {
             version: DEFAULT_PROFILE_VERSION_STR,
@@ -863,9 +866,9 @@ describe('Publish CLI command', () => {
         providers: {
           [providerName]: {},
         },
-      });
+      };
       const loadSpy = jest
-        .spyOn(SuperJson, 'load')
+        .spyOn(SuperJson, 'loadSuperJson')
         .mockResolvedValue(ok(mockSuperJson));
       mocked(publish).mockResolvedValue(undefined);
       const writeOnceSpy = jest
@@ -891,6 +894,7 @@ describe('Publish CLI command', () => {
         {
           publishing: 'map',
           superJson: mockSuperJson,
+          superJsonPath: 'super.json',
           profile: ProfileId.fromId(profileId, { userError }),
           provider: providerName,
           map: { variant: undefined },
@@ -905,7 +909,7 @@ describe('Publish CLI command', () => {
         expect.anything()
       );
       expect(writeOnceSpy).toHaveBeenCalledWith(
-        mockSuperJson.path,
+        'super.json',
         expect.any(String),
         { force: true }
       );
@@ -919,7 +923,7 @@ describe('Publish CLI command', () => {
         .mockResolvedValueOnce({ continue: true });
       const mockPath = '../path/to/provider';
       mocked(detectSuperJson).mockResolvedValue('.');
-      const mockSuperJson = new SuperJson({
+      const mockSuperJson = {
         profiles: {
           [profileId]: {
             version: DEFAULT_PROFILE_VERSION_STR,
@@ -935,9 +939,9 @@ describe('Publish CLI command', () => {
             file: mockPath,
           },
         },
-      });
+      };
       const loadSpy = jest
-        .spyOn(SuperJson, 'load')
+        .spyOn(SuperJson, 'loadSuperJson')
         .mockResolvedValue(ok(mockSuperJson));
       mocked(publish).mockResolvedValue(undefined);
       const writeOnceSpy = jest
@@ -962,6 +966,7 @@ describe('Publish CLI command', () => {
         {
           publishing: 'map',
           superJson: mockSuperJson,
+          superJsonPath: 'super.json',
           profile: ProfileId.fromId(profileId, { userError }),
           provider: providerName,
           map: { variant: undefined },
@@ -982,7 +987,7 @@ describe('Publish CLI command', () => {
         { kind: 'remote' }
       );
       expect(writeOnceSpy).toHaveBeenCalledWith(
-        mockSuperJson.path,
+        'super.json',
         expect.any(String),
         { force: undefined }
       );
@@ -995,7 +1000,7 @@ describe('Publish CLI command', () => {
         .mockResolvedValueOnce({ upload: true })
         .mockResolvedValueOnce({ continue: true });
       mocked(detectSuperJson).mockResolvedValue('.');
-      const mockSuperJson = new SuperJson({
+      const mockSuperJson = {
         profiles: {
           [profileId]: {
             version: DEFAULT_PROFILE_VERSION_STR,
@@ -1009,9 +1014,9 @@ describe('Publish CLI command', () => {
             file: mockProviderPath,
           },
         },
-      });
+      };
       const loadSpy = jest
-        .spyOn(SuperJson, 'load')
+        .spyOn(SuperJson, 'loadSuperJson')
         .mockResolvedValue(ok(mockSuperJson));
       mocked(publish).mockResolvedValue(undefined);
       const writeOnceSpy = jest
@@ -1038,6 +1043,7 @@ describe('Publish CLI command', () => {
         {
           publishing: 'provider',
           superJson: mockSuperJson,
+          superJsonPath: 'super.json',
           profile: ProfileId.fromId(profileId, { userError }),
           provider: providerName,
           map: {
@@ -1060,7 +1066,7 @@ describe('Publish CLI command', () => {
         { kind: 'remote' }
       );
       expect(writeOnceSpy).toHaveBeenCalledWith(
-        mockSuperJson.path,
+        'super.json',
         expect.any(String),
         { force: undefined }
       );
@@ -1074,7 +1080,7 @@ describe('Publish CLI command', () => {
         .mockResolvedValueOnce({ upload: true })
         .mockResolvedValueOnce({ continue: true });
       mocked(detectSuperJson).mockResolvedValue('.');
-      const mockSuperJson = new SuperJson({
+      const mockSuperJson = {
         profiles: {
           [profileId]: {
             version: DEFAULT_PROFILE_VERSION_STR,
@@ -1090,9 +1096,9 @@ describe('Publish CLI command', () => {
             file: mockProviderPath,
           },
         },
-      });
+      };
       const loadSpy = jest
-        .spyOn(SuperJson, 'load')
+        .spyOn(SuperJson, 'loadSuperJson')
         .mockResolvedValue(ok(mockSuperJson));
       mocked(publish).mockResolvedValue(undefined);
       const writeOnceSpy = jest
@@ -1118,6 +1124,7 @@ describe('Publish CLI command', () => {
         {
           publishing: 'provider',
           superJson: mockSuperJson,
+          superJsonPath: 'super.json',
           profile: ProfileId.fromId(profileId, { userError }),
           provider: providerName,
           map: {
@@ -1140,7 +1147,7 @@ describe('Publish CLI command', () => {
         { kind: 'remote' }
       );
       expect(writeOnceSpy).toHaveBeenCalledWith(
-        mockSuperJson.path,
+        'super.json',
         expect.any(String),
         { force: undefined }
       );
@@ -1157,7 +1164,7 @@ describe('Publish CLI command', () => {
         .mockResolvedValueOnce({ continue: true });
 
       mocked(detectSuperJson).mockResolvedValue('.');
-      const mockSuperJson = new SuperJson({
+      const mockSuperJson = {
         profiles: {
           [profileId]: {
             file: mockProfilePath,
@@ -1169,9 +1176,9 @@ describe('Publish CLI command', () => {
         providers: {
           [providerName]: {},
         },
-      });
+      };
       const loadSpy = jest
-        .spyOn(SuperJson, 'load')
+        .spyOn(SuperJson, 'loadSuperJson')
         .mockResolvedValue(ok(mockSuperJson));
       mocked(publish).mockResolvedValue(undefined);
       const writeOnceSpy = jest
@@ -1197,6 +1204,7 @@ describe('Publish CLI command', () => {
         {
           publishing: 'profile',
           superJson: mockSuperJson,
+          superJsonPath: 'super.json',
           profile: ProfileId.fromId(profileId, { userError }),
           provider: providerName,
           map: {
@@ -1225,7 +1233,7 @@ describe('Publish CLI command', () => {
         .mockResolvedValueOnce({ upload: true });
 
       mocked(detectSuperJson).mockResolvedValue('.');
-      const mockSuperJson = new SuperJson({
+      const mockSuperJson = {
         profiles: {
           [profileId]: {
             file: mockProfilePath,
@@ -1237,9 +1245,9 @@ describe('Publish CLI command', () => {
         providers: {
           [providerName]: {},
         },
-      });
+      };
       const loadSpy = jest
-        .spyOn(SuperJson, 'load')
+        .spyOn(SuperJson, 'loadSuperJson')
         .mockResolvedValue(ok(mockSuperJson));
       mocked(publish).mockResolvedValue(mockReportStr);
       const writeOnceSpy = jest
@@ -1265,6 +1273,7 @@ describe('Publish CLI command', () => {
         {
           publishing: 'profile',
           superJson: mockSuperJson,
+          superJsonPath: 'super.json',
           profile: ProfileId.fromId(profileId, { userError }),
           provider: providerName,
           map: {

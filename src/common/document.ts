@@ -1,21 +1,15 @@
-import {
-  DocumentType,
-  EXTENSIONS,
-  inferDocumentType,
+import type {
   ProfileEntry,
   ProfileProviderEntry,
   ProviderSettings,
 } from '@superfaceai/ast';
-import {
-  parseMap,
-  parseProfile,
-  parseProfileId,
-  VersionRange,
-} from '@superfaceai/parser';
+import { DocumentType, EXTENSIONS, inferDocumentType } from '@superfaceai/ast';
+import type { VersionRange } from '@superfaceai/parser';
+import { parseMap, parseProfile, parseProfileId } from '@superfaceai/parser';
 import { basename, join as joinPath } from 'path';
 
-import { UserError } from './error';
-import { DocumentTypeFlag } from './flags';
+import type { UserError } from './error';
+import type { DocumentTypeFlag } from './flags';
 
 export const DEFAULT_PROFILE_VERSION = {
   major: 1,
@@ -30,9 +24,6 @@ export const SUPERFACE_DIR = 'superface';
 export const META_FILE = 'super.json';
 export const UNCOMPILED_SDK_FILE = 'sdk.ts';
 export const SUPER_PATH = joinPath(SUPERFACE_DIR, META_FILE);
-export const GRID_DIR = joinPath(SUPERFACE_DIR, 'grid');
-export const TYPES_DIR = joinPath(SUPERFACE_DIR, 'types');
-export const BUILD_DIR = joinPath(SUPERFACE_DIR, 'build');
 
 /**
  * If flag is `DocumentTypeFlag.UNKNOWN` and `path` is defined, then calls `inferDocumentType(path)`
@@ -63,7 +54,7 @@ export const DOCUMENT_PARSE_FUNCTION = {
 
 export function composeVersion(version: VersionRange, forMap = false): string {
   const patch = forMap ? '' : `.${version.patch ?? 0}`;
-  const label = version.label ? `-${version.label}` : '';
+  const label = version.label !== undefined ? `-${version.label}` : '';
 
   return `${version.major}.${version.minor ?? 0}${patch}${label}`;
 }
@@ -114,7 +105,7 @@ export const constructProfileSettings = (
     }
 
     const { scope, name, version } = profile.value;
-    const profileName = scope ? `${scope}/${name}` : name;
+    const profileName = scope !== undefined ? `${scope}/${name}` : name;
 
     acc[profileName] = {
       version: composeVersion(version),
@@ -135,9 +126,10 @@ export const constructProfileProviderSettings = (
   }[]
 ): Record<string, ProfileProviderEntry> =>
   providers.reduce<Record<string, ProfileProviderEntry>>((acc, provider) => {
-    acc[provider.providerName] = provider.mapVariant
-      ? { mapVariant: provider.mapVariant }
-      : {};
+    acc[provider.providerName] =
+      provider.mapVariant !== undefined
+        ? { mapVariant: provider.mapVariant }
+        : {};
 
     return acc;
   }, {});

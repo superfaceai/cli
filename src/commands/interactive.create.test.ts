@@ -1,4 +1,3 @@
-import { SuperJson } from '@superfaceai/one-sdk';
 import inquirer from 'inquirer';
 import { mocked } from 'ts-jest/utils';
 
@@ -37,19 +36,22 @@ describe('Interactive create CLI command', () => {
 
   describe('when running create command', () => {
     it('creates profile with one usecase (with usecase name from cli) with path flag', async () => {
-      mocked(initSuperface).mockResolvedValue(new SuperJson({}));
+      mocked(initSuperface).mockResolvedValue({
+        superJson: {},
+        superJsonPath: '',
+      });
       documentName = 'sendsms';
       jest
         .spyOn(inquirer, 'prompt')
-        //Create profile
+        // Create profile
         .mockResolvedValueOnce({ create: true })
-        //Create map
+        // Create map
         .mockResolvedValueOnce({ create: false })
-        //Create provider
+        // Create provider
         .mockResolvedValueOnce({ create: false })
-        //Profile ID
+        // Profile ID
         .mockResolvedValueOnce({ input: documentName })
-        //Init
+        // Init
         .mockResolvedValueOnce({ init: true });
 
       await mkdirQuiet('test');
@@ -91,19 +93,22 @@ describe('Interactive create CLI command', () => {
     });
 
     it('creates profile with one usecase', async () => {
-      mocked(initSuperface).mockResolvedValue(new SuperJson({}));
+      mocked(initSuperface).mockResolvedValue({
+        superJson: {},
+        superJsonPath: '',
+      });
       documentName = 'sms/service';
       jest
         .spyOn(inquirer, 'prompt')
-        //Create profile
+        // Create profile
         .mockResolvedValueOnce({ create: true })
-        //Create map
+        // Create map
         .mockResolvedValueOnce({ create: false })
-        //Create provider
+        // Create provider
         .mockResolvedValueOnce({ create: false })
-        //Profile ID
+        // Profile ID
         .mockResolvedValueOnce({ input: documentName })
-        //Init
+        // Init
         .mockResolvedValueOnce({ init: true });
 
       await expect(
@@ -144,20 +149,23 @@ describe('Interactive create CLI command', () => {
     });
 
     it('creates profile with multiple usecases', async () => {
-      mocked(initSuperface).mockResolvedValue(new SuperJson({}));
+      mocked(initSuperface).mockResolvedValue({
+        superJson: {},
+        superJsonPath: '',
+      });
       documentName = 'sms/service';
 
       jest
         .spyOn(inquirer, 'prompt')
-        //Create profile
+        // Create profile
         .mockResolvedValueOnce({ create: true })
-        //Create map
+        // Create map
         .mockResolvedValueOnce({ create: false })
-        //Create provider
+        // Create provider
         .mockResolvedValueOnce({ create: false })
-        //Profile ID
+        // Profile ID
         .mockResolvedValueOnce({ input: documentName })
-        //Init
+        // Init
         .mockResolvedValueOnce({ init: true });
 
       await expect(
@@ -198,24 +206,27 @@ describe('Interactive create CLI command', () => {
     });
 
     it('creates map with one provider (with provider name from cli) and variant', async () => {
-      mocked(initSuperface).mockResolvedValue(new SuperJson({}));
+      mocked(initSuperface).mockResolvedValue({
+        superJson: {},
+        superJsonPath: '',
+      });
       documentName = 'sms/service';
       provider = 'twilio';
 
       jest
         .spyOn(inquirer, 'prompt')
-        //Create profile
+        // Create profile
         .mockResolvedValueOnce({ create: false })
-        //Create map
+        // Create map
         .mockResolvedValueOnce({ create: true })
-        //Create provider
+        // Create provider
         .mockResolvedValueOnce({ create: false })
-        //Profile ID
+        // Profile ID
         .mockResolvedValueOnce({ input: documentName })
-        //Provider
+        // Provider
         .mockResolvedValueOnce({ input: provider })
         .mockResolvedValueOnce({ input: undefined })
-        //Init
+        // Init
         .mockResolvedValueOnce({ init: true });
 
       await expect(
@@ -258,24 +269,27 @@ describe('Interactive create CLI command', () => {
     });
 
     it('creates multiple maps', async () => {
-      mocked(initSuperface).mockResolvedValue(new SuperJson({}));
+      mocked(initSuperface).mockResolvedValue({
+        superJson: {},
+        superJsonPath: '',
+      });
       documentName = 'sms/service';
 
       jest
         .spyOn(inquirer, 'prompt')
-        //Create profile
+        // Create profile
         .mockResolvedValueOnce({ create: false })
-        //Create map
+        // Create map
         .mockResolvedValueOnce({ create: true })
-        //Create provider
+        // Create provider
         .mockResolvedValueOnce({ create: false })
-        //Profile ID
+        // Profile ID
         .mockResolvedValueOnce({ input: documentName })
-        //Provider
+        // Provider
         .mockResolvedValueOnce({ input: 'twilio' })
         .mockResolvedValueOnce({ input: 'tyntec' })
         .mockResolvedValueOnce({ input: undefined })
-        //Init
+        // Init
         .mockResolvedValueOnce({ init: true });
 
       await expect(
@@ -318,24 +332,27 @@ describe('Interactive create CLI command', () => {
     });
 
     it('creates map with one usecase and provider', async () => {
-      mocked(initSuperface).mockResolvedValue(new SuperJson({}));
+      mocked(initSuperface).mockResolvedValue({
+        superJson: {},
+        superJsonPath: '',
+      });
       documentName = 'sms/service';
       provider = 'twilio';
 
       jest
         .spyOn(inquirer, 'prompt')
-        //Create profile
+        // Create profile
         .mockResolvedValueOnce({ create: false })
-        //Create map
+        // Create map
         .mockResolvedValueOnce({ create: true })
-        //Create provider
+        // Create provider
         .mockResolvedValueOnce({ create: true })
-        //Profile ID
+        // Profile ID
         .mockResolvedValueOnce({ input: documentName })
-        //Provider
+        // Provider
         .mockResolvedValueOnce({ input: provider })
         .mockResolvedValueOnce({ input: undefined })
-        //Init
+        // Init
         .mockResolvedValueOnce({ init: true });
 
       await expect(
@@ -376,24 +393,27 @@ describe('Interactive create CLI command', () => {
     });
 
     it('creates map with mutiple usecases and one provider', async () => {
-      mocked(initSuperface).mockResolvedValue(new SuperJson({}));
+      mocked(initSuperface).mockResolvedValue({
+        superJson: {},
+        superJsonPath: '',
+      });
       documentName = 'sms/service';
       provider = 'twilio';
 
       jest
         .spyOn(inquirer, 'prompt')
-        //Create profile
+        // Create profile
         .mockResolvedValueOnce({ create: false })
-        //Create map
+        // Create map
         .mockResolvedValueOnce({ create: true })
-        //Create provider
+        // Create provider
         .mockResolvedValueOnce({ create: true })
-        //Profile ID
+        // Profile ID
         .mockResolvedValueOnce({ input: documentName })
-        //Provider
+        // Provider
         .mockResolvedValueOnce({ input: 'twilio' })
         .mockResolvedValueOnce({ input: undefined })
-        //Init
+        // Init
         .mockResolvedValueOnce({ init: true });
 
       await expect(
@@ -433,24 +453,27 @@ describe('Interactive create CLI command', () => {
     });
 
     it('creates profile & map with one provider (with provider name from cli)', async () => {
-      mocked(initSuperface).mockResolvedValue(new SuperJson({}));
+      mocked(initSuperface).mockResolvedValue({
+        superJson: {},
+        superJsonPath: '',
+      });
       documentName = 'sms/service';
       provider = 'twilio';
 
       jest
         .spyOn(inquirer, 'prompt')
-        //Create profile
+        // Create profile
         .mockResolvedValueOnce({ create: true })
-        //Create map
+        // Create map
         .mockResolvedValueOnce({ create: true })
-        //Create provider
+        // Create provider
         .mockResolvedValueOnce({ create: true })
-        //Profile ID
+        // Profile ID
         .mockResolvedValueOnce({ input: documentName })
-        //Provider
+        // Provider
         .mockResolvedValueOnce({ input: provider })
         .mockResolvedValueOnce({ input: undefined })
-        //Init
+        // Init
         .mockResolvedValueOnce({ init: true });
 
       await expect(
@@ -491,24 +514,27 @@ describe('Interactive create CLI command', () => {
     });
 
     it('creates profile & map with one usecase', async () => {
-      mocked(initSuperface).mockResolvedValue(new SuperJson({}));
+      mocked(initSuperface).mockResolvedValue({
+        superJson: {},
+        superJsonPath: '',
+      });
       documentName = 'sms/service';
       provider = 'twilio';
 
       jest
         .spyOn(inquirer, 'prompt')
-        //Create profile
+        // Create profile
         .mockResolvedValueOnce({ create: true })
-        //Create map
+        // Create map
         .mockResolvedValueOnce({ create: true })
-        //Create provider
+        // Create provider
         .mockResolvedValueOnce({ create: false })
-        //Profile ID
+        // Profile ID
         .mockResolvedValueOnce({ input: documentName })
-        //Provider
+        // Provider
         .mockResolvedValueOnce({ input: 'twilio' })
         .mockResolvedValueOnce({ input: undefined })
-        //Init
+        // Init
         .mockResolvedValueOnce({ init: true });
 
       await expect(
@@ -549,24 +575,27 @@ describe('Interactive create CLI command', () => {
     });
 
     it('creates profile & map with multiple usecases', async () => {
-      mocked(initSuperface).mockResolvedValue(new SuperJson({}));
+      mocked(initSuperface).mockResolvedValue({
+        superJson: {},
+        superJsonPath: '',
+      });
       documentName = 'sms/service';
       provider = 'twilio';
 
       jest
         .spyOn(inquirer, 'prompt')
-        //Create profile
+        // Create profile
         .mockResolvedValueOnce({ create: true })
-        //Create map
+        // Create map
         .mockResolvedValueOnce({ create: true })
-        //Create provider
+        // Create provider
         .mockResolvedValueOnce({ create: false })
-        //Profile ID
+        // Profile ID
         .mockResolvedValueOnce({ input: documentName })
-        //Provider
+        // Provider
         .mockResolvedValueOnce({ input: provider })
         .mockResolvedValueOnce({ input: undefined })
-        //Init
+        // Init
         .mockResolvedValueOnce({ init: true });
 
       await expect(
@@ -640,7 +669,7 @@ describe('Interactive create CLI command', () => {
     it('throws error on invalid variant', async () => {
       jest
         .spyOn(inquirer, 'prompt')
-        //Init
+        // Init
         .mockResolvedValueOnce({ init: true });
 
       await expect(
@@ -660,17 +689,17 @@ describe('Interactive create CLI command', () => {
     it('throws error on invalid provider name', async () => {
       jest
         .spyOn(inquirer, 'prompt')
-        //Create profile
+        // Create profile
         .mockResolvedValueOnce({ create: true })
-        //Create map
+        // Create map
         .mockResolvedValueOnce({ create: true })
-        //Create provider
+        // Create provider
         .mockResolvedValueOnce({ create: false })
-        //Profile ID
+        // Profile ID
         .mockResolvedValueOnce({ input: 'sms/service' })
-        //Provider name
+        // Provider name
         .mockResolvedValueOnce({ input: 'vT_7!' })
-        //Init
+        // Init
         .mockResolvedValueOnce({ init: true });
 
       await expect(Create.run(['-i'])).rejects.toThrow(
@@ -683,17 +712,17 @@ describe('Interactive create CLI command', () => {
 
       jest
         .spyOn(inquirer, 'prompt')
-        //Create profile
+        // Create profile
         .mockResolvedValueOnce({ create: true })
-        //Create map
+        // Create map
         .mockResolvedValueOnce({ create: true })
-        //Create provider
+        // Create provider
         .mockResolvedValueOnce({ create: false })
-        //Profile ID
+        // Profile ID
         .mockResolvedValueOnce({ input: documentName })
-        //Provider name
+        // Provider name
         .mockResolvedValueOnce({ input: 'twilio' })
-        //Init
+        // Init
         .mockResolvedValueOnce({ init: true });
       await expect(Create.run(['-u', 'SendSMS', '-i'])).rejects.toThrow(
         '"vT_7!" is not a valid lowercase identifier'
@@ -705,17 +734,17 @@ describe('Interactive create CLI command', () => {
 
       jest
         .spyOn(inquirer, 'prompt')
-        //Create profile
+        // Create profile
         .mockResolvedValueOnce({ create: true })
-        //Create map
+        // Create map
         .mockResolvedValueOnce({ create: true })
-        //Create provider
+        // Create provider
         .mockResolvedValueOnce({ create: false })
-        //Profile ID
+        // Profile ID
         .mockResolvedValueOnce({ input: documentName })
-        //Provider name
+        // Provider name
         .mockResolvedValueOnce({ input: 'twilio' })
-        //Init
+        // Init
         .mockResolvedValueOnce({ init: true });
 
       await expect(
@@ -728,17 +757,17 @@ describe('Interactive create CLI command', () => {
 
       jest
         .spyOn(inquirer, 'prompt')
-        //Create profile
+        // Create profile
         .mockResolvedValueOnce({ create: true })
-        //Create map
+        // Create map
         .mockResolvedValueOnce({ create: true })
-        //Create provider
+        // Create provider
         .mockResolvedValueOnce({ create: false })
-        //Profile ID
+        // Profile ID
         .mockResolvedValueOnce({ input: documentName })
-        //Provider name
+        // Provider name
         .mockResolvedValueOnce({ input: 'twilio' })
-        //Init
+        // Init
         .mockResolvedValueOnce({ init: true });
 
       await expect(Create.run(['-u', '7_L§', '-i'])).rejects.toThrow(

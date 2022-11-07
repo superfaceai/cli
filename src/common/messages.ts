@@ -1,3 +1,5 @@
+import { SyntaxError } from '@superfaceai/parser';
+
 const common = {
   initSuperface: () =>
     'Initializing superface directory with empty "super.json"',
@@ -78,21 +80,23 @@ const lint = {
 const fetch = {
   fetchProfileInfo: (profile: string) =>
     `Fetching profile info of profile: "${profile}" from Superface registry`,
-  fetchProfileSource: (profile: string) =>
-    `Fetching profile source for: "${profile}" from Superface registry`,
   fetchProfileAst: (profile: string) =>
     `Fetching compiled profile for: "${profile}" from Superface registry`,
-  fetchProfileAstFailed: (profile: string) =>
-    `Fetching compiled profile for: "${profile}" failed, trying to parse source file`,
+  fetchProfileAstFailed: (profile: string, error: unknown) =>
+    // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+    `Fetching compiled profile for: "${profile}" failed: "${error}"`,
+  fetchProfileInfoFailed: (profile: string, error: unknown) =>
+    // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+    `Fetching profile info of profile: "${profile}" failed: "${error}"`,
   fetchProfile: (profile: string, version?: string) => {
-    if (version) {
+    if (version !== undefined) {
       return `Fetching profile: "${profile}" with version: "${version}" from Superface registry`;
     }
 
     return `Fetching profile: "${profile}" from Superface registry`;
   },
   fetchMap: (profile: string, provider: string, astVersion?: string) => {
-    if (astVersion) {
+    if (astVersion !== undefined) {
       return `Fetching map for profile: "${profile}" and provider: "${provider}" with version: "${astVersion}" from Superface registry`;
     }
 
@@ -144,11 +148,13 @@ const configure = {
     description?: string
   ) =>
     `Parameter: "${name}"${
-      description ? ` with description: "${description}"` : ''
+      description !== undefined ? ` with description: "${description}"` : ''
     } has not been configured\nPlease, configure this parameter manually in "super.json" in: "${superJsonPath}"`,
   parameterConfigured: (name: string, value: string, description?: string) =>
     `Parameter: "${name}"${
-      description ? ` with description: "${description}"` : ''
+      description !== undefined && description !== ''
+        ? ` with description: "${description}"`
+        : ''
     } has been configured to use value of environment value "${value}".\nPlease configure this environment value`,
   parameterHasDefault: (defaultValue: string) =>
     `If you do not set the variable, the default value: "${defaultValue}" will be used`,
@@ -249,6 +255,27 @@ const compile = {
   compileMap: (profile: string, provider: string) =>
     `Compiling map for profile: "${profile}" and provider: "${provider}"`,
   compiledSuccessfully: () => 'compiled successfully',
+  profileCompilationFailed: (
+    profileId: string,
+    path: string,
+    error: unknown
+  ) => {
+    const errorMessage =
+      error instanceof SyntaxError ? error.format() : String(error);
+
+    return `Compilatiom of profile: "${profileId}" at path: "${path}" failed with: ${errorMessage}`;
+  },
+  mapCompilationFailed: (
+    profileId: string,
+    provider: string,
+    path: string,
+    error: unknown
+  ) => {
+    const errorMessage =
+      error instanceof SyntaxError ? error.format() : String(error);
+
+    return `Compilatiom of map for profile: "${profileId}" and provider: "${provider}" at path: "${path}" failed with: ${errorMessage}`;
+  },
 };
 
 const generate = {

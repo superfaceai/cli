@@ -1,4 +1,3 @@
-import { SuperJson } from '@superfaceai/one-sdk';
 import { mocked } from 'ts-jest/utils';
 
 import { createUserError } from '../common/error';
@@ -7,6 +6,7 @@ import { ProfileId } from '../common/profile';
 import { profileExists, providerExists } from './quickstart.utils';
 
 jest.mock('../common/io');
+
 describe('Quickstart logic', () => {
   const userError = createUserError(false);
 
@@ -16,11 +16,11 @@ describe('Quickstart logic', () => {
 
   describe('when checking that profile already exists', () => {
     it('returns true if source file exists', async () => {
-      const mockSuperJson = new SuperJson();
+      const mockSuperJson = {};
       mocked(exists).mockResolvedValue(true);
 
       await expect(
-        profileExists(mockSuperJson, {
+        profileExists(mockSuperJson, '', {
           id: ProfileId.fromId('starwars/character-information', { userError }),
           version: '1.0.0',
         })
@@ -30,11 +30,11 @@ describe('Quickstart logic', () => {
     });
 
     it('returns false if source file does not exist', async () => {
-      const mockSuperJson = new SuperJson();
+      const mockSuperJson = {};
       mocked(exists).mockResolvedValue(false);
 
       await expect(
-        profileExists(mockSuperJson, {
+        profileExists(mockSuperJson, '', {
           id: ProfileId.fromId('starwars/character-information', { userError }),
           version: '1.0.0',
         })
@@ -44,7 +44,7 @@ describe('Quickstart logic', () => {
     });
 
     it('returns true if there is correct file property', async () => {
-      const mockSuperJson = new SuperJson({
+      const mockSuperJson = {
         profiles: {
           ['communication/send-email']: {
             file: 'some/path',
@@ -58,11 +58,11 @@ describe('Quickstart logic', () => {
             security: [],
           },
         },
-      });
+      };
       mocked(exists).mockResolvedValueOnce(false).mockResolvedValueOnce(true);
 
       await expect(
-        profileExists(mockSuperJson, {
+        profileExists(mockSuperJson, '', {
           id: ProfileId.fromId('communication/send-email', { userError }),
           version: '1.0.0',
         })
@@ -72,7 +72,7 @@ describe('Quickstart logic', () => {
     });
 
     it('returns false if there is different file property', async () => {
-      const mockSuperJson = new SuperJson({
+      const mockSuperJson = {
         profiles: {
           ['communication/send-email']: {
             file: 'some/path',
@@ -86,11 +86,11 @@ describe('Quickstart logic', () => {
             security: [],
           },
         },
-      });
+      };
       mocked(exists).mockResolvedValueOnce(false).mockResolvedValueOnce(true);
 
       await expect(
-        profileExists(mockSuperJson, {
+        profileExists(mockSuperJson, '', {
           id: ProfileId.fromId('vcs/pull-request', { userError }),
           version: '1.0.0',
         })
@@ -102,7 +102,7 @@ describe('Quickstart logic', () => {
 
   describe('when checking that provider already exists', () => {
     it('returns true if provider is defined in super.json', async () => {
-      const mockSuperJson = new SuperJson({
+      const mockSuperJson = {
         profiles: {
           ['communication/send-email']: {
             file: 'some/path',
@@ -116,13 +116,13 @@ describe('Quickstart logic', () => {
             security: [],
           },
         },
-      });
+      };
 
       expect(providerExists(mockSuperJson, 'sendgrid')).toEqual(true);
     });
 
     it('returns false if source file does not exist', async () => {
-      const mockSuperJson = new SuperJson();
+      const mockSuperJson = {};
 
       expect(providerExists(mockSuperJson, 'sendgrid')).toEqual(false);
     });

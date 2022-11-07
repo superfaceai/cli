@@ -1,10 +1,10 @@
 import { isValidDocumentName } from '@superfaceai/ast';
-import { SuperJson } from '@superfaceai/one-sdk';
 import { mocked } from 'ts-jest/utils';
 
 import { createUserError } from '../common/error';
 import { exists } from '../common/io';
-import { ILogger, MockLogger } from '../common/log';
+import type { ILogger } from '../common/log';
+import { MockLogger } from '../common/log';
 import { ProfileId } from '../common/profile';
 import { isCompatible } from '../logic';
 import { installProvider } from '../logic/configure';
@@ -198,7 +198,10 @@ describe('Configure CLI command', () => {
     it('configures provider with superface initialization', async () => {
       mocked(isValidDocumentName).mockReturnValue(true);
       mocked(detectSuperJson).mockResolvedValue(undefined);
-      mocked(initSuperface).mockResolvedValue(new SuperJson());
+      mocked(initSuperface).mockResolvedValue({
+        superJson: {},
+        superJsonPath: '',
+      });
       mocked(isCompatible).mockResolvedValue(true);
 
       await expect(

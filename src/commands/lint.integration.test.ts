@@ -1,14 +1,14 @@
-import { SuperJson } from '@superfaceai/one-sdk';
 import { join as joinPath, resolve } from 'path';
 
 import { mkdir, rimraf } from '../common/io';
 import { OutputStream } from '../common/output-stream';
-import { LintResult } from '../logic/lint';
-import { MockStd, mockStd } from '../test/mock-std';
+import type { LintResult } from '../logic/lint';
+import type { MockStd } from '../test/mock-std';
+import { mockStd } from '../test/mock-std';
 import { execCLI, setUpTempDir } from '../test/utils';
 
 describe('lint CLI command', () => {
-  //File specific path
+  // File specific path
   const TEMP_PATH = joinPath('test', 'tmp');
 
   const profileId = 'starwars/character-information';
@@ -32,7 +32,7 @@ describe('lint CLI command', () => {
     },
   };
 
-  const mockSuperJson = new SuperJson({
+  const mockSuperJson = {
     profiles: {
       [profileId]: {
         file: `../../../../${fixture.strictProfile}`,
@@ -46,7 +46,7 @@ describe('lint CLI command', () => {
         },
       },
     },
-  });
+  };
   let tempDir: string;
 
   let stderr: MockStd;
@@ -79,20 +79,13 @@ describe('lint CLI command', () => {
     await mkdir(joinPath(tempDir, 'superface'));
     await OutputStream.writeOnce(
       joinPath(tempDir, 'superface', 'super.json'),
-      mockSuperJson.stringified
+      JSON.stringify(mockSuperJson, undefined, 2)
     );
 
     const result = await execCLI(
       tempDir,
       ['lint', '--profileId', profileId, '--providerName', provider],
       ''
-    );
-
-    expect(result.stdout).toContain(
-      `🆗 Parsing profile file: ${resolve(fixture.strictProfile)}`
-    );
-    expect(result.stdout).toContain(
-      `🆗 Parsing map file: ${resolve(fixture.validMap)}`
     );
 
     expect(result.stdout).toContain('Detected 0 problems');
@@ -102,24 +95,17 @@ describe('lint CLI command', () => {
     await mkdir(joinPath(tempDir, 'superface'));
     await OutputStream.writeOnce(
       joinPath(tempDir, 'superface', 'super.json'),
-      mockSuperJson.stringified
+      JSON.stringify(mockSuperJson, undefined, 2)
     );
     await expect(
       execCLI(
         tempDir,
         ['lint', '--profileId', profileId],
         '',
-        //Expose child process stdout to mocked stdout
+        // Expose child process stdout to mocked stdout
         { debug: true }
       )
     ).rejects.toContain('Errors were found');
-
-    expect(stdout.output).toContain(
-      `🆗 Parsing profile file: ${resolve(fixture.strictProfile)}`
-    );
-    expect(stdout.output).toContain(
-      `🆗 Parsing map file: ${resolve(fixture.validMap)}`
-    );
 
     expect(stdout.output).toContain(
       `Parsing map file: ${resolve(fixture.invalidParsedMap)}\n` +
@@ -137,29 +123,27 @@ describe('lint CLI command', () => {
     await mkdir(joinPath(tempDir, 'superface'));
     await OutputStream.writeOnce(
       joinPath(tempDir, 'superface', 'super.json'),
-      mockSuperJson.stringified
+      JSON.stringify(mockSuperJson, undefined, 2)
     );
 
     await expect(
       execCLI(
         tempDir,
-        ['lint', '--profileId', profileId, '--outputFormat', 'short'],
+        ['lint', '--profileId', profileId],
         '',
-        //Expose child process stdout to mocked stdout
+        // Expose child process stdout to mocked stdout
         { debug: true }
       )
     ).rejects.toContain('Errors were found');
 
     expect(stdout.output).toContain(
-      `🆗 Parsing profile file: ${resolve(fixture.strictProfile)}`
-    );
-    expect(stdout.output).toContain(
-      `🆗 Parsing map file: ${resolve(fixture.validMap)}`
-    );
-
-    expect(stdout.output).toContain(
       `Parsing map file: ${resolve(fixture.invalidParsedMap)}\n` +
-        '\t3:1 Expected `provider` but found `map`\n'
+        'SyntaxError: Expected `provider` but found `map`\n' +
+        ` --> ${resolve(fixture.invalidParsedMap)}:3:1\n` +
+        '2 | \n' +
+        '3 | map Foo {\n' +
+        '  | ^^^      \n' +
+        '4 | 	\n'
     );
     expect(stdout.output).toContain('Detected 1 problem\n');
   });
@@ -168,7 +152,7 @@ describe('lint CLI command', () => {
     await mkdir(joinPath(tempDir, 'superface'));
     await OutputStream.writeOnce(
       joinPath(tempDir, 'superface', 'super.json'),
-      mockSuperJson.stringified
+      JSON.stringify(mockSuperJson, undefined, 2)
     );
 
     await expect(
@@ -224,7 +208,7 @@ describe('lint CLI command', () => {
   });
 
   it('lints a valid file and outputs it to stderr', async () => {
-    const mockSuperJson = new SuperJson({
+    const mockSuperJson = {
       profiles: {
         [profileId]: {
           file: `../../../../${fixture.strictProfile}`,
@@ -235,20 +219,20 @@ describe('lint CLI command', () => {
           },
         },
       },
-    });
+    };
 
     await mkdir(joinPath(tempDir, 'superface'));
     await OutputStream.writeOnce(
       joinPath(tempDir, 'superface', 'super.json'),
-      mockSuperJson.stringified
+      JSON.stringify(mockSuperJson, undefined, 2)
     );
 
     await expect(
       execCLI(
         tempDir,
-        ['lint', '--profileId', profileId, '--output', '-2'],
+        ['lint', '--profileId', profileId, '--output', '-2', '-f', 'long'],
         '',
-        //Expose child process stdout to mocked stdout
+        // Expose child process stdout to mocked stdout
         { debug: true }
       )
     ).rejects.toContain(
@@ -260,7 +244,7 @@ describe('lint CLI command', () => {
     await mkdir(joinPath(tempDir, 'superface'));
     await OutputStream.writeOnce(
       joinPath(tempDir, 'superface', 'super.json'),
-      mockSuperJson.stringified
+      JSON.stringify(mockSuperJson, undefined, 2)
     );
 
     const result = await execCLI(
@@ -269,13 +253,7 @@ describe('lint CLI command', () => {
       ''
     );
 
-    expect(result.stdout).toContain(
-      `🆗 Parsing profile file: ${resolve(fixture.strictProfile)}`
-    );
-    expect(result.stdout).toContain(
-      `🆗 Parsing map file: ${resolve(fixture.validMap)}`
-    );
-
-    expect(result.stdout).toContain('Detected 0 problems\n');
+    expect(result.stdout).toContain('Checked 3 files.');
+    expect(result.stdout).toContain('Detected 0 problems');
   });
 });

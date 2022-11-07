@@ -1,31 +1,36 @@
-import {
-  assertMapDocumentNode,
-  assertProfileDocumentNode,
+import type {
   MapDocumentNode,
   ProfileDocumentNode,
   ProviderJson,
+  SuperJsonDocument,
 } from '@superfaceai/ast';
-import { Parser, SuperJson } from '@superfaceai/one-sdk';
+import {
+  assertMapDocumentNode,
+  assertProfileDocumentNode,
+} from '@superfaceai/ast';
 import {
   composeVersion,
   getProfileOutput,
+  parseMap,
+  parseProfile,
+  Source,
   validateMap,
 } from '@superfaceai/parser';
 
-import { UserError } from '../common/error';
+import type { UserError } from '../common/error';
 import {
   fetchMapAST,
   fetchProfileAST,
   fetchProviderInfo,
 } from '../common/http';
-import { ILogger } from '../common/log';
-import { ProfileId } from '../common/profile';
-import { ProfileMapReport } from '../common/report.interfaces';
+import type { ILogger } from '../common/log';
+import type { ProfileId } from '../common/profile';
+import type { ProfileMapReport } from '../common/report.interfaces';
+import type { CheckResult } from './check';
 import {
   checkIntegrationParameters,
   checkMapAndProfile,
   checkMapAndProvider,
-  CheckResult,
 } from './check';
 import {
   findLocalMapSource,
@@ -43,7 +48,8 @@ export function prePublishCheck(
     profileFrom: ProfileFromMetadata;
     mapFrom: MapFromMetadata;
     providerFrom: ProviderFromMetadata;
-    superJson: SuperJson;
+    superJson: SuperJsonDocument;
+    superJsonPath: string;
   },
   { logger, userError }: { logger: ILogger; userError: UserError }
 ): CheckResult[] {
@@ -66,11 +72,11 @@ export function prePublishCheck(
     );
   }
 
-  //Check map and profile
+  // Check map and profile
   const result: CheckResult[] = [];
   result.push({
     ...checkMapAndProfile(params.profileAst, params.mapAst, {
-      //strict when we are publishing profile or map
+      // strict when we are publishing profile or map
       strict: params.publishing !== 'provider',
       logger,
     }),
@@ -78,18 +84,18 @@ export function prePublishCheck(
     mapFrom: params.mapFrom,
   });
 
-  //Check map and provider
+  // Check map and provider
   result.push({
     ...checkMapAndProvider(params.providerJson, params.mapAst),
     mapFrom: params.mapFrom,
     providerFrom: params.providerFrom,
   });
 
-  //Check integration parameters
+  // Check integration parameters
   result.push({
     ...checkIntegrationParameters(params.providerJson, params.superJson),
     providerFrom: params.providerFrom,
-    superJsonPath: params.superJson.path,
+    superJsonPath: params.superJsonPath,
   });
 
   return result;
@@ -102,7 +108,7 @@ export function prePublishLint(
   const profileOutput = getProfileOutput(profileAst);
   const result = validateMap(profileOutput, mapAst);
 
-  //TODO: paths
+  // TODO: paths
   return createProfileMapReport(result, '', '');
 }
 
@@ -118,10 +124,12 @@ export type ProfileFromMetadata =
 export async function loadProfile(
   {
     superJson,
+    superJsonPath,
     profile,
     version,
   }: {
-    superJson: SuperJson;
+    superJson: SuperJsonDocument;
+    superJsonPath: string;
     profile: ProfileId;
     version?: string;
   },
@@ -132,20 +140,24 @@ export async function loadProfile(
 }> {
   let ast: ProfileDocumentNode;
 
-  const source = await findLocalProfileSource(superJson, profile, version);
+  const source = await findLocalProfileSource(
+    superJson,
+    superJsonPath,
+    profile,
+    version
+  );
 
-  const profileId = `${profile.id}${version ? `@${version}` : ''}`;
+  const profileId = `${profile.id}${
+    version !== undefined ? `@${version}` : ''
+  }`;
 
   if (source) {
-    ast = await Parser.parseProfile(source.source, profileId, {
-      profileName: profile.name,
-      scope: profile.scope,
-    });
+    ast = parseProfile(new Source(source.source, profileId));
     logger.info('localProfileFound', profileId, source.path);
 
     return { ast, from: { kind: 'local', ...source } };
   } else {
-    //Load from store
+    // Load from store
     ast = await fetchProfileAST(profile, version);
     const versionString = composeVersion(ast.header.version);
     logger.info('fetchProfile', profile.id, version);
@@ -169,12 +181,14 @@ export type MapFromMetadata =
 export async function loadMap(
   {
     superJson,
+    superJsonPath,
     profile,
     provider,
     map,
     version,
   }: {
-    superJson: SuperJson;
+    superJson: SuperJsonDocument;
+    superJsonPath: string;
     profile: ProfileId;
     provider: string;
     map: {
@@ -187,16 +201,15 @@ export async function loadMap(
   ast: MapDocumentNode;
   from: MapFromMetadata;
 }> {
-  const source = await findLocalMapSource(superJson, profile, provider);
+  const source = await findLocalMapSource(
+    superJson,
+    superJsonPath,
+    profile,
+    provider
+  );
   if (source) {
-    const ast = await Parser.parseMap(
-      source.source,
-      `${profile.name}.${provider}`,
-      {
-        profileName: profile.name,
-        scope: profile.scope,
-        providerName: provider,
-      }
+    const ast = parseMap(
+      new Source(source.source, `${profile.name}.${provider}`)
     );
     logger.info(
       'localMapFound',
@@ -213,7 +226,7 @@ export async function loadMap(
       },
     };
   } else {
-    //Load from store
+    // Load from store
     const ast = await fetchMapAST({
       name: profile.name,
       provider,
@@ -244,14 +257,19 @@ export type ProviderFromMetadata =
  * Loads provider source downloaded when source not found locally, loaded from file when found
  */
 export async function loadProvider(
-  superJson: SuperJson,
+  superJson: SuperJsonDocument,
+  superJsonPath: string,
   provider: string,
   { logger }: { logger: ILogger }
 ): Promise<{
   source: ProviderJson;
   from: ProviderFromMetadata;
 }> {
-  const providerSource = await findLocalProviderSource(superJson, provider);
+  const providerSource = await findLocalProviderSource(
+    superJson,
+    superJsonPath,
+    provider
+  );
   if (providerSource) {
     logger.info('localProviderFound', provider, providerSource.path);
 

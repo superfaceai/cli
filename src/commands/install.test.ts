@@ -1,4 +1,3 @@
-import { SuperJson } from '@superfaceai/one-sdk';
 import { mocked } from 'ts-jest/utils';
 
 import { MockLogger } from '../common';
@@ -53,7 +52,10 @@ describe('Install CLI command', () => {
   describe('when running install command', () => {
     it('calls install profiles correctly - failed to install profile - does not continue with install', async () => {
       mocked(detectSuperJson).mockResolvedValue(undefined);
-      mocked(initSuperface).mockResolvedValue(new SuperJson({}));
+      mocked(initSuperface).mockResolvedValue({
+        superJson: {},
+        superJsonPath: '',
+      });
       mocked(installProfiles).mockResolvedValue({ continueWithInstall: false });
 
       const profileName = 'starwars/character-information';
@@ -93,7 +95,10 @@ describe('Install CLI command', () => {
 
     it('calls install profiles correctly - non existing super.json - create new one', async () => {
       mocked(detectSuperJson).mockResolvedValue(undefined);
-      mocked(initSuperface).mockResolvedValue(new SuperJson({}));
+      mocked(initSuperface).mockResolvedValue({
+        superJson: {},
+        superJsonPath: '',
+      });
       mocked(installProfiles).mockResolvedValue({ continueWithInstall: true });
 
       const profileName = 'starwars/character-information';

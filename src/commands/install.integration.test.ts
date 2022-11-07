@@ -1,4 +1,4 @@
-import { SuperJson } from '@superfaceai/one-sdk';
+import { loadSuperJson, NodeFileSystem } from '@superfaceai/one-sdk';
 import { getLocal } from 'mockttp';
 import { join as joinPath } from 'path';
 
@@ -57,14 +57,17 @@ describe('Install CLI command', () => {
       await expect(
         exists(joinPath(tempDir, 'superface', 'super.json'))
       ).resolves.toBe(true);
+
       await expect(
         exists(
           joinPath(
             tempDir,
+            'node_modules',
+            '.cache',
             'superface',
-            'grid',
+            'profiles',
             'starwars',
-            'character-information@1.0.1.supr'
+            'character-information@1.0.1.supr.ast.json'
           )
         )
       ).resolves.toBe(true);
@@ -87,10 +90,12 @@ describe('Install CLI command', () => {
         exists(
           joinPath(
             tempDir,
+            'node_modules',
+            '.cache',
             'superface',
-            'grid',
+            'profiles',
             'starwars',
-            'character-information@1.0.2.supr'
+            'character-information@1.0.2.supr.ast.json'
           )
         )
       ).resolves.toBe(true);
@@ -114,10 +119,13 @@ describe('Install CLI command', () => {
       ).resolves.toBe(true);
 
       const superJson = (
-        await SuperJson.load(joinPath(tempDir, 'superface', 'super.json'))
+        await loadSuperJson(
+          joinPath(tempDir, 'superface', 'super.json'),
+          NodeFileSystem
+        )
       ).unwrap();
 
-      expect(superJson.document.profiles![profileId]).toEqual({
+      expect(superJson.profiles![profileId]).toEqual({
         file: `../${profileIdRequest}`,
       });
     }, 20000);
@@ -137,16 +145,19 @@ describe('Install CLI command', () => {
       ).resolves.toBe(true);
 
       const superJson = (
-        await SuperJson.load(joinPath(tempDir, 'superface', 'super.json'))
+        await loadSuperJson(
+          joinPath(tempDir, 'superface', 'super.json'),
+          NodeFileSystem
+        )
       ).unwrap();
 
-      expect(superJson.document.profiles).toStrictEqual({});
+      expect(superJson.profiles).toStrictEqual({});
     }, 20000);
 
     it('errors without a force flag', async () => {
       const profileId = 'starwars/character-information';
 
-      //set existing super.json
+      // set existing super.json
       const localSuperJson = {
         profiles: {
           [profileId]: {

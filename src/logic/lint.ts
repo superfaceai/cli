@@ -1,23 +1,25 @@
-import {
-  EXTENSIONS,
+import type {
   MapDocumentNode,
   MapHeaderNode,
   ProfileDocumentNode,
+  SuperJsonDocument,
 } from '@superfaceai/ast';
-import { SuperJson } from '@superfaceai/one-sdk';
+import { EXTENSIONS } from '@superfaceai/ast';
+import type {
+  ProfileHeaderStructure,
+  ProfileOutput,
+  ValidationResult,
+} from '@superfaceai/parser';
 import {
   formatIssues,
   getProfileOutput,
   parseMap,
   parseMapId,
   parseProfile,
-  ProfileHeaderStructure,
-  ProfileOutput,
   Source,
   SyntaxError,
   validateExamples,
   validateMap,
-  ValidationResult,
 } from '@superfaceai/parser';
 import { green, red, yellow } from 'chalk';
 import { basename } from 'path';
@@ -26,19 +28,20 @@ import {
   composeVersion,
   DEFAULT_PROFILE_VERSION_STR,
 } from '../common/document';
-import { UserError } from '../common/error';
+import type { UserError } from '../common/error';
+import { formatWordPlurality } from '../common/format';
 import { fetchMapAST, fetchProfileAST } from '../common/http';
-import { ILogger } from '../common/log';
+import type { ILogger } from '../common/log';
 import { MapId } from '../common/map';
-import { ProfileId } from '../common/profile';
-import {
+import type { ProfileId } from '../common/profile';
+import type {
   FileReport,
   ProfileMapReport,
   ReportFormat,
 } from '../common/report.interfaces';
 import { findLocalMapSource, findLocalProfileSource } from './check.utils';
 
-//TODO: rewrite to return validation issue?
+// TODO: rewrite to return validation issue?
 export function isValidHeader(
   profileHeader: ProfileHeaderStructure,
   mapHeader: MapHeaderNode
@@ -54,7 +57,7 @@ export function isValidHeader(
 
   return true;
 }
-//TODO: rewrite to return validation issue?
+// TODO: rewrite to return validation issue?
 export function isValidMapId(
   profileHeader: ProfileHeaderStructure,
   mapHeader: MapHeaderNode,
@@ -105,18 +108,55 @@ export const createProfileMapReport = (
         warnings: result.warnings ?? [],
       };
 
+export function formatSummary({
+  fileCount,
+  errorCount,
+  warningCount,
+  color,
+}: {
+  fileCount: number;
+  errorCount: number;
+  warningCount: number;
+  color: boolean;
+}): string {
+  const noColor = (input: string) => input;
+
+  const buffer = `\n\nChecked ${formatWordPlurality(fileCount, 'file')}. `;
+  let colorize: (inout: string) => string = noColor;
+  if (errorCount > 0) {
+    if (color) {
+      colorize = red;
+    }
+  } else if (warningCount > 0) {
+    if (color) {
+      colorize = yellow;
+    }
+  } else {
+    if (color) {
+      colorize = green;
+    }
+  }
+
+  return (
+    buffer +
+    colorize(
+      `Detected ${formatWordPlurality(errorCount + warningCount, 'problem')}\n`
+    )
+  );
+}
+
 export function formatHuman({
   report,
-  quiet,
+  // quiet,
   emoji,
   color,
-  short,
-}: {
+}: // short,
+{
   report: ReportFormat;
-  quiet: boolean;
+  // quiet: boolean;
   emoji: boolean;
   color: boolean;
-  short?: boolean;
+  // short?: boolean;
 }): string {
   const REPORT_OK = '🆗';
   const REPORT_WARN = '⚠️';
@@ -155,12 +195,7 @@ export function formatHuman({
     // Format Errors
     for (const error of report.errors) {
       if (error instanceof SyntaxError) {
-        if (short) {
-          const message = `\t${error.location.start.line}:${error.location.start.column} ${error.message}\n`;
-          buffer += color ? red(message) : message;
-        } else {
-          buffer += color ? red(error.format()) : error.format();
-        }
+        buffer += color ? red(error.format()) : error.format();
       } else {
         buffer += color ? red(formatIssues([error])) : formatIssues([error]);
 
@@ -175,12 +210,10 @@ export function formatHuman({
     }
 
     // Format Warnings
-    if (!quiet) {
-      buffer += color
-        ? yellow(formatIssues(report.warnings))
-        : formatIssues(report.warnings);
-      buffer += '\n';
-    }
+    buffer += color
+      ? yellow(formatIssues(report.warnings))
+      : formatIssues(report.warnings);
+    buffer += '\n';
   } else {
     buffer += colorize(
       `${prefix} Validating profile: ${report.profile} to map: ${report.path}\n`
@@ -191,17 +224,15 @@ export function formatHuman({
       ? red(formatIssues(report.errors))
       : formatIssues(report.errors);
 
-    if (!quiet && report.errors.length > 0 && report.warnings.length > 0) {
+    if (report.errors.length > 0 && report.warnings.length > 0) {
       buffer += '\n';
     }
 
     // Format Warnings
-    if (!quiet) {
-      buffer += color
-        ? yellow(formatIssues(report.warnings))
-        : formatIssues(report.warnings);
-      buffer += '\n';
-    }
+    buffer += color
+      ? yellow(formatIssues(report.warnings))
+      : formatIssues(report.warnings);
+    buffer += '\n';
   }
 
   return buffer;
@@ -245,18 +276,19 @@ type PreparedProfile = ProfileToValidate & {
 };
 
 async function prepareLintedProfile(
-  superJson: SuperJson,
-  profile: ProfileToValidate,
-  { logger }: { logger: ILogger }
+  superJson: SuperJsonDocument,
+  superJsonPath: string,
+  profile: ProfileToValidate
 ): Promise<PreparedProfile> {
   let ast: ProfileDocumentNode | undefined = undefined;
   let output: ProfileOutput | undefined = undefined;
   const profileSource = await findLocalProfileSource(
     superJson,
+    superJsonPath,
     profile.id,
     profile.version
   );
-  const path = profileSource?.path || profile.id.withVersion(profile.version);
+  const path = profileSource?.path ?? profile.id.withVersion(profile.version);
 
   const report: FileReport = {
     kind: 'file',
@@ -264,21 +296,18 @@ async function prepareLintedProfile(
     errors: [],
     warnings: [],
   };
-  //If we have local profile we lint it
+  // If we have local profile we lint it
   if (profileSource) {
-    logger.info('localProfileFound', profile.id.id, profileSource.path);
-
     try {
       ast = parseProfile(new Source(profileSource.source, profileSource.path));
     } catch (e) {
       report.errors.push(e);
     }
   } else {
-    logger.info('fetchProfile', profile.id.id, profile.version);
     ast = await fetchProfileAST(profile.id, profile.version);
   }
 
-  //Validate examples
+  // Validate examples
   if (ast) {
     output = getProfileOutput(ast);
     const examplesValidationResult = validateExamples(ast, output);
@@ -299,10 +328,10 @@ async function prepareLintedProfile(
 }
 
 async function prepareLintedMap(
-  superJson: SuperJson,
+  superJson: SuperJsonDocument,
+  superJsonPath: string,
   profile: ProfileToValidate,
-  map: MapToValidate,
-  { logger }: { logger: ILogger }
+  map: MapToValidate
 ): Promise<PreparedMap> {
   let ast: MapDocumentNode | undefined = undefined;
 
@@ -317,13 +346,14 @@ async function prepareLintedMap(
 
   const mapSource = await findLocalMapSource(
     superJson,
+    superJsonPath,
     profile.id,
     map.provider
   );
 
   const path =
     mapSource?.path ??
-    mapId.withVersion(profile.version || DEFAULT_PROFILE_VERSION_STR);
+    mapId.withVersion(profile.version ?? DEFAULT_PROFILE_VERSION_STR);
 
   const report: FileReport = {
     kind: 'file',
@@ -332,24 +362,12 @@ async function prepareLintedMap(
     warnings: [],
   };
   if (mapSource) {
-    logger.info(
-      'localMapFound',
-      profile.id.withVersion(profile.version),
-      map.provider,
-      mapSource.path
-    );
-
     try {
       ast = parseMap(new Source(mapSource.source, mapSource.path));
     } catch (e) {
       report.errors.push(e);
     }
   } else {
-    logger.info(
-      'fetchMap',
-      profile.id.withVersion(profile.version),
-      map.provider
-    );
     ast = await fetchMapAST({
       name: profile.id.name,
       provider: map.provider,
@@ -392,7 +410,8 @@ function prepareResult(reports: ReportFormat[]): LintResult {
 }
 
 export async function lint(
-  superJson: SuperJson,
+  superJson: SuperJsonDocument,
+  superJsonPath: string,
   profiles: ProfileToValidate[],
   { logger }: { logger: ILogger }
 ): Promise<LintResult> {
@@ -400,24 +419,29 @@ export async function lint(
   const reports: ReportFormat[] = [];
 
   for (const profile of profiles) {
-    const preparedProfile = await prepareLintedProfile(superJson, profile, {
-      logger,
-    });
+    const preparedProfile = await prepareLintedProfile(
+      superJson,
+      superJsonPath,
+      profile
+    );
 
     reports.push(preparedProfile.report);
 
-    //Return if we have errors or warnings
+    // Return if we have errors or warnings
     if (!preparedProfile.ast || !preparedProfile.output) {
       return prepareResult(reports);
     }
 
     for (const map of profile.maps) {
-      const preparedMap = await prepareLintedMap(superJson, profile, map, {
-        logger,
-      });
+      const preparedMap = await prepareLintedMap(
+        superJson,
+        superJsonPath,
+        profile,
+        map
+      );
       reports.push(preparedMap.report);
 
-      //Return if we have errors or warnings
+      // Return if we have errors or warnings
       if (!preparedMap.ast) {
         return prepareResult(reports);
       }
@@ -433,7 +457,7 @@ export async function lint(
           result.pass ? 0 : result.errors.length,
           result.warnings?.length ?? 0,
         ]);
-        //We catch any unexpected error from parser validator to prevent ending the loop early
+        // We catch any unexpected error from parser validator to prevent ending the loop early
       } catch (error) {
         logger.error(
           'unexpectedLintError',

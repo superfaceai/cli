@@ -1,8 +1,5 @@
-import {
-  EXTENSIONS,
-  MapDocumentNode,
-  ProfileDocumentNode,
-} from '@superfaceai/ast';
+import type { MapDocumentNode, ProfileDocumentNode } from '@superfaceai/ast';
+import { EXTENSIONS } from '@superfaceai/ast';
 import { parseMap, parseProfile, Source } from '@superfaceai/parser';
 import { dirname, join as joinPath } from 'path';
 
@@ -10,9 +7,9 @@ import { exists, mkdir, readFile } from '../common/io';
 import { OutputStream } from '../common/output-stream';
 
 export async function compileFixtureAsts(): Promise<void> {
-  //This fixtures we use in our integration test and we need keep them in sync with our Parser/AST version
+  // This fixtures we use in our integration test and we need keep them in sync with our Parser/AST version
   const fixtures: Record<string, { source: string; ast: string }> = {
-    //Strict
+    // Strict
     strictProfile: {
       source: joinPath('fixtures', 'strict.supr'),
       ast: joinPath('fixtures', 'compiled', 'strict.supr.ast.json'),
@@ -22,7 +19,7 @@ export async function compileFixtureAsts(): Promise<void> {
       ast: joinPath('fixtures', 'compiled', 'strict.suma.ast.json'),
     },
 
-    //Starwars
+    // Starwars
     starwarsProfile: {
       source: joinPath(
         'fixtures',
@@ -114,7 +111,7 @@ export async function compileFixtureAsts(): Promise<void> {
       ),
     },
 
-    //Communication
+    // Communication
     communicationProfile: {
       source: joinPath(
         'fixtures',

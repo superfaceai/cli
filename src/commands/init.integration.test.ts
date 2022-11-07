@@ -1,15 +1,11 @@
 import { EXTENSIONS } from '@superfaceai/ast';
 import { join as joinPath } from 'path';
 
-import {
-  GRID_DIR,
-  SUPER_PATH,
-  SUPERFACE_DIR,
-  TYPES_DIR,
-} from '../common/document';
-import { access, rimraf } from '../common/io';
+import { SUPER_PATH, SUPERFACE_DIR } from '../common/document';
+import { access, exists, rimraf } from '../common/io';
 import { messages } from '../common/messages';
-import { MockStd, mockStd } from '../test/mock-std';
+import type { MockStd } from '../test/mock-std';
+import { mockStd } from '../test/mock-std';
 import Init from './init';
 
 describe('Init CLI command', () => {
@@ -33,63 +29,35 @@ describe('Init CLI command', () => {
   it('initializes base folder', async () => {
     await expect(Init.run([testInitFolderPath])).resolves.toBeUndefined();
 
-    const expectedFiles = [SUPER_PATH];
-
-    const expectedDirectories = [SUPERFACE_DIR, TYPES_DIR, GRID_DIR];
-
     expect(stdout.output).toContain(
       messages.mkdir('fixtures/playgrounds/test/superface')
     );
 
     expect(stdout.output).toContain(
-      messages.mkdir('fixtures/playgrounds/test/superface/grid')
-    );
-    expect(stdout.output).toContain(
       messages.initSuperJson('fixtures/playgrounds/test/superface/super.json')
     );
-    expect(stdout.output).toContain(
-      messages.mkdir('fixtures/playgrounds/test/superface/types')
-    );
 
     await expect(
-      Promise.all(
-        expectedFiles.map(file => access(joinPath(testInitFolderPath, file)))
-      )
-    ).resolves.toBeDefined();
-
+      exists(joinPath(testInitFolderPath, SUPER_PATH))
+    ).resolves.toEqual(true);
     await expect(
-      Promise.all(
-        expectedDirectories.map(dir =>
-          access(joinPath(testInitFolderPath, dir))
-        )
-      )
-    ).resolves.toBeDefined();
+      exists(joinPath(testInitFolderPath, SUPERFACE_DIR))
+    ).resolves.toEqual(true);
   });
 
   it('initializes base folder with quiet mode', async () => {
     await expect(Init.run([testInitFolderPath, '-q'])).resolves.toBeUndefined();
-
-    const expectedFiles = [SUPER_PATH];
-
-    const expectedDirectories = [SUPERFACE_DIR, TYPES_DIR, GRID_DIR];
 
     expect(stdout.output).not.toContain(
       messages.mkdir('fixtures/playgrounds/test/superface')
     );
 
     await expect(
-      Promise.all(
-        expectedFiles.map(file => access(joinPath(testInitFolderPath, file)))
-      )
-    ).resolves.toBeDefined();
-
+      exists(joinPath(testInitFolderPath, SUPER_PATH))
+    ).resolves.toEqual(true);
     await expect(
-      Promise.all(
-        expectedDirectories.map(dir =>
-          access(joinPath(testInitFolderPath, dir))
-        )
-      )
-    ).resolves.toBeDefined();
+      exists(joinPath(testInitFolderPath, SUPERFACE_DIR))
+    ).resolves.toEqual(true);
   });
 
   it('initilizes base folder with specified profiles', async () => {
@@ -111,26 +79,22 @@ describe('Init CLI command', () => {
     ).resolves.toBeUndefined();
 
     const expectedFiles = [
-      joinPath(GRID_DIR, `${profile1.name}${EXTENSIONS.profile.source}`),
-      joinPath(GRID_DIR, profile2.scope),
-      joinPath(
-        GRID_DIR,
-        profile2.scope,
-        `${profile2.name}${EXTENSIONS.profile.source}`
-      ),
+      `${profile1.name}${EXTENSIONS.profile.source}`,
+      profile2.scope,
+      joinPath(profile2.scope, `${profile2.name}${EXTENSIONS.profile.source}`),
     ];
 
     expect(stdout.output).toContain(
       messages.createProfile(
         'my-profile@1.0.0',
-        'fixtures/playgrounds/test/superface/grid/my-profile.supr'
+        'fixtures/playgrounds/test/my-profile.supr'
       )
     );
 
     expect(stdout.output).toContain(
       messages.createProfile(
         'my-scope/my-profile@1.0.0',
-        'fixtures/playgrounds/test/superface/grid/my-scope/my-profile.supr'
+        'fixtures/playgrounds/test/my-scope/my-profile.supr'
       )
     );
 

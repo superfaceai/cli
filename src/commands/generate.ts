@@ -1,23 +1,28 @@
 import { flags as oclifFlags } from '@oclif/command';
-import { SuperJson } from '@superfaceai/one-sdk';
+import {
+  loadSuperJson,
+  NodeFileSystem,
+  normalizeSuperJsonDocument,
+} from '@superfaceai/one-sdk';
 import { parseDocumentId } from '@superfaceai/parser';
 import { join as joinPath } from 'path';
 
-import { Command, Flags } from '../common/command.abstract';
+import type { Flags } from '../common/command.abstract';
+import { Command } from '../common/command.abstract';
 import { META_FILE } from '../common/document';
-import { UserError } from '../common/error';
-import { ILogger } from '../common/log';
+import type { UserError } from '../common/error';
+import type { ILogger } from '../common/log';
 import { ProfileId } from '../common/profile';
 import { generate } from '../logic/generate';
 import { detectSuperJson } from '../logic/install';
 
 export default class Generate extends Command {
-  static hidden = true;
+  public static hidden = true;
 
-  static description =
+  public static description =
     'Generates types for specified profile or for all profiles in super.json.';
 
-  static flags = {
+  public static flags = {
     ...Command.flags,
     profileId: oclifFlags.string({
       description: 'Profile Id in format [scope/](optional)[name]',
@@ -31,9 +36,9 @@ export default class Generate extends Command {
     }),
   };
 
-  static strict = true;
+  public static strict = true;
 
-  static examples = [
+  public static examples = [
     '$ superface generate --profileId starwars/character-information',
     '$ superface generate --profileId starwars/character-information -s 3',
     '$ superface generate',
@@ -41,7 +46,7 @@ export default class Generate extends Command {
     '$ superface generate -q',
   ];
 
-  async run(): Promise<void> {
+  public async run(): Promise<void> {
     const { flags } = this.parse(Generate);
     await super.initialize(flags);
     await this.execute({
@@ -51,7 +56,7 @@ export default class Generate extends Command {
     });
   }
 
-  async execute({
+  public async execute({
     logger,
     userError,
     flags,
@@ -60,7 +65,10 @@ export default class Generate extends Command {
     userError: UserError;
     flags: Flags<typeof Generate.flags>;
   }): Promise<void> {
-    if (flags.scan && (typeof flags.scan !== 'number' || flags.scan > 5)) {
+    if (
+      flags.scan !== undefined &&
+      (typeof flags.scan !== 'number' || flags.scan > 5)
+    ) {
       throw userError(
         '--scan/-s : Number of levels to scan cannot be higher than 5',
         1
@@ -68,27 +76,29 @@ export default class Generate extends Command {
     }
 
     const superPath = await detectSuperJson(process.cwd(), flags.scan);
-    if (!superPath) {
+    if (superPath === undefined) {
       throw userError('Unable to generate, super.json not found', 1);
     }
     // Load super json
-    const loadedResult = await SuperJson.load(joinPath(superPath, META_FILE));
+    const superJsonPath = joinPath(superPath, META_FILE);
+    const loadedResult = await loadSuperJson(superJsonPath, NodeFileSystem);
     const superJson = loadedResult.match(
       v => v,
       err => {
         throw userError(`Unable to load super.json: ${err.formatShort()}`, 1);
       }
     );
+    const normalized = normalizeSuperJsonDocument(superJson);
     const profiles: { id: ProfileId; version?: string }[] = [];
     // Create generate requests
-    if (flags.profileId) {
+    if (flags.profileId !== undefined) {
       const parsedProfileId = parseDocumentId(flags.profileId);
       if (parsedProfileId.kind == 'error') {
         throw userError(`Invalid profile id: ${parsedProfileId.message}`, 1);
       }
-      const profileSettings = superJson.normalized.profiles[flags.profileId];
+      const profileSettings = normalized.profiles[flags.profileId];
 
-      if (!profileSettings) {
+      if (profileSettings === undefined) {
         throw userError(
           `Profile id: "${flags.profileId}" not found in super.json`,
           1
@@ -102,7 +112,7 @@ export default class Generate extends Command {
       });
     } else {
       for (const [profile, profileSettings] of Object.entries(
-        superJson.normalized.profiles
+        normalized.profiles
       )) {
         profiles.push({
           id: ProfileId.fromId(profile, { userError }),
@@ -112,7 +122,7 @@ export default class Generate extends Command {
       }
     }
 
-    await generate({ profiles, superJson }, { logger });
+    await generate({ profiles, superJson, superJsonPath }, { logger });
 
     logger.success('generatedSuccessfully');
   }

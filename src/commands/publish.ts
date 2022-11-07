@@ -1,15 +1,20 @@
 import { flags } from '@oclif/command';
 import { EXTENSIONS, isValidProviderName } from '@superfaceai/ast';
-import { SuperJson } from '@superfaceai/one-sdk';
+import {
+  loadSuperJson,
+  NodeFileSystem,
+  normalizeSuperJsonDocument,
+} from '@superfaceai/one-sdk';
 import { parseDocumentId } from '@superfaceai/parser';
 import inquirer from 'inquirer';
 import { join as joinPath } from 'path';
 
 import { META_FILE, UNVERIFIED_PROVIDER_PREFIX } from '../common';
-import { Command, Flags } from '../common/command.abstract';
-import { UserError } from '../common/error';
+import type { Flags } from '../common/command.abstract';
+import { Command } from '../common/command.abstract';
+import type { UserError } from '../common/error';
 import { getServicesUrl } from '../common/http';
-import { ILogger } from '../common/log';
+import type { ILogger } from '../common/log';
 import { OutputStream } from '../common/output-stream';
 import { ProfileId } from '../common/profile';
 import {
@@ -21,12 +26,12 @@ import { publish } from '../logic/publish';
 import Install from './install';
 
 export default class Publish extends Command {
-  static strict = true;
+  public static strict = true;
 
-  static description =
+  public static description =
     'Uploads map/profile/provider to Store. Published file must be locally linked in super.json. This command runs Check and Lint internaly to ensure quality';
 
-  static args = [
+  public static args = [
     {
       name: 'documentType',
       description: 'Document type of published file',
@@ -35,9 +40,9 @@ export default class Publish extends Command {
     },
   ];
 
-  static flags = {
+  public static flags = {
     ...Command.flags,
-    //Inputs
+    // Inputs
     profileId: flags.string({
       description: 'Profile Id in format [scope/](optional)[name]',
       required: true,
@@ -68,14 +73,14 @@ export default class Publish extends Command {
     }),
   };
 
-  static examples = [
+  public static examples = [
     '$ superface publish map --profileId starwars/character-information --providerName swapi -s 4',
     '$ superface publish profile --profileId starwars/character-information --providerName swapi -f',
     '$ superface publish provider --profileId starwars/character-information --providerName swapi -q',
     '$ superface publish profile --profileId starwars/character-information --providerName swapi --dryRun',
   ];
 
-  async run(): Promise<void> {
+  public async run(): Promise<void> {
     const { argv, flags } = this.parse(Publish);
     await super.initialize(flags);
 
@@ -87,7 +92,7 @@ export default class Publish extends Command {
     });
   }
 
-  async execute({
+  public async execute({
     logger,
     userError,
     flags,
@@ -110,19 +115,23 @@ export default class Publish extends Command {
       throw userError(`Invalid provider name: "${flags.providerName}"`, 1);
     }
 
-    if (flags.scan && (typeof flags.scan !== 'number' || flags.scan > 5)) {
+    if (
+      flags.scan !== undefined &&
+      (typeof flags.scan !== 'number' || flags.scan > 5)
+    ) {
       throw userError(
         '--scan/-s : Number of levels to scan cannot be higher than 5',
         1
       );
     }
 
-    //Load super json
+    // Load super json
     const superPath = await detectSuperJson(process.cwd(), flags.scan);
-    if (!superPath) {
+    if (superPath === undefined) {
       throw userError('Unable to publish, super.json not found', 1);
     }
-    const loadedResult = await SuperJson.load(joinPath(superPath, META_FILE));
+    const superJsonPath = joinPath(superPath, META_FILE);
+    const loadedResult = await loadSuperJson(superJsonPath, NodeFileSystem);
     const superJson = loadedResult.match(
       v => v,
       err => {
@@ -130,9 +139,10 @@ export default class Publish extends Command {
       }
     );
 
-    //Check if there is defined capability in super.json
-    const profileSettings = superJson.normalized.profiles[flags.profileId];
-    if (!profileSettings) {
+    // Check if there is defined capability in super.json
+    const normalized = normalizeSuperJsonDocument(superJson);
+    const profileSettings = normalized.profiles[flags.profileId];
+    if (profileSettings === undefined) {
       throw userError(
         `Unable to publish, profile: "${flags.profileId}" not found in super.json`,
         1
@@ -140,22 +150,22 @@ export default class Publish extends Command {
     }
     const profileProviderSettings =
       profileSettings.providers[flags.providerName];
-    if (!profileProviderSettings) {
+    if (profileProviderSettings === undefined) {
       throw userError(
         `Unable to publish, provider: "${flags.providerName}" not found in profile: "${flags.profileId}" in super.json`,
         1
       );
     }
 
-    const providerSettings = superJson.normalized.providers[flags.providerName];
-    if (!providerSettings) {
+    const providerSettings = normalized.providers[flags.providerName];
+    if (providerSettings === undefined) {
       throw userError(
         `Unable to publish, provider: "${flags.providerName}" not found in super.json`,
         1
       );
     }
 
-    //Publishing profile
+    // Publishing profile
     if (documentType === 'profile') {
       if (!('file' in profileSettings)) {
         throw userError(
@@ -170,7 +180,7 @@ export default class Publish extends Command {
         );
       }
 
-      //Publishing map
+      // Publishing map
     } else if (documentType === 'map') {
       if (!('file' in profileProviderSettings)) {
         throw userError(
@@ -184,7 +194,7 @@ export default class Publish extends Command {
           1
         );
       }
-      //Publishing provider
+      // Publishing provider
     } else if (documentType === 'provider') {
       if (!flags.providerName.startsWith(UNVERIFIED_PROVIDER_PREFIX)) {
         throw userError(
@@ -192,7 +202,10 @@ export default class Publish extends Command {
           1
         );
       }
-      if (!('file' in providerSettings) || !providerSettings.file) {
+      if (
+        !('file' in providerSettings) ||
+        providerSettings.file === undefined
+      ) {
         throw userError(
           'When publishing provider, provider must be locally linked in super.json',
           1
@@ -211,7 +224,7 @@ export default class Publish extends Command {
       );
     }
 
-    if (!flags.force) {
+    if (flags.force !== true) {
       const response: { upload: boolean } = await inquirer.prompt({
         name: 'upload',
         message: `Are you sure that you want to publish data to ${getServicesUrl()} registry?`,
@@ -237,6 +250,7 @@ export default class Publish extends Command {
       {
         publishing: documentType,
         superJson,
+        superJsonPath,
         profile: ProfileId.fromId(flags.profileId, { userError }),
         provider: flags.providerName,
         map,
@@ -245,12 +259,12 @@ export default class Publish extends Command {
           dryRun: flags.dryRun,
           json: flags.json,
           quiet: flags.quiet,
-          emoji: !flags.noEmoji,
+          emoji: flags.noEmoji !== true,
         },
       },
       { logger, userError }
     );
-    if (result) {
+    if (result !== undefined) {
       logger.warn('publishEndedWithErrors');
       this.log(result);
 
@@ -259,7 +273,7 @@ export default class Publish extends Command {
 
     logger.success('publishSuccessful', documentType);
     let transition = true;
-    if (!flags.force) {
+    if (flags.force !== true) {
       const prompt: { continue: boolean } = await inquirer.prompt({
         name: 'continue',
         message: `Do you want to switch to remote ${documentType} instead of a locally linked one?:`,
@@ -289,11 +303,15 @@ export default class Publish extends Command {
           kind: 'remote',
         });
       }
-      await OutputStream.writeOnce(superJson.path, superJson.stringified, {
-        force: flags.force,
-      });
+      await OutputStream.writeOnce(
+        superJsonPath,
+        JSON.stringify(superJson, undefined, 2),
+        {
+          force: flags.force,
+        }
+      );
 
-      logger.info('updateSuperJson', superJson.path);
+      logger.info('updateSuperJson', superJsonPath);
     }
   }
 }

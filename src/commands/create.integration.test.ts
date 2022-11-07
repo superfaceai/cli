@@ -1,4 +1,8 @@
-import { SuperJson } from '@superfaceai/one-sdk';
+import {
+  loadSuperJson,
+  NodeFileSystem,
+  normalizeSuperJsonDocument,
+} from '@superfaceai/one-sdk';
 import { getLocal } from 'mockttp';
 import { join as joinPath } from 'path';
 
@@ -19,7 +23,7 @@ import {
 const mockServer = getLocal();
 
 describe('Create CLI command', () => {
-  //File specific path
+  // File specific path
   const TEMP_PATH = joinPath('test', 'tmp');
   let documentName, provider;
   let tempDir: string;
@@ -31,6 +35,7 @@ describe('Create CLI command', () => {
     await mockResponsesForProfile(mockServer, 'communication/send-email');
     await mockResponsesForProvider(mockServer, 'swapi');
   });
+
   beforeEach(async () => {
     tempDir = await setUpTempDir(TEMP_PATH);
   });
@@ -44,7 +49,7 @@ describe('Create CLI command', () => {
   });
 
   describe('when creating new document', () => {
-    //Profile
+    // Profile
     it('creates profile with one usecase (with usecase name from cli)', async () => {
       documentName = 'sendsms';
 
@@ -73,10 +78,13 @@ describe('Create CLI command', () => {
       );
 
       const superJson = (
-        await SuperJson.load(joinPath(tempDir, 'superface', 'super.json'))
+        await loadSuperJson(
+          joinPath(tempDir, 'superface', 'super.json'),
+          NodeFileSystem
+        )
       ).unwrap();
 
-      expect(superJson.document).toEqual({
+      expect(superJson).toEqual({
         profiles: {
           [documentName]: {
             file: `../${documentName}.supr`,
@@ -113,10 +121,13 @@ describe('Create CLI command', () => {
       );
 
       const superJson = (
-        await SuperJson.load(joinPath(tempDir, 'superface', 'super.json'))
+        await loadSuperJson(
+          joinPath(tempDir, 'superface', 'super.json'),
+          NodeFileSystem
+        )
       ).unwrap();
 
-      expect(superJson.document).toEqual({
+      expect(superJson).toEqual({
         profiles: {
           [documentName]: {
             file: `../${documentName}.supr`,
@@ -164,10 +175,13 @@ describe('Create CLI command', () => {
       );
 
       const superJson = (
-        await SuperJson.load(joinPath(tempDir, 'superface', 'super.json'))
+        await loadSuperJson(
+          joinPath(tempDir, 'superface', 'super.json'),
+          NodeFileSystem
+        )
       ).unwrap();
 
-      expect(superJson.document).toEqual({
+      expect(superJson).toEqual({
         profiles: {
           [documentName]: {
             file: `../${documentName}.supr`,
@@ -176,7 +190,8 @@ describe('Create CLI command', () => {
         providers: {},
       });
     }, 20000);
-    //Map
+
+    // Map
     it('creates map with one usecase (with usecase name from cli)', async () => {
       documentName = 'communication/send-email';
       provider = 'twilio';
@@ -219,9 +234,12 @@ describe('Create CLI command', () => {
       );
 
       const superJson = (
-        await SuperJson.load(joinPath(tempDir, 'superface', 'super.json'))
+        await loadSuperJson(
+          joinPath(tempDir, 'superface', 'super.json'),
+          NodeFileSystem
+        )
       ).unwrap();
-      expect(superJson.normalized).toEqual({
+      expect(normalizeSuperJsonDocument(superJson)).toEqual({
         profiles: {
           [documentName]: {
             defaults: {},
@@ -305,9 +323,12 @@ describe('Create CLI command', () => {
       );
 
       const superJson = (
-        await SuperJson.load(joinPath(tempDir, 'superface', 'super.json'))
+        await loadSuperJson(
+          joinPath(tempDir, 'superface', 'super.json'),
+          NodeFileSystem
+        )
       ).unwrap();
-      expect(superJson.normalized).toEqual({
+      expect(normalizeSuperJsonDocument(superJson)).toEqual({
         profiles: {
           [documentName]: {
             defaults: {},
@@ -328,7 +349,8 @@ describe('Create CLI command', () => {
         providers: {},
       });
     }, 20000);
-    //Provider
+
+    // Provider
     it('creates one provider', async () => {
       documentName = 'sms/service';
       provider = 'twilio';
@@ -352,9 +374,12 @@ describe('Create CLI command', () => {
       );
 
       const superJson = (
-        await SuperJson.load(joinPath(tempDir, 'superface', 'super.json'))
+        await loadSuperJson(
+          joinPath(tempDir, 'superface', 'super.json'),
+          NodeFileSystem
+        )
       ).unwrap();
-      expect(superJson.normalized).toEqual({
+      expect(normalizeSuperJsonDocument(superJson)).toEqual({
         profiles: {},
         providers: {
           [provider]: {
@@ -397,9 +422,12 @@ describe('Create CLI command', () => {
       );
 
       const superJson = (
-        await SuperJson.load(joinPath(tempDir, 'superface', 'super.json'))
+        await loadSuperJson(
+          joinPath(tempDir, 'superface', 'super.json'),
+          NodeFileSystem
+        )
       ).unwrap();
-      expect(superJson.normalized).toEqual({
+      expect(normalizeSuperJsonDocument(superJson)).toEqual({
         profiles: {},
         providers: {
           [provider]: {
@@ -415,7 +443,8 @@ describe('Create CLI command', () => {
         },
       });
     }, 20000);
-    //Map and provider
+
+    // Map and provider
     it('creates map with one usecase and with provider', async () => {
       documentName = 'communication/send-email';
       provider = 'twilio';
@@ -467,10 +496,13 @@ describe('Create CLI command', () => {
       expect(createdFile).toEqual(providerTemplate.empty(provider));
 
       const superJson = (
-        await SuperJson.load(joinPath(tempDir, 'superface', 'super.json'))
+        await loadSuperJson(
+          joinPath(tempDir, 'superface', 'super.json'),
+          NodeFileSystem
+        )
       ).unwrap();
 
-      expect(superJson.normalized).toEqual({
+      expect(normalizeSuperJsonDocument(superJson)).toEqual({
         profiles: {
           [documentName]: {
             defaults: {},
@@ -539,10 +571,13 @@ describe('Create CLI command', () => {
       );
 
       const superJson = (
-        await SuperJson.load(joinPath(tempDir, 'superface', 'super.json'))
+        await loadSuperJson(
+          joinPath(tempDir, 'superface', 'super.json'),
+          NodeFileSystem
+        )
       ).unwrap();
 
-      expect(superJson.normalized).toEqual({
+      expect(normalizeSuperJsonDocument(superJson)).toEqual({
         profiles: {
           [documentName]: {
             defaults: {},
@@ -559,6 +594,7 @@ describe('Create CLI command', () => {
         providers: {},
       });
     }, 20000);
+
     it('creates profile & map with one usecase (with usecase name from cli)', async () => {
       documentName = 'sms/service';
       provider = 'twilio';
@@ -616,10 +652,13 @@ describe('Create CLI command', () => {
       );
 
       const superJson = (
-        await SuperJson.load(joinPath(tempDir, 'superface', 'super.json'))
+        await loadSuperJson(
+          joinPath(tempDir, 'superface', 'super.json'),
+          NodeFileSystem
+        )
       ).unwrap();
 
-      expect(superJson.normalized).toEqual({
+      expect(normalizeSuperJsonDocument(superJson)).toEqual({
         profiles: {
           [documentName]: {
             file: `../${documentName}.supr`,
@@ -695,10 +734,13 @@ describe('Create CLI command', () => {
       );
 
       const superJson = (
-        await SuperJson.load(joinPath(tempDir, 'superface', 'super.json'))
+        await loadSuperJson(
+          joinPath(tempDir, 'superface', 'super.json'),
+          NodeFileSystem
+        )
       ).unwrap();
 
-      expect(superJson.normalized).toEqual({
+      expect(normalizeSuperJsonDocument(superJson)).toEqual({
         profiles: {
           [documentName]: {
             file: `../${documentName}.supr`,
@@ -779,10 +821,13 @@ describe('Create CLI command', () => {
       );
 
       const superJson = (
-        await SuperJson.load(joinPath(tempDir, 'superface', 'super.json'))
+        await loadSuperJson(
+          joinPath(tempDir, 'superface', 'super.json'),
+          NodeFileSystem
+        )
       ).unwrap();
 
-      expect(superJson.normalized).toEqual({
+      expect(normalizeSuperJsonDocument(superJson)).toEqual({
         profiles: {
           [documentName]: {
             file: `../${documentName}.supr`,
@@ -799,7 +844,8 @@ describe('Create CLI command', () => {
         providers: {},
       });
     }, 20000);
-    //Profile & map & provider
+
+    // Profile & map & provider
     it('creates profile with version, multiple maps with multiple usecases, variant and multiple providers', async () => {
       documentName = 'sms/service';
       provider = 'twilio';
@@ -914,10 +960,13 @@ describe('Create CLI command', () => {
       expect(createdFile).toEqual(providerTemplate.empty(secondProvider));
 
       const superJson = (
-        await SuperJson.load(joinPath(tempDir, 'superface', 'super.json'))
+        await loadSuperJson(
+          joinPath(tempDir, 'superface', 'super.json'),
+          NodeFileSystem
+        )
       ).unwrap();
 
-      expect(superJson.normalized).toEqual({
+      expect(normalizeSuperJsonDocument(superJson)).toEqual({
         profiles: {
           [documentName]: {
             file: `../${documentName}.supr`,
@@ -951,7 +1000,7 @@ describe('Create CLI command', () => {
     }, 20000);
   });
 
-  //Profile & map & provider
+  // Profile & map & provider
   it('creates profile with version, map with multiple usecases and variant, provider and file names', async () => {
     documentName = 'sms/service';
     provider = 'twilio';
@@ -1035,10 +1084,13 @@ describe('Create CLI command', () => {
     expect(createdFile).toEqual(providerTemplate.empty(provider));
 
     const superJson = (
-      await SuperJson.load(joinPath(tempDir, 'superface', 'super.json'))
+      await loadSuperJson(
+        joinPath(tempDir, 'superface', 'super.json'),
+        NodeFileSystem
+      )
     ).unwrap();
 
-    expect(superJson.normalized).toEqual({
+    expect(normalizeSuperJsonDocument(superJson)).toEqual({
       profiles: {
         [documentName]: {
           file: `../${mockProfileFileName}.supr`,

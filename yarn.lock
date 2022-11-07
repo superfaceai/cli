@@ -906,20 +906,19 @@
     ajv "^8.8.2"
     ajv-formats "^2.1.1"
 
-"@superfaceai/one-sdk@^1.5.2":
-  version "1.5.2"
-  resolved "https://registry.yarnpkg.com/@superfaceai/one-sdk/-/one-sdk-1.5.2.tgz#754c2bbe3363671549308674c87ba359c9f60e9f"
-  integrity sha512-8dWrcktQBrUb3Y8M6MtbCW+0a70tbSnv7+/Oh4fKIxqdvKRTfFjJ3Bv/1LsPxLHlah0pta+cA5ZTXCBkIP6iTA==
+"@superfaceai/one-sdk@^2.0.0":
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/@superfaceai/one-sdk/-/one-sdk-2.0.0.tgz#7f212e7e40099037c83a3b7d4ff15a11b16b3ddf"
+  integrity sha512-ZbyBeRuxbXs3VqfywQqXXg+hk3/HLhv+pEMGdZecnoq8VC2++1pbdCW8sre1zhgBYqhsN1hruVvypxbKilpvnw==
   dependencies:
     "@superfaceai/ast" "1.2.0"
-    "@superfaceai/parser" "1.2.0"
     abort-controller "^3.0.0"
     cross-fetch "^3.1.5"
     debug "^4.3.2"
     isomorphic-form-data "^2.0.0"
     vm2 "^3.9.7"
 
-"@superfaceai/parser@1.2.0", "@superfaceai/parser@^1.2.0":
+"@superfaceai/parser@^1.2.0":
   version "1.2.0"
   resolved "https://registry.yarnpkg.com/@superfaceai/parser/-/parser-1.2.0.tgz#e89e64c9ec98ff2d1e4760c1441d88d945978a1d"
   integrity sha512-8nQ4x15F8mygKg4BcWwzqgDVTaY5BXanvCcxirL/jKLgpGUxH+808t0KmVc2Ke9o2MdiYt/2UD2hyfpwwqN9DA==
@@ -1337,9 +1336,9 @@ ajv@^6.10.0, ajv@^6.12.4:
     uri-js "^4.2.2"
 
 ajv@^8.0.0, ajv@^8.8.2:
-  version "8.10.0"
-  resolved "https://registry.yarnpkg.com/ajv/-/ajv-8.10.0.tgz#e573f719bd3af069017e3b66538ab968d040e54d"
-  integrity sha512-bzqAEZOjkrUMl2afH8dknrq5KEk2SrwdBROR+vH1EKVQTqaUbJVPdc/gEdggTMM0Se+s+Ja4ju4TlNcStKl2Hw==
+  version "8.11.0"
+  resolved "https://registry.yarnpkg.com/ajv/-/ajv-8.11.0.tgz#977e91dd96ca669f54a11e23e378e33b884a565f"
+  integrity sha512-wGgprdCvMalC0BztXvitD2hC04YffAvtsUn93JbGXYLAtCUO4xd17mCCZQxUOItiBwZvJScWo8NIvQMQ71rdpg==
   dependencies:
     fast-deep-equal "^3.1.1"
     json-schema-traverse "^1.0.0"
@@ -2260,6 +2259,11 @@ eslint-plugin-import@^2.23.4:
     read-pkg-up "^3.0.0"
     resolve "^1.20.0"
     tsconfig-paths "^3.9.0"
+
+eslint-plugin-jest-formatting@^3.1.0:
+  version "3.1.0"
+  resolved "https://registry.yarnpkg.com/eslint-plugin-jest-formatting/-/eslint-plugin-jest-formatting-3.1.0.tgz#b26dd5a40f432b642dcc880021a771bb1c93dcd2"
+  integrity sha512-XyysraZ1JSgGbLSDxjj5HzKKh0glgWf+7CkqxbTqb7zEhW7X2WHo5SBQ8cGhnszKN+2Lj3/oevBlHNbHezoc/A==
 
 eslint-plugin-jest@^24.3.6:
   version "24.3.6"

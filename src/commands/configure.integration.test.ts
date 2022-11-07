@@ -1,4 +1,8 @@
-import { SuperJson } from '@superfaceai/one-sdk';
+import {
+  loadSuperJson,
+  NodeFileSystem,
+  normalizeSuperJsonDocument,
+} from '@superfaceai/one-sdk';
 import { getLocal } from 'mockttp';
 import { join as joinPath } from 'path';
 
@@ -16,14 +20,13 @@ import {
 const mockServer = getLocal();
 
 describe('Configure CLI command', () => {
-  //File specific path
+  // File specific path
   const TEMP_PATH = joinPath('test', 'tmp');
   const profileId = 'starwars/character-information';
   const profileVersion = '1.0.1';
   const provider = 'swapi';
   const emptyProvider = 'empty';
   const providerWithoutSecurity = 'provider-without-security';
-
   const providerWithParameters = 'azure-cognitive-services';
   let tempDir: string;
 
@@ -47,6 +50,7 @@ describe('Configure CLI command', () => {
       'starwars/character-information'
     );
   });
+
   beforeEach(async () => {
     tempDir = await setUpTempDir(TEMP_PATH);
   });
@@ -79,11 +83,16 @@ describe('Configure CLI command', () => {
       ).resolves.toEqual(true);
 
       const superJson = (
-        await SuperJson.load(joinPath(tempDir, 'superface', 'super.json'))
+        await loadSuperJson(
+          joinPath(tempDir, 'superface', 'super.json'),
+          NodeFileSystem
+        )
       ).unwrap();
 
-      //Check super.json
-      expect(superJson.normalized.providers[provider].security).toEqual([
+      // Check super.json
+      expect(
+        normalizeSuperJsonDocument(superJson).providers[provider].security
+      ).toEqual([
         {
           id: 'api',
           apikey: `$${provider.toUpperCase()}_API_KEY`,
@@ -103,7 +112,7 @@ describe('Configure CLI command', () => {
           password: `$${provider.toUpperCase()}_PASSWORD`,
         },
       ]);
-      expect(superJson.document.profiles![profileId]).toEqual({
+      expect(superJson.profiles![profileId]).toEqual({
         version: profileVersion,
         priority: [provider],
         providers: { [provider]: {} },
@@ -121,7 +130,8 @@ describe('Configure CLI command', () => {
       result = await execCLI(
         tempDir,
         ['configure', providerWithParameters, '-p', profileId],
-        mockServer.url
+        mockServer.url,
+        { debug: true }
       );
       expect(result.stdout).toMatch(messages.allSecurityConfigured());
       expect(result.stdout).toMatch(
@@ -156,25 +166,25 @@ describe('Configure CLI command', () => {
       ).resolves.toEqual(true);
 
       const superJson = (
-        await SuperJson.load(joinPath(tempDir, 'superface', 'super.json'))
+        await loadSuperJson(
+          joinPath(tempDir, 'superface', 'super.json'),
+          NodeFileSystem
+        )
       ).unwrap();
+      const normalized = normalizeSuperJsonDocument(superJson);
 
-      //Check super.json
-      expect(
-        superJson.normalized.providers[providerWithParameters].security
-      ).toEqual([
+      // Check super.json
+      expect(normalized.providers[providerWithParameters].security).toEqual([
         {
           id: 'azure-subscription-key',
           apikey: '$AZURE_COGNITIVE_SERVICES_API_KEY',
         },
       ]);
-      expect(
-        superJson.normalized.providers[providerWithParameters].parameters
-      ).toEqual({
+      expect(normalized.providers[providerWithParameters].parameters).toEqual({
         instance: '$AZURE_COGNITIVE_SERVICES_INSTANCE',
         version: '$AZURE_COGNITIVE_SERVICES_VERSION',
       });
-      expect(superJson.document.profiles![profileId]).toEqual({
+      expect(superJson.profiles![profileId]).toEqual({
         version: profileVersion,
         priority: [providerWithParameters],
         providers: { [providerWithParameters]: {} },
@@ -200,13 +210,16 @@ describe('Configure CLI command', () => {
       );
 
       const superJson = (
-        await SuperJson.load(joinPath(tempDir, 'superface', 'super.json'))
+        await loadSuperJson(
+          joinPath(tempDir, 'superface', 'super.json'),
+          NodeFileSystem
+        )
       ).unwrap();
-      expect(superJson.document.providers![emptyProvider]).toEqual({
+      expect(superJson.providers![emptyProvider]).toEqual({
         security: [],
       });
 
-      expect(superJson.document.profiles![profileId]).toEqual({
+      expect(superJson.profiles![profileId]).toEqual({
         version: profileVersion,
         priority: [emptyProvider],
         providers: { [emptyProvider]: {} },
@@ -232,13 +245,16 @@ describe('Configure CLI command', () => {
       );
 
       const superJson = (
-        await SuperJson.load(joinPath(tempDir, 'superface', 'super.json'))
+        await loadSuperJson(
+          joinPath(tempDir, 'superface', 'super.json'),
+          NodeFileSystem
+        )
       ).unwrap();
-      expect(superJson.document.providers![providerWithoutSecurity]).toEqual({
+      expect(superJson.providers![providerWithoutSecurity]).toEqual({
         security: [],
       });
 
-      expect(superJson.document.profiles![profileId]).toEqual({
+      expect(superJson.profiles![profileId]).toEqual({
         version: profileVersion,
         priority: [providerWithoutSecurity],
         providers: { [providerWithoutSecurity]: {} },
@@ -266,11 +282,15 @@ describe('Configure CLI command', () => {
       ).resolves.toBe(true);
 
       const superJson = (
-        await SuperJson.load(joinPath(tempDir, 'superface', 'super.json'))
+        await loadSuperJson(
+          joinPath(tempDir, 'superface', 'super.json'),
+          NodeFileSystem
+        )
       ).unwrap();
+      const normalized = normalizeSuperJsonDocument(superJson);
 
-      //Check super.json
-      expect(superJson.normalized.providers[provider].security).toEqual([
+      // Check super.json
+      expect(normalized.providers[provider].security).toEqual([
         {
           id: 'api',
           apikey: `$${provider.toUpperCase()}_API_KEY`,
@@ -290,7 +310,7 @@ describe('Configure CLI command', () => {
           password: `$${provider.toUpperCase()}_PASSWORD`,
         },
       ]);
-      expect(superJson.document.profiles![profileId]).toEqual({
+      expect(superJson.profiles![profileId]).toEqual({
         version: profileVersion,
         priority: [provider],
         providers: { [provider]: {} },
@@ -300,7 +320,7 @@ describe('Configure CLI command', () => {
 
   describe('when providers are present in super.json', () => {
     it('uses existing provider without a force flag', async () => {
-      //set existing super.json
+      // set existing super.json
       const localSuperJson = {
         profiles: {
           [profileId]: {
@@ -338,17 +358,21 @@ describe('Configure CLI command', () => {
       );
 
       const superJson = (
-        await SuperJson.load(joinPath(tempDir, 'superface', 'super.json'))
+        await loadSuperJson(
+          joinPath(tempDir, 'superface', 'super.json'),
+          NodeFileSystem
+        )
       ).unwrap();
+      const normalized = normalizeSuperJsonDocument(superJson);
 
-      expect(superJson.normalized.providers[provider].security).toEqual([
+      expect(normalized.providers[provider].security).toEqual([
         {
           id: 'apiKey',
           apikey: '$TEST_API_KEY',
         },
       ]);
 
-      expect(superJson.document.profiles![profileId]).toEqual({
+      expect(superJson.profiles![profileId]).toEqual({
         version: profileVersion,
         priority: [provider],
         providers: { [provider]: {} },
@@ -356,7 +380,7 @@ describe('Configure CLI command', () => {
     }, 30000);
 
     it('overrides existing super.json with a force flag', async () => {
-      //set existing super.json
+      // set existing super.json
       const localSuperJson = {
         profiles: {
           [profileId]: {
@@ -390,14 +414,18 @@ describe('Configure CLI command', () => {
       );
 
       const superJson = (
-        await SuperJson.load(joinPath(tempDir, 'superface', 'super.json'))
+        await loadSuperJson(
+          joinPath(tempDir, 'superface', 'super.json'),
+          NodeFileSystem
+        )
       ).unwrap();
+      const normalized = normalizeSuperJsonDocument(superJson);
 
-      expect(
-        superJson.normalized.providers[providerWithoutSecurity].security
-      ).toEqual([]);
+      expect(normalized.providers[providerWithoutSecurity].security).toEqual(
+        []
+      );
 
-      expect(superJson.document.profiles![profileId]).toEqual({
+      expect(superJson.profiles![profileId]).toEqual({
         version: profileVersion,
         priority: [providerWithoutSecurity],
         providers: { [providerWithoutSecurity]: {} },
@@ -429,13 +457,18 @@ describe('Configure CLI command', () => {
 
       expect(result.stdout).toContain(messages.allSecurityConfigured());
       const superJson = (
-        await SuperJson.load(joinPath(tempDir, 'superface', 'super.json'))
+        await loadSuperJson(
+          joinPath(tempDir, 'superface', 'super.json'),
+          NodeFileSystem
+        )
       ).unwrap();
-      expect(superJson.normalized.providers[provider].file).toEqual(
+      const normalized = normalizeSuperJsonDocument(superJson);
+
+      expect(normalized.providers[provider].file).toEqual(
         expect.stringContaining(`../../../fixtures/providers/${provider}.json`)
       );
 
-      expect(superJson.normalized.providers[provider].security).toEqual([
+      expect(normalized.providers[provider].security).toEqual([
         {
           id: 'api',
           apikey: '$SWAPI_API_KEY',
@@ -456,7 +489,7 @@ describe('Configure CLI command', () => {
         },
       ]);
 
-      expect(superJson.document.profiles![profileId]).toEqual({
+      expect(superJson.profiles![profileId]).toEqual({
         version: profileVersion,
         priority: [provider],
         providers: { [provider]: {} },
@@ -464,7 +497,7 @@ describe('Configure CLI command', () => {
     }, 30000);
 
     it('does not load provider data from nonexistent file', async () => {
-      //set existing super.json
+      // set existing super.json
       const localSuperJson = {
         profiles: {
           [profileId]: {
@@ -497,10 +530,13 @@ describe('Configure CLI command', () => {
       );
 
       const finalSuperJson = (
-        await SuperJson.load(joinPath(tempDir, 'superface', 'super.json'))
+        await loadSuperJson(
+          joinPath(tempDir, 'superface', 'super.json'),
+          NodeFileSystem
+        )
       ).unwrap();
 
-      expect(finalSuperJson.document).toEqual(localSuperJson);
+      expect(finalSuperJson).toEqual(localSuperJson);
     }, 10000);
   });
 
@@ -528,10 +564,14 @@ describe('Configure CLI command', () => {
 
       expect(result.stdout).toContain(messages.allSecurityConfigured());
       const superJson = (
-        await SuperJson.load(joinPath(tempDir, 'superface', 'super.json'))
+        await loadSuperJson(
+          joinPath(tempDir, 'superface', 'super.json'),
+          NodeFileSystem
+        )
       ).unwrap();
+      const normalized = normalizeSuperJsonDocument(superJson);
 
-      expect(superJson.normalized.providers[provider].security).toEqual([
+      expect(normalized.providers[provider].security).toEqual([
         {
           id: 'api',
           apikey: '$SWAPI_API_KEY',
@@ -551,7 +591,7 @@ describe('Configure CLI command', () => {
           username: '$SWAPI_USERNAME',
         },
       ]);
-      expect(superJson.document.profiles![profileId]).toEqual({
+      expect(superJson.profiles![profileId]).toEqual({
         version: profileVersion,
         priority: [provider],
         providers: {

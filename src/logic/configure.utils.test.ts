@@ -1,10 +1,5 @@
-import {
-  ApiKeyPlacement,
-  HttpScheme,
-  ProviderJson,
-  SecurityScheme,
-  SecurityType,
-} from '@superfaceai/ast';
+import type { ProviderJson, SecurityScheme } from '@superfaceai/ast';
+import { ApiKeyPlacement, HttpScheme, SecurityType } from '@superfaceai/ast';
 import { mocked } from 'ts-jest/utils';
 
 import { MockLogger } from '../common';
@@ -14,6 +9,7 @@ import { isCompatible, prepareSecurityValues } from '.';
 jest.mock('../common/http', () => ({
   fetchProviders: jest.fn(),
 }));
+
 describe('Configure logic utils', () => {
   let logger: MockLogger;
 

@@ -1,14 +1,13 @@
+import type { SecurityScheme, SecurityValues } from '@superfaceai/ast';
 import {
   isApiKeySecurityScheme,
   isBasicAuthSecurityScheme,
   isBearerTokenSecurityScheme,
   isDigestSecurityScheme,
-  SecurityScheme,
-  SecurityValues,
 } from '@superfaceai/ast';
 
 import { fetchProviders } from '../common/http';
-import { ILogger } from '../common/log';
+import type { ILogger } from '../common/log';
 
 export function prepareSecurityValues(
   providerName: string,

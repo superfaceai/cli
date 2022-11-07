@@ -1,4 +1,4 @@
-import { SuperJson } from '@superfaceai/one-sdk';
+import { loadSuperJson, NodeFileSystem } from '@superfaceai/one-sdk';
 import { getLocal } from 'mockttp';
 import { Netrc } from 'netrc-parser';
 import { join as joinPath, resolve } from 'path';
@@ -23,7 +23,7 @@ import {
 const mockServer = getLocal();
 
 describe('Publish CLI command', () => {
-  //File specific path
+  // File specific path
   const TEMP_PATH = joinPath('test', 'tmp');
   let tempDir: string;
   let NETRC_FILENAME: string;
@@ -118,12 +118,13 @@ describe('Publish CLI command', () => {
     );
     await mockResponsesForPublish(mockServer);
   });
+
   beforeEach(async () => {
-    //Test specific netrc
+    // Test specific netrc
     tempDir = await setUpTempDir(TEMP_PATH, true);
     NETRC_FILENAME = '.netrc';
 
-    //Set mock refresh token in netrc
+    // Set mock refresh token in netrc
     const netRc = new Netrc(joinPath(tempDir, NETRC_FILENAME));
     await netRc.load();
     netRc.machines[mockServer.url] = { password: mockRefreshToken };
@@ -137,9 +138,10 @@ describe('Publish CLI command', () => {
   afterAll(async () => {
     await mockServer.stop();
   });
+
   describe('when publishing profile', () => {
     it('publishes profile with local map and provider', async () => {
-      const mockSuperJson = new SuperJson({
+      const mockSuperJson = {
         profiles: {
           [profileId.id]: {
             file: `../../../../${sourceFixture.profile}`,
@@ -155,12 +157,12 @@ describe('Publish CLI command', () => {
             file: `../../../../${sourceFixture.unverifiedProvider}`,
           },
         },
-      });
+      };
 
       await mkdir(joinPath(tempDir, 'superface'));
       await OutputStream.writeOnce(
         joinPath(tempDir, 'superface', 'super.json'),
-        mockSuperJson.stringified
+        JSON.stringify(mockSuperJson, undefined, 2)
       );
 
       const result = await execCLI(
@@ -176,10 +178,10 @@ describe('Publish CLI command', () => {
         mockServer.url,
         {
           inputs: [
-            //Confirm publish
+            // Confirm publish
             { value: 'y', timeout: 4000 },
             { value: ENTER, timeout: 500 },
-            //Confirm transition
+            // Confirm transition
             { value: 'y', timeout: 4000 },
             { value: ENTER, timeout: 500 },
           ],
@@ -205,12 +207,15 @@ describe('Publish CLI command', () => {
       expect(result.stdout).toContain(messages.publishProfile(profileId.id));
       expect(result.stdout).toContain(messages.publishSuccessful('profile'));
 
-      //Check super.json
+      // Check super.json
       const superJson = (
-        await SuperJson.load(joinPath(tempDir, 'superface', 'super.json'))
+        await loadSuperJson(
+          joinPath(tempDir, 'superface', 'super.json'),
+          NodeFileSystem
+        )
       ).unwrap();
 
-      expect(superJson.document).toEqual({
+      expect(superJson).toEqual({
         profiles: {
           [profileId.id]: {
             version: '1.0.1',
@@ -230,7 +235,7 @@ describe('Publish CLI command', () => {
     }, 30000);
 
     it('publishes profile with remote map and provider', async () => {
-      const mockSuperJson = new SuperJson({
+      const mockSuperJson = {
         profiles: {
           [profileId.id]: {
             file: `../../../../${sourceFixture.profile}`,
@@ -242,12 +247,12 @@ describe('Publish CLI command', () => {
         providers: {
           [unverifiedProvider]: {},
         },
-      });
+      };
 
       await mkdir(joinPath(tempDir, 'superface'));
       await OutputStream.writeOnce(
         joinPath(tempDir, 'superface', 'super.json'),
-        mockSuperJson.stringified
+        JSON.stringify(mockSuperJson, undefined, 2)
       );
 
       const result = await execCLI(
@@ -263,10 +268,10 @@ describe('Publish CLI command', () => {
         mockServer.url,
         {
           inputs: [
-            //Confirm publish
+            // Confirm publish
             { value: 'y', timeout: 4000 },
             { value: ENTER, timeout: 500 },
-            //Confirm transition
+            // Confirm transition
             { value: 'y', timeout: 4000 },
             { value: ENTER, timeout: 500 },
           ],
@@ -285,12 +290,15 @@ describe('Publish CLI command', () => {
       expect(result.stdout).toContain(messages.publishProfile(profileId.id));
       expect(result.stdout).toContain(messages.publishSuccessful('profile'));
 
-      //Check super.json
+      // Check super.json
       const superJson = (
-        await SuperJson.load(joinPath(tempDir, 'superface', 'super.json'))
+        await loadSuperJson(
+          joinPath(tempDir, 'superface', 'super.json'),
+          NodeFileSystem
+        )
       ).unwrap();
 
-      expect(superJson.document).toEqual({
+      expect(superJson).toEqual({
         profiles: {
           [profileId.id]: {
             version: '1.0.1',
@@ -306,7 +314,7 @@ describe('Publish CLI command', () => {
     }, 30000);
 
     it('publishes map with local profile and provider', async () => {
-      const mockSuperJson = new SuperJson({
+      const mockSuperJson = {
         profiles: {
           [profileId.id]: {
             file: `../../../../${sourceFixture.profile}`,
@@ -322,12 +330,12 @@ describe('Publish CLI command', () => {
             file: `../../../../${sourceFixture.unverifiedProvider}`,
           },
         },
-      });
+      };
 
       await mkdir(joinPath(tempDir, 'superface'));
       await OutputStream.writeOnce(
         joinPath(tempDir, 'superface', 'super.json'),
-        mockSuperJson.stringified
+        JSON.stringify(mockSuperJson, undefined, 2)
       );
 
       const result = await execCLI(
@@ -343,10 +351,10 @@ describe('Publish CLI command', () => {
         mockServer.url,
         {
           inputs: [
-            //Confirm publish
+            // Confirm publish
             { value: 'y', timeout: 4000 },
             { value: ENTER, timeout: 500 },
-            //Confirm transition
+            // Confirm transition
             { value: 'y', timeout: 4000 },
             { value: ENTER, timeout: 500 },
           ],
@@ -374,12 +382,15 @@ describe('Publish CLI command', () => {
       );
       expect(result.stdout).toContain(messages.publishSuccessful('map'));
 
-      //Check super.json
+      // Check super.json
       const superJson = (
-        await SuperJson.load(joinPath(tempDir, 'superface', 'super.json'))
+        await loadSuperJson(
+          joinPath(tempDir, 'superface', 'super.json'),
+          NodeFileSystem
+        )
       ).unwrap();
 
-      expect(superJson.document).toEqual({
+      expect(superJson).toEqual({
         profiles: {
           [profileId.id]: {
             file: `../../../../${sourceFixture.profile}`,
@@ -397,7 +408,7 @@ describe('Publish CLI command', () => {
     }, 30000);
 
     it('publishes map with remote profile and provider', async () => {
-      const mockSuperJson = new SuperJson({
+      const mockSuperJson = {
         profiles: {
           [profileId.id]: {
             version: profileVersion,
@@ -412,12 +423,12 @@ describe('Publish CLI command', () => {
         providers: {
           [unverifiedProvider]: {},
         },
-      });
+      };
 
       await mkdir(joinPath(tempDir, 'superface'));
       await OutputStream.writeOnce(
         joinPath(tempDir, 'superface', 'super.json'),
-        mockSuperJson.stringified
+        JSON.stringify(mockSuperJson, undefined, 2)
       );
 
       const result = await execCLI(
@@ -433,10 +444,10 @@ describe('Publish CLI command', () => {
         mockServer.url,
         {
           inputs: [
-            //Confirm publish
+            // Confirm publish
             { value: 'y', timeout: 4000 },
             { value: ENTER, timeout: 500 },
-            //Confirm transition
+            // Confirm transition
             { value: 'y', timeout: 4000 },
             { value: ENTER, timeout: 500 },
           ],
@@ -461,12 +472,15 @@ describe('Publish CLI command', () => {
       );
       expect(result.stdout).toContain(messages.publishSuccessful('map'));
 
-      //Check super.json
+      // Check super.json
       const superJson = (
-        await SuperJson.load(joinPath(tempDir, 'superface', 'super.json'))
+        await loadSuperJson(
+          joinPath(tempDir, 'superface', 'super.json'),
+          NodeFileSystem
+        )
       ).unwrap();
 
-      expect(superJson.document).toEqual({
+      expect(superJson).toEqual({
         profiles: {
           [profileId.id]: {
             version: profileVersion,
@@ -483,7 +497,7 @@ describe('Publish CLI command', () => {
     }, 30000);
 
     it('publishes provider with local profile and map', async () => {
-      const mockSuperJson = new SuperJson({
+      const mockSuperJson = {
         profiles: {
           [profileId.id]: {
             file: `../../../../${sourceFixture.profile}`,
@@ -499,12 +513,12 @@ describe('Publish CLI command', () => {
             file: `../../../../${sourceFixture.unverifiedProvider}`,
           },
         },
-      });
+      };
 
       await mkdir(joinPath(tempDir, 'superface'));
       await OutputStream.writeOnce(
         joinPath(tempDir, 'superface', 'super.json'),
-        mockSuperJson.stringified
+        JSON.stringify(mockSuperJson, undefined, 2)
       );
 
       const result = await execCLI(
@@ -520,10 +534,10 @@ describe('Publish CLI command', () => {
         mockServer.url,
         {
           inputs: [
-            //Confirm publish
+            // Confirm publish
             { value: 'y', timeout: 4000 },
             { value: ENTER, timeout: 500 },
-            //Confirm transition
+            // Confirm transition
             { value: 'y', timeout: 4000 },
             { value: ENTER, timeout: 500 },
           ],
@@ -551,12 +565,15 @@ describe('Publish CLI command', () => {
       );
       expect(result.stdout).toContain(messages.publishSuccessful('provider'));
 
-      //Check super.json
+      // Check super.json
       const superJson = (
-        await SuperJson.load(joinPath(tempDir, 'superface', 'super.json'))
+        await loadSuperJson(
+          joinPath(tempDir, 'superface', 'super.json'),
+          NodeFileSystem
+        )
       ).unwrap();
 
-      expect(superJson.document).toEqual({
+      expect(superJson).toEqual({
         profiles: {
           [profileId.id]: {
             file: `../../../../${sourceFixture.profile}`,
@@ -574,7 +591,7 @@ describe('Publish CLI command', () => {
     }, 30000);
 
     it('publishes provider with remote profile and map', async () => {
-      const mockSuperJson = new SuperJson({
+      const mockSuperJson = {
         profiles: {
           [profileId.id]: {
             version: profileVersion,
@@ -589,12 +606,12 @@ describe('Publish CLI command', () => {
             file: `../../../../${sourceFixture.unverifiedProvider}`,
           },
         },
-      });
+      };
 
       await mkdir(joinPath(tempDir, 'superface'));
       await OutputStream.writeOnce(
         joinPath(tempDir, 'superface', 'super.json'),
-        mockSuperJson.stringified
+        JSON.stringify(mockSuperJson, undefined, 2)
       );
 
       const result = await execCLI(
@@ -610,16 +627,17 @@ describe('Publish CLI command', () => {
         mockServer.url,
         {
           inputs: [
-            //Confirm publish
+            // Confirm publish
             { value: 'y', timeout: 4000 },
             { value: ENTER, timeout: 500 },
-            //Confirm transition
+            // Confirm transition
             { value: 'y', timeout: 4000 },
             { value: ENTER, timeout: 500 },
           ],
           env: { NETRC_FILEPATH: NETRC_FILENAME },
         }
       );
+
       expect(result.stdout).toContain(
         messages.fetchProfile(profileId.id, profileVersion)
       );
@@ -641,12 +659,15 @@ describe('Publish CLI command', () => {
       );
       expect(result.stdout).toContain(messages.publishSuccessful('provider'));
 
-      //Check super.json
+      // Check super.json
       const superJson = (
-        await SuperJson.load(joinPath(tempDir, 'superface', 'super.json'))
+        await loadSuperJson(
+          joinPath(tempDir, 'superface', 'super.json'),
+          NodeFileSystem
+        )
       ).unwrap();
 
-      expect(superJson.document).toEqual({
+      expect(superJson).toEqual({
         profiles: {
           [profileId.id]: {
             version: profileVersion,

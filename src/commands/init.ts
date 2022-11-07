@@ -4,10 +4,11 @@ import { parseProfileId } from '@superfaceai/parser';
 import inquirer from 'inquirer';
 import { join as joinPath } from 'path';
 
-import { Command, Flags } from '../common/command.abstract';
+import type { Flags } from '../common/command.abstract';
+import { Command } from '../common/command.abstract';
 import { constructProviderSettings } from '../common/document';
-import { UserError } from '../common/error';
-import { ILogger } from '../common/log';
+import type { UserError } from '../common/error';
+import type { ILogger } from '../common/log';
 import { OutputStream } from '../common/output-stream';
 import { generateSpecifiedProfiles, initSuperface } from '../logic/init';
 
@@ -77,16 +78,16 @@ async function promptProviders(logger: ILogger): Promise<string[]> {
 }
 
 export default class Init extends Command {
-  static description = 'Initializes superface local folder structure.';
+  public static description = 'Initializes superface local folder structure.';
 
-  static examples = [
+  public static examples = [
     'superface init',
     'superface init foo',
     'superface init foo --providers bar twilio',
     'superface init foo --profiles my-profile@1.1.0 another-profile@2.0 --providers osm gmaps',
   ];
 
-  static args = [
+  public static args = [
     {
       name: 'name',
       description: 'Name of parent directory.',
@@ -94,7 +95,7 @@ export default class Init extends Command {
     },
   ];
 
-  static flags = {
+  public static flags = {
     ...Command.flags,
     profiles: oclifFlags.string({
       multiple: true,
@@ -114,7 +115,7 @@ export default class Init extends Command {
     }),
   };
 
-  async run(): Promise<void> {
+  public async run(): Promise<void> {
     const { flags, args } = this.parse(Init);
     await super.initialize(flags);
     await this.execute({
@@ -125,7 +126,7 @@ export default class Init extends Command {
     });
   }
 
-  async execute({
+  public async execute({
     logger,
     userError,
     flags,
@@ -143,7 +144,7 @@ export default class Init extends Command {
       quiet: '',
     };
 
-    if (flags.prompt) {
+    if (flags.prompt === true) {
       logger.info(
         'initPrompt',
         hints.flags,
@@ -156,12 +157,12 @@ export default class Init extends Command {
     let profiles = flags.profiles;
     let providers = flags.providers;
 
-    if (flags.prompt) {
-      if (!flags.profiles || flags.profiles.length === 0) {
+    if (flags.prompt === true) {
+      if (flags.profiles === undefined || flags.profiles.length === 0) {
         profiles = await promptProfiles(logger);
       }
 
-      if (!flags.providers || flags.providers.length === 0) {
+      if (flags.providers === undefined || flags.providers.length === 0) {
         providers = await promptProviders(logger);
       }
     } else {
@@ -169,9 +170,9 @@ export default class Init extends Command {
       providers ??= [];
     }
 
-    const path = args.name ? joinPath('.', args.name) : '.';
+    const path = args.name !== undefined ? joinPath('.', args.name) : '.';
 
-    const superJson = await initSuperface(
+    const { superJson, superJsonPath } = await initSuperface(
       {
         appPath: path,
         initialDocument: {
@@ -183,10 +184,13 @@ export default class Init extends Command {
 
     if (profiles.length > 0) {
       await generateSpecifiedProfiles(
-        { path, superJson, profileIds: profiles },
+        { path, superJson, superJsonPath, profileIds: profiles },
         { logger, userError }
       );
-      await OutputStream.writeOnce(superJson.path, superJson.stringified);
+      await OutputStream.writeOnce(
+        superJsonPath,
+        JSON.stringify(superJson, undefined, 2)
+      );
     }
   }
 }

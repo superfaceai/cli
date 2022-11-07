@@ -1,4 +1,3 @@
-import { SuperJson } from '@superfaceai/one-sdk';
 import { getLocal } from 'mockttp';
 import { join as joinPath } from 'path';
 
@@ -9,7 +8,7 @@ import { execCLI, mockResponsesForProfile, setUpTempDir } from '../test/utils';
 const mockServer = getLocal();
 
 describe('Generate CLI command', () => {
-  //File specific path
+  // File specific path
   const TEMP_PATH = joinPath('test', 'tmp');
   let tempDir: string;
   const firstProfileId = 'starwars/character-information';
@@ -30,6 +29,7 @@ describe('Generate CLI command', () => {
       'send-email@1.0.1.supr'
     ),
   };
+
   beforeAll(async () => {
     await mkdir(TEMP_PATH, { recursive: true });
     await mockServer.start();
@@ -56,7 +56,7 @@ describe('Generate CLI command', () => {
 
   describe('when generating types', () => {
     it('generates types for specific local profile', async () => {
-      const mockSuperJson = new SuperJson({
+      const mockSuperJson = {
         profiles: {
           [firstProfileId]: {
             file: `../../../../${sourceFixture.firstProfile}`,
@@ -64,12 +64,12 @@ describe('Generate CLI command', () => {
           },
         },
         providers: {},
-      });
+      };
 
       await mkdir(joinPath(tempDir, 'superface'));
       await OutputStream.writeOnce(
         joinPath(tempDir, 'superface', 'super.json'),
-        mockSuperJson.stringified
+        JSON.stringify(mockSuperJson, undefined, 2)
       );
       const paths = [
         joinPath(
@@ -108,7 +108,7 @@ describe('Generate CLI command', () => {
     }, 30000);
 
     it('generates types for specific remote profile', async () => {
-      const mockSuperJson = new SuperJson({
+      const mockSuperJson = {
         profiles: {
           [firstProfileId]: {
             version: firstProfileVersion,
@@ -116,12 +116,12 @@ describe('Generate CLI command', () => {
           },
         },
         providers: {},
-      });
+      };
 
       await mkdir(joinPath(tempDir, 'superface'));
       await OutputStream.writeOnce(
         joinPath(tempDir, 'superface', 'super.json'),
-        mockSuperJson.stringified
+        JSON.stringify(mockSuperJson, undefined, 2)
       );
       const paths = [
         joinPath(
@@ -160,7 +160,7 @@ describe('Generate CLI command', () => {
     }, 30000);
 
     it('generates types for super.json with remote and local profile', async () => {
-      const mockSuperJson = new SuperJson({
+      const mockSuperJson = {
         profiles: {
           [firstProfileId]: {
             version: firstProfileVersion,
@@ -171,12 +171,12 @@ describe('Generate CLI command', () => {
           },
         },
         providers: {},
-      });
+      };
 
       await mkdir(joinPath(tempDir, 'superface'));
       await OutputStream.writeOnce(
         joinPath(tempDir, 'superface', 'super.json'),
-        mockSuperJson.stringified
+        JSON.stringify(mockSuperJson, undefined, 2)
       );
       const paths = [
         joinPath(

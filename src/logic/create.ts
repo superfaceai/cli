@@ -1,13 +1,20 @@
+import type { SuperJsonDocument } from '@superfaceai/ast';
 import { EXTENSIONS } from '@superfaceai/ast';
-import { SuperJson } from '@superfaceai/one-sdk';
-import { VersionRange } from '@superfaceai/parser';
+import {
+  loadSuperJson,
+  mergeProfile,
+  mergeProfileProvider,
+  mergeProvider,
+  NodeFileSystem,
+} from '@superfaceai/one-sdk';
+import type { VersionRange } from '@superfaceai/parser';
 import { join as joinPath } from 'path';
 
 import { composeVersion, META_FILE } from '../common/document';
-import { UserError } from '../common/error';
-import { ILogger } from '../common/log';
+import type { UserError } from '../common/error';
+import type { ILogger } from '../common/log';
 import { OutputStream } from '../common/output-stream';
-import { resolveSuperfaceRelatedPath } from '../common/path';
+import { resolveSuperfaceRelativePath } from '../common/path';
 import { ProfileId } from '../common/profile';
 import * as mapTemplate from '../templates/map';
 import * as profileTemplate from '../templates/profile';
@@ -23,6 +30,7 @@ export async function createProfile(
     version,
     usecaseNames,
     superJson,
+    superJsonPath,
     fileName,
     options,
   }: {
@@ -30,7 +38,8 @@ export async function createProfile(
     profile: ProfileId;
     version: VersionRange;
     usecaseNames: string[];
-    superJson?: SuperJson;
+    superJson?: SuperJsonDocument;
+    superJsonPath?: string;
     fileName?: string;
     options?: {
       force?: boolean;
@@ -38,11 +47,11 @@ export async function createProfile(
   },
   { logger }: { logger: ILogger }
 ): Promise<void> {
-  //Add extension if missing
-  if (fileName && !fileName.endsWith(EXTENSIONS.profile.source)) {
+  // Add extension if missing
+  if (fileName !== undefined && !fileName.endsWith(EXTENSIONS.profile.source)) {
     fileName = fileName + EXTENSIONS.profile.source;
   }
-  let filePath = fileName || `${profile.id}${EXTENSIONS.profile.source}`;
+  let filePath = fileName ?? `${profile.id}${EXTENSIONS.profile.source}`;
 
   const versionStr = composeVersion(version);
   filePath = joinPath(basePath, filePath);
@@ -58,10 +67,15 @@ export async function createProfile(
 
   if (created) {
     logger.success('createProfile', profile.withVersion(versionStr), filePath);
-    if (superJson) {
-      superJson.mergeProfile(profile.id, {
-        file: resolveSuperfaceRelatedPath(filePath, superJson),
-      });
+    if (superJson !== undefined && superJsonPath !== undefined) {
+      mergeProfile(
+        superJson,
+        profile.id,
+        {
+          file: resolveSuperfaceRelativePath(superJsonPath, filePath),
+        },
+        NodeFileSystem
+      );
     }
   }
 }
@@ -75,6 +89,7 @@ export async function createMap(
     id,
     usecaseNames,
     superJson,
+    superJsonPath,
     fileName,
     options,
   }: {
@@ -86,7 +101,8 @@ export async function createMap(
       version: VersionRange;
     };
     usecaseNames: string[];
-    superJson?: SuperJson;
+    superJson?: SuperJsonDocument;
+    superJsonPath?: string;
     fileName?: string;
     options?: {
       force?: boolean;
@@ -94,14 +110,14 @@ export async function createMap(
   },
   { logger }: { logger: ILogger }
 ): Promise<void> {
-  const variantName = id.variant ? `.${id.variant}` : '';
-  //Add extension if missing
-  if (fileName && !fileName.endsWith(EXTENSIONS.map.source)) {
+  const variantName = id.variant !== undefined ? `.${id.variant}` : '';
+  // Add extension if missing
+  if (fileName !== undefined && !fileName.endsWith(EXTENSIONS.map.source)) {
     fileName = fileName + EXTENSIONS.map.source;
   }
 
   let filePath =
-    fileName ||
+    fileName ??
     `${id.profile.id}.${id.provider}${variantName}${EXTENSIONS.map.source}`;
 
   const version = composeVersion(id.version, true);
@@ -124,10 +140,16 @@ export async function createMap(
       id.provider,
       filePath
     );
-    if (superJson) {
-      superJson.mergeProfileProvider(id.profile.id, id.provider, {
-        file: resolveSuperfaceRelatedPath(filePath, superJson),
-      });
+    if (superJson && superJsonPath !== undefined) {
+      mergeProfileProvider(
+        superJson,
+        id.profile.id,
+        id.provider,
+        {
+          file: resolveSuperfaceRelativePath(superJsonPath, filePath),
+        },
+        NodeFileSystem
+      );
     }
   }
 }
@@ -139,12 +161,14 @@ export async function createProviderJson(
     basePath,
     provider,
     superJson,
+    superJsonPath,
     fileName,
     options,
   }: {
     basePath: string;
     provider: string;
-    superJson?: SuperJson;
+    superJson?: SuperJsonDocument;
+    superJsonPath?: string;
     fileName?: string;
     options?: {
       force?: boolean;
@@ -152,12 +176,12 @@ export async function createProviderJson(
   },
   { logger }: { logger: ILogger }
 ): Promise<void> {
-  //Add extension if missing
-  if (fileName && !fileName.endsWith('.json')) {
+  // Add extension if missing
+  if (fileName !== undefined && !fileName.endsWith('.json')) {
     fileName = `${fileName}.json`;
   }
 
-  const filePath = joinPath(basePath, fileName || `${provider}.provider.json`);
+  const filePath = joinPath(basePath, fileName ?? `${provider}.provider.json`);
   const created = await OutputStream.writeIfAbsent(
     filePath,
     providerTemplate.empty(provider),
@@ -166,10 +190,15 @@ export async function createProviderJson(
 
   if (created) {
     logger.success('createProvider', provider, filePath);
-    if (superJson) {
-      superJson.mergeProvider(provider, {
-        file: resolveSuperfaceRelatedPath(filePath, superJson),
-      });
+    if (superJson && superJsonPath !== undefined) {
+      mergeProvider(
+        superJson,
+        provider,
+        {
+          file: resolveSuperfaceRelativePath(superJsonPath, filePath),
+        },
+        NodeFileSystem
+      );
     }
   }
 }
@@ -209,18 +238,18 @@ export async function create(
   },
   { logger, userError }: { logger: ILogger; userError: UserError }
 ): Promise<void> {
-  //Load super json if we have path
-  let superJson: SuperJson | undefined = undefined;
-  if (paths.superPath) {
-    const loadedResult = await SuperJson.load(
-      joinPath(paths.superPath, META_FILE)
-    );
+  // Load super json if we have path
+  let superJson: SuperJsonDocument | undefined = undefined;
+  let superJsonPath = undefined;
+  if (paths.superPath !== undefined) {
+    superJsonPath = joinPath(paths.superPath, META_FILE);
+    const loadedResult = await loadSuperJson(superJsonPath, NodeFileSystem);
     superJson = loadedResult.match(
       v => v,
       err => {
         logger.warn('errorMessage', err.formatLong());
 
-        return new SuperJson({});
+        return {};
       }
     );
   }
@@ -241,7 +270,7 @@ export async function create(
         2
       );
     }
-    if (!name) {
+    if (name === undefined) {
       throw userError(
         'Profile name must be provided when generating a map.',
         2
@@ -259,6 +288,7 @@ export async function create(
           },
           usecaseNames: usecases,
           superJson,
+          superJsonPath,
           fileName: fileNames?.map,
         },
         { logger }
@@ -278,6 +308,7 @@ export async function create(
           basePath: paths.basePath ?? '',
           provider,
           superJson,
+          superJsonPath,
           fileName: fileNames?.provider,
         },
         { logger }
@@ -285,7 +316,7 @@ export async function create(
     }
   }
   if (profile) {
-    if (!name) {
+    if (name === undefined) {
       throw userError(
         'Profile name must be provided when generating a profile.',
         2
@@ -298,6 +329,7 @@ export async function create(
         version,
         usecaseNames: usecases,
         superJson,
+        superJsonPath,
         fileName: fileNames?.profile,
       },
       { logger }
@@ -305,8 +337,11 @@ export async function create(
   }
 
   // write new information to super.json
-  if (superJson) {
-    await OutputStream.writeOnce(superJson.path, superJson.stringified);
-    logger.info('updateSuperJson', superJson.path);
+  if (superJson !== undefined && superJsonPath !== undefined) {
+    await OutputStream.writeOnce(
+      superJsonPath,
+      JSON.stringify(superJson, undefined, 2)
+    );
+    logger.info('updateSuperJson', superJsonPath);
   }
 }
