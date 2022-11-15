@@ -67,7 +67,7 @@ describe('Publish logic utils', () => {
       patch: 0,
     },
     parserVersion: {
-      major: 1,
+      major: 2,
       minor: 0,
       patch: 0,
     },
