@@ -1,68 +1,15 @@
 import type {
   NamedFieldDefinitionNode,
   NamedModelDefinitionNode,
-  ProfileDocumentNode,
   Type,
-  UseCaseDefinitionNode,
 } from '@superfaceai/ast';
 
-import { buildUseCaseExamples } from './example/build';
 import { getEnumModelDetails } from './get-enum-details';
 import { getListModelDetails } from './get-list-details';
 import { getObjectModelDetails } from './get-object-details';
 import { getScalarModelDetails } from './get-scalar-details';
 import { getUnionModelDetails } from './get-union-details';
-import type { Model } from './models/model-base';
-import type { UseCaseDetail } from './usecase-detail';
-
-export function prepareUseCaseDetails(
-  ast: ProfileDocumentNode
-): UseCaseDetail[] {
-  const namedModelDefinitionsCache: {
-    [key: string]: NamedModelDefinitionNode;
-  } = {};
-
-  const namedFieldDefinitionsCache: {
-    [key: string]: NamedFieldDefinitionNode;
-  } = {};
-
-  ast.definitions.forEach(definition => {
-    if (definition.kind === 'NamedFieldDefinition') {
-      namedFieldDefinitionsCache[definition.fieldName] = definition;
-    } else if (definition.kind === 'NamedModelDefinition') {
-      namedModelDefinitionsCache[definition.modelName] = definition;
-    }
-  });
-
-  return ast.definitions
-    .filter((definition): definition is UseCaseDefinitionNode => {
-      return definition.kind === 'UseCaseDefinition';
-    })
-    .map(usecase => ({
-      name: usecase.useCaseName,
-      title: usecase?.documentation?.title,
-      description: usecase?.documentation?.description,
-      error: getTypeDetails(
-        usecase?.error?.value,
-        undefined,
-        namedModelDefinitionsCache,
-        namedFieldDefinitionsCache
-      ),
-      input: getTypeDetails(
-        usecase?.input?.value,
-        undefined,
-        namedModelDefinitionsCache,
-        namedFieldDefinitionsCache
-      ),
-      result: getTypeDetails(
-        usecase?.result?.value,
-        undefined,
-        namedModelDefinitionsCache,
-        namedFieldDefinitionsCache
-      ),
-      ...buildUseCaseExamples(ast, usecase.useCaseName),
-    }));
-}
+import type { Model } from './models';
 
 export function getTypeDetails(
   astType: Type | undefined,

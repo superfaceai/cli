@@ -4,9 +4,9 @@ import type {
   UnionDefinitionNode,
 } from '@superfaceai/ast';
 
+import { getTypeDetails } from './get-type-details';
 import type { UnionModel } from './models';
 import { ModelType } from './models';
-import { getTypeDetails } from './prepare-usecase-detail';
 
 export function getUnionModelDetails(
   object: UnionDefinitionNode,

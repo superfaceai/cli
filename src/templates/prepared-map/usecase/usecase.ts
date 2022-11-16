@@ -1,8 +1,8 @@
 import type { UseCaseExample } from './example/usecase-example';
 import type { Model } from './models';
 
-/** Use case details */
-export interface UseCaseDetail {
+/** Use case */
+export interface UseCase {
   name: string;
   title?: string;
   description?: string;

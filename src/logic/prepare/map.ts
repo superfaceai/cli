@@ -9,7 +9,7 @@ import { readFile } from '../../common/io';
 import { OutputStream } from '../../common/output-stream';
 import { resolveSuperfaceRelativePath } from '../../common/path';
 import type { ProfileId } from '../../common/profile';
-import { serializeMap } from '../../templates/prepared-map';
+import { prepareMapTemplate } from '../../templates/prepared-map';
 import { loadProfileAst } from './utils';
 
 export async function prepareMap(
@@ -40,7 +40,7 @@ export async function prepareMap(
     { superJson, superJsonPath },
     { userError }
   );
-  const ast = await loadProfileAst(profileFile, { userError });
+  const profileAst = await loadProfileAst(profileFile, { userError });
 
   // Load provider
   const providerFile = await getProviderFile(
@@ -52,7 +52,7 @@ export async function prepareMap(
     JSON.parse(await readFile(providerFile, { encoding: 'utf-8' }))
   );
 
-  const mapTemplate = serializeMap(ast, provider);
+  const mapTemplate = prepareMapTemplate(profileAst, provider);
 
   // Write result
   let filePath: string;

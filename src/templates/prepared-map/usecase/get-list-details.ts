@@ -4,9 +4,9 @@ import type {
   NamedModelDefinitionNode,
 } from '@superfaceai/ast';
 
+import { getTypeDetails } from './get-type-details';
 import type { ListModel } from './models';
 import { ModelType } from './models';
-import { getTypeDetails } from './prepare-usecase-detail';
 
 export function getListModelDetails(
   list: ListDefinitionNode,

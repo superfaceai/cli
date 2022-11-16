@@ -3,9 +3,9 @@ import type { ProfileDocumentNode } from '@superfaceai/ast';
 import { ProfileId } from '../../common/profile';
 import MOCK_MAP_TEMPLATE from './mock-map-templates';
 import { makeRenderer } from './template-renderer';
-import { prepareUseCaseDetails } from './usecase-detail';
+import { prepareUseCaseDetails } from './usecase';
 
-export function serializeMockMap(profile: ProfileDocumentNode): string {
+export function prepareMockMapTemplate(profile: ProfileDocumentNode): string {
   const input = {
     version: {
       major: profile.header.version.major,

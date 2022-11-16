@@ -8,7 +8,7 @@ import type { UserError } from '../../common/error';
 import { OutputStream } from '../../common/output-stream';
 import { resolveSuperfaceRelativePath } from '../../common/path';
 import type { ProfileId } from '../../common/profile';
-import { serializeMockMap } from '../../templates/prepared-map';
+import { prepareMockMapTemplate } from '../../templates/prepared-map';
 import { loadProfileAst } from './utils';
 
 export async function prepareMockMap(
@@ -38,9 +38,9 @@ export async function prepareMockMap(
     { superJson, superJsonPath },
     { userError }
   );
-  const ast = await loadProfileAst(profileFile, { userError });
+  const profileAst = await loadProfileAst(profileFile, { userError });
 
-  const mockMapTemplate = serializeMockMap(ast);
+  const mockMapTemplate = prepareMockMapTemplate(profileAst);
 
   // Write result
   let filePath: string;

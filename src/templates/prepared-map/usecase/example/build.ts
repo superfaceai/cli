@@ -5,7 +5,7 @@ import type {
 } from '@superfaceai/ast';
 
 import { parseLiteralExample } from './example-tree';
-import { parse as parseType } from './structure-tree';
+import { parse as buildExampleFromAst } from './structure-tree';
 import type { UseCaseExample } from './usecase-example';
 
 export function buildUseCaseExamples(
@@ -31,19 +31,19 @@ export function buildUseCaseExamples(
     );
   }
 
-  let errorInput: UseCaseExample;
-  let successInput: UseCaseExample;
-  let error: UseCaseExample;
-  let result: UseCaseExample;
+  let errorInput: UseCaseExample | undefined;
+  let successInput: UseCaseExample | undefined;
+  let error: UseCaseExample | undefined;
+  let result: UseCaseExample | undefined;
 
-  const examples = findUseCaseExample(useCase);
+  const examples = findUseCaseExamples(useCase);
 
   if (examples.successExample?.input !== undefined) {
     successInput = parseLiteralExample(examples.successExample.input);
   } else {
     successInput =
       useCase.input !== undefined
-        ? parseType(ast, useCase.input.value)
+        ? buildExampleFromAst(ast, useCase.input.value)
         : undefined;
   }
 
@@ -52,7 +52,7 @@ export function buildUseCaseExamples(
   } else {
     result =
       useCase.result !== undefined
-        ? parseType(ast, useCase.result.value)
+        ? buildExampleFromAst(ast, useCase.result.value)
         : undefined;
   }
 
@@ -61,7 +61,7 @@ export function buildUseCaseExamples(
   } else {
     errorInput =
       useCase.input !== undefined
-        ? parseType(ast, useCase.input.value)
+        ? buildExampleFromAst(ast, useCase.input.value)
         : undefined;
   }
 
@@ -70,7 +70,7 @@ export function buildUseCaseExamples(
   } else {
     error =
       useCase.error !== undefined
-        ? parseType(ast, useCase.error.value)
+        ? buildExampleFromAst(ast, useCase.error.value)
         : undefined;
   }
 
@@ -86,7 +86,7 @@ export function buildUseCaseExamples(
   };
 }
 
-function findUseCaseExample(
+function findUseCaseExamples(
   usecase: UseCaseDefinitionNode
 ): {
   errorExample?: {
@@ -98,11 +98,16 @@ function findUseCaseExample(
     result?: ComlinkLiteralNode;
   };
 } {
-  let successExample = undefined;
-  let errorExample = undefined;
+  const examples: {
+    successExample?: {
+      input?: ComlinkLiteralNode;
+      result?: ComlinkLiteralNode;
+    };
+    errorExample?: { input?: ComlinkLiteralNode; error?: ComlinkLiteralNode };
+  } = { successExample: undefined, errorExample: undefined };
 
   if (usecase.examples === undefined || usecase.examples.length === 0)
-    return { successExample: undefined, errorExample: undefined };
+    return examples;
 
   const exampleNodes = usecase.examples.filter(
     slot =>
@@ -118,21 +123,18 @@ function findUseCaseExample(
   )?.value;
 
   if (successExampleNode !== undefined) {
-    successExample = {
+    examples.successExample = {
       input: successExampleNode.input?.value,
       result: successExampleNode.result?.value,
     };
   }
 
   if (errorExampleNode !== undefined) {
-    errorExample = {
+    examples.errorExample = {
       input: errorExampleNode.input?.value,
       error: errorExampleNode.error?.value,
     };
   }
 
-  return {
-    successExample,
-    errorExample,
-  };
+  return examples;
 }

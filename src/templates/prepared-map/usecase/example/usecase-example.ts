@@ -29,8 +29,4 @@ export type ExampleArray = {
   items: (ExampleArray | ExampleObject | ExampleScalar)[];
 };
 
-export type UseCaseExample =
-  | ExampleArray
-  | ExampleObject
-  | ExampleScalar
-  | undefined;
+export type UseCaseExample = ExampleArray | ExampleObject | ExampleScalar;

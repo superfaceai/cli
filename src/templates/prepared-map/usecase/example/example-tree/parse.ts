@@ -15,11 +15,7 @@ import type {
 export function parseObjectLiteral(
   node: ComlinkObjectLiteralNode
 ): ExampleObject {
-  const properties: ({ name: string } & (
-    | ExampleArray
-    | ExampleScalar
-    | ExampleObject
-  ))[] = [];
+  const properties: ExampleObject['properties'] = [];
   for (const field of node.fields) {
     if (field.value.kind === 'ComlinkPrimitiveLiteral') {
       properties.push({
@@ -46,21 +42,11 @@ export function parseObjectLiteral(
 }
 
 export function parseListLiteral(node: ComlinkListLiteralNode): ExampleArray {
-  const items: (ExampleArray | ExampleObject | ExampleScalar)[] = [];
-
-  for (const item of node.items) {
-    if (item.kind === 'ComlinkPrimitiveLiteral') {
-      items.push(parsePrimitiveLiteral(item));
-    } else if (item.kind === 'ComlinkListLiteral') {
-      items.push(parseListLiteral(item));
-    } else {
-      items.push(parseObjectLiteral(item));
-    }
-  }
-
   return {
     kind: 'array',
-    items,
+    items: node.items
+      .map(parseLiteralExample)
+      .filter((i): i is UseCaseExample => i !== undefined),
   };
 }
 
@@ -78,7 +64,7 @@ export function parsePrimitiveLiteral(
 
 export function parseLiteralExample(
   exampleNode: ComlinkLiteralNode
-): UseCaseExample {
+): UseCaseExample | undefined {
   if (exampleNode === undefined) {
     return undefined;
   }

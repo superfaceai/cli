@@ -1,6 +1,7 @@
 import type {
   EnumDefinitionNode,
   ListDefinitionNode,
+  ModelTypeNameNode,
   NamedFieldDefinitionNode,
   NamedModelDefinitionNode,
   ObjectDefinitionNode,
@@ -64,13 +65,8 @@ export function visit(
     case 'EnumDefinition':
       return visitEnumNode(node);
     case 'ModelTypeName': {
-      const foundNode = namedModelDefinitionsCache[node.name];
-      if (foundNode.type === undefined) {
-        throw new Error('Type not found');
-      }
-
-      return visit(
-        foundNode.type,
+      return visitNamedModelNode(
+        node,
         namedModelDefinitionsCache,
         namedFieldDefinitionsCache
       );
@@ -90,6 +86,27 @@ export function visit(
     default:
       throw new Error(`Invalid kind: ${node?.kind ?? 'undefined'}`);
   }
+}
+
+function visitNamedModelNode(
+  node: ModelTypeNameNode,
+  namedModelDefinitionsCache: {
+    [key: string]: NamedModelDefinitionNode;
+  },
+  namedFieldDefinitionsCache: {
+    [key: string]: NamedFieldDefinitionNode;
+  }
+): ExampleArray | ExampleObject | ExampleScalar {
+  const foundNode = namedModelDefinitionsCache[node.name];
+  if (foundNode.type === undefined) {
+    throw new Error('Type not found');
+  }
+
+  return visit(
+    foundNode.type,
+    namedModelDefinitionsCache,
+    namedFieldDefinitionsCache
+  );
 }
 
 function visitUnionNode(

@@ -4,9 +4,9 @@ import type {
   ObjectDefinitionNode,
 } from '@superfaceai/ast';
 
+import { getTypeDetails } from './get-type-details';
 import type { ObjectModel } from './models';
 import { ModelType } from './models';
-import { getTypeDetails } from './prepare-usecase-detail';
 
 export function getObjectModelDetails(
   object: ObjectDefinitionNode,
