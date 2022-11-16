@@ -278,8 +278,9 @@ describe('Quickstart logic', () => {
         .mockResolvedValueOnce({ value: 'sendgridBearer' })
         // Select security schema
         .mockResolvedValueOnce({
-          schema: normalizeSuperJsonDocument(mockSuperJson).providers['test']
-            .security[0],
+          schema:
+            normalizeSuperJsonDocument(mockSuperJson).providers['test']
+              .security[0],
         })
         // Set digest
         .mockResolvedValueOnce({ value: 'testDigestUsername' })
@@ -451,8 +452,9 @@ describe('Quickstart logic', () => {
         .mockResolvedValueOnce({ value: 'sendgridBearer' })
         // Select security schema
         .mockResolvedValueOnce({
-          schema: normalizeSuperJsonDocument(mockSuperJson).providers['test']
-            .security[1],
+          schema:
+            normalizeSuperJsonDocument(mockSuperJson).providers['test']
+              .security[1],
         })
         // Set test digest
         .mockResolvedValueOnce({ value: 'testApiKey' })
@@ -794,8 +796,9 @@ describe('Quickstart logic', () => {
         .mockResolvedValueOnce({ value: 'mailgunPassword' })
         // Select security schema
         .mockResolvedValueOnce({
-          schema: normalizeSuperJsonDocument(mockSuperJson).providers['test']
-            .security[0],
+          schema:
+            normalizeSuperJsonDocument(mockSuperJson).providers['test']
+              .security[0],
         })
         // Set test digest
         .mockResolvedValueOnce({ value: 'testDigestUsername' })
