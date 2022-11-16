@@ -918,10 +918,10 @@
     isomorphic-form-data "^2.0.0"
     vm2 "^3.9.7"
 
-"@superfaceai/parser@^1.2.0":
-  version "1.2.0"
-  resolved "https://registry.yarnpkg.com/@superfaceai/parser/-/parser-1.2.0.tgz#e89e64c9ec98ff2d1e4760c1441d88d945978a1d"
-  integrity sha512-8nQ4x15F8mygKg4BcWwzqgDVTaY5BXanvCcxirL/jKLgpGUxH+808t0KmVc2Ke9o2MdiYt/2UD2hyfpwwqN9DA==
+"@superfaceai/parser@^2.0.0":
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/@superfaceai/parser/-/parser-2.0.0.tgz#d498486471dacac7a408d4fbbd5068aaa3ffc12c"
+  integrity sha512-gIWixVU/gbqIQ+QhomqKTHiddSzwEbo3+XkNRdAQ3L6qRaMJy5HFdFsZWiS45cNDwJNlqK2GF5JAPcmInlOucg==
   dependencies:
     "@superfaceai/ast" "^1.2.0"
     "@types/debug" "^4.1.5"
@@ -5339,15 +5339,10 @@ typedarray@^0.0.6:
   resolved "https://registry.yarnpkg.com/typedarray/-/typedarray-0.0.6.tgz#867ac74e3864187b1d3d47d996a78ec5c8830777"
   integrity sha1-hnrHTjhkGHsdPUfZlqeOxciDB3c=
 
-typescript@^4:
+typescript@^4, typescript@^4.0.5:
   version "4.3.5"
   resolved "https://registry.yarnpkg.com/typescript/-/typescript-4.3.5.tgz#4d1c37cc16e893973c45a06886b7113234f119f4"
   integrity sha512-DqQgihaQ9cUrskJo9kIyW/+g0Vxsk8cDtZ52a3NGh0YNTfpUSArXSohyUGnvbPazEPLu398C0UxmKSOrPumUzA==
-
-typescript@^4.0.5:
-  version "4.2.2"
-  resolved "https://registry.yarnpkg.com/typescript/-/typescript-4.2.2.tgz#1450f020618f872db0ea17317d16d8da8ddb8c4c"
-  integrity sha512-tbb+NVrLfnsJy3M59lsDgrzWIflR4d4TIUjz+heUnHZwdF7YsrMTKoRERiIvI2lvBG95dfpLxB21WZhys1bgaQ==
 
 ultron@~1.1.0:
   version "1.1.1"
