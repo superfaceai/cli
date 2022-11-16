@@ -84,7 +84,7 @@ export function capitalize(input: string): string {
  * Transforms a kebap-case string to camelCase
  */
 export function camelize(input: string): string {
-  return input.replace(/[-/](\w)/g, (_, repl) => {
+  return input.replace(/[-/](\w)/g, (_, repl: string) => {
     return capitalize(repl);
   });
 }
