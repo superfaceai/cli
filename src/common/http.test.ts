@@ -1,7 +1,6 @@
 import type { AstMetadata, ProviderJson } from '@superfaceai/ast';
 import { ApiKeyPlacement, HttpScheme, SecurityType } from '@superfaceai/ast';
 import { ServiceApiError, ServiceClient } from '@superfaceai/service-client';
-import { mocked } from 'ts-jest/utils';
 
 import type { SuperfaceClient } from '../common/http';
 import {
@@ -39,7 +38,7 @@ describe('SuperfaceClient', () => {
         baseUrl: 'baseUrl',
         refreshToken: 'RT',
       };
-      mocked(loadNetrc).mockReturnValue(mockNetRcRecord);
+      jest.mocked(loadNetrc).mockReturnValue(mockNetRcRecord);
       const client = sfClient.getClient();
 
       expect(client).toEqual({
