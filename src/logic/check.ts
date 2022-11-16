@@ -60,17 +60,17 @@ type CheckIntegrationParametersResult = {
  */
 export type CheckResult =
   | (CheckMapProfileResult & {
-      profileFrom: ProfileFromMetadata;
-      mapFrom: MapFromMetadata;
-    })
+    profileFrom: ProfileFromMetadata;
+    mapFrom: MapFromMetadata;
+  })
   | (CheckMapProviderResult & {
-      mapFrom: MapFromMetadata;
-      providerFrom: ProviderFromMetadata;
-    })
+    mapFrom: MapFromMetadata;
+    providerFrom: ProviderFromMetadata;
+  })
   | (CheckIntegrationParametersResult & {
-      providerFrom: ProviderFromMetadata;
-      superJsonPath: string;
-    });
+    providerFrom: ProviderFromMetadata;
+    superJsonPath: string;
+  });
 
 export type CheckIssue = { kind: 'error' | 'warn'; message: string };
 
@@ -203,7 +203,6 @@ export function checkMapAndProvider(
   try {
     assertProviderJson(provider);
   } catch (error) {
-    // console.log(require('util').inspect(error, false, 10));
     if (isProviderParseError(error)) {
       error.errors.forEach(([message, path]) => {
         results.push({
@@ -226,9 +225,8 @@ export function checkMapAndProvider(
     });
   }
 
-  const profileId = `${
-    map.header.profile.scope !== undefined ? `${map.header.profile.scope}/` : ''
-  }${map.header.profile.name}`;
+  const profileId = `${map.header.profile.scope !== undefined ? `${map.header.profile.scope}/` : ''
+    }${map.header.profile.name}`;
 
   return {
     kind: 'mapProvider',
@@ -318,9 +316,8 @@ export function checkMapAndProfile(
     }
   }
 
-  const profileId = `${
-    profile.header.scope !== undefined ? `${profile.header.scope}/` : ''
-  }${profile.header.name}@${composeVersion(profile.header.version)}`;
+  const profileId = `${profile.header.scope !== undefined ? `${profile.header.scope}/` : ''
+    }${profile.header.name}@${composeVersion(profile.header.version)}`;
 
   return {
     kind: 'profileMap',
@@ -363,9 +360,8 @@ export function formatHuman({
       if (result.profileFrom.kind === 'local') {
         message += `Checking local profile "${result.profileId}" at path\n"${result.profileFrom.path}"`;
       } else {
-        message += `Checking remote profile "${
-          ProfileId.fromId(result.profileId).withoutVersion
-        }" with version "${result.profileFrom.version}" `;
+        message += `Checking remote profile "${ProfileId.fromId(result.profileId).withoutVersion
+          }" with version "${result.profileFrom.version}" `;
       }
       // Map
       if (result.mapFrom.kind === 'local') {

@@ -22,9 +22,9 @@ export async function findLocalProfileAst(
   if (profileSettings !== undefined && 'file' in profileSettings) {
     const path = profileSettings.file.endsWith(EXTENSIONS.profile.source)
       ? profileSettings.file.replace(
-          EXTENSIONS.profile.source,
-          EXTENSIONS.profile.build
-        )
+        EXTENSIONS.profile.source,
+        EXTENSIONS.profile.build
+      )
       : profileSettings.file;
     const resolvedPath = resolvePath(dirname(superJsonPath), path);
     if (await exists(resolvedPath)) {
