@@ -1,5 +1,3 @@
-import { mocked } from 'ts-jest/utils';
-
 import { createUserError } from '../common/error';
 import { exists } from '../common/io';
 import { ProfileId } from '../common/profile';
@@ -17,7 +15,7 @@ describe('Quickstart logic', () => {
   describe('when checking that profile already exists', () => {
     it('returns true if source file exists', async () => {
       const mockSuperJson = {};
-      mocked(exists).mockResolvedValue(true);
+      jest.mocked(exists).mockResolvedValue(true);
 
       await expect(
         profileExists(mockSuperJson, '', {
@@ -31,7 +29,7 @@ describe('Quickstart logic', () => {
 
     it('returns false if source file does not exist', async () => {
       const mockSuperJson = {};
-      mocked(exists).mockResolvedValue(false);
+      jest.mocked(exists).mockResolvedValue(false);
 
       await expect(
         profileExists(mockSuperJson, '', {
@@ -59,7 +57,10 @@ describe('Quickstart logic', () => {
           },
         },
       };
-      mocked(exists).mockResolvedValueOnce(false).mockResolvedValueOnce(true);
+      jest
+        .mocked(exists)
+        .mockResolvedValueOnce(false)
+        .mockResolvedValueOnce(true);
 
       await expect(
         profileExists(mockSuperJson, '', {
@@ -87,7 +88,10 @@ describe('Quickstart logic', () => {
           },
         },
       };
-      mocked(exists).mockResolvedValueOnce(false).mockResolvedValueOnce(true);
+      jest
+        .mocked(exists)
+        .mockResolvedValueOnce(false)
+        .mockResolvedValueOnce(true);
 
       await expect(
         profileExists(mockSuperJson, '', {

@@ -1,5 +1,4 @@
 import { join } from 'path';
-import { mocked } from 'ts-jest/utils';
 
 import { MockLogger } from '.';
 import { execShell, exists } from './io';
@@ -27,13 +26,13 @@ describe('Package manager', () => {
 
   describe('when checking package.json existence', () => {
     it('return true when package.json exists', async () => {
-      mocked(execShell).mockResolvedValue({
+      jest.mocked(execShell).mockResolvedValue({
         stderr: '',
         stdout: 'some/path\n',
       });
 
-      mocked(join).mockReturnValue('some/path/package.json');
-      mocked(exists).mockResolvedValueOnce(true);
+      jest.mocked(join).mockReturnValue('some/path/package.json');
+      jest.mocked(exists).mockResolvedValueOnce(true);
 
       await expect(packageManager.packageJsonExists()).resolves.toEqual(true);
 
@@ -44,13 +43,13 @@ describe('Package manager', () => {
     });
 
     it('return false when package.json does not exist', async () => {
-      mocked(execShell).mockResolvedValue({
+      jest.mocked(execShell).mockResolvedValue({
         stderr: '',
         stdout: 'some/path\n',
       });
 
-      mocked(join).mockReturnValue('some/path/package.json');
-      mocked(exists).mockResolvedValueOnce(false);
+      jest.mocked(join).mockReturnValue('some/path/package.json');
+      jest.mocked(exists).mockResolvedValueOnce(false);
 
       await expect(packageManager.packageJsonExists()).resolves.toEqual(false);
 
@@ -61,13 +60,13 @@ describe('Package manager', () => {
     });
 
     it('return false when path does not exist', async () => {
-      mocked(execShell).mockResolvedValue({
+      jest.mocked(execShell).mockResolvedValue({
         stderr: 'some-error',
         stdout: 'some/path\n',
       });
 
-      mocked(join).mockReturnValue('some/path/package.json');
-      mocked(exists).mockResolvedValueOnce(true);
+      jest.mocked(join).mockReturnValue('some/path/package.json');
+      jest.mocked(exists).mockResolvedValueOnce(true);
 
       await expect(packageManager.packageJsonExists()).resolves.toEqual(false);
 
@@ -83,13 +82,14 @@ describe('Package manager', () => {
 
   describe('when initializing package manager', () => {
     it('returns true for npm', async () => {
-      mocked(execShell)
+      jest
+        .mocked(execShell)
         .mockResolvedValueOnce({ stderr: '', stdout: 'some/path\n' })
         .mockResolvedValueOnce({ stderr: '', stdout: 'some-logs' });
 
-      mocked(join).mockReturnValue('some/path/package-lock.json');
+      jest.mocked(join).mockReturnValue('some/path/package-lock.json');
       // Package.lock does not exist
-      mocked(exists).mockResolvedValue(false);
+      jest.mocked(exists).mockResolvedValue(false);
 
       await expect(packageManager.init('npm')).resolves.toEqual(true);
 
@@ -106,13 +106,14 @@ describe('Package manager', () => {
     });
 
     it('returns true for yarn', async () => {
-      mocked(execShell)
+      jest
+        .mocked(execShell)
         .mockResolvedValueOnce({ stderr: '', stdout: 'some/path\n' })
         .mockResolvedValueOnce({ stderr: 'some warning', stdout: '' });
 
-      mocked(join).mockReturnValue('some/path/yarn.lock');
+      jest.mocked(join).mockReturnValue('some/path/yarn.lock');
       // Package.lock does not exist
-      mocked(exists).mockResolvedValue(false);
+      jest.mocked(exists).mockResolvedValue(false);
 
       await expect(packageManager.init('yarn')).resolves.toEqual(true);
 
@@ -131,13 +132,15 @@ describe('Package manager', () => {
     });
 
     it('returns false when pm is already initialized', async () => {
-      mocked(execShell)
+      jest
+        .mocked(execShell)
         .mockResolvedValueOnce({ stderr: '', stdout: 'some/path\n' })
         .mockResolvedValueOnce({ stderr: '', stdout: '' });
 
-      mocked(join).mockReturnValue('some/path/yarn.lock');
+      jest.mocked(join).mockReturnValue('some/path/yarn.lock');
       // Package.lock does not exist
-      mocked(exists)
+      jest
+        .mocked(exists)
         // Yarn.lock exist
         .mockResolvedValue(true);
 
@@ -153,7 +156,7 @@ describe('Package manager', () => {
 
   describe('when getting used package manager', () => {
     it('returns undefined - err on npm prefix', async () => {
-      mocked(execShell).mockResolvedValue({
+      jest.mocked(execShell).mockResolvedValue({
         stderr: 'npm prefix err',
         stdout: 'some/path\n',
       });
@@ -169,12 +172,12 @@ describe('Package manager', () => {
     });
 
     it('returns yarn - normalized ./ path', async () => {
-      mocked(execShell).mockResolvedValue({
+      jest.mocked(execShell).mockResolvedValue({
         stderr: '',
         stdout: process.cwd(),
       });
-      mocked(join).mockReturnValue('some/path/yarn.lock');
-      mocked(exists).mockResolvedValueOnce(true);
+      jest.mocked(join).mockReturnValue('some/path/yarn.lock');
+      jest.mocked(exists).mockResolvedValueOnce(true);
 
       await expect(packageManager.getUsedPm()).resolves.toEqual('yarn');
 
@@ -186,11 +189,15 @@ describe('Package manager', () => {
 
   describe('when installing package', () => {
     it('installs package with yarn and empty stdout, stderror', async () => {
-      mocked(execShell)
+      jest
+        .mocked(execShell)
         .mockResolvedValueOnce({ stderr: '', stdout: 'some/path\n' })
         .mockResolvedValueOnce({ stderr: '', stdout: '' });
-      mocked(join).mockReturnValue('some/path/yarn.lock');
-      mocked(exists).mockResolvedValueOnce(true).mockResolvedValueOnce(true);
+      jest.mocked(join).mockReturnValue('some/path/yarn.lock');
+      jest
+        .mocked(exists)
+        .mockResolvedValueOnce(true)
+        .mockResolvedValueOnce(true);
 
       await expect(
         packageManager.installPackage('@superfaceai/one-sdk')
@@ -210,13 +217,14 @@ describe('Package manager', () => {
     });
 
     it('installs package with yarn and empty stdout, stderror, cached used package manager', async () => {
-      mocked(execShell)
+      jest
+        .mocked(execShell)
         .mockResolvedValueOnce({ stderr: '', stdout: 'some/path\n' })
         .mockResolvedValueOnce({ stderr: '', stdout: '' })
         .mockResolvedValueOnce({ stderr: '', stdout: 'some/path\n' })
         .mockResolvedValueOnce({ stderr: '', stdout: '' });
-      mocked(join).mockReturnValue('some/path/yarn.lock');
-      mocked(exists).mockResolvedValue(true);
+      jest.mocked(join).mockReturnValue('some/path/yarn.lock');
+      jest.mocked(exists).mockResolvedValue(true);
 
       await expect(
         packageManager.installPackage('@superfaceai/one-sdk')
@@ -252,14 +260,18 @@ describe('Package manager', () => {
     });
 
     it('installs package with yarn', async () => {
-      mocked(execShell)
+      jest
+        .mocked(execShell)
         .mockResolvedValueOnce({ stderr: '', stdout: 'some/path\n' })
         .mockResolvedValueOnce({
           stderr: 'test err',
           stdout: 'test out',
         });
-      mocked(join).mockReturnValue('some/path/yarn.lock');
-      mocked(exists).mockResolvedValueOnce(true).mockResolvedValueOnce(true);
+      jest.mocked(join).mockReturnValue('some/path/yarn.lock');
+      jest
+        .mocked(exists)
+        .mockResolvedValueOnce(true)
+        .mockResolvedValueOnce(true);
 
       await expect(
         packageManager.installPackage('@superfaceai/one-sdk')
@@ -282,7 +294,8 @@ describe('Package manager', () => {
     });
 
     it('installs package with yarn - err on npm prefix', async () => {
-      mocked(execShell)
+      jest
+        .mocked(execShell)
         .mockResolvedValueOnce({
           stderr: 'npm prefix err',
           stdout: 'some/path\n',
@@ -291,8 +304,8 @@ describe('Package manager', () => {
           stderr: 'test err',
           stdout: 'test out',
         });
-      mocked(join).mockReturnValue('some/path/yarn.lock');
-      mocked(exists).mockResolvedValueOnce(true);
+      jest.mocked(join).mockReturnValue('some/path/yarn.lock');
+      jest.mocked(exists).mockResolvedValueOnce(true);
 
       await expect(
         packageManager.installPackage('@superfaceai/one-sdk')
@@ -315,11 +328,13 @@ describe('Package manager', () => {
     });
 
     it('installs package with npm and empty stdout, stderror', async () => {
-      mocked(execShell)
+      jest
+        .mocked(execShell)
         .mockResolvedValueOnce({ stderr: '', stdout: 'some/path\n' })
         .mockResolvedValueOnce({ stderr: '', stdout: '' });
-      mocked(join).mockReturnValue('some/path/package-lock.json');
-      mocked(exists)
+      jest.mocked(join).mockReturnValue('some/path/package-lock.json');
+      jest
+        .mocked(exists)
         .mockResolvedValueOnce(true)
         .mockResolvedValueOnce(false)
         .mockResolvedValueOnce(true);
@@ -347,14 +362,16 @@ describe('Package manager', () => {
     });
 
     it('installs package with npm', async () => {
-      mocked(execShell)
+      jest
+        .mocked(execShell)
         .mockResolvedValueOnce({ stderr: '', stdout: 'some/path\n' })
         .mockResolvedValueOnce({
           stderr: 'test err',
           stdout: 'test out',
         });
-      mocked(join).mockReturnValue('some/path/package-lock.json');
-      mocked(exists)
+      jest.mocked(join).mockReturnValue('some/path/package-lock.json');
+      jest
+        .mocked(exists)
         .mockResolvedValueOnce(true)
         .mockResolvedValueOnce(false)
         .mockResolvedValueOnce(true);
@@ -387,17 +404,20 @@ describe('Package manager', () => {
     });
 
     it('installs package with npm - yarn.lock and package-lock.json not found', async () => {
-      mocked(execShell)
+      jest
+        .mocked(execShell)
         .mockResolvedValueOnce({ stderr: '', stdout: 'some/path\n' })
         .mockResolvedValueOnce({
           stderr: 'test err',
           stdout: 'test out',
         });
-      mocked(join)
+      jest
+        .mocked(join)
         .mockReturnValueOnce('some/path/package.json')
         .mockReturnValueOnce('some/path/yarn.lock')
         .mockReturnValueOnce('some/path/package-lock.json');
-      mocked(exists)
+      jest
+        .mocked(exists)
         .mockResolvedValueOnce(true)
         .mockResolvedValueOnce(false)
         .mockResolvedValueOnce(false);
@@ -428,17 +448,20 @@ describe('Package manager', () => {
     });
 
     it('does not install package without package.json', async () => {
-      mocked(execShell)
+      jest
+        .mocked(execShell)
         .mockResolvedValueOnce({ stderr: '', stdout: 'some/path\n' })
         .mockResolvedValueOnce({
           stderr: 'test err',
           stdout: 'test out',
         });
-      mocked(join)
+      jest
+        .mocked(join)
         .mockReturnValueOnce('some/path/package.json')
         .mockReturnValueOnce('some/path/yarn.lock')
         .mockReturnValueOnce('some/path/package-lock.json');
-      mocked(exists)
+      jest
+        .mocked(exists)
         .mockResolvedValueOnce(false)
         .mockResolvedValueOnce(false)
         .mockResolvedValueOnce(false);

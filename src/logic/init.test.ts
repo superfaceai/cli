@@ -1,7 +1,6 @@
 import { ok } from '@superfaceai/one-sdk';
 import * as SuperJson from '@superfaceai/one-sdk/dist/schema-tools/superjson/utils';
 import { parseProfileId } from '@superfaceai/parser';
-import { mocked } from 'ts-jest/utils';
 
 import { MockLogger } from '../common';
 import { composeUsecaseName } from '../common/document';
@@ -47,8 +46,8 @@ describe('Init logic', () => {
         .spyOn(SuperJson, 'loadSuperJson')
         .mockResolvedValue(ok({}));
 
-      mocked(mkdirQuiet).mockResolvedValue(true);
-      mocked(mkdir).mockResolvedValue('test');
+      jest.mocked(mkdirQuiet).mockResolvedValue(true);
+      jest.mocked(mkdir).mockResolvedValue('test');
 
       await expect(
         initSuperface({ appPath: mockAppPath }, { logger })
@@ -80,7 +79,8 @@ describe('Init logic', () => {
     });
 
     it('creates profile', async () => {
-      mocked(parseProfileId)
+      jest
+        .mocked(parseProfileId)
         .mockReturnValueOnce({
           kind: 'parsed',
           value: {
@@ -95,7 +95,7 @@ describe('Init logic', () => {
             version: { major: 2 },
           },
         });
-      mocked(createProfile).mockResolvedValue(undefined);
+      jest.mocked(createProfile).mockResolvedValue(undefined);
       const mockPath = 'test';
       const mockSuperJson = {};
       const mockProfileIds = ['first-profile-id', 'second-profile-id'];
@@ -144,11 +144,11 @@ describe('Init logic', () => {
     });
 
     it('does not create profile if there is a parse error', async () => {
-      mocked(parseProfileId).mockReturnValue({
+      jest.mocked(parseProfileId).mockReturnValue({
         kind: 'error',
         message: 'mockMessage',
       });
-      mocked(createProfile).mockResolvedValue(undefined);
+      jest.mocked(createProfile).mockResolvedValue(undefined);
       const mockPath = 'test';
       const mockSuperJson = {};
       const mockProfileIds = ['first-profile-id'];

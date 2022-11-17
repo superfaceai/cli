@@ -8,6 +8,7 @@ import { EXTENSIONS } from '@superfaceai/ast';
 import type {
   ProfileHeaderStructure,
   ProfileOutput,
+  ValidationIssue,
   ValidationResult,
 } from '@superfaceai/parser';
 import {
@@ -301,7 +302,7 @@ async function prepareLintedProfile(
     try {
       ast = parseProfile(new Source(profileSource.source, profileSource.path));
     } catch (e) {
-      report.errors.push(e);
+      report.errors.push(e as SyntaxError | ValidationIssue);
     }
   } else {
     ast = await fetchProfileAST(profile.id, profile.version);
@@ -365,7 +366,7 @@ async function prepareLintedMap(
     try {
       ast = parseMap(new Source(mapSource.source, mapSource.path));
     } catch (e) {
-      report.errors.push(e);
+      report.errors.push(e as SyntaxError | ValidationIssue);
     }
   } else {
     ast = await fetchMapAST({

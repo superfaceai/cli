@@ -1,6 +1,5 @@
 import type { ProviderJson, SecurityScheme } from '@superfaceai/ast';
 import { ApiKeyPlacement, HttpScheme, SecurityType } from '@superfaceai/ast';
-import { mocked } from 'ts-jest/utils';
 
 import { MockLogger } from '../common';
 import { fetchProviders } from '../common/http';
@@ -109,7 +108,7 @@ describe('Configure logic utils', () => {
     ];
 
     it('returns true if provider is compatible', async () => {
-      mocked(fetchProviders).mockResolvedValue(compatibleProviders);
+      jest.mocked(fetchProviders).mockResolvedValue(compatibleProviders);
 
       await expect(
         isCompatible(profileId, ['first'], { logger })
@@ -117,7 +116,7 @@ describe('Configure logic utils', () => {
     });
 
     it('returns true if providers are compatible', async () => {
-      mocked(fetchProviders).mockResolvedValue(compatibleProviders);
+      jest.mocked(fetchProviders).mockResolvedValue(compatibleProviders);
 
       await expect(
         isCompatible(profileId, ['first', 'second'], { logger })
@@ -125,7 +124,7 @@ describe('Configure logic utils', () => {
     });
 
     it('returns falsee if provider is not compatible', async () => {
-      mocked(fetchProviders).mockResolvedValue(compatibleProviders);
+      jest.mocked(fetchProviders).mockResolvedValue(compatibleProviders);
 
       await expect(
         isCompatible(profileId, ['some'], { logger })

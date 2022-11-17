@@ -1,6 +1,5 @@
 import { DocumentType } from '@superfaceai/ast';
 import { parseProfileId } from '@superfaceai/parser';
-import { mocked } from 'ts-jest/utils';
 
 import {
   composeUsecaseName,
@@ -78,7 +77,8 @@ describe('Document functions', () => {
 
   describe('when constructing profile settings', () => {
     it('constructs profile settings correctly', async () => {
-      mocked(parseProfileId)
+      jest
+        .mocked(parseProfileId)
         .mockReturnValueOnce({
           kind: 'parsed',
           value: {
@@ -108,7 +108,7 @@ describe('Document functions', () => {
     });
 
     it('throws error for error kind', async () => {
-      mocked(parseProfileId).mockReturnValueOnce({
+      jest.mocked(parseProfileId).mockReturnValueOnce({
         kind: 'error',
         message: 'test err',
       });
