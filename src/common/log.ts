@@ -80,11 +80,9 @@ export class StdoutLogger implements ILogger {
     messsageTemplate: K,
     ...args: MessageArgs<K>
   ): string {
-    return (
-      messages[messsageTemplate] as (
-        ...args: (string | unknown | number)[]
-      ) => string
-    )(...args);
+    return (messages[messsageTemplate] as (...args: unknown[]) => string)(
+      ...args
+    );
   }
 }
 
