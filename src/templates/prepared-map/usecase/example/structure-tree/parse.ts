@@ -6,7 +6,6 @@ import type {
   NamedModelDefinitionNode,
   ObjectDefinitionNode,
   PrimitiveTypeNameNode,
-  ProfileDocumentNode,
   Type,
   UnionDefinitionNode,
 } from '@superfaceai/ast';
@@ -18,23 +17,15 @@ import type {
   UseCaseExample,
 } from '../usecase-example';
 
-export function parse(ast: ProfileDocumentNode, type: Type): UseCaseExample {
-  const namedModelDefinitionsCache: {
+export function parse(
+  type: Type,
+  namedModelDefinitionsCache: {
     [key: string]: NamedModelDefinitionNode;
-  } = {};
-
-  const namedFieldDefinitionsCache: {
+  },
+  namedFieldDefinitionsCache: {
     [key: string]: NamedFieldDefinitionNode;
-  } = {};
-
-  ast.definitions.forEach(definition => {
-    if (definition.kind === 'NamedFieldDefinition') {
-      namedFieldDefinitionsCache[definition.fieldName] = definition;
-    } else if (definition.kind === 'NamedModelDefinition') {
-      namedModelDefinitionsCache[definition.modelName] = definition;
-    }
-  });
-
+  }
+): UseCaseExample {
   return visit(type, namedModelDefinitionsCache, namedFieldDefinitionsCache);
 }
 

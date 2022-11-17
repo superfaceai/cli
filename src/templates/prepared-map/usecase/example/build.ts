@@ -1,6 +1,7 @@
 import type {
   ComlinkLiteralNode,
-  ProfileDocumentNode,
+  NamedFieldDefinitionNode,
+  NamedModelDefinitionNode,
   UseCaseDefinitionNode,
 } from '@superfaceai/ast';
 
@@ -9,8 +10,13 @@ import { parse as buildExampleFromAst } from './structure-tree';
 import type { UseCaseExample } from './usecase-example';
 
 export function buildUseCaseExamples(
-  ast: ProfileDocumentNode,
-  usecaseName: string
+  useCase: UseCaseDefinitionNode,
+  namedModelDefinitionsCache: {
+    [key: string]: NamedModelDefinitionNode;
+  },
+  namedFieldDefinitionsCache: {
+    [key: string]: NamedFieldDefinitionNode;
+  }
 ): {
   errorExample: {
     input?: UseCaseExample;
@@ -21,16 +27,6 @@ export function buildUseCaseExamples(
     result?: UseCaseExample;
   };
 } {
-  const useCase = ast.definitions
-    .filter((d): d is UseCaseDefinitionNode => d.kind === 'UseCaseDefinition')
-    .find(d => d.useCaseName === usecaseName);
-
-  if (useCase === undefined) {
-    throw new Error(
-      `UseCase with name ${usecaseName} not found in use case definitions`
-    );
-  }
-
   let errorInput: UseCaseExample | undefined;
   let successInput: UseCaseExample | undefined;
   let error: UseCaseExample | undefined;
@@ -43,7 +39,11 @@ export function buildUseCaseExamples(
   } else {
     successInput =
       useCase.input !== undefined
-        ? buildExampleFromAst(ast, useCase.input.value)
+        ? buildExampleFromAst(
+            useCase.input.value,
+            namedModelDefinitionsCache,
+            namedFieldDefinitionsCache
+          )
         : undefined;
   }
 
@@ -52,7 +52,11 @@ export function buildUseCaseExamples(
   } else {
     result =
       useCase.result !== undefined
-        ? buildExampleFromAst(ast, useCase.result.value)
+        ? buildExampleFromAst(
+            useCase.result.value,
+            namedModelDefinitionsCache,
+            namedFieldDefinitionsCache
+          )
         : undefined;
   }
 
@@ -61,7 +65,11 @@ export function buildUseCaseExamples(
   } else {
     errorInput =
       useCase.input !== undefined
-        ? buildExampleFromAst(ast, useCase.input.value)
+        ? buildExampleFromAst(
+            useCase.input.value,
+            namedModelDefinitionsCache,
+            namedFieldDefinitionsCache
+          )
         : undefined;
   }
 
@@ -70,7 +78,11 @@ export function buildUseCaseExamples(
   } else {
     error =
       useCase.error !== undefined
-        ? buildExampleFromAst(ast, useCase.error.value)
+        ? buildExampleFromAst(
+            useCase.error.value,
+            namedModelDefinitionsCache,
+            namedFieldDefinitionsCache
+          )
         : undefined;
   }
 

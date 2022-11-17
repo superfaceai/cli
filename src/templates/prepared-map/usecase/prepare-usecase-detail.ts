@@ -52,6 +52,10 @@ export function prepareUseCaseDetails(ast: ProfileDocumentNode): UseCase[] {
         namedModelDefinitionsCache,
         namedFieldDefinitionsCache
       ),
-      ...buildUseCaseExamples(ast, usecase.useCaseName),
+      ...buildUseCaseExamples(
+        usecase,
+        namedModelDefinitionsCache,
+        namedFieldDefinitionsCache
+      ),
     }));
 }
