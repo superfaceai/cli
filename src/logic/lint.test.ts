@@ -19,7 +19,7 @@ import {
   SyntaxError,
 } from '@superfaceai/parser';
 import { SyntaxErrorCategory } from '@superfaceai/parser/dist/language/error';
-import type { MatchAttempts } from '@superfaceai/parser/dist/language/syntax/rule';
+import { MatchAttempts } from '@superfaceai/parser/dist/language/syntax/rule';
 import { red, yellow } from 'chalk';
 import { mocked } from 'ts-jest/utils';
 
@@ -81,7 +81,7 @@ describe('Lint logic', () => {
       patch: 0,
     },
     parserVersion: {
-      major: 1,
+      major: 2,
       minor: 0,
       patch: 0,
     },
@@ -929,10 +929,7 @@ describe('Lint logic', () => {
         new Source('mock-content', mockPath),
         {
           kind: 'nomatch',
-          attempts: ({
-            token: undefined,
-            rules: [],
-          } as unknown) as MatchAttempts,
+          attempts: new MatchAttempts(undefined, []),
         }
       );
 

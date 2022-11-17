@@ -918,22 +918,22 @@
     isomorphic-form-data "^2.0.0"
     vm2 "^3.9.7"
 
-"@superfaceai/parser@^1.2.0":
-  version "1.2.0"
-  resolved "https://registry.yarnpkg.com/@superfaceai/parser/-/parser-1.2.0.tgz#e89e64c9ec98ff2d1e4760c1441d88d945978a1d"
-  integrity sha512-8nQ4x15F8mygKg4BcWwzqgDVTaY5BXanvCcxirL/jKLgpGUxH+808t0KmVc2Ke9o2MdiYt/2UD2hyfpwwqN9DA==
+"@superfaceai/parser@^2.0.0":
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/@superfaceai/parser/-/parser-2.0.0.tgz#d498486471dacac7a408d4fbbd5068aaa3ffc12c"
+  integrity sha512-gIWixVU/gbqIQ+QhomqKTHiddSzwEbo3+XkNRdAQ3L6qRaMJy5HFdFsZWiS45cNDwJNlqK2GF5JAPcmInlOucg==
   dependencies:
     "@superfaceai/ast" "^1.2.0"
     "@types/debug" "^4.1.5"
     debug "^4.3.3"
     typescript "^4"
 
-"@superfaceai/service-client@^3.0.0":
-  version "3.0.0"
-  resolved "https://registry.yarnpkg.com/@superfaceai/service-client/-/service-client-3.0.0.tgz#5e43cd7b1151934403d8f8286e62150c4a000c21"
-  integrity sha512-33H46lnJrd6sfe5nNfC1hHjhWMkMzvE7MlPpyGKyYGygSv+lR1HFIUVpdV0czo2O5m7bVnozsWVgsego/KZQOQ==
+"@superfaceai/service-client@^5.0.0":
+  version "5.0.0"
+  resolved "https://registry.yarnpkg.com/@superfaceai/service-client/-/service-client-5.0.0.tgz#931ee77a6e483ac8ddac49c7b23acb7231ecf01d"
+  integrity sha512-rdADPdMEoIRbhUTZgXxfUKBP2tW6Fc5Fp/z57AmjHK5PTqBuZKxkYT0nvZSJPxNpx8bcLIP0Um93NxZ1qvAiZg==
   dependencies:
-    cross-fetch "^3.1.0"
+    cross-fetch "^3.1.5"
 
 "@tootallnate/once@1":
   version "1.1.2"
@@ -1858,7 +1858,7 @@ cors@^2.8.4:
     object-assign "^4"
     vary "^1"
 
-cross-fetch@^3.1.0, cross-fetch@^3.1.4, cross-fetch@^3.1.5:
+cross-fetch@^3.1.4, cross-fetch@^3.1.5:
   version "3.1.5"
   resolved "https://registry.yarnpkg.com/cross-fetch/-/cross-fetch-3.1.5.tgz#e1389f44d9e7ba767907f7af8454787952ab534f"
   integrity sha512-lvb1SBsI0Z7GDwmuid+mU3kWVBwTVUbe7S0H52yaaAdQOXq2YktTCZdlAcNKFzE6QtRz0snpw9bNiPeOIkkQvw==
@@ -1923,7 +1923,7 @@ debug@2.6.9, debug@^2.6.9:
   dependencies:
     ms "2.0.0"
 
-debug@4, debug@^4.0.1, debug@^4.1.0, debug@^4.1.1, debug@^4.3.1, debug@^4.3.2:
+debug@4, debug@^4.3.2:
   version "4.3.2"
   resolved "https://registry.yarnpkg.com/debug/-/debug-4.3.2.tgz#f0a49c18ac8779e31d4a0c6029dfb76873c7428b"
   integrity sha512-mOp8wKcvj7XxC78zLgw/ZA+6TSgkoE2C/ienthhRD298T7UNwAg9diBpLRxC0mOezLl4B0xV7M0cCO6P/O0Xhw==
@@ -1936,6 +1936,13 @@ debug@^3.1.0, debug@^3.1.1, debug@^3.2.7:
   integrity sha512-CFjzYYAi4ThfiQvizrFQevTTXHtnCqWfe7x1AhgEscTz6ZbLbfoLRLPugTQyBth6f8ZERVUSyWHFD/7Wu4t1XQ==
   dependencies:
     ms "^2.1.1"
+
+debug@^4.0.1, debug@^4.1.0, debug@^4.1.1, debug@^4.3.1:
+  version "4.3.1"
+  resolved "https://registry.yarnpkg.com/debug/-/debug-4.3.1.tgz#f0d229c505e0c6d8c49ac553d1b13dc183f6b2ee"
+  integrity sha512-doEwdvm4PCeK4K3RQN2ZC2BYUBaxwLARCqZmMjtF8a51J2Rb0xpVloFRnCODwqjpwnAoao4pelN8l3RJdv3gRQ==
+  dependencies:
+    ms "2.1.2"
 
 debug@^4.3.3:
   version "4.3.4"
@@ -5356,15 +5363,10 @@ typedarray@^0.0.6:
   resolved "https://registry.yarnpkg.com/typedarray/-/typedarray-0.0.6.tgz#867ac74e3864187b1d3d47d996a78ec5c8830777"
   integrity sha1-hnrHTjhkGHsdPUfZlqeOxciDB3c=
 
-typescript@^4:
+typescript@^4, typescript@^4.0.5:
   version "4.3.5"
   resolved "https://registry.yarnpkg.com/typescript/-/typescript-4.3.5.tgz#4d1c37cc16e893973c45a06886b7113234f119f4"
   integrity sha512-DqQgihaQ9cUrskJo9kIyW/+g0Vxsk8cDtZ52a3NGh0YNTfpUSArXSohyUGnvbPazEPLu398C0UxmKSOrPumUzA==
-
-typescript@^4.0.5:
-  version "4.2.2"
-  resolved "https://registry.yarnpkg.com/typescript/-/typescript-4.2.2.tgz#1450f020618f872db0ea17317d16d8da8ddb8c4c"
-  integrity sha512-tbb+NVrLfnsJy3M59lsDgrzWIflR4d4TIUjz+heUnHZwdF7YsrMTKoRERiIvI2lvBG95dfpLxB21WZhys1bgaQ==
 
 uglify-js@^3.1.4:
   version "3.17.3"
@@ -5463,9 +5465,9 @@ vm2@^3.9.3:
   integrity sha512-smLS+18RjXYMl9joyJxMNI9l4w7biW8ilSDaVRvFBDwOH8P0BK1ognFQTpg0wyQ6wIKLTblHJvROW692L/E53Q==
 
 vm2@^3.9.7:
-  version "3.9.7"
-  resolved "https://registry.yarnpkg.com/vm2/-/vm2-3.9.7.tgz#bb87aa677c97c61e23a6cb6547e44e990517a6f6"
-  integrity sha512-g/GZ7V0Mlmch3eDVOATvAXr1GsJNg6kQ5PjvYy3HbJMCRn5slNbo/u73Uy7r5yUej1cRa3ZjtoVwcWSQuQ/fow==
+  version "3.9.9"
+  resolved "https://registry.yarnpkg.com/vm2/-/vm2-3.9.9.tgz#c0507bc5fbb99388fad837d228badaaeb499ddc5"
+  integrity sha512-xwTm7NLh/uOjARRBs8/95H0e8fT3Ukw5D/JJWhxMbhKzNh1Nu981jQKvkep9iKYNxzlVrdzD0mlBGkDKZWprlw==
   dependencies:
     acorn "^8.7.0"
     acorn-walk "^8.2.0"
