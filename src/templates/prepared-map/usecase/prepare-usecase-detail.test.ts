@@ -45,7 +45,6 @@ describe('Parse use case details', () => {
             {
               fieldName: 'field',
               required: true,
-              nonNull: true,
               model: {
                 modelType: 'Scalar',
                 nonNull: true,
@@ -56,7 +55,6 @@ describe('Parse use case details', () => {
             {
               fieldName: 'field',
               required: false,
-              nonNull: false,
               model: {
                 nonNull: false,
                 modelType: 'Union',
@@ -77,7 +75,6 @@ describe('Parse use case details', () => {
             {
               fieldName: 'field',
               required: false,
-              nonNull: false,
               model: {
                 modelType: 'Scalar',
                 nonNull: false,

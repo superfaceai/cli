@@ -43,7 +43,6 @@ export function getObjectModelDetails(
         return {
           fieldName: field.fieldName,
           required: field.required,
-          nonNull: model?.nonNull,
           model: model,
 
           // If the field has an inline title provided, use the description

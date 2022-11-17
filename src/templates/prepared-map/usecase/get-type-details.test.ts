@@ -45,7 +45,6 @@ describe('getTypeDetails', () => {
         {
           fieldName: 'test',
           required: true,
-          nonNull: false,
           model: {
             modelType: ModelType.SCALAR,
             nonNull: false,

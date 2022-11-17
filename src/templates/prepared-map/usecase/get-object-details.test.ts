@@ -30,7 +30,6 @@ describe('getObjectModelDetails', () => {
         {
           fieldName: 'test',
           required: false,
-          nonNull: false,
           model: {
             modelType: ModelType.SCALAR,
             nonNull: false,
@@ -70,7 +69,6 @@ describe('getObjectModelDetails', () => {
         {
           fieldName: 'test',
           required: true,
-          nonNull: false,
           model: {
             modelType: ModelType.SCALAR,
             nonNull: false,
