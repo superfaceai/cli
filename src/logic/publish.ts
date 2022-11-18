@@ -1,5 +1,10 @@
-import type { SuperJsonDocument } from '@superfaceai/ast';
-import { ServiceApiError } from '@superfaceai/service-client';
+import type { ProviderJson, SuperJsonDocument } from '@superfaceai/ast';
+import {
+  CreateProfileApiError,
+  CreateProviderApiError,
+  ServiceApiError,
+  ServiceClient,
+} from '@superfaceai/service-client';
 import { yellow } from 'chalk';
 
 import type { ILogger } from '../common';
@@ -24,6 +29,13 @@ import {
   prePublishLint,
 } from './publish.utils';
 
+/**
+ * Load files
+ * Lint
+ * Check
+ * DryRun check
+ * Publish
+ */
 export async function publish(
   {
     publishing,
@@ -35,7 +47,7 @@ export async function publish(
     version,
     options,
   }: {
-    publishing: 'map' | 'profile' | 'provider';
+    publishing: { map: boolean; profile: boolean; provider: boolean };
     superJson: SuperJsonDocument;
     superJsonPath: string;
     profile: ProfileId;
@@ -59,7 +71,7 @@ export async function publish(
     { superJson, superJsonPath, profile, version },
     { logger }
   );
-  if (profileFiles.from.kind !== 'local' && publishing === 'profile') {
+  if (profileFiles.from.kind !== 'local' && publishing.profile) {
     throw userError(
       `Profile: "${profile.id}" not found on local file system`,
       1
@@ -71,7 +83,7 @@ export async function publish(
     { superJson, superJsonPath, profile, provider, map, version },
     { logger }
   );
-  if (mapFiles.from.kind !== 'local' && publishing == 'map') {
+  if (mapFiles.from.kind !== 'local' && publishing.map) {
     throw userError(
       `Map for profile: "${profile.id}" and provider: "${provider}" not found on local filesystem`,
       1
@@ -83,7 +95,7 @@ export async function publish(
     logger,
   });
 
-  if (providerFiles.from.kind === 'remote' && publishing === 'provider') {
+  if (providerFiles.from.kind === 'remote' && publishing.provider) {
     throw userError(
       `Provider: "${provider}" not found on local file system`,
       1
@@ -115,7 +127,7 @@ export async function publish(
     lintReport.errors.length !== 0 ||
     lintReport.warnings.length !== 0
   ) {
-    if (options?.json !== undefined) {
+    if (options?.json === true) {
       return JSON.stringify({
         check: {
           reports: checkFormatJson(checkReports),
@@ -136,14 +148,14 @@ export async function publish(
       let reportStr = yellow('Check results:\n');
       reportStr += checkFormatHuman({
         checkResults: checkReports,
-        emoji: options?.emoji === true,
-        color: options?.color === true,
+        emoji: options?.emoji ?? true,
+        color: options?.color ?? true,
       });
       reportStr += yellow('\n\nLint results:\n');
       reportStr += lintFormatHuman({
         report: lintReport,
-        emoji: options?.emoji === true,
-        color: options?.color === true,
+        emoji: options?.emoji ?? true,
+        color: options?.color ?? true,
       });
 
       return reportStr;
@@ -157,13 +169,13 @@ export async function publish(
     process.env.SUPERFACE_REFRESH_TOKEN === undefined
   ) {
     throw userError(
-      `You have to be logged in to publish ${publishing}. Please run: "sf login"`,
+      `You have to be logged in to publish files. Please run: "superface login"`,
       1
     );
   }
 
   // Check provider name
-  if (publishing === 'map') {
+  if (publishing.map) {
     // If we are working with local provider and name does not start with unverified we check existance of provider in SF register
     if (
       !mapFiles.ast.header.provider.startsWith(UNVERIFIED_PROVIDER_PREFIX) &&
@@ -186,7 +198,7 @@ export async function publish(
       }
     }
   }
-  if (publishing === 'provider') {
+  if (publishing.provider) {
     if (!providerFiles.source.name.startsWith(UNVERIFIED_PROVIDER_PREFIX)) {
       throw userError(
         `When publishing provider, provider name: "${providerFiles.source.name}" in provider.json must have prefix "${UNVERIFIED_PROVIDER_PREFIX}"`,
@@ -197,20 +209,155 @@ export async function publish(
 
   const client = SuperfaceClient.getClient();
 
-  if (publishing === 'provider') {
-    logger.info('publishProvider', provider);
-    await client.createProvider(JSON.stringify(providerFiles.source), {
-      dryRun: options?.dryRun,
+  if (publishing.profile && profileFiles.from.kind === 'local') {
+    await publishProfile(
+      profile,
+      profileFiles.from.source,
+      options?.dryRun ?? false,
+      { client, logger, userError }
+    );
+  }
+  if (publishing.provider) {
+    await publishProvider(providerFiles.source, options?.dryRun ?? false, {
+      client,
+      logger,
+      userError,
     });
-  } else if (publishing === 'profile' && profileFiles.from.kind === 'local') {
-    logger.info('publishProfile', profile.id);
-    await client.createProfile(profileFiles.from.source, {
-      dryRun: options?.dryRun,
-    });
-  } else if (publishing === 'map' && mapFiles.from.kind === 'local') {
-    logger.info('publishMap', profile.id, provider);
-    await client.createMap(mapFiles.from.source, { dryRun: options?.dryRun });
+  }
+
+  if (publishing.map && mapFiles.from.kind === 'local') {
+    await publishMap(
+      profile,
+      provider,
+      mapFiles.from.source,
+      options?.dryRun ?? false,
+      { client, logger, userError }
+    );
   }
 
   return;
+}
+
+async function publishMap(
+  profile: ProfileId,
+  provider: string,
+  mapSource: string,
+  dryRun: boolean,
+  {
+    client,
+    logger,
+    userError,
+  }: { client: ServiceClient; logger: ILogger; userError: UserError }
+) {
+  logger.info('publishMap', profile.id, provider);
+
+  try {
+    await client.createMap(mapSource, { dryRun: true });
+  } catch (error) {
+    if (
+      dryRun &&
+      error instanceof ServiceApiError &&
+      error.status === 422 &&
+      error.title === 'Profile not found'
+    ) {
+      console.log('IT')
+    } else if (error instanceof ServiceApiError) {
+      throw userError(error.message, 1);
+    } else {
+      throw userError(String(error), 1);
+    }
+  }
+  console.log('Map publish dry run ok');
+
+
+  if (!dryRun) {
+    try {
+      await client.createMap(mapSource);
+      console.log('Map publish dry run ok');
+    } catch (error) {
+      if (error instanceof ServiceApiError) {
+        throw userError(error.message, 1);
+      }
+      throw userError(String(error), 1);
+    }
+  }
+}
+
+async function publishProvider(
+  providerJson: ProviderJson,
+  dryRun: boolean,
+  {
+    client,
+    logger,
+    userError,
+  }: { client: ServiceClient; logger: ILogger; userError: UserError }
+) {
+  logger.info('publishProvider', providerJson.name);
+  try {
+    await client.createProvider(JSON.stringify(providerJson), {
+      dryRun: true,
+    });
+    console.log('Provider publish dry run ok');
+  } catch (error) {
+    if (error instanceof CreateProviderApiError) {
+      throw userError(error.message, 1);
+    }
+    throw userError(String(error), 1);
+  }
+
+  if (!dryRun) {
+    try {
+      await client.createProvider(JSON.stringify(providerJson));
+      console.log('Provider publish ok');
+    } catch (error) {
+      if (error instanceof CreateProviderApiError) {
+        throw userError(error.message, 1);
+      }
+      throw userError(String(error), 1);
+    }
+  }
+}
+
+async function publishProfile(
+  profileId: ProfileId,
+  profileSource: string,
+  dryRun: boolean,
+  {
+    client,
+    logger,
+    userError,
+  }: { client: ServiceClient; logger: ILogger; userError: UserError }
+) {
+  logger.info('publishProfile', profileId.id);
+  try {
+    await client.createProfile(profileSource, {
+      dryRun: true,
+    });
+    console.log('Profile publish dry run ok');
+  } catch (error) {
+    //TODO: does this make sense?
+    if (
+      error instanceof CreateProfileApiError &&
+      error.status === 422 &&
+      error.contentIsEqual
+    ) {
+      throw userError(
+        `Profile ${profileId.id} already exists in Registry. Did you forget to update profile version?`,
+        1
+      );
+    }
+    throw userError(String(error), 1);
+  }
+
+  if (!dryRun) {
+    try {
+      await client.createProfile(profileSource);
+      console.log('Profile publish ok');
+    } catch (error) {
+      if (error instanceof CreateProfileApiError) {
+        throw userError(error.message, 1);
+      }
+      throw userError(String(error), 1);
+    }
+  }
 }

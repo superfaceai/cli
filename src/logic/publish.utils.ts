@@ -40,8 +40,18 @@ import {
 import { createProfileMapReport } from './lint';
 
 export function prePublishCheck(
-  params: {
-    publishing: 'map' | 'profile' | 'provider';
+  {
+    publishing,
+    profileAst,
+    mapAst,
+    providerJson,
+    profileFrom,
+    mapFrom,
+    providerFrom,
+    superJson,
+    superJsonPath,
+  }: {
+    publishing: { map: boolean; profile: boolean; provider: boolean };
     profileAst: ProfileDocumentNode;
     mapAst: MapDocumentNode;
     providerJson: ProviderJson;
@@ -55,7 +65,7 @@ export function prePublishCheck(
 ): CheckResult[] {
   try {
     logger.info('assertProfile');
-    assertProfileDocumentNode(params.profileAst);
+    assertProfileDocumentNode(profileAst);
   } catch (error) {
     throw userError(
       `Profile AST validation failed ${(error as { message: string }).message}`,
@@ -64,7 +74,7 @@ export function prePublishCheck(
   }
   try {
     logger.info('assertMap');
-    assertMapDocumentNode(params.mapAst);
+    assertMapDocumentNode(mapAst);
   } catch (error) {
     throw userError(
       `Map AST validation failed ${(error as { message: string }).message}`,
@@ -75,27 +85,27 @@ export function prePublishCheck(
   // Check map and profile
   const result: CheckResult[] = [];
   result.push({
-    ...checkMapAndProfile(params.profileAst, params.mapAst, {
+    ...checkMapAndProfile(profileAst, mapAst, {
       // strict when we are publishing profile or map
-      strict: params.publishing !== 'provider',
+      strict: publishing.profile && publishing.map,
       logger,
     }),
-    profileFrom: params.profileFrom,
-    mapFrom: params.mapFrom,
+    profileFrom: profileFrom,
+    mapFrom: mapFrom,
   });
 
   // Check map and provider
   result.push({
-    ...checkMapAndProvider(params.providerJson, params.mapAst),
-    mapFrom: params.mapFrom,
-    providerFrom: params.providerFrom,
+    ...checkMapAndProvider(providerJson, mapAst),
+    mapFrom: mapFrom,
+    providerFrom: providerFrom,
   });
 
   // Check integration parameters
   result.push({
-    ...checkIntegrationParameters(params.providerJson, params.superJson),
-    providerFrom: params.providerFrom,
-    superJsonPath: params.superJsonPath,
+    ...checkIntegrationParameters(providerJson, superJson),
+    providerFrom: providerFrom,
+    superJsonPath: superJsonPath,
   });
 
   return result;

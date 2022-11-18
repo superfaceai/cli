@@ -31,18 +31,18 @@ export default class Publish extends Command {
   public static description =
     'Uploads map/profile/provider to Store. Published file must be locally linked in super.json. This command runs Check and Lint internaly to ensure quality';
 
-  public static args = [
-    {
-      name: 'documentType',
-      description: 'Document type of published file',
-      options: ['map', 'profile', 'provider'],
-      required: true,
-    },
-  ];
-
   public static flags = {
     ...Command.flags,
     // Inputs
+    profile: flags.boolean({
+      description: 'Publish a profile',
+    }),
+    map: flags.boolean({
+      description: 'Publish a map',
+    }),
+    provider: flags.boolean({
+      description: 'Publish a provider',
+    }),
     profileId: flags.string({
       description: 'Profile Id in format [scope/](optional)[name]',
       required: true,
@@ -81,14 +81,13 @@ export default class Publish extends Command {
   ];
 
   public async run(): Promise<void> {
-    const { argv, flags } = this.parse(Publish);
+    const { flags } = this.parse(Publish);
     await super.initialize(flags);
 
     await this.execute({
       logger: this.logger,
       userError: this.userError,
       flags,
-      argv,
     });
   }
 
@@ -96,14 +95,16 @@ export default class Publish extends Command {
     logger,
     userError,
     flags,
-    argv,
   }: {
     logger: ILogger;
     userError: UserError;
     flags: Flags<typeof Publish.flags>;
-    argv: string[];
   }): Promise<void> {
-    const documentType = argv[0];
+    const publishing = {
+      profile: flags.profile ?? false,
+      map: flags.map ?? false,
+      provider: flags.provider ?? false,
+    };
 
     // Check inputs
     const parsedProfileId = parseDocumentId(flags.profileId);
@@ -166,7 +167,7 @@ export default class Publish extends Command {
     }
 
     // Publishing profile
-    if (documentType === 'profile') {
+    if (publishing.profile) {
       if (!('file' in profileSettings)) {
         throw userError(
           'When publishing profile, profile must be locally linked in super.json',
@@ -181,7 +182,7 @@ export default class Publish extends Command {
       }
 
       // Publishing map
-    } else if (documentType === 'map') {
+    } else if (publishing.map) {
       if (!('file' in profileProviderSettings)) {
         throw userError(
           'When publishing map, map must be locally linked in super.json',
@@ -195,7 +196,7 @@ export default class Publish extends Command {
         );
       }
       // Publishing provider
-    } else if (documentType === 'provider') {
+    } else if (publishing.provider) {
       if (!flags.providerName.startsWith(UNVERIFIED_PROVIDER_PREFIX)) {
         throw userError(
           `When publishing provider, provider must have prefix "${UNVERIFIED_PROVIDER_PREFIX}"`,
@@ -248,7 +249,7 @@ export default class Publish extends Command {
 
     const result = await publish(
       {
-        publishing: documentType,
+        publishing,
         superJson,
         superJsonPath,
         profile: ProfileId.fromId(flags.profileId, { userError }),
@@ -260,6 +261,7 @@ export default class Publish extends Command {
           json: flags.json,
           quiet: flags.quiet,
           emoji: flags.noEmoji !== true,
+          color: flags.noEmoji !== true,
         },
       },
       { logger, userError }
@@ -271,24 +273,26 @@ export default class Publish extends Command {
       return;
     }
 
-    logger.success('publishSuccessful', documentType);
+    //TODO: improve message
+    logger.success('publishSuccessful', 'file');
     let transition = true;
     if (flags.force !== true) {
       const prompt: { continue: boolean } = await inquirer.prompt({
         name: 'continue',
-        message: `Do you want to switch to remote ${documentType} instead of a locally linked one?:`,
+        //TODO: improve message
+        message: `Do you want to switch to remote file instead of a locally linked one?:`,
         type: 'confirm',
         default: true,
       });
       transition = prompt.continue;
     }
     if (transition) {
-      if (documentType === 'profile') {
+      if (publishing.profile) {
         await Install.run([flags.profileId, '-f']);
 
         return;
       }
-      if (documentType === 'map') {
+      if (publishing.map) {
         await reconfigureProfileProvider(
           superJson,
           ProfileId.fromId(flags.profileId, { userError }),
@@ -298,7 +302,7 @@ export default class Publish extends Command {
           }
         );
       }
-      if (documentType === 'provider') {
+      if (publishing.provider) {
         await reconfigureProvider(superJson, flags.providerName, {
           kind: 'remote',
         });
