@@ -273,13 +273,11 @@ export default class Publish extends Command {
       return;
     }
 
-    //TODO: improve message
-    logger.success('publishSuccessful', 'file');
     let transition = true;
     if (flags.force !== true) {
       const prompt: { continue: boolean } = await inquirer.prompt({
         name: 'continue',
-        //TODO: improve message
+        // TODO: improve message
         message: `Do you want to switch to remote file instead of a locally linked one?:`,
         type: 'confirm',
         default: true,

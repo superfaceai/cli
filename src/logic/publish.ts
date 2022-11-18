@@ -1,9 +1,11 @@
 import type { ProviderJson, SuperJsonDocument } from '@superfaceai/ast';
+import type {
+  ServiceClient
+} from '@superfaceai/service-client';
 import {
   CreateProfileApiError,
   CreateProviderApiError,
-  ServiceApiError,
-  ServiceClient,
+  ServiceApiError
 } from '@superfaceai/service-client';
 import { yellow } from 'chalk';
 
@@ -254,26 +256,25 @@ async function publishMap(
   try {
     await client.createMap(mapSource, { dryRun: true });
   } catch (error) {
+    //Do not throw on non existing profile in dry run
     if (
       dryRun &&
       error instanceof ServiceApiError &&
       error.status === 422 &&
       error.title === 'Profile not found'
     ) {
-      console.log('IT')
     } else if (error instanceof ServiceApiError) {
       throw userError(error.message, 1);
     } else {
       throw userError(String(error), 1);
     }
   }
-  console.log('Map publish dry run ok');
-
+  logger.success('publishSuccessful', 'map', true);
 
   if (!dryRun) {
     try {
       await client.createMap(mapSource);
-      console.log('Map publish dry run ok');
+      logger.success('publishSuccessful', 'map', false);
     } catch (error) {
       if (error instanceof ServiceApiError) {
         throw userError(error.message, 1);
@@ -297,7 +298,7 @@ async function publishProvider(
     await client.createProvider(JSON.stringify(providerJson), {
       dryRun: true,
     });
-    console.log('Provider publish dry run ok');
+    logger.success('publishSuccessful', 'provider', true);
   } catch (error) {
     if (error instanceof CreateProviderApiError) {
       throw userError(error.message, 1);
@@ -308,7 +309,7 @@ async function publishProvider(
   if (!dryRun) {
     try {
       await client.createProvider(JSON.stringify(providerJson));
-      console.log('Provider publish ok');
+      logger.success('publishSuccessful', 'provider', false);
     } catch (error) {
       if (error instanceof CreateProviderApiError) {
         throw userError(error.message, 1);
@@ -333,13 +334,13 @@ async function publishProfile(
     await client.createProfile(profileSource, {
       dryRun: true,
     });
-    console.log('Profile publish dry run ok');
+    logger.success('publishSuccessful', 'profile', true);
   } catch (error) {
-    //TODO: does this make sense?
+    // TODO: does this make sense?
     if (
       error instanceof CreateProfileApiError &&
       error.status === 422 &&
-      error.contentIsEqual
+      error.contentIsEqual === true
     ) {
       throw userError(
         `Profile ${profileId.id} already exists in Registry. Did you forget to update profile version?`,
@@ -352,7 +353,7 @@ async function publishProfile(
   if (!dryRun) {
     try {
       await client.createProfile(profileSource);
-      console.log('Profile publish ok');
+      logger.success('publishSuccessful', 'profile', false);
     } catch (error) {
       if (error instanceof CreateProfileApiError) {
         throw userError(error.message, 1);

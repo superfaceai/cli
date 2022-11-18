@@ -54,8 +54,10 @@ const publish = {
   localAndRemoteProvider: (provider: string) =>
     `Provider: "${provider}" found localy linked in "super.json" and also in Superface registry; consider using provider from Superface registry`,
   publishEndedWithErrors: () => 'Publishing command ended up with errors:\n',
-  publishSuccessful: (documentType: string) =>
-    `${documentType} has been published successfully`,
+  publishSuccessful: (documentType: string, dryRun: boolean) =>
+    dryRun
+      ? `Dry run publish of${documentType} has been successful`
+      : `${documentType} has been published successfully`,
 };
 
 const login = {
