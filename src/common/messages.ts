@@ -56,7 +56,7 @@ const publish = {
   publishEndedWithErrors: () => 'Publishing command ended up with errors:\n',
   publishSuccessful: (documentType: string, dryRun: boolean) =>
     dryRun
-      ? `Dry run publish of${documentType} has been successful`
+      ? `Dry run publish of ${documentType} has been successful`
       : `${documentType} has been published successfully`,
 };
 
@@ -149,14 +149,12 @@ const configure = {
     superJsonPath: string,
     description?: string
   ) =>
-    `Parameter: "${name}"${
-      description !== undefined ? ` with description: "${description}"` : ''
+    `Parameter: "${name}"${description !== undefined ? ` with description: "${description}"` : ''
     } has not been configured\nPlease, configure this parameter manually in "super.json" in: "${superJsonPath}"`,
   parameterConfigured: (name: string, value: string, description?: string) =>
-    `Parameter: "${name}"${
-      description !== undefined && description !== ''
-        ? ` with description: "${description}"`
-        : ''
+    `Parameter: "${name}"${description !== undefined && description !== ''
+      ? ` with description: "${description}"`
+      : ''
     } has been configured to use value of environment value "${value}".\nPlease configure this environment value`,
   parameterHasDefault: (defaultValue: string) =>
     `If you do not set the variable, the default value: "${defaultValue}" will be used`,
