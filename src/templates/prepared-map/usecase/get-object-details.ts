@@ -24,7 +24,7 @@ export function getObjectModelDetails(
     fields: object.fields
       .filter(item => item.kind === 'FieldDefinition')
       .map(field => {
-        const namedFieldNode = namedModelDefinitionsCache[field.fieldName];
+        const namedFieldNode = namedFieldDefinitionsCache[field.fieldName];
 
         const model = getTypeDetails(
           field.type ?? namedFieldNode?.type ?? undefined,
@@ -37,8 +37,8 @@ export function getObjectModelDetails(
           field?.documentation?.title !== undefined
             ? field?.documentation?.description ?? field?.documentation?.title
             : namedFieldNode !== null
-            ? namedFieldNode?.documentation?.description
-            : undefined;
+              ? namedFieldNode?.documentation?.description
+              : undefined;
 
         return {
           fieldName: field.fieldName,

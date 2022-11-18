@@ -1,5 +1,5 @@
 export default `{{#if integrationParameters }}
-// use integration parameters
+// Available integration parameters:
 {{#each integrationParameters }}
 // parameters.{{this}}
 {{/each}}

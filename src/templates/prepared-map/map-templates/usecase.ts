@@ -1,8 +1,8 @@
-export default `{{> Documentation}}
-map {{name}} { 
+export default `map {{name}} { 
   {{>Input .}}
   
   {{>Parameters integrationParameters=provider.integrationParameters}}
+  // -----------------------
 
   {{>Http provider=provider}}
 }`;

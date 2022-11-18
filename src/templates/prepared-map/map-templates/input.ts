@@ -1,10 +1,10 @@
 export default `{{#if input }}
-// use inputs
+// Available input fields:
 {{#each input.fields }}
 {{>Field location="input"}}
 {{/each}}
 {{/if }}
 {{#unless input }}
-//empty input
+// Empty input
 {{/unless }}
 `;
