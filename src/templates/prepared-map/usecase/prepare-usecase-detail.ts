@@ -7,6 +7,7 @@ import type {
 
 import { buildUseCaseExamples } from './example/build';
 import { getTypeDetails } from './get-type-details';
+import { prepareExampleScalar } from './prepare-input-scalar';
 import type { UseCase } from './usecase';
 
 export function prepareUseCaseDetails(ast: ProfileDocumentNode): UseCase[] {
@@ -30,32 +31,40 @@ export function prepareUseCaseDetails(ast: ProfileDocumentNode): UseCase[] {
     .filter((definition): definition is UseCaseDefinitionNode => {
       return definition.kind === 'UseCaseDefinition';
     })
-    .map(usecase => ({
-      name: usecase.useCaseName,
-      title: usecase?.documentation?.title,
-      description: usecase?.documentation?.description,
-      error: getTypeDetails(
-        usecase?.error?.value,
-        undefined,
-        namedModelDefinitionsCache,
-        namedFieldDefinitionsCache
-      ),
-      input: getTypeDetails(
-        usecase?.input?.value,
-        undefined,
-        namedModelDefinitionsCache,
-        namedFieldDefinitionsCache
-      ),
-      result: getTypeDetails(
-        usecase?.result?.value,
-        undefined,
-        namedModelDefinitionsCache,
-        namedFieldDefinitionsCache
-      ),
-      ...buildUseCaseExamples(
+    .map(usecase => {
+      const examples = buildUseCaseExamples(
         usecase,
         namedModelDefinitionsCache,
         namedFieldDefinitionsCache
-      ),
-    }));
+      );
+
+      return {
+        name: usecase.useCaseName,
+        title: usecase?.documentation?.title,
+        description: usecase?.documentation?.description,
+        error: getTypeDetails(
+          usecase?.error?.value,
+          undefined,
+          namedModelDefinitionsCache,
+          namedFieldDefinitionsCache
+        ),
+        input: getTypeDetails(
+          usecase?.input?.value,
+          undefined,
+          namedModelDefinitionsCache,
+          namedFieldDefinitionsCache
+        ),
+        result: getTypeDetails(
+          usecase?.result?.value,
+          undefined,
+          namedModelDefinitionsCache,
+          namedFieldDefinitionsCache
+        ),
+        ...examples,
+        inputExampleScalarName: prepareExampleScalar(
+          'input',
+          examples.successExample.input
+        ),
+      };
+    });
 }

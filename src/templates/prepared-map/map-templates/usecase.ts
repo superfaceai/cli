@@ -4,5 +4,5 @@ export default `map {{name}} {
   {{>Parameters integrationParameters=provider.integrationParameters}}
   // -----------------------
 
-  {{>Http provider=provider}}
+  {{>Http provider=provider inputExampleScalarName=inputExampleScalarName}}
 }`;

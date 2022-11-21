@@ -9,6 +9,7 @@ export interface UseCase {
   input?: Model;
   result?: Model;
   error?: Model;
+  inputExampleScalarName?: string;
   errorExample?: {
     input?: UseCaseExample;
     error?: UseCaseExample;

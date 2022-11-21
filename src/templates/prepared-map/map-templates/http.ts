@@ -1,7 +1,6 @@
 // TODO: This can be divided into more partials
 export default `{{assign 'step' 1}}// {{@root.step}}) Change HTTP method and path to make an HTTP call
-http POST "/endpoint" {
-
+http POST {{>Path input=inputExampleScalarName}} {
   {{#if provider.securityIds}}
   {{assign 'step' (inc @root.step 1)}}// {{@root.step}}) Specify security identifier from Provider JSON definition
   security {{>Security securityIds=provider.securityIds}}
