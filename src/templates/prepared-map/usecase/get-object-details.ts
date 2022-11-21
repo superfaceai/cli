@@ -37,8 +37,8 @@ export function getObjectModelDetails(
           field?.documentation?.title !== undefined
             ? field?.documentation?.description ?? field?.documentation?.title
             : namedFieldNode !== null
-              ? namedFieldNode?.documentation?.description
-              : undefined;
+            ? namedFieldNode?.documentation?.description
+            : undefined;
 
         return {
           fieldName: field.fieldName,

@@ -2,6 +2,15 @@
 //TODO: add types
 export const HELPERS = [
   {
+    name: 'assign',
+    helper: function (name: any, value: any, options: any) {
+      if (!options.data.root) {
+        options.data.root = {};
+      }
+      options.data.root[name] = value;
+    },
+  },
+  {
     name: 'ifeq',
     helper: function (a: any, b: any, options: any) {
       // @ts-ignore
