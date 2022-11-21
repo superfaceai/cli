@@ -80,9 +80,9 @@ export class StdoutLogger implements ILogger {
     messsageTemplate: K,
     ...args: MessageArgs<K>
   ): string {
-    return (messages[messsageTemplate] as (
-      ...args: (string | unknown | number)[]
-    ) => string)(...args);
+    return (messages[messsageTemplate] as (...args: unknown[]) => string)(
+      ...args
+    );
   }
 }
 
@@ -111,13 +111,11 @@ export class DummyLogger implements ILogger {
 /* eslint-enable @typescript-eslint/no-empty-function */
 
 export class MockLogger implements ILogger {
-  public stdout: Array<
-    [message: MessageKeys, args: MessageArgs<MessageKeys>]
-  > = [];
+  public stdout: Array<[message: MessageKeys, args: MessageArgs<MessageKeys>]> =
+    [];
 
-  public stderr: Array<
-    [message: MessageKeys, args: MessageArgs<MessageKeys>]
-  > = [];
+  public stderr: Array<[message: MessageKeys, args: MessageArgs<MessageKeys>]> =
+    [];
 
   public info<K extends MessageKeys>(
     template: K,

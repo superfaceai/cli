@@ -1,5 +1,3 @@
-import { mocked } from 'ts-jest/utils';
-
 import { MockLogger } from '../common';
 import { createUserError } from '../common/error';
 import { PackageManager } from '../common/package-manager';
@@ -51,12 +49,14 @@ describe('Install CLI command', () => {
 
   describe('when running install command', () => {
     it('calls install profiles correctly - failed to install profile - does not continue with install', async () => {
-      mocked(detectSuperJson).mockResolvedValue(undefined);
-      mocked(initSuperface).mockResolvedValue({
+      jest.mocked(detectSuperJson).mockResolvedValue(undefined);
+      jest.mocked(initSuperface).mockResolvedValue({
         superJson: {},
         superJsonPath: '',
       });
-      mocked(installProfiles).mockResolvedValue({ continueWithInstall: false });
+      jest
+        .mocked(installProfiles)
+        .mockResolvedValue({ continueWithInstall: false });
 
       const profileName = 'starwars/character-information';
 
@@ -94,12 +94,14 @@ describe('Install CLI command', () => {
     }, 10000);
 
     it('calls install profiles correctly - non existing super.json - create new one', async () => {
-      mocked(detectSuperJson).mockResolvedValue(undefined);
-      mocked(initSuperface).mockResolvedValue({
+      jest.mocked(detectSuperJson).mockResolvedValue(undefined);
+      jest.mocked(initSuperface).mockResolvedValue({
         superJson: {},
         superJsonPath: '',
       });
-      mocked(installProfiles).mockResolvedValue({ continueWithInstall: true });
+      jest
+        .mocked(installProfiles)
+        .mockResolvedValue({ continueWithInstall: true });
 
       const profileName = 'starwars/character-information';
 
@@ -137,9 +139,11 @@ describe('Install CLI command', () => {
     }, 10000);
 
     it('calls install profiles correctly', async () => {
-      mocked(detectSuperJson).mockResolvedValue('.');
-      mocked(isCompatible).mockResolvedValue(true);
-      mocked(installProfiles).mockResolvedValue({ continueWithInstall: true });
+      jest.mocked(detectSuperJson).mockResolvedValue('.');
+      jest.mocked(isCompatible).mockResolvedValue(true);
+      jest
+        .mocked(installProfiles)
+        .mockResolvedValue({ continueWithInstall: true });
       const profileName = 'starwars/character-information';
 
       await expect(
@@ -176,8 +180,10 @@ describe('Install CLI command', () => {
     }, 10000);
 
     it('calls install profiles correctly without profileId', async () => {
-      mocked(detectSuperJson).mockResolvedValue('.');
-      mocked(installProfiles).mockResolvedValue({ continueWithInstall: true });
+      jest.mocked(detectSuperJson).mockResolvedValue('.');
+      jest
+        .mocked(installProfiles)
+        .mockResolvedValue({ continueWithInstall: true });
 
       await expect(
         instance.execute({
@@ -205,8 +211,8 @@ describe('Install CLI command', () => {
     }, 10000);
 
     it('throws error on incompatible providers', async () => {
-      mocked(detectSuperJson).mockResolvedValue('.');
-      mocked(isCompatible).mockResolvedValue(false);
+      jest.mocked(detectSuperJson).mockResolvedValue('.');
+      jest.mocked(isCompatible).mockResolvedValue(false);
       const profileName = 'starwars/character-information';
 
       await expect(
@@ -224,7 +230,7 @@ describe('Install CLI command', () => {
     }, 10000);
 
     it('throws error on empty profileId argument with providers flag', async () => {
-      mocked(detectSuperJson).mockResolvedValue('.');
+      jest.mocked(detectSuperJson).mockResolvedValue('.');
 
       await expect(
         instance.execute({
@@ -241,7 +247,7 @@ describe('Install CLI command', () => {
     }, 10000);
 
     it('throws error on invalid profileId', async () => {
-      mocked(detectSuperJson).mockResolvedValue('.');
+      jest.mocked(detectSuperJson).mockResolvedValue('.');
       const profileName = 'characterInformation';
 
       await expect(
@@ -261,7 +267,7 @@ describe('Install CLI command', () => {
     }, 10000);
 
     it('throws error on invalid profileId with scope', async () => {
-      mocked(detectSuperJson).mockResolvedValue('.');
+      jest.mocked(detectSuperJson).mockResolvedValue('.');
       const profileName = 'starwars/characterInformation';
 
       await expect(
@@ -281,7 +287,7 @@ describe('Install CLI command', () => {
     }, 10000);
 
     it('throws error on empty providers flag', async () => {
-      mocked(detectSuperJson).mockResolvedValue('.');
+      jest.mocked(detectSuperJson).mockResolvedValue('.');
       const profileName = 'starwars/character-information';
 
       await expect(Install.run([profileName, '-p'])).rejects.toThrow(
@@ -291,7 +297,7 @@ describe('Install CLI command', () => {
     }, 10000);
 
     it('throws error on scan flag higher than 5', async () => {
-      mocked(detectSuperJson).mockResolvedValue('.');
+      jest.mocked(detectSuperJson).mockResolvedValue('.');
       const profileName = 'starwars/character-information';
 
       await expect(
@@ -314,11 +320,13 @@ describe('Install CLI command', () => {
     }, 10000);
 
     it('calls install profiles correctly - without providers', async () => {
-      mocked(detectSuperJson).mockResolvedValue('.');
+      jest.mocked(detectSuperJson).mockResolvedValue('.');
       const profileId = ProfileId.fromId('starwars/character-information', {
         userError,
       });
-      mocked(installProfiles).mockResolvedValue({ continueWithInstall: true });
+      jest
+        .mocked(installProfiles)
+        .mockResolvedValue({ continueWithInstall: true });
 
       await expect(
         instance.execute({
@@ -359,15 +367,17 @@ describe('Install CLI command', () => {
     }, 10000);
 
     it('calls install profiles correctly - one invalid provider', async () => {
-      mocked(detectSuperJson).mockResolvedValue('.');
-      mocked(installProvider).mockResolvedValue(undefined);
-      mocked(isCompatible).mockResolvedValue(true);
+      jest.mocked(detectSuperJson).mockResolvedValue('.');
+      jest.mocked(installProvider).mockResolvedValue(undefined);
+      jest.mocked(isCompatible).mockResolvedValue(true);
       const mockProviders = ['tyntec', 'twilio', 'made.up'];
       const profileId = ProfileId.fromId('starwars/character-information', {
         userError,
       });
 
-      mocked(installProfiles).mockResolvedValue({ continueWithInstall: true });
+      jest
+        .mocked(installProfiles)
+        .mockResolvedValue({ continueWithInstall: true });
 
       await expect(
         instance.execute({
@@ -437,14 +447,16 @@ describe('Install CLI command', () => {
     }, 10000);
 
     it('calls install profiles correctly - providers separated by coma and space', async () => {
-      mocked(detectSuperJson).mockResolvedValue('.');
-      mocked(installProvider).mockResolvedValue(undefined);
-      mocked(isCompatible).mockResolvedValue(true);
+      jest.mocked(detectSuperJson).mockResolvedValue('.');
+      jest.mocked(installProvider).mockResolvedValue(undefined);
+      jest.mocked(isCompatible).mockResolvedValue(true);
       const profileId = ProfileId.fromId('starwars/character-information', {
         userError,
       });
 
-      mocked(installProfiles).mockResolvedValue({ continueWithInstall: true });
+      jest
+        .mocked(installProfiles)
+        .mockResolvedValue({ continueWithInstall: true });
 
       await expect(
         instance.execute({

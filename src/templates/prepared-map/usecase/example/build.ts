@@ -98,9 +98,7 @@ export function buildUseCaseExamples(
   };
 }
 
-function findUseCaseExamples(
-  usecase: UseCaseDefinitionNode
-): {
+function findUseCaseExamples(usecase: UseCaseDefinitionNode): {
   errorExample?: {
     input?: ComlinkLiteralNode;
     error?: ComlinkLiteralNode;
