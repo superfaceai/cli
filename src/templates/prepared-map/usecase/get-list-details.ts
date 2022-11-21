@@ -23,7 +23,7 @@ export function getListModelDetails(
     nonNull: nonNull ?? false,
     model: getTypeDetails(
       list.elementType,
-      false,
+      undefined,
       namedModelDefinitionsCache,
       namedFieldDefinitionsCache
     ),

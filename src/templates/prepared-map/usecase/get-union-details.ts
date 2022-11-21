@@ -24,7 +24,7 @@ export function getUnionModelDetails(
     types: object.types.map(t =>
       getTypeDetails(
         t,
-        false,
+        undefined,
         namedModelDefinitionsCache,
         namedFieldDefinitionsCache
       )
