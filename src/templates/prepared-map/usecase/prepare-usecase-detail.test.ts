@@ -157,7 +157,13 @@ describe('Parse use case details', () => {
             {
               fieldName: 'message',
               required: false,
-              model: null,
+              model: {
+                modelType: 'Scalar',
+                nonNull: false,
+                scalarType: 'string',
+              },
+              description:
+                'The message for when an error occurs looking up character information',
             },
           ],
         },
@@ -168,7 +174,13 @@ describe('Parse use case details', () => {
             {
               fieldName: 'characterName',
               required: false,
-              model: null,
+              model: {
+                modelType: 'Scalar',
+                nonNull: false,
+                scalarType: 'string',
+              },
+              description:
+                'The character name to use when looking up character information',
             },
           ],
         },
@@ -179,17 +191,32 @@ describe('Parse use case details', () => {
             {
               fieldName: 'height',
               required: false,
-              model: null,
+              model: {
+                modelType: 'Scalar',
+                nonNull: false,
+                scalarType: 'string',
+              },
+              description: 'The height of the character',
             },
             {
               fieldName: 'weight',
               required: false,
-              model: null,
+              model: {
+                modelType: 'Scalar',
+                nonNull: false,
+                scalarType: 'string',
+              },
+              description: 'The weight of the character',
             },
             {
               fieldName: 'yearOfBirth',
               required: false,
-              model: null,
+              model: {
+                modelType: 'Scalar',
+                nonNull: false,
+                scalarType: 'string',
+              },
+              description: 'The year of birth of the character',
             },
           ],
         },
