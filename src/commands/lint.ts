@@ -180,6 +180,7 @@ export default class Lint extends Command {
 
     const result = await lint(superJson, superJsonPath, profiles, {
       logger,
+      userError,
     });
 
     if (flags.outputFormat === 'long' || flags.outputFormat === 'short') {

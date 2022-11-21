@@ -8,7 +8,6 @@ import { EXTENSIONS } from '@superfaceai/ast';
 import type {
   ProfileHeaderStructure,
   ProfileOutput,
-  ValidationIssue,
   ValidationResult,
 } from '@superfaceai/parser';
 import {
@@ -279,7 +278,8 @@ type PreparedProfile = ProfileToValidate & {
 async function prepareLintedProfile(
   superJson: SuperJsonDocument,
   superJsonPath: string,
-  profile: ProfileToValidate
+  profile: ProfileToValidate,
+  { userError }: { userError: UserError }
 ): Promise<PreparedProfile> {
   let ast: ProfileDocumentNode | undefined = undefined;
   let output: ProfileOutput | undefined = undefined;
@@ -302,7 +302,11 @@ async function prepareLintedProfile(
     try {
       ast = parseProfile(new Source(profileSource.source, profileSource.path));
     } catch (e) {
-      report.errors.push(e as SyntaxError | ValidationIssue);
+      if (e instanceof SyntaxError) {
+        report.errors.push(e);
+      } else {
+        throw userError(String(e), 1);
+      }
     }
   } else {
     ast = await fetchProfileAST(profile.id, profile.version);
@@ -332,7 +336,8 @@ async function prepareLintedMap(
   superJson: SuperJsonDocument,
   superJsonPath: string,
   profile: ProfileToValidate,
-  map: MapToValidate
+  map: MapToValidate,
+  { userError }: { userError: UserError }
 ): Promise<PreparedMap> {
   let ast: MapDocumentNode | undefined = undefined;
 
@@ -366,7 +371,11 @@ async function prepareLintedMap(
     try {
       ast = parseMap(new Source(mapSource.source, mapSource.path));
     } catch (e) {
-      report.errors.push(e as SyntaxError | ValidationIssue);
+      if (e instanceof SyntaxError) {
+        report.errors.push(e);
+      } else {
+        throw userError(String(e), 1);
+      }
     }
   } else {
     ast = await fetchMapAST({
@@ -414,7 +423,7 @@ export async function lint(
   superJson: SuperJsonDocument,
   superJsonPath: string,
   profiles: ProfileToValidate[],
-  { logger }: { logger: ILogger }
+  { logger, userError }: { userError: UserError; logger: ILogger }
 ): Promise<LintResult> {
   const counts: [number, number][] = [];
   const reports: ReportFormat[] = [];
@@ -423,7 +432,8 @@ export async function lint(
     const preparedProfile = await prepareLintedProfile(
       superJson,
       superJsonPath,
-      profile
+      profile,
+      { userError }
     );
 
     reports.push(preparedProfile.report);
@@ -438,7 +448,8 @@ export async function lint(
         superJson,
         superJsonPath,
         profile,
-        map
+        map,
+        { userError }
       );
       reports.push(preparedMap.report);
 
