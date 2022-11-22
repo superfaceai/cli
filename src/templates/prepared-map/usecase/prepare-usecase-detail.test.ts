@@ -25,6 +25,7 @@ describe('Parse use case details', () => {
     expect(prepareUseCaseDetails(strictFixture)).toEqual([
       {
         name: 'Foo',
+        inputExampleScalarName: 'input.field',
         title: 'usecase title',
         error: {
           modelType: 'Enum',
@@ -148,6 +149,7 @@ describe('Parse use case details', () => {
     expect(prepareUseCaseDetails(swFixture)).toEqual([
       {
         name: 'RetrieveCharacterInformation',
+        inputExampleScalarName: 'input.characterName',
         title:
           'Retrieve information about Star Wars characters from the Star Wars API.',
         error: {
