@@ -2,7 +2,7 @@
 export default `{{assign 'step' 1}}// {{@root.step}}) Change HTTP method and path to make an HTTP call
 http POST {{>Path input=inputExampleScalarName}} {
   {{#if provider.securityIds}}
-  {{assign 'step' (inc @root.step 1)}}// {{@root.step}}) Specify security identifier from Provider JSON definition
+  {{assign 'step' (inc @root.step 1)}}// {{@root.step}}) Specify security scheme id from Provider JSON definition
   security {{>Security securityIds=provider.securityIds}}
   {{/if }}
 
@@ -26,7 +26,7 @@ http POST {{>Path input=inputExampleScalarName}} {
     {{/unless }}
   }
 
-  {{assign 'step' (inc @root.step 1)}}// {{@root.step}}) Map unsuccessful HTTP response to the use case error
+  {{assign 'step' (inc @root.step 1)}}// {{@root.step}}) Optionally map unsuccessful HTTP response to the use case error
   response 500 {
     return map error {{#if error }}{{#ifeq error.modelType "Scalar"}}{{>Scalar error.model }}{{/ifeq}}{{#ifeq error.modelType "Object"}}{{>Object error use=" =" indent=4 }}{{/ifeq}}{{#ifeq error.modelType "List"}}{{>Array error use=":" indent=4 }}{{/ifeq}}{{newLine 2}}{{/if }}
     {{#unless error }}
