@@ -21,7 +21,7 @@ export async function loadSuperJson({
 }): Promise<{ superJson: SuperJsonDocument; superJsonPath: string }> {
   const superPath = await detectSuperJson(process.cwd(), scan);
   if (superPath === undefined) {
-    throw userError('Unable to lint, super.json not found', 1);
+    throw userError('Unable to load super.json, super.json not found', 1);
   }
   const superJsonPath = joinPath(superPath, META_FILE);
   const loadedResult = await tryToLoadSuperJson(superJsonPath, NodeFileSystem);
