@@ -9,7 +9,6 @@ http POST {{>Path input=inputExampleScalarName}} {
   {{assign 'step' (inc @root.step 1)}}// {{@root.step}}) Pass input values to the HTTP request
   request {
     {{#if input }}
-    // pass input values
     query {
       // param_name = input.fieldName
     }
@@ -19,7 +18,7 @@ http POST {{>Path input=inputExampleScalarName}} {
   }
 
   {{assign 'step' (inc @root.step 1)}}// {{@root.step}}) Map successful HTTP response to the result. The content type is optional
-  response 200 "content-type" {
+  response 200 "application/json" {
     return map result {{#if result }}{{#ifeq result.modelType "Scalar"}}{{>Scalar result.model }}{{/ifeq}}{{#ifeq result.modelType "Object"}}{{>Object result use=" =" indent=4 }}{{/ifeq}}{{#ifeq result.modelType "List"}}{{>Array result use=":" indent=4 }}{{/ifeq}}{{newLine 2}}{{/if }}
     {{#unless result }}
     //empty result
