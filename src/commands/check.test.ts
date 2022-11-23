@@ -16,7 +16,7 @@ import type {
   MapFromMetadata,
   ProfileFromMetadata,
   ProviderFromMetadata,
-} from '../logic/publish.utils';
+} from '../logic/publish/publish.utils';
 import type { MockStd } from '../test/mock-std';
 import { mockStd } from '../test/mock-std';
 import { CommandInstance } from '../test/utils';

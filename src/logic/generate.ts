@@ -25,7 +25,7 @@ import {
   typedClientStatement,
   typeDefinitions,
 } from './generate.utils';
-import { loadProfile } from './publish.utils';
+import { loadProfile } from './publish/publish.utils';
 
 export async function generate(
   {

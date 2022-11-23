@@ -5,20 +5,20 @@ import type {
 } from '@superfaceai/ast';
 import { parseMap, parseProfile, Source } from '@superfaceai/parser';
 
-import { MockLogger } from '../common';
-import { createUserError } from '../common/error';
+import { MockLogger } from '../../common';
+import { createUserError } from '../../common/error';
 import {
   fetchMapAST,
   fetchProfileAST,
   fetchProviderInfo,
-} from '../common/http';
-import { ProfileId } from '../common/profile';
-import type { ProfileMapReport } from '../common/report.interfaces';
+} from '../../common/http';
+import { ProfileId } from '../../common/profile';
+import type { ProfileMapReport } from '../../common/report.interfaces';
 import {
   findLocalMapSource,
   findLocalProfileSource,
   findLocalProviderSource,
-} from './check.utils';
+} from '../check.utils';
 import type {
   MapFromMetadata,
   ProfileFromMetadata,

@@ -54,10 +54,20 @@ const publish = {
   localAndRemoteProvider: (provider: string) =>
     `Provider: "${provider}" found localy linked in "super.json" and also in Superface registry; consider using provider from Superface registry`,
   publishEndedWithErrors: () => 'Publishing command ended up with errors:\n',
-  publishSuccessful: (documentType: string, dryRun: boolean) =>
-    dryRun
+  publishSuccessful: (
+    documentType: 'profile' | 'map' | 'provider',
+    dryRun?: boolean
+  ) =>
+    dryRun == true
       ? `Dry run publish of ${documentType} has been successful`
-      : `${documentType} has been published successfully`,
+      : `Publish of ${documentType} has been successful`,
+  publishSkiped: (
+    documentType: 'profile' | 'map' | 'provider',
+    dryRun?: boolean
+  ) =>
+    dryRun == true
+      ? `Dry run publish of ${documentType} has been skiped. File with same content already exists`
+      : `Publish of ${documentType} has been skiped. File with same content already exists`,
 };
 
 const login = {

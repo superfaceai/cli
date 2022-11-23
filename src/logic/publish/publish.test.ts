@@ -10,22 +10,22 @@ import {
   DEFAULT_PROFILE_VERSION_STR,
   MockLogger,
   UNVERIFIED_PROVIDER_PREFIX,
-} from '../common';
-import { createUserError } from '../common/error';
-import { fetchProviderInfo, getServicesUrl } from '../common/http';
-import { loadNetrc } from '../common/netrc';
-import { ProfileId } from '../common/profile';
-import type { ProfileMapReport } from '../common/report.interfaces';
-import type { CheckResult } from './check';
+} from '../../common';
+import { createUserError } from '../../common/error';
+import { fetchProviderInfo, getServicesUrl } from '../../common/http';
+import { loadNetrc } from '../../common/netrc';
+import { ProfileId } from '../../common/profile';
+import type { ProfileMapReport } from '../../common/report.interfaces';
+import type { CheckResult } from '../check';
 import {
   formatHuman as checkFormatHuman,
   formatJson as checkFormatJson,
-} from './check';
+} from '../check';
 import {
   formatHuman as lintFormatHuman,
   formatJson as lintFormatJson,
-} from './lint';
-import { publish } from './publish';
+} from '../lint';
+import { publish } from '.';
 import type {
   MapFromMetadata,
   ProfileFromMetadata,

@@ -23,8 +23,8 @@ import type {
   MapFromMetadata,
   ProfileFromMetadata,
   ProviderFromMetadata,
-} from './publish.utils';
-import { loadMap, loadProfile, loadProvider } from './publish.utils';
+} from './publish/publish.utils';
+import { loadMap, loadProfile, loadProvider } from './publish/publish.utils';
 
 /**
  * Represents result of map & profile check

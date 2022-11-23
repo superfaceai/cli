@@ -22,7 +22,7 @@ import {
   reconfigureProvider,
 } from '../logic/configure';
 import { detectSuperJson } from '../logic/install';
-import { publish } from '../logic/publish';
+import { publish } from '../logic/publish/publish';
 import Install from './install';
 
 export default class Publish extends Command {

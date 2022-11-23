@@ -17,27 +17,27 @@ import {
   validateMap,
 } from '@superfaceai/parser';
 
-import type { UserError } from '../common/error';
+import type { UserError } from '../../common/error';
 import {
   fetchMapAST,
   fetchProfileAST,
   fetchProviderInfo,
-} from '../common/http';
-import type { ILogger } from '../common/log';
-import type { ProfileId } from '../common/profile';
-import type { ProfileMapReport } from '../common/report.interfaces';
-import type { CheckResult } from './check';
+} from '../../common/http';
+import type { ILogger } from '../../common/log';
+import type { ProfileId } from '../../common/profile';
+import type { ProfileMapReport } from '../../common/report.interfaces';
+import type { CheckResult } from '../check';
 import {
   checkIntegrationParameters,
   checkMapAndProfile,
   checkMapAndProvider,
-} from './check';
+} from '../check';
 import {
   findLocalMapSource,
   findLocalProfileSource,
   findLocalProviderSource,
-} from './check.utils';
-import { createProfileMapReport } from './lint';
+} from '../check.utils';
+import { createProfileMapReport } from '../lint';
 
 export function prePublishCheck(
   {

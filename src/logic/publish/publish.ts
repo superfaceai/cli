@@ -1,26 +1,22 @@
-import type { ProviderJson, SuperJsonDocument } from '@superfaceai/ast';
-import type { ServiceClient } from '@superfaceai/service-client';
-import {
-  CreateProfileApiError,
-  CreateProviderApiError,
-  ServiceApiError,
-} from '@superfaceai/service-client';
+import type { SuperJsonDocument } from '@superfaceai/ast';
+import { ServiceApiError } from '@superfaceai/service-client';
 import { yellow } from 'chalk';
 
-import type { ILogger } from '../common';
-import { UNVERIFIED_PROVIDER_PREFIX } from '../common';
-import type { UserError } from '../common/error';
-import { fetchProviderInfo, SuperfaceClient } from '../common/http';
-import { loadNetrc } from '../common/netrc';
-import type { ProfileId } from '../common/profile';
+import type { ILogger } from '../../common';
+import { UNVERIFIED_PROVIDER_PREFIX } from '../../common';
+import type { UserError } from '../../common/error';
+import { fetchProviderInfo, SuperfaceClient } from '../../common/http';
+import { loadNetrc } from '../../common/netrc';
+import type { ProfileId } from '../../common/profile';
 import {
   formatHuman as checkFormatHuman,
   formatJson as checkFormatJson,
-} from './check';
+} from '../check';
 import {
   formatHuman as lintFormatHuman,
   formatJson as lintFormatJson,
-} from './lint';
+} from '../lint';
+import { handlePublish } from './handle-publish';
 import {
   loadMap,
   loadProfile,
@@ -207,162 +203,45 @@ export async function publish(
     }
   }
 
+  const profileSource =
+    publishing.profile && profileFiles.from.kind === 'local'
+      ? profileFiles.from.source
+      : undefined;
+  const mapSource =
+    publishing.map && mapFiles.from.kind === 'local'
+      ? mapFiles.from.source
+      : undefined;
+  const providerSource = publishing.provider
+    ? JSON.stringify(providerFiles.source)
+    : undefined;
+
   const client = SuperfaceClient.getClient();
 
-  if (publishing.profile && profileFiles.from.kind === 'local') {
-    await publishProfile(
-      profile,
-      profileFiles.from.source,
-      options?.dryRun ?? false,
-      { client, logger, userError }
-    );
-  }
-  if (publishing.provider) {
-    await publishProvider(providerFiles.source, options?.dryRun ?? false, {
-      client,
-      logger,
-      userError,
-    });
-  }
+  const dryRunResult = await handlePublish(
+    {
+      profileId: profile.id,
+      profileSource: profileSource,
+      providerName: provider,
+      providerSource: providerSource,
+      mapSource,
+      options: { dryRun: true },
+    },
+    { logger, userError, client }
+  );
 
-  if (publishing.map && mapFiles.from.kind === 'local') {
-    await publishMap(
-      profile,
-      provider,
-      mapFiles.from.source,
-      options?.dryRun ?? false,
-      { client, logger, userError }
-    );
-  }
+  await handlePublish(
+    {
+      profileId: profile.id,
+      profileSource:
+        dryRunResult.skipProfile === true ? undefined : profileSource,
+      providerName: provider,
+      providerSource:
+        dryRunResult.skipProvider === true ? undefined : providerSource,
+      mapSource: dryRunResult.skipMap === true ? undefined : mapSource,
+      options: { dryRun: true },
+    },
+    { logger, userError, client }
+  );
 
   return;
-}
-
-async function publishMap(
-  profile: ProfileId,
-  provider: string,
-  mapSource: string,
-  dryRun: boolean,
-  {
-    client,
-    logger,
-    userError,
-  }: { client: ServiceClient; logger: ILogger; userError: UserError }
-) {
-  logger.info('publishMap', profile.id, provider);
-  let skipPublish = false;
-  try {
-    await client.createMap(mapSource, { dryRun: true });
-  } catch (error) {
-    if (
-      error instanceof ServiceApiError &&
-      error.status === 422 &&
-      error.title === 'No change'
-    ) {
-      //TODO: inform user that we are skiping?
-      skipPublish = true;
-    }
-    //Do not throw on non existing profile in dry run
-    else if (
-      dryRun &&
-      error instanceof ServiceApiError &&
-      error.status === 422 &&
-      error.title === 'Profile not found'
-    ) {
-    } else if (error instanceof ServiceApiError) {
-      throw userError(error.message, 1);
-    } else {
-      throw userError(String(error), 1);
-    }
-  }
-  logger.success('publishSuccessful', 'map', true);
-
-  if (!dryRun && !skipPublish) {
-    try {
-      await client.createMap(mapSource);
-      logger.success('publishSuccessful', 'map', false);
-    } catch (error) {
-      if (error instanceof ServiceApiError) {
-        throw userError(error.message, 1);
-      }
-      throw userError(String(error), 1);
-    }
-  }
-}
-
-async function publishProvider(
-  providerJson: ProviderJson,
-  dryRun: boolean,
-  {
-    client,
-    logger,
-    userError,
-  }: { client: ServiceClient; logger: ILogger; userError: UserError }
-) {
-  logger.info('publishProvider', providerJson.name);
-  let skipPublish = false;
-  try {
-    await client.createProvider(JSON.stringify(providerJson), {
-      dryRun: true,
-    });
-    logger.success('publishSuccessful', 'provider', true);
-  } catch (error) {
-    if (error instanceof CreateProviderApiError && error.providerJsonEquals) {
-      skipPublish = true;
-    } else {
-      throw userError(String(error), 1);
-    }
-  }
-
-  if (!dryRun && !skipPublish) {
-    try {
-      await client.createProvider(JSON.stringify(providerJson));
-      logger.success('publishSuccessful', 'provider', false);
-    } catch (error) {
-      if (error instanceof CreateProviderApiError) {
-        throw userError(error.message, 1);
-      }
-      throw userError(String(error), 1);
-    }
-  }
-}
-
-async function publishProfile(
-  profileId: ProfileId,
-  profileSource: string,
-  dryRun: boolean,
-  {
-    client,
-    logger,
-    userError,
-  }: { client: ServiceClient; logger: ILogger; userError: UserError }
-) {
-  logger.info('publishProfile', profileId.id);
-  let skipPublish = false;
-
-  try {
-    await client.createProfile(profileSource, {
-      dryRun: true,
-    });
-    logger.success('publishSuccessful', 'profile', true);
-  } catch (error) {
-    // TODO: does this make sense?
-    if (
-      error instanceof CreateProfileApiError &&
-      error.status === 422 &&
-      error.contentIsEqual === true
-    ) {
-      skipPublish = true;
-    }
-    throw userError(String(error), 1);
-  }
-
-  if (!dryRun && !skipPublish) {
-    try {
-      await client.createProfile(profileSource);
-      logger.success('publishSuccessful', 'profile', false);
-    } catch (error) {
-      throw userError(String(error), 1);
-    }
-  }
 }
