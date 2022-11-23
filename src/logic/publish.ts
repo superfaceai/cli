@@ -1,11 +1,9 @@
 import type { ProviderJson, SuperJsonDocument } from '@superfaceai/ast';
-import type {
-  ServiceClient
-} from '@superfaceai/service-client';
+import type { ServiceClient } from '@superfaceai/service-client';
 import {
   CreateProfileApiError,
   CreateProviderApiError,
-  ServiceApiError
+  ServiceApiError,
 } from '@superfaceai/service-client';
 import { yellow } from 'chalk';
 
@@ -252,12 +250,20 @@ async function publishMap(
   }: { client: ServiceClient; logger: ILogger; userError: UserError }
 ) {
   logger.info('publishMap', profile.id, provider);
-
+  let skipPublish = false;
   try {
     await client.createMap(mapSource, { dryRun: true });
   } catch (error) {
-    //Do not throw on non existing profile in dry run
     if (
+      error instanceof ServiceApiError &&
+      error.status === 422 &&
+      error.title === 'No change'
+    ) {
+      //TODO: inform user that we are skiping?
+      skipPublish = true;
+    }
+    //Do not throw on non existing profile in dry run
+    else if (
       dryRun &&
       error instanceof ServiceApiError &&
       error.status === 422 &&
@@ -271,7 +277,7 @@ async function publishMap(
   }
   logger.success('publishSuccessful', 'map', true);
 
-  if (!dryRun) {
+  if (!dryRun && !skipPublish) {
     try {
       await client.createMap(mapSource);
       logger.success('publishSuccessful', 'map', false);
@@ -294,19 +300,21 @@ async function publishProvider(
   }: { client: ServiceClient; logger: ILogger; userError: UserError }
 ) {
   logger.info('publishProvider', providerJson.name);
+  let skipPublish = false;
   try {
     await client.createProvider(JSON.stringify(providerJson), {
       dryRun: true,
     });
     logger.success('publishSuccessful', 'provider', true);
   } catch (error) {
-    if (error instanceof CreateProviderApiError) {
-      throw userError(error.message, 1);
+    if (error instanceof CreateProviderApiError && error.providerJsonEquals) {
+      skipPublish = true;
+    } else {
+      throw userError(String(error), 1);
     }
-    throw userError(String(error), 1);
   }
 
-  if (!dryRun) {
+  if (!dryRun && !skipPublish) {
     try {
       await client.createProvider(JSON.stringify(providerJson));
       logger.success('publishSuccessful', 'provider', false);
@@ -330,6 +338,8 @@ async function publishProfile(
   }: { client: ServiceClient; logger: ILogger; userError: UserError }
 ) {
   logger.info('publishProfile', profileId.id);
+  let skipPublish = false;
+
   try {
     await client.createProfile(profileSource, {
       dryRun: true,
@@ -342,22 +352,16 @@ async function publishProfile(
       error.status === 422 &&
       error.contentIsEqual === true
     ) {
-      throw userError(
-        `Profile ${profileId.id} already exists in Registry. Did you forget to update profile version?`,
-        1
-      );
+      skipPublish = true;
     }
     throw userError(String(error), 1);
   }
 
-  if (!dryRun) {
+  if (!dryRun && !skipPublish) {
     try {
       await client.createProfile(profileSource);
       logger.success('publishSuccessful', 'profile', false);
     } catch (error) {
-      if (error instanceof CreateProfileApiError) {
-        throw userError(error.message, 1);
-      }
       throw userError(String(error), 1);
     }
   }
