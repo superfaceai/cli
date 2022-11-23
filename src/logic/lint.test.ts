@@ -501,7 +501,7 @@ describe('Lint logic', () => {
         .mockReturnValueOnce(mockMapDocumentMatching);
 
       await expect(
-        lint(mockSuperJson, '', mockProfiles, { logger })
+        lint(mockSuperJson, '', mockProfiles, { logger, userError })
       ).resolves.toEqual({
         reports: [
           {
@@ -584,7 +584,7 @@ describe('Lint logic', () => {
         .mockResolvedValueOnce(mockMapDocumentMatching);
 
       await expect(
-        lint(mockSuperJson, '', mockProfiles, { logger })
+        lint(mockSuperJson, '', mockProfiles, { logger, userError })
       ).resolves.toEqual({
         reports: [
           {
@@ -666,7 +666,7 @@ describe('Lint logic', () => {
       jest.mocked(fetchProfileAST).mockResolvedValue(mockProfileDocument);
 
       await expect(
-        lint(mockSuperJson, '', mockProfiles, { logger })
+        lint(mockSuperJson, '', mockProfiles, { logger, userError })
       ).resolves.toEqual({
         reports: [
           {
@@ -717,12 +717,9 @@ describe('Lint logic', () => {
     });
 
     it('returns correct counts, corrupted profile', async () => {
-      const mockSyntaxErr: SyntaxError = {
-        source: new Source('test'),
-        formatHints: () => '',
-        formatVisualization: () => '',
-        hints: [],
-        location: {
+      const mockSyntaxErr = new SyntaxError(
+        new Source('test'),
+        {
           start: {
             line: 0,
             column: 0,
@@ -734,11 +731,8 @@ describe('Lint logic', () => {
             charIndex: 0,
           },
         },
-        category: SyntaxErrorCategory.PARSER,
-        detail: '',
-        format: () => 'detail',
-        message: 'message',
-      };
+        SyntaxErrorCategory.PARSER
+      );
 
       const profile = ProfileId.fromScopeName(
         'starwars',
@@ -771,37 +765,11 @@ describe('Lint logic', () => {
       });
 
       await expect(
-        lint(mockSuperJson, '', mockProfiles, { logger })
+        lint(mockSuperJson, '', mockProfiles, { logger, userError })
       ).resolves.toEqual({
         reports: [
           {
-            errors: [
-              {
-                category: 'Parser',
-                detail: '',
-                format: expect.any(Function),
-                formatHints: expect.any(Function),
-                formatVisualization: expect.any(Function),
-                hints: [],
-                location: {
-                  end: {
-                    charIndex: 0,
-                    column: 0,
-                    line: 0,
-                  },
-                  start: {
-                    charIndex: 0,
-                    column: 0,
-                    line: 0,
-                  },
-                },
-                message: 'message',
-                source: new Source('test', undefined, {
-                  column: 0,
-                  line: 0,
-                }),
-              },
-            ],
+            errors: [mockSyntaxErr],
             kind: 'file',
             path: 'mockProfilePath',
             warnings: [],
@@ -812,12 +780,9 @@ describe('Lint logic', () => {
     });
 
     it('returns correct counts, corrupted map', async () => {
-      const mockSyntaxErr: SyntaxError = {
-        source: new Source('test'),
-        formatHints: () => '',
-        formatVisualization: () => '',
-        hints: [],
-        location: {
+      const mockSyntaxErr = new SyntaxError(
+        new Source('test'),
+        {
           start: {
             line: 0,
             column: 0,
@@ -829,11 +794,8 @@ describe('Lint logic', () => {
             charIndex: 0,
           },
         },
-        category: SyntaxErrorCategory.PARSER,
-        detail: '',
-        format: () => 'detail',
-        message: 'message',
-      };
+        SyntaxErrorCategory.PARSER
+      );
 
       const profile = ProfileId.fromScopeName(
         'starwars',
@@ -867,7 +829,7 @@ describe('Lint logic', () => {
       });
 
       await expect(
-        lint(mockSuperJson, '', mockProfiles, { logger })
+        lint(mockSuperJson, '', mockProfiles, { logger, userError })
       ).resolves.toEqual({
         reports: [
           {
@@ -877,33 +839,7 @@ describe('Lint logic', () => {
             warnings: [],
           },
           {
-            errors: [
-              {
-                category: 'Parser',
-                detail: '',
-                format: expect.any(Function),
-                formatHints: expect.any(Function),
-                formatVisualization: expect.any(Function),
-                hints: [],
-                location: {
-                  end: {
-                    charIndex: 0,
-                    column: 0,
-                    line: 0,
-                  },
-                  start: {
-                    charIndex: 0,
-                    column: 0,
-                    line: 0,
-                  },
-                },
-                message: 'message',
-                source: new Source('test', undefined, {
-                  column: 0,
-                  line: 0,
-                }),
-              },
-            ],
+            errors: [mockSyntaxErr],
             kind: 'file',
             path: 'mockMapPath',
             warnings: [],
