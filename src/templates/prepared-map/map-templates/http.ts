@@ -5,6 +5,9 @@ http POST {{>Path input=inputExampleScalarName}} {
   {{assign 'step' (inc @root.step 1)}}// {{@root.step}}) Specify security scheme id from Provider JSON definition
   security {{>Security securityIds=provider.securityIds}}
   {{/if }}
+  {{#unless provider.securityIds}}
+  security none
+  {{/unless}}
 
   {{assign 'step' (inc @root.step 1)}}// {{@root.step}}) Pass input values to the HTTP request
   request {
