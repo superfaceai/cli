@@ -51,7 +51,8 @@ describe('Prepare mock map command', () => {
         instance.execute({
           logger,
           userError,
-          flags: { profileId: mockProfile },
+          flags: {},
+          args: { profileId: mockProfile },
         })
       ).rejects.toThrow('Unable to load super.json, super.json not found');
     });
@@ -65,7 +66,8 @@ describe('Prepare mock map command', () => {
         instance.execute({
           logger,
           userError,
-          flags: { profileId: mockProfile },
+          flags: {},
+          args: { profileId: mockProfile },
         })
       ).rejects.toThrow('Unable to load super.json: test error');
     });
@@ -77,8 +79,8 @@ describe('Prepare mock map command', () => {
         instance.execute({
           logger,
           userError,
+          args: { profileId: mockProfile },
           flags: {
-            profileId: mockProfile,
             scan: 7,
           },
         })
@@ -96,8 +98,8 @@ describe('Prepare mock map command', () => {
         instance.execute({
           logger,
           userError,
+          args: { profileId: 'U!0_' },
           flags: {
-            profileId: 'U!0_',
             scan: 3,
           },
         })
@@ -116,8 +118,8 @@ describe('Prepare mock map command', () => {
         instance.execute({
           logger,
           userError,
+          args: { profileId: mockProfile },
           flags: {
-            profileId: mockProfile,
             scan: 3,
           },
         })
@@ -147,8 +149,8 @@ describe('Prepare mock map command', () => {
       await instance.execute({
         logger,
         userError,
+        args: { profileId: mockProfile },
         flags: {
-          profileId: mockProfile,
           scan: 3,
         },
       });
@@ -187,8 +189,8 @@ describe('Prepare mock map command', () => {
       await instance.execute({
         logger,
         userError,
+        args: { profileId: mockProfile },
         flags: {
-          profileId: mockProfile,
           force: true,
           station: true,
           scan: 3,

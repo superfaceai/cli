@@ -51,7 +51,8 @@ describe('Prepare map command', () => {
         instance.execute({
           logger,
           userError,
-          flags: { profileId: mockProfile, providerName: mockProvider },
+          flags: {},
+          args: { profileId: mockProfile, providerName: mockProvider },
         })
       ).rejects.toThrow('Unable to load super.json, super.json not found');
     });
@@ -65,7 +66,8 @@ describe('Prepare map command', () => {
         instance.execute({
           logger,
           userError,
-          flags: { profileId: mockProfile, providerName: mockProvider },
+          flags: {},
+          args: { profileId: mockProfile, providerName: mockProvider },
         })
       ).rejects.toThrow('Unable to load super.json: test error');
     });
@@ -77,9 +79,8 @@ describe('Prepare map command', () => {
         instance.execute({
           logger,
           userError,
+          args: { profileId: mockProfile, providerName: mockProvider },
           flags: {
-            profileId: mockProfile,
-            providerName: mockProvider,
             scan: 7,
           },
         })
@@ -97,9 +98,8 @@ describe('Prepare map command', () => {
         instance.execute({
           logger,
           userError,
+          args: { profileId: 'U!0_', providerName: mockProvider },
           flags: {
-            profileId: 'U!0_',
-            providerName: mockProvider,
             scan: 3,
           },
         })
@@ -118,13 +118,12 @@ describe('Prepare map command', () => {
         instance.execute({
           logger,
           userError,
+          args: { profileId: mockProfile, providerName: 'U!0_' },
           flags: {
-            profileId: mockProfile,
-            providerName: 'U!0_',
             scan: 3,
           },
         })
-      ).rejects.toThrow('Invalid provider name: "U!0_"');
+      ).rejects.toThrow('Invalid provider name: U!0_');
       expect(detectSuperJson).not.toHaveBeenCalled();
       expect(loadSuperJson).not.toHaveBeenCalled();
     }, 10000);
@@ -137,9 +136,8 @@ describe('Prepare map command', () => {
         instance.execute({
           logger,
           userError,
+          args: { profileId: mockProfile, providerName: mockProvider },
           flags: {
-            profileId: mockProfile,
-            providerName: mockProvider,
             scan: 3,
           },
         })
@@ -164,9 +162,8 @@ describe('Prepare map command', () => {
         instance.execute({
           logger,
           userError,
+          args: { profileId: mockProfile, providerName: mockProvider },
           flags: {
-            profileId: mockProfile,
-            providerName: mockProvider,
             scan: 3,
           },
         })
@@ -196,9 +193,8 @@ describe('Prepare map command', () => {
       await instance.execute({
         logger,
         userError,
+        args: { profileId: mockProfile, providerName: mockProvider },
         flags: {
-          profileId: mockProfile,
-          providerName: mockProvider,
           scan: 3,
         },
       });
@@ -238,9 +234,8 @@ describe('Prepare map command', () => {
       await instance.execute({
         logger,
         userError,
+        args: { profileId: mockProfile, providerName: mockProvider },
         flags: {
-          profileId: mockProfile,
-          providerName: mockProvider,
           force: true,
           station: true,
           scan: 3,

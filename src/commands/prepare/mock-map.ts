@@ -16,14 +16,17 @@ export class MockMap extends Command {
   public static description =
     'Prepares map for mock provider on a local filesystem. Created map always returns success result example from profile file. Before running this command you should have prepared profile file (run sf prepare:profile).';
 
+  public static args = [
+    {
+      name: 'profileId',
+      description: 'Profile Id in format [scope](optional)/[name]',
+      required: true,
+    },
+  ];
+
   public static flags = {
     ...Command.flags,
     // Inputs
-    profileId: oclifFlags.string({
-      description: 'Profile Id in format [scope](optional)/[name]',
-      required: true,
-    }),
-
     scan: oclifFlags.integer({
       char: 's',
       description:
@@ -43,13 +46,20 @@ export class MockMap extends Command {
     }),
   };
 
+  public static examples = [
+    '$ superface prepare:mock-map starwars/character-information --force',
+    '$ superface prepare:mock-map starwars/character-information -s 3',
+    '$ superface prepare:mock-map starwars/character-information --station',
+  ];
+
   public async run(): Promise<void> {
-    const { flags } = this.parse(MockMap);
+    const { args, flags } = this.parse(MockMap);
     await super.initialize(flags);
     await this.execute({
       logger: this.logger,
       userError: this.userError,
       flags,
+      args,
     });
   }
 
@@ -57,13 +67,19 @@ export class MockMap extends Command {
     logger,
     userError,
     flags,
+    args,
   }: {
     logger: ILogger;
     userError: UserError;
     flags: Flags<typeof MockMap.flags>;
+    args: { profileId?: string };
   }): Promise<void> {
     // Check inputs
-    const parsedProfileId = parseDocumentId(flags.profileId);
+    if (args.profileId === undefined) {
+      throw userError(`Missing profile id`, 1);
+    }
+
+    const parsedProfileId = parseDocumentId(args.profileId);
     if (parsedProfileId.kind == 'error') {
       throw userError(`Invalid profile id: ${parsedProfileId.message}`, 1);
     }
@@ -85,9 +101,9 @@ export class MockMap extends Command {
     const normalized = normalizeSuperJsonDocument(superJson);
 
     // Check super.json
-    if (normalized.profiles[flags.profileId] === undefined) {
+    if (normalized.profiles[args.profileId] === undefined) {
       throw userError(
-        `Unable to prepare, profile: "${flags.profileId}" not found in super.json`,
+        `Unable to prepare, profile: "${args.profileId}" not found in super.json`,
         1
       );
     }
@@ -95,7 +111,7 @@ export class MockMap extends Command {
     await prepareMockMap(
       {
         id: {
-          profile: ProfileId.fromId(flags.profileId, { userError }),
+          profile: ProfileId.fromId(args.profileId, { userError }),
         },
         superJson,
         superJsonPath,

@@ -1,10 +1,8 @@
 import { flags as oclifFlags } from '@oclif/command';
-import { isValidProviderName } from '@superfaceai/ast';
 import { normalizeSuperJsonDocument } from '@superfaceai/one-sdk';
-import { parseDocumentId } from '@superfaceai/parser';
 
 import type { ILogger } from '../../common';
-import { loadSuperJson } from '../../common';
+import { loadSuperJson, validateArguments } from '../../common';
 import type { Flags } from '../../common/command.abstract';
 import { Command } from '../../common/command.abstract';
 import type { UserError } from '../../common/error';
@@ -17,17 +15,18 @@ export class Map extends Command {
   public static description =
     'Prepares map, based on profile and provider on a local filesystem. Created file contains prepared structure with information from profile and provider files. Before running this command you should have prepared profile (run sf prepare:profile) and provider (run sf prepare:provider)';
 
+  public static args = [
+    {
+      name: 'profileId',
+      description: 'Profile Id in format [scope](optional)/[name]',
+      required: true,
+    },
+    { name: 'providerName', description: 'Name of provider', required: true },
+  ];
+
   public static flags = {
     ...Command.flags,
     // Inputs
-    profileId: oclifFlags.string({
-      description: 'Profile Id in format [scope](optional)/[name]',
-      required: true,
-    }),
-    providerName: oclifFlags.string({
-      description: 'Name of provider.',
-      required: true,
-    }),
     scan: oclifFlags.integer({
       char: 's',
       description:
@@ -47,13 +46,20 @@ export class Map extends Command {
     }),
   };
 
+  public static examples = [
+    '$ superface prepare:map starwars/character-information swapi --force',
+    '$ superface prepare:map starwars/character-information swapi -s 3',
+    '$ superface prepare:map starwars/character-information swapi --station',
+  ];
+
   public async run(): Promise<void> {
-    const { flags } = this.parse(Map);
+    const { args, flags } = this.parse(Map);
     await super.initialize(flags);
     await this.execute({
       logger: this.logger,
       userError: this.userError,
       flags,
+      args,
     });
   }
 
@@ -61,26 +67,19 @@ export class Map extends Command {
     logger,
     userError,
     flags,
+    args,
   }: {
     logger: ILogger;
     userError: UserError;
     flags: Flags<typeof Map.flags>;
+    args: { providerName?: string; profileId?: string };
   }): Promise<void> {
     // Check inputs
-    const parsedProfileId = parseDocumentId(flags.profileId);
-    if (parsedProfileId.kind == 'error') {
-      throw userError(`Invalid profile id: ${parsedProfileId.message}`, 1);
-    }
-
-    if (!isValidProviderName(flags.providerName)) {
-      throw userError(`Invalid provider name: "${flags.providerName}"`, 1);
-    }
-    if (flags.profileId == undefined) {
-      throw userError(
-        '--profileId must be specified when using --providerName',
-        1
-      );
-    }
+    const { profileId, providerName } = validateArguments(
+      args.profileId,
+      args.providerName,
+      { userError }
+    );
 
     if (
       flags.scan !== undefined &&
@@ -99,16 +98,16 @@ export class Map extends Command {
     const normalized = normalizeSuperJsonDocument(superJson);
 
     // Check super.json
-    if (normalized.profiles[flags.profileId] === undefined) {
+    if (normalized.profiles[profileId] === undefined) {
       throw userError(
-        `Unable to prepare, profile: "${flags.profileId}" not found in super.json`,
+        `Unable to prepare, profile: "${profileId}" not found in super.json`,
         1
       );
     }
 
-    if (normalized.providers[flags.providerName] === undefined) {
+    if (normalized.providers[providerName] === undefined) {
       throw userError(
-        `Unable to prepare, provider: "${flags.providerName}" not found in super.json`,
+        `Unable to prepare, provider: "${providerName}" not found in super.json`,
         1
       );
     }
@@ -116,8 +115,8 @@ export class Map extends Command {
     await prepareMap(
       {
         id: {
-          profile: ProfileId.fromId(flags.profileId, { userError }),
-          provider: flags.providerName,
+          profile: ProfileId.fromId(profileId, { userError }),
+          provider: providerName,
           // TODO: pass variant
           variant: undefined,
         },
