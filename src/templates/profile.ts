@@ -23,19 +23,54 @@ export function withInputs(name: string): string {
 ${name} usecase
 """
 usecase ${name} {
-  input {}
-  result {}
-  error {}
+  input {
+    "field title"
+    // foo is required nullable string
+    foo! string 
+    // bar links to named field 
+    bar 
+  }
+  result {
+    // optional nullable string
+    baz string
+  }
+
+  // error links to named model
+  error error
 
   example success {
-    input {}
-    result {}
+    input {
+      foo = "example"
+      bar = true
+    }
+    result {
+      baz = "result"
+    }
   }
 
   example fail {
-    input {}
-    error {}
+    input {
+      foo = "error"
+      bar = false
+    }
+    error {
+      status = 400
+      title = "Not Found"
+    }
   }
+}
+// optional nullable boolean or number
+field bar boolean | number 
+
+model error {
+  status enum {
+    NOT_FOUND = 404,
+    BAD_REQUEST = 400
+  }
+  // required string
+  title! string!
+  // optional string
+  detail string! 
 }
 `;
 }
