@@ -91,7 +91,6 @@ export class Profile extends Command {
     }
 
     // compose document structure from the result
-    const version = parsedProfileId.value.version;
     const name = parsedProfileId.value.name;
 
     if (
@@ -136,7 +135,7 @@ export class Profile extends Command {
       {
         id: {
           profile: ProfileId.fromId(flags.profileId, { userError }),
-          version,
+          version: flags.version,
         },
         usecaseNames: usecases,
         superJson,

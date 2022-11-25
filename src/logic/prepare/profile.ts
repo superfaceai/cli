@@ -1,10 +1,8 @@
 import type { SuperJsonDocument } from '@superfaceai/ast';
 import { EXTENSIONS } from '@superfaceai/ast';
 import { mergeProfile, NodeFileSystem } from '@superfaceai/one-sdk';
-import type { VersionRange } from '@superfaceai/parser';
 
 import type { ILogger } from '../../common';
-import { composeVersion } from '../../common/document';
 import { OutputStream } from '../../common/output-stream';
 import { resolveSuperfaceRelativePath } from '../../common/path';
 import type { ProfileId } from '../../common/profile';
@@ -20,7 +18,7 @@ export async function prepareProfile(
   }: {
     id: {
       profile: ProfileId;
-      version: VersionRange;
+      version: string;
     };
     usecaseNames: string[];
     superJson: SuperJsonDocument;
@@ -33,10 +31,8 @@ export async function prepareProfile(
   // TODO: add deps for FileSystem
   { logger }: { logger: ILogger }
 ): Promise<void> {
-  const versionStr = composeVersion(id.version);
-
   const content = [
-    profileTemplate.header(id.profile.id, versionStr),
+    profileTemplate.header(id.profile.id, id.version),
     ...usecaseNames.map(u => profileTemplate.withInputs(u)),
   ].join('');
 
