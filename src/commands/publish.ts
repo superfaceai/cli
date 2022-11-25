@@ -1,5 +1,10 @@
 import { flags } from '@oclif/command';
-import { EXTENSIONS, isValidProviderName } from '@superfaceai/ast';
+import type {
+  NormalizedProfileProviderSettings,
+  NormalizedProfileSettings,
+  NormalizedSuperJsonDocument,
+} from '@superfaceai/ast';
+import { isValidProviderName } from '@superfaceai/ast';
 import {
   loadSuperJson,
   NodeFileSystem,
@@ -9,7 +14,7 @@ import { parseDocumentId } from '@superfaceai/parser';
 import inquirer from 'inquirer';
 import { join as joinPath } from 'path';
 
-import { META_FILE, UNVERIFIED_PROVIDER_PREFIX } from '../common';
+import { META_FILE } from '../common';
 import type { Flags } from '../common/command.abstract';
 import { Command } from '../common/command.abstract';
 import type { UserError } from '../common/error';
@@ -33,16 +38,6 @@ export default class Publish extends Command {
 
   public static flags = {
     ...Command.flags,
-    // Inputs
-    profile: flags.boolean({
-      description: 'Publish a profile',
-    }),
-    map: flags.boolean({
-      description: 'Publish a map',
-    }),
-    provider: flags.boolean({
-      description: 'Publish a provider',
-    }),
     profileId: flags.string({
       description: 'Profile Id in format [scope/](optional)[name]',
       required: true,
@@ -100,12 +95,6 @@ export default class Publish extends Command {
     userError: UserError;
     flags: Flags<typeof Publish.flags>;
   }): Promise<void> {
-    const publishing = {
-      profile: flags.profile ?? false,
-      map: flags.map ?? false,
-      provider: flags.provider ?? false,
-    };
-
     // Check inputs
     const parsedProfileId = parseDocumentId(flags.profileId);
     if (parsedProfileId.kind == 'error') {
@@ -166,64 +155,76 @@ export default class Publish extends Command {
       );
     }
 
-    // Publishing profile
-    if (publishing.profile) {
-      if (!('file' in profileSettings)) {
-        throw userError(
-          'When publishing profile, profile must be locally linked in super.json',
-          1
-        );
-      }
-      if (!profileSettings.file.endsWith(EXTENSIONS.profile.source)) {
-        throw userError(
-          `Profile path: "${profileSettings.file}" must leads to "${EXTENSIONS.profile.source}" file`,
-          1
-        );
-      }
-
-      // Publishing map
-    } else if (publishing.map) {
+    // When publishing usecase one of files should be local
+    if (!('file' in profileSettings)) {
       if (!('file' in profileProviderSettings)) {
-        throw userError(
-          'When publishing map, map must be locally linked in super.json',
-          1
-        );
+        if (!('file' in providerSettings)) {
+          throw userError(
+            `All of the files in specified use case are local`,
+            1
+          );
+        }
       }
-      if (!profileProviderSettings.file.endsWith(EXTENSIONS.map.source)) {
-        throw userError(
-          `Map path: "${profileProviderSettings.file}" must leads to "${EXTENSIONS.map.source}" file`,
-          1
-        );
-      }
-      // Publishing provider
-    } else if (publishing.provider) {
-      if (!flags.providerName.startsWith(UNVERIFIED_PROVIDER_PREFIX)) {
-        throw userError(
-          `When publishing provider, provider must have prefix "${UNVERIFIED_PROVIDER_PREFIX}"`,
-          1
-        );
-      }
-      if (
-        !('file' in providerSettings) ||
-        providerSettings.file === undefined
-      ) {
-        throw userError(
-          'When publishing provider, provider must be locally linked in super.json',
-          1
-        );
-      }
-      if (!providerSettings.file.endsWith('.json')) {
-        throw userError(
-          `Provider path: "${providerSettings.file}" must leads to ".json" file`,
-          1
-        );
-      }
-    } else {
-      throw userError(
-        'Document type must be one of "map", "profile", "provider"',
-        1
-      );
     }
+
+    // Publishing profile
+    // if (publishing.profile) {
+    //   if (!('file' in profileSettings)) {
+    //     throw userError(
+    //       'When publishing profile, profile must be locally linked in super.json',
+    //       1
+    //     );
+    //   }
+    //   if (!profileSettings.file.endsWith(EXTENSIONS.profile.source)) {
+    //     throw userError(
+    //       `Profile path: "${profileSettings.file}" must leads to "${EXTENSIONS.profile.source}" file`,
+    //       1
+    //     );
+    //   }
+
+    //   // Publishing map
+    // } else if (publishing.map) {
+    //   if (!('file' in profileProviderSettings)) {
+    //     throw userError(
+    //       'When publishing map, map must be locally linked in super.json',
+    //       1
+    //     );
+    //   }
+    //   if (!profileProviderSettings.file.endsWith(EXTENSIONS.map.source)) {
+    //     throw userError(
+    //       `Map path: "${profileProviderSettings.file}" must leads to "${EXTENSIONS.map.source}" file`,
+    //       1
+    //     );
+    //   }
+    // Publishing provider
+    // } else if (publishing.provider) {
+    //   if (!flags.providerName.startsWith(UNVERIFIED_PROVIDER_PREFIX)) {
+    //     throw userError(
+    //       `When publishing provider, provider must have prefix "${UNVERIFIED_PROVIDER_PREFIX}"`,
+    //       1
+    //     );
+    //   }
+    //   if (
+    //     !('file' in providerSettings) ||
+    //     providerSettings.file === undefined
+    //   ) {
+    //     throw userError(
+    //       'When publishing provider, provider must be locally linked in super.json',
+    //       1
+    //     );
+    //   }
+    //   if (!providerSettings.file.endsWith('.json')) {
+    //     throw userError(
+    //       `Provider path: "${providerSettings.file}" must leads to ".json" file`,
+    //       1
+    //     );
+    //   }
+    // } else {
+    //   throw userError(
+    //     'Document type must be one of "map", "profile", "provider"',
+    //     1
+    //   );
+    // }
 
     if (flags.force !== true) {
       const response: { upload: boolean } = await inquirer.prompt({
@@ -249,7 +250,6 @@ export default class Publish extends Command {
 
     const result = await publish(
       {
-        publishing,
         superJson,
         superJsonPath,
         profile: ProfileId.fromId(flags.profileId, { userError }),
@@ -266,13 +266,14 @@ export default class Publish extends Command {
       },
       { logger, userError }
     );
-    if (result !== undefined) {
+    if (result.error !== undefined) {
       logger.warn('publishEndedWithErrors');
-      this.log(result);
+      this.log(result.error);
 
       return;
     }
 
+    // TODO: this is scoped for every use case, we would need to do this under loop
     let transition = true;
     if (flags.force !== true) {
       const prompt: { continue: boolean } = await inquirer.prompt({
@@ -285,12 +286,12 @@ export default class Publish extends Command {
       transition = prompt.continue;
     }
     if (transition) {
-      if (publishing.profile) {
+      if (result.published.profile) {
         await Install.run([flags.profileId, '-f']);
 
         return;
       }
-      if (publishing.map) {
+      if (result.published.map) {
         await reconfigureProfileProvider(
           superJson,
           ProfileId.fromId(flags.profileId, { userError }),
@@ -300,7 +301,7 @@ export default class Publish extends Command {
           }
         );
       }
-      if (publishing.provider) {
+      if (result.published.provider) {
         await reconfigureProvider(superJson, flags.providerName, {
           kind: 'remote',
         });
@@ -315,5 +316,108 @@ export default class Publish extends Command {
 
       logger.info('updateSuperJson', superJsonPath);
     }
+  }
+
+  // TODO: Use this
+  public static prepareFilesToPublish(
+    {
+      superJson,
+      profileId,
+      providerName,
+    }: {
+      superJson: NormalizedSuperJsonDocument;
+      profileId?: string;
+      providerName?: string;
+    },
+    { userError }: { userError: UserError }
+  ) {
+    const isMapOrProviderLocal = (
+      provider: string,
+      profileProviderSettings: NormalizedProfileProviderSettings
+    ): boolean => {
+      // Check if map is local
+      if ('file' in profileProviderSettings) {
+        return true;
+      } else {
+        // Check if provider is local
+        if (superJson.providers[provider] === undefined) {
+          throw userError(
+            `Provider ${provider} not found in super.json.providers`,
+            1
+          );
+        }
+        if (superJson.providers[provider].file !== undefined) {
+          return true;
+        }
+      }
+
+      return false;
+    };
+
+    const checkProfile = (
+      profile: string,
+      profileSettings: NormalizedProfileSettings
+    ) => {
+      const localUseCases: { profile: string; provider: string }[] = [];
+
+      // If profile is local we add all of its providers
+      if ('file' in profileSettings) {
+        for (const provider of Object.keys(profileSettings)) {
+          localUseCases.push({ profile, provider });
+        }
+      }
+      // If profile is remote we need to check its maps
+      else {
+        if (providerName !== undefined) {
+          if (
+            superJson.profiles[profile].providers[providerName] === undefined
+          ) {
+            throw userError(
+              `Provider ${providerName} not found in super.json.profiled[${profile}].providers[${providerName}]`,
+              1
+            );
+          }
+          if (
+            isMapOrProviderLocal(
+              providerName,
+              superJson.profiles[profile].providers[providerName]
+            )
+          ) {
+            localUseCases.push({ profile, provider: providerName });
+          }
+        } else {
+          for (const [provider, profileProviderSettings] of Object.entries(
+            profileSettings.providers
+          )) {
+            if (isMapOrProviderLocal(provider, profileProviderSettings)) {
+              localUseCases.push({ profile, provider });
+            }
+          }
+        }
+      }
+
+      return localUseCases;
+    };
+
+    if (profileId === undefined) {
+      const localUseCases: { profile: string; provider: string }[] = [];
+      for (const [profile, profileSettings] of Object.entries(
+        superJson.profiles
+      )) {
+        localUseCases.push(...checkProfile(profile, profileSettings));
+      }
+
+      return localUseCases;
+    }
+
+    if (superJson.profiles[profileId] === undefined) {
+      throw userError(
+        `Profile ${profileId} not found in super.json.profiles`,
+        1
+      );
+    }
+    const profileSettings = superJson.profiles[profileId];
+
+    return checkProfile(profileId, profileSettings);
   }
 }
