@@ -37,7 +37,7 @@ describe('Whoami CLI command', () => {
       };
 
       await mockServer
-        .get('/id/user')
+        .forGet('/id/user')
         .withHeaders({ 'Content-Type': ContentType.JSON })
         .thenJson(200, mockUserInfo);
       const result = await execCLI(tempDir, ['whoami'], mockServer.url);
@@ -56,7 +56,7 @@ describe('Whoami CLI command', () => {
       });
 
       await mockServer
-        .get('/id/user')
+        .forGet('/id/user')
         .withHeaders({ 'Content-Type': ContentType.JSON })
         .thenJson(401, mockServerResponse);
       const result = await execCLI(tempDir, ['whoami'], mockServer.url);

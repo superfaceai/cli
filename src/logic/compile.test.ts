@@ -5,7 +5,6 @@ import {
   SyntaxError,
 } from '@superfaceai/parser';
 import { SyntaxErrorCategory } from '@superfaceai/parser/dist/language/error';
-import { mocked } from 'ts-jest/utils';
 
 import { MockLogger } from '..';
 import { createUserError } from '../common/error';
@@ -52,8 +51,8 @@ describe('Compile CLI logic', () => {
     );
 
   const writeOnceSpy = jest.spyOn(OutputStream, 'writeOnce');
-  const parseMapSpy = mocked(parseMap);
-  const parseProfileSpy = mocked(parseProfile);
+  const parseMapSpy = jest.mocked(parseMap);
+  const parseProfileSpy = jest.mocked(parseProfile);
 
   beforeEach(() => {
     writeOnceSpy.mockResolvedValue(undefined);
@@ -127,8 +126,8 @@ describe('Compile CLI logic', () => {
     ];
 
     it('compiles maps and profiles', async () => {
-      mocked(exists).mockResolvedValue(true);
-      mocked(readFile).mockImplementation(path => {
+      jest.mocked(exists).mockResolvedValue(true);
+      jest.mocked(readFile).mockImplementation(path => {
         if (path.toString().endsWith('.ast.json')) {
           throw new Error('Use of ast.json instead of source');
         }
@@ -226,7 +225,7 @@ describe('Compile CLI logic', () => {
     });
 
     it('throws on profile file with unsupported extension', async () => {
-      mocked(exists).mockResolvedValue(false);
+      jest.mocked(exists).mockResolvedValue(false);
 
       await expect(
         compile(
@@ -248,7 +247,7 @@ describe('Compile CLI logic', () => {
     });
 
     it('throws when profile file does not exist', async () => {
-      mocked(exists).mockResolvedValue(false);
+      jest.mocked(exists).mockResolvedValue(false);
 
       await expect(compile(files, { logger, userError })).rejects.toThrow(
         'Path: "first/profile.supr" for profile first/profile does not exist'
@@ -260,8 +259,8 @@ describe('Compile CLI logic', () => {
     });
 
     it('throws on map file with unsupported extension', async () => {
-      mocked(exists).mockResolvedValue(false);
-      mocked(readFile).mockImplementation(() => {
+      jest.mocked(exists).mockResolvedValue(false);
+      jest.mocked(readFile).mockImplementation(() => {
         return Promise.resolve(mockProfileContent);
       });
 
@@ -285,8 +284,11 @@ describe('Compile CLI logic', () => {
     });
 
     it('throws when map file does not exist', async () => {
-      mocked(exists).mockResolvedValueOnce(true).mockResolvedValueOnce(false);
-      mocked(readFile).mockImplementation(path => {
+      jest
+        .mocked(exists)
+        .mockResolvedValueOnce(true)
+        .mockResolvedValueOnce(false);
+      jest.mocked(readFile).mockImplementation(path => {
         if (path.toString().endsWith('.suma')) {
           return Promise.resolve(mockMapContent);
         }
@@ -306,8 +308,8 @@ describe('Compile CLI logic', () => {
     });
 
     it('logs compilation error', async () => {
-      mocked(exists).mockResolvedValue(true);
-      mocked(readFile).mockImplementation(path => {
+      jest.mocked(exists).mockResolvedValue(true);
+      jest.mocked(readFile).mockImplementation(path => {
         if (path.toString().endsWith('.suma')) {
           return Promise.resolve(mockMapContent);
         }

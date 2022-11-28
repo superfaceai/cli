@@ -43,7 +43,7 @@ export default class Logout extends Command {
 
         return;
       }
-      throw userError(error, 1);
+      throw userError(String(error), 1);
     }
   }
 }

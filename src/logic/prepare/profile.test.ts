@@ -135,9 +135,7 @@ describe('Prepare profile logic', () => {
     ).resolves.toBeUndefined();
 
     expect(writeIfAbsentSpy).toHaveBeenCalledTimes(1);
-    expect(
-      writeIfAbsentSpy
-    ).toHaveBeenCalledWith(
+    expect(writeIfAbsentSpy).toHaveBeenCalledWith(
       'grid/test-scope/test-name/profile.supr',
       [
         `name = "${mockProfile.id}"\nversion = "1.0.0"\n// Profile specification: https://superface.ai/docs/comlink/profile\n`,

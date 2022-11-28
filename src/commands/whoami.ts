@@ -37,7 +37,7 @@ export default class Whoami extends Command {
       logger.success('loggedInAs', userInfo.name, userInfo.email);
     } catch (error) {
       if (!(error instanceof ServiceApiError)) {
-        throw userError(error, 1);
+        throw userError(String(error), 1);
       }
       if (error.status === 401) {
         logger.warn('notLoggedIn');

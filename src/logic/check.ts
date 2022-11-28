@@ -203,7 +203,6 @@ export function checkMapAndProvider(
   try {
     assertProviderJson(provider);
   } catch (error) {
-    // console.log(require('util').inspect(error, false, 10));
     if (isProviderParseError(error)) {
       error.errors.forEach(([message, path]) => {
         results.push({
