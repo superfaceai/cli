@@ -1,21 +1,19 @@
 import { flags as oclifFlags } from '@oclif/command';
-import { isValidProviderName } from '@superfaceai/ast';
 import {
   loadSuperJson,
   NodeFileSystem,
   normalizeSuperJsonDocument,
 } from '@superfaceai/one-sdk';
-import { parseDocumentId } from '@superfaceai/parser';
 import { join as joinPath } from 'path';
 
 import type { ILogger } from '../../common';
-import { META_FILE } from '../../common';
+import { META_FILE, validateArguments } from '../../common';
 import type { Flags } from '../../common/command.abstract';
 import { Command } from '../../common/command.abstract';
 import type { UserError } from '../../common/error';
 import { ProfileId } from '../../common/profile';
 import { detectSuperJson } from '../../logic/install';
-import { prepareTest } from '../../logic/prepare/test';
+import { prepareTest } from '../../logic/prepare/prepare-test';
 
 export default class PrepareTest extends Command {
   public static strict = false;
@@ -23,17 +21,18 @@ export default class PrepareTest extends Command {
   public static description =
     'Prepares test file for specified profile and provider. Examples in profile are used as an input.';
 
+  public static args = [
+    {
+      name: 'profileId',
+      description: 'Profile Id in format [scope](optional)/[name]',
+      required: true,
+    },
+    { name: 'providerName', description: 'Name of provider', required: true },
+  ];
+
   public static flags = {
     ...Command.flags,
     // Inputs
-    profileId: oclifFlags.string({
-      description: 'Profile Id in format [scope/](optional)[name]',
-      required: true,
-    }),
-    providerName: oclifFlags.string({
-      description: 'Name of provider.',
-      required: true,
-    }),
     scan: oclifFlags.integer({
       char: 's',
       description:
@@ -54,21 +53,21 @@ export default class PrepareTest extends Command {
   };
 
   public static examples = [
-    '$ superface prepare-test --profileId starwars/character-information --providerName swapi',
-    '$ superface prepare-test --profileId starwars/character-information --providerName swapi --station',
-    '$ superface prepare-test --profileId starwars/character-information --providerName swapi --force',
-    '$ superface prepare-test --profileId starwars/character-information --providerName swapi -q',
+    '$ superface prepare:test starwars/character-information swapi',
+    '$ superface prepare:test starwars/character-information swapi --station',
+    '$ superface prepare:test starwars/character-information swapi --force',
+    '$ superface prepare:test starwars/character-information swapi -q',
   ];
 
   public async run(): Promise<void> {
-    const { argv, flags } = this.parse(PrepareTest);
+    const { args, flags } = this.parse(PrepareTest);
     await super.initialize(flags);
 
     await this.execute({
       logger: this.logger,
       userError: this.userError,
       flags,
-      argv,
+      args,
     });
   }
 
@@ -76,27 +75,19 @@ export default class PrepareTest extends Command {
     logger,
     userError,
     flags,
+    args,
   }: {
     logger: ILogger;
     userError: UserError;
     flags: Flags<typeof PrepareTest.flags>;
-    argv: string[];
+    args: { providerName?: string; profileId?: string };
   }): Promise<void> {
     // Check inputs
-    const parsedProfileId = parseDocumentId(flags.profileId);
-    if (parsedProfileId.kind == 'error') {
-      throw userError(`❌ Invalid profile id: ${parsedProfileId.message}`, 1);
-    }
-
-    if (!isValidProviderName(flags.providerName)) {
-      throw userError(`❌ Invalid provider name: "${flags.providerName}"`, 1);
-    }
-    if (!flags.profileId) {
-      throw userError(
-        '❌ --profileId must be specified when using --providerName',
-        1
-      );
-    }
+    const { profileId, providerName } = validateArguments(
+      args.profileId,
+      args.providerName,
+      { userError }
+    );
 
     if (
       flags.scan !== undefined &&
@@ -128,34 +119,33 @@ export default class PrepareTest extends Command {
     // Check super.json
     const normalized = normalizeSuperJsonDocument(superJson);
 
-    if (normalized.profiles[flags.profileId] === undefined) {
+    if (normalized.profiles[profileId] === undefined) {
       throw userError(
-        `❌ Unable to prepare test, profile: "${flags.profileId}" not found in super.json`,
+        `❌ Unable to prepare test, profile: "${profileId}" not found in super.json`,
         1
       );
     }
-    if (
-      normalized.profiles[flags.profileId].providers[flags.providerName] ===
-      undefined
-    ) {
+    if (normalized.profiles[profileId].providers[providerName] === undefined) {
       throw userError(
-        `❌ Unable to prepare, provider: "${flags.providerName}" not found in profile: "${flags.profileId}" in super.json`,
+        `❌ Unable to prepare test, provider: "${providerName}" not found in profile: "${profileId}" in super.json`,
         1
       );
     }
-    if (normalized.providers[flags.providerName] === undefined) {
+    if (normalized.providers[providerName] === undefined) {
       throw userError(
-        `❌ Unable to prepare, provider: "${flags.providerName}" not found in super.json`,
+        `❌ Unable to prepare test, provider: "${providerName}" not found in super.json`,
         1
       );
     }
+
+    // TODO: only for local files?
 
     await prepareTest(
       {
         superJsonPath,
         superJson,
-        profile: ProfileId.fromId(flags.profileId, { userError }),
-        provider: flags.providerName,
+        profile: ProfileId.fromId(profileId, { userError }),
+        provider: providerName,
         options: {
           force: flags.force,
           station: flags.station,

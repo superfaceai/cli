@@ -7,12 +7,15 @@ import type {
   UseCaseExampleNode,
 } from '@superfaceai/ast';
 import { isUseCaseDefinitionNode } from '@superfaceai/ast';
+import console from 'console';
+import { inspect } from 'util';
 
 import type { ILogger } from '../../common';
 import { OutputStream } from '../../common/output-stream';
 import type { ProfileId } from '../../common/profile';
-import { testTemplate } from '../../templates/test';
-import { loadProfile } from './../publish.utils';
+import { prepareUseCaseDetails } from '../../templates/prepared-map/usecase';
+import { prepareTestTemplate } from '../../templates/prepared-test/prepare-test';
+import { loadProfile } from '../publish.utils';
 
 export type ExampleInput = {
   exampleKind: 'success' | 'error';
@@ -151,13 +154,16 @@ export async function prepareTest(
   },
   { logger }: { logger: ILogger }
 ): Promise<void> {
-  const {
-    ast: { definitions },
-  } = await loadProfile(
+  const { ast } = await loadProfile(
     { superJson, superJsonPath, profile, version },
     { logger }
   );
-  const usecases = definitions.filter(isUseCaseDefinitionNode);
+
+  const s = prepareUseCaseDetails(ast);
+
+  console.log('s', inspect(s, true, 20));
+
+  const usecases = ast.definitions.filter(isUseCaseDefinitionNode);
   const parameters: Record<string, ExampleInput[]> = {};
 
   for (const usecase of usecases) {
@@ -172,7 +178,7 @@ export async function prepareTest(
     parameters[usecase.useCaseName] = exampleParams;
   }
 
-  const testFileContent = testTemplate(profile, provider, parameters);
+  const testFileContent = prepareTestTemplate(ast, provider);
 
   let filePath: string;
 
