@@ -28,12 +28,11 @@ export async function prepareProfile(
       station?: boolean;
     };
   },
-  // TODO: add deps for FileSystem
   { logger }: { logger: ILogger }
 ): Promise<void> {
   const content = [
     profileTemplate.header(id.profile.id, id.version),
-    ...usecaseNames.map(u => profileTemplate.withInputs(u)),
+    ...usecaseNames.map(u => profileTemplate.complete(u)),
   ].join('');
 
   // Write result

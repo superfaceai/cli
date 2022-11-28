@@ -23,13 +23,17 @@ export class Profile extends Command {
   public static description =
     'Creates map, based on profile and provider on a local filesystem.';
 
+  public static args = [
+    {
+      name: 'profileId',
+      description: 'Profile Id in format [scope](optional)/[name]',
+      required: true,
+    },
+  ];
+
   public static flags = {
     ...Command.flags,
     // Inputs
-    profileId: oclifFlags.string({
-      description: 'Profile Id in format [scope](optional)/[name]',
-      required: true,
-    }),
     version: oclifFlags.string({
       char: 'v',
       default: DEFAULT_PROFILE_VERSION_STR,
@@ -38,7 +42,7 @@ export class Profile extends Command {
     usecase: oclifFlags.string({
       char: 'u',
       multiple: true,
-      description: 'Usecases that profile or map contains',
+      description: 'Usecases that profile contains',
     }),
     scan: oclifFlags.integer({
       char: 's',
@@ -60,12 +64,13 @@ export class Profile extends Command {
   };
 
   public async run(): Promise<void> {
-    const { flags } = this.parse(Profile);
+    const { args, flags } = this.parse(Profile);
     await super.initialize(flags);
     await this.execute({
       logger: this.logger,
       userError: this.userError,
       flags,
+      args,
     });
   }
 
@@ -73,18 +78,20 @@ export class Profile extends Command {
     logger,
     userError,
     flags,
+    args,
   }: {
     logger: ILogger;
     userError: UserError;
     flags: Flags<typeof Profile.flags>;
+    args: { profileId?: string };
   }): Promise<void> {
     // Check inputs
-    if (flags.profileId == undefined) {
+    if (args.profileId == undefined) {
       throw userError('--profileId must be specified', 1);
     }
 
     const parsedProfileId = parseProfileId(
-      `${flags.profileId}@${flags.version}`
+      `${args.profileId}@${flags.version}`
     );
     if (parsedProfileId.kind === 'error') {
       throw userError(parsedProfileId.message, 1);
@@ -125,16 +132,14 @@ export class Profile extends Command {
     const superJson = loadedResult.match(
       v => v,
       err => {
-        logger.warn('errorMessage', err.formatLong());
-
-        return {};
+        throw userError(`Unable to load super.json: ${err.formatShort()}`, 1);
       }
     );
 
     await prepareProfile(
       {
         id: {
-          profile: ProfileId.fromId(flags.profileId, { userError }),
+          profile: ProfileId.fromId(args.profileId, { userError }),
           version: flags.version,
         },
         usecaseNames: usecases,

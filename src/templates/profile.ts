@@ -17,7 +17,7 @@ usecase ${name} {}
 `;
 }
 
-export function withInputs(name: string): string {
+export function complete(name: string): string {
   return `
 """
 ${name} usecase
