@@ -21,7 +21,7 @@ export class Profile extends Command {
   public static strict = true;
 
   public static description =
-    'Creates map, based on profile and provider on a local filesystem.';
+    'Prepares profile file on local filesystem and links it to super.json.';
 
   public static args = [
     {
@@ -62,6 +62,12 @@ export class Profile extends Command {
         'When set to true, command will create profile in folder structure of Superface station',
     }),
   };
+
+  public static examples = [
+    '$ superface prepare:profile starwars/character-information --force',
+    '$ superface prepare:profile starwars/character-information -s 3',
+    '$ superface prepare:profile starwars/character-information --station',
+  ];
 
   public async run(): Promise<void> {
     const { args, flags } = this.parse(Profile);

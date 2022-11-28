@@ -66,6 +66,7 @@ npx @superfaceai/cli install [profileId eg. communication/send-email]
 * [`superface logout`](#superface-logout)
 * [`superface prepare:map PROFILEID PROVIDERNAME`](#superface-preparemap-profileid-providername)
 * [`superface prepare:mock-map PROFILEID`](#superface-preparemock-map-profileid)
+* [`superface prepare:profile PROFILEID`](#superface-prepareprofile-profileid)
 * [`superface publish DOCUMENTTYPE`](#superface-publish-documenttype)
 * [`superface whoami`](#superface-whoami)
 
@@ -453,7 +454,37 @@ EXAMPLES
   $ superface prepare:mock-map starwars/character-information --station
 ```
 
-_See code: [src/commands/prepare/mock-map.ts](https://github.com/superfaceai/cli/tree/main/src/commands/prepare/mock-map.ts)_
+_See code: [dist/commands/prepare/mock-map.ts](https://github.com/superfaceai/cli/tree/main/src/commands/prepare/mock-map.ts)_
+
+## `superface prepare:profile PROFILEID`
+
+Prepares profile file on local filesystem and links it to super.json.
+
+```
+USAGE
+  $ superface prepare:profile PROFILEID
+
+ARGUMENTS
+  PROFILEID  Profile Id in format [scope](optional)/[name]
+
+OPTIONS
+  -f, --force            When set to true and when profile exists in local filesystem, overwrites them.
+  -h, --help             show CLI help
+  -q, --quiet            When set to true, disables the shell echo output of action.
+  -s, --scan=scan        When number provided, scan for super.json outside cwd within range represented by this number.
+  -u, --usecase=usecase  Usecases that profile contains
+  -v, --version=version  [default: 1.0.0] Version of a profile
+  --noColor              When set to true, disables all colored output.
+  --noEmoji              When set to true, disables displaying emoji in output.
+  --station              When set to true, command will create profile in folder structure of Superface station
+
+EXAMPLES
+  $ superface prepare:profile starwars/character-information --force
+  $ superface prepare:profile starwars/character-information -s 3
+  $ superface prepare:profile starwars/character-information --station
+```
+
+_See code: [dist/commands/prepare/profile.ts](https://github.com/superfaceai/cli/tree/main/src/commands/prepare/profile.ts)_
 
 ## `superface publish DOCUMENTTYPE`
 
