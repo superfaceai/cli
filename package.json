@@ -1,6 +1,6 @@
 {
   "name": "@superfaceai/cli",
-  "version": "2.0.0",
+  "version": "2.1.0-beta.2",
   "description": "Superface CLI utility",
   "main": "dist/index.js",
   "repository": "https://github.com/superfaceai/cli.git",
@@ -28,6 +28,7 @@
     "fixtures:recompile": "node ./dist/test/compile-fixtures.js"
   },
   "devDependencies": {
+    "@types/handlebars": "^4.1.0",
     "@types/concat-stream": "^1.6.0",
     "@types/debug": "^4.1.5",
     "@types/inquirer": "^7.3.1",
@@ -52,6 +53,7 @@
   },
   "dependencies": {
     "@oclif/command": "^1.8.0",
+    "handlebars": "^4.7.7",
     "@oclif/config": "^1.17.0",
     "@oclif/plugin-warn-if-update-available": "^1.7.0",
     "@superfaceai/ast": "^1.2.0",
