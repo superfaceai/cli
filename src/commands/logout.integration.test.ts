@@ -40,7 +40,7 @@ describe('Logout CLI command', () => {
       netRc.machines[mockServer.url] = { password: 'rt' };
       await netRc.save();
 
-      await mockServer.delete('/auth/signout').thenJson(200, {});
+      await mockServer.forDelete('/auth/signout').thenJson(200, {});
       const result = await execCLI(tempDir, ['logout'], mockServer.url, {
         env: { NETRC_FILEPATH: NETRC_FILENAME },
       });
@@ -53,7 +53,7 @@ describe('Logout CLI command', () => {
     });
 
     it('returns warning if user is not logged in', async () => {
-      await mockServer.delete('/auth/signout').thenJson(401, {});
+      await mockServer.forDelete('/auth/signout').thenJson(401, {});
 
       const result = await execCLI(tempDir, ['logout'], mockServer.url);
 

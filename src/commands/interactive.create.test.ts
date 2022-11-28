@@ -1,5 +1,4 @@
 import inquirer from 'inquirer';
-import { mocked } from 'ts-jest/utils';
 
 import { DEFAULT_PROFILE_VERSION_STR, MockLogger } from '..';
 import { createUserError } from '../common/error';
@@ -31,12 +30,12 @@ describe('Interactive create CLI command', () => {
   beforeEach(() => {
     logger = new MockLogger();
     instance = CommandInstance(Create);
-    mocked(create).mockResolvedValue(undefined);
+    jest.mocked(create).mockResolvedValue(undefined);
   });
 
   describe('when running create command', () => {
     it('creates profile with one usecase (with usecase name from cli) with path flag', async () => {
-      mocked(initSuperface).mockResolvedValue({
+      jest.mocked(initSuperface).mockResolvedValue({
         superJson: {},
         superJsonPath: '',
       });
@@ -93,7 +92,7 @@ describe('Interactive create CLI command', () => {
     });
 
     it('creates profile with one usecase', async () => {
-      mocked(initSuperface).mockResolvedValue({
+      jest.mocked(initSuperface).mockResolvedValue({
         superJson: {},
         superJsonPath: '',
       });
@@ -149,7 +148,7 @@ describe('Interactive create CLI command', () => {
     });
 
     it('creates profile with multiple usecases', async () => {
-      mocked(initSuperface).mockResolvedValue({
+      jest.mocked(initSuperface).mockResolvedValue({
         superJson: {},
         superJsonPath: '',
       });
@@ -206,7 +205,7 @@ describe('Interactive create CLI command', () => {
     });
 
     it('creates map with one provider (with provider name from cli) and variant', async () => {
-      mocked(initSuperface).mockResolvedValue({
+      jest.mocked(initSuperface).mockResolvedValue({
         superJson: {},
         superJsonPath: '',
       });
@@ -269,7 +268,7 @@ describe('Interactive create CLI command', () => {
     });
 
     it('creates multiple maps', async () => {
-      mocked(initSuperface).mockResolvedValue({
+      jest.mocked(initSuperface).mockResolvedValue({
         superJson: {},
         superJsonPath: '',
       });
@@ -332,7 +331,7 @@ describe('Interactive create CLI command', () => {
     });
 
     it('creates map with one usecase and provider', async () => {
-      mocked(initSuperface).mockResolvedValue({
+      jest.mocked(initSuperface).mockResolvedValue({
         superJson: {},
         superJsonPath: '',
       });
@@ -393,7 +392,7 @@ describe('Interactive create CLI command', () => {
     });
 
     it('creates map with mutiple usecases and one provider', async () => {
-      mocked(initSuperface).mockResolvedValue({
+      jest.mocked(initSuperface).mockResolvedValue({
         superJson: {},
         superJsonPath: '',
       });
@@ -453,7 +452,7 @@ describe('Interactive create CLI command', () => {
     });
 
     it('creates profile & map with one provider (with provider name from cli)', async () => {
-      mocked(initSuperface).mockResolvedValue({
+      jest.mocked(initSuperface).mockResolvedValue({
         superJson: {},
         superJsonPath: '',
       });
@@ -514,7 +513,7 @@ describe('Interactive create CLI command', () => {
     });
 
     it('creates profile & map with one usecase', async () => {
-      mocked(initSuperface).mockResolvedValue({
+      jest.mocked(initSuperface).mockResolvedValue({
         superJson: {},
         superJsonPath: '',
       });
@@ -575,7 +574,7 @@ describe('Interactive create CLI command', () => {
     });
 
     it('creates profile & map with multiple usecases', async () => {
-      mocked(initSuperface).mockResolvedValue({
+      jest.mocked(initSuperface).mockResolvedValue({
         superJson: {},
         superJsonPath: '',
       });

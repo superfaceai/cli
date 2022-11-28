@@ -172,10 +172,14 @@ export function execFile(
     );
 
     if (options?.forwardStdout === true) {
-      child.stdout?.on('data', chunk => process.stdout.write(chunk));
+      child.stdout?.on('data', (chunk: string | Uint8Array) =>
+        process.stdout.write(chunk)
+      );
     }
     if (options?.forwardStderr === true) {
-      child.stderr?.on('data', chunk => process.stderr.write(chunk));
+      child.stderr?.on('data', (chunk: string | Uint8Array) =>
+        process.stderr.write(chunk)
+      );
     }
   });
 }

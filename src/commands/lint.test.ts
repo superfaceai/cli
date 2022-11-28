@@ -1,6 +1,5 @@
 import { err, ok, SDKExecutionError } from '@superfaceai/one-sdk';
 import * as SuperJson from '@superfaceai/one-sdk/dist/schema-tools/superjson/utils';
-import { mocked } from 'ts-jest/utils';
 
 import { createUserError } from '../common/error';
 import { MockLogger } from '../common/log';
@@ -106,7 +105,7 @@ describe('lint CLI command', () => {
 
   describe('lint CLI command', () => {
     it('throws when super.json not found', async () => {
-      mocked(detectSuperJson).mockResolvedValue(undefined);
+      jest.mocked(detectSuperJson).mockResolvedValue(undefined);
       await expect(
         instance.execute({
           logger,
@@ -117,7 +116,7 @@ describe('lint CLI command', () => {
     });
 
     it('throws when super.json not loaded correctly', async () => {
-      mocked(detectSuperJson).mockResolvedValue('.');
+      jest.mocked(detectSuperJson).mockResolvedValue('.');
       jest
         .spyOn(SuperJson, 'loadSuperJson')
         .mockResolvedValue(err(new SDKExecutionError('test error', [], [])));
@@ -131,7 +130,7 @@ describe('lint CLI command', () => {
     });
 
     it('throws error on scan flag higher than 5', async () => {
-      mocked(detectSuperJson).mockResolvedValue('.');
+      jest.mocked(detectSuperJson).mockResolvedValue('.');
 
       await expect(
         instance.execute({
@@ -146,7 +145,7 @@ describe('lint CLI command', () => {
     }, 10000);
 
     it('throws error on invalid profile id', async () => {
-      mocked(detectSuperJson).mockResolvedValue('.');
+      jest.mocked(detectSuperJson).mockResolvedValue('.');
       const loadSpy = jest
         .spyOn(SuperJson, 'loadSuperJson')
         .mockResolvedValue(ok({}));
@@ -170,7 +169,7 @@ describe('lint CLI command', () => {
     }, 10000);
 
     it('throws error on missing profile id', async () => {
-      mocked(detectSuperJson).mockResolvedValue('.');
+      jest.mocked(detectSuperJson).mockResolvedValue('.');
       const loadSpy = jest
         .spyOn(SuperJson, 'loadSuperJson')
         .mockResolvedValue(ok({}));
@@ -185,7 +184,7 @@ describe('lint CLI command', () => {
     }, 10000);
 
     it('throws error on invalid provider name', async () => {
-      mocked(detectSuperJson).mockResolvedValue('.');
+      jest.mocked(detectSuperJson).mockResolvedValue('.');
       const loadSpy = jest
         .spyOn(SuperJson, 'loadSuperJson')
         .mockResolvedValue(ok({}));
@@ -207,7 +206,7 @@ describe('lint CLI command', () => {
     }, 10000);
 
     it('throws error on missing profile id in super.json', async () => {
-      mocked(detectSuperJson).mockResolvedValue('.');
+      jest.mocked(detectSuperJson).mockResolvedValue('.');
       const loadSpy = jest
         .spyOn(SuperJson, 'loadSuperJson')
         .mockResolvedValue(ok({}));
@@ -231,7 +230,7 @@ describe('lint CLI command', () => {
     }, 10000);
 
     it('throws error on missing provider id in super.json', async () => {
-      mocked(detectSuperJson).mockResolvedValue('.');
+      jest.mocked(detectSuperJson).mockResolvedValue('.');
       const loadSpy = jest.spyOn(SuperJson, 'loadSuperJson').mockResolvedValue(
         ok({
           profiles: {
@@ -307,8 +306,8 @@ describe('lint CLI command', () => {
           .spyOn(SuperJson, 'loadSuperJson')
           .mockResolvedValue(ok(mockSuperJson));
 
-        mocked(detectSuperJson).mockResolvedValue('.');
-        mocked(lint).mockResolvedValue(mockResult);
+        jest.mocked(detectSuperJson).mockResolvedValue('.');
+        jest.mocked(lint).mockResolvedValue(mockResult);
         const writeSpy = jest
           .spyOn(OutputStream.prototype, 'write')
           .mockResolvedValue(undefined);
@@ -411,8 +410,8 @@ describe('lint CLI command', () => {
           .spyOn(SuperJson, 'loadSuperJson')
           .mockResolvedValue(ok(mockSuperJson));
 
-        mocked(detectSuperJson).mockResolvedValue('.');
-        mocked(lint).mockResolvedValue(mockResult);
+        jest.mocked(detectSuperJson).mockResolvedValue('.');
+        jest.mocked(lint).mockResolvedValue(mockResult);
         const writeSpy = jest
           .spyOn(OutputStream.prototype, 'write')
           .mockResolvedValue(undefined);
@@ -513,8 +512,8 @@ describe('lint CLI command', () => {
           .spyOn(SuperJson, 'loadSuperJson')
           .mockResolvedValue(ok(mockSuperJson));
 
-        mocked(detectSuperJson).mockResolvedValue('.');
-        mocked(lint).mockResolvedValue(mockResult);
+        jest.mocked(detectSuperJson).mockResolvedValue('.');
+        jest.mocked(lint).mockResolvedValue(mockResult);
         const writeSpy = jest
           .spyOn(OutputStream.prototype, 'write')
           .mockResolvedValue(undefined);
@@ -610,8 +609,8 @@ describe('lint CLI command', () => {
           .spyOn(SuperJson, 'loadSuperJson')
           .mockResolvedValue(ok(mockSuperJson));
 
-        mocked(detectSuperJson).mockResolvedValue('.');
-        mocked(lint).mockResolvedValue(mockResult);
+        jest.mocked(detectSuperJson).mockResolvedValue('.');
+        jest.mocked(lint).mockResolvedValue(mockResult);
         const writeSpy = jest
           .spyOn(OutputStream.prototype, 'write')
           .mockResolvedValue(undefined);
@@ -705,8 +704,8 @@ describe('lint CLI command', () => {
           .spyOn(SuperJson, 'loadSuperJson')
           .mockResolvedValue(ok(mockSuperJson));
 
-        mocked(detectSuperJson).mockResolvedValue('.');
-        mocked(lint).mockResolvedValue(mockResult);
+        jest.mocked(detectSuperJson).mockResolvedValue('.');
+        jest.mocked(lint).mockResolvedValue(mockResult);
         const writeSpy = jest
           .spyOn(OutputStream.prototype, 'write')
           .mockResolvedValue(undefined);
@@ -802,8 +801,8 @@ describe('lint CLI command', () => {
           .spyOn(SuperJson, 'loadSuperJson')
           .mockResolvedValue(ok(mockSuperJson));
 
-        mocked(detectSuperJson).mockResolvedValue('.');
-        mocked(lint).mockResolvedValue(mockResult);
+        jest.mocked(detectSuperJson).mockResolvedValue('.');
+        jest.mocked(lint).mockResolvedValue(mockResult);
         const writeSpy = jest
           .spyOn(OutputStream.prototype, 'write')
           .mockResolvedValue(undefined);
@@ -895,8 +894,8 @@ describe('lint CLI command', () => {
           .spyOn(SuperJson, 'loadSuperJson')
           .mockResolvedValue(ok(mockSuperJson));
 
-        mocked(detectSuperJson).mockResolvedValue('.');
-        mocked(lint).mockResolvedValue(mockResult);
+        jest.mocked(detectSuperJson).mockResolvedValue('.');
+        jest.mocked(lint).mockResolvedValue(mockResult);
         const writeSpy = jest
           .spyOn(OutputStream.prototype, 'write')
           .mockResolvedValue(undefined);
@@ -967,8 +966,8 @@ describe('lint CLI command', () => {
           .spyOn(SuperJson, 'loadSuperJson')
           .mockResolvedValue(ok(mockSuperJson));
 
-        mocked(detectSuperJson).mockResolvedValue('.');
-        mocked(lint).mockResolvedValue(mockResult);
+        jest.mocked(detectSuperJson).mockResolvedValue('.');
+        jest.mocked(lint).mockResolvedValue(mockResult);
         const writeSpy = jest
           .spyOn(OutputStream.prototype, 'write')
           .mockResolvedValue(undefined);
@@ -1060,8 +1059,8 @@ describe('lint CLI command', () => {
           .spyOn(SuperJson, 'loadSuperJson')
           .mockResolvedValue(ok(mockSuperJson));
 
-        mocked(detectSuperJson).mockResolvedValue('.');
-        mocked(lint).mockResolvedValue(mockResultWithErrs);
+        jest.mocked(detectSuperJson).mockResolvedValue('.');
+        jest.mocked(lint).mockResolvedValue(mockResultWithErrs);
         const writeSpy = jest
           .spyOn(OutputStream.prototype, 'write')
           .mockResolvedValue(undefined);

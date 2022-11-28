@@ -171,7 +171,7 @@ export async function getProviderFromStore(
 
     return info;
   } catch (error) {
-    throw userError(error, 1);
+    throw userError(String(error), 1);
   }
 }
 
@@ -235,7 +235,7 @@ export async function installProvider(
       });
       providerInfo = assertProviderJson(JSON.parse(file));
     } catch (error) {
-      throw userError(error, 1);
+      throw userError(String(error), 1);
     }
   } else {
     // Load from server

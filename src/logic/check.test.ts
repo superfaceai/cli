@@ -5,7 +5,6 @@ import type {
   ProviderJson,
 } from '@superfaceai/ast';
 import { ApiKeyPlacement, HttpScheme, SecurityType } from '@superfaceai/ast';
-import { mocked } from 'ts-jest/utils';
 
 import { MockLogger, UNVERIFIED_PROVIDER_PREFIX } from '../common';
 import {
@@ -272,15 +271,15 @@ describe('Check logic', () => {
           },
         },
       };
-      mocked(loadMap).mockResolvedValue({
+      jest.mocked(loadMap).mockResolvedValue({
         from: mockLocalMapFrom,
         ast: mockMapDocumentWithUnverified,
       });
-      mocked(loadProfile).mockResolvedValue({
+      jest.mocked(loadProfile).mockResolvedValue({
         from: mockLocalProfileFrom,
         ast: mockProfileDocument,
       });
-      mocked(loadProvider).mockResolvedValue({
+      jest.mocked(loadProvider).mockResolvedValue({
         source: mockUnverifiedProviderJson,
         from: mockLocalProviderFrom,
       });
@@ -372,15 +371,15 @@ describe('Check logic', () => {
           },
         },
       };
-      mocked(loadMap).mockResolvedValue({
+      jest.mocked(loadMap).mockResolvedValue({
         ast: mockMapDocumentWithUnverified,
         from: mockRemoteMapFrom,
       });
-      mocked(loadProfile).mockResolvedValue({
+      jest.mocked(loadProfile).mockResolvedValue({
         ast: mockProfileDocument,
         from: mockRemoteProfileFrom,
       });
-      mocked(loadProvider).mockResolvedValue({
+      jest.mocked(loadProvider).mockResolvedValue({
         source: mockUnverifiedProviderJson,
         from: mockRemoteProviderFrom,
       });
@@ -470,15 +469,15 @@ describe('Check logic', () => {
           },
         },
       };
-      mocked(loadMap).mockResolvedValue({
+      jest.mocked(loadMap).mockResolvedValue({
         ast: {} as MapDocumentNode,
         from: mockRemoteMapFrom,
       });
-      mocked(loadProfile).mockResolvedValue({
+      jest.mocked(loadProfile).mockResolvedValue({
         ast: mockProfileDocument,
         from: mockRemoteProfileFrom,
       });
-      mocked(loadProvider).mockResolvedValue({
+      jest.mocked(loadProvider).mockResolvedValue({
         source: mockProviderJson,
         from: mockRemoteProviderFrom,
       });
@@ -541,15 +540,15 @@ describe('Check logic', () => {
           },
         },
       };
-      mocked(loadMap).mockResolvedValue({
+      jest.mocked(loadMap).mockResolvedValue({
         ast: mockMapDocument,
         from: mockRemoteMapFrom,
       });
-      mocked(loadProfile).mockResolvedValue({
+      jest.mocked(loadProfile).mockResolvedValue({
         ast: {} as ProfileDocumentNode,
         from: mockRemoteProfileFrom,
       });
-      mocked(loadProvider).mockResolvedValue({
+      jest.mocked(loadProvider).mockResolvedValue({
         source: mockProviderJson,
         from: mockRemoteProviderFrom,
       });
@@ -601,16 +600,16 @@ describe('Check logic', () => {
           },
         },
       };
-      mocked(isProviderParseError).mockReturnValue(true);
-      mocked(loadMap).mockResolvedValue({
+      jest.mocked(isProviderParseError).mockReturnValue(true);
+      jest.mocked(loadMap).mockResolvedValue({
         ast: mockMapDocumentWithUnverified,
         from: mockRemoteProfileFrom,
       });
-      mocked(loadProfile).mockResolvedValue({
+      jest.mocked(loadProfile).mockResolvedValue({
         ast: mockProfileDocument,
         from: mockRemoteMapFrom,
       });
-      mocked(loadProvider).mockResolvedValue({
+      jest.mocked(loadProvider).mockResolvedValue({
         source: mockProviderJson,
         from: mockRemoteProviderFrom,
       });
