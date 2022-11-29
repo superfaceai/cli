@@ -102,7 +102,7 @@ export default class PrepareTest extends Command {
     // Load super json
     const superPath = await detectSuperJson(process.cwd(), flags.scan);
     if (superPath === undefined) {
-      throw userError('❌ Unable to check, super.json not found', 1);
+      throw userError('❌ Unable to prepare test, super.json not found', 1);
     }
     const superJsonPath = joinPath(superPath, META_FILE);
     const loadedResult = await loadSuperJson(superJsonPath, NodeFileSystem);
@@ -125,19 +125,12 @@ export default class PrepareTest extends Command {
         1
       );
     }
-    if (normalized.profiles[profileId].providers[providerName] === undefined) {
-      throw userError(
-        `❌ Unable to prepare test, provider: "${providerName}" not found in profile: "${profileId}" in super.json`,
-        1
-      );
-    }
     if (normalized.providers[providerName] === undefined) {
       throw userError(
         `❌ Unable to prepare test, provider: "${providerName}" not found in super.json`,
         1
       );
     }
-
     // TODO: only for local files?
 
     await prepareTest(
