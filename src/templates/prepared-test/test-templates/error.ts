@@ -10,7 +10,7 @@ export default `// specify test case name
       {{/unless}}
     })
     
-    expect(() => result.unwrap()).not.toThrow();
+    expect(() => result.unwrap()).toThrow();
     expect(result).toMatchSnapshot();
   });
 `;
