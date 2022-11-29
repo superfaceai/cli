@@ -4,7 +4,7 @@
 export function header(name: string, version: string): string {
   return `name = "${name}"
 version = "${version}"
-// Profile specification: https://superface.ai/docs/comlink/profile
+// Comlink Profile specification: https://superface.ai/docs/comlink/profile
 `;
 }
 
@@ -27,6 +27,7 @@ usecase ${name} {
     "field title"
     // foo is required nullable string
     foo! string 
+
     // bar links to named field 
     bar 
   }
@@ -59,6 +60,7 @@ usecase ${name} {
     }
   }
 }
+
 // optional nullable boolean or number
 field bar boolean | number 
 
@@ -67,8 +69,10 @@ model error {
     NOT_FOUND = 404,
     BAD_REQUEST = 400
   }
+
   // required string
   title! string!
+
   // optional string
   detail string! 
 }
