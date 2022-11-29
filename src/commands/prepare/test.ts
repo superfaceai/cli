@@ -19,7 +19,7 @@ export default class PrepareTest extends Command {
   public static strict = false;
 
   public static description =
-    'Prepares test file for specified profile and provider. Examples in profile are used as an input.';
+    'Prepares test file for specified profile and provider. Examples in profile are used as an input and @superfaceai/testing library is used to orchestrate tests.';
 
   public static args = [
     {
@@ -147,5 +147,7 @@ export default class PrepareTest extends Command {
       },
       { logger }
     );
+
+    // TODO: instruct user to edit prepared test
   }
 }
