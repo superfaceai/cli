@@ -25,19 +25,16 @@ ${name} usecase
 usecase ${name} {
   input {
     "field title"
-    // foo is required nullable string
     foo! string 
 
-    // bar links to named field 
     bar 
   }
+
   result {
-    // optional nullable string
     baz string
   }
 
-  // error links to named model
-  error error
+  error issue
 
   example success {
     input {
@@ -55,26 +52,17 @@ usecase ${name} {
       bar = false
     }
     error {
-      status = 400
       title = "Not Found"
+      detail = "Entity not found"
     }
   }
 }
 
-// optional nullable boolean or number
 field bar boolean | number 
 
-model error {
-  status enum {
-    NOT_FOUND = 404,
-    BAD_REQUEST = 400
-  }
-
-  // required string
+model issue {
   title! string!
 
-  // optional string
   detail string! 
-}
-`;
+}`;
 }
