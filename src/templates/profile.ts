@@ -1,14 +1,11 @@
+import { ProfileId } from '../common/profile';
+
 /**
  * Returns a usecase header with filled in `name` and `version`.
  */
 export function header(name: string, version: string): string {
-  return `"""
-${name} Profile
-Profile description
-"""
-name = "${name}"
+  return `name = "${name}"
 version = "${version}"
-// Comlink Profile specification: https://superface.ai/docs/comlink/profile
 `;
 }
 
@@ -21,9 +18,37 @@ Use case description
 usecase ${name} {}
 `;
 }
+export function completeProfile({
+  scope,
+  name,
+  version,
+  usecaseNames,
+}: {
+  name: string;
+  scope?: string;
+  version: string;
+  usecaseNames: string[];
+}): string {
+  const id = ProfileId.fromScopeName(scope, name);
+  
+return [
+    `"""
+${name} Profile
+Profile description
+"""
+name = "${id.id}"
+version = "${version}"
+// Comlink Profile specification: https://superface.ai/docs/comlink/profile
+`,
+    ...usecaseNames.map(u => usecase(u)),
+  ].join('');
+}
 
-export function complete(name: string): string {
-  return `
+export function usecase(name: string, scope?: string): string {
+  // TODO: text formating
+  const errorName = scope !== undefined ? `${scope}Error` : `DomainError`;
+  
+return `
 """
 ${name} usecase
 """
@@ -37,7 +62,7 @@ usecase ${name} {
     bar string
   }
 
-  error ErrorModel
+  error ${errorName}
 
   example success {
     input {
@@ -60,7 +85,7 @@ usecase ${name} {
 }
 
 
-model ErrorModel {
+model ${errorName} {
   """
   Title
   A short, human-readable summary of the problem type.

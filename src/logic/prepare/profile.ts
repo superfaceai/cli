@@ -30,10 +30,12 @@ export async function prepareProfile(
   },
   { logger }: { logger: ILogger }
 ): Promise<void> {
-  const content = [
-    profileTemplate.header(id.profile.id, id.version),
-    ...usecaseNames.map(u => profileTemplate.complete(u)),
-  ].join('');
+  const content = profileTemplate.completeProfile({
+    scope: id.profile.scope,
+    name: id.profile.name,
+    version: id.version,
+    usecaseNames,
+  });
 
   // Write result
   let filePath: string;

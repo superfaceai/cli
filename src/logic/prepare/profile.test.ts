@@ -2,7 +2,7 @@ import { MockLogger } from '../../common';
 import { createUserError } from '../../common/error';
 import { OutputStream } from '../../common/output-stream';
 import { ProfileId } from '../../common/profile';
-import { complete } from '../../templates/profile';
+import { completeProfile } from '../../templates/profile';
 import { prepareProfile } from './profile';
 
 describe('Prepare profile logic', () => {
@@ -50,10 +50,12 @@ describe('Prepare profile logic', () => {
 
     expect(writeIfAbsentSpy).toHaveBeenCalledWith(
       'test-scope/test-name.supr',
-      [
-        `"""\n${mockProfile.id} Profile\nProfile description\n"""\nname = "${mockProfile.id}"\nversion = "1.0.0"\n// Comlink Profile specification: https://superface.ai/docs/comlink/profile\n`,
-        complete(mockUsecaseNames[0]),
-      ].join(''),
+      completeProfile({
+        scope: mockProfile.scope,
+        name: mockProfile.name,
+        version: mockVersion,
+        usecaseNames: mockUsecaseNames,
+      }),
       { dirs: true, force: undefined }
     );
 
@@ -90,10 +92,13 @@ describe('Prepare profile logic', () => {
     expect(writeIfAbsentSpy).toHaveBeenCalledTimes(1);
     expect(writeIfAbsentSpy).toHaveBeenCalledWith(
       'test-name.supr',
-      [
-        `"""\n${mockProfile.id} Profile\nProfile description\n"""\nname = "${mockProfile.id}"\nversion = "1.0.0"\n// Comlink Profile specification: https://superface.ai/docs/comlink/profile\n`,
-        complete(mockUsecaseNames[0]),
-      ].join(''),
+      completeProfile({
+        scope: mockProfile.scope,
+        name: mockProfile.name,
+        version: mockVersion,
+        usecaseNames: mockUsecaseNames,
+      }),
+
       { dirs: true, force: undefined }
     );
 
@@ -137,10 +142,12 @@ describe('Prepare profile logic', () => {
     expect(writeIfAbsentSpy).toHaveBeenCalledTimes(1);
     expect(writeIfAbsentSpy).toHaveBeenCalledWith(
       'grid/test-scope/test-name/profile.supr',
-      [
-        `"""\n${mockProfile.id} Profile\nProfile description\n"""\nname = "${mockProfile.id}"\nversion = "1.0.0"\n// Comlink Profile specification: https://superface.ai/docs/comlink/profile\n`,
-        complete(mockUsecaseNames[0]),
-      ].join(''),
+      completeProfile({
+        scope: mockProfile.scope,
+        name: mockProfile.name,
+        version: mockVersion,
+        usecaseNames: mockUsecaseNames,
+      }),
       { dirs: true, force: undefined }
     );
 
@@ -182,10 +189,12 @@ describe('Prepare profile logic', () => {
     expect(writeIfAbsentSpy).toHaveBeenCalledTimes(1);
     expect(writeIfAbsentSpy).toHaveBeenCalledWith(
       'test-scope/test-name.supr',
-      [
-        `"""\n${mockProfile.id} Profile\nProfile description\n"""\nname = "${mockProfile.id}"\nversion = "1.0.0"\n// Comlink Profile specification: https://superface.ai/docs/comlink/profile\n`,
-        complete(mockUsecaseNames[0]),
-      ].join(''),
+      completeProfile({
+        scope: mockProfile.scope,
+        name: mockProfile.name,
+        version: mockVersion,
+        usecaseNames: mockUsecaseNames,
+      }),
       { dirs: true, force: true }
     );
 
