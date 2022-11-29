@@ -6,7 +6,7 @@ import object from '../../shared/templates/object';
 import string from '../../shared/templates/string';
 import error from './error';
 import success from './success';
-import test from './test-template';
+import test from './test';
 import usecase from './usecase';
 
 const templateSet: Template[] = [

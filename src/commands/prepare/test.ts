@@ -13,7 +13,7 @@ import { Command } from '../../common/command.abstract';
 import type { UserError } from '../../common/error';
 import { ProfileId } from '../../common/profile';
 import { detectSuperJson } from '../../logic/install';
-import { prepareTest } from '../../logic/prepare/prepare-test';
+import { prepareTest } from '../../logic/prepare/test';
 
 export default class PrepareTest extends Command {
   public static strict = false;
