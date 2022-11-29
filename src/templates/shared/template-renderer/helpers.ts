@@ -61,6 +61,7 @@ export const HELPERS = [
   {
     name: 'escapedString',
     helper: function (value: any) {
+      if (value === '') return '""';
       if (!value) return value;
       if (value.includes("'")) {
         if (value.includes('"')) {
