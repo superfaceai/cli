@@ -51,7 +51,7 @@ describe('Prepare profile logic', () => {
     expect(writeIfAbsentSpy).toHaveBeenCalledWith(
       'test-scope/test-name.supr',
       [
-        `name = "${mockProfile.id}"\nversion = "1.0.0"\n// Profile specification: https://superface.ai/docs/comlink/profile\n`,
+        `"""\nWhole profile description\n"""\nname = "${mockProfile.id}"\nversion = "1.0.0"\n// Comlink Profile specification: https://superface.ai/docs/comlink/profile\n`,
         complete(mockUsecaseNames[0]),
       ].join(''),
       { dirs: true, force: undefined }
@@ -91,7 +91,7 @@ describe('Prepare profile logic', () => {
     expect(writeIfAbsentSpy).toHaveBeenCalledWith(
       'test-name.supr',
       [
-        `name = "${mockProfile.id}"\nversion = "1.0.0"\n// Profile specification: https://superface.ai/docs/comlink/profile\n`,
+        `"""\nWhole profile description\n"""\nname = "${mockProfile.id}"\nversion = "1.0.0"\n// Comlink Profile specification: https://superface.ai/docs/comlink/profile\n`,
         complete(mockUsecaseNames[0]),
       ].join(''),
       { dirs: true, force: undefined }
@@ -138,7 +138,7 @@ describe('Prepare profile logic', () => {
     expect(writeIfAbsentSpy).toHaveBeenCalledWith(
       'grid/test-scope/test-name/profile.supr',
       [
-        `name = "${mockProfile.id}"\nversion = "1.0.0"\n// Profile specification: https://superface.ai/docs/comlink/profile\n`,
+        `"""\nWhole profile description\n"""\nname = "${mockProfile.id}"\nversion = "1.0.0"\n// Comlink Profile specification: https://superface.ai/docs/comlink/profile\n`,
         complete(mockUsecaseNames[0]),
       ].join(''),
       { dirs: true, force: undefined }
@@ -183,7 +183,7 @@ describe('Prepare profile logic', () => {
     expect(writeIfAbsentSpy).toHaveBeenCalledWith(
       'test-scope/test-name.supr',
       [
-        `name = "${mockProfile.id}"\nversion = "1.0.0"\n// Profile specification: https://superface.ai/docs/comlink/profile\n`,
+        `"""\nWhole profile description\n"""\nname = "${mockProfile.id}"\nversion = "1.0.0"\n// Comlink Profile specification: https://superface.ai/docs/comlink/profile\n`,
         complete(mockUsecaseNames[0]),
       ].join(''),
       { dirs: true, force: true }
