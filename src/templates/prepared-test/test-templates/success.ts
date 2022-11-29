@@ -10,6 +10,6 @@ export default `// specify test case name
       {{/unless}}
     })
     
-    expect(result.isOk()).toBe(true);
+    expect(() => result.unwrap()).not.toThrow();
     expect(result).toMatchSnapshot();
   });`;

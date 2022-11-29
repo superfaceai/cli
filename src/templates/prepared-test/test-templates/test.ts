@@ -7,6 +7,7 @@ describe('{{profile}}/{{provider}}', () => {
     superface = new SuperfaceTest({
       profile: '{{profile}}',
       provider: '{{provider}}',
+      testInstance: expect
     });
   });
 
