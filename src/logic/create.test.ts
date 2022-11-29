@@ -59,7 +59,7 @@ describe('Create logic', () => {
       expect(writeIfAbsentSpy).toHaveBeenCalledWith(
         'test-path/test-scope/test-name.supr',
         [
-          `"""\nWhole profile description\n"""\nname = "${mockProfile.id}"\nversion = "1.0.0"\n// Comlink Profile specification: https://superface.ai/docs/comlink/profile\n`,
+          `"""\n${mockProfile.id} Profile\nProfile description\n"""\nname = "${mockProfile.id}"\nversion = "1.0.0"\n// Comlink Profile specification: https://superface.ai/docs/comlink/profile\n`,
           emptyProfile(mockUsecaseNames[0]),
         ].join(''),
         { dirs: true, force: undefined }
@@ -97,7 +97,7 @@ describe('Create logic', () => {
       expect(writeIfAbsentSpy).toHaveBeenCalledWith(
         'test-path/mock-filename.supr',
         [
-          `"""\nWhole profile description\n"""\nname = "${mockProfile.id}"\nversion = "1.0.0"\n// Comlink Profile specification: https://superface.ai/docs/comlink/profile\n`,
+          `"""\n${mockProfile.id} Profile\nProfile description\n"""\nname = "${mockProfile.id}"\nversion = "1.0.0"\n// Comlink Profile specification: https://superface.ai/docs/comlink/profile\n`,
           emptyProfile(mockUsecaseNames[0]),
         ].join(''),
         { dirs: true, force: undefined }
@@ -135,7 +135,7 @@ describe('Create logic', () => {
       expect(writeIfAbsentSpy).toHaveBeenCalledWith(
         'test-path/mock-filename.supr',
         [
-          `"""\nWhole profile description\n"""\nname = "${mockProfile.id}"\nversion = "1.0.0"\n// Comlink Profile specification: https://superface.ai/docs/comlink/profile\n`,
+          `"""\n${mockProfile.id} Profile\nProfile description\n"""\nname = "${mockProfile.id}"\nversion = "1.0.0"\n// Comlink Profile specification: https://superface.ai/docs/comlink/profile\n`,
           emptyProfile(mockUsecaseNames[0]),
         ].join(''),
         { dirs: true, force: undefined }
@@ -169,7 +169,7 @@ describe('Create logic', () => {
       expect(writeIfAbsentSpy).toHaveBeenCalledWith(
         'test-path/test-name.supr',
         [
-          `"""\nWhole profile description\n"""\nname = "${mockProfile.name}"\nversion = "1.0.0"\n// Comlink Profile specification: https://superface.ai/docs/comlink/profile\n`,
+          `"""\n${mockProfile.id} Profile\nProfile description\n"""\nname = "${mockProfile.name}"\nversion = "1.0.0"\n// Comlink Profile specification: https://superface.ai/docs/comlink/profile\n`,
           emptyProfile(mockUsecaseNames[0]),
         ].join(''),
         { dirs: true, force: undefined }
@@ -700,7 +700,7 @@ describe('Create logic', () => {
       expect(writeIfAbsentSpy).toHaveBeenCalledWith(
         'test-scope/test-name.supr',
         [
-          `"""\nWhole profile description\n"""\nname = "${mockScope}/${mockName}"\nversion = "1.0.0"\n// Comlink Profile specification: https://superface.ai/docs/comlink/profile\n`,
+          `"""\n${mockScope}/${mockName} Profile\nProfile description\n"""\nname = "${mockScope}/${mockName}"\nversion = "1.0.0"\n// Comlink Profile specification: https://superface.ai/docs/comlink/profile\n`,
           emptyProfile(mockUsecases[0]),
         ].join(''),
         { dirs: true, force: undefined }
@@ -756,7 +756,7 @@ describe('Create logic', () => {
       expect(writeIfAbsentSpy).toHaveBeenCalledWith(
         `${mockFilename}.supr`,
         [
-          `"""\nWhole profile description\n"""\nname = "${mockScope}/${mockName}"\nversion = "1.0.0"\n// Comlink Profile specification: https://superface.ai/docs/comlink/profile\n`,
+          `"""\n${mockScope}/${mockName} Profile\nProfile description\n"""\nname = "${mockScope}/${mockName}"\nversion = "1.0.0"\n// Comlink Profile specification: https://superface.ai/docs/comlink/profile\n`,
           emptyProfile(mockUsecases[0]),
         ].join(''),
         { dirs: true, force: undefined }
@@ -802,7 +802,7 @@ describe('Create logic', () => {
       expect(writeIfAbsentSpy).toHaveBeenCalledWith(
         'test-scope/test-name.supr',
         [
-          `"""\nWhole profile description\n"""\nname = "${mockScope}/${mockName}"\nversion = "1.0.0"\n// Comlink Profile specification: https://superface.ai/docs/comlink/profile\n`,
+          `"""\n${mockScope}/${mockName} Profile\nProfile description\n"""\nname = "${mockScope}/${mockName}"\nversion = "1.0.0"\n// Comlink Profile specification: https://superface.ai/docs/comlink/profile\n`,
           emptyProfile(mockUsecases[0]),
         ].join(''),
         { dirs: true, force: undefined }
@@ -1061,7 +1061,7 @@ describe('Create logic', () => {
         2,
         'test-scope/test-name.supr',
         [
-          `"""\nWhole profile description\n"""\nname = "${mockScope}/${mockName}"\nversion = "1.0.0"\n// Comlink Profile specification: https://superface.ai/docs/comlink/profile\n`,
+          `"""\n${mockScope}/${mockName} Profile\nProfile description\n"""\nname = "${mockScope}/${mockName}"\nversion = "1.0.0"\n// Comlink Profile specification: https://superface.ai/docs/comlink/profile\n`,
           emptyProfile(mockUsecases[0]),
         ].join(''),
         { dirs: true, force: undefined }

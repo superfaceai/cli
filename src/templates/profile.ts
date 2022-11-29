@@ -3,7 +3,8 @@
  */
 export function header(name: string, version: string): string {
   return `"""
-Whole profile description
+${name} Profile
+Profile description
 """
 name = "${name}"
 version = "${version}"
