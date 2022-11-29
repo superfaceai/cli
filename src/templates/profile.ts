@@ -61,8 +61,16 @@ usecase ${name} {
 
 
 model ErrorModel {
+  """
+  Title
+  A short, human-readable summary of the problem type.
+  """
   title! string!
 
+  """
+  Detail
+  A human-readable explanation specific to this occurrence of the problem.
+  """
   detail string! 
 }`;
 }
