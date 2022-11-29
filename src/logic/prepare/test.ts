@@ -29,7 +29,7 @@ export async function prepareTest(
     profile: ProfileId;
     provider: string;
     version?: string;
-    options: {
+    options?: {
       force?: boolean;
       station?: boolean;
     };
@@ -54,6 +54,6 @@ export async function prepareTest(
 
   await OutputStream.writeOnce(filePath, testFileContent, {
     dirs: true,
-    force: options.force,
+    force: options?.force,
   });
 }
