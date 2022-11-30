@@ -1,3 +1,4 @@
+import { startCase } from '../common/format';
 import { ProfileId } from '../common/profile';
 
 /**
@@ -30,29 +31,34 @@ export function completeProfile({
   usecaseNames: string[];
 }): string {
   const id = ProfileId.fromScopeName(scope, name);
-  
-return [
+  const formattedName = startCase(id.id);
+
+  return [
     `"""
-${name} Profile
-Profile description
+${formattedName}
+TODO: What "${formattedName}" does
 """
 name = "${id.id}"
 version = "${version}"
 // Comlink Profile specification: https://superface.ai/docs/comlink/profile
 `,
-    ...usecaseNames.map(u => usecase(u)),
+    ...usecaseNames.map(u => usecase(u, scope)),
+    errorModel(scope),
   ].join('');
 }
 
-export function usecase(name: string, scope?: string): string {
-  // TODO: text formating
-  const errorName = scope !== undefined ? `${scope}Error` : `DomainError`;
-  
-return `
+function usecase(useCaseName: string, scope?: string): string {
+  const errorName =
+    scope !== undefined ? `${startCase(scope, '')}Error` : `DomainError`;
+
+  const formattedName = startCase(useCaseName);
+
+  return `
 """
-${name} usecase
+${formattedName}
+TODO: What "${formattedName}" does
 """
-usecase ${name} {
+usecase ${useCaseName} {
   input {
     "field title"
     foo! string 
@@ -82,9 +88,14 @@ usecase ${name} {
       detail = "Entity not found"
     }
   }
+}`;
 }
 
+function errorModel(scope?: string): string {
+  const errorName =
+    scope !== undefined ? `${startCase(scope, '')}Error` : `DomainError`;
 
+  return `
 model ${errorName} {
   """
   Title
