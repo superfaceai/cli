@@ -16,14 +16,13 @@ export class Provider extends Command {
   public static description =
     'Creates map, based on profile and provider on a local filesystem.';
 
+  public static args = [
+    { name: 'providerName', description: 'Name of provider', required: true },
+  ];
+
   public static flags = {
     ...Command.flags,
     // Inputs
-    providerName: oclifFlags.string({
-      description:
-        'Names of providers. This argument is used to create maps and/or providers',
-      required: true,
-    }),
     scan: oclifFlags.integer({
       char: 's',
       description:
@@ -44,12 +43,13 @@ export class Provider extends Command {
   };
 
   public async run(): Promise<void> {
-    const { flags } = this.parse(Provider);
+    const { flags, args } = this.parse(Provider);
     await super.initialize(flags);
     await this.execute({
       logger: this.logger,
       userError: this.userError,
       flags,
+      args,
     });
   }
 
@@ -57,14 +57,19 @@ export class Provider extends Command {
     logger,
     userError,
     flags,
+    args,
   }: {
     logger: ILogger;
     userError: UserError;
     flags: Flags<typeof Provider.flags>;
+    args: { providerName?: string };
   }): Promise<void> {
     // Check inputs
-    if (!isValidProviderName(flags.providerName)) {
-      throw userError(`Invalid provider name: "${flags.providerName}"`, 1);
+    if (args.providerName === undefined) {
+      throw userError(`Argument provider name must be provided`, 1);
+    }
+    if (!isValidProviderName(args.providerName)) {
+      throw userError(`Invalid provider name: "${args.providerName}"`, 1);
     }
 
     if (
@@ -98,7 +103,7 @@ export class Provider extends Command {
 
     await prepareProvider(
       {
-        provider: flags.providerName,
+        provider: args.providerName,
         superJson,
         superJsonPath,
         options: {

@@ -1,144 +1,219 @@
-import { SecurityValues, SecurityScheme, BearerTokenSecurityValues, BearerTokenSecurityScheme, SecurityType, HttpScheme, ApiKeySecurityValues, ApiKeySecurityScheme, ApiKeyPlacement, BasicAuthSecurityValues, BasicAuthSecurityScheme } from "@superfaceai/ast"
-import inquirer from "inquirer"
+import type {
+  ApiKeyPlacement,
+  ApiKeySecurityScheme,
+  ApiKeySecurityValues,
+  BasicAuthSecurityScheme,
+  BasicAuthSecurityValues,
+  BearerTokenSecurityScheme,
+  BearerTokenSecurityValues,
+  DigestSecurityScheme,
+  DigestSecurityValues,
+  SecurityScheme,
+  SecurityValues,
+} from '@superfaceai/ast';
+import { HttpScheme, SecurityType } from '@superfaceai/ast';
+import inquirer from 'inquirer';
 
 export async function selectSecuritySchemas(
-  provider: string,
-): Promise<(SecurityValues & SecurityScheme)[]> {
-  const securitySchemes: (SecurityValues & SecurityScheme)[] = []
-  let exit: boolean = false
+  provider: string
+): Promise<{ values: SecurityValues[]; schemes: SecurityScheme[] }> {
+  const schemes: SecurityScheme[] = [];
+  const values: SecurityValues[] = [];
+
+  let exit = false;
 
   while (!exit) {
-    const schema = await enterSecuritySchema(provider)
+    const result = await enterSecuritySchema(provider);
 
-    if (schema === undefined) {
-      exit = true
+    if (result === undefined) {
+      exit = true;
+    } else if (result === 'none') {
+      // empty
     } else {
-      securitySchemes.push(schema)
+      schemes.push(result.schema);
+      values.push(result.value);
     }
   }
 
-  return securitySchemes
+  return { schemes, values };
 }
 
 async function enterSecuritySchema(
-  provider: string,
-): Promise<(SecurityValues & SecurityScheme) | undefined> {
-  const schemaResponse: { schema: 'api key token' | 'bearer token' | 'basic' | 'digest' | 'none' } = await inquirer.prompt({
+  provider: string
+): Promise<
+  { value: SecurityValues; schema: SecurityScheme } | 'none' | undefined
+> {
+  const schemaResponse: {
+    schema:
+      | 'api key token'
+      | 'bearer token'
+      | 'basic'
+      | 'digest'
+      | 'none'
+      | 'exit';
+  } = await inquirer.prompt({
     name: 'schema',
     message: `Select a security schema for ${provider}:`,
     type: 'list',
-    choices: ['api key token', 'bearer token', 'basic', 'digest', 'none']
+    choices: [
+      'api key token',
+      'bearer token',
+      'basic',
+      'digest',
+      'none',
+      'exit',
+    ],
   });
 
-  console.log('schema', schemaResponse.schema)
+  console.log('schema', schemaResponse.schema);
 
   if (schemaResponse.schema === 'api key token') {
-    return enterApiKeySecurity(provider)
+    return enterApiKeySecurity(provider);
   } else if (schemaResponse.schema === 'bearer token') {
-    return enterBearerSecurity(provider)
+    return enterBearerSecurity(provider);
   } else if (schemaResponse.schema === 'basic') {
-    return enterBasicSecurity(provider)
+    return enterHttpSecurity(provider, HttpScheme.BASIC);
+  } else if (schemaResponse.schema === 'digest') {
+    return enterHttpSecurity(provider, HttpScheme.DIGEST);
+  } else if (schemaResponse.schema === 'none') {
+    return 'none';
   }
 
-  return undefined
+  return undefined;
 }
 
-async function enterBasicSecurity(provider: string): Promise<BasicAuthSecurityValues & BasicAuthSecurityScheme> {
+async function enterHttpSecurity(
+  provider: string,
+  scheme: HttpScheme.BASIC | HttpScheme.DIGEST
+): Promise<{
+  value: BasicAuthSecurityValues | DigestSecurityValues;
+  schema: BasicAuthSecurityScheme | DigestSecurityScheme;
+}> {
+  const id: string = (
+    await inquirer.prompt({
+      name: 'id',
+      message: `Enter "id" of basic auth security for provider ${provider}:`,
+      type: 'input',
+      default: `${provider}-api-key`,
+    })
+  ).id;
 
-  const id: string = (await inquirer.prompt({
-    name: 'id',
-    message: `Enter "id" of basic auth security for provider ${provider}:`,
-    type: 'input',
-    default: `${provider}-api-key`
-  })).id;
+  const username = (
+    await inquirer.prompt<{ username: string }>({
+      name: 'username',
+      message: `Enter username for provider ${provider}. It can be value or name of environment value (starting with $):`,
+      type: 'input',
+      default: undefined,
+    })
+  ).username;
 
-  const username = (await inquirer.prompt<{ username: string }>({
-    name: 'username',
-    message: `Enter username for provider ${provider}. It can be value or name of environment value (starting with $):`,
-    type: 'input',
-    default: undefined
-  })).username
-
-  const password = (await inquirer.prompt<{ password: string }>({
-    name: 'password',
-    message: `Enter password of provider ${provider}. It can be value or name of environment value (starting with $):`,
-    type: 'input',
-    default: undefined
-  })).password
-
+  const password = (
+    await inquirer.prompt<{ password: string }>({
+      name: 'password',
+      message: `Enter password of provider ${provider}. It can be value or name of environment value (starting with $):`,
+      type: 'input',
+      default: undefined,
+    })
+  ).password;
 
   return {
-    id,
-    username,
-    password,
-    type: SecurityType.HTTP,
-    scheme: HttpScheme.BASIC
-  }
-
+    schema: {
+      id,
+      type: SecurityType.HTTP,
+      scheme,
+    },
+    value: {
+      id,
+      username,
+      password,
+    },
+  };
 }
 
-async function enterBearerSecurity(provider: string): Promise<BearerTokenSecurityValues & BearerTokenSecurityScheme> {
+async function enterBearerSecurity(provider: string): Promise<{
+  value: BearerTokenSecurityValues;
+  schema: BearerTokenSecurityScheme;
+}> {
+  const id: string = (
+    await inquirer.prompt({
+      name: 'id',
+      message: `Enter "id" of bearer token security for provider ${provider}:`,
+      type: 'input',
+      default: `${provider}-api-key`,
+    })
+  ).id;
 
-  const id: string = (await inquirer.prompt({
-    name: 'id',
-    message: `Enter "id" of bearer token security for provider ${provider}:`,
-    type: 'input',
-    default: `${provider}-api-key`
-  })).id;
-
-  const token = (await inquirer.prompt<{ token: string }>({
-    name: 'token',
-    message: `Enter value of bearer token for provider ${provider}. It can be value or name of environment value (starting with $):`,
-    type: 'input',
-    default: undefined
-  })).token
-
+  const token = (
+    await inquirer.prompt<{ token: string }>({
+      name: 'token',
+      message: `Enter value of bearer token for provider ${provider}. It can be value or name of environment value (starting with $):`,
+      type: 'input',
+      default: undefined,
+    })
+  ).token;
 
   return {
-    id,
-    token,
-    type: SecurityType.HTTP,
-    scheme: HttpScheme.BEARER,
-  }
-
+    value: {
+      id,
+      token,
+    },
+    schema: {
+      id,
+      type: SecurityType.HTTP,
+      scheme: HttpScheme.BEARER,
+    },
+  };
 }
 
-async function enterApiKeySecurity(provider: string): Promise<ApiKeySecurityValues & ApiKeySecurityScheme> {
+async function enterApiKeySecurity(
+  provider: string
+): Promise<{ value: ApiKeySecurityValues; schema: ApiKeySecurityScheme }> {
+  const id: string = (
+    await inquirer.prompt({
+      name: 'id',
+      message: `Enter "id" of API key security for provider ${provider}:`,
+      type: 'input',
+      default: `${provider}-api-key`,
+    })
+  ).id;
 
-  const id: string = (await inquirer.prompt({
-    name: 'id',
-    message: `Enter "id" of API key security for provider ${provider}:`,
-    type: 'input',
-    default: `${provider}-api-key`
-  })).id;
+  const placement: ApiKeyPlacement = (
+    await inquirer.prompt({
+      name: 'value',
+      message: `Enter placement of API key for provider ${provider}:`,
+      type: 'list',
+      choices: ['header', 'body', 'path', 'query'],
+    })
+  ).value;
 
-  const placement: ApiKeyPlacement = (await inquirer.prompt({
-    name: 'value',
-    message: `Enter placement of API key for provider ${provider}:`,
-    type: 'list',
-    choices: ["header", "body", "path", "query"]
-  })).value;
+  const name = (
+    await inquirer.prompt<{ name: string | undefined }>({
+      name: 'name',
+      message: `Enter optional name of API key security property for provider ${provider}:`,
+      type: 'input',
+      default: undefined,
+    })
+  ).name;
 
-  const name = (await inquirer.prompt<{ name: string | undefined }>({
-    name: 'name',
-    message: `Enter "name" of API key security for provider ${provider}:`,
-    type: 'input',
-    default: undefined
-  })).name;
-
-  const apikey = (await inquirer.prompt<{ apikey: string }>({
-    name: 'apikey',
-    message: `Enter value of API key for provider ${provider}. It can be value or name of environment value (starting with $):`,
-    type: 'input',
-    default: undefined
-  })).apikey
-
+  const apikey = (
+    await inquirer.prompt<{ apikey: string }>({
+      name: 'apikey',
+      message: `Enter value of API key for provider ${provider}. It can be value or name of environment value (starting with $):`,
+      type: 'input',
+      default: undefined,
+    })
+  ).apikey;
 
   return {
-    id,
-    apikey,
-    in: placement,
-    type: SecurityType.APIKEY,
-    name
-  }
+    schema: {
+      id,
+      in: placement,
+      type: SecurityType.APIKEY,
+      name,
+    },
+    value: {
+      id,
+      apikey,
+    },
+  };
 }
