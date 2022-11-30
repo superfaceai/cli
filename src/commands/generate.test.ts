@@ -1,6 +1,5 @@
 import { err, ok, SDKExecutionError } from '@superfaceai/one-sdk';
 import * as SuperJson from '@superfaceai/one-sdk/dist/schema-tools/superjson/utils';
-import { mocked } from 'ts-jest/utils';
 
 import { MockLogger } from '..';
 import { createUserError } from '../common/error';
@@ -35,7 +34,7 @@ describe('Generate CLI command', () => {
 
   describe('when running generate command', () => {
     it('throws when super.json not found', async () => {
-      mocked(detectSuperJson).mockResolvedValue(undefined);
+      jest.mocked(detectSuperJson).mockResolvedValue(undefined);
       await expect(
         instance.execute({
           logger,
@@ -48,7 +47,7 @@ describe('Generate CLI command', () => {
     });
 
     it('throws when super.json not loaded correctly', async () => {
-      mocked(detectSuperJson).mockResolvedValue('.');
+      jest.mocked(detectSuperJson).mockResolvedValue('.');
       jest
         .spyOn(SuperJson, 'loadSuperJson')
         .mockResolvedValue(err(new SDKExecutionError('test error', [], [])));
@@ -64,7 +63,7 @@ describe('Generate CLI command', () => {
     });
 
     it('throws error on scan flag higher than 5', async () => {
-      mocked(detectSuperJson).mockResolvedValue('.');
+      jest.mocked(detectSuperJson).mockResolvedValue('.');
 
       await expect(
         instance.execute({
@@ -82,7 +81,7 @@ describe('Generate CLI command', () => {
     }, 10000);
 
     it('throws error on invalid profile id', async () => {
-      mocked(detectSuperJson).mockResolvedValue('.');
+      jest.mocked(detectSuperJson).mockResolvedValue('.');
       const loadSpy = jest
         .spyOn(SuperJson, 'loadSuperJson')
         .mockResolvedValue(ok({}));
@@ -104,7 +103,7 @@ describe('Generate CLI command', () => {
     }, 10000);
 
     it('throws error when profile Id not found in super.json', async () => {
-      mocked(detectSuperJson).mockResolvedValue('.');
+      jest.mocked(detectSuperJson).mockResolvedValue('.');
       const loadSpy = jest
         .spyOn(SuperJson, 'loadSuperJson')
         .mockResolvedValue(ok({}));
@@ -124,7 +123,7 @@ describe('Generate CLI command', () => {
     }, 10000);
 
     it('generates types for specified local profile', async () => {
-      mocked(detectSuperJson).mockResolvedValue('.');
+      jest.mocked(detectSuperJson).mockResolvedValue('.');
       const mockPath = 'path/to/profile.supr';
       const mockSuperJson = {
         profiles: {
@@ -167,7 +166,7 @@ describe('Generate CLI command', () => {
     });
 
     it('generates types for specified remote profile', async () => {
-      mocked(detectSuperJson).mockResolvedValue('.');
+      jest.mocked(detectSuperJson).mockResolvedValue('.');
       const version = '1.0.8';
       const mockSuperJson = {
         profiles: {
@@ -207,7 +206,7 @@ describe('Generate CLI command', () => {
     });
 
     it('generates types for super json with remote and local profiles', async () => {
-      mocked(detectSuperJson).mockResolvedValue('.');
+      jest.mocked(detectSuperJson).mockResolvedValue('.');
       const version = '1.0.8';
       const mockPath = 'path/to/profile.supr';
       const mockSuperJson = {
@@ -251,7 +250,7 @@ describe('Generate CLI command', () => {
     });
 
     it('generates types for super json with remote and local profiles and quiet flag', async () => {
-      mocked(detectSuperJson).mockResolvedValue('.');
+      jest.mocked(detectSuperJson).mockResolvedValue('.');
       const version = '1.0.8';
       const mockPath = 'path/to/profile.supr';
       const mockSuperJson = {

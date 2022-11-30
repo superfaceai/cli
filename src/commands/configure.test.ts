@@ -1,5 +1,4 @@
 import { isValidDocumentName } from '@superfaceai/ast';
-import { mocked } from 'ts-jest/utils';
 
 import { createUserError } from '../common/error';
 import { exists } from '../common/io';
@@ -54,7 +53,7 @@ describe('Configure CLI command', () => {
     const profileId = ProfileId.fromScopeName(undefined, 'sms');
 
     it('does not configure on invalid provider name', async () => {
-      mocked(isValidDocumentName).mockReturnValue(false);
+      jest.mocked(isValidDocumentName).mockReturnValue(false);
       await expect(
         instance.execute({
           logger,
@@ -73,8 +72,8 @@ describe('Configure CLI command', () => {
     });
 
     it('does not configure on non-existent map path', async () => {
-      mocked(isValidDocumentName).mockReturnValue(false);
-      mocked(exists).mockResolvedValue(false);
+      jest.mocked(isValidDocumentName).mockReturnValue(false);
+      jest.mocked(exists).mockResolvedValue(false);
       await expect(
         instance.execute({
           logger,
@@ -94,8 +93,8 @@ describe('Configure CLI command', () => {
     });
 
     it('does not configure on non-existent provider path', async () => {
-      mocked(isValidDocumentName).mockReturnValue(false);
-      mocked(exists).mockResolvedValue(false);
+      jest.mocked(isValidDocumentName).mockReturnValue(false);
+      jest.mocked(exists).mockResolvedValue(false);
       await expect(
         instance.execute({
           logger,
@@ -110,9 +109,9 @@ describe('Configure CLI command', () => {
     });
 
     it('does not configure on non-compatible profile', async () => {
-      mocked(isValidDocumentName).mockReturnValue(true);
-      mocked(detectSuperJson).mockResolvedValue(superPath);
-      mocked(isCompatible).mockResolvedValue(false);
+      jest.mocked(isValidDocumentName).mockReturnValue(true);
+      jest.mocked(detectSuperJson).mockResolvedValue(superPath);
+      jest.mocked(isCompatible).mockResolvedValue(false);
 
       await expect(
         instance.execute({
@@ -128,9 +127,9 @@ describe('Configure CLI command', () => {
     });
 
     it('configures provider', async () => {
-      mocked(isValidDocumentName).mockReturnValue(true);
-      mocked(detectSuperJson).mockResolvedValue(superPath);
-      mocked(isCompatible).mockResolvedValue(true);
+      jest.mocked(isValidDocumentName).mockReturnValue(true);
+      jest.mocked(detectSuperJson).mockResolvedValue(superPath);
+      jest.mocked(isCompatible).mockResolvedValue(true);
 
       await expect(
         instance.execute({
@@ -162,9 +161,9 @@ describe('Configure CLI command', () => {
     });
 
     it('configures provider with env flag', async () => {
-      mocked(isValidDocumentName).mockReturnValue(true);
-      mocked(detectSuperJson).mockResolvedValue(superPath);
-      mocked(isCompatible).mockResolvedValue(true);
+      jest.mocked(isValidDocumentName).mockReturnValue(true);
+      jest.mocked(detectSuperJson).mockResolvedValue(superPath);
+      jest.mocked(isCompatible).mockResolvedValue(true);
 
       await expect(
         instance.execute({
@@ -196,13 +195,13 @@ describe('Configure CLI command', () => {
     });
 
     it('configures provider with superface initialization', async () => {
-      mocked(isValidDocumentName).mockReturnValue(true);
-      mocked(detectSuperJson).mockResolvedValue(undefined);
-      mocked(initSuperface).mockResolvedValue({
+      jest.mocked(isValidDocumentName).mockReturnValue(true);
+      jest.mocked(detectSuperJson).mockResolvedValue(undefined);
+      jest.mocked(initSuperface).mockResolvedValue({
         superJson: {},
         superJsonPath: '',
       });
-      mocked(isCompatible).mockResolvedValue(true);
+      jest.mocked(isCompatible).mockResolvedValue(true);
 
       await expect(
         instance.execute({
@@ -246,9 +245,9 @@ describe('Configure CLI command', () => {
     });
 
     it('configures provider with mapVariant flag', async () => {
-      mocked(isValidDocumentName).mockReturnValue(true);
-      mocked(detectSuperJson).mockResolvedValue(superPath);
-      mocked(isCompatible).mockResolvedValue(true);
+      jest.mocked(isValidDocumentName).mockReturnValue(true);
+      jest.mocked(detectSuperJson).mockResolvedValue(superPath);
+      jest.mocked(isCompatible).mockResolvedValue(true);
 
       await expect(
         instance.execute({
@@ -286,7 +285,7 @@ describe('Configure CLI command', () => {
     });
 
     it('does not configure on invalid mapVariant flag', async () => {
-      mocked(isValidDocumentName).mockReturnValue(false);
+      jest.mocked(isValidDocumentName).mockReturnValue(false);
       await expect(
         instance.execute({
           logger,

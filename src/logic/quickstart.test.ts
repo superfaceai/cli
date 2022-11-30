@@ -8,7 +8,6 @@ import type { Result, SDKExecutionError } from '@superfaceai/one-sdk';
 import { normalizeSuperJsonDocument, ok } from '@superfaceai/one-sdk';
 import * as SuperJson from '@superfaceai/one-sdk/dist/schema-tools/superjson/utils';
 import inquirer from 'inquirer';
-import { mocked } from 'ts-jest/utils';
 
 import { MockLogger } from '..';
 import { createUserError } from '../common/error';
@@ -171,16 +170,16 @@ describe('Quickstart logic', () => {
     };
 
     it('sets up sf correctly - non existing super.json and .env', async () => {
-      mocked(detectSuperJson).mockResolvedValue(undefined);
-      mocked(initSuperface).mockResolvedValue({
+      jest.mocked(detectSuperJson).mockResolvedValue(undefined);
+      jest.mocked(initSuperface).mockResolvedValue({
         superJson: {},
         superJsonPath: '',
       });
-      mocked(findLocalProfileAst).mockResolvedValue({
+      jest.mocked(findLocalProfileAst).mockResolvedValue({
         ast: mockProfileAst,
         path: 'mockpath',
       });
-      mocked(getServicesUrl).mockReturnValue('https://superface.ai/');
+      jest.mocked(getServicesUrl).mockReturnValue('https://superface.ai/');
       // We re-load superjson after initial install (profile and providers)
       mockLoad.mockResolvedValue(
         ok({
@@ -229,14 +228,14 @@ describe('Quickstart logic', () => {
         })
       );
 
-      mocked(fetchProviders).mockResolvedValue([
+      jest.mocked(fetchProviders).mockResolvedValue([
         { name: 'sendgrid', services: [], defaultService: '' },
         { name: 'mailgun', services: [], defaultService: '' },
         { name: 'mailchimp', services: [], defaultService: '' },
         { name: 'mock', services: [], defaultService: '' },
         { name: 'test', services: [], defaultService: '' },
       ]);
-      mocked(exists).mockResolvedValue(false);
+      jest.mocked(exists).mockResolvedValue(false);
       const writeOnceSpy = jest
         .spyOn(OutputStream, 'writeOnce')
         .mockResolvedValue(undefined);
@@ -279,8 +278,9 @@ describe('Quickstart logic', () => {
         .mockResolvedValueOnce({ value: 'sendgridBearer' })
         // Select security schema
         .mockResolvedValueOnce({
-          schema: normalizeSuperJsonDocument(mockSuperJson).providers['test']
-            .security[0],
+          schema:
+            normalizeSuperJsonDocument(mockSuperJson).providers['test']
+              .security[0],
         })
         // Set digest
         .mockResolvedValueOnce({ value: 'testDigestUsername' })
@@ -345,16 +345,16 @@ describe('Quickstart logic', () => {
     });
 
     it('sets up sf correctly - non existing super.json and existing .env', async () => {
-      mocked(detectSuperJson).mockResolvedValue(undefined);
-      mocked(initSuperface).mockResolvedValue({
+      jest.mocked(detectSuperJson).mockResolvedValue(undefined);
+      jest.mocked(initSuperface).mockResolvedValue({
         superJson: {},
         superJsonPath: '',
       });
-      mocked(findLocalProfileAst).mockResolvedValue({
+      jest.mocked(findLocalProfileAst).mockResolvedValue({
         ast: mockProfileAst,
         path: 'mockpath',
       });
-      mocked(getServicesUrl).mockReturnValue('https://superface.ai/');
+      jest.mocked(getServicesUrl).mockReturnValue('https://superface.ai/');
       mockLoad.mockResolvedValue(
         ok({
           profiles: {
@@ -401,15 +401,15 @@ describe('Quickstart logic', () => {
           },
         })
       );
-      mocked(fetchProviders).mockResolvedValue([
+      jest.mocked(fetchProviders).mockResolvedValue([
         { name: 'sendgrid', services: [], defaultService: '' },
         { name: 'mailgun', services: [], defaultService: '' },
         { name: 'mailchimp', services: [], defaultService: '' },
         { name: 'mock', services: [], defaultService: '' },
         { name: 'test', services: [], defaultService: '' },
       ]);
-      mocked(exists).mockResolvedValue(true);
-      mocked(readFile).mockResolvedValue('SOME=env\n');
+      jest.mocked(exists).mockResolvedValue(true);
+      jest.mocked(readFile).mockResolvedValue('SOME=env\n');
       const writeOnceSpy = jest
         .spyOn(OutputStream, 'writeOnce')
         .mockResolvedValue(undefined);
@@ -452,8 +452,9 @@ describe('Quickstart logic', () => {
         .mockResolvedValueOnce({ value: 'sendgridBearer' })
         // Select security schema
         .mockResolvedValueOnce({
-          schema: normalizeSuperJsonDocument(mockSuperJson).providers['test']
-            .security[1],
+          schema:
+            normalizeSuperJsonDocument(mockSuperJson).providers['test']
+              .security[1],
         })
         // Set test digest
         .mockResolvedValueOnce({ value: 'testApiKey' })
@@ -565,26 +566,26 @@ describe('Quickstart logic', () => {
         },
       };
 
-      mocked(detectSuperJson).mockResolvedValue(undefined);
-      mocked(initSuperface).mockResolvedValue({
+      jest.mocked(detectSuperJson).mockResolvedValue(undefined);
+      jest.mocked(initSuperface).mockResolvedValue({
         superJson: {},
         superJsonPath: '',
       });
-      mocked(findLocalProfileAst).mockResolvedValue({
+      jest.mocked(findLocalProfileAst).mockResolvedValue({
         ast: mockProfileAst,
         path: 'mockpath',
       });
-      mocked(getServicesUrl).mockReturnValue('https://superface.ai/');
+      jest.mocked(getServicesUrl).mockReturnValue('https://superface.ai/');
       mockLoad.mockResolvedValue(ok(mockMisconfiguredSuperJson));
-      mocked(fetchProviders).mockResolvedValue([
+      jest.mocked(fetchProviders).mockResolvedValue([
         { name: 'sendgrid', services: [], defaultService: '' },
         { name: 'mailgun', services: [], defaultService: '' },
         { name: 'mailchimp', services: [], defaultService: '' },
         { name: 'mock', services: [], defaultService: '' },
         { name: 'test', services: [], defaultService: '' },
       ]);
-      mocked(exists).mockResolvedValue(true);
-      mocked(readFile).mockResolvedValue('TEST_API_KEY=env\n');
+      jest.mocked(exists).mockResolvedValue(true);
+      jest.mocked(readFile).mockResolvedValue('TEST_API_KEY=env\n');
       const writeOnceSpy = jest
         .spyOn(OutputStream, 'writeOnce')
         .mockResolvedValue(undefined);
@@ -723,20 +724,20 @@ describe('Quickstart logic', () => {
           },
         },
       };
-      mocked(detectSuperJson).mockResolvedValue('some/path');
-      mocked(initSuperface).mockResolvedValue({
+      jest.mocked(detectSuperJson).mockResolvedValue('some/path');
+      jest.mocked(initSuperface).mockResolvedValue({
         superJson: {},
         superJsonPath: '',
       });
       mockLoad.mockResolvedValue(ok(mockSuperJson));
-      mocked(profileExists).mockResolvedValueOnce(true);
-      mocked(providerExists).mockReturnValue(true);
-      mocked(findLocalProfileAst).mockResolvedValue({
+      jest.mocked(profileExists).mockResolvedValueOnce(true);
+      jest.mocked(providerExists).mockReturnValue(true);
+      jest.mocked(findLocalProfileAst).mockResolvedValue({
         ast: mockProfileAst,
         path: 'mockpath',
       });
-      mocked(getServicesUrl).mockReturnValue('https://superface.ai/');
-      mocked(fetchProviders).mockResolvedValue([
+      jest.mocked(getServicesUrl).mockReturnValue('https://superface.ai/');
+      jest.mocked(fetchProviders).mockResolvedValue([
         { name: 'sendgrid', services: [], defaultService: '' },
         { name: 'mailgun', services: [], defaultService: '' },
         { name: 'mailchimp', services: [], defaultService: '' },
@@ -744,8 +745,8 @@ describe('Quickstart logic', () => {
         { name: 'test', services: [], defaultService: '' },
       ]);
       // Env
-      mocked(exists).mockResolvedValue(true);
-      mocked(readFile).mockResolvedValueOnce(mockEnv);
+      jest.mocked(exists).mockResolvedValue(true);
+      jest.mocked(readFile).mockResolvedValueOnce(mockEnv);
       const writeOnceSpy = jest
         .spyOn(OutputStream, 'writeOnce')
         .mockResolvedValue(undefined);
@@ -795,8 +796,9 @@ describe('Quickstart logic', () => {
         .mockResolvedValueOnce({ value: 'mailgunPassword' })
         // Select security schema
         .mockResolvedValueOnce({
-          schema: normalizeSuperJsonDocument(mockSuperJson).providers['test']
-            .security[0],
+          schema:
+            normalizeSuperJsonDocument(mockSuperJson).providers['test']
+              .security[0],
         })
         // Set test digest
         .mockResolvedValueOnce({ value: 'testDigestUsername' })

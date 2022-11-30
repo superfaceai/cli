@@ -206,8 +206,15 @@ export async function findLocalProviderSource(
 }
 
 export function isProviderParseError(
-  input: Record<string, unknown>
+  input: unknown
 ): input is { errors: [message: string, path: string[]][] } {
+  if (typeof input !== 'object' || input === null) {
+    return false;
+  }
+  if (!('errors' in input)) {
+    return false;
+  }
+
   // return 'path' in input && 'message' in input;
-  return 'errors' in input && Array.isArray(input.errors);
+  return Array.isArray((input as Record<string, unknown>).errors);
 }

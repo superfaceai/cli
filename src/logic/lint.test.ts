@@ -19,9 +19,8 @@ import {
   SyntaxError,
 } from '@superfaceai/parser';
 import { SyntaxErrorCategory } from '@superfaceai/parser/dist/language/error';
-import type { MatchAttempts } from '@superfaceai/parser/dist/language/syntax/rule';
+import { MatchAttempts } from '@superfaceai/parser/dist/language/syntax/rule';
 import { red, yellow } from 'chalk';
-import { mocked } from 'ts-jest/utils';
 
 import { createUserError } from '../common/error';
 import { fetchMapAST, fetchProfileAST } from '../common/http';
@@ -81,7 +80,7 @@ describe('Lint logic', () => {
       patch: 0,
     },
     parserVersion: {
-      major: 1,
+      major: 2,
       minor: 0,
       patch: 0,
     },
@@ -211,7 +210,7 @@ describe('Lint logic', () => {
         },
       };
       const mockMapPath = 'testMapPath';
-      mocked(parseMapId).mockReturnValue({
+      jest.mocked(parseMapId).mockReturnValue({
         kind: 'parsed',
         value: mockDocument,
       });
@@ -234,7 +233,7 @@ describe('Lint logic', () => {
         },
       };
       const mockMapPath = 'testMapPath';
-      mocked(parseMapId).mockReturnValue({
+      jest.mocked(parseMapId).mockReturnValue({
         kind: 'parsed',
         value: mockDocument,
       });
@@ -257,7 +256,7 @@ describe('Lint logic', () => {
         },
       };
       const mockMapPath = 'testMapPath';
-      mocked(parseMapId).mockReturnValue({
+      jest.mocked(parseMapId).mockReturnValue({
         kind: 'parsed',
         value: mockDocument,
       });
@@ -279,7 +278,7 @@ describe('Lint logic', () => {
         },
       };
       const mockMapPath = 'testMapPath';
-      mocked(parseMapId).mockReturnValue({
+      jest.mocked(parseMapId).mockReturnValue({
         kind: 'parsed',
         value: mockDocument,
       });
@@ -301,7 +300,7 @@ describe('Lint logic', () => {
         },
       };
       const mockMapPath = 'testMapPath';
-      mocked(parseMapId).mockReturnValue({
+      jest.mocked(parseMapId).mockReturnValue({
         kind: 'parsed',
         value: mockDocument,
       });
@@ -313,7 +312,7 @@ describe('Lint logic', () => {
     });
 
     it('throws error if there is a parse error', async () => {
-      mocked(parseMapId).mockReturnValue({
+      jest.mocked(parseMapId).mockReturnValue({
         kind: 'error',
         message: 'parse-error',
       });
@@ -484,23 +483,25 @@ describe('Lint logic', () => {
         },
       ];
 
-      mocked(findLocalMapSource)
+      jest
+        .mocked(findLocalMapSource)
         .mockResolvedValueOnce({ source: mockMapContent, path: 'swapi path' })
         .mockResolvedValueOnce({
           source: mockMapContent,
           path: 'starwars path',
         });
-      mocked(findLocalProfileSource).mockResolvedValue({
+      jest.mocked(findLocalProfileSource).mockResolvedValue({
         source: mockProfileContent,
         path: mockProfilePath,
       });
-      mocked(parseProfile).mockReturnValue(mockProfileDocument);
-      mocked(parseMap)
+      jest.mocked(parseProfile).mockReturnValue(mockProfileDocument);
+      jest
+        .mocked(parseMap)
         .mockReturnValueOnce(mockMapDocument)
         .mockReturnValueOnce(mockMapDocumentMatching);
 
       await expect(
-        lint(mockSuperJson, '', mockProfiles, { logger })
+        lint(mockSuperJson, '', mockProfiles, { logger, userError })
       ).resolves.toEqual({
         reports: [
           {
@@ -571,18 +572,19 @@ describe('Lint logic', () => {
         },
       ];
 
-      mocked(findLocalMapSource).mockResolvedValue(undefined);
-      mocked(findLocalProfileSource).mockResolvedValue({
+      jest.mocked(findLocalMapSource).mockResolvedValue(undefined);
+      jest.mocked(findLocalProfileSource).mockResolvedValue({
         source: mockProfileContent,
         path: mockProfilePath,
       });
-      mocked(parseProfile).mockReturnValue(mockProfileDocument);
-      mocked(fetchMapAST)
+      jest.mocked(parseProfile).mockReturnValue(mockProfileDocument);
+      jest
+        .mocked(fetchMapAST)
         .mockResolvedValueOnce(mockMapDocument)
         .mockResolvedValueOnce(mockMapDocumentMatching);
 
       await expect(
-        lint(mockSuperJson, '', mockProfiles, { logger })
+        lint(mockSuperJson, '', mockProfiles, { logger, userError })
       ).resolves.toEqual({
         reports: [
           {
@@ -654,16 +656,17 @@ describe('Lint logic', () => {
         },
       ];
 
-      mocked(findLocalMapSource).mockResolvedValue(undefined);
-      mocked(findLocalProfileSource).mockResolvedValue(undefined);
-      mocked(fetchMapAST)
+      jest.mocked(findLocalMapSource).mockResolvedValue(undefined);
+      jest.mocked(findLocalProfileSource).mockResolvedValue(undefined);
+      jest
+        .mocked(fetchMapAST)
         .mockResolvedValueOnce(mockMapDocument)
         .mockResolvedValueOnce(mockMapDocumentMatching);
 
-      mocked(fetchProfileAST).mockResolvedValue(mockProfileDocument);
+      jest.mocked(fetchProfileAST).mockResolvedValue(mockProfileDocument);
 
       await expect(
-        lint(mockSuperJson, '', mockProfiles, { logger })
+        lint(mockSuperJson, '', mockProfiles, { logger, userError })
       ).resolves.toEqual({
         reports: [
           {
@@ -714,12 +717,9 @@ describe('Lint logic', () => {
     });
 
     it('returns correct counts, corrupted profile', async () => {
-      const mockSyntaxErr: SyntaxError = {
-        source: new Source('test'),
-        formatHints: () => '',
-        formatVisualization: () => '',
-        hints: [],
-        location: {
+      const mockSyntaxErr = new SyntaxError(
+        new Source('test'),
+        {
           start: {
             line: 0,
             column: 0,
@@ -731,11 +731,8 @@ describe('Lint logic', () => {
             charIndex: 0,
           },
         },
-        category: SyntaxErrorCategory.PARSER,
-        detail: '',
-        format: () => 'detail',
-        message: 'message',
-      };
+        SyntaxErrorCategory.PARSER
+      );
 
       const profile = ProfileId.fromScopeName(
         'starwars',
@@ -759,46 +756,20 @@ describe('Lint logic', () => {
         },
       ];
 
-      mocked(findLocalProfileSource).mockResolvedValue({
+      jest.mocked(findLocalProfileSource).mockResolvedValue({
         source: mockProfileContent,
         path: mockProfilePath,
       });
-      mocked(parseProfile).mockImplementation(() => {
+      jest.mocked(parseProfile).mockImplementation(() => {
         throw mockSyntaxErr;
       });
 
       await expect(
-        lint(mockSuperJson, '', mockProfiles, { logger })
+        lint(mockSuperJson, '', mockProfiles, { logger, userError })
       ).resolves.toEqual({
         reports: [
           {
-            errors: [
-              {
-                category: 'Parser',
-                detail: '',
-                format: expect.any(Function),
-                formatHints: expect.any(Function),
-                formatVisualization: expect.any(Function),
-                hints: [],
-                location: {
-                  end: {
-                    charIndex: 0,
-                    column: 0,
-                    line: 0,
-                  },
-                  start: {
-                    charIndex: 0,
-                    column: 0,
-                    line: 0,
-                  },
-                },
-                message: 'message',
-                source: new Source('test', undefined, {
-                  column: 0,
-                  line: 0,
-                }),
-              },
-            ],
+            errors: [mockSyntaxErr],
             kind: 'file',
             path: 'mockProfilePath',
             warnings: [],
@@ -809,12 +780,9 @@ describe('Lint logic', () => {
     });
 
     it('returns correct counts, corrupted map', async () => {
-      const mockSyntaxErr: SyntaxError = {
-        source: new Source('test'),
-        formatHints: () => '',
-        formatVisualization: () => '',
-        hints: [],
-        location: {
+      const mockSyntaxErr = new SyntaxError(
+        new Source('test'),
+        {
           start: {
             line: 0,
             column: 0,
@@ -826,11 +794,8 @@ describe('Lint logic', () => {
             charIndex: 0,
           },
         },
-        category: SyntaxErrorCategory.PARSER,
-        detail: '',
-        format: () => 'detail',
-        message: 'message',
-      };
+        SyntaxErrorCategory.PARSER
+      );
 
       const profile = ProfileId.fromScopeName(
         'starwars',
@@ -850,21 +815,21 @@ describe('Lint logic', () => {
         },
       ];
 
-      mocked(findLocalProfileSource).mockResolvedValue({
+      jest.mocked(findLocalProfileSource).mockResolvedValue({
         source: mockProfileContent,
         path: mockProfilePath,
       });
-      mocked(parseProfile).mockReturnValue(mockProfileDocument);
-      mocked(findLocalMapSource).mockResolvedValue({
+      jest.mocked(parseProfile).mockReturnValue(mockProfileDocument);
+      jest.mocked(findLocalMapSource).mockResolvedValue({
         source: mockMapContent,
         path: mockMapPath,
       });
-      mocked(parseMap).mockImplementation(() => {
+      jest.mocked(parseMap).mockImplementation(() => {
         throw mockSyntaxErr;
       });
 
       await expect(
-        lint(mockSuperJson, '', mockProfiles, { logger })
+        lint(mockSuperJson, '', mockProfiles, { logger, userError })
       ).resolves.toEqual({
         reports: [
           {
@@ -874,33 +839,7 @@ describe('Lint logic', () => {
             warnings: [],
           },
           {
-            errors: [
-              {
-                category: 'Parser',
-                detail: '',
-                format: expect.any(Function),
-                formatHints: expect.any(Function),
-                formatVisualization: expect.any(Function),
-                hints: [],
-                location: {
-                  end: {
-                    charIndex: 0,
-                    column: 0,
-                    line: 0,
-                  },
-                  start: {
-                    charIndex: 0,
-                    column: 0,
-                    line: 0,
-                  },
-                },
-                message: 'message',
-                source: new Source('test', undefined, {
-                  column: 0,
-                  line: 0,
-                }),
-              },
-            ],
+            errors: [mockSyntaxErr],
             kind: 'file',
             path: 'mockMapPath',
             warnings: [],
@@ -929,10 +868,7 @@ describe('Lint logic', () => {
         new Source('mock-content', mockPath),
         {
           kind: 'nomatch',
-          attempts: ({
-            token: undefined,
-            rules: [],
-          } as unknown) as MatchAttempts,
+          attempts: new MatchAttempts(undefined, []),
         }
       );
 
@@ -962,10 +898,10 @@ describe('Lint logic', () => {
         new Source('mock-content', mockPath),
         {
           kind: 'nomatch',
-          attempts: ({
+          attempts: {
             token: undefined,
             rules: [],
-          } as unknown) as MatchAttempts,
+          } as unknown as MatchAttempts,
         }
       );
 

@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-explicit-any */
-import type { ProviderJson } from '@superfaceai/ast';
+import type { ProfileDocumentNode, ProviderJson } from '@superfaceai/ast';
 import { EXTENSIONS } from '@superfaceai/ast';
 import type { AuthToken, CLILoginResponse } from '@superfaceai/service-client';
 import { execFile } from 'child_process';
@@ -33,27 +33,27 @@ export async function mockResponsesForProfile(
   path = joinPath('fixtures', 'profiles')
 ): Promise<void> {
   const basePath = joinPath(path, profile);
-  const profileInfo = JSON.parse(
+  const profileInfo: Record<string, unknown> = JSON.parse(
     await readFile(basePath + '.json', { encoding: 'utf-8' })
   );
   const profileSource = await readFile(basePath + EXTENSIONS.profile.source, {
     encoding: 'utf-8',
   });
-  const profileAST = JSON.parse(
+  const profileAST: ProfileDocumentNode = JSON.parse(
     await readFile(basePath + EXTENSIONS.profile.build, { encoding: 'utf-8' })
   );
   await server
-    .get('/' + profile)
+    .forGet('/' + profile)
     .withHeaders({ Accept: ContentType.JSON })
     .thenJson(200, profileInfo);
   await server
-    .get('/' + profile)
+    .forGet('/' + profile)
     .withHeaders({ Accept: ContentType.PROFILE_SOURCE })
     .thenReply(200, profileSource, {
       'Content-Type': ContentType.PROFILE_SOURCE,
     });
   await server
-    .get('/' + profile)
+    .forGet('/' + profile)
     .withHeaders({ Accept: ContentType.PROFILE_AST })
     .thenJson(200, profileAST, { 'Content-Type': ContentType.PROFILE_AST });
 }
@@ -89,7 +89,7 @@ export async function mockResponsesForMap(
       ? joinPath(path, profile.scope, 'maps', `${provider}.${profile.name}`)
       : joinPath(path, profile.name, 'maps', `${provider}.${profile.name}`);
 
-  const mapInfo = JSON.parse(
+  const mapInfo: Record<string, unknown> = JSON.parse(
     await readFile(basePath + '.json', { encoding: 'utf-8' })
   );
 
@@ -101,17 +101,17 @@ export async function mockResponsesForMap(
   });
 
   await server
-    .get('/' + url)
+    .forGet('/' + url)
     .withHeaders({ Accept: ContentType.JSON })
-    .thenReply(200, mapInfo);
+    .thenJson(200, mapInfo);
 
   await server
-    .get('/' + url)
+    .forGet('/' + url)
     .withHeaders({ Accept: ContentType.MAP_SOURCE })
     .thenReply(200, mapSource, { 'Content-Type': ContentType.MAP_SOURCE });
 
   await server
-    .get('/' + url)
+    .forGet('/' + url)
     .withHeaders({ Accept: ContentType.MAP_AST })
     .thenReply(200, mapAST, { 'Content-Type': ContentType.MAP_AST });
 }
@@ -143,7 +143,7 @@ export async function mockResponsesForProvider(
   };
 
   await server
-    .get('/providers/' + provider)
+    .forGet('/providers/' + provider)
     .withHeaders({ 'Content-Type': ContentType.JSON })
     .thenJson(200, mockProviderResponse);
 }
@@ -170,7 +170,7 @@ export async function mockResponsesForProfileProviders(
     });
   }
   await server
-    .get('/providers')
+    .forGet('/providers')
     .withQuery({ profile: profile })
     .withHeaders({ 'Content-Type': ContentType.JSON })
     .thenJson(200, { data: providersInfo });
@@ -181,17 +181,17 @@ export async function mockResponsesForProfileProviders(
  */
 export async function mockResponsesForPublish(server: Mockttp): Promise<void> {
   await server
-    .post('/providers')
+    .forPost('/providers')
     .withHeaders({ 'Content-Type': ContentType.JSON })
     .thenJson(200, {});
 
   await server
-    .post('/profiles')
+    .forPost('/profiles')
     .withHeaders({ 'Content-Type': ContentType.TEXT })
     .thenJson(200, {});
 
   await server
-    .post('/maps')
+    .forPost('/maps')
     .withHeaders({ 'Content-Type': ContentType.TEXT })
     .thenJson(200, {});
 }
@@ -214,23 +214,23 @@ export async function mockResponsesForLogin(
       }
 ): Promise<void> {
   if (mockInitLoginResponse.success) {
-    await server.post('/auth/cli').thenJson(201, {
+    await server.forPost('/auth/cli').thenJson(201, {
       verify_url: mockInitLoginResponse.verifyUrl,
       browser_url: mockInitLoginResponse.browserUrl,
       expires_at: mockInitLoginResponse.expiresAt.toDateString(),
     });
   } else {
-    await server.post('/auth/cli').thenJson(200, mockInitLoginResponse);
+    await server.forPost('/auth/cli').thenJson(200, mockInitLoginResponse);
   }
 
   if ('authToken' in mockVerifyResponse) {
     await server
-      .get('/auth/cli/verify')
+      .forGet('/auth/cli/verify')
       .withQuery({ token: 'stub' })
       .thenJson(200, mockVerifyResponse.authToken);
   } else {
     await server
-      .get('/auth/cli/verify')
+      .forGet('/auth/cli/verify')
       .withQuery({ token: 'stub' })
       .thenJson(mockVerifyResponse.statusCode, {
         status: mockVerifyResponse.errStatus,
@@ -328,8 +328,12 @@ export async function execCLI(
   return new Promise((resolve, reject) => {
     // Debug
     if (options?.debug === true) {
-      childProcess.stdout?.on('data', chunk => process.stdout.write(chunk));
-      childProcess.stderr?.on('data', chunk => process.stderr.write(chunk));
+      childProcess.stdout?.on('data', (chunk: string | Uint8Array) =>
+        process.stdout.write(chunk)
+      );
+      childProcess.stderr?.on('data', (chunk: string | Uint8Array) =>
+        process.stderr.write(chunk)
+      );
     }
 
     childProcess.stderr?.once('data', (err: string | Buffer) => {
