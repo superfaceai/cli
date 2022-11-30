@@ -40,11 +40,10 @@ TODO: What "${formattedName}" does
 """
 name = "${id.id}"
 version = "${version}"
-// Comlink Profile specification: https://superface.ai/docs/comlink/profile
-`,
+// Comlink Profile specification: https://superface.ai/docs/comlink/profile`,
     ...usecaseNames.map(u => usecase(u, scope)),
     errorModel(scope),
-  ].join('');
+  ].join('\n');
 }
 
 function usecase(useCaseName: string, scope?: string): string {
