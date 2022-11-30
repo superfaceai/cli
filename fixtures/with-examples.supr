@@ -1,0 +1,34 @@
+name = "star-trek/get-info"
+version = "2.2.2"
+
+usecase getCharacter {
+  input {
+    foo! string 
+  }
+
+  result {
+    bar string
+  }
+
+  error {
+    baz! number!
+  }
+
+  example success {
+    input {
+      foo = "example"
+    }
+    result {
+      bar = "result"
+    }
+  }
+
+  example fail {
+    input {
+      foo = "error"
+    }
+    error {
+      baz = 12
+    }
+  }
+}

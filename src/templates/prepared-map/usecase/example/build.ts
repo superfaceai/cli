@@ -30,8 +30,8 @@ function extractExample(
       namedFieldDefinitionsCache
     );
   }
-  
-return undefined;
+
+  return undefined;
 }
 
 export function buildUseCaseExamples(
