@@ -5,8 +5,8 @@ import { parseProfileId } from '@superfaceai/parser';
 import { join as joinPath } from 'path';
 
 import type { ILogger } from '../../common';
-import {
-  composeUsecaseName,
+import {   composeUsecaseName,
+composeVersion ,
   DEFAULT_PROFILE_VERSION_STR,
   META_FILE,
 } from '../../common';
@@ -103,8 +103,13 @@ export class Profile extends Command {
       throw userError(parsedProfileId.message, 1);
     }
 
-    // compose document structure from the result
-    const name = parsedProfileId.value.name;
+    const version = parsedProfileId.value.version;
+    if (version.minor === undefined || version.patch === undefined) {
+      throw userError(
+        'Full version must be specified in format: "[major].[minor].[patch]"',
+        1
+      );
+    }
 
     if (
       flags.scan !== undefined &&
@@ -119,10 +124,16 @@ export class Profile extends Command {
     const usecases =
       flags.usecase !== undefined && flags.usecase.length > 0
         ? flags.usecase
-        : [composeUsecaseName(name)];
+        : [composeUsecaseName(parsedProfileId.value.name)];
     for (const usecase of usecases) {
       if (!isValidIdentifier(usecase)) {
         throw userError(`Invalid usecase name: ${usecase}`, 1);
+      }
+      if (usecase[0] !== usecase[0].toUpperCase()) {
+        throw userError(
+          `Invalid usecase name: ${usecase}, usecase name must start with upper case letter`,
+          1
+        );
       }
     }
     const superPath: string | undefined = await detectSuperJson(
@@ -146,7 +157,7 @@ export class Profile extends Command {
       {
         id: {
           profile: ProfileId.fromId(args.profileId, { userError }),
-          version: flags.version,
+          version: composeVersion(version),
         },
         usecaseNames: usecases,
         superJson,

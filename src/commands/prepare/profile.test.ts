@@ -80,6 +80,44 @@ describe('Prepare profile command', () => {
       expect(prepareProfile).not.toBeCalled();
     });
 
+    it('throws when version is missing patch part', async () => {
+      await expect(
+        instance.execute({
+          logger,
+          userError,
+          args: {
+            profileId: 'get-info',
+          },
+          flags: {
+            usecase: [],
+            version: '2.2',
+          },
+        })
+      ).rejects.toEqual(
+        userError('Full version must be specified in format: "[major].[minor].[patch]"', 1)
+      );
+      expect(prepareProfile).not.toBeCalled();
+    });
+
+    it('throws when version is missing minor part', async () => {
+      await expect(
+        instance.execute({
+          logger,
+          userError,
+          args: {
+            profileId: 'get-info',
+          },
+          flags: {
+            usecase: [],
+            version: '2',
+          },
+        })
+      ).rejects.toEqual(
+        userError('Full version must be specified in format: "[major].[minor].[patch]"', 1)
+      );
+      expect(prepareProfile).not.toBeCalled();
+    });
+
     it('throws when scan is higher than 5', async () => {
       await expect(
         instance.execute({
@@ -117,6 +155,28 @@ describe('Prepare profile command', () => {
           },
         })
       ).rejects.toEqual(userError('Invalid usecase name: !_"L%O', 1));
+      expect(prepareProfile).not.toBeCalled();
+    });
+
+    it('throws when use case name starts with lower case letter', async () => {
+      await expect(
+        instance.execute({
+          logger,
+          userError,
+          args: {
+            profileId: 'test',
+          },
+          flags: {
+            usecase: ['getInfo'],
+            version: DEFAULT_PROFILE_VERSION_STR,
+          },
+        })
+      ).rejects.toEqual(
+        userError(
+          'Invalid usecase name: getInfo, usecase name must start with upper case letter',
+          1
+        )
+      );
       expect(prepareProfile).not.toBeCalled();
     });
 
