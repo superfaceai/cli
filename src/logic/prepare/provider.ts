@@ -27,7 +27,7 @@ export async function prepareProvider(
   { logger }: { logger: ILogger }
 ): Promise<void> {
   // prepare base url
-  const baseUrl = (
+  const passedUrl = (
     await inquirer.prompt({
       name: 'baseUrl',
       message: `Enter default base url for provider ${provider}. More urls can be added later:`,
@@ -36,17 +36,18 @@ export async function prepareProvider(
     })
   ).baseUrl;
 
+  let baseUrl: string;
+  try {
+    baseUrl = new URL(passedUrl).href;
+  } catch (error) {
+    throw error;
+  }
+
   // prepare security
   const security = await selectSecuritySchemas(provider);
 
   // prepare integration parameters
   const parameters = await selectIntegrationParameters(provider);
-
-  const superJosnParameters: Record<string, string> = {};
-
-  parameters.forEach(p => {
-    superJosnParameters[p.name] = p.value;
-  });
 
   let filePath: string;
   if (options?.station === true) {
@@ -61,16 +62,10 @@ export async function prepareProvider(
       provider,
       baseUrl,
       security.schemes,
-      parameters.map(p => ({
-        name: p.name,
-        default: p.default,
-        description: p.description,
-      }))
+      parameters.parameters
     ),
     { force: options?.force, dirs: true }
   );
-
-  console.log(created, 'sj', superJson, 'path', superJsonPath);
 
   if (created) {
     logger.success('createProvider', provider, filePath);
@@ -81,7 +76,7 @@ export async function prepareProvider(
         {
           file: resolveSuperfaceRelativePath(superJsonPath, filePath),
           security: security.values,
-          parameters: superJosnParameters,
+          parameters: parameters.values,
         },
         NodeFileSystem
       );
