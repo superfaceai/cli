@@ -5,8 +5,9 @@ import { parseProfileId } from '@superfaceai/parser';
 import { join as joinPath } from 'path';
 
 import type { ILogger } from '../../common';
-import {   composeUsecaseName,
-composeVersion ,
+import {
+  composeUsecaseName,
+  composeVersion,
   DEFAULT_PROFILE_VERSION_STR,
   META_FILE,
 } from '../../common';

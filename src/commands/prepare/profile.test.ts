@@ -94,7 +94,10 @@ describe('Prepare profile command', () => {
           },
         })
       ).rejects.toEqual(
-        userError('Full version must be specified in format: "[major].[minor].[patch]"', 1)
+        userError(
+          'Full version must be specified in format: "[major].[minor].[patch]"',
+          1
+        )
       );
       expect(prepareProfile).not.toBeCalled();
     });
@@ -113,7 +116,10 @@ describe('Prepare profile command', () => {
           },
         })
       ).rejects.toEqual(
-        userError('Full version must be specified in format: "[major].[minor].[patch]"', 1)
+        userError(
+          'Full version must be specified in format: "[major].[minor].[patch]"',
+          1
+        )
       );
       expect(prepareProfile).not.toBeCalled();
     });

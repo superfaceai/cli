@@ -33,7 +33,7 @@ export function completeProfile({
   const id = ProfileId.fromScopeName(scope, name);
   const formattedName = startCase(id.id);
 
-  const error = errorModel(scope, usecaseNames.length > 1);
+  const error = errorModel(scope);
 
   return [
     `"""
@@ -44,7 +44,7 @@ name = "${id.id}"
 version = "${version}"
 // Comlink Profile specification: https://superface.ai/docs/comlink/profile`,
     ...usecaseNames.map(u => usecase(u, error.statement)),
-    error.namedModel !== undefined ? error.namedModel : '',
+    error.namedModel,
   ].join('\n');
 }
 
@@ -56,20 +56,13 @@ function usecase(useCaseName: string, errorStatement: string): string {
 ${formattedName}
 TODO: What "${formattedName}" does
 """
-usecase ${useCaseName} unsafe { // change safety to \`safe\` or \`idempotent\` or \`unsafe\`
+usecase ${useCaseName} unsafe { // change safety to \`safe\`, \`idempotent\` or \`unsafe\`
   input {
-    """
-    Foo
-    TODO: description of "foo"
-    """
+    "Foo title"
     foo! string 
   }
 
   result {
-    """
-    Bar
-    TODO: description of "bar"
-    """
     bar string
   }
 
@@ -96,35 +89,28 @@ usecase ${useCaseName} unsafe { // change safety to \`safe\` or \`idempotent\` o
 }`;
 }
 
-function errorModel(
-  scope: string | undefined,
-  reuseModel: boolean
-): { statement: string; namedModel?: string } {
-  const definition = `{
-    """
-    Title
-    A short, human-readable summary of the problem type.
-    """
-    title! string!
-  
-    """
-    Detail
-    A human-readable explanation specific to this occurrence of the problem.
-    """
-    detail string! 
-  }`;
-
-  if (reuseModel) {
-    const errorName =
-      scope !== undefined ? `${startCase(scope, '')}Error` : `DomainError`;
-
-    return {
-      statement: errorName,
-      namedModel: `model ${errorName}` + definition,
-    };
-  }
+function errorModel(scope: string | undefined): {
+  statement: string;
+  namedModel: string;
+} {
+  const errorName =
+    scope !== undefined ? `${startCase(scope, '')}Error` : `DomainError`;
 
   return {
-    statement: definition,
+    statement: errorName,
+    namedModel: `
+model ${errorName} {
+  """
+  Title
+  A short, human-readable summary of the problem type.
+  """
+  title! string!
+
+  """
+  Detail
+  A human-readable explanation specific to this occurrence of the problem.
+  """
+  detail string! 
+}`,
   };
 }
