@@ -1,5 +1,6 @@
+import type {
+  IntegrationParameter} from '@superfaceai/ast';
 import {
-  IntegrationParameter,
   prepareProviderParameters,
 } from '@superfaceai/ast';
 import inquirer from 'inquirer';

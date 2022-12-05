@@ -8,8 +8,8 @@ import type {
   SecurityValues,
 } from '@superfaceai/ast';
 import {
-  prepareSecurityValues,
   HttpScheme,
+  prepareSecurityValues,
   SecurityType,
 } from '@superfaceai/ast';
 import inquirer from 'inquirer';
