@@ -21,6 +21,11 @@ export function prepareMapTemplate(
     },
     provider: {
       name: provider.name,
+      baseUrl:
+        provider.services.find(s => s.id === provider.defaultService)
+          ?.baseUrl ??
+        provider.services[0]?.baseUrl ??
+        'undefined',
       securityIds:
         provider.securitySchemes !== undefined
           ? provider.securitySchemes.map(s => s.id)
