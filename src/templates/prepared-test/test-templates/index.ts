@@ -4,20 +4,20 @@ import boolean from '../../shared/templates/boolean';
 import number from '../../shared/templates/number';
 import object from '../../shared/templates/object';
 import string from '../../shared/templates/string';
-import header from './header';
-import mockMap from './mock-map';
-import result from './result';
+import error from './error';
+import success from './success';
+import test from './test';
 import usecase from './usecase';
 
 const templateSet: Template[] = [
-  { name: 'MockMapDocument', template: mockMap },
-  { name: 'MapHeader', template: header },
+  { name: 'Test', template: test },
+  { name: 'Success', template: success },
+  { name: 'Error', template: error },
   { name: 'UseCase', template: usecase },
-  { name: 'Result', template: result },
   { name: 'Object', template: object },
   { name: 'Array', template: array },
-  { name: 'Number', template: number },
   { name: 'String', template: string },
+  { name: 'Number', template: number },
   { name: 'Boolean', template: boolean },
 ];
 
