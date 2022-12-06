@@ -66,6 +66,7 @@ npx @superfaceai/cli install [profileId eg. communication/send-email]
 * [`superface logout`](#superface-logout)
 * [`superface prepare:map PROFILEID PROVIDERNAME`](#superface-preparemap-profileid-providername)
 * [`superface prepare:mock-map PROFILEID`](#superface-preparemock-map-profileid)
+* [`superface prepare:test PROFILEID PROVIDERNAME`](#superface-preparetest-profileid-providername)
 * [`superface publish DOCUMENTTYPE`](#superface-publish-documenttype)
 * [`superface whoami`](#superface-whoami)
 
@@ -453,7 +454,37 @@ EXAMPLES
   $ superface prepare:mock-map starwars/character-information --station
 ```
 
-_See code: [src/commands/prepare/mock-map.ts](https://github.com/superfaceai/cli/tree/main/src/commands/prepare/mock-map.ts)_
+_See code: [dist/commands/prepare/mock-map.ts](https://github.com/superfaceai/cli/tree/main/src/commands/prepare/mock-map.ts)_
+
+## `superface prepare:test PROFILEID PROVIDERNAME`
+
+Prepares test file for specified profile and provider. Examples in profile are used as an input and @superfaceai/testing library is used to orchestrate tests.
+
+```
+USAGE
+  $ superface prepare:test PROFILEID PROVIDERNAME
+
+ARGUMENTS
+  PROFILEID     Profile Id in format [scope](optional)/[name]
+  PROVIDERNAME  Name of provider
+
+OPTIONS
+  -f, --force      When set to true and when profile exists in local filesystem, overwrites them.
+  -h, --help       show CLI help
+  -q, --quiet      When set to true, disables the shell echo output of action.
+  -s, --scan=scan  When number provided, scan for super.json outside cwd within range represented by this number.
+  --noColor        When set to true, disables all colored output.
+  --noEmoji        When set to true, disables displaying emoji in output.
+  --station        When set to true, command will create map in folder structure of Superface station
+
+EXAMPLES
+  $ superface prepare:test starwars/character-information swapi
+  $ superface prepare:test starwars/character-information swapi --station
+  $ superface prepare:test starwars/character-information swapi --force
+  $ superface prepare:test starwars/character-information swapi -q
+```
+
+_See code: [dist/commands/prepare/test.ts](https://github.com/superfaceai/cli/tree/main/src/commands/prepare/test.ts)_
 
 ## `superface publish DOCUMENTTYPE`
 

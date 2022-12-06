@@ -1,8 +1,8 @@
 import type { ProfileDocumentNode } from '@superfaceai/ast';
 
 import { ProfileId } from '../../common/profile';
+import { makeRenderer } from '../shared/template-renderer';
 import MOCK_MAP_TEMPLATE from './mock-map-templates';
-import { makeRenderer } from './template-renderer';
 import { prepareUseCaseDetails } from './usecase';
 
 export function prepareMockMapTemplate(profile: ProfileDocumentNode): string {

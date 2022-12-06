@@ -2,12 +2,37 @@ import type {
   ComlinkLiteralNode,
   NamedFieldDefinitionNode,
   NamedModelDefinitionNode,
+  Type,
   UseCaseDefinitionNode,
 } from '@superfaceai/ast';
 
 import { parseLiteralExample } from './example-tree';
 import { parse as buildExampleFromAst } from './structure-tree';
 import type { UseCaseExample } from './usecase-example';
+
+function extractExample(
+  exampleLiteral: ComlinkLiteralNode | undefined,
+  typeDefinition: Type | undefined,
+  namedModelDefinitionsCache: {
+    [key: string]: NamedModelDefinitionNode;
+  },
+  namedFieldDefinitionsCache: {
+    [key: string]: NamedFieldDefinitionNode;
+  }
+): UseCaseExample | undefined {
+  if (exampleLiteral !== undefined) {
+    return parseLiteralExample(exampleLiteral);
+  }
+  if (typeDefinition !== undefined) {
+    return buildExampleFromAst(
+      typeDefinition,
+      namedModelDefinitionsCache,
+      namedFieldDefinitionsCache
+    );
+  }
+
+  return undefined;
+}
 
 export function buildUseCaseExamples(
   useCase: UseCaseDefinitionNode,
@@ -27,73 +52,36 @@ export function buildUseCaseExamples(
     result?: UseCaseExample;
   };
 } {
-  let errorInput: UseCaseExample | undefined;
-  let successInput: UseCaseExample | undefined;
-  let error: UseCaseExample | undefined;
-  let result: UseCaseExample | undefined;
-
   const examples = findUseCaseExamples(useCase);
-
-  if (examples.successExample?.input !== undefined) {
-    successInput = parseLiteralExample(examples.successExample.input);
-  } else {
-    successInput =
-      useCase.input !== undefined
-        ? buildExampleFromAst(
-            useCase.input.value,
-            namedModelDefinitionsCache,
-            namedFieldDefinitionsCache
-          )
-        : undefined;
-  }
-
-  if (examples.successExample?.result !== undefined) {
-    result = parseLiteralExample(examples.successExample.result);
-  } else {
-    result =
-      useCase.result !== undefined
-        ? buildExampleFromAst(
-            useCase.result.value,
-            namedModelDefinitionsCache,
-            namedFieldDefinitionsCache
-          )
-        : undefined;
-  }
-
-  if (examples.errorExample?.input !== undefined) {
-    errorInput = parseLiteralExample(examples.errorExample.input);
-  } else {
-    errorInput =
-      useCase.input !== undefined
-        ? buildExampleFromAst(
-            useCase.input.value,
-            namedModelDefinitionsCache,
-            namedFieldDefinitionsCache
-          )
-        : undefined;
-  }
-
-  if (examples.errorExample?.error !== undefined) {
-    errorInput = parseLiteralExample(examples.errorExample.error);
-  } else {
-    error =
-      useCase.error !== undefined
-        ? buildExampleFromAst(
-            useCase.error.value,
-            namedModelDefinitionsCache,
-            namedFieldDefinitionsCache
-          )
-        : undefined;
-  }
 
   return {
     errorExample: {
-      input: errorInput,
-      error,
+      input: extractExample(
+        examples.errorExample?.input,
+        useCase.input?.value,
+        namedModelDefinitionsCache,
+        namedFieldDefinitionsCache
+      ),
+      error: extractExample(
+        examples.errorExample?.error,
+        useCase.error?.value,
+        namedModelDefinitionsCache,
+        namedFieldDefinitionsCache
+      ),
     },
     successExample: {
-      input: successInput,
-      result,
+      input: extractExample(
+        examples.successExample?.input,
+        useCase.input?.value,
+        namedModelDefinitionsCache,
+        namedFieldDefinitionsCache
+      ),
+      result: extractExample(
+        examples.successExample?.result,
+        useCase.result?.value,
+        namedModelDefinitionsCache,
+        namedFieldDefinitionsCache
+      ),
     },
   };
 }

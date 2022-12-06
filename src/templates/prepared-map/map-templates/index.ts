@@ -1,4 +1,4 @@
-import type { Template } from '../template-renderer';
+import type { Template } from '../../shared/template-renderer';
 import _enum from './enum';
 import field from './field';
 import mapHeader from './header';

@@ -1,8 +1,8 @@
 import type { ProfileDocumentNode, ProviderJson } from '@superfaceai/ast';
 
 import { ProfileId } from '../../common/profile';
+import { makeRenderer } from '../shared/template-renderer';
 import MAP_TEMPLATE from './map-templates';
-import { makeRenderer } from './template-renderer';
 import { prepareUseCaseDetails } from './usecase';
 
 export function prepareMapTemplate(
