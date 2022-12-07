@@ -7,12 +7,14 @@ import TEST_TEMPLATE from './test-templates';
 
 export function prepareTestTemplate(
   profile: ProfileDocumentNode,
-  provider: string
+  provider: string,
+  onlySuccess?: boolean
 ): string {
   const input = {
     profile: ProfileId.fromScopeName(profile.header.scope, profile.header.name)
       .id,
     useCases: prepareUseCaseDetails(profile),
+    onlySuccess,
     provider,
   };
 

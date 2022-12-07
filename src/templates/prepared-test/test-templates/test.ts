@@ -12,7 +12,7 @@ describe('{{profile}}/{{provider}}', () => {
   });
 
   {{#each useCases}}
-  {{>UseCase}}
+  {{>UseCase onlySuccess=../onlySuccess}}
   {{/each}}
   
 });`;
