@@ -56,4 +56,6 @@ export async function prepareTest(
     dirs: true,
     force: options?.force,
   });
+
+  logger.success('createTest', profile.id, provider, filePath);
 }

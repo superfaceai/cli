@@ -147,14 +147,12 @@ const configure = {
     superJsonPath: string,
     description?: string
   ) =>
-    `Parameter: "${name}"${
-      description !== undefined ? ` with description: "${description}"` : ''
+    `Parameter: "${name}"${description !== undefined ? ` with description: "${description}"` : ''
     } has not been configured\nPlease, configure this parameter manually in "super.json" in: "${superJsonPath}"`,
   parameterConfigured: (name: string, value: string, description?: string) =>
-    `Parameter: "${name}"${
-      description !== undefined && description !== ''
-        ? ` with description: "${description}"`
-        : ''
+    `Parameter: "${name}"${description !== undefined && description !== ''
+      ? ` with description: "${description}"`
+      : ''
     } has been configured to use value of environment value "${value}".\nPlease configure this environment value`,
   parameterHasDefault: (defaultValue: string) =>
     `If you do not set the variable, the default value: "${defaultValue}" will be used`,
@@ -244,6 +242,8 @@ const create = {
     `Created profile: "${profile}" at path: "${path}"`,
   createMap: (profile: string, provider: string, path: string) =>
     `Created map for profile: "${profile}" and provider: "${provider}" at path: "${path}"`,
+  createTest: (profile: string, provider: string, path: string) =>
+    `Created map test for profile: "${profile}" and provider: "${provider}" at path: "${path}"`,
   createProvider: (provider: string, path: string) =>
     `Created provider: "${provider}" at path: "${path}"`,
   unverifiedPrefix: (provider: string, prefix: string) =>
