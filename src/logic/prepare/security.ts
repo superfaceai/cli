@@ -123,7 +123,7 @@ async function enterApiKeySecurity(
   provider: string
 ): Promise<{ schema: ApiKeySecurityScheme }> {
   const placement: ApiKeyPlacement = (
-    await inquirer.prompt({
+    await inquirer.prompt<{ value: ApiKeyPlacement }>({
       name: 'value',
       message: `Enter placement of API key for provider ${provider}:`,
       type: 'list',

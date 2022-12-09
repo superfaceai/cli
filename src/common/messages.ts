@@ -250,6 +250,8 @@ const create = {
     `Created provider: "${provider}" at path: "${path}"`,
   unverifiedPrefix: (provider: string, prefix: string) =>
     `Published provider name must have prefix: "${prefix}"\nIf you are planning to publish this map or provider consider renaming it, eg: "${prefix}${provider}"`,
+  providerAlreadyExists: (provider: string) =>
+    `Provider "${provider}" is already defined in super.json"`,
 };
 
 const compile = {

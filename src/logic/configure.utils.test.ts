@@ -1,9 +1,14 @@
 import type { ProviderJson, SecurityScheme } from '@superfaceai/ast';
-import { ApiKeyPlacement, HttpScheme, SecurityType } from '@superfaceai/ast';
+import {
+  ApiKeyPlacement,
+  HttpScheme,
+  prepareSecurityValues,
+  SecurityType,
+} from '@superfaceai/ast';
 
 import { MockLogger } from '../common';
 import { fetchProviders } from '../common/http';
-import { isCompatible, prepareSecurityValues } from '.';
+import { isCompatible } from '.';
 
 jest.mock('../common/http', () => ({
   fetchProviders: jest.fn(),
@@ -43,9 +48,7 @@ describe('Configure logic utils', () => {
     ];
 
     it('prepares security values', async () => {
-      expect(
-        prepareSecurityValues(providerName, mockSecuritySchemes, { logger })
-      ).toEqual([
+      expect(prepareSecurityValues(providerName, mockSecuritySchemes)).toEqual([
         {
           id: 'api',
           apikey: '$TEST_PROVIDER_API_KEY',
@@ -70,11 +73,9 @@ describe('Configure logic utils', () => {
     it('does not prepare unknown security values', async () => {
       const mockSecurityScheme = { id: 'unknown' };
       expect(
-        prepareSecurityValues(
-          providerName,
-          [mockSecurityScheme as SecurityScheme],
-          { logger }
-        )
+        prepareSecurityValues(providerName, [
+          mockSecurityScheme as SecurityScheme,
+        ])
       ).toEqual([]);
     });
   });

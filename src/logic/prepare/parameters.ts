@@ -1,13 +1,8 @@
-import type {
-  IntegrationParameter} from '@superfaceai/ast';
-import {
-  prepareProviderParameters,
-} from '@superfaceai/ast';
+import type { IntegrationParameter } from '@superfaceai/ast';
+import { prepareProviderParameters } from '@superfaceai/ast';
 import inquirer from 'inquirer';
 
-export async function selectIntegrationParameters(
-  provider: string
-): Promise<{
+export async function selectIntegrationParameters(provider: string): Promise<{
   parameters: IntegrationParameter[];
   values: Record<string, string>;
 }> {
@@ -15,7 +10,7 @@ export async function selectIntegrationParameters(
   let exit = false;
 
   const skip: boolean = (
-    await inquirer.prompt({
+    await inquirer.prompt<{ continue: boolean }>({
       name: 'continue',
       message: 'Do you want to skip setting up integration parameters?:',
       type: 'confirm',
@@ -34,7 +29,7 @@ export async function selectIntegrationParameters(
     parameters.push(await enterParameter(provider));
 
     exit = !(
-      await inquirer.prompt({
+      await inquirer.prompt<{ continue: boolean }>({
         name: 'continue',
         message: 'Do you want to set up another integration parameter?:',
         type: 'confirm',
@@ -50,14 +45,12 @@ export async function selectIntegrationParameters(
 }
 
 async function enterParameter(provider: string): Promise<IntegrationParameter> {
-  const name: string = (
-    await inquirer.prompt({
-      name: 'name',
-      message: `Enter "name" of integration parameter for provider ${provider}:`,
-      type: 'input',
-      default: `${provider}-api-key`,
-    })
-  ).name;
+  const { name } = await inquirer.prompt<{ name: string }>({
+    name: 'name',
+    message: `Enter "name" of integration parameter for provider ${provider}:`,
+    type: 'input',
+    default: `${provider}-api-key`,
+  });
 
   // const description: string | undefined = (
   //   await inquirer.prompt({
@@ -76,14 +69,12 @@ async function enterParameter(provider: string): Promise<IntegrationParameter> {
   //   })
   // ).value;
 
-  const defaultValue: string = (
-    await inquirer.prompt({
-      name: 'default',
-      message: `Enter optional default value of integration parameter "${name}" for provider ${provider}:`,
-      type: 'input',
-      default: undefined,
-    })
-  ).default;
+  const { defaultValue } = await inquirer.prompt<{ defaultValue: string }>({
+    name: 'defaultValue',
+    message: `Enter optional default value of integration parameter "${name}" for provider ${provider}:`,
+    type: 'input',
+    default: undefined,
+  });
 
   return {
     name,

@@ -1,6 +1,11 @@
 import { flags as oclifFlags } from '@oclif/command';
 import { isValidProviderName } from '@superfaceai/ast';
-import { loadSuperJson, META_FILE, NodeFileSystem } from '@superfaceai/one-sdk';
+import {
+  loadSuperJson,
+  META_FILE,
+  NodeFileSystem,
+  normalizeSuperJsonDocument,
+} from '@superfaceai/one-sdk';
 import { join as joinPath } from 'path';
 
 import type { ILogger } from '../../common';
@@ -14,7 +19,13 @@ export class Provider extends Command {
   public static strict = true;
 
   public static description =
-    'Creates map, based on profile and provider on a local filesystem.';
+    'Prepares provider on a local filesystem and adds it to super.json. You do not have to touch super.json or creted provider.json file after running this command.';
+
+  public static examples = [
+    '$ superface prepare:provider swapi --force',
+    '$ superface prepare:provider swapi -s 3',
+    '$ superface prepare:provider swapi --station',
+  ];
 
   public static args = [
     { name: 'providerName', description: 'Name of provider', required: true },
@@ -104,7 +115,7 @@ export class Provider extends Command {
     await prepareProvider(
       {
         provider: args.providerName,
-        superJson,
+        superJson: normalizeSuperJsonDocument(superJson),
         superJsonPath,
         options: {
           force: flags.force,
