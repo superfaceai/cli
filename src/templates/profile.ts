@@ -59,27 +59,27 @@ TODO: What "${formattedName}" does
 usecase ${useCaseName} unsafe { // change safety to \`safe\`, \`idempotent\` or \`unsafe\`
   input {
     "Foo title"
-    foo! string 
+    field! string!
   }
 
   result {
-    bar string
+    outputField string
   }
 
   error ${errorStatement}
 
-  example success {
+  example Success {
     input {
-      foo = "example"
+      field = "example"
     }
     result {
-      bar = "result"
+      outputField = "result"
     }
   }
 
-  example fail {
+  example Fail {
     input {
-      foo = "error"
+      input = "error"
     }
     error {
       title = "Not Found"
