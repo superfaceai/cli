@@ -68,6 +68,7 @@ npx @superfaceai/cli install [profileId eg. communication/send-email]
 * [`superface prepare:mock-map PROFILEID`](#superface-preparemock-map-profileid)
 * [`superface prepare:mock-map-test PROFILEID`](#superface-preparemock-map-test-profileid)
 * [`superface prepare:profile PROFILEID`](#superface-prepareprofile-profileid)
+* [`superface prepare:provider PROVIDERNAME`](#superface-prepareprovider-providername)
 * [`superface prepare:test PROFILEID PROVIDERNAME`](#superface-preparetest-profileid-providername)
 * [`superface publish DOCUMENTTYPE`](#superface-publish-documenttype)
 * [`superface whoami`](#superface-whoami)
@@ -571,7 +572,41 @@ EXAMPLES
   $ superface prepare:profile starwars/character-information --station
 ```
 
-_See code: [dist/commands/prepare/profile.js](https://github.com/superfaceai/cli/tree/main/src/commands/prepare/profile.ts)_
+_See code: [dist/commands/prepare/profile.ts](https://github.com/superfaceai/cli/tree/main/src/commands/prepare/profile.ts)_
+
+## `superface prepare:provider PROVIDERNAME`
+
+Prepares provider on a local filesystem and adds it to super.json. You do not have to touch super.json or creted provider.json file after running this command.
+
+```
+USAGE
+  $ superface prepare:provider [PROVIDERNAME] [-q] [--noColor] [--noEmoji] [-h] [-s <value>] [-f] [--station]
+
+ARGUMENTS
+  PROVIDERNAME  Name of provider
+
+FLAGS
+  -f, --force         When set to true and when profile exists in local filesystem, overwrites them.
+  -h, --help          show CLI help
+  -q, --quiet         When set to true, disables the shell echo output of action.
+  -s, --scan=<value>  When number provided, scan for super.json outside cwd within range represented by this number.
+  --noColor           When set to true, disables all colored output.
+  --noEmoji           When set to true, disables displaying emoji in output.
+  --station           When set to true, command will create map in folder structure of Superface station
+
+DESCRIPTION
+  Prepares provider on a local filesystem and adds it to super.json. You do not have to touch super.json or creted
+  provider.json file after running this command.
+
+EXAMPLES
+  $ superface prepare:provider swapi --force
+
+  $ superface prepare:provider swapi -s 3
+
+  $ superface prepare:provider swapi --station
+```
+
+_See code: [dist/commands/prepare/provider.ts](https://github.com/superfaceai/cli/tree/main/src/commands/prepare/provider.ts)_
 
 ## `superface prepare:test PROFILEID PROVIDERNAME`
 
