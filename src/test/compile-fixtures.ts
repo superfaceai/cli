@@ -19,6 +19,11 @@ export async function compileFixtureAsts(): Promise<void> {
       ast: joinPath('fixtures', 'compiled', 'strict.suma.ast.json'),
     },
 
+    withExcamples: {
+      source: joinPath('fixtures', 'with-examples.supr'),
+      ast: joinPath('fixtures', 'compiled', 'with-examples.supr.ast.json'),
+    },
+
     // Starwars
     starwarsProfile: {
       source: joinPath(

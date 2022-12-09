@@ -244,6 +244,8 @@ const create = {
     `Created profile: "${profile}" at path: "${path}"`,
   createMap: (profile: string, provider: string, path: string) =>
     `Created map for profile: "${profile}" and provider: "${provider}" at path: "${path}"`,
+  createTest: (profile: string, provider: string, path: string) =>
+    `Created map test for profile: "${profile}" and provider: "${provider}" at path: "${path}"`,
   createProvider: (provider: string, path: string) =>
     `Created provider: "${provider}" at path: "${path}"`,
   unverifiedPrefix: (provider: string, prefix: string) =>

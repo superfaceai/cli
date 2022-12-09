@@ -66,6 +66,9 @@ npx @superfaceai/cli install [profileId eg. communication/send-email]
 * [`superface logout`](#superface-logout)
 * [`superface prepare:map PROFILEID PROVIDERNAME`](#superface-preparemap-profileid-providername)
 * [`superface prepare:mock-map PROFILEID`](#superface-preparemock-map-profileid)
+* [`superface prepare:mock-map-test PROFILEID`](#superface-preparemock-map-test-profileid)
+* [`superface prepare:profile PROFILEID`](#superface-prepareprofile-profileid)
+* [`superface prepare:test PROFILEID PROVIDERNAME`](#superface-preparetest-profileid-providername)
 * [`superface publish DOCUMENTTYPE`](#superface-publish-documenttype)
 * [`superface whoami`](#superface-whoami)
 
@@ -75,35 +78,38 @@ Checks all maps, profiles and providers locally linked in super.json. Also can b
 
 ```
 USAGE
-  $ superface check
+  $ superface check [-q] [--noColor] [--noEmoji] [-h] [--profileId <value>] [--providerName <value>] [-s
+    <value>] [-j] [-f]
 
-OPTIONS
-  -f, --failOnWarning          When true command will fail on warning
-  -h, --help                   show CLI help
-  -j, --json                   Formats result to JSON
-  -q, --quiet                  When set to true, disables the shell echo output of action.
-
-  -s, --scan=scan              When number provided, scan for super.json outside cwd within range represented by this
-                               number.
-
-  --noColor                    When set to true, disables all colored output.
-
-  --noEmoji                    When set to true, disables displaying emoji in output.
-
-  --profileId=profileId        Profile Id in format [scope/](optional)[name]
-
-  --providerName=providerName  Name of provider.
+FLAGS
+  -f, --failOnWarning     When true command will fail on warning
+  -h, --help              show CLI help
+  -j, --json              Formats result to JSON
+  -q, --quiet             When set to true, disables the shell echo output of action.
+  -s, --scan=<value>      When number provided, scan for super.json outside cwd within range represented by this number.
+  --noColor               When set to true, disables all colored output.
+  --noEmoji               When set to true, disables displaying emoji in output.
+  --profileId=<value>     Profile Id in format [scope/](optional)[name]
+  --providerName=<value>  Name of provider.
 
 DESCRIPTION
+  Checks all maps, profiles and providers locally linked in super.json. Also can be used to check specific profile and
+  its maps, in that case remote files can be used.
   Command ends with non zero exit code if errors are found.
 
 EXAMPLES
   $ superface check
+
   $ superface check -f
+
   $ superface check --profileId starwars/character-information
+
   $ superface check --profileId starwars/character-information --providerName swapi
+
   $ superface check --profileId starwars/character-information --providerName swapi -j
+
   $ superface check --profileId starwars/character-information --providerName swapi -s 3
+
   $ superface check --profileId starwars/character-information --providerName swapi -q
 ```
 
@@ -115,32 +121,35 @@ Compiles locally linked maps and profiles in `super.json`. When running without 
 
 ```
 USAGE
-  $ superface compile
+  $ superface compile [-q] [--noColor] [--noEmoji] [-h] [--profileId <value>] [--providerName <value>] [-s
+    <value>] [--onlyProfile | --onlyMap]
 
-OPTIONS
-  -h, --help                   show CLI help
-  -q, --quiet                  When set to true, disables the shell echo output of action.
+FLAGS
+  -h, --help              show CLI help
+  -q, --quiet             When set to true, disables the shell echo output of action.
+  -s, --scan=<value>      When number provided, scan for super.json outside cwd within range represented by this number.
+  --noColor               When set to true, disables all colored output.
+  --noEmoji               When set to true, disables displaying emoji in output.
+  --onlyMap               Compile only a map/maps
+  --onlyProfile           Compile only a profile/profiles
+  --profileId=<value>     Profile Id in format [scope/](optional)[name]
+  --providerName=<value>  Name of provider. This argument is used to compile map
 
-  -s, --scan=scan              When number provided, scan for super.json outside cwd within range represented by this
-                               number.
-
-  --noColor                    When set to true, disables all colored output.
-
-  --noEmoji                    When set to true, disables displaying emoji in output.
-
-  --onlyMap                    Compile only a map/maps
-
-  --onlyProfile                Compile only a profile/profiles
-
-  --profileId=profileId        Profile Id in format [scope/](optional)[name]
-
-  --providerName=providerName  Name of provider. This argument is used to compile map
+DESCRIPTION
+  Compiles locally linked maps and profiles in `super.json`. When running without `--profileId` flag, all locally linked
+  files are compiled. When running with `--profileId`, a single local profile source file, and all its local maps are
+  compiled. When running with `--profileId` and `--providerName`, a single local profile and a single local map are
+  compiled.
 
 EXAMPLES
   $ superface compile
+
   $ superface compile --profileId starwars/character-information --profile
+
   $ superface compile --profileId starwars/character-information --profile -q
+
   $ superface compile --profileId starwars/character-information --providerName swapi --onlyMap
+
   $ superface compile --profileId starwars/character-information --providerName swapi --onlyProfile
 ```
 
@@ -152,29 +161,39 @@ Configures new provider and map for already installed profile. Provider configur
 
 ```
 USAGE
-  $ superface configure PROVIDERNAME
+  $ superface configure [PROVIDERNAME] -p <value> [-q] [--noColor] [--noEmoji] [-h] [--write-env] [-f]
+    [--localProvider <value>] [--localMap <value>] [--mapVariant <value>]
 
 ARGUMENTS
   PROVIDERNAME  Provider name.
 
-OPTIONS
-  -f, --force                    When set to true and when provider exists in super.json, overwrites them.
-  -h, --help                     show CLI help
-  -p, --profile=profile          (required) Specifies profile to associate with provider
-  -q, --quiet                    When set to true, disables the shell echo output of action.
-  --localMap=localMap            Optional filepath to .suma map file
-  --localProvider=localProvider  Optional filepath to provider.json file
-  --mapVariant=mapVariant        Optional map variant
-  --noColor                      When set to true, disables all colored output.
-  --noEmoji                      When set to true, disables displaying emoji in output.
-  --write-env                    When set to true command writes security variables to .env file
+FLAGS
+  -f, --force              When set to true and when provider exists in super.json, overwrites them.
+  -h, --help               show CLI help
+  -p, --profile=<value>    (required) Specifies profile to associate with provider
+  -q, --quiet              When set to true, disables the shell echo output of action.
+  --localMap=<value>       Optional filepath to .suma map file
+  --localProvider=<value>  Optional filepath to provider.json file
+  --mapVariant=<value>     Optional map variant
+  --noColor                When set to true, disables all colored output.
+  --noEmoji                When set to true, disables displaying emoji in output.
+  --write-env              When set to true command writes security variables to .env file
+
+DESCRIPTION
+  Configures new provider and map for already installed profile. Provider configuration is dowloaded from a Superface
+  registry or from local file.
 
 EXAMPLES
   $ superface configure twilio -p send-sms
+
   $ superface configure twilio -p send-sms -q
+
   $ superface configure twilio -p send-sms -f
+
   $ superface configure twilio -p send-sms --localProvider providers/twilio.provider.json
+
   $ superface configure twilio -p send-sms --localMap maps/send-sms.twilio.suma
+
   $ superface configure twilio -p send-sms --mapVariant generated
 ```
 
@@ -186,58 +205,52 @@ Creates empty map, profile or/and provider on a local filesystem.
 
 ```
 USAGE
-  $ superface create
+  $ superface create [--noColor] [--noEmoji] [-h] [--profileId <value>] [--providerName <value>] [-u
+    <value>] [-t <value>] [-v <value>] [--init | --no-init] [--no-super-json] [-i | -q | --profile | --map | --provider]
+    [-p <value>] [--mapFileName <value>] [--profileFileName <value>] [--providerFileName <value>] [-s <value>]
 
-OPTIONS
-  -h, --help                           show CLI help
-  -i, --interactive                    When set to true, command is used in interactive mode.
-  -p, --path=path                      Base path where files will be created
-  -q, --quiet                          When set to true, disables the shell echo output of action.
+FLAGS
+  -h, --help                  show CLI help
+  -i, --interactive           When set to true, command is used in interactive mode.
+  -p, --path=<value>          Base path where files will be created
+  -q, --quiet                 When set to true, disables the shell echo output of action.
+  -s, --scan=<value>          When number provided, scan for super.json outside cwd within range represented by this
+                              number.
+  -t, --variant=<value>       Variant of a map
+  -u, --usecase=<value>...    Usecases that profile or map contains
+  -v, --version=<value>       [default: 1.0.0] Version of a profile
+  --init                      When set to true, command will initialize Superface
+  --map                       Create a map
+  --mapFileName=<value>       Name of map file
+  --no-init                   When set to true, command won't initialize Superface
+  --no-super-json             When set to true, command won't change SuperJson file
+  --noColor                   When set to true, disables all colored output.
+  --noEmoji                   When set to true, disables displaying emoji in output.
+  --profile                   Create a profile
+  --profileFileName=<value>   Name of profile file
+  --profileId=<value>         Profile Id in format [scope](optional)/[name]
+  --provider                  Create a provider
+  --providerFileName=<value>  Name of provider file
+  --providerName=<value>...   Names of providers. This argument is used to create maps and/or providers
 
-  -s, --scan=scan                      When number provided, scan for super.json outside cwd within range represented by
-                                       this number.
-
-  -t, --variant=variant                Variant of a map
-
-  -u, --usecase=usecase                Usecases that profile or map contains
-
-  -v, --version=version                [default: 1.0.0] Version of a profile
-
-  --init                               When set to true, command will initialize Superface
-
-  --map                                Create a map
-
-  --mapFileName=mapFileName            Name of map file
-
-  --no-init                            When set to true, command won't initialize Superface
-
-  --no-super-json                      When set to true, command won't change SuperJson file
-
-  --noColor                            When set to true, disables all colored output.
-
-  --noEmoji                            When set to true, disables displaying emoji in output.
-
-  --profile                            Create a profile
-
-  --profileFileName=profileFileName    Name of profile file
-
-  --profileId=profileId                Profile Id in format [scope](optional)/[name]
-
-  --provider                           Create a provider
-
-  --providerFileName=providerFileName  Name of provider file
-
-  --providerName=providerName          Names of providers. This argument is used to create maps and/or providers
+DESCRIPTION
+  Creates empty map, profile or/and provider on a local filesystem.
 
 EXAMPLES
   $ superface create --profileId sms/service --profile
+
   $ superface create --profileId sms/service --profile -v 1.1-rev133 -u SendSMS ReceiveSMS
+
   $ superface create --profileId sms/service --providerName twilio --map
+
   $ superface create --profileId sms/service --providerName twilio --map -t bugfix
+
   $ superface create --providerName twilio tyntec --provider
+
   $ superface create --providerName twilio --provider --providerFileName my-provider -p my/path
-  $ superface create --profileId sms/service --providerName twilio --provider --map --profile -t bugfix -v 1.1-rev133 -u
-   SendSMS ReceiveSMS
+
+  $ superface create --profileId sms/service --providerName twilio --provider --map --profile -t bugfix -v 1.1-rev133 -u SendSMS ReceiveSMS
+
   $ superface create -i
 ```
 
@@ -252,25 +265,31 @@ Initializes superface local folder structure.
 
 ```
 USAGE
-  $ superface init [NAME]
+  $ superface init [NAME] [-q] [--noColor] [--noEmoji] [-h] [--profiles <value>] [--providers <value>] [-p]
 
 ARGUMENTS
   NAME  Name of parent directory.
 
-OPTIONS
-  -h, --help             show CLI help
-  -p, --prompt           When set to true, prompt will be executed.
-  -q, --quiet            When set to true, disables the shell echo output of action.
-  --noColor              When set to true, disables all colored output.
-  --noEmoji              When set to true, disables displaying emoji in output.
-  --profiles=profiles    Profile identifiers.
-  --providers=providers  Provider names.
+FLAGS
+  -h, --help              show CLI help
+  -p, --prompt            When set to true, prompt will be executed.
+  -q, --quiet             When set to true, disables the shell echo output of action.
+  --noColor               When set to true, disables all colored output.
+  --noEmoji               When set to true, disables displaying emoji in output.
+  --profiles=<value>...   Profile identifiers.
+  --providers=<value>...  Provider names.
+
+DESCRIPTION
+  Initializes superface local folder structure.
 
 EXAMPLES
-  superface init
-  superface init foo
-  superface init foo --providers bar twilio
-  superface init foo --profiles my-profile@1.1.0 another-profile@2.0 --providers osm gmaps
+  $ superface init
+
+  $ superface init foo
+
+  $ superface init foo --providers bar twilio
+
+  $ superface init foo --profiles my-profile@1.1.0 another-profile@2.0 --providers osm gmaps
 ```
 
 _See code: [src/commands/init.ts](https://github.com/superfaceai/cli/tree/main/src/commands/init.ts)_
@@ -281,30 +300,36 @@ Automatically initializes superface directory in current working directory if ne
 
 ```
 USAGE
-  $ superface install [PROFILEID]
+  $ superface install [PROFILEID] [-q] [--noColor] [--noEmoji] [-h] [-p <value>] [-f] [-l] [-s <value>]
 
 ARGUMENTS
   PROFILEID  Profile identifier consisting of scope (optional), profile name and its version.
 
-OPTIONS
-  -f, --force                When set to true and when profile exists in local filesystem, overwrites them.
-  -h, --help                 show CLI help
-  -l, --local                When set to true, profile id argument is used as a filepath to profile.supr file.
-  -p, --providers=providers  Provider name.
-  -q, --quiet                When set to true, disables the shell echo output of action.
+FLAGS
+  -f, --force                 When set to true and when profile exists in local filesystem, overwrites them.
+  -h, --help                  show CLI help
+  -l, --local                 When set to true, profile id argument is used as a filepath to profile.supr file.
+  -p, --providers=<value>...  Provider name.
+  -q, --quiet                 When set to true, disables the shell echo output of action.
+  -s, --scan=<value>          When number provided, scan for super.json outside cwd within range represented by this
+                              number.
+  --noColor                   When set to true, disables all colored output.
+  --noEmoji                   When set to true, disables displaying emoji in output.
 
-  -s, --scan=scan            When number provided, scan for super.json outside cwd within range represented by this
-                             number.
-
-  --noColor                  When set to true, disables all colored output.
-
-  --noEmoji                  When set to true, disables displaying emoji in output.
+DESCRIPTION
+  Automatically initializes superface directory in current working directory if needed, communicates with Superface
+  Store API, stores profiles and compiled files to a local system. Install without any arguments tries to install
+  profiles and providers listed in super.json
 
 EXAMPLES
   $ superface install
+
   $ superface install sms/service@1.0
+
   $ superface install sms/service@1.0 --providers twilio tyntec
+
   $ superface install sms/service@1.0 -p twilio
+
   $ superface install --local sms/service.supr
 ```
 
@@ -316,41 +341,42 @@ Lints all maps and profiles locally linked in super.json. Also can be used to li
 
 ```
 USAGE
-  $ superface lint
+  $ superface lint [-q] [--noColor] [--noEmoji] [-h] [--providerName <value>] [--profileId <value>] [-o
+    <value>] [--append] [-f long|short|json] [-s <value>]
 
-OPTIONS
-  -f, --outputFormat=long|short|json  [default: short] Output format to use to display errors and warnings.
-  -h, --help                          show CLI help
-
-  -o, --output=output                 [default: -] Filename where the output will be written. `-` is stdout, `-2` is
-                                      stderr.
-
-  -q, --quiet                         When set to true, disables the shell echo output of action.
-
-  -s, --scan=scan                     When number provided, scan for super.json outside cwd within range represented by
-                                      this number.
-
-  --append                            Open output file in append mode instead of truncating it if it exists. Has no
-                                      effect with stdout and stderr streams.
-
-  --noColor                           When set to true, disables all colored output.
-
-  --noEmoji                           When set to true, disables displaying emoji in output.
-
-  --profileId=profileId               Profile Id in format [scope/](optional)[name]
-
-  --providerName=providerName         Provider name
+FLAGS
+  -f, --outputFormat=<option>  [default: short] Output format to use to display errors and warnings.
+                               <options: long|short|json>
+  -h, --help                   show CLI help
+  -o, --output=<value>         [default: -] Filename where the output will be written. `-` is stdout, `-2` is stderr.
+  -q, --quiet                  When set to true, disables the shell echo output of action.
+  -s, --scan=<value>           When number provided, scan for super.json outside cwd within range represented by this
+                               number.
+  --append                     Open output file in append mode instead of truncating it if it exists. Has no effect with
+                               stdout and stderr streams.
+  --noColor                    When set to true, disables all colored output.
+  --noEmoji                    When set to true, disables displaying emoji in output.
+  --profileId=<value>          Profile Id in format [scope/](optional)[name]
+  --providerName=<value>       Provider name
 
 DESCRIPTION
+  Lints all maps and profiles locally linked in super.json. Also can be used to lint specific profile and its maps, in
+  that case remote files can be used.Outputs the linter issues to STDOUT by default.
   Linter ends with non zero exit code if errors are found.
 
 EXAMPLES
   $ superface lint
+
   $ superface lint -f long
+
   $ superface lint --profileId starwars/character-information
+
   $ superface lint --profileId starwars/character-information --providerName swapi
+
   $ superface lint -o -2
+
   $ superface lint -f json
+
   $ superface lint -s 3
 ```
 
@@ -362,17 +388,21 @@ Login to superface server
 
 ```
 USAGE
-  $ superface login
+  $ superface login [-q] [--noColor] [--noEmoji] [-h] [-f]
 
-OPTIONS
+FLAGS
   -f, --force  When set to true user won't be asked to confirm browser opening
   -h, --help   show CLI help
   -q, --quiet  When set to true, disables the shell echo output of action.
   --noColor    When set to true, disables all colored output.
   --noEmoji    When set to true, disables displaying emoji in output.
 
+DESCRIPTION
+  Login to superface server
+
 EXAMPLES
   $ superface login
+
   $ superface login -f
 ```
 
@@ -384,15 +414,18 @@ Logs out logged in user
 
 ```
 USAGE
-  $ superface logout
+  $ superface logout [-q] [--noColor] [--noEmoji] [-h]
 
-OPTIONS
+FLAGS
   -h, --help   show CLI help
   -q, --quiet  When set to true, disables the shell echo output of action.
   --noColor    When set to true, disables all colored output.
   --noEmoji    When set to true, disables displaying emoji in output.
 
-EXAMPLE
+DESCRIPTION
+  Logs out logged in user
+
+EXAMPLES
   $ superface logout
 ```
 
@@ -404,24 +437,32 @@ Prepares map, based on profile and provider on a local filesystem. Created file 
 
 ```
 USAGE
-  $ superface prepare:map PROFILEID PROVIDERNAME
+  $ superface prepare:map [PROFILEID] [PROVIDERNAME] [-q] [--noColor] [--noEmoji] [-h] [-s <value>] [-f]
+    [--station]
 
 ARGUMENTS
   PROFILEID     Profile Id in format [scope](optional)/[name]
   PROVIDERNAME  Name of provider
 
-OPTIONS
-  -f, --force      When set to true and when profile exists in local filesystem, overwrites them.
-  -h, --help       show CLI help
-  -q, --quiet      When set to true, disables the shell echo output of action.
-  -s, --scan=scan  When number provided, scan for super.json outside cwd within range represented by this number.
-  --noColor        When set to true, disables all colored output.
-  --noEmoji        When set to true, disables displaying emoji in output.
-  --station        When set to true, command will create map in folder structure of Superface station
+FLAGS
+  -f, --force         When set to true and when profile exists in local filesystem, overwrites them.
+  -h, --help          show CLI help
+  -q, --quiet         When set to true, disables the shell echo output of action.
+  -s, --scan=<value>  When number provided, scan for super.json outside cwd within range represented by this number.
+  --noColor           When set to true, disables all colored output.
+  --noEmoji           When set to true, disables displaying emoji in output.
+  --station           When set to true, command will create map in folder structure of Superface station
+
+DESCRIPTION
+  Prepares map, based on profile and provider on a local filesystem. Created file contains prepared structure with
+  information from profile and provider files. Before running this command you should have prepared profile (run sf
+  prepare:profile) and provider (run sf prepare:provider)
 
 EXAMPLES
   $ superface prepare:map starwars/character-information swapi --force
+
   $ superface prepare:map starwars/character-information swapi -s 3
+
   $ superface prepare:map starwars/character-information swapi --station
 ```
 
@@ -433,27 +474,142 @@ Prepares map for mock provider on a local filesystem. Created map always returns
 
 ```
 USAGE
-  $ superface prepare:mock-map PROFILEID
+  $ superface prepare:mock-map [PROFILEID] [-q] [--noColor] [--noEmoji] [-h] [-s <value>] [-f] [--station]
 
 ARGUMENTS
   PROFILEID  Profile Id in format [scope](optional)/[name]
 
-OPTIONS
-  -f, --force      When set to true and when profile exists in local filesystem, overwrites them.
-  -h, --help       show CLI help
-  -q, --quiet      When set to true, disables the shell echo output of action.
-  -s, --scan=scan  When number provided, scan for super.json outside cwd within range represented by this number.
-  --noColor        When set to true, disables all colored output.
-  --noEmoji        When set to true, disables displaying emoji in output.
-  --station        When set to true, command will create map in folder structure of Superface station
+FLAGS
+  -f, --force         When set to true and when profile exists in local filesystem, overwrites them.
+  -h, --help          show CLI help
+  -q, --quiet         When set to true, disables the shell echo output of action.
+  -s, --scan=<value>  When number provided, scan for super.json outside cwd within range represented by this number.
+  --noColor           When set to true, disables all colored output.
+  --noEmoji           When set to true, disables displaying emoji in output.
+  --station           When set to true, command will create map in folder structure of Superface station
+
+DESCRIPTION
+  Prepares map for mock provider on a local filesystem. Created map always returns success result example from profile
+  file. Before running this command you should have prepared profile file (run sf prepare:profile).
 
 EXAMPLES
   $ superface prepare:mock-map starwars/character-information --force
+
   $ superface prepare:mock-map starwars/character-information -s 3
+
   $ superface prepare:mock-map starwars/character-information --station
 ```
 
-_See code: [src/commands/prepare/mock-map.ts](https://github.com/superfaceai/cli/tree/main/src/commands/prepare/mock-map.ts)_
+_See code: [dist/commands/prepare/mock-map.ts](https://github.com/superfaceai/cli/tree/main/src/commands/prepare/mock-map.ts)_
+
+## `superface prepare:mock-map-test PROFILEID`
+
+Prepares test for mock provider map on a local filesystem. Created test expects success result example from profile file. Before running this command you should have prepared mock provider map (run sf prepare:mock-map).
+
+```
+USAGE
+  $ superface prepare:mock-map-test [PROFILEID] [-q] [--noColor] [--noEmoji] [-h] [-s <value>] [-f] [--station]
+
+ARGUMENTS
+  PROFILEID  Profile Id in format [scope](optional)/[name]
+
+FLAGS
+  -f, --force         When set to true and when profile exists in local filesystem, overwrites them.
+  -h, --help          show CLI help
+  -q, --quiet         When set to true, disables the shell echo output of action.
+  -s, --scan=<value>  When number provided, scan for super.json outside cwd within range represented by this number.
+  --noColor           When set to true, disables all colored output.
+  --noEmoji           When set to true, disables displaying emoji in output.
+  --station           When set to true, command will create map in folder structure of Superface station
+
+DESCRIPTION
+  Prepares test for mock provider map on a local filesystem. Created test expects success result example from profile
+  file. Before running this command you should have prepared mock provider map (run sf prepare:mock-map).
+
+EXAMPLES
+  $ superface prepare:mock-map-test starwars/character-information --force
+
+  $ superface prepare:mock-map-test starwars/character-information -s 3
+
+  $ superface prepare:mock-map-test starwars/character-information --station
+```
+
+_See code: [dist/commands/prepare/mock-map-test.ts](https://github.com/superfaceai/cli/tree/main/src/commands/prepare/mock-map-test.ts)_
+
+## `superface prepare:profile PROFILEID`
+
+Prepares profile file on local filesystem and links it to super.json.
+
+```
+USAGE
+  $ superface prepare:profile [PROFILEID] [-q] [--noColor] [--noEmoji] [-h] [-v <value>] [-u <value>] [-s <value>]
+    [-f] [--station]
+
+ARGUMENTS
+  PROFILEID  Profile Id in format [scope](optional)/[name]
+
+FLAGS
+  -f, --force               When set to true and when profile exists in local filesystem, overwrites them.
+  -h, --help                show CLI help
+  -q, --quiet               When set to true, disables the shell echo output of action.
+  -s, --scan=<value>        When number provided, scan for super.json outside cwd within range represented by this
+                            number.
+  -u, --usecase=<value>...  Usecases that profile contains
+  -v, --version=<value>     [default: 1.0.0] Version of a profile
+  --noColor                 When set to true, disables all colored output.
+  --noEmoji                 When set to true, disables displaying emoji in output.
+  --station                 When set to true, command will create profile in folder structure of Superface station
+
+DESCRIPTION
+  Prepares profile file on local filesystem and links it to super.json.
+
+EXAMPLES
+  $ superface prepare:profile starwars/character-information --force
+
+  $ superface prepare:profile starwars/character-information -s 3
+
+  $ superface prepare:profile starwars/character-information --station
+```
+
+_See code: [dist/commands/prepare/profile.js](https://github.com/superfaceai/cli/tree/main/src/commands/prepare/profile.ts)_
+
+## `superface prepare:test PROFILEID PROVIDERNAME`
+
+Prepares test file for specified profile and provider. Examples in profile are used as an input and @superfaceai/testing library is used to orchestrate tests.
+
+```
+USAGE
+  $ superface prepare:test [PROFILEID] [PROVIDERNAME] [-q] [--noColor] [--noEmoji] [-h] [-s <value>] [-f]
+    [--station]
+
+ARGUMENTS
+  PROFILEID     Profile Id in format [scope](optional)/[name]
+  PROVIDERNAME  Name of provider
+
+FLAGS
+  -f, --force         When set to true and when profile exists in local filesystem, overwrites them.
+  -h, --help          show CLI help
+  -q, --quiet         When set to true, disables the shell echo output of action.
+  -s, --scan=<value>  When number provided, scan for super.json outside cwd within range represented by this number.
+  --noColor           When set to true, disables all colored output.
+  --noEmoji           When set to true, disables displaying emoji in output.
+  --station           When set to true, command will create map in folder structure of Superface station
+
+DESCRIPTION
+  Prepares test file for specified profile and provider. Examples in profile are used as an input and
+  @superfaceai/testing library is used to orchestrate tests.
+
+EXAMPLES
+  $ superface prepare:test starwars/character-information swapi
+
+  $ superface prepare:test starwars/character-information swapi --station
+
+  $ superface prepare:test starwars/character-information swapi --force
+
+  $ superface prepare:test starwars/character-information swapi -q
+```
+
+_See code: [dist/commands/prepare/test.ts](https://github.com/superfaceai/cli/tree/main/src/commands/prepare/test.ts)_
 
 ## `superface publish DOCUMENTTYPE`
 
@@ -461,34 +617,36 @@ Uploads map/profile/provider to Store. Published file must be locally linked in 
 
 ```
 USAGE
-  $ superface publish DOCUMENTTYPE
+  $ superface publish [DOCUMENTTYPE] --profileId <value> --providerName <value> [-q] [--noColor] [--noEmoji]
+    [-h] [--dryRun] [-f] [-s <value>] [-j]
 
 ARGUMENTS
   DOCUMENTTYPE  (map|profile|provider) Document type of published file
 
-OPTIONS
-  -f, --force                  Publishes without asking for any confirmation.
-  -h, --help                   show CLI help
-  -j, --json                   Formats result to JSON
-  -q, --quiet                  When set to true, disables the shell echo output of action.
+FLAGS
+  -f, --force             Publishes without asking for any confirmation.
+  -h, --help              show CLI help
+  -j, --json              Formats result to JSON
+  -q, --quiet             When set to true, disables the shell echo output of action.
+  -s, --scan=<value>      When a number is provided, scan for super.json outside cwd within the range represented by
+                          this number.
+  --dryRun                Runs without sending the actual request.
+  --noColor               When set to true, disables all colored output.
+  --noEmoji               When set to true, disables displaying emoji in output.
+  --profileId=<value>     (required) Profile Id in format [scope/](optional)[name]
+  --providerName=<value>  (required) Name of the provider. This argument is used to publish a map or a provider.
 
-  -s, --scan=scan              When a number is provided, scan for super.json outside cwd within the range represented
-                               by this number.
-
-  --dryRun                     Runs without sending the actual request.
-
-  --noColor                    When set to true, disables all colored output.
-
-  --noEmoji                    When set to true, disables displaying emoji in output.
-
-  --profileId=profileId        (required) Profile Id in format [scope/](optional)[name]
-
-  --providerName=providerName  (required) Name of the provider. This argument is used to publish a map or a provider.
+DESCRIPTION
+  Uploads map/profile/provider to Store. Published file must be locally linked in super.json. This command runs Check
+  and Lint internaly to ensure quality
 
 EXAMPLES
   $ superface publish map --profileId starwars/character-information --providerName swapi -s 4
+
   $ superface publish profile --profileId starwars/character-information --providerName swapi -f
+
   $ superface publish provider --profileId starwars/character-information --providerName swapi -q
+
   $ superface publish profile --profileId starwars/character-information --providerName swapi --dryRun
 ```
 
@@ -500,16 +658,20 @@ Prints info about logged in user
 
 ```
 USAGE
-  $ superface whoami
+  $ superface whoami [-q] [--noColor] [--noEmoji] [-h]
 
-OPTIONS
+FLAGS
   -h, --help   show CLI help
   -q, --quiet  When set to true, disables the shell echo output of action.
   --noColor    When set to true, disables all colored output.
   --noEmoji    When set to true, disables displaying emoji in output.
 
+DESCRIPTION
+  Prints info about logged in user
+
 EXAMPLES
   $ superface whoami
+
   $ sf whoami
 ```
 
