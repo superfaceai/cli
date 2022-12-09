@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - New `prepare:mock-map` command
 - New `prepare:profile` command
 - New `prepare:test` command
+- New `prepare:mock-map-test` command
 
 ## [2.0.0] - 2022-08-15
 ### Changed
