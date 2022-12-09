@@ -40,6 +40,8 @@ import {
   SyntaxKind,
 } from 'typescript';
 
+import { capitalize } from '../common/format';
+
 /*
  * Various utils
  */
@@ -71,13 +73,6 @@ export function addDoc<T extends Node>(
     text,
     true
   );
-}
-
-/**
- * Just capitalizes a string
- */
-export function capitalize(input: string): string {
-  return input.charAt(0).toUpperCase() + input.substring(1);
 }
 
 /**

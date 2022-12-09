@@ -67,6 +67,7 @@ npx @superfaceai/cli install [profileId eg. communication/send-email]
 * [`superface prepare:map PROFILEID PROVIDERNAME`](#superface-preparemap-profileid-providername)
 * [`superface prepare:mock-map PROFILEID`](#superface-preparemock-map-profileid)
 * [`superface prepare:mock-map-test PROFILEID`](#superface-preparemock-map-test-profileid)
+* [`superface prepare:profile PROFILEID`](#superface-prepareprofile-profileid)
 * [`superface prepare:test PROFILEID PROVIDERNAME`](#superface-preparetest-profileid-providername)
 * [`superface publish DOCUMENTTYPE`](#superface-publish-documenttype)
 * [`superface whoami`](#superface-whoami)
@@ -534,6 +535,43 @@ EXAMPLES
 ```
 
 _See code: [dist/commands/prepare/mock-map-test.ts](https://github.com/superfaceai/cli/tree/main/src/commands/prepare/mock-map-test.ts)_
+
+## `superface prepare:profile PROFILEID`
+
+Prepares profile file on local filesystem and links it to super.json.
+
+```
+USAGE
+  $ superface prepare:profile [PROFILEID] [-q] [--noColor] [--noEmoji] [-h] [-v <value>] [-u <value>] [-s <value>]
+    [-f] [--station]
+
+ARGUMENTS
+  PROFILEID  Profile Id in format [scope](optional)/[name]
+
+FLAGS
+  -f, --force               When set to true and when profile exists in local filesystem, overwrites them.
+  -h, --help                show CLI help
+  -q, --quiet               When set to true, disables the shell echo output of action.
+  -s, --scan=<value>        When number provided, scan for super.json outside cwd within range represented by this
+                            number.
+  -u, --usecase=<value>...  Usecases that profile contains
+  -v, --version=<value>     [default: 1.0.0] Version of a profile
+  --noColor                 When set to true, disables all colored output.
+  --noEmoji                 When set to true, disables displaying emoji in output.
+  --station                 When set to true, command will create profile in folder structure of Superface station
+
+DESCRIPTION
+  Prepares profile file on local filesystem and links it to super.json.
+
+EXAMPLES
+  $ superface prepare:profile starwars/character-information --force
+
+  $ superface prepare:profile starwars/character-information -s 3
+
+  $ superface prepare:profile starwars/character-information --station
+```
+
+_See code: [dist/commands/prepare/profile.js](https://github.com/superfaceai/cli/tree/main/src/commands/prepare/profile.ts)_
 
 ## `superface prepare:test PROFILEID PROVIDERNAME`
 
