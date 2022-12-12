@@ -8,6 +8,7 @@ import TEST_TEMPLATE from './test-templates';
 export function prepareTestTemplate(
   profile: ProfileDocumentNode,
   provider: string,
+  station?: boolean,
   onlySuccess?: boolean
 ): string {
   const input = {
@@ -15,6 +16,7 @@ export function prepareTestTemplate(
       .id,
     useCases: prepareUseCaseDetails(profile),
     onlySuccess,
+    station,
     provider,
   };
 

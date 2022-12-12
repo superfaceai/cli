@@ -42,7 +42,7 @@ export async function prepareTest(
   );
 
   // TODO: Only local files?
-  const testFileContent = prepareTestTemplate(ast, provider);
+  const testFileContent = prepareTestTemplate(ast, provider, options?.station);
 
   let filePath: string;
 
