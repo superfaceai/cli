@@ -1,4 +1,5 @@
 import type { Template } from '../../shared/template-renderer';
+import any from './any';
 import _enum from './enum';
 import field from './field';
 import mapHeader from './header';
@@ -29,6 +30,7 @@ const templateSet: Template[] = [
   { name: 'Security', template: security },
   { name: 'Parameters', template: parameters },
   { name: 'Path', template: path },
+  { name: 'Any', template: any },
 ];
 
 export default templateSet;
