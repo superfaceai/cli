@@ -70,7 +70,13 @@ export async function prepareMap(
   });
 
   if (created) {
-    logger.success('createMap', id.profile.id, id.provider, filePath);
+    logger.success(
+      'createMap',
+      id.profile.id,
+      id.provider,
+      filePath,
+      options?.station
+    );
     // TODO: move this some where
     mergeProfileProvider(
       superJson,

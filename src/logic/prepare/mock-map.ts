@@ -61,7 +61,13 @@ export async function prepareMockMap(
   });
 
   if (created) {
-    logger.success('createMap', id.profile.id, id.provider ?? 'mock', filePath);
+    logger.success(
+      'createMap',
+      id.profile.id,
+      id.provider ?? 'mock',
+      filePath,
+      options?.station
+    );
     // TODO: move this some where
     mergeProfileProvider(
       superJson,
