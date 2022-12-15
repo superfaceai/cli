@@ -10,7 +10,8 @@ import type {
   IFetch,
   ILogger,
   Interceptable,
-  ITimers} from '@superfaceai/one-sdk';
+  ITimers,
+} from '@superfaceai/one-sdk';
 import {
   BoundProfileProvider,
   Config,

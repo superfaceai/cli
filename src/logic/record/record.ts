@@ -1,11 +1,15 @@
 import type {
+  MapDocumentNode,
   NormalizedSuperJsonDocument,
+  SetStatementNode,
   UseCaseDefinitionNode,
 } from '@superfaceai/ast';
+import type { ILogger as SdkLogger, LogFunction } from '@superfaceai/one-sdk';
 import { castToNonPrimitive, DEFAULT_CACHE_PATH } from '@superfaceai/one-sdk';
-
+import type { LocationSpan } from '@superfaceai/parser';
 import { dirname, join as joinPath } from 'path';
 import { inspect } from 'util';
+
 import type { ILogger } from '../../common';
 import type { UserError } from '../../common/error';
 import { mkdir } from '../../common/io';
@@ -83,11 +87,18 @@ export async function record(
     );
   }
 
+  // HACK inject our debug int AST
+  const { injected, locations } = inject(mapFiles.ast);
+
+  const extractor = new MockLogger();
   const b = createBoundProfileProvider({
     superJson,
     profileAst: profileFiles.ast,
-    mapAst: mapFiles.ast,
+    mapAst: injected,
     providerJson: providerFiles.source,
+    options: {
+      logger: extractor,
+    },
   });
 
   const result = await b.perform(
@@ -95,23 +106,100 @@ export async function record(
     castToNonPrimitive(example)
   );
 
-  const value: unknown = result.result.unwrap();
+  const value: unknown = result.unwrap();
 
-  console.log('valie', inspect(value, true, 20));
+  const trace: Record<string, { body: unknown; location?: LocationSpan }> = {};
+  for (const [url, location] of Object.entries(locations)) {
+    trace[url] = {
+      location,
+      body: extractor.output[url],
+    };
+  }
+
+  console.log('trace', inspect(trace, true, 20));
+
+  console.log('value', value);
 
   const cachePath = DEFAULT_CACHE_PATH({
     // eslint-disable-next-line @typescript-eslint/unbound-method
     path: { join: joinPath, cwd: process.cwd },
   });
-  
-  const path = joinPath(cachePath, 'records.json') 
 
-  console.log('path', path)
+  const path = joinPath(cachePath, 'records.json');
 
-  await mkdir( dirname(path), {recursive: true})
+  console.log('path', path);
 
-  await OutputStream.writeOnce(path, JSON.stringify({[`${profile.id}.${provider}`]: result.trace}, undefined, 2), { force: true})
+  await mkdir(dirname(path), { recursive: true });
 
+  await OutputStream.writeOnce(
+    path,
+    JSON.stringify({ [`${profile.id}.${provider}`]: trace }, undefined, 2),
+    { force: true }
+  );
+}
 
+function inject(ast: MapDocumentNode): {
+  injected: MapDocumentNode;
+  locations: Record<string, LocationSpan | undefined>;
+} {
+  const locations: Record<string, LocationSpan | undefined> = {};
 
+  const debugStatement = (id: string): SetStatementNode => ({
+    kind: 'SetStatement',
+    assignments: [
+      {
+        kind: 'Assignment',
+        key: ['tmp'],
+        value: {
+          kind: 'JessieExpression',
+          expression: `std.unstable.debug.log("${id}", body)`,
+          source: `std.unstable.debug.log("${id}", body)`,
+          sourceMap:
+            'AAAA,IAAI,aAAa,GAAG,GAAG,CAAC,QAAQ,CAAC,KAAK,CAAC,GAAG,CAAC,MAAM,EAAE,IAAI,CAAC,CAAC',
+        },
+      },
+    ],
+  });
+
+  for (const def of ast.definitions) {
+    if (def.kind === 'MapDefinition') {
+      for (const s of def.statements) {
+        if (s.kind === 'HttpCallStatement') {
+          locations[s.url] = s.location;
+          for (const handler of s.responseHandlers) {
+            handler.statements = [debugStatement(s.url), ...handler.statements];
+          }
+        }
+      }
+    }
+  }
+
+  return {
+    injected: ast,
+    locations,
+  };
+}
+
+class MockLogger implements SdkLogger {
+  public output: Record<string, unknown> = {};
+
+  public log(name: string): LogFunction;
+  public log(name: string, format: string, ...args: unknown[]): void;
+  public log(
+    name: string,
+    format?: string,
+    ...args: unknown[]
+  ): void | LogFunction {
+    const instance: LogFunction = (format: string, ...args: unknown[]) => {
+      if (name === 'debug-log') this.output[format] = args;
+    };
+
+    instance.enabled = true;
+
+    if (format === undefined) {
+      return instance;
+    }
+
+    instance(format, ...args);
+  }
 }
