@@ -241,9 +241,9 @@ const init = {
 
 const create = {
   createProfile: (profile: string, path: string, station?: boolean) =>
-    `Created profile: "${profile}" at path: "${path}". You can continue with preparation of provider with "sf prepare:provider ${profile} [provider name]${
+    `Created profile: "${profile}" at path: "${path}". Now you can edit created file after that you can continue with preparation of provider with "sf prepare:provider ${profile} [provider name]${
       station === true ? ' --station' : ''
-    }" or map with "sf prepare:map ${profile} [provider name]${
+    }" and map with "sf prepare:map ${profile} [provider name]${
       station === true ? ' --station' : ''
     }".`,
   createMap: (
@@ -252,7 +252,7 @@ const create = {
     path: string,
     station?: boolean
   ) =>
-    `Created map for profile: "${profile}" and provider: "${provider}" at path: "${path}". You can continue with preparation of map test (if you need testing) with "sf prepare:test ${profile} ${provider}${
+    `Created map for profile: "${profile}" and provider: "${provider}" at path: "${path}". Now you can edit created file after that you can continue with preparation of map test (if you need testing) with "sf prepare:test ${profile} ${provider}${
       station === true ? ' --station' : ''
     }".`,
   createTest: (profile: string, provider: string, path: string) =>
