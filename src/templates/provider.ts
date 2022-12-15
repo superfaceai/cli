@@ -38,9 +38,15 @@ export function full(
       },
     ],
     defaultService: 'default',
-    securitySchemes,
-    parameters,
   };
+
+  if (parameters.length > 0) {
+    struct.parameters = parameters;
+  }
+
+  if (securitySchemes.length > 0) {
+    struct.securitySchemes = securitySchemes;
+  }
 
   return stringifyProvider(struct);
 }

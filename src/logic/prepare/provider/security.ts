@@ -14,24 +14,24 @@ import {
 } from '@superfaceai/ast';
 import inquirer from 'inquirer';
 
-export async function selectSecuritySchemas(
+export async function selectSecurity(
   provider: string
-): Promise<{ values: SecurityValues[]; schemes: SecurityScheme[] }> {
-  const result = await enterSecuritySchema(provider);
+): Promise<{ value?: SecurityValues; scheme?: SecurityScheme }> {
+  const scheme = await enterSecuritySchema(provider);
 
-  if (result === 'none') {
-    return { schemes: [], values: [] };
+  if (scheme === 'none') {
+    return {};
   }
 
   return {
-    values: prepareSecurityValues(provider, [result.schema]),
-    schemes: [result.schema],
+    value: prepareSecurityValues(provider, [scheme])[0],
+    scheme,
   };
 }
 
 async function enterSecuritySchema(
   provider: string
-): Promise<{ schema: SecurityScheme } | 'none'> {
+): Promise<SecurityScheme | 'none'> {
   const schemaResponse: {
     schema: 'api key token' | 'bearer token' | 'basic' | 'digest' | 'none';
   } = await inquirer.prompt({
@@ -56,33 +56,25 @@ async function enterSecuritySchema(
 
 async function enterHttpSecurity(
   scheme: HttpScheme.BASIC | HttpScheme.DIGEST
-): Promise<{
-  schema: BasicAuthSecurityScheme | DigestSecurityScheme;
-}> {
+): Promise<BasicAuthSecurityScheme | DigestSecurityScheme> {
   return {
-    schema: {
-      id: scheme,
-      type: SecurityType.HTTP,
-      scheme,
-    },
+    id: scheme,
+    type: SecurityType.HTTP,
+    scheme,
   };
 }
 
-async function enterBearerSecurity(): Promise<{
-  schema: BearerTokenSecurityScheme;
-}> {
+async function enterBearerSecurity(): Promise<BearerTokenSecurityScheme> {
   return {
-    schema: {
-      id: 'bearer',
-      type: SecurityType.HTTP,
-      scheme: HttpScheme.BEARER,
-    },
+    id: 'bearer',
+    type: SecurityType.HTTP,
+    scheme: HttpScheme.BEARER,
   };
 }
 
 async function enterApiKeySecurity(
   provider: string
-): Promise<{ schema: ApiKeySecurityScheme }> {
+): Promise<ApiKeySecurityScheme> {
   const placement: ApiKeyPlacement = (
     await inquirer.prompt<{ value: ApiKeyPlacement }>({
       name: 'value',
@@ -102,11 +94,9 @@ async function enterApiKeySecurity(
   ).name;
 
   return {
-    schema: {
-      id: 'apiKey',
-      in: placement,
-      type: SecurityType.APIKEY,
-      name,
-    },
+    id: 'apiKey',
+    in: placement,
+    type: SecurityType.APIKEY,
+    name,
   };
 }

@@ -14,7 +14,7 @@ import { OutputStream } from '../../../common/output-stream';
 import { resolveSuperfaceRelativePath } from '../../../common/path';
 import * as providerTemplate from '../../../templates/provider';
 import { selectIntegrationParameters } from './parameters';
-import { selectSecuritySchemas } from './security';
+import { selectSecurity } from './security';
 
 /**
  * Try to use local provider
@@ -101,7 +101,7 @@ export async function prepareProvider(
   const baseUrl = new URL(passedUrl).href;
 
   // prepare security
-  const security = await selectSecuritySchemas(name);
+  const security = await selectSecurity(name);
 
   // prepare integration parameters
   const parameters = await selectIntegrationParameters(name);
@@ -118,7 +118,7 @@ export async function prepareProvider(
     providerTemplate.full(
       name,
       baseUrl,
-      security.schemes,
+      security.scheme ? [security.scheme] : [],
       parameters.parameters
     ),
     { force: options?.force, dirs: true }
@@ -131,7 +131,7 @@ export async function prepareProvider(
         name,
         superJson,
         superJsonPath,
-        security: security.values,
+        security: security.value ? [security.value] : [],
         parameters: parameters.values,
         path: filePath,
       },
@@ -158,10 +158,15 @@ async function updateSuperJson(
   },
   { logger }: { logger: ILogger }
 ) {
-  const payload: ProviderEntry = {
-    security,
-    parameters,
-  };
+  const payload: ProviderEntry = {};
+
+  if (security.length > 0) {
+    payload.security = security;
+  }
+
+  if (Object.keys(parameters).length > 0) {
+    payload.parameters = parameters;
+  }
 
   if (path !== undefined) {
     payload.file = resolveSuperfaceRelativePath(superJsonPath, path);
