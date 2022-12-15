@@ -55,62 +55,23 @@ async function enterSecuritySchema(
 }
 
 async function enterHttpSecurity(
-  // provider: string,
   scheme: HttpScheme.BASIC | HttpScheme.DIGEST
 ): Promise<{
-  // value: BasicAuthSecurityValues | DigestSecurityValues;
   schema: BasicAuthSecurityScheme | DigestSecurityScheme;
 }> {
-  // const username = (
-  //   await inquirer.prompt<{ username: string }>({
-  //     name: 'username',
-  //     message: `Enter username for provider ${provider}. It can be value or name of environment value (starting with $):`,
-  //     type: 'input',
-  //     default: undefined,
-  //   })
-  // ).username;
-
-  // const password = (
-  //   await inquirer.prompt<{ password: string }>({
-  //     name: 'password',
-  //     message: `Enter password of provider ${provider}. It can be value or name of environment value (starting with $):`,
-  //     type: 'input',
-  //     default: undefined,
-  //   })
-  // ).password;
-
   return {
     schema: {
       id: scheme,
       type: SecurityType.HTTP,
       scheme,
     },
-    // value: {
-    //   id: scheme,
-    //   username,
-    //   password,
-    // },
   };
 }
 
 async function enterBearerSecurity(): Promise<{
-  // value: BearerTokenSecurityValues;
   schema: BearerTokenSecurityScheme;
 }> {
-  // const token = (
-  //   await inquirer.prompt<{ token: string }>({
-  //     name: 'token',
-  //     message: `Enter value of bearer token for provider ${provider}. It can be value or name of environment value (starting with $):`,
-  //     type: 'input',
-  //     default: undefined,
-  //   })
-  // ).token;
-
   return {
-    // value: {
-    //   id: 'bearer',
-    //   token,
-    // },
     schema: {
       id: 'bearer',
       type: SecurityType.HTTP,
@@ -140,15 +101,6 @@ async function enterApiKeySecurity(
     })
   ).name;
 
-  // const apikey = (
-  //   await inquirer.prompt<{ apikey: string }>({
-  //     name: 'apikey',
-  //     message: `Enter value of API key for provider ${provider}. It can be value or name of environment value (starting with $):`,
-  //     type: 'input',
-  //     default: undefined,
-  //   })
-  // ).apikey;
-
   return {
     schema: {
       id: 'apiKey',
@@ -156,9 +108,5 @@ async function enterApiKeySecurity(
       type: SecurityType.APIKEY,
       name,
     },
-    // value: {
-    //   id: 'apiKey',
-    //   apikey,
-    // },
   };
 }

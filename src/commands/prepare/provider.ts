@@ -1,11 +1,6 @@
 import { flags as oclifFlags } from '@oclif/command';
 import { isValidProviderName } from '@superfaceai/ast';
-import {
-  loadSuperJson,
-  META_FILE,
-  NodeFileSystem,
-  normalizeSuperJsonDocument,
-} from '@superfaceai/one-sdk';
+import { loadSuperJson, META_FILE, NodeFileSystem } from '@superfaceai/one-sdk';
 import { join as joinPath } from 'path';
 
 import type { ILogger } from '../../common';
@@ -115,7 +110,7 @@ export class Provider extends Command {
     await prepareProvider(
       {
         provider: args.providerName,
-        superJson: normalizeSuperJsonDocument(superJson),
+        superJson,
         superJsonPath,
         options: {
           force: flags.force,

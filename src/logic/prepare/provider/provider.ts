@@ -1,18 +1,18 @@
 import type {
-  NormalizedSuperJsonDocument,
   ProviderEntry,
   SecurityValues,
+  SuperJsonDocument,
 } from '@superfaceai/ast';
 import { mergeProvider, NodeFileSystem } from '@superfaceai/one-sdk';
 import { ServiceApiError } from '@superfaceai/service-client';
 import inquirer from 'inquirer';
 
-import type { ILogger } from '../../common';
-import { UNVERIFIED_PROVIDER_PREFIX } from '../../common';
-import { fetchProviderInfo } from '../../common/http';
-import { OutputStream } from '../../common/output-stream';
-import { resolveSuperfaceRelativePath } from '../../common/path';
-import * as providerTemplate from '../../templates/provider';
+import type { ILogger } from '../../../common';
+import { UNVERIFIED_PROVIDER_PREFIX } from '../../../common';
+import { fetchProviderInfo } from '../../../common/http';
+import { OutputStream } from '../../../common/output-stream';
+import { resolveSuperfaceRelativePath } from '../../../common/path';
+import * as providerTemplate from '../../../templates/provider';
 import { selectIntegrationParameters } from './parameters';
 import { selectSecuritySchemas } from './security';
 
@@ -31,7 +31,7 @@ export async function prepareProvider(
     options,
   }: {
     provider: string;
-    superJson: NormalizedSuperJsonDocument;
+    superJson: SuperJsonDocument;
     superJsonPath: string;
     options?: {
       force?: boolean;
@@ -40,7 +40,7 @@ export async function prepareProvider(
   },
   { logger }: { logger: ILogger }
 ): Promise<void> {
-  if (superJson.providers[provider] !== undefined) {
+  if (superJson.providers?.[provider] !== undefined) {
     logger.warn('providerAlreadyExists', provider);
 
     return;
@@ -67,7 +67,7 @@ export async function prepareProvider(
       //   // TODO: set up values and add provider to super json
       // }
     } catch (error) {
-      // If provider does not exists in SF register (is not verified) it must start with unverified
+      // If provider does not exists in SF register (is not verified) it should start with unverified
       if (error instanceof ServiceApiError && error.status === 404) {
         const rename = (
           await inquirer.prompt<{ continue: boolean }>({
@@ -150,7 +150,7 @@ async function updateSuperJson(
     parameters,
   }: {
     name: string;
-    superJson: NormalizedSuperJsonDocument;
+    superJson: SuperJsonDocument;
     superJsonPath: string;
     path?: string;
     security: SecurityValues[];

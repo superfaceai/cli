@@ -52,23 +52,6 @@ async function enterParameter(provider: string): Promise<IntegrationParameter> {
     default: `${provider}-api-key`,
   });
 
-  // const description: string | undefined = (
-  //   await inquirer.prompt({
-  //     name: 'description',
-  //     message: `Enter optional description of integration parameter "${name}" for provider ${provider}:`,
-  //     type: 'input',
-  //     default: undefined,
-  //   })
-  // ).description;
-
-  // const value: string = (
-  //   await inquirer.prompt({
-  //     name: 'value',
-  //     message: `Enter value of integration parameter "${name}" for provider ${provider}:`,
-  //     type: 'input',
-  //   })
-  // ).value;
-
   const { defaultValue } = await inquirer.prompt<{ defaultValue: string }>({
     name: 'defaultValue',
     message: `Enter optional default value of integration parameter "${name}" for provider ${provider}:`,
@@ -79,7 +62,5 @@ async function enterParameter(provider: string): Promise<IntegrationParameter> {
   return {
     name,
     default: defaultValue,
-    // description,
-    // value,
   };
 }
