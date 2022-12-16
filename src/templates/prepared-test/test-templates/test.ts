@@ -10,8 +10,8 @@ describe('{{profile}}/{{provider}}', () => {
   beforeEach(() => {
 {{#if station}}
     superface = buildSuperfaceTest({
-      profile: 'starwars/character-information',
-      provider: 'swapi',
+      profile: '{{profile}}',
+      provider: '{{provider}}'
 });
 {{/if}}
 {{#unless station}}

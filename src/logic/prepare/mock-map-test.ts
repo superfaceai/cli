@@ -40,7 +40,12 @@ export async function prepareMockMapTest(
   );
 
   // TODO: Only local files?
-  const testFileContent = prepareTestTemplate(ast, 'mock',options?.station, true);
+  const testFileContent = prepareTestTemplate(
+    ast,
+    'mock',
+    options?.station,
+    true
+  );
 
   let filePath: string;
 
