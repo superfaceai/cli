@@ -51,7 +51,7 @@ export async function prepareProfile(
   });
 
   if (created) {
-    logger.success('createProfile', id.profile.id, filePath, options?.station);
+    logger.success('prepareProfile', id.profile.id, filePath, options?.station);
     mergeProfile(
       superJson,
       id.profile.id,

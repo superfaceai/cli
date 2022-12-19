@@ -239,28 +239,52 @@ const init = {
   ${quiet}`,
 };
 
-const create = {
-  createProfile: (profile: string, path: string, station?: boolean) =>
-    `Created profile: "${profile}" at path: "${path}". Now you can edit created file after that you can continue with preparation of provider with "sf prepare:provider ${profile} [provider name]${
+const prepare = {
+  prepareProfile: (profile: string, path: string, station?: boolean) =>
+    `Created profile at "${path}".\n\nnext command suggestions:\nsf prepare:provider <provider-name> ${
       station === true ? ' --station' : ''
-    }" and map with "sf prepare:map ${profile} [provider name]${
+    }\nsf prepare:map ${profile} <provider-name> ${
       station === true ? ' --station' : ''
-    }".`,
-  createMap: (
+    }`,
+  prepareMap: (
     profile: string,
     provider: string,
     path: string,
     station?: boolean
   ) =>
-    `Created map for profile: "${profile}" and provider: "${provider}" at path: "${path}". Now you can edit created file after that you can continue with preparation of map test (if you need testing) with "sf prepare:test ${profile} ${provider}${
+    `Created map at path: "${path}"".\n\nnext command suggestions:\nsf prepare:test ${profile} ${provider} ${
       station === true ? ' --station' : ''
-    }".`,
-  createTest: (profile: string, provider: string, path: string) =>
-    `Created map test for profile: "${profile}" and provider: "${provider}" at path: "${path}"`,
-  createProvider: (provider: string, path: string, station?: boolean) =>
-    `Created provider: "${provider}" at path: "${path}". You can continue with preparation of map with "sf prepare:map [profile id] ${provider}${
+    }`,
+  prepareTest: (
+    profile: string,
+    provider: string,
+    path: string,
+    station?: boolean
+  ) => {
+    let testPath = `${profile}.${provider}.test.ts`;
+    if (station === true) {
+      testPath = `grid/${profile}/maps/${provider}.test.ts`;
+    }
+
+    return `Created test at path: "${path}"\n\nRun created test with live traffic:\nyarn test:record ${testPath}\nor with recorded traffic:\nyarn test ${testPath}`;
+  },
+  prepareProvider: (provider: string, path: string, station?: boolean) =>
+    `Created providermat path: "${path}".\n⚠️ Edit .env file for your credentials\n\nnext command suggestions:\nsf prepare:map <profileId> ${provider} ${
       station === true ? ' --station' : ''
-    }".`,
+    }\nsf prepare:test <profileId> ${provider} ${
+      station === true ? ' --station' : ''
+    }`,
+  unverifiedPrefix: (provider: string, prefix: string) =>
+    `Published provider name must have prefix: "${prefix}"\nIf you are planning to publish this map or provider consider renaming it, eg: "${prefix}${provider}"`,
+};
+
+const create = {
+  createProfile: (profile: string, path: string) =>
+    `Created profile: "${profile}" at path: "${path}"`,
+  createMap: (profile: string, provider: string, path: string) =>
+    `Created map for profile: "${profile}" and provider: "${provider}" at path: "${path}"`,
+  createProvider: (provider: string, path: string) =>
+    `Created provider: "${provider}" at path: "${path}"`,
   unverifiedPrefix: (provider: string, prefix: string) =>
     `Published provider name must have prefix: "${prefix}"\nIf you are planning to publish this map or provider consider renaming it, eg: "${prefix}${provider}"`,
 };
@@ -320,6 +344,7 @@ export const messages = {
   ...init,
   ...configure,
   ...packageManager,
+  ...prepare,
   ...create,
   ...compile,
   ...quickstart,
