@@ -11,6 +11,7 @@ import parameters from './parameters';
 import path from './path';
 import scalar from './scalar';
 import security from './security';
+import any from './unknown';
 import usecase from './usecase';
 import value from './value';
 
@@ -29,6 +30,7 @@ const templateSet: Template[] = [
   { name: 'Security', template: security },
   { name: 'Parameters', template: parameters },
   { name: 'Path', template: path },
+  { name: 'Unknown', template: any },
 ];
 
 export default templateSet;
