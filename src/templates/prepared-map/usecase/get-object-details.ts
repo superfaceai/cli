@@ -27,7 +27,7 @@ export function getObjectModelDetails(
         const namedFieldNode = namedFieldDefinitionsCache[field.fieldName];
 
         const model = getTypeDetails(
-          field.type ?? namedFieldNode?.type ?? undefined,
+          field?.type ?? namedFieldNode?.type,
           undefined,
           namedModelDefinitionsCache,
           namedFieldDefinitionsCache

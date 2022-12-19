@@ -47,7 +47,7 @@ export function getTypeDetails(
       const node = namedModelDefinitionsCache[astType.name];
 
       return getTypeDetails(
-        node.type,
+        node?.type,
         nonNull,
         namedModelDefinitionsCache,
         namedFieldDefinitionsCache
