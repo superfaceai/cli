@@ -269,13 +269,11 @@ const prepare = {
     return `Created test at path: "${path}"\n\nRun created test with live traffic:\nyarn test:record ${testPath}\nor with recorded traffic:\nyarn test ${testPath}`;
   },
   prepareProvider: (provider: string, path: string, station?: boolean) =>
-    `Created providermat path: "${path}".\n⚠️ Edit .env file for your credentials\n\nnext command suggestions:\nsf prepare:map <profileId> ${provider} ${
+    `Created provider at path: "${path}".\n⚠️ Edit .env file for your credentials\n\nnext command suggestions:\nsf prepare:map <profileId> ${provider} ${
       station === true ? ' --station' : ''
     }\nsf prepare:test <profileId> ${provider} ${
       station === true ? ' --station' : ''
     }`,
-  unverifiedPrefix: (provider: string, prefix: string) =>
-    `Published provider name must have prefix: "${prefix}"\nIf you are planning to publish this map or provider consider renaming it, eg: "${prefix}${provider}"`,
 };
 
 const create = {
