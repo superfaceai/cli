@@ -87,11 +87,11 @@ export async function record(
     );
   }
 
-  // HACK inject our debug int AST
+  // HACK inject our debug into map AST
   const { injected, locations } = inject(mapFiles.ast);
 
-  const extractor = new MockLogger();
-  const b = createBoundProfileProvider({
+  const extractor = new Extractor();
+  const bound = createBoundProfileProvider({
     superJson,
     profileAst: profileFiles.ast,
     mapAst: injected,
@@ -101,7 +101,7 @@ export async function record(
     },
   });
 
-  const result = await b.perform(
+  const result = await bound.boundProfileProvider.perform(
     useCase.useCaseName,
     castToNonPrimitive(example)
   );
@@ -116,9 +116,38 @@ export async function record(
     };
   }
 
-  console.log('trace', inspect(trace, true, 20));
+  // format result
+  for (const [endpoint, endpointData] of Object.entries(trace)) {
+    console.log(
+      '_______________________GLOBAL INPUT_____________________________\n\n'
+    );
 
-  console.log('value', value);
+    console.log(inspect(castToNonPrimitive(example), true, 20));
+
+    console.log(
+      `\n\n_______________________REQUEST TO ${endpoint}_____________________________\n\n`
+    );
+
+    const req = bound.requestsHandle.find(r => r.url.includes(endpoint)) 
+
+    console.log(inspect(req, true, 20));
+
+    console.log(
+      `\n\n_______________________RESPONSE FROM ${endpoint}_____________________________\n\n`
+    );
+
+    console.log(inspect(endpointData.body, true, 20));
+
+    console.log(
+      '\n\n_______________________FINAL RESULT_____________________________\n\n'
+    );
+
+    console.log(inspect(value, true, 20));
+
+    console.log(
+      '\n\n____________________________________________________\n\n'
+    );
+  }
 
   const cachePath = DEFAULT_CACHE_PATH({
     // eslint-disable-next-line @typescript-eslint/unbound-method
@@ -127,10 +156,11 @@ export async function record(
 
   const path = joinPath(cachePath, 'records.json');
 
-  console.log('path', path);
+  // console.log('path', path);
 
   await mkdir(dirname(path), { recursive: true });
 
+  // This file can be used by language server and language client
   await OutputStream.writeOnce(
     path,
     JSON.stringify({ [`${profile.id}.${provider}`]: trace }, undefined, 2),
@@ -180,7 +210,7 @@ function inject(ast: MapDocumentNode): {
   };
 }
 
-class MockLogger implements SdkLogger {
+class Extractor implements SdkLogger {
   public output: Record<string, unknown> = {};
 
   public log(name: string): LogFunction;
