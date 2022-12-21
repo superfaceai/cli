@@ -59,5 +59,5 @@ export async function prepareMockMapTest(
     dirs: true,
     force: options?.force,
   });
-  logger.success('createTest', profile.id, 'mock', filePath);
+  logger.success('prepareTest', profile.id, 'mock', filePath);
 }
