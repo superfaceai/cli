@@ -239,13 +239,57 @@ const init = {
   ${quiet}`,
 };
 
+const prepare = {
+  prepareProfile: (profile: string, path: string, station?: boolean) =>
+    `Created profile at "${path}".\n\nnext command suggestions:\nsf prepare:provider <provider-name> ${
+      station === true ? ' --station' : ''
+    }\nsf prepare:map ${profile} <provider-name> ${
+      station === true ? ' --station' : ''
+    }`,
+  prepareMap: (
+    profile: string,
+    provider: string,
+    path: string,
+    station?: boolean
+  ) =>
+    `Created map at path: "${path}"".\n\nnext command suggestions:\nsf prepare:test ${profile} ${provider} ${
+      station === true ? ' --station' : ''
+    }`,
+  prepareTest: (
+    profile: string,
+    provider: string,
+    path: string,
+    station?: boolean
+  ) => {
+    const fileInfo = `Created test at path: "${path}"\n\n`;
+
+    if (station === true) {
+      const testPath = `grid/${profile}/maps/${provider}.test.ts`;
+
+      return (
+        fileInfo +
+        `Run created test with live traffic:\nyarn test:record ${testPath}\nor with recorded traffic:\nyarn test ${testPath}`
+      );
+    }
+
+    return (
+      fileInfo +
+      `Follow https://github.com/superfaceai/testing/blob/dev/README.md to run created test`
+    );
+  },
+  prepareProvider: (provider: string, path: string, station?: boolean) =>
+    `Created provider at path: "${path}".\n⚠️ Edit .env file for your credentials\n\nnext command suggestions:\nsf prepare:map <profileId> ${provider} ${
+      station === true ? ' --station' : ''
+    }\nsf prepare:test <profileId> ${provider} ${
+      station === true ? ' --station' : ''
+    }`,
+};
+
 const create = {
   createProfile: (profile: string, path: string) =>
     `Created profile: "${profile}" at path: "${path}"`,
   createMap: (profile: string, provider: string, path: string) =>
     `Created map for profile: "${profile}" and provider: "${provider}" at path: "${path}"`,
-  createTest: (profile: string, provider: string, path: string) =>
-    `Created map test for profile: "${profile}" and provider: "${provider}" at path: "${path}"`,
   createProvider: (provider: string, path: string) =>
     `Created provider: "${provider}" at path: "${path}"`,
   unverifiedPrefix: (provider: string, prefix: string) =>
@@ -307,6 +351,7 @@ export const messages = {
   ...init,
   ...configure,
   ...packageManager,
+  ...prepare,
   ...create,
   ...compile,
   ...quickstart,
