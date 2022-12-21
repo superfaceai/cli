@@ -261,12 +261,21 @@ const prepare = {
     path: string,
     station?: boolean
   ) => {
-    let testPath = `${profile}.${provider}.test.ts`;
+    const fileInfo = `Created test at path: "${path}"\n\n`;
+
     if (station === true) {
-      testPath = `grid/${profile}/maps/${provider}.test.ts`;
+      const testPath = `grid/${profile}/maps/${provider}.test.ts`;
+
+      return (
+        fileInfo +
+        `Run created test with live traffic:\nyarn test:record ${testPath}\nor with recorded traffic:\nyarn test ${testPath}`
+      );
     }
 
-    return `Created test at path: "${path}"\n\nRun created test with live traffic:\nyarn test:record ${testPath}\nor with recorded traffic:\nyarn test ${testPath}`;
+    return (
+      fileInfo +
+      `Follow https://github.com/superfaceai/testing/blob/dev/README.md to run created test`
+    );
   },
   prepareProvider: (provider: string, path: string, station?: boolean) =>
     `Created provider at path: "${path}".\n⚠️ Edit .env file for your credentials\n\nnext command suggestions:\nsf prepare:map <profileId> ${provider} ${
