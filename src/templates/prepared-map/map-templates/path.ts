@@ -1,1 +1,1 @@
-export default `{{#if input}}"/endpoint/api/{{openObject}} {{inputExampleScalarName}} {{closeObject}}"{{/if }}{{#unless input }}"/endpoint"{{/unless }}`;
+export default `{{#if url}}"{{url}}"{{/if }}{{#unless url }}{{#if input}}"/endpoint/api/{{openObject}} {{inputExampleScalarName}} {{closeObject}}"{{/if }}{{#unless input }}"/endpoint"{{/unless }}{{/unless }}`;

@@ -1,3 +1,5 @@
+import Handlebars from 'handlebars';
+
 /* eslint-disable */
 //TODO: add types
 export const HELPERS = [
@@ -60,7 +62,7 @@ export const HELPERS = [
   },
   {
     name: 'escapedString',
-    helper: function (value: any) {
+    helper: function (value: any, isKey?: boolean) {
       if (value === '') return '""';
       if (!value) return value;
       if (value.includes("'")) {
@@ -69,6 +71,19 @@ export const HELPERS = [
         }
 
         return `"${value}"`;
+      }
+
+      if (
+        value.includes('/') ||
+        value.includes('.') ||
+        value.includes(':') ||
+        value.includes('-')
+      ) {
+        return `'${value}'`;
+      }
+
+      if (isKey === true) {
+        return Handlebars.escapeExpression(value);
       }
 
       return `'${value}'`;

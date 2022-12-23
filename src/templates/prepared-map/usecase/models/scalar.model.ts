@@ -9,4 +9,5 @@ export enum ScalarType {
 export interface ScalarModel extends ModelBase {
   modelType: ModelType.SCALAR;
   scalarType: ScalarType;
+  value?: boolean | number | string;
 }

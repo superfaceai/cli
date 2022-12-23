@@ -1,13 +1,22 @@
 import type { ProfileDocumentNode, ProviderJson } from '@superfaceai/ast';
+import { inspect } from 'util';
 
 import { ProfileId } from '../../common/profile';
 import { makeRenderer } from '../shared/template-renderer';
 import MAP_TEMPLATE from './map-templates';
 import { prepareUseCaseDetails } from './usecase';
+import type { Model } from './usecase/models';
 
 export function prepareMapTemplate(
   profile: ProfileDocumentNode,
-  provider: ProviderJson
+  provider: ProviderJson,
+  fromCurl?: {
+    url?: string;
+    query?: Record<string, string>;
+    headers?: Record<string, string>;
+    method?: string;
+    body?: Model;
+  }
 ): string {
   const input = {
     profile: {
@@ -17,7 +26,7 @@ export function prepareMapTemplate(
       },
       name: ProfileId.fromScopeName(profile.header.scope, profile.header.name)
         .id,
-      useCases: prepareUseCaseDetails(profile),
+      useCases: prepareUseCaseDetails(profile, fromCurl),
     },
     provider: {
       name: provider.name,
@@ -36,6 +45,8 @@ export function prepareMapTemplate(
           : undefined,
     },
   };
+
+  console.log('in', inspect(input.profile.useCases[0].realData, true, 20));
 
   const render = makeRenderer(MAP_TEMPLATE, 'MapDocument');
 

@@ -7,10 +7,20 @@ import type {
 
 import { buildUseCaseExamples } from './example/build';
 import { getTypeDetails } from './get-type-details';
+import type { Model } from './models';
 import { prepareExampleScalar } from './prepare-input-scalar';
 import type { UseCase } from './usecase';
 
-export function prepareUseCaseDetails(ast: ProfileDocumentNode): UseCase[] {
+export function prepareUseCaseDetails(
+  ast: ProfileDocumentNode,
+  real?: {
+    url?: string;
+    method?: string;
+    query?: Record<string, string>;
+    headers?: Record<string, string>;
+    body?: Model;
+  }
+): UseCase[] {
   const namedModelDefinitionsCache: {
     [key: string]: NamedModelDefinitionNode;
   } = {};
@@ -40,8 +50,15 @@ export function prepareUseCaseDetails(ast: ProfileDocumentNode): UseCase[] {
 
       return {
         name: usecase.useCaseName,
+        method: real?.method,
+        url: real?.url,
         title: usecase?.documentation?.title,
         description: usecase?.documentation?.description,
+        realData: {
+          query: real?.query,
+          headers: real?.headers,
+          body: real?.body,
+        },
         error: getTypeDetails(
           usecase?.error?.value,
           undefined,

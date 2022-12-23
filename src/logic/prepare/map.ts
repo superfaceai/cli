@@ -10,15 +10,18 @@ import { OutputStream } from '../../common/output-stream';
 import { resolveSuperfaceRelativePath } from '../../common/path';
 import type { ProfileId } from '../../common/profile';
 import { prepareMapTemplate } from '../../templates/prepared-map';
+import { parseCurl } from '../from-curl/from-curl';
 import { loadProfileAst } from './utils';
 
 export async function prepareMap(
   {
+    curl,
     id,
     superJson,
     superJsonPath,
     options,
   }: {
+    curl?: string;
     id: {
       profile: ProfileId;
       provider: string;
@@ -52,7 +55,11 @@ export async function prepareMap(
     JSON.parse(await readFile(providerFile, { encoding: 'utf-8' }))
   );
 
-  const mapTemplate = prepareMapTemplate(profileAst, provider);
+  const mapTemplate = prepareMapTemplate(
+    profileAst,
+    provider,
+    curl !== undefined ? parseCurl({ curl, provider }) : undefined
+  );
 
   // Write result
   let filePath: string;

@@ -1,7 +1,7 @@
 // TODO: This can be divided into more partials
-export default `{{assign 'step' 1}}// {{@root.step}}) Change HTTP method and path to make an HTTP call
-// provider base URL {{provider.baseUrl}}
-http POST {{>Path input=inputExampleScalarName}} {
+export default `{{#unless realData }}{{assign 'step' 1}}// {{@root.step}}) Change HTTP method and path to make an HTTP call
+{{/unless}}// provider base URL {{provider.baseUrl}}
+http {{#if method }}{{method}}{{/if}}{{#unless method }}POST {{/unless}} {{>Path input=inputExampleScalarName url=url}} {
   {{#if provider.securityIds}}
   {{assign 'step' (inc @root.step 1)}}// {{@root.step}}) Specify security scheme id from Provider JSON definition
   security {{>Security securityIds=provider.securityIds}}
@@ -12,6 +12,10 @@ http POST {{>Path input=inputExampleScalarName}} {
 
   {{assign 'step' (inc @root.step 1)}}// {{@root.step}}) Pass input values to the HTTP request
   request {
+    {{#if realData }}
+    {{>RealData realData}}
+    {{/if }}
+    {{#unless realData}}
     {{#if input }}
     query {
       // param_name = input.fieldName
@@ -19,6 +23,7 @@ http POST {{>Path input=inputExampleScalarName}} {
     headers {}
     body {}
     {{/if }}
+    {{/unless}}
   }
 
   {{assign 'step' (inc @root.step 1)}}// {{@root.step}}) Map successful HTTP response to the result. The content type is optional

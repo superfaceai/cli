@@ -9,6 +9,7 @@ import mapDocument from './map';
 import object from './object';
 import parameters from './parameters';
 import path from './path';
+import realData from './real-data';
 import scalar from './scalar';
 import security from './security';
 import any from './unknown';
@@ -31,6 +32,7 @@ const templateSet: Template[] = [
   { name: 'Parameters', template: parameters },
   { name: 'Path', template: path },
   { name: 'Unknown', template: any },
+  { name: 'RealData', template: realData },
 ];
 
 export default templateSet;

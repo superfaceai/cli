@@ -6,6 +6,14 @@ export interface UseCase {
   name: string;
   title?: string;
   description?: string;
+  method?: string;
+  url?: string;
+  realData?: {
+    query?: Record<string, string>;
+    headers?: Record<string, string>;
+    body?: Model;
+    // params
+  };
   input?: Model;
   result?: Model;
   error?: Model;

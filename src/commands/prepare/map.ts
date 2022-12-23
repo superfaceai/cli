@@ -1,5 +1,6 @@
 import { flags as oclifFlags } from '@oclif/command';
 import { normalizeSuperJsonDocument } from '@superfaceai/one-sdk';
+import inquirer from 'inquirer';
 
 import type { ILogger } from '../../common';
 import { loadSuperJson, validateArguments } from '../../common';
@@ -8,17 +9,6 @@ import { Command } from '../../common/command.abstract';
 import type { UserError } from '../../common/error';
 import { ProfileId } from '../../common/profile';
 import { prepareMap } from '../../logic/prepare/map';
-import inquirer from 'inquirer';
-import { prepareMapFromCurl } from '../../logic/from-curl/fromCurl';
-
-// export const curl = oclifFlags.option<string>({
-//   char: 't',
-//   description: 'team to use',
-//  parse: (input: string, context: any) => {
-//   console.log('in', input, ' ctx ', context)
-//   return input
-//  }
-// })
 
 export class Map extends Command {
   public static strict = true;
@@ -48,7 +38,7 @@ export class Map extends Command {
     fromCurl: oclifFlags.boolean({
       char: 'f',
       description:
-        'When set to true cli will ask you to pass CURL string and use it as input for Map',
+        'When set to true CLI will ask you to pass cURL string and use it as input for Map',
       default: false,
     }),
 
@@ -131,54 +121,37 @@ export class Map extends Command {
       );
     }
 
-    if (flags.fromCurl) {
-      const prompt: { input: string | undefined } = await inquirer.prompt({
-        name: 'input',
-        message: 'Pass CURL string',
-        type: 'input',
-        default: undefined,
-      });
-
-      console.log('curl', prompt.input);
-
-      await prepareMapFromCurl(
-        {
-          curl: prompt.input!,
-          id: {
-            profile: ProfileId.fromId(profileId, { userError }),
-            provider: providerName,
-            // TODO: pass variant
-            variant: undefined,
-          },
-          superJson,
-          superJsonPath,
-        },
-        {
-          userError,
-          logger,
-        }
-      );
-    } else {
-      await prepareMap(
-        {
-          id: {
-            profile: ProfileId.fromId(profileId, { userError }),
-            provider: providerName,
-            // TODO: pass variant
-            variant: undefined,
-          },
-          superJson,
-          superJsonPath,
-          options: {
-            force: flags.force,
-            station: flags.station,
-          },
-        },
-        {
-          userError,
-          logger,
-        }
-      );
+    let curl: string | undefined = undefined;
+    if (flags.fromCurl === true) {
+      curl = (
+        await inquirer.prompt<{ input: string | undefined }>({
+          name: 'input',
+          message: 'Pass CURL string',
+          type: 'input',
+          default: undefined,
+        })
+      ).input;
     }
+    await prepareMap(
+      {
+        curl,
+        id: {
+          profile: ProfileId.fromId(profileId, { userError }),
+          provider: providerName,
+          // TODO: pass variant
+          variant: undefined,
+        },
+        superJson,
+        superJsonPath,
+        options: {
+          force: flags.force,
+          station: flags.station,
+        },
+      },
+      {
+        userError,
+        logger,
+      }
+    );
   }
 }
