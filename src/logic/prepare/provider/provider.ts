@@ -9,20 +9,15 @@ import inquirer from 'inquirer';
 
 import type { ILogger } from '../../../common';
 import { UNVERIFIED_PROVIDER_PREFIX } from '../../../common';
+import type { UserError } from '../../../common/error';
 import { fetchProviderInfo } from '../../../common/http';
 import { OutputStream } from '../../../common/output-stream';
 import { resolveSuperfaceRelativePath } from '../../../common/path';
 import * as providerTemplate from '../../../templates/provider';
+import { selecetBaseUrl } from './base-url';
 import { selectIntegrationParameters } from './parameters';
 import { selectSecurity } from './security';
 
-/**
- * Try to use local provider
- * Try to use remote prvider
- *
- * @param param0
- * @param param1
- */
 export async function prepareProvider(
   {
     provider,
@@ -38,9 +33,12 @@ export async function prepareProvider(
       station?: boolean;
     };
   },
-  { logger }: { logger: ILogger }
+  { logger, userError }: { logger: ILogger; userError: UserError }
 ): Promise<void> {
-  if (superJson.providers?.[provider] !== undefined) {
+  if (
+    superJson.providers?.[provider] !== undefined &&
+    options?.force !== true
+  ) {
     logger.warn('providerAlreadyExists', provider);
 
     return;
@@ -82,23 +80,16 @@ export async function prepareProvider(
           name = `${UNVERIFIED_PROVIDER_PREFIX}${name}`;
         }
       } else {
-        throw error;
+        throw userError(
+          `Error when fetching provider info: ${String(error)}`,
+          1
+        );
       }
     }
   }
 
   // prepare base url
-  // TODO: resolve parameters in url
-  const passedUrl = (
-    await inquirer.prompt<{ baseUrl: string }>({
-      name: 'baseUrl',
-      message: `Enter default base url for provider ${name}. More urls can be added later:`,
-      type: 'input',
-      default: undefined,
-    })
-  ).baseUrl;
-
-  const baseUrl = new URL(passedUrl).href;
+  const baseUrl = await selecetBaseUrl(name, { userError });
 
   // prepare security
   const security = await selectSecurity(name);

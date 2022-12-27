@@ -101,9 +101,7 @@ export class Provider extends Command {
     const superJson = loadedResult.match(
       v => v,
       err => {
-        logger.warn('errorMessage', err.formatLong());
-
-        return {};
+        throw userError(`Unable to load super.json: ${err.formatShort()}`, 1);
       }
     );
 
@@ -119,6 +117,7 @@ export class Provider extends Command {
       },
       {
         logger,
+        userError,
       }
     );
   }

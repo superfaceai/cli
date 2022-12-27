@@ -1,9 +1,6 @@
 import type {
   ApiKeyPlacement,
   ApiKeySecurityScheme,
-  BasicAuthSecurityScheme,
-  BearerTokenSecurityScheme,
-  DigestSecurityScheme,
   SecurityScheme,
   SecurityValues,
 } from '@superfaceai/ast';
@@ -32,44 +29,41 @@ export async function selectSecurity(
 async function enterSecuritySchema(
   provider: string
 ): Promise<SecurityScheme | 'none'> {
-  const schemaResponse: {
-    schema: 'api key token' | 'bearer token' | 'basic' | 'digest' | 'none';
-  } = await inquirer.prompt({
-    name: 'schema',
-    message: `Select a security schema for ${provider}:`,
-    type: 'list',
-    choices: ['api key token', 'bearer token', 'basic', 'digest', 'none'],
-  });
+  const schema: 'api key token' | 'bearer token' | 'basic' | 'digest' | 'none' =
+    (
+      await inquirer.prompt<{
+        schema: 'api key token' | 'bearer token' | 'basic' | 'digest' | 'none';
+      }>({
+        name: 'schema',
+        message: `Select a security schema for ${provider}:`,
+        type: 'list',
+        choices: ['api key token', 'bearer token', 'basic', 'digest', 'none'],
+      })
+    ).schema;
 
-  if (schemaResponse.schema === 'api key token') {
+  if (schema === 'api key token') {
     return enterApiKeySecurity(provider);
-  } else if (schemaResponse.schema === 'bearer token') {
-    return enterBearerSecurity();
-  } else if (schemaResponse.schema === 'basic') {
-    return enterHttpSecurity(HttpScheme.BASIC);
-  } else if (schemaResponse.schema === 'digest') {
-    return enterHttpSecurity(HttpScheme.DIGEST);
+  } else if (schema === 'bearer token') {
+    return {
+      id: 'bearer',
+      type: SecurityType.HTTP,
+      scheme: HttpScheme.BEARER,
+    };
+  } else if (schema === 'basic') {
+    return {
+      id: schema,
+      type: SecurityType.HTTP,
+      scheme: HttpScheme.BASIC,
+    };
+  } else if (schema === 'digest') {
+    return {
+      id: schema,
+      type: SecurityType.HTTP,
+      scheme: HttpScheme.DIGEST,
+    };
   }
 
   return 'none';
-}
-
-async function enterHttpSecurity(
-  scheme: HttpScheme.BASIC | HttpScheme.DIGEST
-): Promise<BasicAuthSecurityScheme | DigestSecurityScheme> {
-  return {
-    id: scheme,
-    type: SecurityType.HTTP,
-    scheme,
-  };
-}
-
-async function enterBearerSecurity(): Promise<BearerTokenSecurityScheme> {
-  return {
-    id: 'bearer',
-    type: SecurityType.HTTP,
-    scheme: HttpScheme.BEARER,
-  };
 }
 
 async function enterApiKeySecurity(

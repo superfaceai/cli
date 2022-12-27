@@ -10,13 +10,13 @@ export async function selectIntegrationParameters(provider: string): Promise<{
   let exit = false;
 
   const skip: boolean = (
-    await inquirer.prompt<{ continue: boolean }>({
-      name: 'continue',
+    await inquirer.prompt<{ skip: boolean }>({
+      name: 'skip',
       message: 'Do you want to skip setting up integration parameters?:',
       type: 'confirm',
       default: false,
     })
-  ).continue;
+  ).skip;
 
   if (skip) {
     return {
