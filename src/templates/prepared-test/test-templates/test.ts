@@ -12,7 +12,7 @@ describe('{{profile}}/{{provider}}', () => {
     superface = buildSuperfaceTest({
       profile: '{{profile}}',
       provider: '{{provider}}'
-});
+    });
 {{/if}}
 {{#unless station}}
     superface = new SuperfaceTest({

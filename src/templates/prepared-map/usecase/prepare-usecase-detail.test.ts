@@ -89,58 +89,62 @@ describe('Parse use case details', () => {
           nonNull: false,
           scalarType: 'number',
         },
-        errorExample: {
-          input: {
-            kind: 'object',
-            properties: [
-              {
-                name: 'field',
-                kind: 'string',
-                value: '',
-              },
-              {
-                name: 'field',
-                kind: 'number',
-                value: 0,
-              },
-              {
-                name: 'field',
-                kind: 'boolean',
-                value: true,
-              },
-            ],
+        errorExamples: [
+          {
+            input: {
+              kind: 'object',
+              properties: [
+                {
+                  name: 'field',
+                  kind: 'string',
+                  value: '',
+                },
+                {
+                  name: 'field',
+                  kind: 'number',
+                  value: 0,
+                },
+                {
+                  name: 'field',
+                  kind: 'boolean',
+                  value: true,
+                },
+              ],
+            },
+            error: {
+              kind: 'number',
+              value: 404,
+            },
           },
-          error: {
-            kind: 'number',
-            value: 404,
+        ],
+        successExamples: [
+          {
+            input: {
+              kind: 'object',
+              properties: [
+                {
+                  name: 'field',
+                  kind: 'string',
+                  value: '',
+                },
+                {
+                  name: 'field',
+                  kind: 'number',
+                  value: 0,
+                },
+                {
+                  name: 'field',
+                  kind: 'boolean',
+                  value: true,
+                },
+              ],
+            },
+            result: {
+              kind: 'number',
+              value: 0,
+            },
           },
-        },
-        successExample: {
-          input: {
-            kind: 'object',
-            properties: [
-              {
-                name: 'field',
-                kind: 'string',
-                value: '',
-              },
-              {
-                name: 'field',
-                kind: 'number',
-                value: 0,
-              },
-              {
-                name: 'field',
-                kind: 'boolean',
-                value: true,
-              },
-            ],
-          },
-          result: {
-            kind: 'number',
-            value: 0,
-          },
-        },
+        ],
       },
     ]);
   });
@@ -222,60 +226,64 @@ describe('Parse use case details', () => {
             },
           ],
         },
-        errorExample: {
-          input: {
-            kind: 'object',
-            properties: [
-              {
-                name: 'characterName',
-                kind: 'string',
-                value: '',
-              },
-            ],
+        errorExamples: [
+          {
+            input: {
+              kind: 'object',
+              properties: [
+                {
+                  name: 'characterName',
+                  kind: 'string',
+                  value: '',
+                },
+              ],
+            },
+            error: {
+              kind: 'object',
+              properties: [
+                {
+                  name: 'message',
+                  kind: 'string',
+                  value: '',
+                },
+              ],
+            },
           },
-          error: {
-            kind: 'object',
-            properties: [
-              {
-                name: 'message',
-                kind: 'string',
-                value: '',
-              },
-            ],
+        ],
+        successExamples: [
+          {
+            input: {
+              kind: 'object',
+              properties: [
+                {
+                  name: 'characterName',
+                  kind: 'string',
+                  value: '',
+                },
+              ],
+            },
+            result: {
+              kind: 'object',
+              properties: [
+                {
+                  name: 'height',
+                  kind: 'string',
+                  value: '',
+                },
+                {
+                  name: 'weight',
+                  kind: 'string',
+                  value: '',
+                },
+                {
+                  name: 'yearOfBirth',
+                  kind: 'string',
+                  value: '',
+                },
+              ],
+            },
           },
-        },
-        successExample: {
-          input: {
-            kind: 'object',
-            properties: [
-              {
-                name: 'characterName',
-                kind: 'string',
-                value: '',
-              },
-            ],
-          },
-          result: {
-            kind: 'object',
-            properties: [
-              {
-                name: 'height',
-                kind: 'string',
-                value: '',
-              },
-              {
-                name: 'weight',
-                kind: 'string',
-                value: '',
-              },
-              {
-                name: 'yearOfBirth',
-                kind: 'string',
-                value: '',
-              },
-            ],
-          },
-        },
+        ],
       },
     ]);
   });

@@ -404,6 +404,169 @@
           "kind": "UseCaseSlotDefinition",
           "value": {
             "kind": "UseCaseExample",
+            "exampleName": "otherSuccess",
+            "input": {
+              "kind": "UseCaseSlotDefinition",
+              "value": {
+                "kind": "ComlinkObjectLiteral",
+                "fields": [
+                  {
+                    "kind": "ComlinkAssignment",
+                    "key": [
+                      "foo"
+                    ],
+                    "value": {
+                      "kind": "ComlinkPrimitiveLiteral",
+                      "value": "second example",
+                      "location": {
+                        "start": {
+                          "line": 28,
+                          "column": 13,
+                          "charIndex": 321
+                        },
+                        "end": {
+                          "line": 28,
+                          "column": 29,
+                          "charIndex": 337
+                        }
+                      }
+                    },
+                    "location": {
+                      "start": {
+                        "line": 28,
+                        "column": 7,
+                        "charIndex": 315
+                      },
+                      "end": {
+                        "line": 28,
+                        "column": 29,
+                        "charIndex": 337
+                      }
+                    }
+                  }
+                ],
+                "location": {
+                  "start": {
+                    "line": 27,
+                    "column": 11,
+                    "charIndex": 307
+                  },
+                  "end": {
+                    "line": 29,
+                    "column": 6,
+                    "charIndex": 343
+                  }
+                }
+              },
+              "location": {
+                "start": {
+                  "line": 27,
+                  "column": 5,
+                  "charIndex": 301
+                },
+                "end": {
+                  "line": 29,
+                  "column": 6,
+                  "charIndex": 343
+                }
+              }
+            },
+            "result": {
+              "kind": "UseCaseSlotDefinition",
+              "value": {
+                "kind": "ComlinkObjectLiteral",
+                "fields": [
+                  {
+                    "kind": "ComlinkAssignment",
+                    "key": [
+                      "bar"
+                    ],
+                    "value": {
+                      "kind": "ComlinkPrimitiveLiteral",
+                      "value": "second result",
+                      "location": {
+                        "start": {
+                          "line": 31,
+                          "column": 13,
+                          "charIndex": 369
+                        },
+                        "end": {
+                          "line": 31,
+                          "column": 28,
+                          "charIndex": 384
+                        }
+                      }
+                    },
+                    "location": {
+                      "start": {
+                        "line": 31,
+                        "column": 7,
+                        "charIndex": 363
+                      },
+                      "end": {
+                        "line": 31,
+                        "column": 28,
+                        "charIndex": 384
+                      }
+                    }
+                  }
+                ],
+                "location": {
+                  "start": {
+                    "line": 30,
+                    "column": 12,
+                    "charIndex": 355
+                  },
+                  "end": {
+                    "line": 32,
+                    "column": 6,
+                    "charIndex": 390
+                  }
+                }
+              },
+              "location": {
+                "start": {
+                  "line": 30,
+                  "column": 5,
+                  "charIndex": 348
+                },
+                "end": {
+                  "line": 32,
+                  "column": 6,
+                  "charIndex": 390
+                }
+              }
+            },
+            "location": {
+              "start": {
+                "line": 26,
+                "column": 13,
+                "charIndex": 282
+              },
+              "end": {
+                "line": 33,
+                "column": 4,
+                "charIndex": 394
+              }
+            }
+          },
+          "location": {
+            "start": {
+              "line": 26,
+              "column": 5,
+              "charIndex": 274
+            },
+            "end": {
+              "line": 33,
+              "column": 4,
+              "charIndex": 394
+            }
+          }
+        },
+        {
+          "kind": "UseCaseSlotDefinition",
+          "value": {
+            "kind": "UseCaseExample",
             "exampleName": "fail",
             "input": {
               "kind": "UseCaseSlotDefinition",
@@ -420,54 +583,54 @@
                       "value": "error",
                       "location": {
                         "start": {
-                          "line": 28,
+                          "line": 37,
                           "column": 13,
-                          "charIndex": 311
+                          "charIndex": 437
                         },
                         "end": {
-                          "line": 28,
+                          "line": 37,
                           "column": 20,
-                          "charIndex": 318
+                          "charIndex": 444
                         }
                       }
                     },
                     "location": {
                       "start": {
-                        "line": 28,
+                        "line": 37,
                         "column": 7,
-                        "charIndex": 305
+                        "charIndex": 431
                       },
                       "end": {
-                        "line": 28,
+                        "line": 37,
                         "column": 20,
-                        "charIndex": 318
+                        "charIndex": 444
                       }
                     }
                   }
                 ],
                 "location": {
                   "start": {
-                    "line": 27,
+                    "line": 36,
                     "column": 11,
-                    "charIndex": 297
+                    "charIndex": 423
                   },
                   "end": {
-                    "line": 29,
+                    "line": 38,
                     "column": 6,
-                    "charIndex": 324
+                    "charIndex": 450
                   }
                 }
               },
               "location": {
                 "start": {
-                  "line": 27,
+                  "line": 36,
                   "column": 5,
-                  "charIndex": 291
+                  "charIndex": 417
                 },
                 "end": {
-                  "line": 29,
+                  "line": 38,
                   "column": 6,
-                  "charIndex": 324
+                  "charIndex": 450
                 }
               }
             },
@@ -486,80 +649,243 @@
                       "value": 12,
                       "location": {
                         "start": {
-                          "line": 31,
+                          "line": 40,
                           "column": 13,
-                          "charIndex": 349
+                          "charIndex": 475
                         },
                         "end": {
-                          "line": 31,
+                          "line": 40,
                           "column": 15,
-                          "charIndex": 351
+                          "charIndex": 477
                         }
                       }
                     },
                     "location": {
                       "start": {
-                        "line": 31,
+                        "line": 40,
                         "column": 7,
-                        "charIndex": 343
+                        "charIndex": 469
                       },
                       "end": {
-                        "line": 31,
+                        "line": 40,
                         "column": 15,
-                        "charIndex": 351
+                        "charIndex": 477
                       }
                     }
                   }
                 ],
                 "location": {
                   "start": {
-                    "line": 30,
+                    "line": 39,
                     "column": 11,
-                    "charIndex": 335
+                    "charIndex": 461
                   },
                   "end": {
-                    "line": 32,
+                    "line": 41,
                     "column": 6,
-                    "charIndex": 357
+                    "charIndex": 483
                   }
                 }
               },
               "location": {
                 "start": {
-                  "line": 30,
+                  "line": 39,
                   "column": 5,
-                  "charIndex": 329
+                  "charIndex": 455
                 },
                 "end": {
-                  "line": 32,
+                  "line": 41,
                   "column": 6,
-                  "charIndex": 357
+                  "charIndex": 483
                 }
               }
             },
             "location": {
               "start": {
-                "line": 26,
+                "line": 35,
                 "column": 11,
-                "charIndex": 280
+                "charIndex": 406
               },
               "end": {
-                "line": 33,
+                "line": 42,
                 "column": 4,
-                "charIndex": 361
+                "charIndex": 487
               }
             }
           },
           "location": {
             "start": {
-              "line": 26,
+              "line": 35,
               "column": 3,
-              "charIndex": 272
+              "charIndex": 398
             },
             "end": {
-              "line": 33,
+              "line": 42,
               "column": 4,
-              "charIndex": 361
+              "charIndex": 487
+            }
+          }
+        },
+        {
+          "kind": "UseCaseSlotDefinition",
+          "value": {
+            "kind": "UseCaseExample",
+            "exampleName": "otherFail",
+            "input": {
+              "kind": "UseCaseSlotDefinition",
+              "value": {
+                "kind": "ComlinkObjectLiteral",
+                "fields": [
+                  {
+                    "kind": "ComlinkAssignment",
+                    "key": [
+                      "foo"
+                    ],
+                    "value": {
+                      "kind": "ComlinkPrimitiveLiteral",
+                      "value": "different error",
+                      "location": {
+                        "start": {
+                          "line": 46,
+                          "column": 13,
+                          "charIndex": 535
+                        },
+                        "end": {
+                          "line": 46,
+                          "column": 30,
+                          "charIndex": 552
+                        }
+                      }
+                    },
+                    "location": {
+                      "start": {
+                        "line": 46,
+                        "column": 7,
+                        "charIndex": 529
+                      },
+                      "end": {
+                        "line": 46,
+                        "column": 30,
+                        "charIndex": 552
+                      }
+                    }
+                  }
+                ],
+                "location": {
+                  "start": {
+                    "line": 45,
+                    "column": 11,
+                    "charIndex": 521
+                  },
+                  "end": {
+                    "line": 47,
+                    "column": 6,
+                    "charIndex": 558
+                  }
+                }
+              },
+              "location": {
+                "start": {
+                  "line": 45,
+                  "column": 5,
+                  "charIndex": 515
+                },
+                "end": {
+                  "line": 47,
+                  "column": 6,
+                  "charIndex": 558
+                }
+              }
+            },
+            "error": {
+              "kind": "UseCaseSlotDefinition",
+              "value": {
+                "kind": "ComlinkObjectLiteral",
+                "fields": [
+                  {
+                    "kind": "ComlinkAssignment",
+                    "key": [
+                      "baz"
+                    ],
+                    "value": {
+                      "kind": "ComlinkPrimitiveLiteral",
+                      "value": 16,
+                      "location": {
+                        "start": {
+                          "line": 49,
+                          "column": 13,
+                          "charIndex": 583
+                        },
+                        "end": {
+                          "line": 49,
+                          "column": 15,
+                          "charIndex": 585
+                        }
+                      }
+                    },
+                    "location": {
+                      "start": {
+                        "line": 49,
+                        "column": 7,
+                        "charIndex": 577
+                      },
+                      "end": {
+                        "line": 49,
+                        "column": 15,
+                        "charIndex": 585
+                      }
+                    }
+                  }
+                ],
+                "location": {
+                  "start": {
+                    "line": 48,
+                    "column": 11,
+                    "charIndex": 569
+                  },
+                  "end": {
+                    "line": 50,
+                    "column": 6,
+                    "charIndex": 591
+                  }
+                }
+              },
+              "location": {
+                "start": {
+                  "line": 48,
+                  "column": 5,
+                  "charIndex": 563
+                },
+                "end": {
+                  "line": 50,
+                  "column": 6,
+                  "charIndex": 591
+                }
+              }
+            },
+            "location": {
+              "start": {
+                "line": 44,
+                "column": 11,
+                "charIndex": 499
+              },
+              "end": {
+                "line": 51,
+                "column": 4,
+                "charIndex": 595
+              }
+            }
+          },
+          "location": {
+            "start": {
+              "line": 44,
+              "column": 3,
+              "charIndex": 491
+            },
+            "end": {
+              "line": 51,
+              "column": 4,
+              "charIndex": 595
             }
           }
         }
@@ -571,9 +897,9 @@
           "charIndex": 47
         },
         "end": {
-          "line": 34,
+          "line": 52,
           "column": 2,
-          "charIndex": 363
+          "charIndex": 597
         }
       }
     }
@@ -585,9 +911,9 @@
       "charIndex": 0
     },
     "end": {
-      "line": 34,
+      "line": 52,
       "column": 2,
-      "charIndex": 363
+      "charIndex": 597
     }
   },
   "astMetadata": {
@@ -601,6 +927,6 @@
       "minor": 0,
       "patch": 0
     },
-    "sourceChecksum": "664d33cc0a37d582090f4241b931e4f6b60fd40b59cc2d386e65e59b2ead4855"
+    "sourceChecksum": "097f48436e987e4ef8c501951b978508353a4451539d1bf9c3bd632494b117c4"
   }
 }

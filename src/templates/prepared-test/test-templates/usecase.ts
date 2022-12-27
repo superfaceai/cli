@@ -1,4 +1,4 @@
 export default `describe('{{name}}', () => {
-  {{#unless onlySuccess}}{{#if errorExample}}{{>Error errorExample name=name }}{{/if}}{{/unless}}
-  {{#if successExample}}{{>Success successExample name=name }}{{/if}}
+  {{#unless onlySuccess}}{{#if errorExamples}}{{#each errorExamples}}{{>Error this name=../name }}{{/each}}{{/if}}{{/unless}}
+  {{#if successExamples}}{{#each successExamples}}{{>Success this name=../name }}{{/each}}{{/if}}
 });`;
