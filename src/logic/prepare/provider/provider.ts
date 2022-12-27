@@ -1,7 +1,10 @@
 import type {
   ProviderEntry,
   SecurityValues,
-  SuperJsonDocument,
+  SuperJsonDocument} from '@superfaceai/ast';
+import {
+  prepareProviderParameters,
+  prepareSecurityValues
 } from '@superfaceai/ast';
 import { mergeProvider, NodeFileSystem } from '@superfaceai/one-sdk';
 import { ServiceApiError } from '@superfaceai/service-client';
@@ -49,21 +52,39 @@ export async function prepareProvider(
   let name: string = provider;
   if (!provider.startsWith(UNVERIFIED_PROVIDER_PREFIX)) {
     try {
-      await fetchProviderInfo(name);
-      // const remote =  await fetchProviderInfo(provider);
+      const remote = await fetchProviderInfo(name);
 
-      // const useRemote = (
-      //   await inquirer.prompt({
-      //     name: 'continue',
-      //     message: `Provider "${provider}" found in Superface registry:\n${JSON.stringify(remote, undefined, 2)}\nDo you want to use it?`,
-      //     type: 'confirm',
-      //     default: true,
-      //   })
-      // ).continue;
+      const useRemote = (
+        await inquirer.prompt<{continue: boolean}>({
+          name: 'continue',
+          message: `Provider "${provider}" found in Superface registry:\n${JSON.stringify(
+            remote,
+            undefined,
+            2
+          )}\nDo you want to use it?`,
+          type: 'confirm',
+          default: true,
+        })
+      ).continue;
 
-      // if(useRemote) {
-      //   // TODO: set up values and add provider to super json
-      // }
+      if (useRemote) {
+        // set up values and add provider to super json
+        await updateSuperJson(
+          {
+            name,
+            superJson,
+            superJsonPath,
+            security: prepareSecurityValues(name, remote.securitySchemes ?? []),
+            parameters: prepareProviderParameters(
+              name,
+              remote.parameters ?? []
+            ),
+          },
+          { logger }
+        );
+
+        return;
+      }
     } catch (error) {
       // If provider does not exists in SF register (is not verified) it should start with unverified
       if (error instanceof ServiceApiError && error.status === 404) {

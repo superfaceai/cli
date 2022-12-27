@@ -6,6 +6,7 @@ import { MockLogger, UNVERIFIED_PROVIDER_PREFIX } from '../../../common';
 import { createUserError } from '../../../common/error';
 import { fetchProviderInfo } from '../../../common/http';
 import { OutputStream } from '../../../common/output-stream';
+import { mockProviderJson } from '../../../test/provider-json';
 import { selecetBaseUrl } from './base-url';
 import { selectIntegrationParameters } from './parameters';
 import { prepareProvider } from './provider';
@@ -177,8 +178,36 @@ describe('Prepare map logic', () => {
     });
   });
 
+  describe('when provider without prefix is found in registry', () => {
+    it('updates super.json', async () => {
+      jest
+        .mocked(fetchProviderInfo)
+        .mockResolvedValue(mockProviderJson({ name: provider }));
+
+      jest.spyOn(inquirer, 'prompt').mockResolvedValueOnce({ continue: true });
+
+      writeIfAbsentSpy.mockResolvedValue(true);
+      writeOnceSpy.mockResolvedValue(undefined);
+
+      await prepareProvider(
+        {
+          provider,
+          superJson: mockSuperJson,
+          superJsonPath,
+        },
+        {
+          logger,
+          userError,
+        }
+      );
+
+      expect(writeIfAbsentSpy).not.toHaveBeenCalled();
+      expect(writeOnceSpy).toBeCalledWith(superJsonPath, expect.any(String));
+    });
+  });
+
   describe('when provider without prefix is not found in registry', () => {
-    it('throws on onknown fetch error', async () => {
+    it('throws on unknown fetch error', async () => {
       const error = new ServiceApiError({
         status: 400,
         instance: 'test',

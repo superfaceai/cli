@@ -14,7 +14,7 @@ export class Provider extends Command {
   public static strict = true;
 
   public static description =
-    'Prepares provider on a local filesystem and adds it to super.json. You do not have to touch super.json or creted provider.json file after running this command.';
+    'Prepares provider on a local filesystem and adds it to super.json. You do not have to touch super.json or created provider.json file after running this command.';
 
   public static examples = [
     '$ superface prepare:provider swapi --force',
@@ -75,7 +75,7 @@ export class Provider extends Command {
       throw userError(`Argument provider name must be provided`, 1);
     }
     if (!isValidProviderName(args.providerName)) {
-      throw userError(`Invalid provider name: "${args.providerName}"`, 1);
+      throw userError(`Invalid provider name: ${args.providerName}`, 1);
     }
 
     if (
@@ -93,7 +93,7 @@ export class Provider extends Command {
       flags.scan
     );
     if (superPath === undefined) {
-      throw userError('Unable to prepare provider, super.json not found', 1);
+      throw userError('Unable to load super.json, super.json not found', 1);
     }
     // Load super json
     const superJsonPath = joinPath(superPath, META_FILE);
