@@ -99,7 +99,7 @@ describe('Prepare map logic', () => {
       );
 
       expect(writeIfAbsentSpy).toBeCalledWith(
-        `${unverfiedProvider}.json`,
+        `${unverfiedProvider}.provider.json`,
         expect.any(String),
         { dirs: true, force: undefined }
       );
@@ -265,7 +265,7 @@ describe('Prepare map logic', () => {
       );
 
       expect(writeIfAbsentSpy).toBeCalledWith(
-        `${UNVERIFIED_PROVIDER_PREFIX}${provider}.json`,
+        `${UNVERIFIED_PROVIDER_PREFIX}${provider}.provider.json`,
         expect.any(String),
         { dirs: true, force: undefined }
       );

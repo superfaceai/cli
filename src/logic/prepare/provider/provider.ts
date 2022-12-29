@@ -1,10 +1,11 @@
 import type {
   ProviderEntry,
   SecurityValues,
-  SuperJsonDocument} from '@superfaceai/ast';
+  SuperJsonDocument,
+} from '@superfaceai/ast';
 import {
   prepareProviderParameters,
-  prepareSecurityValues
+  prepareSecurityValues,
 } from '@superfaceai/ast';
 import { mergeProvider, NodeFileSystem } from '@superfaceai/one-sdk';
 import { ServiceApiError } from '@superfaceai/service-client';
@@ -55,7 +56,7 @@ export async function prepareProvider(
       const remote = await fetchProviderInfo(name);
 
       const useRemote = (
-        await inquirer.prompt<{continue: boolean}>({
+        await inquirer.prompt<{ continue: boolean }>({
           name: 'continue',
           message: `Provider "${provider}" found in Superface registry:\n${JSON.stringify(
             remote,
@@ -122,7 +123,7 @@ export async function prepareProvider(
   if (options?.station === true) {
     filePath = `providers/${name}.json`;
   } else {
-    filePath = `${name}.json`;
+    filePath = `${name}.provider.json`;
   }
 
   const created = await OutputStream.writeIfAbsent(

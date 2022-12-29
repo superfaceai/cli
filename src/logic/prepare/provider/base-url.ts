@@ -10,7 +10,7 @@ export async function selecetBaseUrl(
   const passedUrl = (
     await inquirer.prompt<{ baseUrl: string }>({
       name: 'baseUrl',
-      message: `Enter default base url for provider ${provider}. More urls can be added later:`,
+      message: `Enter default service base url for provider ${provider}. More urls can be added later:`,
       type: 'input',
       default: undefined,
     })
