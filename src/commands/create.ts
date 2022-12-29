@@ -143,6 +143,33 @@ export default class Create extends Command {
     userError: UserError;
     flags: Flags<typeof Create.flags>;
   }): Promise<void> {
+    let providerNames: string[] =
+      flags.providerName !== undefined ? flags.providerName : [];
+
+    // Deprecation message
+    const hints: string[] = [];
+
+    if (flags.profile === true) {
+      hints.push(`\nsf prepare:profile ${flags.profileId ?? '[profileId]'}\n`);
+    }
+    if (flags.provider === true) {
+      if (providerNames.length === 0) {
+        hints.push(`\nsf prepare:provider [providerName]\n`);
+      }
+      hints.push(...providerNames.map(n => `\nsf prepare:provider ${n}\n`));
+    }
+    if (flags.map === true) {
+      if (providerNames.length === 0) {
+        hints.push(`\nsf prepare:map [providerName]\n`);
+      }
+      hints.push(
+        ...providerNames.map(
+          n => `\nsf prepare:map ${flags.profileId ?? '[profileId]'} ${n}\n`
+        )
+      );
+    }
+    this.logger.warn('deprecation', hints);
+
     if (
       flags.profileId === undefined &&
       (flags.providerName === undefined || flags.providerName.length === 0) &&
@@ -228,7 +255,6 @@ export default class Create extends Command {
       }
     }
     let profileId: string | undefined = undefined;
-    let providerNames: string[] = [];
 
     // Check inputs
     if (flags.map === true && flags.profileId === undefined) {

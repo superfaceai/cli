@@ -294,6 +294,15 @@ const create = {
     `Created provider: "${provider}" at path: "${path}"`,
   unverifiedPrefix: (provider: string, prefix: string) =>
     `Published provider name must have prefix: "${prefix}"\nIf you are planning to publish this map or provider consider renaming it, eg: "${prefix}${provider}"`,
+  deprecation: (hints: string[]) => {
+    let message = `Create command is deprecated and will be removed, please use "prepare" command instead.`;
+
+    if (hints.length > 0) {
+      message += `\nYou can use prepare command in format:\n${hints.join('')}`;
+    }
+
+    return message;
+  },
 };
 
 const compile = {
