@@ -115,7 +115,7 @@ describe('Prepare map logic', () => {
 
     expect(writeOnceSpy).toBeCalledWith(
       `${profileId.toString()}.${provider}.test${EXTENSIONS.map.source}`,
-      expect.stringContaining('variant = \"test\"'),
+      expect.stringContaining('variant = "test"'),
       { dirs: true }
     );
     expect(writeOnceSpy).toBeCalledWith(superJsonPath, expect.any(String));
