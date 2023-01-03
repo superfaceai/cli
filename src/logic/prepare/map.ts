@@ -52,7 +52,7 @@ export async function prepareMap(
     JSON.parse(await readFile(providerFile, { encoding: 'utf-8' }))
   );
 
-  const mapTemplate = prepareMapTemplate(profileAst, provider);
+  const mapTemplate = prepareMapTemplate(profileAst, provider, id.variant);
 
   // Write result
   let filePath: string;

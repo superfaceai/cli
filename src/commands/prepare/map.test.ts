@@ -110,6 +110,25 @@ describe('Prepare map command', () => {
       expect(loadSuperJson).not.toHaveBeenCalled();
     }, 10000);
 
+    it('throws error on invalid variant', async () => {
+      jest.mocked(detectSuperJson).mockResolvedValue('.');
+      jest.mocked(loadSuperJson).mockResolvedValue(ok({}));
+
+      await expect(
+        instance.execute({
+          logger,
+          userError,
+          args: { profileId: mockProfile, providerName: mockProvider },
+          flags: {
+            scan: 3,
+            variant: '!:"(',
+          },
+        })
+      ).rejects.toThrow('Invalid map variant: !:"(');
+      expect(detectSuperJson).not.toHaveBeenCalled();
+      expect(loadSuperJson).not.toHaveBeenCalled();
+    }, 10000);
+
     it('throws error on invalid provider name', async () => {
       jest.mocked(detectSuperJson).mockResolvedValue('.');
       jest.mocked(loadSuperJson).mockResolvedValue(ok({}));
@@ -239,6 +258,7 @@ describe('Prepare map command', () => {
           force: true,
           station: true,
           scan: 3,
+          variant: 'test',
         },
       });
 
@@ -247,6 +267,7 @@ describe('Prepare map command', () => {
           id: {
             profile: ProfileId.fromId(mockProfile, { userError }),
             provider: mockProvider,
+            variant: 'test',
           },
           superJson,
           superJsonPath: 'super.json',
