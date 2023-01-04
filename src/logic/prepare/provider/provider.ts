@@ -138,7 +138,7 @@ export async function prepareProvider(
   );
 
   if (created) {
-    logger.success('createProvider', name, filePath);
+    logger.success('prepareProvider', name, filePath, options?.station);
     await updateSuperJson(
       {
         name,
