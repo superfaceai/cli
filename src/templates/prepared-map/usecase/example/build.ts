@@ -43,66 +43,81 @@ export function buildUseCaseExamples(
     [key: string]: NamedFieldDefinitionNode;
   }
 ): {
-  errorExample: {
+  errorExamples: {
     input?: UseCaseExample;
     error?: UseCaseExample;
-  };
-  successExample: {
+  }[];
+  successExamples: {
     input?: UseCaseExample;
     result?: UseCaseExample;
-  };
+  }[];
 } {
-  const examples = findUseCaseExamples(useCase);
+  const profileExamples = findUseCaseExamples(useCase);
+
+  // Fall back to empty object when there are no examples in profile to ensure we get at least one example generated from type
+  const profileErrorExamples =
+    profileExamples.errorExamples !== undefined &&
+    profileExamples.errorExamples.length > 0
+      ? profileExamples.errorExamples
+      : [{}];
+  const profileSuccessExamples =
+    profileExamples.successExamples !== undefined &&
+    profileExamples.successExamples.length > 0
+      ? profileExamples.successExamples
+      : [{}];
 
   return {
-    errorExample: {
+    errorExamples: profileErrorExamples.map(example => ({
       input: extractExample(
-        examples.errorExample?.input,
+        example?.input,
         useCase.input?.value,
         namedModelDefinitionsCache,
         namedFieldDefinitionsCache
       ),
       error: extractExample(
-        examples.errorExample?.error,
+        example?.error,
         useCase.error?.value,
         namedModelDefinitionsCache,
         namedFieldDefinitionsCache
       ),
-    },
-    successExample: {
+    })),
+    successExamples: profileSuccessExamples.map(example => ({
       input: extractExample(
-        examples.successExample?.input,
+        example?.input,
         useCase.input?.value,
         namedModelDefinitionsCache,
         namedFieldDefinitionsCache
       ),
       result: extractExample(
-        examples.successExample?.result,
+        example?.result,
         useCase.result?.value,
         namedModelDefinitionsCache,
         namedFieldDefinitionsCache
       ),
-    },
+    })),
   };
 }
 
 function findUseCaseExamples(usecase: UseCaseDefinitionNode): {
-  errorExample?: {
+  errorExamples?: {
     input?: ComlinkLiteralNode;
     error?: ComlinkLiteralNode;
-  };
-  successExample?: {
+  }[];
+  successExamples?: {
     input?: ComlinkLiteralNode;
     result?: ComlinkLiteralNode;
-  };
+  }[];
 } {
   const examples: {
-    successExample?: {
+    successExamples?: {
       input?: ComlinkLiteralNode;
       result?: ComlinkLiteralNode;
-    };
-    errorExample?: { input?: ComlinkLiteralNode; error?: ComlinkLiteralNode };
-  } = { successExample: undefined, errorExample: undefined };
+    }[];
+    errorExamples?: {
+      input?: ComlinkLiteralNode;
+      error?: ComlinkLiteralNode;
+    }[];
+  } = { successExamples: undefined, errorExamples: undefined };
 
   if (usecase.examples === undefined || usecase.examples.length === 0)
     return examples;
@@ -112,26 +127,25 @@ function findUseCaseExamples(usecase: UseCaseDefinitionNode): {
       slot.kind === 'UseCaseSlotDefinition' &&
       slot.value.kind === 'UseCaseExample'
   );
-  const successExampleNode = exampleNodes.find(example =>
-    Boolean(example.value?.result)
-  )?.value;
+  const successExampleNodes = exampleNodes
+    .filter(example => Boolean(example.value?.result))
+    .map(e => e.value);
+  const errorExampleNodes = exampleNodes
+    .filter(example => Boolean(example.value?.error))
+    .map(e => e.value);
 
-  const errorExampleNode = exampleNodes.find(example =>
-    Boolean(example.value?.error)
-  )?.value;
-
-  if (successExampleNode !== undefined) {
-    examples.successExample = {
-      input: successExampleNode.input?.value,
-      result: successExampleNode.result?.value,
-    };
+  if (successExampleNodes.length !== 0) {
+    examples.successExamples = successExampleNodes.map(node => ({
+      input: node.input?.value,
+      result: node.result?.value,
+    }));
   }
 
-  if (errorExampleNode !== undefined) {
-    examples.errorExample = {
-      input: errorExampleNode.input?.value,
-      error: errorExampleNode.error?.value,
-    };
+  if (errorExampleNodes.length !== 0) {
+    examples.errorExamples = errorExampleNodes.map(node => ({
+      input: node.input?.value,
+      error: node.error?.value,
+    }));
   }
 
   return examples;

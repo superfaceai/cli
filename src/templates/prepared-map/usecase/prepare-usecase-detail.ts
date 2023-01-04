@@ -63,7 +63,7 @@ export function prepareUseCaseDetails(ast: ProfileDocumentNode): UseCase[] {
         ...examples,
         inputExampleScalarName: prepareExampleScalar(
           'input',
-          examples.successExample.input
+          examples.successExamples[0]?.input
         ),
       };
     });

@@ -404,6 +404,169 @@
           "kind": "UseCaseSlotDefinition",
           "value": {
             "kind": "UseCaseExample",
+            "exampleName": "otherSuccess",
+            "input": {
+              "kind": "UseCaseSlotDefinition",
+              "value": {
+                "kind": "ComlinkObjectLiteral",
+                "fields": [
+                  {
+                    "kind": "ComlinkAssignment",
+                    "key": [
+                      "foo"
+                    ],
+                    "value": {
+                      "kind": "ComlinkPrimitiveLiteral",
+                      "value": "second example",
+                      "location": {
+                        "start": {
+                          "line": 28,
+                          "column": 13,
+                          "charIndex": 319
+                        },
+                        "end": {
+                          "line": 28,
+                          "column": 29,
+                          "charIndex": 335
+                        }
+                      }
+                    },
+                    "location": {
+                      "start": {
+                        "line": 28,
+                        "column": 7,
+                        "charIndex": 313
+                      },
+                      "end": {
+                        "line": 28,
+                        "column": 29,
+                        "charIndex": 335
+                      }
+                    }
+                  }
+                ],
+                "location": {
+                  "start": {
+                    "line": 27,
+                    "column": 11,
+                    "charIndex": 305
+                  },
+                  "end": {
+                    "line": 29,
+                    "column": 6,
+                    "charIndex": 341
+                  }
+                }
+              },
+              "location": {
+                "start": {
+                  "line": 27,
+                  "column": 5,
+                  "charIndex": 299
+                },
+                "end": {
+                  "line": 29,
+                  "column": 6,
+                  "charIndex": 341
+                }
+              }
+            },
+            "result": {
+              "kind": "UseCaseSlotDefinition",
+              "value": {
+                "kind": "ComlinkObjectLiteral",
+                "fields": [
+                  {
+                    "kind": "ComlinkAssignment",
+                    "key": [
+                      "bar"
+                    ],
+                    "value": {
+                      "kind": "ComlinkPrimitiveLiteral",
+                      "value": "second result",
+                      "location": {
+                        "start": {
+                          "line": 31,
+                          "column": 13,
+                          "charIndex": 367
+                        },
+                        "end": {
+                          "line": 31,
+                          "column": 28,
+                          "charIndex": 382
+                        }
+                      }
+                    },
+                    "location": {
+                      "start": {
+                        "line": 31,
+                        "column": 7,
+                        "charIndex": 361
+                      },
+                      "end": {
+                        "line": 31,
+                        "column": 28,
+                        "charIndex": 382
+                      }
+                    }
+                  }
+                ],
+                "location": {
+                  "start": {
+                    "line": 30,
+                    "column": 12,
+                    "charIndex": 353
+                  },
+                  "end": {
+                    "line": 32,
+                    "column": 6,
+                    "charIndex": 388
+                  }
+                }
+              },
+              "location": {
+                "start": {
+                  "line": 30,
+                  "column": 5,
+                  "charIndex": 346
+                },
+                "end": {
+                  "line": 32,
+                  "column": 6,
+                  "charIndex": 388
+                }
+              }
+            },
+            "location": {
+              "start": {
+                "line": 26,
+                "column": 11,
+                "charIndex": 280
+              },
+              "end": {
+                "line": 33,
+                "column": 4,
+                "charIndex": 392
+              }
+            }
+          },
+          "location": {
+            "start": {
+              "line": 26,
+              "column": 3,
+              "charIndex": 272
+            },
+            "end": {
+              "line": 33,
+              "column": 4,
+              "charIndex": 392
+            }
+          }
+        },
+        {
+          "kind": "UseCaseSlotDefinition",
+          "value": {
+            "kind": "UseCaseExample",
             "exampleName": "fail",
             "input": {
               "kind": "UseCaseSlotDefinition",
@@ -420,54 +583,54 @@
                       "value": "error",
                       "location": {
                         "start": {
-                          "line": 28,
+                          "line": 37,
                           "column": 13,
-                          "charIndex": 311
+                          "charIndex": 435
                         },
                         "end": {
-                          "line": 28,
+                          "line": 37,
                           "column": 20,
-                          "charIndex": 318
+                          "charIndex": 442
                         }
                       }
                     },
                     "location": {
                       "start": {
-                        "line": 28,
+                        "line": 37,
                         "column": 7,
-                        "charIndex": 305
+                        "charIndex": 429
                       },
                       "end": {
-                        "line": 28,
+                        "line": 37,
                         "column": 20,
-                        "charIndex": 318
+                        "charIndex": 442
                       }
                     }
                   }
                 ],
                 "location": {
                   "start": {
-                    "line": 27,
+                    "line": 36,
                     "column": 11,
-                    "charIndex": 297
+                    "charIndex": 421
                   },
                   "end": {
-                    "line": 29,
+                    "line": 38,
                     "column": 6,
-                    "charIndex": 324
+                    "charIndex": 448
                   }
                 }
               },
               "location": {
                 "start": {
-                  "line": 27,
+                  "line": 36,
                   "column": 5,
-                  "charIndex": 291
+                  "charIndex": 415
                 },
                 "end": {
-                  "line": 29,
+                  "line": 38,
                   "column": 6,
-                  "charIndex": 324
+                  "charIndex": 448
                 }
               }
             },
@@ -486,80 +649,243 @@
                       "value": 12,
                       "location": {
                         "start": {
-                          "line": 31,
+                          "line": 40,
                           "column": 13,
-                          "charIndex": 349
+                          "charIndex": 473
                         },
                         "end": {
-                          "line": 31,
+                          "line": 40,
                           "column": 15,
-                          "charIndex": 351
+                          "charIndex": 475
                         }
                       }
                     },
                     "location": {
                       "start": {
-                        "line": 31,
+                        "line": 40,
                         "column": 7,
-                        "charIndex": 343
+                        "charIndex": 467
                       },
                       "end": {
-                        "line": 31,
+                        "line": 40,
                         "column": 15,
-                        "charIndex": 351
+                        "charIndex": 475
                       }
                     }
                   }
                 ],
                 "location": {
                   "start": {
-                    "line": 30,
+                    "line": 39,
                     "column": 11,
-                    "charIndex": 335
+                    "charIndex": 459
                   },
                   "end": {
-                    "line": 32,
+                    "line": 41,
                     "column": 6,
-                    "charIndex": 357
+                    "charIndex": 481
                   }
                 }
               },
               "location": {
                 "start": {
-                  "line": 30,
+                  "line": 39,
                   "column": 5,
-                  "charIndex": 329
+                  "charIndex": 453
                 },
                 "end": {
-                  "line": 32,
+                  "line": 41,
                   "column": 6,
-                  "charIndex": 357
+                  "charIndex": 481
                 }
               }
             },
             "location": {
               "start": {
-                "line": 26,
+                "line": 35,
                 "column": 11,
-                "charIndex": 280
+                "charIndex": 404
               },
               "end": {
-                "line": 33,
+                "line": 42,
                 "column": 4,
-                "charIndex": 361
+                "charIndex": 485
               }
             }
           },
           "location": {
             "start": {
-              "line": 26,
+              "line": 35,
               "column": 3,
-              "charIndex": 272
+              "charIndex": 396
             },
             "end": {
-              "line": 33,
+              "line": 42,
               "column": 4,
-              "charIndex": 361
+              "charIndex": 485
+            }
+          }
+        },
+        {
+          "kind": "UseCaseSlotDefinition",
+          "value": {
+            "kind": "UseCaseExample",
+            "exampleName": "otherFail",
+            "input": {
+              "kind": "UseCaseSlotDefinition",
+              "value": {
+                "kind": "ComlinkObjectLiteral",
+                "fields": [
+                  {
+                    "kind": "ComlinkAssignment",
+                    "key": [
+                      "foo"
+                    ],
+                    "value": {
+                      "kind": "ComlinkPrimitiveLiteral",
+                      "value": "different error",
+                      "location": {
+                        "start": {
+                          "line": 46,
+                          "column": 13,
+                          "charIndex": 533
+                        },
+                        "end": {
+                          "line": 46,
+                          "column": 30,
+                          "charIndex": 550
+                        }
+                      }
+                    },
+                    "location": {
+                      "start": {
+                        "line": 46,
+                        "column": 7,
+                        "charIndex": 527
+                      },
+                      "end": {
+                        "line": 46,
+                        "column": 30,
+                        "charIndex": 550
+                      }
+                    }
+                  }
+                ],
+                "location": {
+                  "start": {
+                    "line": 45,
+                    "column": 11,
+                    "charIndex": 519
+                  },
+                  "end": {
+                    "line": 47,
+                    "column": 6,
+                    "charIndex": 556
+                  }
+                }
+              },
+              "location": {
+                "start": {
+                  "line": 45,
+                  "column": 5,
+                  "charIndex": 513
+                },
+                "end": {
+                  "line": 47,
+                  "column": 6,
+                  "charIndex": 556
+                }
+              }
+            },
+            "error": {
+              "kind": "UseCaseSlotDefinition",
+              "value": {
+                "kind": "ComlinkObjectLiteral",
+                "fields": [
+                  {
+                    "kind": "ComlinkAssignment",
+                    "key": [
+                      "baz"
+                    ],
+                    "value": {
+                      "kind": "ComlinkPrimitiveLiteral",
+                      "value": 16,
+                      "location": {
+                        "start": {
+                          "line": 49,
+                          "column": 13,
+                          "charIndex": 581
+                        },
+                        "end": {
+                          "line": 49,
+                          "column": 15,
+                          "charIndex": 583
+                        }
+                      }
+                    },
+                    "location": {
+                      "start": {
+                        "line": 49,
+                        "column": 7,
+                        "charIndex": 575
+                      },
+                      "end": {
+                        "line": 49,
+                        "column": 15,
+                        "charIndex": 583
+                      }
+                    }
+                  }
+                ],
+                "location": {
+                  "start": {
+                    "line": 48,
+                    "column": 11,
+                    "charIndex": 567
+                  },
+                  "end": {
+                    "line": 50,
+                    "column": 6,
+                    "charIndex": 589
+                  }
+                }
+              },
+              "location": {
+                "start": {
+                  "line": 48,
+                  "column": 5,
+                  "charIndex": 561
+                },
+                "end": {
+                  "line": 50,
+                  "column": 6,
+                  "charIndex": 589
+                }
+              }
+            },
+            "location": {
+              "start": {
+                "line": 44,
+                "column": 11,
+                "charIndex": 497
+              },
+              "end": {
+                "line": 51,
+                "column": 4,
+                "charIndex": 593
+              }
+            }
+          },
+          "location": {
+            "start": {
+              "line": 44,
+              "column": 3,
+              "charIndex": 489
+            },
+            "end": {
+              "line": 51,
+              "column": 4,
+              "charIndex": 593
             }
           }
         }
@@ -571,9 +897,9 @@
           "charIndex": 47
         },
         "end": {
-          "line": 34,
+          "line": 52,
           "column": 2,
-          "charIndex": 363
+          "charIndex": 595
         }
       }
     }
@@ -585,9 +911,9 @@
       "charIndex": 0
     },
     "end": {
-      "line": 34,
+      "line": 52,
       "column": 2,
-      "charIndex": 363
+      "charIndex": 595
     }
   },
   "astMetadata": {
@@ -601,6 +927,6 @@
       "minor": 0,
       "patch": 0
     },
-    "sourceChecksum": "664d33cc0a37d582090f4241b931e4f6b60fd40b59cc2d386e65e59b2ead4855"
+    "sourceChecksum": "a3e264134151db634ddedf45e2a40564f98048ef544c72de9363124398f6e404"
   }
 }
