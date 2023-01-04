@@ -7,9 +7,11 @@ import { prepareUseCaseDetails } from './usecase';
 
 export function prepareMapTemplate(
   profile: ProfileDocumentNode,
-  provider: ProviderJson
+  provider: ProviderJson,
+  variant?: string
 ): string {
   const input = {
+    variant,
     profile: {
       version: {
         major: profile.header.version.major,

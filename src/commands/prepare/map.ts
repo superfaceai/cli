@@ -1,4 +1,5 @@
 import { flags as oclifFlags } from '@oclif/command';
+import { isValidDocumentName } from '@superfaceai/ast';
 import { normalizeSuperJsonDocument } from '@superfaceai/one-sdk';
 
 import type { ILogger } from '../../common';
@@ -32,6 +33,10 @@ export class Map extends Command {
       description:
         'When number provided, scan for super.json outside cwd within range represented by this number.',
       required: false,
+    }),
+    variant: oclifFlags.string({
+      char: 'v',
+      description: 'Variant of a map',
     }),
     force: oclifFlags.boolean({
       char: 'f',
@@ -90,6 +95,11 @@ export class Map extends Command {
         1
       );
     }
+
+    if (flags.variant !== undefined && !isValidDocumentName(flags.variant)) {
+      throw userError(`Invalid map variant: ${flags.variant}`, 1);
+    }
+
     const { superJson, superJsonPath } = await loadSuperJson({
       scan: flags.scan,
       userError,
@@ -117,8 +127,7 @@ export class Map extends Command {
         id: {
           profile: ProfileId.fromId(profileId, { userError }),
           provider: providerName,
-          // TODO: pass variant
-          variant: undefined,
+          variant: flags.variant,
         },
         superJson,
         superJsonPath,

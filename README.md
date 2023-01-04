@@ -437,21 +437,22 @@ Prepares map, based on profile and provider on a local filesystem. Created file 
 
 ```
 USAGE
-  $ superface prepare:map [PROFILEID] [PROVIDERNAME] [-q] [--noColor] [--noEmoji] [-h] [-s <value>] [-f]
-    [--station]
+  $ superface prepare:map [PROFILEID] [PROVIDERNAME] [-q] [--noColor] [--noEmoji] [-h] [-s <value>] [-v <value>]
+    [-f] [--station]
 
 ARGUMENTS
   PROFILEID     Profile Id in format [scope](optional)/[name]
   PROVIDERNAME  Name of provider
 
 FLAGS
-  -f, --force         When set to true and when profile exists in local filesystem, overwrites them.
-  -h, --help          show CLI help
-  -q, --quiet         When set to true, disables the shell echo output of action.
-  -s, --scan=<value>  When number provided, scan for super.json outside cwd within range represented by this number.
-  --noColor           When set to true, disables all colored output.
-  --noEmoji           When set to true, disables displaying emoji in output.
-  --station           When set to true, command will create map in folder structure of Superface station
+  -f, --force            When set to true and when profile exists in local filesystem, overwrites them.
+  -h, --help             show CLI help
+  -q, --quiet            When set to true, disables the shell echo output of action.
+  -s, --scan=<value>     When number provided, scan for super.json outside cwd within range represented by this number.
+  -v, --variant=<value>  Variant of a map
+  --noColor              When set to true, disables all colored output.
+  --noEmoji              When set to true, disables displaying emoji in output.
+  --station              When set to true, command will create map in folder structure of Superface station
 
 DESCRIPTION
   Prepares map, based on profile and provider on a local filesystem. Created file contains prepared structure with
