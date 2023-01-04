@@ -23,7 +23,7 @@ usecase getCharacter {
     }
   }
 
-    example otherSuccess {
+  example otherSuccess {
     input {
       foo = "second example"
     }
