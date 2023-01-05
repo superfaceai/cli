@@ -35,9 +35,9 @@ async function enterSecuritySchema(
         schema: 'api key token' | 'bearer token' | 'basic' | 'digest' | 'none';
       }>({
         name: 'schema',
-        message: `Select a security schema for ${provider}:`,
+        message: `Select authentication method for ${baseUrl}:`,
         type: 'list',
-        choices: ['api key token', 'bearer token', 'basic', 'digest', 'none'],
+        choices: ['API Key', 'Bearer Token', 'Basic Auth', 'Digest', 'none'],
       })
     ).schema;
 
@@ -72,7 +72,7 @@ async function enterApiKeySecurity(
   const placement: ApiKeyPlacement = (
     await inquirer.prompt<{ value: ApiKeyPlacement }>({
       name: 'value',
-      message: `Enter placement of API key for provider ${provider}:`,
+      message: `Where is the API key passed:`,
       type: 'list',
       choices: ['header', 'body', 'path', 'query'],
     })
@@ -81,7 +81,7 @@ async function enterApiKeySecurity(
   const name = (
     await inquirer.prompt<{ name: string | undefined }>({
       name: 'name',
-      message: `Enter optional name of API key security property for provider ${provider}:`,
+      message: `What is the name of ${placement} param for the API key:`,
       type: 'input',
       default: undefined,
     })
