@@ -76,105 +76,116 @@ describe('Prepare map logic', () => {
   });
 
   describe('when provider has unverfied prefix', () => {
-    it('writes prepared provider with to file', async () => {
-      jest.mocked(selecetBaseUrl).mockResolvedValue('https://swapi.dev/api');
-      jest
-        .mocked(selectIntegrationParameters)
-        .mockResolvedValue({ parameters: [], values: {} });
-      jest.mocked(selectSecurity).mockResolvedValue({});
+    describe('when provider does not exist in registry', () => {
+      it('writes prepared provider with to file', async () => {
+        jest.mocked(fetchProviderInfo).mockRejectedValue(
+          new ServiceApiError({
+            status: 404,
+            instance: 'test',
+            title: 'test',
+            detail: 'test',
+          })
+        );
 
-      writeIfAbsentSpy.mockResolvedValue(true);
-      writeOnceSpy.mockResolvedValue(undefined);
+        jest.mocked(selecetBaseUrl).mockResolvedValue('https://swapi.dev/api');
+        jest
+          .mocked(selectIntegrationParameters)
+          .mockResolvedValue({ parameters: [], values: {} });
+        jest.mocked(selectSecurity).mockResolvedValue({});
 
-      await prepareProvider(
-        {
-          provider: unverfiedProvider,
-          superJson: mockSuperJson,
-          superJsonPath,
-        },
-        {
-          logger,
-          userError,
-        }
-      );
+        writeIfAbsentSpy.mockResolvedValue(true);
+        writeOnceSpy.mockResolvedValue(undefined);
 
-      expect(writeIfAbsentSpy).toBeCalledWith(
-        `${unverfiedProvider}.provider.json`,
-        expect.any(String),
-        { dirs: true, force: undefined }
-      );
-      expect(writeOnceSpy).toBeCalledWith(superJsonPath, expect.any(String));
-    });
-
-    it('writes prepared provider with to file with station flag', async () => {
-      jest.mocked(selecetBaseUrl).mockResolvedValue('https://swapi.dev/api');
-      jest
-        .mocked(selectIntegrationParameters)
-        .mockResolvedValue({ parameters: [], values: {} });
-      jest.mocked(selectSecurity).mockResolvedValue({});
-
-      writeIfAbsentSpy.mockResolvedValue(true);
-      writeOnceSpy.mockResolvedValue(undefined);
-
-      await prepareProvider(
-        {
-          provider: unverfiedProvider,
-          superJson: mockSuperJson,
-          superJsonPath,
-          options: {
-            station: true,
+        await prepareProvider(
+          {
+            provider: unverfiedProvider,
+            superJson: mockSuperJson,
+            superJsonPath,
           },
-        },
-        {
-          logger,
-          userError,
-        }
-      );
+          {
+            logger,
+            userError,
+          }
+        );
 
-      expect(writeIfAbsentSpy).toBeCalledWith(
-        `providers/${unverfiedProvider}.json`,
-        expect.any(String),
-        { dirs: true, force: undefined }
-      );
-      expect(writeOnceSpy).toBeCalledWith(superJsonPath, expect.any(String));
-    });
+        expect(writeIfAbsentSpy).toBeCalledWith(
+          `${unverfiedProvider}.provider.json`,
+          expect.any(String),
+          { dirs: true, force: undefined }
+        );
+        expect(writeOnceSpy).toBeCalledWith(superJsonPath, expect.any(String));
+      });
 
-    it('overwrites existing provider with force flag', async () => {
-      jest.mocked(selecetBaseUrl).mockResolvedValue('https://swapi.dev/api');
-      jest
-        .mocked(selectIntegrationParameters)
-        .mockResolvedValue({ parameters: [], values: {} });
-      jest.mocked(selectSecurity).mockResolvedValue({});
+      it('writes prepared provider with to file with station flag', async () => {
+        jest.mocked(selecetBaseUrl).mockResolvedValue('https://swapi.dev/api');
+        jest
+          .mocked(selectIntegrationParameters)
+          .mockResolvedValue({ parameters: [], values: {} });
+        jest.mocked(selectSecurity).mockResolvedValue({});
 
-      writeIfAbsentSpy.mockResolvedValue(true);
-      writeOnceSpy.mockResolvedValue(undefined);
+        writeIfAbsentSpy.mockResolvedValue(true);
+        writeOnceSpy.mockResolvedValue(undefined);
 
-      await prepareProvider(
-        {
-          provider: unverfiedProvider,
-          superJson: {
-            providers: {
-              [unverfiedProvider]: {},
+        await prepareProvider(
+          {
+            provider: unverfiedProvider,
+            superJson: mockSuperJson,
+            superJsonPath,
+            options: {
+              station: true,
             },
           },
-          superJsonPath,
-          options: {
-            station: true,
-            force: true,
-          },
-        },
-        {
-          logger,
-          userError,
-        }
-      );
+          {
+            logger,
+            userError,
+          }
+        );
 
-      expect(writeIfAbsentSpy).toBeCalledWith(
-        `providers/${unverfiedProvider}.json`,
-        expect.any(String),
-        { dirs: true, force: true }
-      );
-      expect(writeOnceSpy).toBeCalledWith(superJsonPath, expect.any(String));
+        expect(writeIfAbsentSpy).toBeCalledWith(
+          `providers/${unverfiedProvider}.json`,
+          expect.any(String),
+          { dirs: true, force: undefined }
+        );
+        expect(writeOnceSpy).toBeCalledWith(superJsonPath, expect.any(String));
+      });
+
+      it('overwrites existing provider with force flag', async () => {
+        jest.mocked(selecetBaseUrl).mockResolvedValue('https://swapi.dev/api');
+        jest
+          .mocked(selectIntegrationParameters)
+          .mockResolvedValue({ parameters: [], values: {} });
+        jest.mocked(selectSecurity).mockResolvedValue({});
+
+        writeIfAbsentSpy.mockResolvedValue(true);
+        writeOnceSpy.mockResolvedValue(undefined);
+
+        await prepareProvider(
+          {
+            provider: unverfiedProvider,
+            superJson: {
+              providers: {
+                [unverfiedProvider]: {},
+              },
+            },
+            superJsonPath,
+            options: {
+              station: true,
+              force: true,
+            },
+          },
+          {
+            logger,
+            userError,
+          }
+        );
+
+        expect(writeIfAbsentSpy).toBeCalledWith(
+          `providers/${unverfiedProvider}.json`,
+          expect.any(String),
+          { dirs: true, force: true }
+        );
+        expect(writeOnceSpy).toBeCalledWith(superJsonPath, expect.any(String));
+      });
     });
   });
 

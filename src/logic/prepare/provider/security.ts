@@ -12,9 +12,10 @@ import {
 import inquirer from 'inquirer';
 
 export async function selectSecurity(
-  provider: string
+  provider: string,
+  baseUrl: string
 ): Promise<{ value?: SecurityValues; scheme?: SecurityScheme }> {
-  const scheme = await enterSecuritySchema(provider);
+  const scheme = await enterSecuritySchema(baseUrl);
 
   if (scheme === 'none') {
     return {};
@@ -27,7 +28,7 @@ export async function selectSecurity(
 }
 
 async function enterSecuritySchema(
-  provider: string
+  baseUrl: string
 ): Promise<SecurityScheme | 'none'> {
   const schema: 'api key token' | 'bearer token' | 'basic' | 'digest' | 'none' =
     (
@@ -42,7 +43,7 @@ async function enterSecuritySchema(
     ).schema;
 
   if (schema === 'api key token') {
-    return enterApiKeySecurity(provider);
+    return enterApiKeySecurity();
   } else if (schema === 'bearer token') {
     return {
       id: 'bearer',
@@ -66,9 +67,7 @@ async function enterSecuritySchema(
   return 'none';
 }
 
-async function enterApiKeySecurity(
-  provider: string
-): Promise<ApiKeySecurityScheme> {
+async function enterApiKeySecurity(): Promise<ApiKeySecurityScheme> {
   const placement: ApiKeyPlacement = (
     await inquirer.prompt<{ value: ApiKeyPlacement }>({
       name: 'value',

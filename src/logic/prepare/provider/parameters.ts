@@ -9,33 +9,13 @@ export async function selectIntegrationParameters(provider: string): Promise<{
   const parameters: IntegrationParameter[] = [];
   let exit = false;
 
-  const skip: boolean = (
-    await inquirer.prompt<{ skip: boolean }>({
-      name: 'skip',
-      message: 'Do you want to skip setting up integration parameters?:',
-      type: 'confirm',
-      default: false,
-    })
-  ).skip;
-
-  if (skip) {
-    return {
-      parameters: [],
-      values: {},
-    };
-  }
-
   while (!exit) {
-    parameters.push(await enterParameter(provider));
-
-    exit = !(
-      await inquirer.prompt<{ continue: boolean }>({
-        name: 'continue',
-        message: 'Do you want to set up another integration parameter?:',
-        type: 'confirm',
-        default: false,
-      })
-    ).continue;
+    const newParameter = await enterParameter(provider);
+    if (newParameter !== undefined) {
+      parameters.push(newParameter);
+    } else {
+      exit = true;
+    }
   }
 
   return {
@@ -44,13 +24,18 @@ export async function selectIntegrationParameters(provider: string): Promise<{
   };
 }
 
-async function enterParameter(provider: string): Promise<IntegrationParameter> {
+async function enterParameter(
+  provider: string
+): Promise<IntegrationParameter | undefined> {
   const { name } = await inquirer.prompt<{ name: string }>({
     name: 'name',
-    message: `Enter "name" of integration parameter for provider ${provider}:`,
+    message: `Enter "name" of integration parameter for provider ${provider}, do not enter anything to end:`,
     type: 'input',
-    default: `${provider}-api-key`,
   });
+
+  if (name === undefined) {
+    return undefined;
+  }
 
   const { defaultValue } = await inquirer.prompt<{ defaultValue: string }>({
     name: 'defaultValue',

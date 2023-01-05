@@ -9,7 +9,9 @@ describe('Select security logic', () => {
   it('returns empty object when "none" security is selected', async () => {
     jest.spyOn(inquirer, 'prompt').mockResolvedValueOnce({ schema: 'mone' });
 
-    await expect(selectSecurity('test')).resolves.toEqual({});
+    await expect(
+      selectSecurity('test', 'https://swapi.dev/api')
+    ).resolves.toEqual({});
   });
 
   describe('when bearer security is selected', () => {
@@ -18,7 +20,9 @@ describe('Select security logic', () => {
         .spyOn(inquirer, 'prompt')
         .mockResolvedValueOnce({ schema: 'bearer token' });
 
-      await expect(selectSecurity('test')).resolves.toEqual({
+      await expect(
+        selectSecurity('test', 'https://swapi.dev/api')
+      ).resolves.toEqual({
         scheme: {
           id: 'bearer',
           type: SecurityType.HTTP,
@@ -33,7 +37,9 @@ describe('Select security logic', () => {
     it('returns correct scheme and values', async () => {
       jest.spyOn(inquirer, 'prompt').mockResolvedValueOnce({ schema: 'basic' });
 
-      await expect(selectSecurity('test')).resolves.toEqual({
+      await expect(
+        selectSecurity('test', 'https://swapi.dev/api')
+      ).resolves.toEqual({
         scheme: {
           id: 'basic',
           type: SecurityType.HTTP,
@@ -50,7 +56,9 @@ describe('Select security logic', () => {
         .spyOn(inquirer, 'prompt')
         .mockResolvedValueOnce({ schema: 'digest' });
 
-      await expect(selectSecurity('test')).resolves.toEqual({
+      await expect(
+        selectSecurity('test', 'https://swapi.dev/api')
+      ).resolves.toEqual({
         scheme: {
           id: 'digest',
           type: SecurityType.HTTP,
@@ -69,7 +77,9 @@ describe('Select security logic', () => {
         .mockResolvedValueOnce({ value: 'header' })
         .mockResolvedValueOnce({ name: 'auth' });
 
-      await expect(selectSecurity('test')).resolves.toEqual({
+      await expect(
+        selectSecurity('test', 'https://swapi.dev/api')
+      ).resolves.toEqual({
         scheme: {
           id: 'apiKey',
           in: 'header',
@@ -87,7 +97,9 @@ describe('Select security logic', () => {
         .mockResolvedValueOnce({ value: 'body' })
         .mockResolvedValueOnce({ name: 'auth' });
 
-      await expect(selectSecurity('test')).resolves.toEqual({
+      await expect(
+        selectSecurity('test', 'https://swapi.dev/api')
+      ).resolves.toEqual({
         scheme: {
           id: 'apiKey',
           in: 'body',
@@ -105,7 +117,9 @@ describe('Select security logic', () => {
         .mockResolvedValueOnce({ value: 'query' })
         .mockResolvedValueOnce({ name: 'auth' });
 
-      await expect(selectSecurity('test')).resolves.toEqual({
+      await expect(
+        selectSecurity('test', 'https://swapi.dev/api')
+      ).resolves.toEqual({
         scheme: {
           id: 'apiKey',
           in: 'query',
@@ -123,7 +137,9 @@ describe('Select security logic', () => {
         .mockResolvedValueOnce({ value: 'path' })
         .mockResolvedValueOnce({ name: 'auth' });
 
-      await expect(selectSecurity('test')).resolves.toEqual({
+      await expect(
+        selectSecurity('test', 'https://swapi.dev/api')
+      ).resolves.toEqual({
         scheme: {
           id: 'apiKey',
           in: 'path',
@@ -141,7 +157,9 @@ describe('Select security logic', () => {
         .mockResolvedValueOnce({ value: 'path' })
         .mockResolvedValueOnce({ name: undefined });
 
-      await expect(selectSecurity('test')).resolves.toEqual({
+      await expect(
+        selectSecurity('test', 'https://swapi.dev/api')
+      ).resolves.toEqual({
         scheme: {
           id: 'apiKey',
           in: 'path',

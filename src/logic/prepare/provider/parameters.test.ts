@@ -17,10 +17,9 @@ describe('Select integration parameters logic', () => {
   it('returns one integration parameter', async () => {
     jest
       .spyOn(inquirer, 'prompt')
-      .mockResolvedValueOnce({ skip: false })
       .mockResolvedValueOnce({ name: 'version' })
       .mockResolvedValueOnce({ defaultValue: 'v1' })
-      .mockResolvedValueOnce({ continue: false });
+      .mockResolvedValueOnce({ name: undefined });
 
     await expect(selectIntegrationParameters('test')).resolves.toEqual({
       parameters: [
@@ -36,13 +35,11 @@ describe('Select integration parameters logic', () => {
   it('returns two integration parameters', async () => {
     jest
       .spyOn(inquirer, 'prompt')
-      .mockResolvedValueOnce({ skip: false })
       .mockResolvedValueOnce({ name: 'version' })
       .mockResolvedValueOnce({ defaultValue: 'v1' })
-      .mockResolvedValueOnce({ continue: true })
       .mockResolvedValueOnce({ name: 'format' })
       .mockResolvedValueOnce({ defaultValue: undefined })
-      .mockResolvedValueOnce({ continue: false });
+      .mockResolvedValueOnce({ name: undefined });
 
     await expect(selectIntegrationParameters('test')).resolves.toEqual({
       parameters: [

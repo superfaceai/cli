@@ -1,5 +1,6 @@
 import type {
   ProviderEntry,
+  ProviderJson,
   SecurityValues,
   SuperJsonDocument,
 } from '@superfaceai/ast';
@@ -21,6 +22,22 @@ import * as providerTemplate from '../../../templates/provider';
 import { selecetBaseUrl } from './base-url';
 import { selectIntegrationParameters } from './parameters';
 import { selectSecurity } from './security';
+
+async function checkRemote(
+  name: string,
+  { userError }: { userError: UserError }
+): Promise<ProviderJson | undefined> {
+  try {
+    return await fetchProviderInfo(name);
+  } catch (error) {
+    // If provider does not exists in SF register (is not verified) it should start with unverified
+    if (error instanceof ServiceApiError && error.status === 404) {
+      return undefined;
+    } else {
+      throw userError(`Error when fetching provider info: ${String(error)}`, 1);
+    }
+  }
+}
 
 export async function prepareProvider(
   {
@@ -51,62 +68,55 @@ export async function prepareProvider(
 
   // check remote
   let name: string = provider;
-  if (!provider.startsWith(UNVERIFIED_PROVIDER_PREFIX)) {
-    try {
-      const remote = await fetchProviderInfo(name);
+  const remoteProviderJson = await checkRemote(name, { userError });
 
-      const useRemote = (
-        await inquirer.prompt<{ continue: boolean }>({
-          name: 'continue',
-          message: `Provider "${provider}" found in Superface registry:\n${JSON.stringify(
-            remote,
-            undefined,
-            2
-          )}\nDo you want to use it?`,
-          type: 'confirm',
-          default: true,
-        })
-      ).continue;
+  if (remoteProviderJson !== undefined) {
+    const useRemote = (
+      await inquirer.prompt<{ continue: boolean }>({
+        name: 'continue',
+        message: `Provider "${provider}" found in Superface registry:\n${JSON.stringify(
+          remoteProviderJson,
+          undefined,
+          2
+        )}\nDo you want to use it?`,
+        type: 'confirm',
+        default: true,
+      })
+    ).continue;
 
-      if (useRemote) {
-        // set up values and add provider to super json
-        await updateSuperJson(
-          {
+    if (useRemote) {
+      // set up values and add provider to super json
+      await updateSuperJson(
+        {
+          name,
+          superJson,
+          superJsonPath,
+          security: prepareSecurityValues(
             name,
-            superJson,
-            superJsonPath,
-            security: prepareSecurityValues(name, remote.securitySchemes ?? []),
-            parameters: prepareProviderParameters(
-              name,
-              remote.parameters ?? []
-            ),
-          },
-          { logger }
-        );
+            remoteProviderJson.securitySchemes ?? []
+          ),
+          parameters: prepareProviderParameters(
+            name,
+            remoteProviderJson.parameters ?? []
+          ),
+        },
+        { logger }
+      );
 
-        return;
-      }
-    } catch (error) {
-      // If provider does not exists in SF register (is not verified) it should start with unverified
-      if (error instanceof ServiceApiError && error.status === 404) {
-        const rename = (
-          await inquirer.prompt<{ continue: boolean }>({
-            name: 'continue',
-            message: `Provider: ${name} does not exist in Superface store and it does not start with: ${UNVERIFIED_PROVIDER_PREFIX} prefix.\nDo you want to rename it to "${UNVERIFIED_PROVIDER_PREFIX}${name}"?`,
-            type: 'confirm',
-            default: true,
-          })
-        ).continue;
+      return;
+    }
+  } else if (!name.startsWith(UNVERIFIED_PROVIDER_PREFIX)) {
+    const rename = (
+      await inquirer.prompt<{ continue: boolean }>({
+        name: 'continue',
+        message: `Provider: ${name} does not exist in Superface store and it does not start with: ${UNVERIFIED_PROVIDER_PREFIX} prefix.\nDo you want to rename it to "${UNVERIFIED_PROVIDER_PREFIX}${name}"?`,
+        type: 'confirm',
+        default: true,
+      })
+    ).continue;
 
-        if (rename) {
-          name = `${UNVERIFIED_PROVIDER_PREFIX}${name}`;
-        }
-      } else {
-        throw userError(
-          `Error when fetching provider info: ${String(error)}`,
-          1
-        );
-      }
+    if (rename) {
+      name = `${UNVERIFIED_PROVIDER_PREFIX}${name}`;
     }
   }
 
@@ -114,7 +124,7 @@ export async function prepareProvider(
   const baseUrl = await selecetBaseUrl(name, { userError });
 
   // prepare security
-  const security = await selectSecurity(name);
+  const security = await selectSecurity(name, baseUrl);
 
   // prepare integration parameters
   const parameters = await selectIntegrationParameters(name);
