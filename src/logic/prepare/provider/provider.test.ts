@@ -75,9 +75,188 @@ describe('Prepare map logic', () => {
     expect(logger.stdout).toContainEqual(['providerAlreadyExists', [provider]]);
   });
 
-  describe('when provider has unverfied prefix', () => {
+  describe('when provider does not have unverfied prefix', () => {
+    describe('when provider exists in registry', () => {
+      it('updates only super.json when user uses remote provider', async () => {
+        jest
+          .mocked(fetchProviderInfo)
+          .mockResolvedValue(mockProviderJson({ name: provider }));
+
+        jest
+          .spyOn(inquirer, 'prompt')
+          .mockResolvedValueOnce({ continue: true });
+
+        writeIfAbsentSpy.mockResolvedValue(true);
+        writeOnceSpy.mockResolvedValue(undefined);
+
+        await prepareProvider(
+          {
+            provider,
+            superJson: mockSuperJson,
+            superJsonPath,
+          },
+          {
+            logger,
+            userError,
+          }
+        );
+
+        expect(writeIfAbsentSpy).not.toHaveBeenCalled();
+        expect(writeOnceSpy).toBeCalledWith(superJsonPath, expect.any(String));
+      });
+    });
+
     describe('when provider does not exist in registry', () => {
-      it('writes prepared provider with to file', async () => {
+      it('throws on unknown fetch error', async () => {
+        const error = new ServiceApiError({
+          status: 400,
+          instance: 'test',
+          title: 'test',
+          detail: 'test',
+        });
+        jest.mocked(fetchProviderInfo).mockRejectedValue(error);
+
+        await expect(
+          prepareProvider(
+            {
+              provider,
+              superJson: mockSuperJson,
+              superJsonPath,
+            },
+            {
+              logger,
+              userError,
+            }
+          )
+        ).rejects.toThrow(
+          `Error when fetching provider info: ${String(error)}`
+        );
+      });
+
+      it('writes prepared provider to file with added prefix', async () => {
+        jest.mocked(fetchProviderInfo).mockRejectedValue(
+          new ServiceApiError({
+            status: 404,
+            instance: 'test',
+            title: 'test',
+            detail: 'test',
+          })
+        );
+
+        jest
+          .spyOn(inquirer, 'prompt')
+          .mockResolvedValueOnce({ continue: true });
+
+        jest.mocked(selecetBaseUrl).mockResolvedValue('https://swapi.dev/api');
+        jest
+          .mocked(selectIntegrationParameters)
+          .mockResolvedValue({ parameters: [], values: {} });
+        jest.mocked(selectSecurity).mockResolvedValue({});
+
+        writeIfAbsentSpy.mockResolvedValue(true);
+        writeOnceSpy.mockResolvedValue(undefined);
+
+        await prepareProvider(
+          {
+            provider,
+            superJson: mockSuperJson,
+            superJsonPath,
+          },
+          {
+            logger,
+            userError,
+          }
+        );
+
+        expect(writeIfAbsentSpy).toBeCalledWith(
+          `${UNVERIFIED_PROVIDER_PREFIX}${provider}.provider.json`,
+          expect.any(String),
+          { dirs: true, force: undefined }
+        );
+        expect(writeOnceSpy).toBeCalledWith(superJsonPath, expect.any(String));
+      });
+
+      it('writes prepared provider to file with --station flag', async () => {
+        jest.mocked(fetchProviderInfo).mockRejectedValue(
+          new ServiceApiError({
+            status: 404,
+            instance: 'test',
+            title: 'test',
+            detail: 'test',
+          })
+        );
+
+        jest
+          .spyOn(inquirer, 'prompt')
+          .mockResolvedValueOnce({ continue: false });
+
+        jest.mocked(selecetBaseUrl).mockResolvedValue('https://swapi.dev/api');
+        jest
+          .mocked(selectIntegrationParameters)
+          .mockResolvedValue({ parameters: [], values: {} });
+        jest.mocked(selectSecurity).mockResolvedValue({});
+
+        writeIfAbsentSpy.mockResolvedValue(true);
+        writeOnceSpy.mockResolvedValue(undefined);
+
+        await prepareProvider(
+          {
+            provider,
+            superJson: mockSuperJson,
+            superJsonPath,
+            options: {
+              station: true,
+            },
+          },
+          {
+            logger,
+            userError,
+          }
+        );
+
+        expect(writeIfAbsentSpy).toBeCalledWith(
+          `providers/${provider}.json`,
+          expect.any(String),
+          { dirs: true, force: undefined }
+        );
+        expect(writeOnceSpy).toBeCalledWith(superJsonPath, expect.any(String));
+      });
+    });
+  });
+
+  describe('when provider has unverfied prefix', () => {
+    describe('when provider exists in registry', () => {
+      it('updates only super.json when user uses remote provider', async () => {
+        jest
+          .mocked(fetchProviderInfo)
+          .mockResolvedValue(mockProviderJson({ name: unverfiedProvider }));
+
+        jest
+          .spyOn(inquirer, 'prompt')
+          .mockResolvedValueOnce({ continue: true });
+
+        writeIfAbsentSpy.mockResolvedValue(true);
+        writeOnceSpy.mockResolvedValue(undefined);
+
+        await prepareProvider(
+          {
+            provider,
+            superJson: mockSuperJson,
+            superJsonPath,
+          },
+          {
+            logger,
+            userError,
+          }
+        );
+
+        expect(writeIfAbsentSpy).not.toHaveBeenCalled();
+        expect(writeOnceSpy).toBeCalledWith(superJsonPath, expect.any(String));
+      });
+    });
+
+    describe('when provider does not exist in registry', () => {
+      it('writes prepared provider to file', async () => {
         jest.mocked(fetchProviderInfo).mockRejectedValue(
           new ServiceApiError({
             status: 404,
@@ -116,7 +295,7 @@ describe('Prepare map logic', () => {
         expect(writeOnceSpy).toBeCalledWith(superJsonPath, expect.any(String));
       });
 
-      it('writes prepared provider with to file with station flag', async () => {
+      it('writes prepared provider to file with station flag', async () => {
         jest.mocked(selecetBaseUrl).mockResolvedValue('https://swapi.dev/api');
         jest
           .mocked(selectIntegrationParameters)
@@ -186,145 +365,6 @@ describe('Prepare map logic', () => {
         );
         expect(writeOnceSpy).toBeCalledWith(superJsonPath, expect.any(String));
       });
-    });
-  });
-
-  describe('when provider without prefix is found in registry', () => {
-    it('updates super.json', async () => {
-      jest
-        .mocked(fetchProviderInfo)
-        .mockResolvedValue(mockProviderJson({ name: provider }));
-
-      jest.spyOn(inquirer, 'prompt').mockResolvedValueOnce({ continue: true });
-
-      writeIfAbsentSpy.mockResolvedValue(true);
-      writeOnceSpy.mockResolvedValue(undefined);
-
-      await prepareProvider(
-        {
-          provider,
-          superJson: mockSuperJson,
-          superJsonPath,
-        },
-        {
-          logger,
-          userError,
-        }
-      );
-
-      expect(writeIfAbsentSpy).not.toHaveBeenCalled();
-      expect(writeOnceSpy).toBeCalledWith(superJsonPath, expect.any(String));
-    });
-  });
-
-  describe('when provider without prefix is not found in registry', () => {
-    it('throws on unknown fetch error', async () => {
-      const error = new ServiceApiError({
-        status: 400,
-        instance: 'test',
-        title: 'test',
-        detail: 'test',
-      });
-      jest.mocked(fetchProviderInfo).mockRejectedValue(error);
-
-      await expect(
-        prepareProvider(
-          {
-            provider,
-            superJson: mockSuperJson,
-            superJsonPath,
-          },
-          {
-            logger,
-            userError,
-          }
-        )
-      ).rejects.toThrow(`Error when fetching provider info: ${String(error)}`);
-    });
-
-    it('writes prepared provider with prefix to file', async () => {
-      jest.mocked(fetchProviderInfo).mockRejectedValue(
-        new ServiceApiError({
-          status: 404,
-          instance: 'test',
-          title: 'test',
-          detail: 'test',
-        })
-      );
-
-      jest.spyOn(inquirer, 'prompt').mockResolvedValueOnce({ continue: true });
-
-      jest.mocked(selecetBaseUrl).mockResolvedValue('https://swapi.dev/api');
-      jest
-        .mocked(selectIntegrationParameters)
-        .mockResolvedValue({ parameters: [], values: {} });
-      jest.mocked(selectSecurity).mockResolvedValue({});
-
-      writeIfAbsentSpy.mockResolvedValue(true);
-      writeOnceSpy.mockResolvedValue(undefined);
-
-      await prepareProvider(
-        {
-          provider,
-          superJson: mockSuperJson,
-          superJsonPath,
-        },
-        {
-          logger,
-          userError,
-        }
-      );
-
-      expect(writeIfAbsentSpy).toBeCalledWith(
-        `${UNVERIFIED_PROVIDER_PREFIX}${provider}.provider.json`,
-        expect.any(String),
-        { dirs: true, force: undefined }
-      );
-      expect(writeOnceSpy).toBeCalledWith(superJsonPath, expect.any(String));
-    });
-
-    it('writes prepared provider without prefix to file --station flag', async () => {
-      jest.mocked(fetchProviderInfo).mockRejectedValue(
-        new ServiceApiError({
-          status: 404,
-          instance: 'test',
-          title: 'test',
-          detail: 'test',
-        })
-      );
-
-      jest.spyOn(inquirer, 'prompt').mockResolvedValueOnce({ continue: false });
-
-      jest.mocked(selecetBaseUrl).mockResolvedValue('https://swapi.dev/api');
-      jest
-        .mocked(selectIntegrationParameters)
-        .mockResolvedValue({ parameters: [], values: {} });
-      jest.mocked(selectSecurity).mockResolvedValue({});
-
-      writeIfAbsentSpy.mockResolvedValue(true);
-      writeOnceSpy.mockResolvedValue(undefined);
-
-      await prepareProvider(
-        {
-          provider,
-          superJson: mockSuperJson,
-          superJsonPath,
-          options: {
-            station: true,
-          },
-        },
-        {
-          logger,
-          userError,
-        }
-      );
-
-      expect(writeIfAbsentSpy).toBeCalledWith(
-        `providers/${provider}.json`,
-        expect.any(String),
-        { dirs: true, force: undefined }
-      );
-      expect(writeOnceSpy).toBeCalledWith(superJsonPath, expect.any(String));
     });
   });
 });
