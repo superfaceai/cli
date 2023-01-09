@@ -8,17 +8,17 @@ import {
 import { MockLogger } from '../../common';
 import { createUserError } from '../../common/error';
 import { ProfileId } from '../../common/profile';
+import { createMockMapTest } from '../../logic/create/mock-map-test';
 import { detectSuperJson } from '../../logic/install';
-import { prepareTest } from '../../logic/prepare/test';
 import { CommandInstance } from '../../test/utils';
-import PrepareTest from './test';
+import { MockMapTest } from './mock-map-test';
 
 jest.mock('../../logic/install', () => ({
   detectSuperJson: jest.fn(),
 }));
 
-jest.mock('../../logic/prepare/test', () => ({
-  prepareTest: jest.fn(),
+jest.mock('../../logic/create/mock-map-test', () => ({
+  createMockMapTest: jest.fn(),
 }));
 
 jest.mock('@superfaceai/one-sdk', () => ({
@@ -26,22 +26,21 @@ jest.mock('@superfaceai/one-sdk', () => ({
   loadSuperJson: jest.fn(),
 }));
 
-describe('Prepare test command', () => {
+describe('Prepare mock map test command', () => {
   const userError = createUserError(false);
 
   afterEach(() => {
     jest.resetAllMocks();
   });
 
-  describe('running prepare test command', () => {
-    let instance: PrepareTest;
+  describe('running prepare command', () => {
+    let instance: MockMapTest;
     let logger: MockLogger;
 
     const mockProfile = 'starwars/character-information';
-    const mockProvider = 'swapi';
 
     beforeEach(() => {
-      instance = CommandInstance(PrepareTest);
+      instance = CommandInstance(MockMapTest);
       logger = new MockLogger();
     });
 
@@ -52,9 +51,9 @@ describe('Prepare test command', () => {
           logger,
           userError,
           flags: {},
-          args: { profileId: mockProfile, providerName: mockProvider },
+          args: { profileId: mockProfile },
         })
-      ).rejects.toThrow('❌ Unable to prepare test, super.json not found');
+      ).rejects.toThrow('Unable to load super.json, super.json not found');
     });
 
     it('throws when super.json not loaded correctly', async () => {
@@ -67,7 +66,7 @@ describe('Prepare test command', () => {
           logger,
           userError,
           flags: {},
-          args: { profileId: mockProfile, providerName: mockProvider },
+          args: { profileId: mockProfile },
         })
       ).rejects.toThrow('Unable to load super.json: test error');
     });
@@ -79,7 +78,7 @@ describe('Prepare test command', () => {
         instance.execute({
           logger,
           userError,
-          args: { profileId: mockProfile, providerName: mockProvider },
+          args: { profileId: mockProfile },
           flags: {
             scan: 7,
           },
@@ -98,7 +97,7 @@ describe('Prepare test command', () => {
         instance.execute({
           logger,
           userError,
-          args: { profileId: 'U!0_', providerName: mockProvider },
+          args: { profileId: 'U!0_' },
           flags: {
             scan: 3,
           },
@@ -106,24 +105,6 @@ describe('Prepare test command', () => {
       ).rejects.toThrow(
         'Invalid profile id: "U!0_" is not a valid lowercase identifier'
       );
-      expect(detectSuperJson).not.toHaveBeenCalled();
-      expect(loadSuperJson).not.toHaveBeenCalled();
-    }, 10000);
-
-    it('throws error on invalid provider name', async () => {
-      jest.mocked(detectSuperJson).mockResolvedValue('.');
-      jest.mocked(loadSuperJson).mockResolvedValue(ok({}));
-
-      await expect(
-        instance.execute({
-          logger,
-          userError,
-          args: { profileId: mockProfile, providerName: 'U!0_' },
-          flags: {
-            scan: 3,
-          },
-        })
-      ).rejects.toThrow('Invalid provider name: U!0_');
       expect(detectSuperJson).not.toHaveBeenCalled();
       expect(loadSuperJson).not.toHaveBeenCalled();
     }, 10000);
@@ -136,39 +117,13 @@ describe('Prepare test command', () => {
         instance.execute({
           logger,
           userError,
-          args: { profileId: mockProfile, providerName: mockProvider },
+          args: { profileId: mockProfile },
           flags: {
             scan: 3,
           },
         })
       ).rejects.toThrow(
-        `❌ Unable to prepare test, profile: "${mockProfile}" not found in super.json`
-      );
-    }, 10000);
-
-    it('throws error on provider not found in super.json', async () => {
-      jest.mocked(detectSuperJson).mockResolvedValue('.');
-      jest.mocked(loadSuperJson).mockResolvedValue(
-        ok({
-          profiles: {
-            [mockProfile]: {
-              file: '',
-            },
-          },
-        })
-      );
-
-      await expect(
-        instance.execute({
-          logger,
-          userError,
-          args: { profileId: mockProfile, providerName: mockProvider },
-          flags: {
-            scan: 3,
-          },
-        })
-      ).rejects.toThrow(
-        `❌ Unable to prepare test, provider: "${mockProvider}" not found in super.json`
+        `Unable to create, profile: "${mockProfile}" not found in super.json`
       );
     }, 10000);
 
@@ -176,11 +131,6 @@ describe('Prepare test command', () => {
       const superJson = {
         profiles: {
           [mockProfile]: {
-            file: '',
-          },
-        },
-        providers: {
-          [mockProvider]: {
             file: '',
           },
         },
@@ -193,22 +143,18 @@ describe('Prepare test command', () => {
       await instance.execute({
         logger,
         userError,
-        args: { profileId: mockProfile, providerName: mockProvider },
+        args: { profileId: mockProfile },
         flags: {
           scan: 3,
         },
       });
 
-      expect(prepareTest).toBeCalledWith(
+      expect(createMockMapTest).toBeCalledWith(
         {
           profile: ProfileId.fromId(mockProfile, { userError }),
-          provider: mockProvider,
           superJson,
           superJsonPath: 'super.json',
-          options: {
-            station: undefined,
-            force: undefined,
-          },
+          options: {},
         },
         { logger }
       );
@@ -221,11 +167,6 @@ describe('Prepare test command', () => {
             file: '',
           },
         },
-        providers: {
-          [mockProvider]: {
-            file: '',
-          },
-        },
       };
 
       const superJsonPath = '.';
@@ -235,7 +176,7 @@ describe('Prepare test command', () => {
       await instance.execute({
         logger,
         userError,
-        args: { profileId: mockProfile, providerName: mockProvider },
+        args: { profileId: mockProfile },
         flags: {
           force: true,
           station: true,
@@ -243,10 +184,9 @@ describe('Prepare test command', () => {
         },
       });
 
-      expect(prepareTest).toBeCalledWith(
+      expect(createMockMapTest).toBeCalledWith(
         {
           profile: ProfileId.fromId(mockProfile, { userError }),
-          provider: mockProvider,
           superJson,
           superJsonPath: 'super.json',
           options: {

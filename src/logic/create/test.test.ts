@@ -3,7 +3,7 @@ import { OutputStream } from '../../common/output-stream';
 import { ProfileId } from '../../common/profile';
 import { mockProfileDocumentNode } from '../../test/profile-document-node';
 import { loadProfile } from '../publish.utils';
-import { prepareTest } from './test';
+import { createTest } from './test';
 
 jest.mock('../publish.utils', () => ({
   loadProfile: jest.fn(),
@@ -54,7 +54,7 @@ describe('Prepare test logic', () => {
       from: { kind: 'local', path: '', source: '' },
     });
 
-    await prepareTest(
+    await createTest(
       {
         profile: profileId,
         provider,
@@ -79,7 +79,7 @@ describe('Prepare test logic', () => {
       from: { kind: 'local', path: '', source: '' },
     });
 
-    await prepareTest(
+    await createTest(
       {
         profile: profileId,
         provider,
@@ -107,7 +107,7 @@ describe('Prepare test logic', () => {
       from: { kind: 'local', path: '', source: '' },
     });
 
-    await prepareTest(
+    await createTest(
       {
         profile: profileId,
         provider,

@@ -8,7 +8,7 @@ import { resolveSuperfaceRelativePath } from '../../common/path';
 import type { ProfileId } from '../../common/profile';
 import * as profileTemplate from '../../templates/profile';
 
-export async function prepareProfile(
+export async function createProfile(
   {
     id,
     usecaseNames,

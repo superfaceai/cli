@@ -10,8 +10,8 @@ import { mocked } from 'ts-jest/utils';
 import { DEFAULT_PROFILE_VERSION_STR, MockLogger } from '../../common';
 import { createUserError } from '../../common/error';
 import { ProfileId } from '../../common/profile';
+import { createProfile } from '../../logic/create/profile';
 import { detectSuperJson } from '../../logic/install';
-import { prepareProfile } from '../../logic/prepare';
 import { CommandInstance } from '../../test/utils';
 import { Profile } from './profile';
 
@@ -20,8 +20,8 @@ jest.mock('@superfaceai/one-sdk', () => ({
   loadSuperJson: jest.fn(),
 }));
 
-jest.mock('../../logic/prepare', () => ({
-  prepareProfile: jest.fn(),
+jest.mock('../../logic/create/profile', () => ({
+  createProfile: jest.fn(),
 }));
 
 jest.mock('../../logic/install', () => ({
@@ -58,7 +58,7 @@ describe('Prepare profile command', () => {
           },
         })
       ).rejects.toEqual(userError('--profileId must be specified', 1));
-      expect(prepareProfile).not.toBeCalled();
+      expect(createProfile).not.toBeCalled();
     });
 
     it('throws when profile name is incorect', async () => {
@@ -77,7 +77,7 @@ describe('Prepare profile command', () => {
       ).rejects.toEqual(
         userError('_"!O is not a valid lowercase identifier', 1)
       );
-      expect(prepareProfile).not.toBeCalled();
+      expect(createProfile).not.toBeCalled();
     });
 
     it('throws when version is missing patch part', async () => {
@@ -99,7 +99,7 @@ describe('Prepare profile command', () => {
           1
         )
       );
-      expect(prepareProfile).not.toBeCalled();
+      expect(createProfile).not.toBeCalled();
     });
 
     it('throws when version is missing minor part', async () => {
@@ -121,7 +121,7 @@ describe('Prepare profile command', () => {
           1
         )
       );
-      expect(prepareProfile).not.toBeCalled();
+      expect(createProfile).not.toBeCalled();
     });
 
     it('throws when scan is higher than 5', async () => {
@@ -144,7 +144,7 @@ describe('Prepare profile command', () => {
           1
         )
       );
-      expect(prepareProfile).not.toBeCalled();
+      expect(createProfile).not.toBeCalled();
     });
 
     it('throws when use case name is invalid', async () => {
@@ -161,7 +161,7 @@ describe('Prepare profile command', () => {
           },
         })
       ).rejects.toEqual(userError('Invalid usecase name: !_"L%O', 1));
-      expect(prepareProfile).not.toBeCalled();
+      expect(createProfile).not.toBeCalled();
     });
 
     it('throws when use case name starts with lower case letter', async () => {
@@ -183,7 +183,7 @@ describe('Prepare profile command', () => {
           1
         )
       );
-      expect(prepareProfile).not.toBeCalled();
+      expect(createProfile).not.toBeCalled();
     });
 
     it('throws when unable to find super.json', async () => {
@@ -200,9 +200,9 @@ describe('Prepare profile command', () => {
           },
         })
       ).rejects.toEqual(
-        userError('Unable to prepare profile, super.json not found', 1)
+        userError('Unable to create profile, super.json not found', 1)
       );
-      expect(prepareProfile).not.toBeCalled();
+      expect(createProfile).not.toBeCalled();
     });
 
     it('throws when there is an error during super.json loading', async () => {
@@ -225,7 +225,7 @@ describe('Prepare profile command', () => {
       ).rejects.toEqual(
         userError(`Unable to load super.json: ${error.formatShort()}`, 1)
       );
-      expect(prepareProfile).not.toBeCalled();
+      expect(createProfile).not.toBeCalled();
     });
 
     it('prepares profile with one usecase from profile name', async () => {
@@ -252,8 +252,8 @@ describe('Prepare profile command', () => {
           },
         })
       ).resolves.toBeUndefined();
-      expect(prepareProfile).toHaveBeenCalledTimes(1);
-      expect(prepareProfile).toHaveBeenCalledWith(
+      expect(createProfile).toHaveBeenCalledTimes(1);
+      expect(createProfile).toHaveBeenCalledWith(
         {
           id: {
             profile: ProfileId.fromId(profileId, { userError }),
@@ -297,8 +297,8 @@ describe('Prepare profile command', () => {
           },
         })
       ).resolves.toBeUndefined();
-      expect(prepareProfile).toHaveBeenCalledTimes(1);
-      expect(prepareProfile).toHaveBeenCalledWith(
+      expect(createProfile).toHaveBeenCalledTimes(1);
+      expect(createProfile).toHaveBeenCalledWith(
         {
           id: {
             profile: ProfileId.fromId(profileId, { userError }),

@@ -15,19 +15,17 @@ import { loadProfile } from '../publish.utils';
  * @param fileName optional name of test file
  * @param version optional version of used profile
  */
-export async function prepareTest(
+export async function createMockMapTest(
   {
     superJson,
     superJsonPath,
     profile,
-    provider,
     version,
     options,
   }: {
     superJson: SuperJsonDocument;
     superJsonPath: string;
     profile: ProfileId;
-    provider: string;
     version?: string;
     options?: {
       force?: boolean;
@@ -42,20 +40,24 @@ export async function prepareTest(
   );
 
   // TODO: Only local files?
-  const testFileContent = prepareTestTemplate(ast, provider, options?.station);
+  const testFileContent = prepareTestTemplate(
+    ast,
+    'mock',
+    options?.station,
+    true
+  );
 
   let filePath: string;
 
   if (options?.station === true) {
-    filePath = `grid/${profile.id}/maps/${provider}.test.ts`;
+    filePath = `grid/${profile.id}/maps/mock.test.ts`;
   } else {
-    filePath = `${profile.id}.${provider}.test.ts`;
+    filePath = `${profile.id}.mock.test.ts`;
   }
 
   await OutputStream.writeOnce(filePath, testFileContent, {
     dirs: true,
     force: options?.force,
   });
-
-  logger.success('prepareTest', profile.id, provider, filePath);
+  logger.success('prepareTest', profile.id, 'mock', filePath);
 }

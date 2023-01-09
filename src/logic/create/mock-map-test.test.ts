@@ -3,7 +3,7 @@ import { OutputStream } from '../../common/output-stream';
 import { ProfileId } from '../../common/profile';
 import { mockProfileDocumentNode } from '../../test/profile-document-node';
 import { loadProfile } from '../publish.utils';
-import { prepareMockMapTest } from './mock-map-test';
+import { createMockMapTest } from './mock-map-test';
 
 jest.mock('../publish.utils', () => ({
   loadProfile: jest.fn(),
@@ -46,7 +46,7 @@ describe('Prepare mock map test logic', () => {
       from: { kind: 'local', path: '', source: '' },
     });
 
-    await prepareMockMapTest(
+    await createMockMapTest(
       {
         profile: profileId,
         superJson: mockSuperJson,
@@ -70,7 +70,7 @@ describe('Prepare mock map test logic', () => {
       from: { kind: 'local', path: '', source: '' },
     });
 
-    await prepareMockMapTest(
+    await createMockMapTest(
       {
         profile: profileId,
         superJson: mockSuperJson,
@@ -97,7 +97,7 @@ describe('Prepare mock map test logic', () => {
       from: { kind: 'local', path: '', source: '' },
     });
 
-    await prepareMockMapTest(
+    await createMockMapTest(
       {
         profile: profileId,
         superJson: mockSuperJson,

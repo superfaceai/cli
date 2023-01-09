@@ -3,7 +3,7 @@ import { createUserError } from '../../common/error';
 import { OutputStream } from '../../common/output-stream';
 import { ProfileId } from '../../common/profile';
 import { completeProfile } from '../../templates/profile';
-import { prepareProfile } from './profile';
+import { createProfile } from './profile';
 
 describe('Prepare profile logic', () => {
   let logger: MockLogger;
@@ -34,7 +34,7 @@ describe('Prepare profile logic', () => {
       .mockResolvedValue();
 
     await expect(
-      prepareProfile(
+      createProfile(
         {
           id: {
             profile: mockProfile,
@@ -75,7 +75,7 @@ describe('Prepare profile logic', () => {
       .mockResolvedValue();
 
     await expect(
-      prepareProfile(
+      createProfile(
         {
           id: {
             profile: mockProfile,
@@ -122,7 +122,7 @@ describe('Prepare profile logic', () => {
       .mockResolvedValue();
 
     await expect(
-      prepareProfile(
+      createProfile(
         {
           id: {
             profile: mockProfile,
@@ -169,7 +169,7 @@ describe('Prepare profile logic', () => {
       .mockResolvedValue();
 
     await expect(
-      prepareProfile(
+      createProfile(
         {
           id: {
             profile: mockProfile,

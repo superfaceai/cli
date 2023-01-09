@@ -750,7 +750,7 @@
     ajv "^8.8.2"
     ajv-formats "^2.1.1"
 
-"@superfaceai/one-sdk@^2.2.0":
+"@superfaceai/one-sdk@^2.0.0":
   version "2.2.0"
   resolved "https://registry.yarnpkg.com/@superfaceai/one-sdk/-/one-sdk-2.2.0.tgz#8786dfab806e8812755b43d0fda1ae6891ed964d"
   integrity sha512-EK60eGBfnfUnZrXpTbs67zctp+Uo7Fa8aMSdgYZnaK5YzhLcYQBLZiApjjtsmReoXWW9R21n2K7nwaC9vmxPHQ==
