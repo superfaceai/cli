@@ -29,7 +29,7 @@ async function enterParameter(
 ): Promise<IntegrationParameter | undefined> {
   const { name } = await inquirer.prompt<{ name: string }>({
     name: 'name',
-    message: `Enter "name" of integration parameter for provider ${provider}, do not enter anything to end:`,
+    message: `Add integration parameter (enter name; or leave empty to skip):`,
     type: 'input',
   });
 
@@ -39,7 +39,7 @@ async function enterParameter(
 
   const { defaultValue } = await inquirer.prompt<{ defaultValue: string }>({
     name: 'defaultValue',
-    message: `Enter optional default value of integration parameter "${name}" for provider ${provider}:`,
+    message: `Enter default value for "${name}" parameter (optional):`,
     type: 'input',
     default: undefined,
   });
