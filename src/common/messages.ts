@@ -278,7 +278,9 @@ const prepare = {
     );
   },
   prepareProvider: (provider: string, path: string, station?: boolean) =>
-    `Created provider at path: "${path}".\n⚠️ Edit .env file for your credentials\n\nnext command suggestions:\nsf prepare:map <profileId> ${provider} ${
+    `Created provider at path: "${path}".\n⚠️ Edit .env file for your credentials\n\nnext command suggestions:\nsf prepare:profile <profileId> ${
+      station === true ? ' --station' : ''
+    }\nsf prepare:map <profileId> ${provider} ${
       station === true ? ' --station' : ''
     }\nsf prepare:test <profileId> ${provider} ${
       station === true ? ' --station' : ''
@@ -294,6 +296,8 @@ const create = {
     `Created provider: "${provider}" at path: "${path}"`,
   unverifiedPrefix: (provider: string, prefix: string) =>
     `Published provider name must have prefix: "${prefix}"\nIf you are planning to publish this map or provider consider renaming it, eg: "${prefix}${provider}"`,
+  providerAlreadyExists: (provider: string) =>
+    `Provider "${provider}" is already defined in super.json"`,
 };
 
 const compile = {
