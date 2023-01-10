@@ -62,6 +62,7 @@ npx @superfaceai/cli install [profileId eg. communication/send-email]
 * [`superface create:mock-map PROFILEID`](#superface-createmock-map-profileid)
 * [`superface create:mock-map-test PROFILEID`](#superface-createmock-map-test-profileid)
 * [`superface create:profile PROFILEID`](#superface-createprofile-profileid)
+* [`superface create:provider PROVIDERNAME`](#superface-createprovider-providername)
 * [`superface create:test PROFILEID PROVIDERNAME`](#superface-createtest-profileid-providername)
 * [`superface init [NAME]`](#superface-init-name)
 * [`superface install [PROFILEID]`](#superface-install-profileid)
@@ -232,12 +233,9 @@ EXAMPLES
   $ superface create:map starwars/character-information swapi -s 3
 
   $ superface create:map starwars/character-information swapi --station
-
-  $ superface create --profileId sms/service --providerName twilio --map -t bugfix
-
 ```
 
-_See code: [dist/commands/create/map.ts](https://github.com/superfaceai/cli/tree/main/src/commands/map.ts)_
+_See code: [dist/commands/create/map.ts](https://github.com/superfaceai/cli/tree/main/src/commands/create/map.ts)_
 
 
 ## `superface create:mock-map PROFILEID`
@@ -344,6 +342,40 @@ EXAMPLES
 ```
 
 _See code: [dist/commands/create/profile.ts](https://github.com/superfaceai/cli/tree/main/src/commands/create/profile.ts)_
+
+## `superface create:provider PROVIDERNAME`
+
+Prepares provider on a local filesystem and adds it to super.json. You do not have to touch super.json or created provider.json file after running this command.
+
+```
+USAGE
+  $ superface create:provider [PROVIDERNAME] [-q] [--noColor] [--noEmoji] [-h] [-s <value>] [-f] [--station]
+
+ARGUMENTS
+  PROVIDERNAME  Name of provider
+
+FLAGS
+  -f, --force         When set to true and when profile exists in local filesystem, overwrites them.
+  -h, --help          show CLI help
+  -q, --quiet         When set to true, disables the shell echo output of action.
+  -s, --scan=<value>  When number provided, scan for super.json outside cwd within range represented by this number.
+  --noColor           When set to true, disables all colored output.
+  --noEmoji           When set to true, disables displaying emoji in output.
+  --station           When set to true, command will create map in folder structure of Superface station
+
+DESCRIPTION
+  Prepares provider on a local filesystem and adds it to super.json. You do not have to touch super.json or created
+  provider.json file after running this command.
+
+EXAMPLES
+  $ superface prepare:provider swapi --force
+
+  $ superface prepare:provider swapi -s 3
+
+  $ superface prepare:provider swapi --station
+```
+
+_See code: [dist/commands/create/provider.ts](https://github.com/superfaceai/cli/tree/main/src/commands/create/provider.ts)_
 
 ## `superface create:test PROFILEID PROVIDERNAME`
 
