@@ -133,49 +133,6 @@ describe('Prepare map logic', () => {
         );
       });
 
-      it('writes prepared provider to file with added prefix', async () => {
-        jest.mocked(fetchProviderInfo).mockRejectedValue(
-          new ServiceApiError({
-            status: 404,
-            instance: 'test',
-            title: 'test',
-            detail: 'test',
-          })
-        );
-
-        jest
-          .spyOn(inquirer, 'prompt')
-          .mockResolvedValueOnce({ continue: true });
-
-        jest.mocked(selecetBaseUrl).mockResolvedValue('https://swapi.dev/api');
-        jest
-          .mocked(selectIntegrationParameters)
-          .mockResolvedValue({ parameters: [], values: {} });
-        jest.mocked(selectSecurity).mockResolvedValue({});
-
-        writeIfAbsentSpy.mockResolvedValue(true);
-        writeOnceSpy.mockResolvedValue(undefined);
-
-        await prepareProvider(
-          {
-            provider,
-            superJson: mockSuperJson,
-            superJsonPath,
-          },
-          {
-            logger,
-            userError,
-          }
-        );
-
-        expect(writeIfAbsentSpy).toBeCalledWith(
-          `${UNVERIFIED_PROVIDER_PREFIX}${provider}.provider.json`,
-          expect.any(String),
-          { dirs: true, force: undefined }
-        );
-        expect(writeOnceSpy).toBeCalledWith(superJsonPath, expect.any(String));
-      });
-
       it('writes prepared provider to file with --station flag', async () => {
         jest.mocked(fetchProviderInfo).mockRejectedValue(
           new ServiceApiError({

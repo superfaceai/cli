@@ -13,7 +13,6 @@ import { ServiceApiError } from '@superfaceai/service-client';
 import inquirer from 'inquirer';
 
 import type { ILogger } from '../../../common';
-import { UNVERIFIED_PROVIDER_PREFIX } from '../../../common';
 import type { UserError } from '../../../common/error';
 import { fetchProviderInfo } from '../../../common/http';
 import { OutputStream } from '../../../common/output-stream';
@@ -64,10 +63,9 @@ export async function prepareProvider(
 
     return;
   }
-  // TODO: if provider is local and without unverified prefix - rename?
 
   // check remote
-  let name: string = provider;
+  const name: string = provider;
   const remoteProviderJson = await checkRemote(name, { userError });
 
   if (remoteProviderJson !== undefined) {
@@ -104,19 +102,6 @@ export async function prepareProvider(
       );
 
       return;
-    }
-  } else if (!name.startsWith(UNVERIFIED_PROVIDER_PREFIX)) {
-    const rename = (
-      await inquirer.prompt<{ continue: boolean }>({
-        name: 'continue',
-        message: `Provider: ${name} does not exist in Superface store and it does not start with: ${UNVERIFIED_PROVIDER_PREFIX} prefix.\nDo you want to rename it to "${UNVERIFIED_PROVIDER_PREFIX}${name}"?`,
-        type: 'confirm',
-        default: true,
-      })
-    ).continue;
-
-    if (rename) {
-      name = `${UNVERIFIED_PROVIDER_PREFIX}${name}`;
     }
   }
 

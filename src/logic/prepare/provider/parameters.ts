@@ -10,7 +10,7 @@ export async function selectIntegrationParameters(provider: string): Promise<{
   let exit = false;
 
   while (!exit) {
-    const newParameter = await enterParameter(provider);
+    const newParameter = await enterParameter();
     if (newParameter !== undefined) {
       parameters.push(newParameter);
     } else {
@@ -24,9 +24,7 @@ export async function selectIntegrationParameters(provider: string): Promise<{
   };
 }
 
-async function enterParameter(
-  provider: string
-): Promise<IntegrationParameter | undefined> {
+async function enterParameter(): Promise<IntegrationParameter | undefined> {
   const { name } = await inquirer.prompt<{ name: string }>({
     name: 'name',
     message: `Add integration parameter (enter name; or leave empty to skip):`,
