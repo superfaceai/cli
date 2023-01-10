@@ -1,4 +1,5 @@
-export default `// specify test case name
+export default `
+  // specify test case name
   it('should perform successfully', async () => {
     const result = await superface.run({
       useCase: '{{name}}',

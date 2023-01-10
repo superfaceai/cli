@@ -751,15 +751,15 @@
     ajv-formats "^2.1.1"
 
 "@superfaceai/one-sdk@^2.0.0":
-  version "2.1.0"
-  resolved "https://registry.yarnpkg.com/@superfaceai/one-sdk/-/one-sdk-2.1.0.tgz#f0465c7e2d9a72bfde41a086c86c8602dc78f7ee"
-  integrity sha512-d3iXYa4kmgRVjM4YFLsyHuJoawdHH6O+3IJwkOUqtsrQTDRG5SF/VVI8m9W/l76PPx2O1X5eXFj2b4FUw+7ctA==
+  version "2.2.0"
+  resolved "https://registry.yarnpkg.com/@superfaceai/one-sdk/-/one-sdk-2.2.0.tgz#8786dfab806e8812755b43d0fda1ae6891ed964d"
+  integrity sha512-EK60eGBfnfUnZrXpTbs67zctp+Uo7Fa8aMSdgYZnaK5YzhLcYQBLZiApjjtsmReoXWW9R21n2K7nwaC9vmxPHQ==
   dependencies:
     "@superfaceai/ast" "1.2.0"
     abort-controller "^3.0.0"
-    cross-fetch "^3.1.5"
     debug "^4.3.2"
     form-data "^4.0.0"
+    node-fetch "^2"
     vm2 "^3.9.7"
 
 "@superfaceai/parser@^2.0.0":
@@ -3883,7 +3883,7 @@ nice-try@^1.0.4:
   resolved "https://registry.yarnpkg.com/nice-try/-/nice-try-1.0.5.tgz#a3378a7696ce7d223e88fc9b764bd7ef1089e366"
   integrity sha512-1nh45deeb5olNY7eX82BkPO7SSxR5SSYJiPTrTdFUVYwAl8CKMA5N9PjTYkHiRjisVcxcQ1HXdLhx2qxxJzLNQ==
 
-node-fetch@2.6.7:
+node-fetch@2.6.7, node-fetch@^2:
   version "2.6.7"
   resolved "https://registry.yarnpkg.com/node-fetch/-/node-fetch-2.6.7.tgz#24de9fba827e3b4ae44dc8b20256a379160052ad"
   integrity sha512-ZjMPFEfVx5j+y2yF35Kzx5sF7kDzxuDj6ziH4FFbOp87zKDZNx8yExJIb05OGF4Nlt9IHFIMBkRl41VdvcNdbQ==

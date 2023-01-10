@@ -27,26 +27,56 @@ describe('Build examples', () => {
 
   it('builds example from example nodes', async () => {
     expect(buildUseCaseExamples(useCase, {}, {})).toEqual({
-      errorExample: {
-        input: {
-          kind: 'object',
-          properties: [{ name: 'foo', kind: 'string', value: 'error' }],
+      errorExamples: [
+        {
+          input: {
+            kind: 'object',
+            properties: [{ name: 'foo', kind: 'string', value: 'error' }],
+          },
+          error: {
+            kind: 'object',
+            properties: [{ name: 'baz', kind: 'number', value: 12 }],
+          },
         },
-        error: {
-          kind: 'object',
-          properties: [{ name: 'baz', kind: 'number', value: 12 }],
+        {
+          input: {
+            kind: 'object',
+            properties: [
+              { name: 'foo', kind: 'string', value: 'different error' },
+            ],
+          },
+          error: {
+            kind: 'object',
+            properties: [{ name: 'baz', kind: 'number', value: 16 }],
+          },
         },
-      },
-      successExample: {
-        input: {
-          kind: 'object',
-          properties: [{ name: 'foo', kind: 'string', value: 'example' }],
+      ],
+      successExamples: [
+        {
+          input: {
+            kind: 'object',
+            properties: [{ name: 'foo', kind: 'string', value: 'example' }],
+          },
+          result: {
+            kind: 'object',
+            properties: [{ name: 'bar', kind: 'string', value: 'result' }],
+          },
         },
-        result: {
-          kind: 'object',
-          properties: [{ name: 'bar', kind: 'string', value: 'result' }],
+        {
+          input: {
+            kind: 'object',
+            properties: [
+              { name: 'foo', kind: 'string', value: 'second example' },
+            ],
+          },
+          result: {
+            kind: 'object',
+            properties: [
+              { name: 'bar', kind: 'string', value: 'second result' },
+            ],
+          },
         },
-      },
+      ],
     });
   });
 
@@ -54,32 +84,36 @@ describe('Build examples', () => {
     delete useCase.examples;
 
     expect(buildUseCaseExamples(useCase, {}, {})).toEqual({
-      errorExample: {
-        input: {
-          kind: 'object',
-          properties: [{ name: 'foo', kind: 'string', value: '' }],
+      errorExamples: [
+        {
+          input: {
+            kind: 'object',
+            properties: [{ name: 'foo', kind: 'string', value: '' }],
+          },
+          error: {
+            kind: 'object',
+            properties: [{ name: 'baz', kind: 'number', value: 0 }],
+          },
         },
-        error: {
-          kind: 'object',
-          properties: [{ name: 'baz', kind: 'number', value: 0 }],
+      ],
+      successExamples: [
+        {
+          input: {
+            kind: 'object',
+            properties: [{ name: 'foo', kind: 'string', value: '' }],
+          },
+          result: {
+            kind: 'object',
+            properties: [
+              {
+                name: 'bar',
+                kind: 'string',
+                value: '',
+              },
+            ],
+          },
         },
-      },
-      successExample: {
-        input: {
-          kind: 'object',
-          properties: [{ name: 'foo', kind: 'string', value: '' }],
-        },
-        result: {
-          kind: 'object',
-          properties: [
-            {
-              name: 'bar',
-              kind: 'string',
-              value: '',
-            },
-          ],
-        },
-      },
+      ],
     });
   });
 });

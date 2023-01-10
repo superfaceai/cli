@@ -10,12 +10,12 @@ export interface UseCase {
   result?: Model;
   error?: Model;
   inputExampleScalarName?: string;
-  errorExample?: {
+  errorExamples?: {
     input?: UseCaseExample;
     error?: UseCaseExample;
-  };
-  successExample?: {
+  }[];
+  successExamples?: {
     input?: UseCaseExample;
     result?: UseCaseExample;
-  };
+  }[];
 }

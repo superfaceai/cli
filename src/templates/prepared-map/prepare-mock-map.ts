@@ -14,7 +14,7 @@ export function prepareMockMapTemplate(profile: ProfileDocumentNode): string {
     name: ProfileId.fromScopeName(profile.header.scope, profile.header.name).id,
     usecases: prepareUseCaseDetails(profile).map(d => ({
       name: d.name,
-      example: d.successExample?.result,
+      example: d.successExamples?.[0]?.result,
     })),
   };
 

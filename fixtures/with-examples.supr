@@ -23,12 +23,30 @@ usecase getCharacter {
     }
   }
 
+  example otherSuccess {
+    input {
+      foo = "second example"
+    }
+    result {
+      bar = "second result"
+    }
+  }
+
   example fail {
     input {
       foo = "error"
     }
     error {
       baz = 12
+    }
+  }
+
+  example otherFail {
+    input {
+      foo = "different error"
+    }
+    error {
+      baz = 16
     }
   }
 }
