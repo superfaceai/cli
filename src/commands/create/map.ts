@@ -14,7 +14,7 @@ export class Map extends Command {
   public static strict = true;
 
   public static description =
-    'Prepares map, based on profile and provider on a local filesystem. Created file contains created structure with information from profile and provider files. Before running this command you should have prepared profile (run sf prepare:profile) and provider (run sf prepare:provider)';
+    'Creates map, based on profile and provider on a local filesystem. Created file contains structure with information from profile and provider files. Before running this command you should have prepared profile (run sf prepare:profile) and provider (run sf prepare:provider)';
 
   public static args = [
     {
