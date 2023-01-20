@@ -8,13 +8,13 @@ import type { Flags } from '../../common/command.abstract';
 import { Command } from '../../common/command.abstract';
 import type { UserError } from '../../common/error';
 import { ProfileId } from '../../common/profile';
-import { prepareMap } from '../../logic/prepare/map';
+import { createMap } from '../../logic/create/map';
 
 export class Map extends Command {
   public static strict = true;
 
   public static description =
-    'Prepares map, based on profile and provider on a local filesystem. Created file contains prepared structure with information from profile and provider files. Before running this command you should have prepared profile (run sf prepare:profile) and provider (run sf prepare:provider)';
+    'Creates map, based on profile and provider on a local filesystem. Created file contains structure with information from profile and provider files. Before running this command you should have prepared profile (run sf prepare:profile) and provider (run sf prepare:provider)';
 
   public static args = [
     {
@@ -52,9 +52,9 @@ export class Map extends Command {
   };
 
   public static examples = [
-    '$ superface prepare:map starwars/character-information swapi --force',
-    '$ superface prepare:map starwars/character-information swapi -s 3',
-    '$ superface prepare:map starwars/character-information swapi --station',
+    '$ superface create:map starwars/character-information swapi --force',
+    '$ superface create:map starwars/character-information swapi -s 3',
+    '$ superface create:map starwars/character-information swapi --station',
   ];
 
   public async run(): Promise<void> {
@@ -110,19 +110,19 @@ export class Map extends Command {
     // Check super.json
     if (normalized.profiles[profileId] === undefined) {
       throw userError(
-        `Unable to prepare, profile: "${profileId}" not found in super.json`,
+        `Unable to create, profile: "${profileId}" not found in super.json`,
         1
       );
     }
 
     if (normalized.providers[providerName] === undefined) {
       throw userError(
-        `Unable to prepare, provider: "${providerName}" not found in super.json`,
+        `Unable to create, provider: "${providerName}" not found in super.json`,
         1
       );
     }
 
-    await prepareMap(
+    await createMap(
       {
         id: {
           profile: ProfileId.fromId(profileId, { userError }),

@@ -9,7 +9,7 @@ import { OutputStream } from '../../../common/output-stream';
 import { mockProviderJson } from '../../../test/provider-json';
 import { selecetBaseUrl } from './base-url';
 import { selectIntegrationParameters } from './parameters';
-import { prepareProvider } from './provider';
+import { createProvider } from './provider';
 import { selectSecurity } from './security';
 
 jest.mock('inquirer');
@@ -56,7 +56,7 @@ describe('Prepare map logic', () => {
   });
 
   it('warns user when provider is already defined in super.json', async () => {
-    await prepareProvider(
+    await createProvider(
       {
         provider,
         superJson: {
@@ -89,7 +89,7 @@ describe('Prepare map logic', () => {
         writeIfAbsentSpy.mockResolvedValue(true);
         writeOnceSpy.mockResolvedValue(undefined);
 
-        await prepareProvider(
+        await createProvider(
           {
             provider,
             superJson: mockSuperJson,
@@ -117,7 +117,7 @@ describe('Prepare map logic', () => {
         jest.mocked(fetchProviderInfo).mockRejectedValue(error);
 
         await expect(
-          prepareProvider(
+          createProvider(
             {
               provider,
               superJson: mockSuperJson,
@@ -156,7 +156,7 @@ describe('Prepare map logic', () => {
         writeIfAbsentSpy.mockResolvedValue(true);
         writeOnceSpy.mockResolvedValue(undefined);
 
-        await prepareProvider(
+        await createProvider(
           {
             provider,
             superJson: mockSuperJson,
@@ -195,7 +195,7 @@ describe('Prepare map logic', () => {
         writeIfAbsentSpy.mockResolvedValue(true);
         writeOnceSpy.mockResolvedValue(undefined);
 
-        await prepareProvider(
+        await createProvider(
           {
             provider,
             superJson: mockSuperJson,
@@ -232,7 +232,7 @@ describe('Prepare map logic', () => {
         writeIfAbsentSpy.mockResolvedValue(true);
         writeOnceSpy.mockResolvedValue(undefined);
 
-        await prepareProvider(
+        await createProvider(
           {
             provider: unverfiedProvider,
             superJson: mockSuperJson,
@@ -262,7 +262,7 @@ describe('Prepare map logic', () => {
         writeIfAbsentSpy.mockResolvedValue(true);
         writeOnceSpy.mockResolvedValue(undefined);
 
-        await prepareProvider(
+        await createProvider(
           {
             provider: unverfiedProvider,
             superJson: mockSuperJson,
@@ -295,7 +295,7 @@ describe('Prepare map logic', () => {
         writeIfAbsentSpy.mockResolvedValue(true);
         writeOnceSpy.mockResolvedValue(undefined);
 
-        await prepareProvider(
+        await createProvider(
           {
             provider: unverfiedProvider,
             superJson: {

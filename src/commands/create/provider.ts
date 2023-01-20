@@ -7,8 +7,8 @@ import type { ILogger } from '../../common';
 import type { Flags } from '../../common/command.abstract';
 import { Command } from '../../common/command.abstract';
 import type { UserError } from '../../common/error';
+import { createProvider } from '../../logic/create/provider';
 import { detectSuperJson } from '../../logic/install';
-import { prepareProvider } from '../../logic/prepare';
 
 export class Provider extends Command {
   public static strict = true;
@@ -105,7 +105,7 @@ export class Provider extends Command {
       }
     );
 
-    await prepareProvider(
+    await createProvider(
       {
         provider: args.providerName,
         superJson,

@@ -1,18 +1,17 @@
 import type { SuperJsonDocument } from '@superfaceai/ast';
-import { assertProviderJson, EXTENSIONS } from '@superfaceai/ast';
+import { EXTENSIONS } from '@superfaceai/ast';
 import { mergeProfileProvider, NodeFileSystem } from '@superfaceai/one-sdk';
 
 import type { ILogger } from '../../common';
-import { getProfileFile, getProviderFile } from '../../common';
+import { getProfileFile } from '../../common';
 import type { UserError } from '../../common/error';
-import { readFile } from '../../common/io';
 import { OutputStream } from '../../common/output-stream';
 import { resolveSuperfaceRelativePath } from '../../common/path';
 import type { ProfileId } from '../../common/profile';
-import { prepareMapTemplate } from '../../templates/prepared-map';
+import { prepareMockMapTemplate } from '../../templates/prepared-map';
 import { loadProfileAst } from './utils';
 
-export async function prepareMap(
+export async function createMockMap(
   {
     id,
     superJson,
@@ -21,8 +20,7 @@ export async function prepareMap(
   }: {
     id: {
       profile: ProfileId;
-      provider: string;
-      variant?: string;
+      provider?: string;
     };
     superJson: SuperJsonDocument;
     superJsonPath: string;
@@ -42,29 +40,22 @@ export async function prepareMap(
   );
   const profileAst = await loadProfileAst(profileFile, { userError });
 
-  // Load provider
-  const providerFile = await getProviderFile(
-    id.provider,
-    { superJson, superJsonPath },
-    { userError }
-  );
-  const provider = assertProviderJson(
-    JSON.parse(await readFile(providerFile, { encoding: 'utf-8' }))
-  );
-
-  const mapTemplate = prepareMapTemplate(profileAst, provider, id.variant);
+  const mockMapTemplate = prepareMockMapTemplate(profileAst);
 
   // Write result
   let filePath: string;
-  const variantName = id.variant !== undefined ? `.${id.variant}` : '';
 
   if (options?.station === true) {
-    filePath = `grid/${id.profile.id}/maps/${id.provider}${EXTENSIONS.map.source}`;
+    filePath = `grid/${id.profile.id}/maps/${id.provider ?? 'mock'}${
+      EXTENSIONS.map.source
+    }`;
   } else {
-    filePath = `${id.profile.id}.${id.provider}${variantName}${EXTENSIONS.map.source}`;
+    filePath = `${id.profile.id}.${id.provider ?? 'mock'}${
+      EXTENSIONS.map.source
+    }`;
   }
 
-  const created = await OutputStream.writeIfAbsent(filePath, mapTemplate, {
+  const created = await OutputStream.writeIfAbsent(filePath, mockMapTemplate, {
     force: options?.force,
     dirs: true,
   });
@@ -73,7 +64,7 @@ export async function prepareMap(
     logger.success(
       'prepareMap',
       id.profile.id,
-      id.provider,
+      id.provider ?? 'mock',
       filePath,
       options?.station
     );
@@ -81,7 +72,7 @@ export async function prepareMap(
     mergeProfileProvider(
       superJson,
       id.profile.id,
-      id.provider,
+      id.provider ?? 'mock',
       {
         file: resolveSuperfaceRelativePath(superJsonPath, filePath),
       },

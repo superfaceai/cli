@@ -12,14 +12,14 @@ import type { Flags } from '../../common/command.abstract';
 import { Command } from '../../common/command.abstract';
 import type { UserError } from '../../common/error';
 import { ProfileId } from '../../common/profile';
+import { createTest } from '../../logic/create/test';
 import { detectSuperJson } from '../../logic/install';
-import { prepareTest } from '../../logic/prepare/test';
 
-export default class PrepareTest extends Command {
+export default class CreateTest extends Command {
   public static strict = false;
 
   public static description =
-    'Prepares test file for specified profile and provider. Examples in profile are used as an input and @superfaceai/testing library is used to orchestrate tests.';
+    'Creates test file for specified profile and provider. Examples in profile are used as an input and @superfaceai/testing library is used to orchestrate tests.';
 
   public static args = [
     {
@@ -53,14 +53,14 @@ export default class PrepareTest extends Command {
   };
 
   public static examples = [
-    '$ superface prepare:test starwars/character-information swapi',
-    '$ superface prepare:test starwars/character-information swapi --station',
-    '$ superface prepare:test starwars/character-information swapi --force',
-    '$ superface prepare:test starwars/character-information swapi -q',
+    '$ superface create:test starwars/character-information swapi',
+    '$ superface create:test starwars/character-information swapi --station',
+    '$ superface create:test starwars/character-information swapi --force',
+    '$ superface create:test starwars/character-information swapi -q',
   ];
 
   public async run(): Promise<void> {
-    const { args, flags } = this.parse(PrepareTest);
+    const { args, flags } = this.parse(CreateTest);
     await super.initialize(flags);
 
     await this.execute({
@@ -79,7 +79,7 @@ export default class PrepareTest extends Command {
   }: {
     logger: ILogger;
     userError: UserError;
-    flags: Flags<typeof PrepareTest.flags>;
+    flags: Flags<typeof CreateTest.flags>;
     args: { providerName?: string; profileId?: string };
   }): Promise<void> {
     // Check inputs
@@ -102,7 +102,7 @@ export default class PrepareTest extends Command {
     // Load super json
     const superPath = await detectSuperJson(process.cwd(), flags.scan);
     if (superPath === undefined) {
-      throw userError('❌ Unable to prepare test, super.json not found', 1);
+      throw userError('❌ Unable to create test, super.json not found', 1);
     }
     const superJsonPath = joinPath(superPath, META_FILE);
     const loadedResult = await loadSuperJson(superJsonPath, NodeFileSystem);
@@ -121,19 +121,19 @@ export default class PrepareTest extends Command {
 
     if (normalized.profiles[profileId] === undefined) {
       throw userError(
-        `❌ Unable to prepare test, profile: "${profileId}" not found in super.json`,
+        `❌ Unable to create test, profile: "${profileId}" not found in super.json`,
         1
       );
     }
     if (normalized.providers[providerName] === undefined) {
       throw userError(
-        `❌ Unable to prepare test, provider: "${providerName}" not found in super.json`,
+        `❌ Unable to create test, provider: "${providerName}" not found in super.json`,
         1
       );
     }
     // TODO: only for local files?
 
-    await prepareTest(
+    await createTest(
       {
         superJsonPath,
         superJson,
@@ -148,6 +148,6 @@ export default class PrepareTest extends Command {
       { logger }
     );
 
-    // TODO: instruct user to edit prepared test
+    // TODO: instruct user to edit created test
   }
 }

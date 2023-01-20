@@ -8,13 +8,13 @@ import type { Flags } from '../../common/command.abstract';
 import { Command } from '../../common/command.abstract';
 import type { UserError } from '../../common/error';
 import { ProfileId } from '../../common/profile';
-import { prepareMockMapTest } from '../../logic/prepare/mock-map-test';
+import { createMockMap } from '../../logic/create/mock-map';
 
-export class MockMapTest extends Command {
+export class MockMap extends Command {
   public static strict = true;
 
   public static description =
-    'Prepares test for mock provider map on a local filesystem. Created test expects success result example from profile file. Before running this command you should have prepared mock provider map (run sf prepare:mock-map).';
+    'Prepares map for mock provider on a local filesystem. Created map always returns success result example from profile file. Before running this command you should have created profile file (run sf create:profile).';
 
   public static args = [
     {
@@ -47,13 +47,13 @@ export class MockMapTest extends Command {
   };
 
   public static examples = [
-    '$ superface prepare:mock-map-test starwars/character-information --force',
-    '$ superface prepare:mock-map-test starwars/character-information -s 3',
-    '$ superface prepare:mock-map-test starwars/character-information --station',
+    '$ superface create:mock-map starwars/character-information --force',
+    '$ superface create:mock-map starwars/character-information -s 3',
+    '$ superface create:mock-map starwars/character-information --station',
   ];
 
   public async run(): Promise<void> {
-    const { args, flags } = this.parse(MockMapTest);
+    const { args, flags } = this.parse(MockMap);
     await super.initialize(flags);
     await this.execute({
       logger: this.logger,
@@ -71,7 +71,7 @@ export class MockMapTest extends Command {
   }: {
     logger: ILogger;
     userError: UserError;
-    flags: Flags<typeof MockMapTest.flags>;
+    flags: Flags<typeof MockMap.flags>;
     args: { profileId?: string };
   }): Promise<void> {
     // Check inputs
@@ -103,14 +103,16 @@ export class MockMapTest extends Command {
     // Check super.json
     if (normalized.profiles[args.profileId] === undefined) {
       throw userError(
-        `Unable to prepare, profile: "${args.profileId}" not found in super.json`,
+        `Unable to create, profile: "${args.profileId}" not found in super.json`,
         1
       );
     }
 
-    await prepareMockMapTest(
+    await createMockMap(
       {
-        profile: ProfileId.fromId(args.profileId, { userError }),
+        id: {
+          profile: ProfileId.fromId(args.profileId, { userError }),
+        },
         superJson,
         superJsonPath,
         options: {
@@ -119,6 +121,7 @@ export class MockMapTest extends Command {
         },
       },
       {
+        userError,
         logger,
       }
     );

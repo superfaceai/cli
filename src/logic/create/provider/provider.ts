@@ -38,7 +38,7 @@ async function checkRemote(
   }
 }
 
-export async function prepareProvider(
+export async function createProvider(
   {
     provider,
     superJson,

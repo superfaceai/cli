@@ -15,14 +15,14 @@ import type { Flags } from '../../common/command.abstract';
 import { Command } from '../../common/command.abstract';
 import type { UserError } from '../../common/error';
 import { ProfileId } from '../../common/profile';
+import { createProfile } from '../../logic/create/profile';
 import { detectSuperJson } from '../../logic/install';
-import { prepareProfile } from '../../logic/prepare';
 
 export class Profile extends Command {
   public static strict = true;
 
   public static description =
-    'Prepares profile file on local filesystem and links it to super.json.';
+    'creates profile file on local filesystem and links it to super.json.';
 
   public static args = [
     {
@@ -65,9 +65,9 @@ export class Profile extends Command {
   };
 
   public static examples = [
-    '$ superface prepare:profile starwars/character-information --force',
-    '$ superface prepare:profile starwars/character-information -s 3',
-    '$ superface prepare:profile starwars/character-information --station',
+    '$ superface create:profile starwars/character-information --force',
+    '$ superface create:profile starwars/character-information -s 3',
+    '$ superface create:profile starwars/character-information --station',
   ];
 
   public async run(): Promise<void> {
@@ -142,7 +142,7 @@ export class Profile extends Command {
       flags.scan
     );
     if (superPath === undefined) {
-      throw userError('Unable to prepare profile, super.json not found', 1);
+      throw userError('Unable to create profile, super.json not found', 1);
     }
     // Load super json
     const superJsonPath = joinPath(superPath, META_FILE);
@@ -154,7 +154,7 @@ export class Profile extends Command {
       }
     );
 
-    await prepareProfile(
+    await createProfile(
       {
         id: {
           profile: ProfileId.fromId(args.profileId, { userError }),
