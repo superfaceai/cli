@@ -5,8 +5,17 @@ import { selectIntegrationParameters } from './parameters';
 jest.mock('inquirer');
 
 describe('Select integration parameters logic', () => {
-  it('returns empty object when "skip setting up" is selected', async () => {
-    jest.spyOn(inquirer, 'prompt').mockResolvedValueOnce({ skip: true });
+  it('returns empty object when undefined name" is passed', async () => {
+    jest.spyOn(inquirer, 'prompt').mockResolvedValueOnce({ name: undefined });
+
+    await expect(selectIntegrationParameters('test')).resolves.toEqual({
+      parameters: [],
+      values: {},
+    });
+  });
+
+  it('returns empty object when empty name" is passed', async () => {
+    jest.spyOn(inquirer, 'prompt').mockResolvedValueOnce({ name: '' });
 
     await expect(selectIntegrationParameters('test')).resolves.toEqual({
       parameters: [],

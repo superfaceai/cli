@@ -31,7 +31,7 @@ async function enterParameter(): Promise<IntegrationParameter | undefined> {
     type: 'input',
   });
 
-  if (name === undefined) {
+  if (name === undefined || name === '') {
     return undefined;
   }
 
