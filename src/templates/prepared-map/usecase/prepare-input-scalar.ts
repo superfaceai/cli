@@ -27,6 +27,9 @@ export function prepareExampleScalar(
 }
 
 function visitObject(object: ExampleObject, path: string): string {
+  if (object.properties.length === 0) {
+    return path;
+  }
   const newpath = `${path}.${object.properties[0].name}`;
 
   if (object.properties[0].kind === 'array') {
@@ -39,6 +42,9 @@ function visitObject(object: ExampleObject, path: string): string {
 }
 
 function visitArray(array: ExampleArray, path: string): string {
+  if (array.items.length === 0) {
+    return path;
+  }
   const newpath = `${path}[0]`;
   if (array.items[0].kind === 'array') {
     return visitArray(array.items[0], newpath);
