@@ -14,7 +14,8 @@ export function prepareExampleScalar(
   if (
     example.kind === 'boolean' ||
     example.kind === 'number' ||
-    example.kind === 'string'
+    example.kind === 'string' ||
+    example.kind === 'none'
   ) {
     return place;
   }

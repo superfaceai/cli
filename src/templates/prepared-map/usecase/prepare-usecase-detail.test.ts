@@ -27,14 +27,17 @@ describe('Parse use case details', () => {
         name: 'Foo',
         inputExampleScalarName: 'input.field',
         title: 'usecase title',
+        description: undefined,
         error: {
           modelType: 'Enum',
           nonNull: false,
           enumElements: [
             {
+              title: undefined,
               value: 404,
             },
             {
+              title: undefined,
               value: 400,
             },
           ],
@@ -56,6 +59,7 @@ describe('Parse use case details', () => {
             {
               fieldName: 'field',
               required: false,
+              description: undefined,
               model: {
                 nonNull: false,
                 modelType: 'Union',
@@ -75,6 +79,7 @@ describe('Parse use case details', () => {
             },
             {
               fieldName: 'field',
+              description: undefined,
               required: false,
               model: {
                 modelType: 'Scalar',
@@ -136,7 +141,7 @@ describe('Parse use case details', () => {
                   name: 'field',
                   kind: 'boolean',
                   value: true,
-                },
+                }
               ],
             },
             result: {
