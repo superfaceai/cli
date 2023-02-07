@@ -1,12 +1,14 @@
 import type {
   ComlinkListLiteralNode,
   ComlinkLiteralNode,
+  ComlinkNoneLiteralNode,
   ComlinkObjectLiteralNode,
   ComlinkPrimitiveLiteralNode,
 } from '@superfaceai/ast';
 
 import type {
   ExampleArray,
+  ExampleNone,
   ExampleObject,
   ExampleScalar,
   UseCaseExample,
@@ -27,6 +29,11 @@ export function parseObjectLiteral(
         name: field.key.join('.'),
         ...parseListLiteral(field.value),
       });
+    } else if (field.value.kind === 'ComlinkNoneLiteral') {
+      properties.push({
+        name: field.key.join('.'),
+        ...parseNoneLiteral(field.value),
+      })
     } else {
       properties.push({
         name: field.key.join('.'),
@@ -47,6 +54,12 @@ export function parseListLiteral(node: ComlinkListLiteralNode): ExampleArray {
     items: node.items
       .map(parseLiteralExample)
       .filter((i): i is UseCaseExample => i !== undefined),
+  };
+}
+
+export function parseNoneLiteral(_node: ComlinkNoneLiteralNode): ExampleNone {
+  return {
+    kind: 'none'
   };
 }
 
@@ -72,6 +85,8 @@ export function parseLiteralExample(
     return parseObjectLiteral(exampleNode);
   } else if (exampleNode.kind === 'ComlinkListLiteral') {
     return parseListLiteral(exampleNode);
+  } else if (exampleNode.kind === 'ComlinkNoneLiteral') {
+    return parseNoneLiteral(exampleNode);
   } else {
     return parsePrimitiveLiteral(exampleNode);
   }

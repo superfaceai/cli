@@ -1,6 +1,7 @@
 import {
   parseListLiteral,
   parseLiteralExample,
+  parseNoneLiteral,
   parseObjectLiteral,
   parsePrimitiveLiteral,
 } from './parse';
@@ -300,6 +301,18 @@ describe('Parse example tree', () => {
       ).toEqual({
         kind: 'string',
         value: 'test',
+      });
+    });
+  });
+
+  describe('parseNoneLiteral', () => {
+    it('returns example none for ComlinkNoneLiteral', () => {
+      expect(
+        parseNoneLiteral({
+          kind: 'ComlinkNoneLiteral',
+        })
+      ).toEqual({
+        kind: 'none',
       });
     });
   });

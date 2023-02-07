@@ -20,13 +20,18 @@ export type ExampleObject = {
   properties: ({ name: string } & (
     | ExampleArray
     | ExampleScalar
+    | ExampleNone
     | ExampleObject
   ))[];
 };
 
 export type ExampleArray = {
   kind: 'array';
-  items: (ExampleArray | ExampleObject | ExampleScalar)[];
+  items: (ExampleArray | ExampleObject | ExampleScalar | ExampleNone)[];
 };
 
-export type UseCaseExample = ExampleArray | ExampleObject | ExampleScalar;
+export type ExampleNone = {
+  kind: 'none';
+};
+
+export type UseCaseExample = ExampleArray | ExampleObject | ExampleScalar | ExampleNone;
