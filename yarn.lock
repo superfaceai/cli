@@ -750,10 +750,10 @@
     ajv "^8.8.2"
     ajv-formats "^2.1.1"
 
-"@superfaceai/one-sdk@2.3.0-rc.1":
-  version "2.3.0-rc.1"
-  resolved "https://registry.yarnpkg.com/@superfaceai/one-sdk/-/one-sdk-2.3.0-rc.1.tgz#9f5c2eda3a7040835f2d94e002e805c9f7457571"
-  integrity sha512-YhbZiUh3YnVtN6AKuspEWLoI1TmNejxHUnbD7wTGe3g1xfjqa1cPkfyPvutEUdQidiBJ9mzdNS4dwHDvoVsl5A==
+"@superfaceai/one-sdk@^2.3.0":
+  version "2.3.0"
+  resolved "https://registry.yarnpkg.com/@superfaceai/one-sdk/-/one-sdk-2.3.0.tgz#7de9de084f8e69dc7fefe0a9b1e7d6abb3a69be7"
+  integrity sha512-6B2EdxE//vkri9ZBv6f8fHMoItCDoCO7XqbNBqpcYAsm3wj+8B7vC7eWRhN1+z6YPww1VzFLFmorF9UMc7jRdg==
   dependencies:
     "@superfaceai/ast" "1.3.0"
     abort-controller "^3.0.0"
