@@ -1,6 +1,6 @@
 # CLI
 
-![GitHub Workflow Status](https://img.shields.io/github/workflow/status/superfaceai/cli/CI)
+[![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/superfaceai/cli/main.yml)](https://github.com/superfaceai/cli/actions/workflows/main.yml)
 ![NPM](https://img.shields.io/npm/v/@superfaceai/cli)
 [![NPM](https://img.shields.io/npm/l/@superfaceai/cli)](LICENSE)
 ![TypeScript](https://img.shields.io/badge/%3C%2F%3E-Typescript-blue)
