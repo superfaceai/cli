@@ -10,13 +10,14 @@ import { execCLI, setUpTempDir } from '../test/utils';
 const mockServer = getLocal();
 
 describe('Whoami CLI command', () => {
-  //File specific path
+  // File specific path
   const TEMP_PATH = joinPath('test', 'tmp');
   let tempDir: string;
 
   beforeAll(async () => {
     await mkdir(TEMP_PATH, { recursive: true });
   });
+
   beforeEach(async () => {
     tempDir = await setUpTempDir(TEMP_PATH);
     await mockServer.start();
@@ -36,7 +37,7 @@ describe('Whoami CLI command', () => {
       };
 
       await mockServer
-        .get('/id/user')
+        .forGet('/id/user')
         .withHeaders({ 'Content-Type': ContentType.JSON })
         .thenJson(200, mockUserInfo);
       const result = await execCLI(tempDir, ['whoami'], mockServer.url);
@@ -55,7 +56,7 @@ describe('Whoami CLI command', () => {
       });
 
       await mockServer
-        .get('/id/user')
+        .forGet('/id/user')
         .withHeaders({ 'Content-Type': ContentType.JSON })
         .thenJson(401, mockServerResponse);
       const result = await execCLI(tempDir, ['whoami'], mockServer.url);

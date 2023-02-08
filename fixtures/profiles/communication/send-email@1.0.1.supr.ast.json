@@ -320,12 +320,12 @@
   "astMetadata": {
     "astVersion": {
       "major": 1,
-      "minor": 2,
+      "minor": 3,
       "patch": 0
     },
     "parserVersion": {
-      "major": 1,
-      "minor": 2,
+      "major": 2,
+      "minor": 1,
       "patch": 0
     },
     "sourceChecksum": "f6e540bf86a47d56bd2d7b174a0075790a89538c829ace2f8cd9d5a878067e59"

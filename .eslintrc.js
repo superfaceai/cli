@@ -9,6 +9,7 @@ module.exports = {
     '@typescript-eslint',
     'jest',
     'simple-import-sort',
+    'jest-formatting',
   ],
   extends: [
     'eslint:recommended',
@@ -18,6 +19,7 @@ module.exports = {
     'plugin:import/errors',
     'plugin:import/warnings',
     'plugin:jest/recommended',
+    'plugin:jest-formatting/recommended',
     'prettier',
   ],
   rules: {
@@ -32,9 +34,17 @@ module.exports = {
     'lines-between-class-members': 'off',
     '@typescript-eslint/lines-between-class-members': ['error', 'always', { exceptAfterSingleLine: true, exceptAfterOverload: true }],
     '@typescript-eslint/require-await': 'off',
+    'spaced-comment': ['error', 'always'],
     'quotes': 'off',
-    '@typescript-eslint/quotes': ['warn', 'single', { avoidEscape: true }],
-    '@typescript-eslint/no-inferrable-types': ['warn']
+    '@typescript-eslint/quotes': ['warn', 'single', { avoidEscape: true, allowTemplateLiterals: true }],
+    '@typescript-eslint/no-inferrable-types': ['warn'],
+    'no-implicit-coercion': 'error',
+    '@typescript-eslint/strict-boolean-expressions': 'error',
+    '@typescript-eslint/explicit-member-accessibility': [
+      'error',
+      { accessibility: 'explicit', overrides: { constructors: 'no-public' } },
+    ],
+    '@typescript-eslint/consistent-type-imports': ['error', { prefer: 'type-imports' }],
   },
   settings: {
     'import/parsers': {
@@ -50,6 +60,7 @@ module.exports = {
     files: '*.test.ts',
     rules: {
       '@typescript-eslint/no-explicit-any': 'off',
+      '@typescript-eslint/no-unsafe-return': 'off',
       '@typescript-eslint/no-unsafe-assignment': 'off',
       '@typescript-eslint/no-non-null-assertion': 'off',
       '@typescript-eslint/unbound-method': 'off',

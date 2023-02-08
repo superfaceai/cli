@@ -1,24 +1,19 @@
-import {
+import type {
   DocumentedStructureType,
   ProfileOutput,
   StructureType,
 } from '@superfaceai/parser';
-import {
-  addSyntheticLeadingComment,
+import type {
   ArrayTypeNode,
   CallExpression,
-  createPrinter,
-  EmitHint,
   ExportDeclaration,
   Expression,
-  factory,
   FalseLiteral,
   Identifier,
   ImportDeclaration,
   KeywordTypeNode,
   LiteralTypeNode,
   Node,
-  NodeFlags,
   NumericLiteral,
   ObjectLiteralElementLike,
   ObjectLiteralExpression,
@@ -27,7 +22,6 @@ import {
   SpreadAssignment,
   Statement,
   StringLiteral,
-  SyntaxKind,
   TrueLiteral,
   TypeAliasDeclaration,
   TypeLiteralNode,
@@ -37,6 +31,16 @@ import {
   UnionTypeNode,
   VariableStatement,
 } from 'typescript';
+import {
+  addSyntheticLeadingComment,
+  createPrinter,
+  EmitHint,
+  factory,
+  NodeFlags,
+  SyntaxKind,
+} from 'typescript';
+
+import { capitalize } from '../common/format';
 
 /*
  * Various utils
@@ -72,17 +76,10 @@ export function addDoc<T extends Node>(
 }
 
 /**
- * Just capitalizes a string
- */
-export function capitalize(input: string): string {
-  return input.charAt(0).toUpperCase() + input.substring(1);
-}
-
-/**
  * Transforms a kebap-case string to camelCase
  */
 export function camelize(input: string): string {
-  return input.replace(/[-/](\w)/g, (_, repl) => {
+  return input.replace(/[-/](\w)/g, (_, repl: string) => {
     return capitalize(repl);
   });
 }
@@ -293,7 +290,7 @@ export function propertySignature(
   const signature = factory.createPropertySignature(
     undefined,
     id(name),
-    required ? undefined : questionToken,
+    required === true ? undefined : questionToken,
     type
   );
 

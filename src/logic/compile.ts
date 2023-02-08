@@ -1,140 +1,95 @@
-import {
-  EXTENSIONS,
-  MapDocumentNode,
-  ProfileDocumentNode,
-} from '@superfaceai/ast';
+import type { MapDocumentNode, ProfileDocumentNode } from '@superfaceai/ast';
+import { EXTENSIONS } from '@superfaceai/ast';
 import { parseMap, parseProfile, Source } from '@superfaceai/parser';
 
-import { UserError } from '../common/error';
+import type { UserError } from '../common/error';
 import { exists, readFile } from '../common/io';
-import { ILogger } from '../common/log';
+import type { ILogger } from '../common/log';
 import { OutputStream } from '../common/output-stream';
-import { ProfileId } from '../common/profile';
+import type { ProfileId } from '../common/profile';
 
-export type MapToCompile = { provider: string; path: string };
-export type ProfileToCompile = {
-  id: ProfileId;
-  maps: MapToCompile[];
-  path?: string;
-};
+export type FileToCompile =
+  | { kind: 'map'; profileId: ProfileId; provider: string; path: string }
+  | { kind: 'profile'; profileId: ProfileId; path: string };
 
 export async function compile(
-  {
-    profiles,
-    options,
-  }: {
-    profiles: ProfileToCompile[];
-    options?: {
-      onlyMap?: boolean;
-      onlyProfile?: boolean;
-    };
-  },
+  files: FileToCompile[],
   { logger, userError }: { logger: ILogger; userError: UserError }
 ): Promise<void> {
-  for (const profile of profiles) {
-    //Compile profile
-    if (!options?.onlyMap && profile.path !== undefined) {
-      let profileSourcePath: string, profileAstPath: string;
-      //We assume source and build files living next to each other
-      if (profile.path.endsWith(EXTENSIONS.profile.source)) {
-        profileSourcePath = profile.path;
-        profileAstPath = profile.path.replace(
-          EXTENSIONS.profile.source,
-          EXTENSIONS.profile.build
-        );
-      } else if (profile.path.endsWith(EXTENSIONS.profile.build)) {
-        profileAstPath = profile.path;
-        profileSourcePath = profile.path.replace(
-          EXTENSIONS.profile.build,
-          EXTENSIONS.profile.source
+  for (const file of files) {
+    let sourcePath: string, astPath: string;
+    // We assume source and build files living next to each other
+    if (file.path.endsWith(EXTENSIONS[file.kind].source)) {
+      sourcePath = file.path;
+      astPath = file.path.replace(
+        EXTENSIONS[file.kind].source,
+        EXTENSIONS[file.kind].build
+      );
+    } else if (file.path.endsWith(EXTENSIONS[file.kind].build)) {
+      astPath = file.path;
+      sourcePath = file.path.replace(
+        EXTENSIONS[file.kind].build,
+        EXTENSIONS[file.kind].source
+      );
+    } else {
+      throw userError(
+        `Path: "${
+          file.path
+        }" uses unsupported extension. Please use file with "${
+          EXTENSIONS[file.kind].source
+        }" extension.`,
+        1
+      );
+    }
+
+    if (file.kind === 'profile') {
+      logger.info('compileProfile', file.profileId.id.toString());
+    } else {
+      logger.info('compileMap', file.profileId.id.toString(), file.provider);
+    }
+    if (!(await exists(sourcePath))) {
+      if (file.kind === 'profile') {
+        throw userError(
+          `Path: "${sourcePath}" for profile ${file.profileId.id.toString()} does not exist`,
+          1
         );
       } else {
         throw userError(
-          `Path: "${profile.path}" uses unsupported extension. Please use file with "${EXTENSIONS.profile.source}" extension.`,
+          `Path: "${sourcePath}" for map ${file.profileId.id.toString()}.${
+            file.provider
+          } does not exist`,
           1
-        );
-      }
-      logger.info('compileProfile', profile.id.toString());
-      if (!(await exists(profileSourcePath))) {
-        throw userError(
-          `Path: "${profileSourcePath}" for profile ${profile.id.toString()} does not exist`,
-          1
-        );
-      }
-      const source = await readFile(profileSourcePath, { encoding: 'utf-8' });
-      let profileAst: ProfileDocumentNode | undefined;
-      try {
-        profileAst = parseProfile(new Source(source, profileSourcePath));
-      } catch (error) {
-        logger.error(
-          'profileCompilationFailed',
-          profile.id.toString(),
-          profileSourcePath,
-          error
-        );
-      }
-
-      if (profileAst !== undefined) {
-        await OutputStream.writeOnce(
-          profileAstPath,
-          JSON.stringify(profileAst, undefined, 2)
         );
       }
     }
-    //Compile maps
-    if (!options?.onlyProfile) {
-      for (const map of profile.maps) {
-        logger.info('compileMap', profile.id.toString(), map.provider);
-
-        let mapSourcePath: string, mapAstPath: string;
-        //We assume .suma and .suma.ast.json files living next to each other
-        if (map.path.endsWith(EXTENSIONS.map.source)) {
-          mapSourcePath = map.path;
-          mapAstPath = map.path.replace(
-            EXTENSIONS.map.source,
-            EXTENSIONS.map.build
-          );
-        } else if (map.path.endsWith(EXTENSIONS.map.build)) {
-          mapAstPath = map.path;
-          mapSourcePath = map.path.replace(
-            EXTENSIONS.map.build,
-            EXTENSIONS.map.source
-          );
-        } else {
-          throw userError(
-            `Path: "${map.path}" uses unsupported extension. Please use file with "${EXTENSIONS.map.source}" extension.`,
-            1
-          );
-        }
-        if (!(await exists(mapSourcePath))) {
-          throw userError(
-            `Path: "${mapSourcePath}" for map ${profile.id.toString()}.${
-              map.provider
-            } does not exist`,
-            1
-          );
-        }
-        const source = await readFile(mapSourcePath, { encoding: 'utf-8' });
-        let mapAst: MapDocumentNode | undefined;
-        try {
-          mapAst = parseMap(new Source(source, map.path));
-        } catch (error) {
-          logger.error(
-            'mapCompilationFailed',
-            profile.id.toString(),
-            map.provider,
-            mapSourcePath,
-            error
-          );
-        }
-
-        if (mapAst !== undefined) {
-          await OutputStream.writeOnce(
-            mapAstPath,
-            JSON.stringify(mapAst, undefined, 2)
-          );
-        }
+    const source = await readFile(sourcePath, { encoding: 'utf-8' });
+    let ast: ProfileDocumentNode | MapDocumentNode | undefined;
+    try {
+      ast =
+        file.kind === 'map'
+          ? parseMap(new Source(source, sourcePath))
+          : parseProfile(new Source(source, sourcePath));
+    } catch (error) {
+      if (file.kind === 'profile') {
+        logger.error(
+          'profileCompilationFailed',
+          file.profileId.id.toString(),
+          sourcePath,
+          error
+        );
+      } else {
+        logger.error(
+          'mapCompilationFailed',
+          file.profileId.id.toString(),
+          file.provider,
+          sourcePath,
+          error
+        );
       }
+    }
+
+    if (ast !== undefined) {
+      await OutputStream.writeOnce(astPath, JSON.stringify(ast, undefined, 2));
     }
   }
 }

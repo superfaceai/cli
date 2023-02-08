@@ -1,5 +1,3 @@
-import { mocked } from 'ts-jest/utils';
-
 import { getServicesUrl } from './http';
 import { loadNetrc, saveNetrc } from './netrc';
 
@@ -15,7 +13,7 @@ const mockSave = jest.fn();
 const mockLoad = jest.fn();
 jest.mock('netrc-parser', () => {
   return {
-    //Netrc is not default export so we need this
+    // Netrc is not default export so we need this
     Netrc: jest.fn().mockImplementation(() => {
       return {
         loadSync: mockLoadSync,
@@ -31,18 +29,22 @@ jest.mock('netrc-parser', () => {
     }),
   };
 });
+
 describe('NetRc functions', () => {
   describe('when loading netrc record', () => {
     it('calls netrc correctly with existing record', () => {
-      mocked(getServicesUrl).mockReturnValue(mockBaseUrlWithExistingRecord);
+      jest
+        .mocked(getServicesUrl)
+        .mockReturnValue(mockBaseUrlWithExistingRecord);
       expect(loadNetrc()).toEqual({
         baseUrl: mockBaseUrlWithExistingRecord,
         refreshToken: mockRefreshToken,
       });
       expect(mockLoadSync).toHaveBeenCalled();
     });
+
     it('calls netrc correctly with empty record', () => {
-      mocked(getServicesUrl).mockReturnValue(mockBaseUrlWithEmptyRecord);
+      jest.mocked(getServicesUrl).mockReturnValue(mockBaseUrlWithEmptyRecord);
       expect(loadNetrc()).toEqual({
         baseUrl: mockBaseUrlWithEmptyRecord,
         refreshToken: undefined,
@@ -51,7 +53,7 @@ describe('NetRc functions', () => {
     });
 
     it('calls netrc correctly with undefined record', () => {
-      mocked(getServicesUrl).mockReturnValue(mockBaseUrl);
+      jest.mocked(getServicesUrl).mockReturnValue(mockBaseUrl);
       expect(loadNetrc()).toEqual({
         baseUrl: mockBaseUrl,
         refreshToken: undefined,

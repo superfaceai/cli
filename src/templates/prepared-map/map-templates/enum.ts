@@ -1,0 +1,1 @@
+export default `\`{{model.enumElements.[0].value}}\`, // {{#if required}}required {{/if }}{{#unless required }}optional {{/unless }}{{#unless model.nonNull }}nulllable {{/unless }}enum ({{#each model.enumElements}}\`{{value}}\` {{#unless @last}}or {{/unless}}{{/each}})`;

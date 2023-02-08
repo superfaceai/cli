@@ -2,11 +2,11 @@ import * as childProcess from 'child_process';
 import * as fs from 'fs';
 import { basename } from 'path';
 import rimrafCallback from 'rimraf';
-import { Writable } from 'stream';
+import type { Writable } from 'stream';
 import { promisify } from 'util';
 
 import { assertIsIOError } from './error';
-import { SkipFileType } from './flags';
+import type { SkipFileType } from './flags';
 
 export const access = promisify(fs.access);
 export const mkdir = promisify(fs.mkdir);
@@ -172,10 +172,14 @@ export function execFile(
     );
 
     if (options?.forwardStdout === true) {
-      child.stdout?.on('data', chunk => process.stdout.write(chunk));
+      child.stdout?.on('data', (chunk: string | Uint8Array) =>
+        process.stdout.write(chunk)
+      );
     }
     if (options?.forwardStderr === true) {
-      child.stderr?.on('data', chunk => process.stderr.write(chunk));
+      child.stderr?.on('data', (chunk: string | Uint8Array) =>
+        process.stderr.write(chunk)
+      );
     }
   });
 }

@@ -8,21 +8,23 @@ import {
 import { parseDocumentId } from '@superfaceai/parser';
 import { dirname, join as joinPath, resolve as resolvePath } from 'path';
 
-import { Command, Flags } from '../common/command.abstract';
+import type { Flags } from '../common/command.abstract';
+import { Command } from '../common/command.abstract';
 import { META_FILE } from '../common/document';
-import { UserError } from '../common/error';
-import { ILogger } from '../common/log';
+import type { UserError } from '../common/error';
+import type { ILogger } from '../common/log';
 import { ProfileId } from '../common/profile';
-import { compile, MapToCompile, ProfileToCompile } from '../logic/compile';
+import type { FileToCompile } from '../logic/compile';
+import { compile } from '../logic/compile';
 import { detectSuperJson } from '../logic/install';
 
 export default class Compile extends Command {
-  static description =
+  public static description =
     'Compiles locally linked maps and profiles in `super.json`. When running without `--profileId` flag, all locally linked files are compiled. When running with `--profileId`, a single local profile source file, and all its local maps are compiled. When running with `--profileId` and `--providerName`, a single local profile and a single local map are compiled.';
 
-  static flags = {
+  public static flags = {
     ...Command.flags,
-    //Inputs
+    // Inputs
     profileId: oclifFlags.string({
       description: 'Profile Id in format [scope/](optional)[name]',
       required: false,
@@ -36,7 +38,7 @@ export default class Compile extends Command {
         'When number provided, scan for super.json outside cwd within range represented by this number.',
       required: false,
     }),
-    //What do we compile
+    // What do we compile
     onlyProfile: oclifFlags.boolean({
       description: 'Compile only a profile/profiles',
       exclusive: ['onlyMap'],
@@ -47,17 +49,17 @@ export default class Compile extends Command {
     }),
   };
 
-  static strict = true;
+  public static strict = true;
 
-  static examples = [
+  public static examples = [
     '$ superface compile',
     '$ superface compile --profileId starwars/character-information --profile',
     '$ superface compile --profileId starwars/character-information --profile -q',
     '$ superface compile --profileId starwars/character-information --providerName swapi --onlyMap',
-    '$ superface compile --profileId starwars/character-information --providerName swapi --onlyMap --onlyProfile',
+    '$ superface compile --profileId starwars/character-information --providerName swapi --onlyProfile',
   ];
 
-  async run(): Promise<void> {
+  public async run(): Promise<void> {
     const { flags } = this.parse(Compile);
     await super.initialize(flags);
     await this.execute({
@@ -67,7 +69,7 @@ export default class Compile extends Command {
     });
   }
 
-  async execute({
+  public async execute({
     logger,
     userError,
     flags,
@@ -77,18 +79,18 @@ export default class Compile extends Command {
     flags: Flags<typeof Compile.flags>;
   }): Promise<void> {
     // Check inputs
-    if (flags.profileId) {
+    if (flags.profileId !== undefined) {
       const parsedProfileId = parseDocumentId(flags.profileId);
       if (parsedProfileId.kind == 'error') {
         throw userError(`Invalid profile id: ${parsedProfileId.message}`, 1);
       }
     }
 
-    if (flags.providerName) {
+    if (flags.providerName !== undefined) {
       if (!isValidProviderName(flags.providerName)) {
         throw userError(`Invalid provider name: "${flags.providerName}"`, 1);
       }
-      if (!flags.profileId) {
+      if (flags.profileId === undefined) {
         throw userError(
           '--profileId must be specified when using --providerName',
           1
@@ -96,7 +98,10 @@ export default class Compile extends Command {
       }
     }
 
-    if (flags.scan && (typeof flags.scan !== 'number' || flags.scan > 5)) {
+    if (
+      flags.scan !== undefined &&
+      (typeof flags.scan !== 'number' || flags.scan > 5)
+    ) {
       throw userError(
         '--scan/-s : Number of levels to scan cannot be higher than 5',
         1
@@ -104,10 +109,10 @@ export default class Compile extends Command {
     }
 
     const superPath = await detectSuperJson(process.cwd(), flags.scan);
-    if (!superPath) {
+    if (superPath === undefined) {
       throw userError('Unable to compile, super.json not found', 1);
     }
-    //Load super json
+    // Load super json
     const superJsonPath = joinPath(superPath, META_FILE);
     const loadedResult = await loadSuperJson(superJsonPath, NodeFileSystem);
     const superJson = loadedResult.match(
@@ -118,17 +123,18 @@ export default class Compile extends Command {
     );
     const normalized = normalizeSuperJsonDocument(superJson);
 
-    //Check super.json
-    if (flags.profileId) {
-      if (!normalized.profiles[flags.profileId]) {
+    // Check super.json
+    if (flags.profileId !== undefined) {
+      if (normalized.profiles[flags.profileId] === undefined) {
         throw userError(
           `Unable to compile, profile: "${flags.profileId}" not found in super.json`,
           1
         );
       }
-      if (flags.providerName) {
+      if (flags.providerName !== undefined) {
         if (
-          !normalized.profiles[flags.profileId].providers[flags.providerName]
+          normalized.profiles[flags.profileId].providers[flags.providerName] ===
+          undefined
         ) {
           throw userError(
             `Unable to compile, provider: "${flags.providerName}" not found in profile: "${flags.profileId}" in super.json`,
@@ -138,102 +144,105 @@ export default class Compile extends Command {
       }
     }
 
-    const profiles: ProfileToCompile[] = [];
+    const files: FileToCompile[] = [];
 
-    //Compile every local map/profile in super.json
-    if (!flags.profileId && !flags.providerName) {
+    // Compile every local map/profile in super.json
+    if (flags.profileId === undefined && flags.providerName === undefined) {
       for (const [profile, profileSettings] of Object.entries(
         normalized.profiles
       )) {
-        const maps: MapToCompile[] = [];
+        const profileId = ProfileId.fromId(profile, { userError });
+        if ('file' in profileSettings) {
+          files.push({
+            path: resolvePath(dirname(superJsonPath), profileSettings.file),
+            kind: 'profile',
+            profileId,
+          });
+        }
         for (const [provider, profileProviderSettings] of Object.entries(
           profileSettings.providers
         )) {
           if ('file' in profileProviderSettings) {
-            maps.push({
+            files.push({
               path: resolvePath(
                 dirname(superJsonPath),
                 profileProviderSettings.file
               ),
+              kind: 'map',
+              profileId,
               provider,
             });
           }
         }
-        profiles.push({
-          path:
-            'file' in profileSettings
-              ? resolvePath(dirname(superJsonPath), profileSettings.file)
-              : undefined,
-          maps,
-          id: ProfileId.fromId(profile, { userError }),
-        });
       }
     }
 
-    //Compile single local profile and its local maps
-    if (flags.profileId && !flags.providerName) {
+    // Compile single local profile and its local maps
+    if (flags.profileId !== undefined && flags.providerName === undefined) {
       const profileSettings = normalized.profiles[flags.profileId];
-      const maps: MapToCompile[] = [];
-
+      const profileId = ProfileId.fromId(flags.profileId, { userError });
+      if ('file' in profileSettings) {
+        files.push({
+          path: resolvePath(dirname(superJsonPath), profileSettings.file),
+          kind: 'profile',
+          profileId,
+        });
+      }
       for (const [provider, profileProviderSettings] of Object.entries(
         profileSettings.providers
       )) {
         if ('file' in profileProviderSettings) {
-          maps.push({
+          files.push({
             path: resolvePath(
               dirname(superJsonPath),
               profileProviderSettings.file
             ),
+            profileId,
+            kind: 'map',
             provider,
           });
         }
       }
-      profiles.push({
-        path:
-          'file' in profileSettings
-            ? resolvePath(dirname(superJsonPath), profileSettings.file)
-            : undefined,
-        maps,
-        id: ProfileId.fromId(flags.profileId, { userError }),
-      });
     }
 
-    //Compile single local profile and single local map
-    if (flags.profileId && flags.providerName) {
+    // Compile single local profile and single local map
+    if (flags.profileId !== undefined && flags.providerName !== undefined) {
       const profileSettings = normalized.profiles[flags.profileId];
       const profileProviderSettings =
         profileSettings.providers[flags.providerName];
-      const maps: MapToCompile[] = [];
 
+      const profileId = ProfileId.fromId(flags.profileId, { userError });
+
+      if ('file' in profileSettings) {
+        files.push({
+          path: resolvePath(dirname(superJsonPath), profileSettings.file),
+          kind: 'profile',
+          profileId,
+        });
+      }
       if ('file' in profileProviderSettings) {
-        maps.push({
+        files.push({
           path: resolvePath(
             dirname(superJsonPath),
             profileProviderSettings.file
           ),
+          kind: 'map',
+          profileId,
           provider: flags.providerName,
         });
       }
-      profiles.push({
-        path:
-          'file' in profileSettings
-            ? resolvePath(dirname(superJsonPath), profileSettings.file)
-            : undefined,
-        maps,
-        id: ProfileId.fromId(flags.profileId, { userError }),
-      });
     }
 
-    await compile(
-      {
-        profiles,
-        options: {
-          onlyMap: flags.onlyMap,
-          onlyProfile: flags.onlyProfile,
-        },
-      },
-      { logger, userError }
-    );
+    let filteredFiles: FileToCompile[];
+    if (flags.onlyProfile === true) {
+      filteredFiles = files.filter(file => file.kind === 'profile');
+    } else if (flags.onlyMap === true) {
+      filteredFiles = files.filter(file => file.kind === 'map');
+    } else {
+      filteredFiles = files;
+    }
+
+    await compile(filteredFiles, { logger, userError });
 
     logger.success('compiledSuccessfully');
   }

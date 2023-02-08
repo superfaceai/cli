@@ -1,0 +1,932 @@
+{
+  "kind": "ProfileDocument",
+  "header": {
+    "kind": "ProfileHeader",
+    "scope": "star-trek",
+    "name": "get-info",
+    "version": {
+      "major": 2,
+      "minor": 2,
+      "patch": 2
+    },
+    "location": {
+      "start": {
+        "line": 1,
+        "column": 1,
+        "charIndex": 0
+      },
+      "end": {
+        "line": 2,
+        "column": 18,
+        "charIndex": 45
+      }
+    }
+  },
+  "definitions": [
+    {
+      "kind": "UseCaseDefinition",
+      "useCaseName": "getCharacter",
+      "input": {
+        "kind": "UseCaseSlotDefinition",
+        "value": {
+          "kind": "ObjectDefinition",
+          "fields": [
+            {
+              "kind": "FieldDefinition",
+              "fieldName": "foo",
+              "required": true,
+              "type": {
+                "kind": "PrimitiveTypeName",
+                "name": "string",
+                "location": {
+                  "start": {
+                    "line": 6,
+                    "column": 10,
+                    "charIndex": 89
+                  },
+                  "end": {
+                    "line": 6,
+                    "column": 16,
+                    "charIndex": 95
+                  }
+                }
+              },
+              "location": {
+                "start": {
+                  "line": 6,
+                  "column": 5,
+                  "charIndex": 84
+                },
+                "end": {
+                  "line": 6,
+                  "column": 16,
+                  "charIndex": 95
+                }
+              }
+            }
+          ],
+          "location": {
+            "start": {
+              "line": 5,
+              "column": 9,
+              "charIndex": 78
+            },
+            "end": {
+              "line": 7,
+              "column": 4,
+              "charIndex": 100
+            }
+          }
+        },
+        "location": {
+          "start": {
+            "line": 5,
+            "column": 3,
+            "charIndex": 72
+          },
+          "end": {
+            "line": 7,
+            "column": 4,
+            "charIndex": 100
+          }
+        }
+      },
+      "result": {
+        "kind": "UseCaseSlotDefinition",
+        "value": {
+          "kind": "ObjectDefinition",
+          "fields": [
+            {
+              "kind": "FieldDefinition",
+              "fieldName": "bar",
+              "required": false,
+              "type": {
+                "kind": "PrimitiveTypeName",
+                "name": "string",
+                "location": {
+                  "start": {
+                    "line": 10,
+                    "column": 9,
+                    "charIndex": 121
+                  },
+                  "end": {
+                    "line": 10,
+                    "column": 15,
+                    "charIndex": 127
+                  }
+                }
+              },
+              "location": {
+                "start": {
+                  "line": 10,
+                  "column": 5,
+                  "charIndex": 117
+                },
+                "end": {
+                  "line": 10,
+                  "column": 15,
+                  "charIndex": 127
+                }
+              }
+            }
+          ],
+          "location": {
+            "start": {
+              "line": 9,
+              "column": 10,
+              "charIndex": 111
+            },
+            "end": {
+              "line": 11,
+              "column": 4,
+              "charIndex": 131
+            }
+          }
+        },
+        "location": {
+          "start": {
+            "line": 9,
+            "column": 3,
+            "charIndex": 104
+          },
+          "end": {
+            "line": 11,
+            "column": 4,
+            "charIndex": 131
+          }
+        }
+      },
+      "error": {
+        "kind": "UseCaseSlotDefinition",
+        "value": {
+          "kind": "ObjectDefinition",
+          "fields": [
+            {
+              "kind": "FieldDefinition",
+              "fieldName": "baz",
+              "required": true,
+              "type": {
+                "kind": "NonNullDefinition",
+                "type": {
+                  "kind": "PrimitiveTypeName",
+                  "name": "number",
+                  "location": {
+                    "start": {
+                      "line": 14,
+                      "column": 10,
+                      "charIndex": 152
+                    },
+                    "end": {
+                      "line": 14,
+                      "column": 16,
+                      "charIndex": 158
+                    }
+                  }
+                },
+                "location": {
+                  "start": {
+                    "line": 14,
+                    "column": 10,
+                    "charIndex": 152
+                  },
+                  "end": {
+                    "line": 14,
+                    "column": 17,
+                    "charIndex": 159
+                  }
+                }
+              },
+              "location": {
+                "start": {
+                  "line": 14,
+                  "column": 5,
+                  "charIndex": 147
+                },
+                "end": {
+                  "line": 14,
+                  "column": 17,
+                  "charIndex": 159
+                }
+              }
+            }
+          ],
+          "location": {
+            "start": {
+              "line": 13,
+              "column": 9,
+              "charIndex": 141
+            },
+            "end": {
+              "line": 15,
+              "column": 4,
+              "charIndex": 163
+            }
+          }
+        },
+        "location": {
+          "start": {
+            "line": 13,
+            "column": 3,
+            "charIndex": 135
+          },
+          "end": {
+            "line": 15,
+            "column": 4,
+            "charIndex": 163
+          }
+        }
+      },
+      "examples": [
+        {
+          "kind": "UseCaseSlotDefinition",
+          "value": {
+            "kind": "UseCaseExample",
+            "exampleName": "success",
+            "input": {
+              "kind": "UseCaseSlotDefinition",
+              "value": {
+                "kind": "ComlinkObjectLiteral",
+                "fields": [
+                  {
+                    "kind": "ComlinkAssignment",
+                    "key": [
+                      "foo"
+                    ],
+                    "value": {
+                      "kind": "ComlinkPrimitiveLiteral",
+                      "value": "example",
+                      "location": {
+                        "start": {
+                          "line": 19,
+                          "column": 13,
+                          "charIndex": 209
+                        },
+                        "end": {
+                          "line": 19,
+                          "column": 22,
+                          "charIndex": 218
+                        }
+                      }
+                    },
+                    "location": {
+                      "start": {
+                        "line": 19,
+                        "column": 7,
+                        "charIndex": 203
+                      },
+                      "end": {
+                        "line": 19,
+                        "column": 22,
+                        "charIndex": 218
+                      }
+                    }
+                  }
+                ],
+                "location": {
+                  "start": {
+                    "line": 18,
+                    "column": 11,
+                    "charIndex": 195
+                  },
+                  "end": {
+                    "line": 20,
+                    "column": 6,
+                    "charIndex": 224
+                  }
+                }
+              },
+              "location": {
+                "start": {
+                  "line": 18,
+                  "column": 5,
+                  "charIndex": 189
+                },
+                "end": {
+                  "line": 20,
+                  "column": 6,
+                  "charIndex": 224
+                }
+              }
+            },
+            "result": {
+              "kind": "UseCaseSlotDefinition",
+              "value": {
+                "kind": "ComlinkObjectLiteral",
+                "fields": [
+                  {
+                    "kind": "ComlinkAssignment",
+                    "key": [
+                      "bar"
+                    ],
+                    "value": {
+                      "kind": "ComlinkPrimitiveLiteral",
+                      "value": "result",
+                      "location": {
+                        "start": {
+                          "line": 22,
+                          "column": 13,
+                          "charIndex": 250
+                        },
+                        "end": {
+                          "line": 22,
+                          "column": 21,
+                          "charIndex": 258
+                        }
+                      }
+                    },
+                    "location": {
+                      "start": {
+                        "line": 22,
+                        "column": 7,
+                        "charIndex": 244
+                      },
+                      "end": {
+                        "line": 22,
+                        "column": 21,
+                        "charIndex": 258
+                      }
+                    }
+                  }
+                ],
+                "location": {
+                  "start": {
+                    "line": 21,
+                    "column": 12,
+                    "charIndex": 236
+                  },
+                  "end": {
+                    "line": 23,
+                    "column": 6,
+                    "charIndex": 264
+                  }
+                }
+              },
+              "location": {
+                "start": {
+                  "line": 21,
+                  "column": 5,
+                  "charIndex": 229
+                },
+                "end": {
+                  "line": 23,
+                  "column": 6,
+                  "charIndex": 264
+                }
+              }
+            },
+            "location": {
+              "start": {
+                "line": 17,
+                "column": 11,
+                "charIndex": 175
+              },
+              "end": {
+                "line": 24,
+                "column": 4,
+                "charIndex": 268
+              }
+            }
+          },
+          "location": {
+            "start": {
+              "line": 17,
+              "column": 3,
+              "charIndex": 167
+            },
+            "end": {
+              "line": 24,
+              "column": 4,
+              "charIndex": 268
+            }
+          }
+        },
+        {
+          "kind": "UseCaseSlotDefinition",
+          "value": {
+            "kind": "UseCaseExample",
+            "exampleName": "otherSuccess",
+            "input": {
+              "kind": "UseCaseSlotDefinition",
+              "value": {
+                "kind": "ComlinkObjectLiteral",
+                "fields": [
+                  {
+                    "kind": "ComlinkAssignment",
+                    "key": [
+                      "foo"
+                    ],
+                    "value": {
+                      "kind": "ComlinkPrimitiveLiteral",
+                      "value": "second example",
+                      "location": {
+                        "start": {
+                          "line": 28,
+                          "column": 13,
+                          "charIndex": 319
+                        },
+                        "end": {
+                          "line": 28,
+                          "column": 29,
+                          "charIndex": 335
+                        }
+                      }
+                    },
+                    "location": {
+                      "start": {
+                        "line": 28,
+                        "column": 7,
+                        "charIndex": 313
+                      },
+                      "end": {
+                        "line": 28,
+                        "column": 29,
+                        "charIndex": 335
+                      }
+                    }
+                  }
+                ],
+                "location": {
+                  "start": {
+                    "line": 27,
+                    "column": 11,
+                    "charIndex": 305
+                  },
+                  "end": {
+                    "line": 29,
+                    "column": 6,
+                    "charIndex": 341
+                  }
+                }
+              },
+              "location": {
+                "start": {
+                  "line": 27,
+                  "column": 5,
+                  "charIndex": 299
+                },
+                "end": {
+                  "line": 29,
+                  "column": 6,
+                  "charIndex": 341
+                }
+              }
+            },
+            "result": {
+              "kind": "UseCaseSlotDefinition",
+              "value": {
+                "kind": "ComlinkObjectLiteral",
+                "fields": [
+                  {
+                    "kind": "ComlinkAssignment",
+                    "key": [
+                      "bar"
+                    ],
+                    "value": {
+                      "kind": "ComlinkPrimitiveLiteral",
+                      "value": "second result",
+                      "location": {
+                        "start": {
+                          "line": 31,
+                          "column": 13,
+                          "charIndex": 367
+                        },
+                        "end": {
+                          "line": 31,
+                          "column": 28,
+                          "charIndex": 382
+                        }
+                      }
+                    },
+                    "location": {
+                      "start": {
+                        "line": 31,
+                        "column": 7,
+                        "charIndex": 361
+                      },
+                      "end": {
+                        "line": 31,
+                        "column": 28,
+                        "charIndex": 382
+                      }
+                    }
+                  }
+                ],
+                "location": {
+                  "start": {
+                    "line": 30,
+                    "column": 12,
+                    "charIndex": 353
+                  },
+                  "end": {
+                    "line": 32,
+                    "column": 6,
+                    "charIndex": 388
+                  }
+                }
+              },
+              "location": {
+                "start": {
+                  "line": 30,
+                  "column": 5,
+                  "charIndex": 346
+                },
+                "end": {
+                  "line": 32,
+                  "column": 6,
+                  "charIndex": 388
+                }
+              }
+            },
+            "location": {
+              "start": {
+                "line": 26,
+                "column": 11,
+                "charIndex": 280
+              },
+              "end": {
+                "line": 33,
+                "column": 4,
+                "charIndex": 392
+              }
+            }
+          },
+          "location": {
+            "start": {
+              "line": 26,
+              "column": 3,
+              "charIndex": 272
+            },
+            "end": {
+              "line": 33,
+              "column": 4,
+              "charIndex": 392
+            }
+          }
+        },
+        {
+          "kind": "UseCaseSlotDefinition",
+          "value": {
+            "kind": "UseCaseExample",
+            "exampleName": "fail",
+            "input": {
+              "kind": "UseCaseSlotDefinition",
+              "value": {
+                "kind": "ComlinkObjectLiteral",
+                "fields": [
+                  {
+                    "kind": "ComlinkAssignment",
+                    "key": [
+                      "foo"
+                    ],
+                    "value": {
+                      "kind": "ComlinkPrimitiveLiteral",
+                      "value": "error",
+                      "location": {
+                        "start": {
+                          "line": 37,
+                          "column": 13,
+                          "charIndex": 435
+                        },
+                        "end": {
+                          "line": 37,
+                          "column": 20,
+                          "charIndex": 442
+                        }
+                      }
+                    },
+                    "location": {
+                      "start": {
+                        "line": 37,
+                        "column": 7,
+                        "charIndex": 429
+                      },
+                      "end": {
+                        "line": 37,
+                        "column": 20,
+                        "charIndex": 442
+                      }
+                    }
+                  }
+                ],
+                "location": {
+                  "start": {
+                    "line": 36,
+                    "column": 11,
+                    "charIndex": 421
+                  },
+                  "end": {
+                    "line": 38,
+                    "column": 6,
+                    "charIndex": 448
+                  }
+                }
+              },
+              "location": {
+                "start": {
+                  "line": 36,
+                  "column": 5,
+                  "charIndex": 415
+                },
+                "end": {
+                  "line": 38,
+                  "column": 6,
+                  "charIndex": 448
+                }
+              }
+            },
+            "error": {
+              "kind": "UseCaseSlotDefinition",
+              "value": {
+                "kind": "ComlinkObjectLiteral",
+                "fields": [
+                  {
+                    "kind": "ComlinkAssignment",
+                    "key": [
+                      "baz"
+                    ],
+                    "value": {
+                      "kind": "ComlinkPrimitiveLiteral",
+                      "value": 12,
+                      "location": {
+                        "start": {
+                          "line": 40,
+                          "column": 13,
+                          "charIndex": 473
+                        },
+                        "end": {
+                          "line": 40,
+                          "column": 15,
+                          "charIndex": 475
+                        }
+                      }
+                    },
+                    "location": {
+                      "start": {
+                        "line": 40,
+                        "column": 7,
+                        "charIndex": 467
+                      },
+                      "end": {
+                        "line": 40,
+                        "column": 15,
+                        "charIndex": 475
+                      }
+                    }
+                  }
+                ],
+                "location": {
+                  "start": {
+                    "line": 39,
+                    "column": 11,
+                    "charIndex": 459
+                  },
+                  "end": {
+                    "line": 41,
+                    "column": 6,
+                    "charIndex": 481
+                  }
+                }
+              },
+              "location": {
+                "start": {
+                  "line": 39,
+                  "column": 5,
+                  "charIndex": 453
+                },
+                "end": {
+                  "line": 41,
+                  "column": 6,
+                  "charIndex": 481
+                }
+              }
+            },
+            "location": {
+              "start": {
+                "line": 35,
+                "column": 11,
+                "charIndex": 404
+              },
+              "end": {
+                "line": 42,
+                "column": 4,
+                "charIndex": 485
+              }
+            }
+          },
+          "location": {
+            "start": {
+              "line": 35,
+              "column": 3,
+              "charIndex": 396
+            },
+            "end": {
+              "line": 42,
+              "column": 4,
+              "charIndex": 485
+            }
+          }
+        },
+        {
+          "kind": "UseCaseSlotDefinition",
+          "value": {
+            "kind": "UseCaseExample",
+            "exampleName": "otherFail",
+            "input": {
+              "kind": "UseCaseSlotDefinition",
+              "value": {
+                "kind": "ComlinkObjectLiteral",
+                "fields": [
+                  {
+                    "kind": "ComlinkAssignment",
+                    "key": [
+                      "foo"
+                    ],
+                    "value": {
+                      "kind": "ComlinkPrimitiveLiteral",
+                      "value": "different error",
+                      "location": {
+                        "start": {
+                          "line": 46,
+                          "column": 13,
+                          "charIndex": 533
+                        },
+                        "end": {
+                          "line": 46,
+                          "column": 30,
+                          "charIndex": 550
+                        }
+                      }
+                    },
+                    "location": {
+                      "start": {
+                        "line": 46,
+                        "column": 7,
+                        "charIndex": 527
+                      },
+                      "end": {
+                        "line": 46,
+                        "column": 30,
+                        "charIndex": 550
+                      }
+                    }
+                  }
+                ],
+                "location": {
+                  "start": {
+                    "line": 45,
+                    "column": 11,
+                    "charIndex": 519
+                  },
+                  "end": {
+                    "line": 47,
+                    "column": 6,
+                    "charIndex": 556
+                  }
+                }
+              },
+              "location": {
+                "start": {
+                  "line": 45,
+                  "column": 5,
+                  "charIndex": 513
+                },
+                "end": {
+                  "line": 47,
+                  "column": 6,
+                  "charIndex": 556
+                }
+              }
+            },
+            "error": {
+              "kind": "UseCaseSlotDefinition",
+              "value": {
+                "kind": "ComlinkObjectLiteral",
+                "fields": [
+                  {
+                    "kind": "ComlinkAssignment",
+                    "key": [
+                      "baz"
+                    ],
+                    "value": {
+                      "kind": "ComlinkPrimitiveLiteral",
+                      "value": 16,
+                      "location": {
+                        "start": {
+                          "line": 49,
+                          "column": 13,
+                          "charIndex": 581
+                        },
+                        "end": {
+                          "line": 49,
+                          "column": 15,
+                          "charIndex": 583
+                        }
+                      }
+                    },
+                    "location": {
+                      "start": {
+                        "line": 49,
+                        "column": 7,
+                        "charIndex": 575
+                      },
+                      "end": {
+                        "line": 49,
+                        "column": 15,
+                        "charIndex": 583
+                      }
+                    }
+                  }
+                ],
+                "location": {
+                  "start": {
+                    "line": 48,
+                    "column": 11,
+                    "charIndex": 567
+                  },
+                  "end": {
+                    "line": 50,
+                    "column": 6,
+                    "charIndex": 589
+                  }
+                }
+              },
+              "location": {
+                "start": {
+                  "line": 48,
+                  "column": 5,
+                  "charIndex": 561
+                },
+                "end": {
+                  "line": 50,
+                  "column": 6,
+                  "charIndex": 589
+                }
+              }
+            },
+            "location": {
+              "start": {
+                "line": 44,
+                "column": 11,
+                "charIndex": 497
+              },
+              "end": {
+                "line": 51,
+                "column": 4,
+                "charIndex": 593
+              }
+            }
+          },
+          "location": {
+            "start": {
+              "line": 44,
+              "column": 3,
+              "charIndex": 489
+            },
+            "end": {
+              "line": 51,
+              "column": 4,
+              "charIndex": 593
+            }
+          }
+        }
+      ],
+      "location": {
+        "start": {
+          "line": 4,
+          "column": 1,
+          "charIndex": 47
+        },
+        "end": {
+          "line": 52,
+          "column": 2,
+          "charIndex": 595
+        }
+      }
+    }
+  ],
+  "location": {
+    "start": {
+      "line": 1,
+      "column": 1,
+      "charIndex": 0
+    },
+    "end": {
+      "line": 52,
+      "column": 2,
+      "charIndex": 595
+    }
+  },
+  "astMetadata": {
+    "astVersion": {
+      "major": 1,
+      "minor": 3,
+      "patch": 0
+    },
+    "parserVersion": {
+      "major": 2,
+      "minor": 1,
+      "patch": 0
+    },
+    "sourceChecksum": "a3e264134151db634ddedf45e2a40564f98048ef544c72de9363124398f6e404"
+  }
+}

@@ -1,16 +1,17 @@
+import type {
+  ProviderJson,
+  SecurityScheme,
+  SuperJsonDocument,
+} from '@superfaceai/ast';
 import {
   ApiKeyPlacement,
   HttpScheme,
   OnFail,
-  ProviderJson,
-  SecurityScheme,
   SecurityType,
-  SuperJsonDocument,
 } from '@superfaceai/ast';
 import { ok } from '@superfaceai/one-sdk';
 import * as SuperJsonMutate from '@superfaceai/one-sdk/dist/schema-tools/superjson/mutate';
 import * as SuperJsonUtils from '@superfaceai/one-sdk/dist/schema-tools/superjson/utils';
-import { mocked } from 'ts-jest/utils';
 
 import { MockLogger } from '../common';
 import { createUserError } from '../common/error';
@@ -80,7 +81,7 @@ describe('Configure CLI logic', () => {
 
   describe('when updating env file', () => {
     it('updates env file correctly', async () => {
-      mocked(readFileQuiet).mockResolvedValue('TEST_API_KEY=something\n');
+      jest.mocked(readFileQuiet).mockResolvedValue('TEST_API_KEY=something\n');
       const writeOnceSpy = jest
         .spyOn(OutputStream, 'writeOnce')
         .mockResolvedValue(undefined);
@@ -91,12 +92,12 @@ describe('Configure CLI logic', () => {
       expect(writeOnceSpy).toHaveBeenCalledTimes(1);
       expect(writeOnceSpy).toHaveBeenCalledWith(
         '.env',
-        'TEST_API_KEY=something\nTEST_TOKEN=\nTEST_USERNAME=\nTEST_PASSWORD=\nTEST_DIGEST=\n'
+        'TEST_API_KEY=something\nTEST_TOKEN=\nTEST_USERNAME=\nTEST_PASSWORD=\n'
       );
     });
 
     it('creates new env file correctly', async () => {
-      mocked(readFileQuiet).mockResolvedValue(undefined);
+      jest.mocked(readFileQuiet).mockResolvedValue(undefined);
       const writeOnceSpy = jest
         .spyOn(OutputStream, 'writeOnce')
         .mockResolvedValue(undefined);
@@ -107,12 +108,12 @@ describe('Configure CLI logic', () => {
       expect(writeOnceSpy).toHaveBeenCalledTimes(1);
       expect(writeOnceSpy).toHaveBeenCalledWith(
         '.env',
-        'TEST_API_KEY=\nTEST_TOKEN=\nTEST_USERNAME=\nTEST_PASSWORD=\nTEST_DIGEST=\n'
+        'TEST_API_KEY=\nTEST_TOKEN=\nTEST_USERNAME=\nTEST_PASSWORD=\n'
       );
     });
 
     it('does not update env file on unknown scheme', async () => {
-      mocked(readFileQuiet).mockResolvedValue(undefined);
+      jest.mocked(readFileQuiet).mockResolvedValue(undefined);
       const writeOnceSpy = jest
         .spyOn(OutputStream, 'writeOnce')
         .mockResolvedValue(undefined);
@@ -135,6 +136,7 @@ describe('Configure CLI logic', () => {
       expect(writeOnceSpy).toHaveBeenCalledWith('.env', '');
     });
   });
+
   describe('when handling provider response', () => {
     let mockSuperJson: SuperJsonDocument;
     const mockProfileId = ProfileId.fromId('test-profile', { userError });
@@ -556,7 +558,7 @@ describe('Configure CLI logic', () => {
 
   describe('when geting provider from store', () => {
     it('returns correct result', async () => {
-      mocked(fetchProviderInfo).mockResolvedValue(mockProviderJson);
+      jest.mocked(fetchProviderInfo).mockResolvedValue(mockProviderJson);
 
       await expect(
         getProviderFromStore(providerName, { logger, userError })
@@ -564,7 +566,7 @@ describe('Configure CLI logic', () => {
     });
 
     it('throws on error', async () => {
-      mocked(fetchProviderInfo).mockRejectedValue(new Error('test'));
+      jest.mocked(fetchProviderInfo).mockRejectedValue(new Error('test'));
 
       await expect(
         getProviderFromStore(providerName, { logger, userError })
@@ -590,7 +592,7 @@ describe('Configure CLI logic', () => {
         .spyOn(SuperJsonUtils, 'loadSuperJson')
         .mockResolvedValue(ok(mockSuperJson));
 
-      mocked(fetchProviderInfo).mockResolvedValue(mockProviderJson);
+      jest.mocked(fetchProviderInfo).mockResolvedValue(mockProviderJson);
 
       const setProviderSpy = jest.spyOn(SuperJsonMutate, 'setProvider');
       const setProfileProviderSpy = jest.spyOn(
@@ -673,7 +675,7 @@ describe('Configure CLI logic', () => {
       const loadSpy = jest
         .spyOn(SuperJsonUtils, 'loadSuperJson')
         .mockResolvedValue(ok(mockSuperJson));
-      mocked(fetchProviderInfo).mockResolvedValue(mockProviderJson);
+      jest.mocked(fetchProviderInfo).mockResolvedValue(mockProviderJson);
 
       const setProviderSpy = jest.spyOn(SuperJsonMutate, 'setProvider');
       const setProfileProviderSpy = jest.spyOn(
@@ -743,7 +745,7 @@ describe('Configure CLI logic', () => {
       expect(writeOnceSpy).toHaveBeenCalledTimes(2);
       expect(writeOnceSpy).toHaveBeenCalledWith(
         '.env',
-        'TEST_API_KEY=\nTEST_TOKEN=\nTEST_USERNAME=\nTEST_PASSWORD=\nTEST_DIGEST=\n'
+        'TEST_API_KEY=\nTEST_TOKEN=\nTEST_USERNAME=\nTEST_PASSWORD=\n'
       );
     });
 
@@ -772,7 +774,7 @@ describe('Configure CLI logic', () => {
         .spyOn(OutputStream, 'writeOnce')
         .mockResolvedValue(undefined);
 
-      mocked(fetchProviderInfo).mockResolvedValue(mockProviderJson);
+      jest.mocked(fetchProviderInfo).mockResolvedValue(mockProviderJson);
 
       await expect(
         installProvider(
@@ -859,7 +861,7 @@ describe('Configure CLI logic', () => {
         .spyOn(OutputStream, 'writeOnce')
         .mockResolvedValue(undefined);
 
-      mocked(readFile).mockResolvedValue(JSON.stringify(mockProviderJson));
+      jest.mocked(readFile).mockResolvedValue(JSON.stringify(mockProviderJson));
 
       await expect(
         installProvider(
@@ -946,7 +948,7 @@ describe('Configure CLI logic', () => {
         .spyOn(OutputStream, 'writeOnce')
         .mockResolvedValue(undefined);
 
-      mocked(fetchProviderInfo).mockResolvedValue(mockProviderJson);
+      jest.mocked(fetchProviderInfo).mockResolvedValue(mockProviderJson);
 
       await expect(
         installProvider(
@@ -1009,7 +1011,7 @@ describe('Configure CLI logic', () => {
       expect(writeOnceSpy).toHaveBeenCalledTimes(2);
       expect(writeOnceSpy).toHaveBeenCalledWith(
         '.env',
-        'TEST_API_KEY=\nTEST_TOKEN=\nTEST_USERNAME=\nTEST_PASSWORD=\nTEST_DIGEST=\n'
+        'TEST_API_KEY=\nTEST_TOKEN=\nTEST_USERNAME=\nTEST_PASSWORD=\n'
       );
     });
 
@@ -1027,7 +1029,7 @@ describe('Configure CLI logic', () => {
       const loadSpy = jest
         .spyOn(SuperJsonUtils, 'loadSuperJson')
         .mockResolvedValue(ok(mockSuperJson));
-      mocked(readFile).mockRejectedValue(new Error('test'));
+      jest.mocked(readFile).mockRejectedValue(new Error('test'));
 
       await expect(
         installProvider(
@@ -1101,7 +1103,7 @@ describe('Configure CLI logic', () => {
         .spyOn(SuperJsonUtils, 'loadSuperJson')
         .mockResolvedValue(ok(mockSuperJson));
 
-      mocked(fetchProviderInfo).mockResolvedValue(mockProviderJson);
+      jest.mocked(fetchProviderInfo).mockResolvedValue(mockProviderJson);
 
       const setProviderSpy = jest.spyOn(SuperJsonMutate, 'setProvider');
       const setProfileProviderSpy = jest.spyOn(
@@ -1160,7 +1162,7 @@ describe('Configure CLI logic', () => {
         .spyOn(SuperJsonUtils, 'loadSuperJson')
         .mockResolvedValue(ok(mockSuperJson));
 
-      mocked(fetchProviderInfo).mockResolvedValue(mockProviderJson);
+      jest.mocked(fetchProviderInfo).mockResolvedValue(mockProviderJson);
 
       const setProviderSpy = jest.spyOn(SuperJsonMutate, 'setProvider');
       const setProfileProviderSpy = jest.spyOn(

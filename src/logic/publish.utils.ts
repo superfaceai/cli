@@ -1,10 +1,12 @@
-import {
-  assertMapDocumentNode,
-  assertProfileDocumentNode,
+import type {
   MapDocumentNode,
   ProfileDocumentNode,
   ProviderJson,
   SuperJsonDocument,
+} from '@superfaceai/ast';
+import {
+  assertMapDocumentNode,
+  assertProfileDocumentNode,
 } from '@superfaceai/ast';
 import {
   composeVersion,
@@ -15,20 +17,20 @@ import {
   validateMap,
 } from '@superfaceai/parser';
 
-import { UserError } from '../common/error';
+import type { UserError } from '../common/error';
 import {
   fetchMapAST,
   fetchProfileAST,
   fetchProviderInfo,
 } from '../common/http';
-import { ILogger } from '../common/log';
-import { ProfileId } from '../common/profile';
-import { ProfileMapReport } from '../common/report.interfaces';
+import type { ILogger } from '../common/log';
+import type { ProfileId } from '../common/profile';
+import type { ProfileMapReport } from '../common/report.interfaces';
+import type { CheckResult } from './check';
 import {
   checkIntegrationParameters,
   checkMapAndProfile,
   checkMapAndProvider,
-  CheckResult,
 } from './check';
 import {
   findLocalMapSource,
@@ -55,20 +57,26 @@ export function prePublishCheck(
     logger.info('assertProfile');
     assertProfileDocumentNode(params.profileAst);
   } catch (error) {
-    throw userError(error, 1);
+    throw userError(
+      `Profile AST validation failed ${(error as { message: string }).message}`,
+      1
+    );
   }
   try {
     logger.info('assertMap');
     assertMapDocumentNode(params.mapAst);
   } catch (error) {
-    throw userError(error, 1);
+    throw userError(
+      `Map AST validation failed ${(error as { message: string }).message}`,
+      1
+    );
   }
 
-  //Check map and profile
+  // Check map and profile
   const result: CheckResult[] = [];
   result.push({
     ...checkMapAndProfile(params.profileAst, params.mapAst, {
-      //strict when we are publishing profile or map
+      // strict when we are publishing profile or map
       strict: params.publishing !== 'provider',
       logger,
     }),
@@ -76,14 +84,14 @@ export function prePublishCheck(
     mapFrom: params.mapFrom,
   });
 
-  //Check map and provider
+  // Check map and provider
   result.push({
     ...checkMapAndProvider(params.providerJson, params.mapAst),
     mapFrom: params.mapFrom,
     providerFrom: params.providerFrom,
   });
 
-  //Check integration parameters
+  // Check integration parameters
   result.push({
     ...checkIntegrationParameters(params.providerJson, params.superJson),
     providerFrom: params.providerFrom,
@@ -100,7 +108,7 @@ export function prePublishLint(
   const profileOutput = getProfileOutput(profileAst);
   const result = validateMap(profileOutput, mapAst);
 
-  //TODO: paths
+  // TODO: paths
   return createProfileMapReport(result, '', '');
 }
 
@@ -139,7 +147,9 @@ export async function loadProfile(
     version
   );
 
-  const profileId = `${profile.id}${version ? `@${version}` : ''}`;
+  const profileId = `${profile.id}${
+    version !== undefined ? `@${version}` : ''
+  }`;
 
   if (source) {
     ast = parseProfile(new Source(source.source, profileId));
@@ -147,7 +157,7 @@ export async function loadProfile(
 
     return { ast, from: { kind: 'local', ...source } };
   } else {
-    //Load from store
+    // Load from store
     ast = await fetchProfileAST(profile, version);
     const versionString = composeVersion(ast.header.version);
     logger.info('fetchProfile', profile.id, version);
@@ -216,7 +226,7 @@ export async function loadMap(
       },
     };
   } else {
-    //Load from store
+    // Load from store
     const ast = await fetchMapAST({
       name: profile.name,
       provider,

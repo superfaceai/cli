@@ -1,9 +1,9 @@
+import type { SecurityScheme } from '@superfaceai/ast';
 import {
   isApiKeySecurityScheme,
   isBasicAuthSecurityScheme,
   isBearerTokenSecurityScheme,
   isDigestSecurityScheme,
-  SecurityScheme,
 } from '@superfaceai/ast';
 
 export function envVariable(name: string, value = ''): string {
@@ -17,18 +17,27 @@ export function prepareEnvVariables(
   const envProviderName = provider.replace('-', '_').toUpperCase();
 
   const values: (string | undefined)[] = [];
+  const pushValue = (value: string | undefined) => {
+    if (values.includes(value)) {
+      return;
+    }
+
+    values.push(value);
+  };
+
   for (const scheme of schemes) {
     if (isApiKeySecurityScheme(scheme)) {
-      values.push(envVariable(`${envProviderName}_API_KEY`));
+      pushValue(envVariable(`${envProviderName}_API_KEY`));
     } else if (isBasicAuthSecurityScheme(scheme)) {
-      values.push(envVariable(`${envProviderName}_USERNAME`));
-      values.push(envVariable(`${envProviderName}_PASSWORD`));
+      pushValue(envVariable(`${envProviderName}_USERNAME`));
+      pushValue(envVariable(`${envProviderName}_PASSWORD`));
     } else if (isBearerTokenSecurityScheme(scheme)) {
-      values.push(envVariable(`${envProviderName}_TOKEN`));
+      pushValue(envVariable(`${envProviderName}_TOKEN`));
     } else if (isDigestSecurityScheme(scheme)) {
-      values.push(envVariable(`${envProviderName}_DIGEST`));
+      pushValue(envVariable(`${envProviderName}_USERNAME`));
+      pushValue(envVariable(`${envProviderName}_PASSWORD`));
     } else {
-      values.push(undefined);
+      pushValue(undefined);
     }
   }
 

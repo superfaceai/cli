@@ -1,10 +1,9 @@
-import {
+import type {
   AstMetadata,
   MapDocumentNode,
   ProfileDocumentNode,
 } from '@superfaceai/ast';
 import { parseMap, parseProfile, Source } from '@superfaceai/parser';
-import { mocked } from 'ts-jest/utils';
 
 import { MockLogger } from '../common';
 import { createUserError } from '../common/error';
@@ -14,21 +13,23 @@ import {
   fetchProviderInfo,
 } from '../common/http';
 import { ProfileId } from '../common/profile';
-import { ProfileMapReport } from '../common/report.interfaces';
+import type { ProfileMapReport } from '../common/report.interfaces';
 import {
   findLocalMapSource,
   findLocalProfileSource,
   findLocalProviderSource,
 } from './check.utils';
+import type {
+  MapFromMetadata,
+  ProfileFromMetadata,
+  ProviderFromMetadata,
+} from './publish.utils';
 import {
   loadMap,
   loadProfile,
   loadProvider,
-  MapFromMetadata,
   prePublishCheck,
   prePublishLint,
-  ProfileFromMetadata,
-  ProviderFromMetadata,
 } from './publish.utils';
 
 jest.mock('./check.utils', () => ({
@@ -65,7 +66,7 @@ describe('Publish logic utils', () => {
       patch: 0,
     },
     parserVersion: {
-      major: 1,
+      major: 2,
       minor: 0,
       patch: 0,
     },
@@ -434,13 +435,13 @@ describe('Publish logic utils', () => {
 
   describe('when loading profile', () => {
     it('loads local profile source and parses it to AST', async () => {
-      mocked(findLocalProfileSource).mockResolvedValue({
+      jest.mocked(findLocalProfileSource).mockResolvedValue({
         source: mockProfileSource,
         path: 'mock profile path',
       });
-      const parseProfileSpy = mocked(parseProfile).mockReturnValue(
-        validProfileDocument
-      );
+      const parseProfileSpy = jest
+        .mocked(parseProfile)
+        .mockReturnValue(validProfileDocument);
 
       await expect(
         loadProfile(
@@ -471,11 +472,11 @@ describe('Publish logic utils', () => {
     });
 
     it('loads AST from store', async () => {
-      mocked(findLocalProfileSource).mockResolvedValue(undefined);
-      mocked(fetchProfileAST).mockResolvedValue(validProfileDocument);
-      const parseProfileSpy = mocked(parseProfile).mockReturnValue(
-        validProfileDocument
-      );
+      jest.mocked(findLocalProfileSource).mockResolvedValue(undefined);
+      jest.mocked(fetchProfileAST).mockResolvedValue(validProfileDocument);
+      const parseProfileSpy = jest
+        .mocked(parseProfile)
+        .mockReturnValue(validProfileDocument);
       await expect(
         loadProfile(
           {
@@ -505,11 +506,13 @@ describe('Publish logic utils', () => {
 
   describe('when loading map', () => {
     it('loads local map source and parses it to AST', async () => {
-      mocked(findLocalMapSource).mockResolvedValue({
+      jest.mocked(findLocalMapSource).mockResolvedValue({
         source: mockMapSource,
         path: 'mock map path',
       });
-      const parseMapSpy = mocked(parseMap).mockReturnValue(validMapDocument);
+      const parseMapSpy = jest
+        .mocked(parseMap)
+        .mockReturnValue(validMapDocument);
 
       await expect(
         loadMap(
@@ -543,9 +546,11 @@ describe('Publish logic utils', () => {
     });
 
     it('loads AST from store', async () => {
-      mocked(findLocalMapSource).mockResolvedValue(undefined);
-      mocked(fetchMapAST).mockResolvedValue(validMapDocument);
-      const parseMapSpy = mocked(parseMap).mockReturnValue(validMapDocument);
+      jest.mocked(findLocalMapSource).mockResolvedValue(undefined);
+      jest.mocked(fetchMapAST).mockResolvedValue(validMapDocument);
+      const parseMapSpy = jest
+        .mocked(parseMap)
+        .mockReturnValue(validMapDocument);
 
       await expect(
         loadMap(
@@ -585,7 +590,7 @@ describe('Publish logic utils', () => {
 
   describe('when loading provider', () => {
     it('loads local provider source', async () => {
-      mocked(findLocalProviderSource).mockResolvedValue({
+      jest.mocked(findLocalProviderSource).mockResolvedValue({
         source: validProviderSource,
         path: 'mock provider path',
       });
@@ -606,8 +611,8 @@ describe('Publish logic utils', () => {
     });
 
     it('loads provider json from store', async () => {
-      mocked(findLocalProviderSource).mockResolvedValue(undefined);
-      mocked(fetchProviderInfo).mockResolvedValue(validProviderSource);
+      jest.mocked(findLocalProviderSource).mockResolvedValue(undefined);
+      jest.mocked(fetchProviderInfo).mockResolvedValue(validProviderSource);
 
       await expect(
         loadProvider(mockSuperJson, '', mockProviderName, { logger })

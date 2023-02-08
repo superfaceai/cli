@@ -1,17 +1,17 @@
 import createDebug from 'debug';
 import * as fs from 'fs';
 import { dirname } from 'path';
-import { Writable } from 'stream';
+import type { Writable } from 'stream';
 
-import { exists, streamEnd, streamWrite, WritingOptions } from './io';
+import type { WritingOptions } from './io';
+import { exists, streamEnd, streamWrite } from './io';
 
 const outputStreamDebug = createDebug('superface:output-stream');
 export class OutputStream {
   private readonly name: string;
-  readonly stream: Writable;
-
-  readonly isStdStream: boolean;
-  readonly isTTY: boolean;
+  public readonly stream: Writable;
+  public readonly isStdStream: boolean;
+  public readonly isTTY: boolean;
 
   /**
    * Constructs the output object.
@@ -45,7 +45,7 @@ export class OutputStream {
       default:
         outputStreamDebug(
           `Opening/creating "${path}" in ${
-            options?.append ? 'append' : 'write'
+            options?.append !== undefined ? 'append' : 'write'
           } mode`
         );
         if (options?.dirs === true) {
@@ -55,7 +55,7 @@ export class OutputStream {
 
         this.name = path;
         this.stream = fs.createWriteStream(path, {
-          flags: options?.append ? 'a' : 'w',
+          flags: options?.append !== undefined ? 'a' : 'w',
           mode: 0o644,
           encoding: 'utf-8',
         });
@@ -65,13 +65,13 @@ export class OutputStream {
     }
   }
 
-  write(data: string): Promise<void> {
+  public write(data: string): Promise<void> {
     outputStreamDebug(`Writing ${data.length} characters to "${this.name}"`);
 
     return streamWrite(this.stream, data);
   }
 
-  cleanup(): Promise<void> {
+  public cleanup(): Promise<void> {
     outputStreamDebug(`Closing stream "${this.name}"`);
 
     // TODO: Should we also end stdout or stderr?
@@ -82,7 +82,7 @@ export class OutputStream {
     return Promise.resolve();
   }
 
-  static async writeOnce(
+  public static async writeOnce(
     path: string,
     data: string,
     options?: WritingOptions
@@ -105,7 +105,7 @@ export class OutputStream {
    * The `dirs` option additionally recursively creates
    * directories up until the file path.
    */
-  static async writeIfAbsent(
+  public static async writeIfAbsent(
     path: string,
     data: string | (() => string),
     options?: WritingOptions

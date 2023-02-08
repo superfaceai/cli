@@ -1,18 +1,13 @@
-import {
+import type {
   AstMetadata,
-  OnFail,
   ProfileDocumentNode,
   SuperJsonDocument,
 } from '@superfaceai/ast';
-import {
-  normalizeSuperJsonDocument,
-  ok,
-  Result,
-  SDKExecutionError,
-} from '@superfaceai/one-sdk';
+import { OnFail } from '@superfaceai/ast';
+import type { Result, SDKExecutionError } from '@superfaceai/one-sdk';
+import { normalizeSuperJsonDocument, ok } from '@superfaceai/one-sdk';
 import * as SuperJson from '@superfaceai/one-sdk/dist/schema-tools/superjson/utils';
 import inquirer from 'inquirer';
-import { mocked } from 'ts-jest/utils';
 
 import { MockLogger } from '..';
 import { createUserError } from '../common/error';
@@ -117,6 +112,7 @@ describe('Quickstart logic', () => {
       end: { line: 1, column: 1, charIndex: 0 },
     },
   };
+
   describe('when installing sdk', () => {
     const profile = {
       scope: 'communication',
@@ -174,17 +170,17 @@ describe('Quickstart logic', () => {
     };
 
     it('sets up sf correctly - non existing super.json and .env', async () => {
-      mocked(detectSuperJson).mockResolvedValue(undefined);
-      mocked(initSuperface).mockResolvedValue({
+      jest.mocked(detectSuperJson).mockResolvedValue(undefined);
+      jest.mocked(initSuperface).mockResolvedValue({
         superJson: {},
         superJsonPath: '',
       });
-      mocked(findLocalProfileAst).mockResolvedValue({
+      jest.mocked(findLocalProfileAst).mockResolvedValue({
         ast: mockProfileAst,
         path: 'mockpath',
       });
-      mocked(getServicesUrl).mockReturnValue('https://superface.ai/');
-      //We re-load superjson after initial install (profile and providers)
+      jest.mocked(getServicesUrl).mockReturnValue('https://superface.ai/');
+      // We re-load superjson after initial install (profile and providers)
       mockLoad.mockResolvedValue(
         ok({
           profiles: {
@@ -232,20 +228,20 @@ describe('Quickstart logic', () => {
         })
       );
 
-      mocked(fetchProviders).mockResolvedValue([
+      jest.mocked(fetchProviders).mockResolvedValue([
         { name: 'sendgrid', services: [], defaultService: '' },
         { name: 'mailgun', services: [], defaultService: '' },
         { name: 'mailchimp', services: [], defaultService: '' },
         { name: 'mock', services: [], defaultService: '' },
         { name: 'test', services: [], defaultService: '' },
       ]);
-      mocked(exists).mockResolvedValue(false);
+      jest.mocked(exists).mockResolvedValue(false);
       const writeOnceSpy = jest
         .spyOn(OutputStream, 'writeOnce')
         .mockResolvedValue(undefined);
       jest
         .spyOn(inquirer, 'prompt')
-        //Select providers priority
+        // Select providers priority
         .mockResolvedValueOnce({
           provider: { name: 'sendgrid', priority: 1, exit: false },
         })
@@ -258,45 +254,46 @@ describe('Quickstart logic', () => {
         .mockResolvedValueOnce({
           provider: { name: undefined, priority: undefined, exit: true },
         })
-        //Select usecase
+        // Select usecase
         .mockResolvedValueOnce({
           useCase: 'SendEmail',
         })
-        //Confirm provider failover
+        // Confirm provider failover
         .mockResolvedValueOnce({ continue: true })
-        //Select retry policy for sendgrid
+        // Select retry policy for sendgrid
         .mockResolvedValueOnce({ policy: OnFail.NONE })
-        //Select retry policy for mailgun
+        // Select retry policy for mailgun
         .mockResolvedValueOnce({ policy: OnFail.CIRCUIT_BREAKER })
-        //Use circuit breaker defauts
+        // Use circuit breaker defauts
         .mockResolvedValueOnce({ continue: false })
-        //Select retry policy for test
+        // Select retry policy for test
         .mockResolvedValueOnce({ policy: OnFail.CIRCUIT_BREAKER })
-        //Set circuit breaker defauts
+        // Set circuit breaker defauts
         .mockResolvedValueOnce({ continue: true })
         .mockResolvedValueOnce({ maxContiguousRetries: 5 })
         .mockResolvedValueOnce({ requestTimeout: 30_000 })
         .mockResolvedValueOnce({ start: 1000 })
         .mockResolvedValueOnce({ factor: 2 })
-        //Set sendgrid bearer
+        // Set sendgrid bearer
         .mockResolvedValueOnce({ value: 'sendgridBearer' })
-        //Select security schema
+        // Select security schema
         .mockResolvedValueOnce({
-          schema: normalizeSuperJsonDocument(mockSuperJson).providers['test']
-            .security[0],
+          schema:
+            normalizeSuperJsonDocument(mockSuperJson).providers['test']
+              .security[0],
         })
-        //Set digest
+        // Set digest
         .mockResolvedValueOnce({ value: 'testDigestUsername' })
         .mockResolvedValueOnce({ value: 'testDigestPassword' })
-        //Set mailgun username
+        // Set mailgun username
         .mockResolvedValueOnce({ value: 'mailgunUsername' })
-        //Set mailgun password
+        // Set mailgun password
         .mockResolvedValueOnce({ value: 'mailgunPassword' })
-        //Init PM
+        // Init PM
         .mockResolvedValueOnce({ pm: 'yarn' })
-        //Install dotenv
+        // Install dotenv
         .mockResolvedValueOnce({ continue: true })
-        //Set SDK token
+        // Set SDK token
         .mockResolvedValueOnce({
           token:
             'sfs_bb064dd57c302911602dd097bc29bedaea6a021c25a66992d475ed959aa526c7_37bce8b5',
@@ -348,16 +345,16 @@ describe('Quickstart logic', () => {
     });
 
     it('sets up sf correctly - non existing super.json and existing .env', async () => {
-      mocked(detectSuperJson).mockResolvedValue(undefined);
-      mocked(initSuperface).mockResolvedValue({
+      jest.mocked(detectSuperJson).mockResolvedValue(undefined);
+      jest.mocked(initSuperface).mockResolvedValue({
         superJson: {},
         superJsonPath: '',
       });
-      mocked(findLocalProfileAst).mockResolvedValue({
+      jest.mocked(findLocalProfileAst).mockResolvedValue({
         ast: mockProfileAst,
         path: 'mockpath',
       });
-      mocked(getServicesUrl).mockReturnValue('https://superface.ai/');
+      jest.mocked(getServicesUrl).mockReturnValue('https://superface.ai/');
       mockLoad.mockResolvedValue(
         ok({
           profiles: {
@@ -404,21 +401,21 @@ describe('Quickstart logic', () => {
           },
         })
       );
-      mocked(fetchProviders).mockResolvedValue([
+      jest.mocked(fetchProviders).mockResolvedValue([
         { name: 'sendgrid', services: [], defaultService: '' },
         { name: 'mailgun', services: [], defaultService: '' },
         { name: 'mailchimp', services: [], defaultService: '' },
         { name: 'mock', services: [], defaultService: '' },
         { name: 'test', services: [], defaultService: '' },
       ]);
-      mocked(exists).mockResolvedValue(true);
-      mocked(readFile).mockResolvedValue('SOME=env\n');
+      jest.mocked(exists).mockResolvedValue(true);
+      jest.mocked(readFile).mockResolvedValue('SOME=env\n');
       const writeOnceSpy = jest
         .spyOn(OutputStream, 'writeOnce')
         .mockResolvedValue(undefined);
       jest
         .spyOn(inquirer, 'prompt')
-        //Select providers priority
+        // Select providers priority
         .mockResolvedValueOnce({
           provider: { name: 'sendgrid', priority: 1, exit: false },
         })
@@ -431,44 +428,45 @@ describe('Quickstart logic', () => {
         .mockResolvedValueOnce({
           provider: { name: undefined, priority: undefined, exit: true },
         })
-        //Select usecase
+        // Select usecase
         .mockResolvedValueOnce({
           useCase: 'SendEmail',
         })
-        //Confirm provider failover
+        // Confirm provider failover
         .mockResolvedValueOnce({ continue: true })
-        //Select retry policy for sendgrid
+        // Select retry policy for sendgrid
         .mockResolvedValueOnce({ policy: OnFail.NONE })
-        //Select retry policy for mailgun
+        // Select retry policy for mailgun
         .mockResolvedValueOnce({ policy: OnFail.CIRCUIT_BREAKER })
-        //Use circuit breaker defauts
+        // Use circuit breaker defauts
         .mockResolvedValueOnce({ continue: false })
-        //Select retry policy for test
+        // Select retry policy for test
         .mockResolvedValueOnce({ policy: OnFail.CIRCUIT_BREAKER })
-        //Set circuit breaker defauts
+        // Set circuit breaker defauts
         .mockResolvedValueOnce({ continue: true })
         .mockResolvedValueOnce({ maxContiguousRetries: 5 })
         .mockResolvedValueOnce({ requestTimeout: 30_000 })
         .mockResolvedValueOnce({ start: 1000 })
         .mockResolvedValueOnce({ factor: 2 })
-        //Set sendgrid bearer
+        // Set sendgrid bearer
         .mockResolvedValueOnce({ value: 'sendgridBearer' })
-        //Select security schema
+        // Select security schema
         .mockResolvedValueOnce({
-          schema: normalizeSuperJsonDocument(mockSuperJson).providers['test']
-            .security[1],
+          schema:
+            normalizeSuperJsonDocument(mockSuperJson).providers['test']
+              .security[1],
         })
-        //Set test digest
+        // Set test digest
         .mockResolvedValueOnce({ value: 'testApiKey' })
-        //Set mailgun username
+        // Set mailgun username
         .mockResolvedValueOnce({ value: 'mailgunUsername' })
-        //Set mailgun password
+        // Set mailgun password
         .mockResolvedValueOnce({ value: 'mailgunPassword' })
-        //Init PM
+        // Init PM
         .mockResolvedValueOnce({ pm: 'npm' })
-        //Install dotenv
+        // Install dotenv
         .mockResolvedValueOnce({ continue: true })
-        //Set SDK token
+        // Set SDK token
         .mockResolvedValueOnce({
           token:
             'sfs_bb064dd57c302911602dd097bc29bedaea6a021c25a66992d475ed959aa526c7_37bce8b5',
@@ -535,7 +533,7 @@ describe('Quickstart logic', () => {
             security: [
               {
                 id: 'bearer_token',
-                //Misconfigured
+                // Misconfigured
                 token: 'SENDGRID_TOKEN',
               },
             ],
@@ -568,32 +566,32 @@ describe('Quickstart logic', () => {
         },
       };
 
-      mocked(detectSuperJson).mockResolvedValue(undefined);
-      mocked(initSuperface).mockResolvedValue({
+      jest.mocked(detectSuperJson).mockResolvedValue(undefined);
+      jest.mocked(initSuperface).mockResolvedValue({
         superJson: {},
         superJsonPath: '',
       });
-      mocked(findLocalProfileAst).mockResolvedValue({
+      jest.mocked(findLocalProfileAst).mockResolvedValue({
         ast: mockProfileAst,
         path: 'mockpath',
       });
-      mocked(getServicesUrl).mockReturnValue('https://superface.ai/');
+      jest.mocked(getServicesUrl).mockReturnValue('https://superface.ai/');
       mockLoad.mockResolvedValue(ok(mockMisconfiguredSuperJson));
-      mocked(fetchProviders).mockResolvedValue([
+      jest.mocked(fetchProviders).mockResolvedValue([
         { name: 'sendgrid', services: [], defaultService: '' },
         { name: 'mailgun', services: [], defaultService: '' },
         { name: 'mailchimp', services: [], defaultService: '' },
         { name: 'mock', services: [], defaultService: '' },
         { name: 'test', services: [], defaultService: '' },
       ]);
-      mocked(exists).mockResolvedValue(true);
-      mocked(readFile).mockResolvedValue('TEST_API_KEY=env\n');
+      jest.mocked(exists).mockResolvedValue(true);
+      jest.mocked(readFile).mockResolvedValue('TEST_API_KEY=env\n');
       const writeOnceSpy = jest
         .spyOn(OutputStream, 'writeOnce')
         .mockResolvedValue(undefined);
       jest
         .spyOn(inquirer, 'prompt')
-        //Select providers priority
+        // Select providers priority
         .mockResolvedValueOnce({
           provider: { name: 'sendgrid', priority: 1, exit: false },
         })
@@ -603,27 +601,27 @@ describe('Quickstart logic', () => {
         .mockResolvedValueOnce({
           provider: { name: undefined, priority: undefined, exit: true },
         })
-        //Select usecase
+        // Select usecase
         .mockResolvedValueOnce({
           useCase: 'SendEmail',
         })
-        //Confirm provider failover
+        // Confirm provider failover
         .mockResolvedValueOnce({ continue: true })
-        //Select retry policy for sendgrid
+        // Select retry policy for sendgrid
         .mockResolvedValueOnce({ policy: OnFail.NONE })
-        //Select retry policy for mailgun
+        // Select retry policy for mailgun
         .mockResolvedValueOnce({ policy: OnFail.CIRCUIT_BREAKER })
-        //Use circuit breaker defauts
+        // Use circuit breaker defauts
         .mockResolvedValueOnce({ continue: false })
-        //Set mailgun username
+        // Set mailgun username
         .mockResolvedValueOnce({ value: 'mailgunUsername' })
-        //Set mailgun password
+        // Set mailgun password
         .mockResolvedValueOnce({ value: 'mailgunPassword' })
-        //Init PM
+        // Init PM
         .mockResolvedValueOnce({ pm: 'yarn' })
-        //Install dotenv
+        // Install dotenv
         .mockResolvedValueOnce({ continue: true })
-        //Set SDK token
+        // Set SDK token
         .mockResolvedValueOnce({
           token:
             'sfs_bb064dd57c302911602dd097bc29bedaea6a021c25a66992d475ed959aa526c7_37bce8b5',
@@ -677,7 +675,7 @@ describe('Quickstart logic', () => {
     it('sets up sf correctly - existing super.json and existing .env', async () => {
       const mockEnv =
         'test=test\nMAILGUN_USERNAME=u\nMAILGUN_PASSWORD=p\nSENDGRID_TOKEN=t\ntest2=test2\n';
-      //Super.json affter install
+      // Super.json affter install
       const mockSuperJson = {
         profiles: {
           [`${profile.scope}/${profile.profile}`]: {
@@ -726,37 +724,37 @@ describe('Quickstart logic', () => {
           },
         },
       };
-      mocked(detectSuperJson).mockResolvedValue('some/path');
-      mocked(initSuperface).mockResolvedValue({
+      jest.mocked(detectSuperJson).mockResolvedValue('some/path');
+      jest.mocked(initSuperface).mockResolvedValue({
         superJson: {},
         superJsonPath: '',
       });
       mockLoad.mockResolvedValue(ok(mockSuperJson));
-      mocked(profileExists).mockResolvedValueOnce(true);
-      mocked(providerExists).mockReturnValue(true);
-      mocked(findLocalProfileAst).mockResolvedValue({
+      jest.mocked(profileExists).mockResolvedValueOnce(true);
+      jest.mocked(providerExists).mockReturnValue(true);
+      jest.mocked(findLocalProfileAst).mockResolvedValue({
         ast: mockProfileAst,
         path: 'mockpath',
       });
-      mocked(getServicesUrl).mockReturnValue('https://superface.ai/');
-      mocked(fetchProviders).mockResolvedValue([
+      jest.mocked(getServicesUrl).mockReturnValue('https://superface.ai/');
+      jest.mocked(fetchProviders).mockResolvedValue([
         { name: 'sendgrid', services: [], defaultService: '' },
         { name: 'mailgun', services: [], defaultService: '' },
         { name: 'mailchimp', services: [], defaultService: '' },
         { name: 'mock', services: [], defaultService: '' },
         { name: 'test', services: [], defaultService: '' },
       ]);
-      //Env
-      mocked(exists).mockResolvedValue(true);
-      mocked(readFile).mockResolvedValueOnce(mockEnv);
+      // Env
+      jest.mocked(exists).mockResolvedValue(true);
+      jest.mocked(readFile).mockResolvedValueOnce(mockEnv);
       const writeOnceSpy = jest
         .spyOn(OutputStream, 'writeOnce')
         .mockResolvedValue(undefined);
       jest
         .spyOn(inquirer, 'prompt')
-        //Override profile
+        // Override profile
         .mockResolvedValueOnce({ continue: true })
-        //Select providers priority
+        // Select providers priority
         .mockResolvedValueOnce({
           provider: { name: 'sendgrid', priority: 1, exit: false },
         })
@@ -769,46 +767,47 @@ describe('Quickstart logic', () => {
         .mockResolvedValueOnce({
           provider: { name: undefined, priority: undefined, exit: true },
         })
-        //Do NOT override first provider
+        // Do NOT override first provider
         .mockResolvedValueOnce({ continue: false })
-        //Override second provider
+        // Override second provider
         .mockResolvedValueOnce({ continue: true })
-        //Override third provider
+        // Override third provider
         .mockResolvedValueOnce({ continue: true })
-        //Select usecase
+        // Select usecase
         .mockResolvedValueOnce({
           useCase: 'SendEmail',
         })
-        //Confirm provider failover
+        // Confirm provider failover
         .mockResolvedValueOnce({ continue: true })
-        //Select retry policy for mailgun
+        // Select retry policy for mailgun
         .mockResolvedValueOnce({ policy: OnFail.NONE })
-        //Select retry policy for sendgrid
+        // Select retry policy for sendgrid
         .mockResolvedValueOnce({ policy: OnFail.CIRCUIT_BREAKER })
-        //Use circuit breaker defauts
+        // Use circuit breaker defauts
         .mockResolvedValueOnce({ continue: false })
 
-        //Override first env
+        // Override first env
         .mockResolvedValueOnce({ continue: true })
-        //Set mailgun username
+        // Set mailgun username
         .mockResolvedValueOnce({ value: 'mailgunUsername' })
-        //Override second env
+        // Override second env
         .mockResolvedValueOnce({ continue: true })
-        //Set mailgun password
+        // Set mailgun password
         .mockResolvedValueOnce({ value: 'mailgunPassword' })
-        //Select security schema
+        // Select security schema
         .mockResolvedValueOnce({
-          schema: normalizeSuperJsonDocument(mockSuperJson).providers['test']
-            .security[0],
+          schema:
+            normalizeSuperJsonDocument(mockSuperJson).providers['test']
+              .security[0],
         })
-        //Set test digest
+        // Set test digest
         .mockResolvedValueOnce({ value: 'testDigestUsername' })
         .mockResolvedValueOnce({ value: 'testDigestPassword' })
-        //Init PM
+        // Init PM
         .mockResolvedValueOnce({ pm: 'npm' })
-        //Install dotenv
+        // Install dotenv
         .mockResolvedValueOnce({ continue: true })
-        //Set SDK token
+        // Set SDK token
         .mockResolvedValueOnce({
           token:
             'sfs_bb064dd57c302911602dd097bc29bedaea6a021c25a66992d475ed959aa526c7_37bce8b5',
@@ -841,7 +840,7 @@ describe('Quickstart logic', () => {
         'configureMultipleProviderSecurity',
         [],
       ]);
-      //User dont want to override sendgrid
+      // User dont want to override sendgrid
       expect(logger.stdout).not.toContain([
         'configureProviderSecurity',
         ['sendgrid'],

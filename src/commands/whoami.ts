@@ -1,18 +1,19 @@
 import { ServiceApiError } from '@superfaceai/service-client';
 
-import { Command, Flags } from '../common/command.abstract';
-import { UserError } from '../common/error';
+import type { Flags } from '../common/command.abstract';
+import { Command } from '../common/command.abstract';
+import type { UserError } from '../common/error';
 import { SuperfaceClient } from '../common/http';
-import { ILogger } from '../common/log';
+import type { ILogger } from '../common/log';
 
 export default class Whoami extends Command {
-  static strict = true;
+  public static strict = true;
 
-  static description = 'Prints info about logged in user';
+  public static description = 'Prints info about logged in user';
 
-  static examples = ['$ superface whoami', '$ sf whoami'];
+  public static examples = ['$ superface whoami', '$ sf whoami'];
 
-  async run(): Promise<void> {
+  public async run(): Promise<void> {
     const { flags } = this.parse(Whoami);
     await super.initialize(flags);
     await this.execute({
@@ -22,7 +23,7 @@ export default class Whoami extends Command {
     });
   }
 
-  async execute({
+  public async execute({
     logger,
     userError,
     flags: _,
@@ -36,7 +37,7 @@ export default class Whoami extends Command {
       logger.success('loggedInAs', userInfo.name, userInfo.email);
     } catch (error) {
       if (!(error instanceof ServiceApiError)) {
-        throw userError(error, 1);
+        throw userError(String(error), 1);
       }
       if (error.status === 401) {
         logger.warn('notLoggedIn');

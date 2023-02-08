@@ -1,4 +1,4 @@
-import { MapDocumentNode } from '@superfaceai/ast';
+import type { MapDocumentNode } from '@superfaceai/ast';
 
 export const mockMapDocumentNode = (options?: {
   name?: string;

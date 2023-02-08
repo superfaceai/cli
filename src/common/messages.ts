@@ -89,14 +89,14 @@ const fetch = {
     // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
     `Fetching profile info of profile: "${profile}" failed: "${error}"`,
   fetchProfile: (profile: string, version?: string) => {
-    if (version) {
+    if (version !== undefined) {
       return `Fetching profile: "${profile}" with version: "${version}" from Superface registry`;
     }
 
     return `Fetching profile: "${profile}" from Superface registry`;
   },
   fetchMap: (profile: string, provider: string, astVersion?: string) => {
-    if (astVersion) {
+    if (astVersion !== undefined) {
       return `Fetching map for profile: "${profile}" and provider: "${provider}" with version: "${astVersion}" from Superface registry`;
     }
 
@@ -148,11 +148,13 @@ const configure = {
     description?: string
   ) =>
     `Parameter: "${name}"${
-      description ? ` with description: "${description}"` : ''
+      description !== undefined ? ` with description: "${description}"` : ''
     } has not been configured\nPlease, configure this parameter manually in "super.json" in: "${superJsonPath}"`,
   parameterConfigured: (name: string, value: string, description?: string) =>
     `Parameter: "${name}"${
-      description ? ` with description: "${description}"` : ''
+      description !== undefined && description !== ''
+        ? ` with description: "${description}"`
+        : ''
     } has been configured to use value of environment value "${value}".\nPlease configure this environment value`,
   parameterHasDefault: (defaultValue: string) =>
     `If you do not set the variable, the default value: "${defaultValue}" will be used`,
@@ -237,6 +239,54 @@ const init = {
   ${quiet}`,
 };
 
+const prepare = {
+  prepareProfile: (profile: string, path: string, station?: boolean) =>
+    `Created profile at "${path}".\n\nnext command suggestions:\nsf prepare:provider <provider-name> ${
+      station === true ? ' --station' : ''
+    }\nsf prepare:map ${profile} <provider-name> ${
+      station === true ? ' --station' : ''
+    }`,
+  prepareMap: (
+    profile: string,
+    provider: string,
+    path: string,
+    station?: boolean
+  ) =>
+    `Created map at path: "${path}"".\n\nnext command suggestions:\nsf prepare:test ${profile} ${provider} ${
+      station === true ? ' --station' : ''
+    }`,
+  prepareTest: (
+    profile: string,
+    provider: string,
+    path: string,
+    station?: boolean
+  ) => {
+    const fileInfo = `Created test at path: "${path}"\n\n`;
+
+    if (station === true) {
+      const testPath = `grid/${profile}/maps/${provider}.test.ts`;
+
+      return (
+        fileInfo +
+        `Run created test with live traffic:\nyarn test:record ${testPath}\nor with recorded traffic:\nyarn test ${testPath}`
+      );
+    }
+
+    return (
+      fileInfo +
+      `Follow https://github.com/superfaceai/testing/blob/dev/README.md to run created test`
+    );
+  },
+  prepareProvider: (provider: string, path: string, station?: boolean) =>
+    `Created provider at path: "${path}".\n⚠️ Edit .env file for your credentials\n\nnext command suggestions:\nsf prepare:profile <profileId> ${
+      station === true ? ' --station' : ''
+    }\nsf prepare:map <profileId> ${provider} ${
+      station === true ? ' --station' : ''
+    }\nsf prepare:test <profileId> ${provider} ${
+      station === true ? ' --station' : ''
+    }`,
+};
+
 const create = {
   createProfile: (profile: string, path: string) =>
     `Created profile: "${profile}" at path: "${path}"`,
@@ -246,6 +296,8 @@ const create = {
     `Created provider: "${provider}" at path: "${path}"`,
   unverifiedPrefix: (provider: string, prefix: string) =>
     `Published provider name must have prefix: "${prefix}"\nIf you are planning to publish this map or provider consider renaming it, eg: "${prefix}${provider}"`,
+  providerAlreadyExists: (provider: string) =>
+    `Provider "${provider}" is already defined in super.json"`,
 };
 
 const compile = {
@@ -303,6 +355,7 @@ export const messages = {
   ...init,
   ...configure,
   ...packageManager,
+  ...prepare,
   ...create,
   ...compile,
   ...quickstart,

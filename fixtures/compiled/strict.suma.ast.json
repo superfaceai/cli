@@ -2187,12 +2187,12 @@
   "astMetadata": {
     "astVersion": {
       "major": 1,
-      "minor": 2,
+      "minor": 3,
       "patch": 0
     },
     "parserVersion": {
-      "major": 1,
-      "minor": 2,
+      "major": 2,
+      "minor": 1,
       "patch": 0
     },
     "sourceChecksum": "bfd83d45dcc6e3ce124163f9e2029574fe239a5c7dac6b71b1a6261b4342e68b"

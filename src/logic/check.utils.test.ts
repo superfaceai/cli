@@ -1,12 +1,11 @@
+import type { ProviderJson } from '@superfaceai/ast';
 import {
   ApiKeyPlacement,
   EXTENSIONS,
   HttpScheme,
-  ProviderJson,
   SecurityType,
 } from '@superfaceai/ast';
-import * as fs from 'fs';
-import { mocked } from 'ts-jest/utils';
+import type * as fs from 'fs';
 
 import { DEFAULT_PROFILE_VERSION_STR } from '../common';
 import { exists, readdir, readFile } from '../common/io';
@@ -21,10 +20,12 @@ import {
 } from './check.utils';
 
 jest.mock('../common/io');
+
 describe('Check utils', () => {
   afterEach(() => {
     jest.resetAllMocks();
   });
+
   const profileId = ProfileId.fromScopeName(
     'starwars',
     'character-information'
@@ -85,8 +86,8 @@ describe('Check utils', () => {
   describe('when looking for local profile source', () => {
     it('returns source if profile with scope and version exists', async () => {
       const mockSuperJson = {};
-      mocked(exists).mockResolvedValue(true);
-      mocked(readFile).mockResolvedValue(mockProfileSource);
+      jest.mocked(exists).mockResolvedValue(true);
+      jest.mocked(readFile).mockResolvedValue(mockProfileSource);
 
       await expect(
         findLocalProfileSource(mockSuperJson, '', profileId, version)
@@ -99,10 +100,11 @@ describe('Check utils', () => {
         expect.stringContaining(`grid/${profileId.id}@${version}`)
       );
     });
+
     it('returns undefinde if profile with scope and version does nit exist in grid', async () => {
       const mockSuperJson = {};
-      mocked(exists).mockResolvedValue(false);
-      mocked(readFile).mockResolvedValue(mockProfileSource);
+      jest.mocked(exists).mockResolvedValue(false);
+      jest.mocked(readFile).mockResolvedValue(mockProfileSource);
 
       await expect(
         findLocalProfileSource(mockSuperJson, '', profileId, version)
@@ -115,8 +117,8 @@ describe('Check utils', () => {
 
     it('returns source if profile with version exists', async () => {
       const mockSuperJson = {};
-      mocked(exists).mockResolvedValue(true);
-      mocked(readFile).mockResolvedValue(mockProfileSource);
+      jest.mocked(exists).mockResolvedValue(true);
+      jest.mocked(readFile).mockResolvedValue(mockProfileSource);
 
       await expect(
         findLocalProfileSource(
@@ -159,9 +161,9 @@ describe('Check utils', () => {
           name: `${profileId.name}@${DEFAULT_PROFILE_VERSION_STR}${EXTENSIONS.profile.build}`,
         },
       ];
-      mocked(exists).mockResolvedValue(true);
-      mocked(readFile).mockResolvedValue(mockProfileSource);
-      mocked(readdir).mockResolvedValue(mockFiles);
+      jest.mocked(exists).mockResolvedValue(true);
+      jest.mocked(readFile).mockResolvedValue(mockProfileSource);
+      jest.mocked(readdir).mockResolvedValue(mockFiles);
 
       await expect(
         findLocalProfileSource(mockSuperJson, '', profileId)
@@ -206,9 +208,9 @@ describe('Check utils', () => {
           name: `${profileId.name}@${DEFAULT_PROFILE_VERSION_STR}${EXTENSIONS.profile.build}`,
         },
       ];
-      mocked(exists).mockResolvedValue(true);
-      mocked(readFile).mockResolvedValue(mockProfileSource);
-      mocked(readdir).mockResolvedValue(mockFiles);
+      jest.mocked(exists).mockResolvedValue(true);
+      jest.mocked(readFile).mockResolvedValue(mockProfileSource);
+      jest.mocked(readdir).mockResolvedValue(mockFiles);
 
       await expect(
         findLocalProfileSource(mockSuperJson, '', profileId)
@@ -253,9 +255,9 @@ describe('Check utils', () => {
           name: `${profileId.name}@${DEFAULT_PROFILE_VERSION_STR}${EXTENSIONS.profile.build}`,
         },
       ];
-      mocked(exists).mockResolvedValue(true);
-      mocked(readFile).mockResolvedValue(mockProfileSource);
-      mocked(readdir).mockResolvedValue(mockFiles);
+      jest.mocked(exists).mockResolvedValue(true);
+      jest.mocked(readFile).mockResolvedValue(mockProfileSource);
+      jest.mocked(readdir).mockResolvedValue(mockFiles);
 
       await expect(
         findLocalProfileSource(mockSuperJson, '', profileId)
@@ -290,9 +292,12 @@ describe('Check utils', () => {
           name: `${profileId.name}@${DEFAULT_PROFILE_VERSION_STR}${EXTENSIONS.profile.build}`,
         },
       ];
-      mocked(exists).mockResolvedValueOnce(true).mockResolvedValueOnce(false);
-      mocked(readFile).mockResolvedValue(mockProfileSource);
-      mocked(readdir).mockResolvedValue(mockFiles);
+      jest
+        .mocked(exists)
+        .mockResolvedValueOnce(true)
+        .mockResolvedValueOnce(false);
+      jest.mocked(readFile).mockResolvedValue(mockProfileSource);
+      jest.mocked(readdir).mockResolvedValue(mockFiles);
 
       await expect(
         findLocalProfileSource(mockSuperJson, '', profileId)
@@ -307,6 +312,7 @@ describe('Check utils', () => {
         )
       );
     });
+
     it('returns source if profile with scope and version exists in super json file property', async () => {
       const testPath = `my/beloved/test/path/to/${profileId.id}@${version}`;
       const mockSuperJson = {
@@ -316,8 +322,8 @@ describe('Check utils', () => {
           },
         },
       };
-      mocked(exists).mockResolvedValueOnce(true);
-      mocked(readFile).mockResolvedValue(mockProfileSource);
+      jest.mocked(exists).mockResolvedValueOnce(true);
+      jest.mocked(readFile).mockResolvedValue(mockProfileSource);
 
       await expect(
         findLocalProfileSource(mockSuperJson, '', profileId)
@@ -338,8 +344,8 @@ describe('Check utils', () => {
           },
         },
       };
-      mocked(exists).mockResolvedValue(false);
-      mocked(readFile).mockResolvedValue('"mockProfileSource"');
+      jest.mocked(exists).mockResolvedValue(false);
+      jest.mocked(readFile).mockResolvedValue('"mockProfileSource"');
 
       await expect(
         findLocalProfileSource(mockSuperJson, '', profileId)
@@ -364,8 +370,8 @@ describe('Check utils', () => {
           },
         },
       };
-      mocked(exists).mockResolvedValue(true);
-      mocked(readFile).mockResolvedValue(mockMapSource);
+      jest.mocked(exists).mockResolvedValue(true);
+      jest.mocked(readFile).mockResolvedValue(mockMapSource);
 
       await expect(
         findLocalMapSource(mockSuperJson, '', profileId, provider)
@@ -393,8 +399,8 @@ describe('Check utils', () => {
           },
         },
       };
-      mocked(exists).mockResolvedValue(true);
-      mocked(readFile).mockResolvedValue(mockMapSource);
+      jest.mocked(exists).mockResolvedValue(true);
+      jest.mocked(readFile).mockResolvedValue(mockMapSource);
 
       await expect(
         findLocalMapSource(
@@ -427,7 +433,7 @@ describe('Check utils', () => {
           },
         },
       };
-      mocked(exists).mockResolvedValue(false);
+      jest.mocked(exists).mockResolvedValue(false);
 
       await expect(
         findLocalMapSource(mockSuperJson, '', profileId, provider)
@@ -442,7 +448,7 @@ describe('Check utils', () => {
       const mockSuperJson = {
         profiles: {},
       };
-      mocked(exists);
+      jest.mocked(exists);
 
       await expect(
         findLocalMapSource(mockSuperJson, '', profileId, provider)
@@ -460,7 +466,7 @@ describe('Check utils', () => {
           },
         },
       };
-      mocked(exists);
+      jest.mocked(exists);
 
       await expect(
         findLocalMapSource(mockSuperJson, '', profileId, provider)
@@ -482,7 +488,7 @@ describe('Check utils', () => {
           },
         },
       };
-      mocked(exists);
+      jest.mocked(exists);
 
       await expect(
         findLocalMapSource(mockSuperJson, '', profileId, provider)
@@ -502,8 +508,8 @@ describe('Check utils', () => {
           },
         },
       };
-      mocked(exists).mockResolvedValue(true);
-      mocked(readFile).mockResolvedValue(JSON.stringify(mockProviderJson));
+      jest.mocked(exists).mockResolvedValue(true);
+      jest.mocked(readFile).mockResolvedValue(JSON.stringify(mockProviderJson));
 
       await expect(
         findLocalProviderSource(mockSuperJson, '', provider)
@@ -524,7 +530,7 @@ describe('Check utils', () => {
           },
         },
       };
-      mocked(exists).mockResolvedValue(false);
+      jest.mocked(exists).mockResolvedValue(false);
 
       await expect(
         findLocalProviderSource(mockSuperJson, '', provider)
@@ -538,7 +544,7 @@ describe('Check utils', () => {
         profiles: {},
         providers: {},
       };
-      mocked(exists);
+      jest.mocked(exists);
 
       await expect(
         findLocalProviderSource(mockSuperJson, '', provider)
@@ -554,7 +560,7 @@ describe('Check utils', () => {
           [provider]: {},
         },
       };
-      mocked(exists);
+      jest.mocked(exists);
 
       await expect(
         findLocalProviderSource(mockSuperJson, '', provider)
@@ -563,6 +569,7 @@ describe('Check utils', () => {
       expect(exists).not.toHaveBeenCalled();
     });
   });
+
   describe('when looking for local profile ast', () => {
     it('returns undefined if version and file is not defined', async () => {
       const mockSuperJson = {};
@@ -582,7 +589,7 @@ describe('Check utils', () => {
           },
         },
       };
-      mocked(exists).mockResolvedValue(false);
+      jest.mocked(exists).mockResolvedValue(false);
 
       await expect(
         findLocalProfileAst(mockSuperJson, '', profileId)
@@ -601,7 +608,7 @@ describe('Check utils', () => {
           },
         },
       };
-      mocked(exists).mockResolvedValue(false);
+      jest.mocked(exists).mockResolvedValue(false);
 
       await expect(
         findLocalProfileAst(mockSuperJson, '', profileId, version)
@@ -628,8 +635,8 @@ describe('Check utils', () => {
           patch: 0,
         },
       });
-      mocked(exists).mockResolvedValue(true);
-      mocked(readFile).mockResolvedValue(JSON.stringify(profileAst));
+      jest.mocked(exists).mockResolvedValue(true);
+      jest.mocked(readFile).mockResolvedValue(JSON.stringify(profileAst));
 
       await expect(
         findLocalProfileAst(mockSuperJson, '', profileId, version)
@@ -658,8 +665,8 @@ describe('Check utils', () => {
           patch: 0,
         },
       });
-      mocked(exists).mockResolvedValue(true);
-      mocked(readFile).mockResolvedValue(JSON.stringify(profileAst));
+      jest.mocked(exists).mockResolvedValue(true);
+      jest.mocked(readFile).mockResolvedValue(JSON.stringify(profileAst));
 
       await expect(
         findLocalProfileAst(mockSuperJson, '', profileIdWithoutScope, version)
@@ -676,6 +683,7 @@ describe('Check utils', () => {
         )
       );
     });
+
     it('returns ast if profile with scope and version is used from super.json', async () => {
       const mockSuperJson = {
         profiles: {
@@ -693,8 +701,8 @@ describe('Check utils', () => {
           patch: 0,
         },
       });
-      mocked(exists).mockResolvedValue(true);
-      mocked(readFile).mockResolvedValue(JSON.stringify(profileAst));
+      jest.mocked(exists).mockResolvedValue(true);
+      jest.mocked(readFile).mockResolvedValue(JSON.stringify(profileAst));
 
       await expect(
         findLocalProfileAst(mockSuperJson, '', profileId)
@@ -729,8 +737,8 @@ describe('Check utils', () => {
           patch: 0,
         },
       });
-      mocked(exists).mockResolvedValue(true);
-      mocked(readFile).mockResolvedValue(JSON.stringify(profileAst));
+      jest.mocked(exists).mockResolvedValue(true);
+      jest.mocked(readFile).mockResolvedValue(JSON.stringify(profileAst));
 
       await expect(
         findLocalProfileAst(mockSuperJson, '', profileIdWithoutScope, version)
@@ -765,8 +773,8 @@ describe('Check utils', () => {
           patch: 0,
         },
       });
-      mocked(exists).mockResolvedValue(true);
-      mocked(readFile).mockResolvedValue(JSON.stringify(profileAst));
+      jest.mocked(exists).mockResolvedValue(true);
+      jest.mocked(readFile).mockResolvedValue(JSON.stringify(profileAst));
 
       await expect(
         findLocalProfileAst(mockSuperJson, '', profileIdWithoutScope)
@@ -797,8 +805,8 @@ describe('Check utils', () => {
           patch: 0,
         },
       });
-      mocked(exists).mockResolvedValue(true);
-      mocked(readFile).mockResolvedValue(JSON.stringify(profileAst));
+      jest.mocked(exists).mockResolvedValue(true);
+      jest.mocked(readFile).mockResolvedValue(JSON.stringify(profileAst));
 
       await expect(
         findLocalProfileAst(mockSuperJson, '', profileIdWithoutScope)

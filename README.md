@@ -58,7 +58,12 @@ npx @superfaceai/cli install [profileId eg. communication/send-email]
 * [`superface check`](#superface-check)
 * [`superface compile`](#superface-compile)
 * [`superface configure PROVIDERNAME`](#superface-configure-providername)
-* [`superface create`](#superface-create)
+* [`superface create:map PROFILEID PROVIDERNAME`](#superface-createmap-profileid-providername)
+* [`superface create:mock-map PROFILEID`](#superface-createmock-map-profileid)
+* [`superface create:mock-map-test PROFILEID`](#superface-createmock-map-test-profileid)
+* [`superface create:profile PROFILEID`](#superface-createprofile-profileid)
+* [`superface create:provider PROVIDERNAME`](#superface-createprovider-providername)
+* [`superface create:test PROFILEID PROVIDERNAME`](#superface-createtest-profileid-providername)
 * [`superface init [NAME]`](#superface-init-name)
 * [`superface install [PROFILEID]`](#superface-install-profileid)
 * [`superface lint`](#superface-lint)
@@ -90,7 +95,6 @@ FLAGS
 DESCRIPTION
   Checks all maps, profiles and providers locally linked in super.json. Also can be used to check specific profile and
   its maps, in that case remote files can be used.
-
   Command ends with non zero exit code if errors are found.
 
 EXAMPLES
@@ -146,7 +150,7 @@ EXAMPLES
 
   $ superface compile --profileId starwars/character-information --providerName swapi --onlyMap
 
-  $ superface compile --profileId starwars/character-information --providerName swapi --onlyMap --onlyProfile
+  $ superface compile --profileId starwars/character-information --providerName swapi --onlyProfile
 ```
 
 _See code: [src/commands/compile.ts](https://github.com/superfaceai/cli/tree/main/src/commands/compile.ts)_
@@ -195,97 +199,221 @@ EXAMPLES
 
 _See code: [src/commands/configure.ts](https://github.com/superfaceai/cli/tree/main/src/commands/configure.ts)_
 
-## `superface create`
+## `superface create:map PROFILEID PROVIDERNAME`
 
-Creates empty map, profile or/and provider on a local filesystem.
+Prepares map, based on profile and provider on a local filesystem. Created file contains created structure with information from profile and provider files. Before running this command you should have prepared profile (run sf prepare:profile) and provider (run sf prepare:provider)
 
 ```
 USAGE
-  $ superface create [--noColor] [--noEmoji] [-h] [--profileId <value>] [--providerName <value>] [-u
-    <value>] [-t <value>] [-v <value>] [--init | --no-init] [--no-super-json] [-i | -q | --profile | --map | --provider]
-    [-p <value>] [--mapFileName <value>] [--profileFileName <value>] [--providerFileName <value>] [-s <value>]
+  $ superface create:map [PROFILEID] [PROVIDERNAME] [-q] [--noColor] [--noEmoji] [-h] [-s <value>] [-v <value>]
+    [-f] [--station]
+
+ARGUMENTS
+  PROFILEID     Profile Id in format [scope](optional)/[name]
+  PROVIDERNAME  Name of provider
 
 FLAGS
-  -h, --help                  show CLI help
-  -i, --interactive           When set to true, command is used in interactive mode.
-  -p, --path=<value>          Base path where files will be created
-  -q, --quiet                 When set to true, disables the shell echo output of action.
-  -s, --scan=<value>          When number provided, scan for super.json outside cwd within range represented by this
-                              number.
-  -t, --variant=<value>       Variant of a map
-  -u, --usecase=<value>...    Usecases that profile or map contains
-  -v, --version=<value>       [default: 1.0.0] Version of a profile
-  --init                      When set to true, command will initialize Superface
-  --map                       Create a map
-  --mapFileName=<value>       Name of map file
-  --no-init                   When set to true, command won't initialize Superface
-  --no-super-json             When set to true, command won't change SuperJson file
-  --noColor                   When set to true, disables all colored output.
-  --noEmoji                   When set to true, disables displaying emoji in output.
-  --profile                   Create a profile
-  --profileFileName=<value>   Name of profile file
-  --profileId=<value>         Profile Id in format [scope](optional)/[name]
-  --provider                  Create a provider
-  --providerFileName=<value>  Name of provider file
-  --providerName=<value>...   Names of providers. This argument is used to create maps and/or providers
+  -f, --force            When set to true and when profile exists in local filesystem, overwrites them.
+  -h, --help             show CLI help
+  -q, --quiet            When set to true, disables the shell echo output of action.
+  -s, --scan=<value>     When number provided, scan for super.json outside cwd within range represented by this number.
+  -v, --variant=<value>  Variant of a map
+  --noColor              When set to true, disables all colored output.
+  --noEmoji              When set to true, disables displaying emoji in output.
+  --station              When set to true, command will create map in folder structure of Superface station
 
 DESCRIPTION
-  Creates empty map, profile or/and provider on a local filesystem.
+  Prepares map, based on profile and provider on a local filesystem. Created file contains created structure with
+  information from profile and provider files. Before running this command you should have prepared profile (run sf
+  prepare:profile) and provider (run sf prepare:provider)
 
 EXAMPLES
-  $ superface create --profileId sms/service --profile
+  $ superface create:map starwars/character-information swapi --force
 
-  $ superface create --profileId sms/service --profile -v 1.1-rev133 -u SendSMS ReceiveSMS
+  $ superface create:map starwars/character-information swapi -s 3
 
-  $ superface create --profileId sms/service --providerName twilio --map
-
-  $ superface create --profileId sms/service --providerName twilio --map -t bugfix
-
-  $ superface create --providerName twilio tyntec --provider
-
-  $ superface create --providerName twilio --provider --providerFileName my-provider -p my/path
-
-  $ superface create --profileId sms/service --providerName twilio --provider --map --profile -t bugfix -v 1.1-rev133 -u SendSMS ReceiveSMS
-
-  $ superface create -i
+  $ superface create:map starwars/character-information swapi --station
 ```
 
-_See code: [src/commands/create.ts](https://github.com/superfaceai/cli/tree/main/src/commands/create.ts)_
+_See code: [dist/commands/create/map.ts](https://github.com/superfaceai/cli/tree/main/src/commands/create/map.ts)_
 
-## `superface compile`
 
-Compiles locally linked maps and profiles in `super.json`.
+## `superface create:mock-map PROFILEID`
 
-When running without `--profileId` flag, all locally linked files are compiled. When running with `--profileId`, a single local profile source file, and all its local maps are compiled. When running with `--profileId` and `--providerName`, a single local profile and a single local map are compiled.
+Prepares map for mock provider on a local filesystem. Created map always returns success result example from profile file. Before running this command you should have created profile file (run sf create:profile).
 
 ```
-
 USAGE
-  $ superface compile
+  $ superface create:mock-map [PROFILEID] [-q] [--noColor] [--noEmoji] [-h] [-s <value>] [-f] [--station]
 
-OPTIONS
-  -h, --help                   show CLI help
-  -q, --quiet                  When set to true, disables the shell echo output of action.
-  -s, --scan=scan              When number provided, scan for super.json outside cwd within range represented by this number.
-  --noColor                    When set to true, disables all colored output.
-  --noEmoji                    When set to true, disables displaying emoji in output.
-  --onlyMap                    Compile only a map/maps
-  --onlyProfile                Compile only a profile/profiles
-  --profileId=profileId        Profile Id in format [scope/](optional)[name]
-  --providerName=providerName  Name of provider. This argument is used to compile map
+ARGUMENTS
+  PROFILEID  Profile Id in format [scope](optional)/[name]
+
+FLAGS
+  -f, --force         When set to true and when profile exists in local filesystem, overwrites them.
+  -h, --help          show CLI help
+  -q, --quiet         When set to true, disables the shell echo output of action.
+  -s, --scan=<value>  When number provided, scan for super.json outside cwd within range represented by this number.
+  --noColor           When set to true, disables all colored output.
+  --noEmoji           When set to true, disables displaying emoji in output.
+  --station           When set to true, command will create map in folder structure of Superface station
+
+DESCRIPTION
+  Prepares map for mock provider on a local filesystem. Created map always returns success result example from profile
+  file. Before running this command you should have created profile file (run sf create:profile).
 
 EXAMPLES
-  $ superface compile
-  $ superface compile --profileId starwars/character-information --profile
-  $ superface compile --profileId starwars/character-information --profile -q
-  $ superface compile --profileId starwars/character-information --providerName swapi --onlyMap
-  $ superface compile --profileId starwars/character-information --providerName swapi --onlyMap --onlyProfile
+  $ superface create:mock-map starwars/character-information --force
+
+  $ superface create:mock-map starwars/character-information -s 3
+
+  $ superface create:mock-map starwars/character-information --station
 ```
 
-_See code: [src/commands/compile.ts](https://github.com/superfaceai/cli/tree/main/src/commands/compile.ts)_
+_See code: [dist/commands/create/mock-map.ts](https://github.com/superfaceai/cli/tree/main/src/commands/create/mock-map.ts)_
 
+## `superface create:mock-map-test PROFILEID`
 
+Creates test for mock provider map on a local filesystem. Created test expects success result example from profile file. Before running this command you should have created mock provider map (run sf create:mock-map).
 
+```
+USAGE
+  $ superface create:mock-map-test [PROFILEID] [-q] [--noColor] [--noEmoji] [-h] [-s <value>] [-f] [--station]
+
+ARGUMENTS
+  PROFILEID  Profile Id in format [scope](optional)/[name]
+
+FLAGS
+  -f, --force         When set to true and when profile exists in local filesystem, overwrites them.
+  -h, --help          show CLI help
+  -q, --quiet         When set to true, disables the shell echo output of action.
+  -s, --scan=<value>  When number provided, scan for super.json outside cwd within range represented by this number.
+  --noColor           When set to true, disables all colored output.
+  --noEmoji           When set to true, disables displaying emoji in output.
+  --station           When set to true, command will create map in folder structure of Superface station
+
+DESCRIPTION
+  Creates test for mock provider map on a local filesystem. Created test expects success result example from profile
+  file. Before running this command you should have created mock provider map (run sf create:mock-map).
+
+EXAMPLES
+  $ superface create:mock-map-test starwars/character-information --force
+
+  $ superface create:mock-map-test starwars/character-information -s 3
+
+  $ superface create:mock-map-test starwars/character-information --station
+```
+
+_See code: [dist/commands/create/mock-map-test.ts](https://github.com/superfaceai/cli/tree/main/src/commands/create/mock-map-test.ts)_
+
+## `superface create:profile PROFILEID`
+
+creates profile file on local filesystem and links it to super.json.
+
+```
+USAGE
+  $ superface create:profile [PROFILEID] [-q] [--noColor] [--noEmoji] [-h] [-v <value>] [-u <value>] [-s <value>]
+    [-f] [--station]
+
+ARGUMENTS
+  PROFILEID  Profile Id in format [scope](optional)/[name]
+
+FLAGS
+  -f, --force               When set to true and when profile exists in local filesystem, overwrites them.
+  -h, --help                show CLI help
+  -q, --quiet               When set to true, disables the shell echo output of action.
+  -s, --scan=<value>        When number provided, scan for super.json outside cwd within range represented by this
+                            number.
+  -u, --usecase=<value>...  Usecases that profile contains
+  -v, --version=<value>     [default: 1.0.0] Version of a profile
+  --noColor                 When set to true, disables all colored output.
+  --noEmoji                 When set to true, disables displaying emoji in output.
+  --station                 When set to true, command will create profile in folder structure of Superface station
+
+DESCRIPTION
+  creates profile file on local filesystem and links it to super.json.
+
+EXAMPLES
+  $ superface create:profile starwars/character-information --force
+
+  $ superface create:profile starwars/character-information -s 3
+
+  $ superface create:profile starwars/character-information --station
+```
+
+_See code: [dist/commands/create/profile.ts](https://github.com/superfaceai/cli/tree/main/src/commands/create/profile.ts)_
+
+## `superface create:provider PROVIDERNAME`
+
+Prepares provider on a local filesystem and adds it to super.json. You do not have to touch super.json or created provider.json file after running this command.
+
+```
+USAGE
+  $ superface create:provider [PROVIDERNAME] [-q] [--noColor] [--noEmoji] [-h] [-s <value>] [-f] [--station]
+
+ARGUMENTS
+  PROVIDERNAME  Name of provider
+
+FLAGS
+  -f, --force         When set to true and when profile exists in local filesystem, overwrites them.
+  -h, --help          show CLI help
+  -q, --quiet         When set to true, disables the shell echo output of action.
+  -s, --scan=<value>  When number provided, scan for super.json outside cwd within range represented by this number.
+  --noColor           When set to true, disables all colored output.
+  --noEmoji           When set to true, disables displaying emoji in output.
+  --station           When set to true, command will create map in folder structure of Superface station
+
+DESCRIPTION
+  Prepares provider on a local filesystem and adds it to super.json. You do not have to touch super.json or created
+  provider.json file after running this command.
+
+EXAMPLES
+  $ superface prepare:provider swapi --force
+
+  $ superface prepare:provider swapi -s 3
+
+  $ superface prepare:provider swapi --station
+```
+
+_See code: [dist/commands/create/provider.ts](https://github.com/superfaceai/cli/tree/main/src/commands/create/provider.ts)_
+
+## `superface create:test PROFILEID PROVIDERNAME`
+
+Creates test file for specified profile and provider. Examples in profile are used as an input and @superfaceai/testing library is used to orchestrate tests.
+
+```
+USAGE
+  $ superface create:test [PROFILEID] [PROVIDERNAME] [-q] [--noColor] [--noEmoji] [-h] [-s <value>] [-f]
+    [--station]
+
+ARGUMENTS
+  PROFILEID     Profile Id in format [scope](optional)/[name]
+  PROVIDERNAME  Name of provider
+
+FLAGS
+  -f, --force         When set to true and when profile exists in local filesystem, overwrites them.
+  -h, --help          show CLI help
+  -q, --quiet         When set to true, disables the shell echo output of action.
+  -s, --scan=<value>  When number provided, scan for super.json outside cwd within range represented by this number.
+  --noColor           When set to true, disables all colored output.
+  --noEmoji           When set to true, disables displaying emoji in output.
+  --station           When set to true, command will create map in folder structure of Superface station
+
+DESCRIPTION
+  Creates test file for specified profile and provider. Examples in profile are used as an input and
+  @superfaceai/testing library is used to orchestrate tests.
+
+EXAMPLES
+  $ superface create:test starwars/character-information swapi
+
+  $ superface create:test starwars/character-information swapi --station
+
+  $ superface create:test starwars/character-information swapi --force
+
+  $ superface create:test starwars/character-information swapi -q
+```
+
+_See code: [dist/commands/create/test.ts](https://github.com/superfaceai/cli/tree/main/src/commands/create/test.ts)_
 
 ## `superface init [NAME]`
 
@@ -390,7 +518,6 @@ FLAGS
 DESCRIPTION
   Lints all maps and profiles locally linked in super.json. Also can be used to lint specific profile and its maps, in
   that case remote files can be used.Outputs the linter issues to STDOUT by default.
-
   Linter ends with non zero exit code if errors are found.
 
 EXAMPLES
@@ -458,7 +585,7 @@ EXAMPLES
   $ superface logout
 ```
 
-_See code: [src/commands/logout.ts](https://github.com/superfaceai/cli/tree/main/src/commands/logout.ts)_
+_See code: [dist/commands/logout.ts](https://github.com/superfaceai/cli/tree/main/src/commands/logout.ts)_
 
 ## `superface publish DOCUMENTTYPE`
 

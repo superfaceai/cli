@@ -5,19 +5,20 @@ import {
   SDKExecutionError,
 } from '@superfaceai/one-sdk';
 import * as SuperJson from '@superfaceai/one-sdk/dist/schema-tools/superjson/utils';
-import { mocked } from 'ts-jest/utils';
 
 import { createUserError } from '../common/error';
 import { MockLogger } from '../common/log';
 import { ProfileId } from '../common/profile';
-import { check, CheckResult, formatHuman, formatJson } from '../logic/check';
+import type { CheckResult } from '../logic/check';
+import { check, formatHuman, formatJson } from '../logic/check';
 import { detectSuperJson } from '../logic/install';
-import {
+import type {
   MapFromMetadata,
   ProfileFromMetadata,
   ProviderFromMetadata,
 } from '../logic/publish.utils';
-import { MockStd, mockStd } from '../test/mock-std';
+import type { MockStd } from '../test/mock-std';
+import { mockStd } from '../test/mock-std';
 import { CommandInstance } from '../test/utils';
 import Check from './check';
 
@@ -137,7 +138,7 @@ describe('Check CLI command', () => {
 
   describe('when running checkcommand', () => {
     it('throws when super.json not found', async () => {
-      mocked(detectSuperJson).mockResolvedValue(undefined);
+      jest.mocked(detectSuperJson).mockResolvedValue(undefined);
       await expect(
         instance.execute({
           logger,
@@ -148,7 +149,7 @@ describe('Check CLI command', () => {
     });
 
     it('throws when super.json not loaded correctly', async () => {
-      mocked(detectSuperJson).mockResolvedValue('.');
+      jest.mocked(detectSuperJson).mockResolvedValue('.');
       jest
         .spyOn(SuperJson, 'loadSuperJson')
         .mockResolvedValue(err(new SDKExecutionError('test error', [], [])));
@@ -162,7 +163,7 @@ describe('Check CLI command', () => {
     });
 
     it('throws error on scan flag higher than 5', async () => {
-      mocked(detectSuperJson).mockResolvedValue('.');
+      jest.mocked(detectSuperJson).mockResolvedValue('.');
 
       await expect(
         instance.execute({
@@ -181,7 +182,7 @@ describe('Check CLI command', () => {
     }, 10000);
 
     it('throws error on invalid profile id', async () => {
-      mocked(detectSuperJson).mockResolvedValue('.');
+      jest.mocked(detectSuperJson).mockResolvedValue('.');
       const loadSpy = jest
         .spyOn(SuperJson, 'loadSuperJson')
         .mockResolvedValue(ok({}));
@@ -204,7 +205,7 @@ describe('Check CLI command', () => {
     }, 10000);
 
     it('throws error on invalid provider name', async () => {
-      mocked(detectSuperJson).mockResolvedValue('.');
+      jest.mocked(detectSuperJson).mockResolvedValue('.');
       const loadSpy = jest
         .spyOn(SuperJson, 'loadSuperJson')
         .mockResolvedValue(ok({}));
@@ -225,7 +226,7 @@ describe('Check CLI command', () => {
     }, 10000);
 
     it('throws error on missing profile id when providerName is provided', async () => {
-      mocked(detectSuperJson).mockResolvedValue('.');
+      jest.mocked(detectSuperJson).mockResolvedValue('.');
       const loadSpy = jest
         .spyOn(SuperJson, 'loadSuperJson')
         .mockResolvedValue(ok({}));
@@ -247,7 +248,7 @@ describe('Check CLI command', () => {
     }, 10000);
 
     it('throws error when profile Id not found in super.json', async () => {
-      mocked(detectSuperJson).mockResolvedValue('.');
+      jest.mocked(detectSuperJson).mockResolvedValue('.');
       const loadSpy = jest
         .spyOn(SuperJson, 'loadSuperJson')
         .mockResolvedValue(ok({}));
@@ -270,7 +271,7 @@ describe('Check CLI command', () => {
     }, 10000);
 
     it('throws error when profile provider not found in super.json', async () => {
-      mocked(detectSuperJson).mockResolvedValue('.');
+      jest.mocked(detectSuperJson).mockResolvedValue('.');
       const mockSuperJson = {
         profiles: {
           [profileId]: {
@@ -300,7 +301,7 @@ describe('Check CLI command', () => {
     }, 10000);
 
     it('throws error when provider not found in super.json', async () => {
-      mocked(detectSuperJson).mockResolvedValue('.');
+      jest.mocked(detectSuperJson).mockResolvedValue('.');
       const mockSuperJson = {
         profiles: {
           [profileId]: {
@@ -333,8 +334,8 @@ describe('Check CLI command', () => {
     });
 
     it('formats result to human readable format', async () => {
-      mocked(detectSuperJson).mockResolvedValue('.');
-      mocked(check).mockResolvedValue(mockResult);
+      jest.mocked(detectSuperJson).mockResolvedValue('.');
+      jest.mocked(check).mockResolvedValue(mockResult);
       const mockSuperJson = {
         profiles: {
           [profileId]: {
@@ -351,7 +352,7 @@ describe('Check CLI command', () => {
       const loadSpy = jest
         .spyOn(SuperJson, 'loadSuperJson')
         .mockResolvedValue(ok(mockSuperJson));
-      mocked(formatHuman).mockReturnValue('format-human');
+      jest.mocked(formatHuman).mockReturnValue('format-human');
 
       await expect(
         instance.execute({
@@ -392,8 +393,8 @@ describe('Check CLI command', () => {
     });
 
     it('formats result to human readable format with quiet flag', async () => {
-      mocked(detectSuperJson).mockResolvedValue('.');
-      mocked(check).mockResolvedValue(mockResult);
+      jest.mocked(detectSuperJson).mockResolvedValue('.');
+      jest.mocked(check).mockResolvedValue(mockResult);
       const mockSuperJson = {
         profiles: {
           [profileId]: {
@@ -410,7 +411,7 @@ describe('Check CLI command', () => {
       const loadSpy = jest
         .spyOn(SuperJson, 'loadSuperJson')
         .mockResolvedValue(ok(mockSuperJson));
-      mocked(formatHuman).mockReturnValue('format-human');
+      jest.mocked(formatHuman).mockReturnValue('format-human');
 
       await expect(
         instance.execute({
@@ -452,8 +453,8 @@ describe('Check CLI command', () => {
     });
 
     it('formats result to json with quiet flag', async () => {
-      mocked(detectSuperJson).mockResolvedValue('.');
-      mocked(check).mockResolvedValue(mockResult);
+      jest.mocked(detectSuperJson).mockResolvedValue('.');
+      jest.mocked(check).mockResolvedValue(mockResult);
       const mockSuperJson = {
         profiles: {
           [profileId]: {
@@ -470,9 +471,9 @@ describe('Check CLI command', () => {
       const loadSpy = jest
         .spyOn(SuperJson, 'loadSuperJson')
         .mockResolvedValue(ok(mockSuperJson));
-      mocked(formatJson).mockReturnValue(
-        '[{"kind": "error", "message": "test"}]'
-      );
+      jest
+        .mocked(formatJson)
+        .mockReturnValue('[{"kind": "error", "message": "test"}]');
 
       await expect(
         instance.execute({

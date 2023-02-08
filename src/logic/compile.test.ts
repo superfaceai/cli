@@ -5,7 +5,6 @@ import {
   SyntaxError,
 } from '@superfaceai/parser';
 import { SyntaxErrorCategory } from '@superfaceai/parser/dist/language/error';
-import { mocked } from 'ts-jest/utils';
 
 import { MockLogger } from '..';
 import { createUserError } from '../common/error';
@@ -14,7 +13,8 @@ import { OutputStream } from '../common/output-stream';
 import { ProfileId } from '../common/profile';
 import { mockMapDocumentNode } from '../test/map-document-node';
 import { mockProfileDocumentNode } from '../test/profile-document-node';
-import { compile, ProfileToCompile } from './compile';
+import type { FileToCompile } from './compile';
+import { compile } from './compile';
 
 jest.mock('../common/io', () => ({
   readFile: jest.fn(),
@@ -25,6 +25,7 @@ jest.mock('@superfaceai/parser', () => ({
   parseProfile: jest.fn(),
   parseMap: jest.fn(),
 }));
+
 describe('Compile CLI logic', () => {
   let logger: MockLogger;
   const userError = createUserError(false);
@@ -50,8 +51,8 @@ describe('Compile CLI logic', () => {
     );
 
   const writeOnceSpy = jest.spyOn(OutputStream, 'writeOnce');
-  const parseMapSpy = mocked(parseMap);
-  const parseProfileSpy = mocked(parseProfile);
+  const parseMapSpy = jest.mocked(parseMap);
+  const parseProfileSpy = jest.mocked(parseProfile);
 
   beforeEach(() => {
     writeOnceSpy.mockResolvedValue(undefined);
@@ -69,42 +70,64 @@ describe('Compile CLI logic', () => {
     const mockProfileContent = 'mock-profile-content';
     const mockMapContent = 'mock-map-content';
 
-    const profiles: ProfileToCompile[] = [
+    const files: FileToCompile[] = [
       {
         path: 'first/profile.supr',
-        id: ProfileId.fromScopeName('first', 'profile'),
-        maps: [
-          { path: 'first/profile/first/map.suma', provider: 'first' },
-          { path: 'first/profile/second/map.suma', provider: 'second' },
-        ],
+        profileId: ProfileId.fromScopeName('first', 'profile'),
+        kind: 'profile',
+      },
+      {
+        profileId: ProfileId.fromScopeName('first', 'profile'),
+        kind: 'map',
+        path: 'first/profile/first/map.suma',
+        provider: 'first',
+      },
+      {
+        profileId: ProfileId.fromScopeName('first', 'profile'),
+        kind: 'map',
+        path: 'first/profile/second/map.suma',
+        provider: 'second',
       },
       {
         path: 'second/profile.supr',
-        id: ProfileId.fromScopeName('second', 'profile'),
-        maps: [
-          { path: 'second/profile/first/map.suma', provider: 'first' },
-          { path: 'second/profile/second/map.suma', provider: 'second' },
-        ],
+        profileId: ProfileId.fromScopeName('second', 'profile'),
+        kind: 'profile',
+      },
+      {
+        path: 'second/profile/first/map.suma',
+        provider: 'first',
+        profileId: ProfileId.fromScopeName('second', 'profile'),
+        kind: 'map',
+      },
+      {
+        path: 'second/profile/second/map.suma',
+        provider: 'second',
+        profileId: ProfileId.fromScopeName('second', 'profile'),
+        kind: 'map',
       },
       {
         path: 'third/profile.supr.ast.json',
-        id: ProfileId.fromScopeName('third', 'profile'),
-        maps: [
-          { path: 'third/profile/first/map.suma.ast.json', provider: 'first' },
-        ],
+        profileId: ProfileId.fromScopeName('third', 'profile'),
+        kind: 'profile',
       },
       {
-        path: undefined,
-        id: ProfileId.fromScopeName('remote', 'profile'),
-        maps: [
-          { path: 'remote/profile/first/map.suma.ast.json', provider: 'first' },
-        ],
+        path: 'third/profile/first/map.suma.ast.json',
+        provider: 'first',
+        profileId: ProfileId.fromScopeName('third', 'profile'),
+        kind: 'map',
+      },
+
+      {
+        profileId: ProfileId.fromScopeName('remote', 'profile'),
+        path: 'remote/profile/first/map.suma.ast.json',
+        provider: 'first',
+        kind: 'map',
       },
     ];
 
     it('compiles maps and profiles', async () => {
-      mocked(exists).mockResolvedValue(true);
-      mocked(readFile).mockImplementation(path => {
+      jest.mocked(exists).mockResolvedValue(true);
+      jest.mocked(readFile).mockImplementation(path => {
         if (path.toString().endsWith('.ast.json')) {
           throw new Error('Use of ast.json instead of source');
         }
@@ -116,16 +139,16 @@ describe('Compile CLI logic', () => {
       });
 
       await expect(
-        compile({ profiles }, { logger, userError })
+        compile(files, { logger, userError })
       ).resolves.toBeUndefined();
       expect(parseProfileSpy).toHaveBeenCalledTimes(3);
       expect(parseProfileSpy).toHaveBeenNthCalledWith(
         1,
-        new Source(mockProfileContent, profiles[0].path)
+        new Source(mockProfileContent, files[0].path)
       );
       expect(parseProfileSpy).toHaveBeenNthCalledWith(
         2,
-        new Source(mockProfileContent, profiles[1].path)
+        new Source(mockProfileContent, files[3].path)
       );
       expect(parseProfileSpy).toHaveBeenNthCalledWith(
         3,
@@ -138,27 +161,27 @@ describe('Compile CLI logic', () => {
 
       expect(parseMapSpy).toHaveBeenNthCalledWith(
         1,
-        new Source(mockMapContent, profiles[0].maps[0].path)
+        new Source(mockMapContent, files[1].path)
       );
       expect(parseMapSpy).toHaveBeenNthCalledWith(
         2,
-        new Source(mockMapContent, profiles[0].maps[1].path)
+        new Source(mockMapContent, files[2].path)
       );
       expect(parseMapSpy).toHaveBeenNthCalledWith(
         3,
-        new Source(mockMapContent, profiles[1].maps[0].path)
+        new Source(mockMapContent, files[4].path)
       );
       expect(parseMapSpy).toHaveBeenNthCalledWith(
         4,
-        new Source(mockMapContent, profiles[1].maps[1].path)
+        new Source(mockMapContent, files[5].path)
       );
       expect(parseMapSpy).toHaveBeenNthCalledWith(
         5,
-        new Source(mockMapContent, profiles[2].maps[0].path)
+        new Source(mockMapContent, 'third/profile/first/map.suma')
       );
       expect(parseMapSpy).toHaveBeenNthCalledWith(
         6,
-        new Source(mockMapContent, profiles[3].maps[0].path)
+        new Source(mockMapContent, 'remote/profile/first/map.suma')
       );
       expect(writeOnceSpy).toHaveBeenCalledWith(
         'first/profile.supr.ast.json',
@@ -201,144 +224,32 @@ describe('Compile CLI logic', () => {
       );
     });
 
-    it('compiles only maps', async () => {
-      mocked(exists).mockResolvedValue(true);
-      mocked(readFile).mockImplementation(path => {
-        if (path.toString().endsWith('.suma')) {
-          return Promise.resolve(mockMapContent);
-        }
-
-        return Promise.resolve(mockProfileContent);
-      });
-
-      await expect(
-        compile({ profiles, options: { onlyMap: true } }, { logger, userError })
-      ).resolves.toBeUndefined();
-      expect(parseProfileSpy).not.toHaveBeenCalled();
-
-      expect(parseMapSpy).toHaveBeenNthCalledWith(
-        1,
-        new Source(mockMapContent, profiles[0].maps[0].path)
-      );
-      expect(parseMapSpy).toHaveBeenNthCalledWith(
-        2,
-        new Source(mockMapContent, profiles[0].maps[1].path)
-      );
-      expect(parseMapSpy).toHaveBeenNthCalledWith(
-        3,
-        new Source(mockMapContent, profiles[1].maps[0].path)
-      );
-      expect(parseMapSpy).toHaveBeenNthCalledWith(
-        4,
-        new Source(mockMapContent, profiles[1].maps[1].path)
-      );
-      expect(parseMapSpy).toHaveBeenNthCalledWith(
-        5,
-        new Source(mockMapContent, profiles[2].maps[0].path)
-      );
-      expect(writeOnceSpy).toHaveBeenCalledWith(
-        'first/profile/first/map.suma.ast.json',
-        JSON.stringify(mockMap, undefined, 2)
-      );
-      expect(writeOnceSpy).toHaveBeenCalledWith(
-        'first/profile/second/map.suma.ast.json',
-        JSON.stringify(mockMap, undefined, 2)
-      );
-
-      expect(writeOnceSpy).toHaveBeenCalledWith(
-        'second/profile/first/map.suma.ast.json',
-        JSON.stringify(mockMap, undefined, 2)
-      );
-      expect(writeOnceSpy).toHaveBeenCalledWith(
-        'second/profile/second/map.suma.ast.json',
-        JSON.stringify(mockMap, undefined, 2)
-      );
-
-      expect(writeOnceSpy).toHaveBeenCalledWith(
-        'third/profile/first/map.suma.ast.json',
-        JSON.stringify(mockMap, undefined, 2)
-      );
-    });
-
-    it('compiles only profiles', async () => {
-      mocked(exists).mockResolvedValue(true);
-      mocked(readFile).mockImplementation(path => {
-        if (path.toString().endsWith('.suma')) {
-          return Promise.resolve(mockMapContent);
-        }
-
-        return Promise.resolve(mockProfileContent);
-      });
-
-      await expect(
-        compile(
-          { profiles, options: { onlyProfile: true } },
-          { logger, userError }
-        )
-      ).resolves.toBeUndefined();
-      expect(parseProfileSpy).toHaveBeenNthCalledWith(
-        1,
-        new Source(mockProfileContent, profiles[0].path)
-      );
-      expect(parseProfileSpy).toHaveBeenNthCalledWith(
-        2,
-        new Source(mockProfileContent, profiles[1].path)
-      );
-      expect(parseProfileSpy).toHaveBeenNthCalledWith(
-        3,
-        new Source(
-          mockProfileContent,
-          // reads source
-          'third/profile.supr'
-        )
-      );
-
-      expect(parseMapSpy).not.toHaveBeenCalled();
-      expect(writeOnceSpy).toHaveBeenCalledWith(
-        'first/profile.supr.ast.json',
-        JSON.stringify(mockProfile, undefined, 2)
-      );
-      expect(writeOnceSpy).toHaveBeenCalledWith(
-        'second/profile.supr.ast.json',
-        JSON.stringify(mockProfile, undefined, 2)
-      );
-      expect(writeOnceSpy).toHaveBeenCalledWith(
-        'third/profile.supr.ast.json',
-        JSON.stringify(mockProfile, undefined, 2)
-      );
-    });
-
     it('throws on profile file with unsupported extension', async () => {
-      mocked(exists).mockResolvedValue(false);
+      jest.mocked(exists).mockResolvedValue(false);
 
       await expect(
         compile(
-          {
-            profiles: [
-              {
-                path: 'profile.ts',
-                id: ProfileId.fromScopeName('first', 'profile'),
-                maps: [],
-              },
-            ],
-          },
+          [
+            {
+              path: 'profile.ts',
+              profileId: ProfileId.fromScopeName('first', 'profile'),
+              kind: 'profile',
+            },
+          ],
           { logger, userError }
         )
       ).rejects.toThrow(
         'Path: "profile.ts" uses unsupported extension. Please use file with ".supr" extension.'
       );
       expect(parseProfileSpy).not.toHaveBeenCalled();
-
       expect(parseMapSpy).not.toHaveBeenCalled();
       expect(writeOnceSpy).not.toHaveBeenCalled();
     });
 
     it('throws when profile file does not exist', async () => {
-      mocked(exists).mockResolvedValue(false);
+      jest.mocked(exists).mockResolvedValue(false);
 
-      await expect(
-        compile({ profiles }, { logger, userError })
-      ).rejects.toThrow(
+      await expect(compile(files, { logger, userError })).rejects.toThrow(
         'Path: "first/profile.supr" for profile first/profile does not exist'
       );
       expect(parseProfileSpy).not.toHaveBeenCalled();
@@ -348,37 +259,36 @@ describe('Compile CLI logic', () => {
     });
 
     it('throws on map file with unsupported extension', async () => {
-      mocked(exists).mockResolvedValue(true);
-      mocked(readFile).mockImplementation(() => {
+      jest.mocked(exists).mockResolvedValue(false);
+      jest.mocked(readFile).mockImplementation(() => {
         return Promise.resolve(mockProfileContent);
       });
 
       await expect(
         compile(
-          {
-            profiles: [
-              {
-                path: 'profile.supr',
-                id: ProfileId.fromScopeName('first', 'profile'),
-                maps: [{ path: 'profile/first/map.ts', provider: 'first' }],
-              },
-            ],
-          },
+          [
+            {
+              profileId: ProfileId.fromScopeName('first', 'profile'),
+              path: 'profile/first/map.ts',
+              provider: 'first',
+              kind: 'map',
+            },
+          ],
           { logger, userError }
         )
       ).rejects.toThrow(
         'Path: "profile/first/map.ts" uses unsupported extension. Please use file with ".suma" extension.'
       );
-      expect(parseProfileSpy).toHaveBeenCalledWith(
-        new Source(mockProfileContent, 'profile.supr')
-      );
       expect(parseMapSpy).not.toHaveBeenCalled();
-      expect(writeOnceSpy).toHaveBeenCalledTimes(1);
+      expect(writeOnceSpy).not.toHaveBeenCalled();
     });
 
     it('throws when map file does not exist', async () => {
-      mocked(exists).mockResolvedValueOnce(true).mockResolvedValueOnce(false);
-      mocked(readFile).mockImplementation(path => {
+      jest
+        .mocked(exists)
+        .mockResolvedValueOnce(true)
+        .mockResolvedValueOnce(false);
+      jest.mocked(readFile).mockImplementation(path => {
         if (path.toString().endsWith('.suma')) {
           return Promise.resolve(mockMapContent);
         }
@@ -386,13 +296,11 @@ describe('Compile CLI logic', () => {
         return Promise.resolve(mockProfileContent);
       });
 
-      await expect(
-        compile({ profiles }, { logger, userError })
-      ).rejects.toThrow(
+      await expect(compile(files, { logger, userError })).rejects.toThrow(
         'Path: "first/profile/first/map.suma" for map first/profile.first does not exist'
       );
       expect(parseProfileSpy).toHaveBeenCalledWith(
-        new Source(mockProfileContent, profiles[0].path)
+        new Source(mockProfileContent, files[0].path)
       );
 
       expect(parseMapSpy).not.toHaveBeenCalled();
@@ -400,8 +308,8 @@ describe('Compile CLI logic', () => {
     });
 
     it('logs compilation error', async () => {
-      mocked(exists).mockResolvedValue(true);
-      mocked(readFile).mockImplementation(path => {
+      jest.mocked(exists).mockResolvedValue(true);
+      jest.mocked(readFile).mockImplementation(path => {
         if (path.toString().endsWith('.suma')) {
           return Promise.resolve(mockMapContent);
         }
@@ -419,17 +327,19 @@ describe('Compile CLI logic', () => {
 
       await expect(
         compile(
-          {
-            profiles: [
-              {
-                path: 'first/profile.supr',
-                id: ProfileId.fromScopeName('first', 'profile'),
-                maps: [
-                  { path: 'first/profile/first/map.suma', provider: 'first' },
-                ],
-              },
-            ],
-          },
+          [
+            {
+              path: 'first/profile.supr',
+              profileId: ProfileId.fromScopeName('first', 'profile'),
+              kind: 'profile',
+            },
+            {
+              profileId: ProfileId.fromScopeName('first', 'profile'),
+              kind: 'map',
+              path: 'first/profile/first/map.suma',
+              provider: 'first',
+            },
+          ],
           { logger, userError }
         )
       ).resolves.toBeUndefined();

@@ -1,4 +1,4 @@
-import { Hook } from '@oclif/config';
+import type { Hook } from '@oclif/config';
 import { VERSION as SDK_VERSION } from '@superfaceai/one-sdk';
 import { VERSION as PARSER_VERSION } from '@superfaceai/parser';
 

@@ -1,30 +1,30 @@
+import type {
+  MapDocumentNode,
+  ProfileDocumentNode,
+  ProviderJson,
+  SuperJsonDocument,
+} from '@superfaceai/ast';
 import {
   assertMapDocumentNode,
   assertProfileDocumentNode,
   assertProviderJson,
   isMapDefinitionNode,
   isUseCaseDefinitionNode,
-  MapDocumentNode,
-  ProfileDocumentNode,
-  ProviderJson,
-  SuperJsonDocument,
 } from '@superfaceai/ast';
 import { normalizeSuperJsonDocument } from '@superfaceai/one-sdk';
 import { ProfileId } from '@superfaceai/parser';
 import { green, red, yellow } from 'chalk';
 
 import { composeVersion } from '../common/document';
-import { ILogger } from '../common/log';
+import type { ILogger } from '../common/log';
 import { isProviderParseError } from './check.utils';
-import { ProfileToValidate } from './lint';
-import {
-  loadMap,
-  loadProfile,
-  loadProvider,
+import type { ProfileToValidate } from './lint';
+import type {
   MapFromMetadata,
   ProfileFromMetadata,
   ProviderFromMetadata,
 } from './publish.utils';
+import { loadMap, loadProfile, loadProvider } from './publish.utils';
 
 /**
  * Represents result of map & profile check
@@ -83,7 +83,7 @@ export async function check(
   const finalResults: CheckResult[] = [];
 
   for (const profile of profiles) {
-    //Load profile AST
+    // Load profile AST
     const profileFiles = await loadProfile(
       {
         superJson,
@@ -151,8 +151,8 @@ export function checkIntegrationParameters(
   const providerParameters = provider.parameters ?? [];
   const normalized = normalizeSuperJsonDocument(superJson);
   const superJsonProvider = normalized.providers[provider.name];
-  //If there is no provider with passed name there is high probability of not matching provider name in super.json and provider.json
-  if (!superJsonProvider) {
+  // If there is no provider with passed name there is high probability of not matching provider name in super.json and provider.json
+  if (superJsonProvider === undefined) {
     return {
       kind: 'parameters',
       issues: [
@@ -166,7 +166,7 @@ export function checkIntegrationParameters(
   }
   const superJsonParameterKeys = Object.keys(superJsonProvider.parameters);
   const issues: CheckIssue[] = [];
-  //Check if we have some extra parameters in super.json
+  // Check if we have some extra parameters in super.json
   for (const key of superJsonParameterKeys) {
     const parameterFromProvider = providerParameters.find(
       parameter => parameter.name === key
@@ -178,7 +178,7 @@ export function checkIntegrationParameters(
       });
     }
   }
-  //Check if all of the provider parameters are defined
+  // Check if all of the provider parameters are defined
   for (const parameter of providerParameters) {
     if (!superJsonParameterKeys.includes(parameter.name)) {
       issues.push({
@@ -203,7 +203,6 @@ export function checkMapAndProvider(
   try {
     assertProviderJson(provider);
   } catch (error) {
-    // console.log(require('util').inspect(error, false, 10));
     if (isProviderParseError(error)) {
       error.errors.forEach(([message, path]) => {
         results.push({
@@ -218,7 +217,7 @@ export function checkMapAndProvider(
     }
   }
 
-  //Check provider name
+  // Check provider name
   if (map.header.provider !== provider.name) {
     results.push({
       kind: 'error',
@@ -227,7 +226,7 @@ export function checkMapAndProvider(
   }
 
   const profileId = `${
-    map.header.profile.scope ? `${map.header.profile.scope}/` : ''
+    map.header.profile.scope !== undefined ? `${map.header.profile.scope}/` : ''
   }${map.header.profile.name}`;
 
   return {
@@ -252,7 +251,7 @@ export function checkMapAndProfile(
     profile.header.name,
     map.header.provider
   );
-  //Header
+  // Header
   if (profile.header.scope !== map.header.profile.scope) {
     results.push({
       kind: 'error',
@@ -277,7 +276,7 @@ export function checkMapAndProfile(
       message: `Profile "${profile.header.name}" has map for provider "${map.header.provider}" with different MINOR version`,
     });
   }
-  //Map and profile can differ in patch.
+  // Map and profile can differ in patch.
   if (profile.header.version.label !== map.header.profile.version.label) {
     results.push({
       kind: 'error',
@@ -290,7 +289,7 @@ export function checkMapAndProfile(
     map.header.provider
   );
 
-  //Definitions
+  // Definitions
   const mapUsecases: string[] = [];
   const profileUsecases: string[] = [];
   map.definitions.forEach(definition => {
@@ -304,7 +303,7 @@ export function checkMapAndProfile(
 
   if (mapUsecases.length !== profileUsecases.length) {
     results.push({
-      kind: options?.strict ? 'error' : 'warn',
+      kind: options?.strict === true ? 'error' : 'warn',
       message: `Profile "${profile.header.name}" defines ${profileUsecases.length} use cases but map for provider "${map.header.provider}" has ${mapUsecases.length}`,
     });
   }
@@ -312,15 +311,15 @@ export function checkMapAndProfile(
   for (const usecase of profileUsecases) {
     if (!mapUsecases.includes(usecase)) {
       results.push({
-        kind: options?.strict ? 'error' : 'warn',
+        kind: options?.strict !== undefined ? 'error' : 'warn',
         message: `Profile "${profile.header.name}" defines usecase ${usecase} but map for provider "${map.header.provider}" does not`,
       });
     }
   }
 
-  const profileId = `${profile.header.scope ? `${profile.header.scope}/` : ''}${
-    profile.header.name
-  }@${composeVersion(profile.header.version)}`;
+  const profileId = `${
+    profile.header.scope !== undefined ? `${profile.header.scope}/` : ''
+  }${profile.header.name}@${composeVersion(profile.header.version)}`;
 
   return {
     kind: 'profileMap',

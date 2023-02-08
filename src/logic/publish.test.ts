@@ -1,11 +1,10 @@
-import {
+import type {
   AstMetadata,
   MapDocumentNode,
   ProfileDocumentNode,
 } from '@superfaceai/ast';
 import { ServiceApiError } from '@superfaceai/service-client';
 import { ServiceClient } from '@superfaceai/service-client/dist/client';
-import { mocked } from 'ts-jest/utils';
 
 import {
   DEFAULT_PROFILE_VERSION_STR,
@@ -16,9 +15,9 @@ import { createUserError } from '../common/error';
 import { fetchProviderInfo, getServicesUrl } from '../common/http';
 import { loadNetrc } from '../common/netrc';
 import { ProfileId } from '../common/profile';
-import { ProfileMapReport } from '../common/report.interfaces';
+import type { ProfileMapReport } from '../common/report.interfaces';
+import type { CheckResult } from './check';
 import {
-  CheckResult,
   formatHuman as checkFormatHuman,
   formatJson as checkFormatJson,
 } from './check';
@@ -27,15 +26,17 @@ import {
   formatJson as lintFormatJson,
 } from './lint';
 import { publish } from './publish';
+import type {
+  MapFromMetadata,
+  ProfileFromMetadata,
+  ProviderFromMetadata,
+} from './publish.utils';
 import {
   loadMap,
   loadProfile,
   loadProvider,
-  MapFromMetadata,
   prePublishCheck,
   prePublishLint,
-  ProfileFromMetadata,
-  ProviderFromMetadata,
 } from './publish.utils';
 
 jest.mock('../common/netrc');
@@ -255,25 +256,25 @@ describe('Publish logic', () => {
           [mockProviderName]: {},
         },
       };
-      mocked(loadNetrc).mockReturnValue({
+      jest.mocked(loadNetrc).mockReturnValue({
         refreshToken: 'RT',
         baseUrl: 'https://superface.ai',
       });
-      mocked(getServicesUrl).mockReturnValue('');
-      mocked(loadProfile).mockResolvedValue({
+      jest.mocked(getServicesUrl).mockReturnValue('');
+      jest.mocked(loadProfile).mockResolvedValue({
         ast: mockProfileDocument,
         from: mockLocalProfileFrom,
       });
-      mocked(loadMap).mockResolvedValue({
+      jest.mocked(loadMap).mockResolvedValue({
         ast: mockMapDocument,
         from: mockLocalMapFrom,
       });
-      mocked(loadProvider).mockResolvedValue({
+      jest.mocked(loadProvider).mockResolvedValue({
         source: mockProviderSource,
         from: mockLocalProviderFrom,
       });
-      mocked(prePublishCheck).mockReturnValue([]);
-      mocked(prePublishLint).mockReturnValue(emptyLintResult);
+      jest.mocked(prePublishCheck).mockReturnValue([]);
+      jest.mocked(prePublishLint).mockReturnValue(emptyLintResult);
 
       const createSpy = jest
         .spyOn(ServiceClient.prototype, 'createProfile')
@@ -359,24 +360,24 @@ describe('Publish logic', () => {
           [mockProviderName]: {},
         },
       };
-      mocked(loadNetrc).mockReturnValue({
+      jest.mocked(loadNetrc).mockReturnValue({
         refreshToken: 'RT',
         baseUrl: 'https://superface.ai',
       });
-      mocked(loadProfile).mockResolvedValue({
+      jest.mocked(loadProfile).mockResolvedValue({
         ast: mockProfileDocument,
         from: mockLocalProfileFrom,
       });
-      mocked(loadMap).mockResolvedValue({
+      jest.mocked(loadMap).mockResolvedValue({
         ast: mockMapDocument,
         from: mockRemoteMapFrom,
       });
-      mocked(loadProvider).mockResolvedValue({
+      jest.mocked(loadProvider).mockResolvedValue({
         source: mockProviderSource,
         from: mockRemoteProviderFrom,
       });
-      mocked(prePublishCheck).mockReturnValue([]);
-      mocked(prePublishLint).mockReturnValue(emptyLintResult);
+      jest.mocked(prePublishCheck).mockReturnValue([]);
+      jest.mocked(prePublishLint).mockReturnValue(emptyLintResult);
 
       const createSpy = jest
         .spyOn(ServiceClient.prototype, 'createProfile')
@@ -459,24 +460,24 @@ describe('Publish logic', () => {
           [mockProviderName]: {},
         },
       };
-      mocked(loadNetrc).mockReturnValue({
+      jest.mocked(loadNetrc).mockReturnValue({
         refreshToken: 'RT',
         baseUrl: 'https://superface.ai',
       });
-      mocked(loadProfile).mockResolvedValue({
+      jest.mocked(loadProfile).mockResolvedValue({
         ast: mockProfileDocument,
         from: mockLocalProfileFrom,
       });
-      mocked(loadMap).mockResolvedValue({
+      jest.mocked(loadMap).mockResolvedValue({
         ast: mockMapDocument,
         from: mockLocalMapFrom,
       });
-      mocked(loadProvider).mockResolvedValue({
+      jest.mocked(loadProvider).mockResolvedValue({
         source: mockProviderSource,
         from: mockRemoteProviderFrom,
       });
-      mocked(prePublishCheck).mockReturnValue([]);
-      mocked(prePublishLint).mockReturnValue(emptyLintResult);
+      jest.mocked(prePublishCheck).mockReturnValue([]);
+      jest.mocked(prePublishLint).mockReturnValue(emptyLintResult);
 
       const createSpy = jest
         .spyOn(ServiceClient.prototype, 'createProfile')
@@ -559,24 +560,24 @@ describe('Publish logic', () => {
           [mockProviderName]: {},
         },
       };
-      mocked(loadNetrc).mockReturnValue({
+      jest.mocked(loadNetrc).mockReturnValue({
         refreshToken: 'RT',
         baseUrl: 'https://superface.ai',
       });
-      mocked(loadProfile).mockResolvedValue({
+      jest.mocked(loadProfile).mockResolvedValue({
         ast: mockProfileDocument,
         from: mockLocalProfileFrom,
       });
-      mocked(loadMap).mockResolvedValue({
+      jest.mocked(loadMap).mockResolvedValue({
         ast: mockMapDocument,
         from: mockLocalMapFrom,
       });
-      mocked(loadProvider).mockResolvedValue({
+      jest.mocked(loadProvider).mockResolvedValue({
         source: mockProviderSource,
         from: mockLocalProviderFrom,
       });
-      mocked(prePublishCheck).mockReturnValue([]);
-      mocked(prePublishLint).mockReturnValue(emptyLintResult);
+      jest.mocked(prePublishCheck).mockReturnValue([]);
+      jest.mocked(prePublishLint).mockReturnValue(emptyLintResult);
 
       const createSpy = jest
         .spyOn(ServiceClient.prototype, 'createProfile')
@@ -662,7 +663,7 @@ describe('Publish logic', () => {
         },
       };
 
-      mocked(loadProfile).mockResolvedValue({
+      jest.mocked(loadProfile).mockResolvedValue({
         ast: mockProfileDocument,
         from: mockRemoteProfileFrom,
       });
@@ -712,24 +713,24 @@ describe('Publish logic', () => {
           [mockProviderName]: {},
         },
       };
-      mocked(loadNetrc).mockReturnValue({
+      jest.mocked(loadNetrc).mockReturnValue({
         refreshToken: 'RT',
         baseUrl: 'https://superface.ai',
       });
-      mocked(loadProfile).mockResolvedValue({
+      jest.mocked(loadProfile).mockResolvedValue({
         ast: mockProfileDocument,
         from: mockRemoteProfileFrom,
       });
-      mocked(loadMap).mockResolvedValue({
+      jest.mocked(loadMap).mockResolvedValue({
         ast: mockMapDocument,
         from: mockLocalMapFrom,
       });
-      mocked(loadProvider).mockResolvedValue({
+      jest.mocked(loadProvider).mockResolvedValue({
         source: mockProviderSource,
         from: mockRemoteProviderFrom,
       });
-      mocked(prePublishCheck).mockReturnValue([]);
-      mocked(prePublishLint).mockReturnValue(emptyLintResult);
+      jest.mocked(prePublishCheck).mockReturnValue([]);
+      jest.mocked(prePublishLint).mockReturnValue(emptyLintResult);
 
       const createSpy = jest
         .spyOn(ServiceClient.prototype, 'createMap')
@@ -816,24 +817,24 @@ describe('Publish logic', () => {
           [mockProviderName]: {},
         },
       };
-      mocked(loadNetrc).mockReturnValue({
+      jest.mocked(loadNetrc).mockReturnValue({
         refreshToken: 'RT',
         baseUrl: 'https://superface.ai',
       });
-      mocked(loadProfile).mockResolvedValue({
+      jest.mocked(loadProfile).mockResolvedValue({
         ast: mockProfileDocument,
         from: mockLocalProfileFrom,
       });
-      mocked(loadMap).mockResolvedValue({
+      jest.mocked(loadMap).mockResolvedValue({
         ast: mockMapDocument,
         from: mockLocalMapFrom,
       });
-      mocked(loadProvider).mockResolvedValue({
+      jest.mocked(loadProvider).mockResolvedValue({
         source: mockProviderSource,
         from: mockRemoteProviderFrom,
       });
-      mocked(prePublishCheck).mockReturnValue([]);
-      mocked(prePublishLint).mockReturnValue(emptyLintResult);
+      jest.mocked(prePublishCheck).mockReturnValue([]);
+      jest.mocked(prePublishLint).mockReturnValue(emptyLintResult);
 
       const createSpy = jest
         .spyOn(ServiceClient.prototype, 'createMap')
@@ -919,24 +920,24 @@ describe('Publish logic', () => {
           [mockProviderName]: {},
         },
       };
-      mocked(loadNetrc).mockReturnValue({
+      jest.mocked(loadNetrc).mockReturnValue({
         refreshToken: 'RT',
         baseUrl: 'https://superface.ai',
       });
-      mocked(loadProfile).mockResolvedValue({
+      jest.mocked(loadProfile).mockResolvedValue({
         ast: mockProfileDocument,
         from: mockRemoteProfileFrom,
       });
-      mocked(loadMap).mockResolvedValue({
+      jest.mocked(loadMap).mockResolvedValue({
         ast: mockMapDocument,
         from: mockLocalMapFrom,
       });
-      mocked(loadProvider).mockResolvedValue({
+      jest.mocked(loadProvider).mockResolvedValue({
         source: mockProviderSource,
         from: mockLocalProviderFrom,
       });
-      mocked(prePublishCheck).mockReturnValue([]);
-      mocked(prePublishLint).mockReturnValue(emptyLintResult);
+      jest.mocked(prePublishCheck).mockReturnValue([]);
+      jest.mocked(prePublishLint).mockReturnValue(emptyLintResult);
 
       const createSpy = jest
         .spyOn(ServiceClient.prototype, 'createMap')
@@ -1022,24 +1023,24 @@ describe('Publish logic', () => {
           [mockProviderName]: {},
         },
       };
-      mocked(loadNetrc).mockReturnValue({
+      jest.mocked(loadNetrc).mockReturnValue({
         refreshToken: 'RT',
         baseUrl: 'https://superface.ai',
       });
-      mocked(loadProfile).mockResolvedValue({
+      jest.mocked(loadProfile).mockResolvedValue({
         ast: mockProfileDocument,
         from: mockRemoteProfileFrom,
       });
-      mocked(loadMap).mockResolvedValue({
+      jest.mocked(loadMap).mockResolvedValue({
         ast: mockMapDocument,
         from: mockLocalMapFrom,
       });
-      mocked(loadProvider).mockResolvedValue({
+      jest.mocked(loadProvider).mockResolvedValue({
         source: mockProviderSource,
         from: mockLocalProviderFrom,
       });
-      mocked(prePublishCheck).mockReturnValue([]);
-      mocked(prePublishLint).mockReturnValue(emptyLintResult);
+      jest.mocked(prePublishCheck).mockReturnValue([]);
+      jest.mocked(prePublishLint).mockReturnValue(emptyLintResult);
 
       const createSpy = jest
         .spyOn(ServiceClient.prototype, 'createMap')
@@ -1124,23 +1125,23 @@ describe('Publish logic', () => {
           [mockProviderName]: {},
         },
       };
-      mocked(loadNetrc).mockReturnValue({
+      jest.mocked(loadNetrc).mockReturnValue({
         refreshToken: 'RT',
         baseUrl: 'https://superface.ai',
       });
-      mocked(loadProfile).mockResolvedValue({
+      jest.mocked(loadProfile).mockResolvedValue({
         ast: mockProfileDocument,
         from: mockRemoteProfileFrom,
       });
-      mocked(loadMap).mockResolvedValue({
+      jest.mocked(loadMap).mockResolvedValue({
         ast: mockMapDocument,
         from: mockLocalMapFrom,
       });
-      mocked(loadProvider).mockResolvedValue({
+      jest.mocked(loadProvider).mockResolvedValue({
         source: mockProviderSource,
         from: mockLocalProviderFrom,
       });
-      mocked(fetchProviderInfo).mockRejectedValue(
+      jest.mocked(fetchProviderInfo).mockRejectedValue(
         new ServiceApiError({
           status: 404,
           instance: 'test',
@@ -1148,8 +1149,8 @@ describe('Publish logic', () => {
           title: 'test',
         })
       );
-      mocked(prePublishCheck).mockReturnValue([]);
-      mocked(prePublishLint).mockReturnValue(emptyLintResult);
+      jest.mocked(prePublishCheck).mockReturnValue([]);
+      jest.mocked(prePublishLint).mockReturnValue(emptyLintResult);
 
       const createSpy = jest
         .spyOn(ServiceClient.prototype, 'createMap')
@@ -1238,11 +1239,11 @@ describe('Publish logic', () => {
         },
       };
 
-      mocked(loadProfile).mockResolvedValue({
+      jest.mocked(loadProfile).mockResolvedValue({
         ast: mockProfileDocument,
         from: mockRemoteProfileFrom,
       });
-      mocked(loadMap).mockResolvedValue({
+      jest.mocked(loadMap).mockResolvedValue({
         ast: mockMapDocument,
         from: mockRemoteMapFrom,
       });
@@ -1303,24 +1304,24 @@ describe('Publish logic', () => {
           },
         },
       };
-      mocked(loadNetrc).mockReturnValue({
+      jest.mocked(loadNetrc).mockReturnValue({
         refreshToken: 'RT',
         baseUrl: 'https://superface.ai',
       });
-      mocked(loadProfile).mockResolvedValue({
+      jest.mocked(loadProfile).mockResolvedValue({
         ast: mockProfileDocument,
         from: mockLocalProfileFrom,
       });
-      mocked(loadMap).mockResolvedValue({
+      jest.mocked(loadMap).mockResolvedValue({
         ast: mockMapDocument,
         from: mockRemoteMapFrom,
       });
-      mocked(loadProvider).mockResolvedValue({
+      jest.mocked(loadProvider).mockResolvedValue({
         source: mockProviderSource,
         from: mockLocalProviderFrom,
       });
-      mocked(prePublishCheck).mockReturnValue([]);
-      mocked(prePublishLint).mockReturnValue(emptyLintResult);
+      jest.mocked(prePublishCheck).mockReturnValue([]);
+      jest.mocked(prePublishLint).mockReturnValue(emptyLintResult);
 
       const createSpy = jest
         .spyOn(ServiceClient.prototype, 'createProvider')
@@ -1419,24 +1420,24 @@ describe('Publish logic', () => {
           },
         },
       };
-      mocked(loadNetrc).mockReturnValue({
+      jest.mocked(loadNetrc).mockReturnValue({
         refreshToken: 'RT',
         baseUrl: 'https://superface.ai',
       });
-      mocked(loadProfile).mockResolvedValue({
+      jest.mocked(loadProfile).mockResolvedValue({
         ast: mockProfileDocument,
         from: mockRemoteProfileFrom,
       });
-      mocked(loadMap).mockResolvedValue({
+      jest.mocked(loadMap).mockResolvedValue({
         ast: mockMapDocument,
         from: mockRemoteMapFrom,
       });
-      mocked(loadProvider).mockResolvedValue({
+      jest.mocked(loadProvider).mockResolvedValue({
         source: mockProviderSource,
         from: mockLocalProviderFrom,
       });
-      mocked(prePublishCheck).mockReturnValue([]);
-      mocked(prePublishLint).mockReturnValue(emptyLintResult);
+      jest.mocked(prePublishCheck).mockReturnValue([]);
+      jest.mocked(prePublishLint).mockReturnValue(emptyLintResult);
 
       const createSpy = jest
         .spyOn(ServiceClient.prototype, 'createProvider')
@@ -1521,24 +1522,24 @@ describe('Publish logic', () => {
           },
         },
       };
-      mocked(loadNetrc).mockReturnValue({
+      jest.mocked(loadNetrc).mockReturnValue({
         refreshToken: 'RT',
         baseUrl: 'https://superface.ai',
       });
-      mocked(loadProfile).mockResolvedValue({
+      jest.mocked(loadProfile).mockResolvedValue({
         ast: mockProfileDocument,
         from: mockRemoteProfileFrom,
       });
-      mocked(loadMap).mockResolvedValue({
+      jest.mocked(loadMap).mockResolvedValue({
         ast: mockMapDocument,
         from: mockRemoteMapFrom,
       });
-      mocked(loadProvider).mockResolvedValue({
+      jest.mocked(loadProvider).mockResolvedValue({
         source: mockProviderSource,
         from: mockLocalProviderFrom,
       });
-      mocked(prePublishCheck).mockReturnValue([]);
-      mocked(prePublishLint).mockReturnValue(emptyLintResult);
+      jest.mocked(prePublishCheck).mockReturnValue([]);
+      jest.mocked(prePublishLint).mockReturnValue(emptyLintResult);
 
       const createSpy = jest
         .spyOn(ServiceClient.prototype, 'createProvider')
@@ -1637,24 +1638,24 @@ describe('Publish logic', () => {
           },
         },
       };
-      mocked(loadNetrc).mockReturnValue({
+      jest.mocked(loadNetrc).mockReturnValue({
         refreshToken: 'RT',
         baseUrl: 'https://superface.ai',
       });
-      mocked(loadProfile).mockResolvedValue({
+      jest.mocked(loadProfile).mockResolvedValue({
         ast: mockProfileDocument,
         from: mockRemoteProfileFrom,
       });
-      mocked(loadMap).mockResolvedValue({
+      jest.mocked(loadMap).mockResolvedValue({
         ast: mockMapDocument,
         from: mockRemoteMapFrom,
       });
-      mocked(loadProvider).mockResolvedValue({
+      jest.mocked(loadProvider).mockResolvedValue({
         source: mockProviderSource,
         from: mockLocalProviderFrom,
       });
-      mocked(prePublishCheck).mockReturnValue([]);
-      mocked(prePublishLint).mockReturnValue(emptyLintResult);
+      jest.mocked(prePublishCheck).mockReturnValue([]);
+      jest.mocked(prePublishLint).mockReturnValue(emptyLintResult);
 
       const createSpy = jest
         .spyOn(ServiceClient.prototype, 'createProvider')
@@ -1741,20 +1742,20 @@ describe('Publish logic', () => {
         },
       };
 
-      mocked(loadProfile).mockResolvedValue({
+      jest.mocked(loadProfile).mockResolvedValue({
         ast: mockProfileDocument,
         from: mockRemoteProfileFrom,
       });
-      mocked(loadMap).mockResolvedValue({
+      jest.mocked(loadMap).mockResolvedValue({
         ast: mockMapDocument,
         from: mockRemoteMapFrom,
       });
-      mocked(loadProvider).mockResolvedValue({
+      jest.mocked(loadProvider).mockResolvedValue({
         source: mockProviderSource,
         from: mockRemoteProviderFrom,
       });
-      mocked(prePublishCheck).mockReturnValue([]);
-      mocked(prePublishLint).mockReturnValue(emptyLintResult);
+      jest.mocked(prePublishCheck).mockReturnValue([]);
+      jest.mocked(prePublishLint).mockReturnValue(emptyLintResult);
 
       await expect(
         publish(
@@ -1802,20 +1803,20 @@ describe('Publish logic', () => {
         },
       };
 
-      mocked(loadProfile).mockResolvedValue({
+      jest.mocked(loadProfile).mockResolvedValue({
         ast: mockProfileDocument,
         from: mockRemoteProfileFrom,
       });
-      mocked(loadMap).mockResolvedValue({
+      jest.mocked(loadMap).mockResolvedValue({
         ast: mockMapDocument,
         from: mockRemoteMapFrom,
       });
-      mocked(loadProvider).mockResolvedValue({
+      jest.mocked(loadProvider).mockResolvedValue({
         source: mockProviderSource,
         from: mockLocalProviderFrom,
       });
-      mocked(prePublishCheck).mockReturnValue(checkResults);
-      mocked(prePublishLint).mockReturnValue(emptyLintResult);
+      jest.mocked(prePublishCheck).mockReturnValue(checkResults);
+      jest.mocked(prePublishLint).mockReturnValue(emptyLintResult);
 
       const createSpy = jest
         .spyOn(ServiceClient.prototype, 'createProvider')
@@ -1945,20 +1946,20 @@ describe('Publish logic', () => {
         },
       };
 
-      mocked(loadProfile).mockResolvedValue({
+      jest.mocked(loadProfile).mockResolvedValue({
         ast: mockProfileDocument,
         from: mockRemoteProfileFrom,
       });
-      mocked(loadMap).mockResolvedValue({
+      jest.mocked(loadMap).mockResolvedValue({
         ast: mockMapDocument,
         from: mockRemoteMapFrom,
       });
-      mocked(loadProvider).mockResolvedValue({
+      jest.mocked(loadProvider).mockResolvedValue({
         source: mockProviderSource,
         from: mockLocalProviderFrom,
       });
-      mocked(prePublishCheck).mockReturnValue(checkResults);
-      mocked(prePublishLint).mockReturnValue(lintResult);
+      jest.mocked(prePublishCheck).mockReturnValue(checkResults);
+      jest.mocked(prePublishLint).mockReturnValue(lintResult);
 
       const createSpy = jest
         .spyOn(ServiceClient.prototype, 'createProvider')
@@ -2057,20 +2058,20 @@ describe('Publish logic', () => {
         },
       };
 
-      mocked(loadProfile).mockResolvedValue({
+      jest.mocked(loadProfile).mockResolvedValue({
         ast: mockProfileDocument,
         from: mockRemoteProfileFrom,
       });
-      mocked(loadMap).mockResolvedValue({
+      jest.mocked(loadMap).mockResolvedValue({
         ast: mockMapDocument,
         from: mockRemoteMapFrom,
       });
-      mocked(loadProvider).mockResolvedValue({
+      jest.mocked(loadProvider).mockResolvedValue({
         source: mockProviderSource,
         from: mockLocalProviderFrom,
       });
-      mocked(prePublishCheck).mockReturnValue(checkResults);
-      mocked(prePublishLint).mockReturnValue(lintResult);
+      jest.mocked(prePublishCheck).mockReturnValue(checkResults);
+      jest.mocked(prePublishLint).mockReturnValue(lintResult);
 
       const createSpy = jest
         .spyOn(ServiceClient.prototype, 'createProvider')
