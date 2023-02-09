@@ -1,13 +1,15 @@
 import { HttpScheme, SecurityType } from '@superfaceai/ast';
 import inquirer from 'inquirer';
 
-import { selectSecurity } from './security';
+import { SecuritySchemeName, selectSecurity } from './security';
 
 jest.mock('inquirer');
 
 describe('Select security logic', () => {
   it('returns empty object when "none" security is selected', async () => {
-    jest.spyOn(inquirer, 'prompt').mockResolvedValueOnce({ schema: 'mone' });
+    jest
+      .spyOn(inquirer, 'prompt')
+      .mockResolvedValueOnce({ schema: SecuritySchemeName.NONE });
 
     await expect(
       selectSecurity('test', 'https://swapi.dev/api')
@@ -18,7 +20,7 @@ describe('Select security logic', () => {
     it('returns correct scheme and values', async () => {
       jest
         .spyOn(inquirer, 'prompt')
-        .mockResolvedValueOnce({ schema: 'bearer token' });
+        .mockResolvedValueOnce({ schema: SecuritySchemeName.BEARER_TOKEN });
 
       await expect(
         selectSecurity('test', 'https://swapi.dev/api')
@@ -35,7 +37,9 @@ describe('Select security logic', () => {
 
   describe('when basic security is selected', () => {
     it('returns correct scheme and values', async () => {
-      jest.spyOn(inquirer, 'prompt').mockResolvedValueOnce({ schema: 'basic' });
+      jest
+        .spyOn(inquirer, 'prompt')
+        .mockResolvedValueOnce({ schema: SecuritySchemeName.BASIC_AUTH });
 
       await expect(
         selectSecurity('test', 'https://swapi.dev/api')
@@ -50,11 +54,11 @@ describe('Select security logic', () => {
     });
   });
 
-  describe('when diges security is selected', () => {
+  describe('when digest security is selected', () => {
     it('returns correct scheme and values', async () => {
       jest
         .spyOn(inquirer, 'prompt')
-        .mockResolvedValueOnce({ schema: 'digest' });
+        .mockResolvedValueOnce({ schema: SecuritySchemeName.DIGEST });
 
       await expect(
         selectSecurity('test', 'https://swapi.dev/api')
@@ -73,7 +77,7 @@ describe('Select security logic', () => {
     it('returns correct scheme and values - header placement', async () => {
       jest
         .spyOn(inquirer, 'prompt')
-        .mockResolvedValueOnce({ schema: 'api key token' })
+        .mockResolvedValueOnce({ schema: SecuritySchemeName.API_KEY })
         .mockResolvedValueOnce({ value: 'header' })
         .mockResolvedValueOnce({ name: 'auth' });
 
@@ -93,7 +97,7 @@ describe('Select security logic', () => {
     it('returns correct scheme and values - body placement', async () => {
       jest
         .spyOn(inquirer, 'prompt')
-        .mockResolvedValueOnce({ schema: 'api key token' })
+        .mockResolvedValueOnce({ schema: SecuritySchemeName.API_KEY })
         .mockResolvedValueOnce({ value: 'body' })
         .mockResolvedValueOnce({ name: 'auth' });
 
@@ -113,7 +117,7 @@ describe('Select security logic', () => {
     it('returns correct scheme and values - query placement', async () => {
       jest
         .spyOn(inquirer, 'prompt')
-        .mockResolvedValueOnce({ schema: 'api key token' })
+        .mockResolvedValueOnce({ schema: SecuritySchemeName.API_KEY })
         .mockResolvedValueOnce({ value: 'query' })
         .mockResolvedValueOnce({ name: 'auth' });
 
@@ -133,7 +137,7 @@ describe('Select security logic', () => {
     it('returns correct scheme and values - path placement', async () => {
       jest
         .spyOn(inquirer, 'prompt')
-        .mockResolvedValueOnce({ schema: 'api key token' })
+        .mockResolvedValueOnce({ schema: SecuritySchemeName.API_KEY })
         .mockResolvedValueOnce({ value: 'path' })
         .mockResolvedValueOnce({ name: 'auth' });
 
@@ -153,7 +157,7 @@ describe('Select security logic', () => {
     it('returns correct scheme and values - undefined name', async () => {
       jest
         .spyOn(inquirer, 'prompt')
-        .mockResolvedValueOnce({ schema: 'api key token' })
+        .mockResolvedValueOnce({ schema: SecuritySchemeName.API_KEY })
         .mockResolvedValueOnce({ value: 'path' })
         .mockResolvedValueOnce({ name: undefined });
 

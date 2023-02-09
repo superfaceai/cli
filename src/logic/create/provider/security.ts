@@ -11,6 +11,14 @@ import {
 } from '@superfaceai/ast';
 import inquirer from 'inquirer';
 
+export enum SecuritySchemeName {
+  API_KEY = 'API key',
+  BEARER_TOKEN = 'Bearer Token',
+  BASIC_AUTH = 'Basic Authentication',
+  DIGEST = 'Digest Authentication',
+  NONE = 'None',
+}
+
 export async function selectSecurity(
   provider: string,
   baseUrl: string
@@ -30,35 +38,41 @@ export async function selectSecurity(
 async function enterSecuritySchema(
   baseUrl: string
 ): Promise<SecurityScheme | 'none'> {
-  const schema: 'api key token' | 'bearer token' | 'basic' | 'digest' | 'none' =
-    (
-      await inquirer.prompt<{
-        schema: 'api key token' | 'bearer token' | 'basic' | 'digest' | 'none';
-      }>({
-        name: 'schema',
-        message: `Select authentication method for ${baseUrl}:`,
-        type: 'list',
-        choices: ['API Key', 'Bearer Token', 'Basic Auth', 'Digest', 'none'],
-      })
-    ).schema;
+  const schema: SecuritySchemeName = (
+    await inquirer.prompt<{
+      schema: SecuritySchemeName;
+    }>({
+      name: 'schema',
+      message: `Select authentication method for ${baseUrl}:`,
+      type: 'list',
+      choices: [
+        'API Key',
+        'Bearer Token',
+        'Basic Authentication',
+        'Digest Authentication',
+        'none',
+      ],
+    })
+  ).schema;
 
-  if (schema === 'api key token') {
+  console.log('from user', schema);
+  if (schema === SecuritySchemeName.API_KEY) {
     return enterApiKeySecurity();
-  } else if (schema === 'bearer token') {
+  } else if (schema === SecuritySchemeName.BEARER_TOKEN) {
     return {
       id: 'bearer',
       type: SecurityType.HTTP,
       scheme: HttpScheme.BEARER,
     };
-  } else if (schema === 'basic') {
+  } else if (schema === SecuritySchemeName.BASIC_AUTH) {
     return {
-      id: schema,
+      id: 'basic',
       type: SecurityType.HTTP,
       scheme: HttpScheme.BASIC,
     };
-  } else if (schema === 'digest') {
+  } else if (schema === SecuritySchemeName.DIGEST) {
     return {
-      id: schema,
+      id: 'digest',
       type: SecurityType.HTTP,
       scheme: HttpScheme.DIGEST,
     };
