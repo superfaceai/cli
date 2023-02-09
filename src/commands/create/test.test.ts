@@ -11,7 +11,7 @@ import { ProfileId } from '../../common/profile';
 import { createTest } from '../../logic/create/test';
 import { detectSuperJson } from '../../logic/install';
 import { CommandInstance } from '../../test/utils';
-import PrepareTest from './test';
+import CreateTest from './test';
 
 jest.mock('../../logic/install', () => ({
   detectSuperJson: jest.fn(),
@@ -26,22 +26,22 @@ jest.mock('@superfaceai/one-sdk', () => ({
   loadSuperJson: jest.fn(),
 }));
 
-describe('Prepare test command', () => {
+describe('Create test command', () => {
   const userError = createUserError(false);
 
   afterEach(() => {
     jest.resetAllMocks();
   });
 
-  describe('running prepare test command', () => {
-    let instance: PrepareTest;
+  describe('running create test command', () => {
+    let instance: CreateTest;
     let logger: MockLogger;
 
     const mockProfile = 'starwars/character-information';
     const mockProvider = 'swapi';
 
     beforeEach(() => {
-      instance = CommandInstance(PrepareTest);
+      instance = CommandInstance(CreateTest);
       logger = new MockLogger();
     });
 

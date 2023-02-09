@@ -51,7 +51,12 @@ export async function createProfile(
   });
 
   if (created) {
-    logger.success('prepareProfile', id.profile.id, filePath, options?.station);
+    logger.success(
+      'createFullProfile',
+      id.profile.id,
+      filePath,
+      options?.station
+    );
     mergeProfile(
       superJson,
       id.profile.id,

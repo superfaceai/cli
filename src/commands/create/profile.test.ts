@@ -28,7 +28,7 @@ jest.mock('../../logic/install', () => ({
   detectSuperJson: jest.fn(),
 }));
 
-describe('Prepare profile command', () => {
+describe('Create profile command', () => {
   const userError = createUserError(false);
   let profileId: string;
   let logger: MockLogger;
@@ -43,7 +43,7 @@ describe('Prepare profile command', () => {
     instance = CommandInstance(Profile);
   });
 
-  describe('when running prepare profile command', () => {
+  describe('when running create profile command', () => {
     it('throws when profile name is missing', async () => {
       await expect(
         instance.execute({
@@ -228,7 +228,7 @@ describe('Prepare profile command', () => {
       expect(createProfile).not.toBeCalled();
     });
 
-    it('prepares profile with one usecase from profile name', async () => {
+    it('creates profile with one usecase from profile name', async () => {
       profileId = 'messages/sendsms';
       const superjson: SuperJsonDocument = {
         profiles: {

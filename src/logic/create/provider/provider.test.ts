@@ -30,7 +30,7 @@ jest.mock('./parameters', () => ({
   selectIntegrationParameters: jest.fn(),
 }));
 
-describe('Prepare map logic', () => {
+describe('Create map logic', () => {
   let logger: MockLogger;
   const userError = createUserError(false);
 
@@ -133,7 +133,7 @@ describe('Prepare map logic', () => {
         );
       });
 
-      it('writes prepared provider to file with --station flag', async () => {
+      it('writes created provider to file with --station flag', async () => {
         jest.mocked(fetchProviderInfo).mockRejectedValue(
           new ServiceApiError({
             status: 404,
@@ -213,7 +213,7 @@ describe('Prepare map logic', () => {
     });
 
     describe('when provider does not exist in registry', () => {
-      it('writes prepared provider to file', async () => {
+      it('writes created provider to file', async () => {
         jest.mocked(fetchProviderInfo).mockRejectedValue(
           new ServiceApiError({
             status: 404,
@@ -252,7 +252,7 @@ describe('Prepare map logic', () => {
         expect(writeOnceSpy).toBeCalledWith(superJsonPath, expect.any(String));
       });
 
-      it('writes prepared provider to file with station flag', async () => {
+      it('writes created provider to file with station flag', async () => {
         jest.mocked(selecetBaseUrl).mockResolvedValue('https://swapi.dev/api');
         jest
           .mocked(selectIntegrationParameters)

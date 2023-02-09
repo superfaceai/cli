@@ -5,7 +5,7 @@ import { ProfileId } from '../../common/profile';
 import { completeProfile } from '../../templates/profile';
 import { createProfile } from './profile';
 
-describe('Prepare profile logic', () => {
+describe('Create profile logic', () => {
   let logger: MockLogger;
   const userError = createUserError(false);
   const mockVersion = '1.0.0';

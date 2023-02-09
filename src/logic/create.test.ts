@@ -5,7 +5,7 @@ import { createUserError } from '../common/error';
 import { OutputStream } from '../common/output-stream';
 import { ProfileId } from '../common/profile';
 import { empty as emptyProfile } from '../templates/profile';
-import { createProfile } from './create';
+import { createEmptyProfile } from './create';
 
 describe('Create logic', () => {
   let logger: MockLogger;
@@ -33,7 +33,7 @@ describe('Create logic', () => {
         .mockResolvedValue(true);
 
       await expect(
-        createProfile(
+        createEmptyProfile(
           {
             basePath: mockBasePath,
             profile: mockProfile,
@@ -70,7 +70,7 @@ describe('Create logic', () => {
         .mockResolvedValue(true);
 
       await expect(
-        createProfile(
+        createEmptyProfile(
           {
             basePath: mockBasePath,
             profile: mockProfile,
@@ -108,7 +108,7 @@ describe('Create logic', () => {
         .mockResolvedValue(true);
 
       await expect(
-        createProfile(
+        createEmptyProfile(
           {
             basePath: mockBasePath,
             profile: mockProfile,
@@ -143,7 +143,7 @@ describe('Create logic', () => {
         .mockResolvedValue(true);
 
       await expect(
-        createProfile(
+        createEmptyProfile(
           {
             basePath: mockBasePath,
             profile: mockProfile,

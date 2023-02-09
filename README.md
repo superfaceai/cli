@@ -201,7 +201,7 @@ _See code: [src/commands/configure.ts](https://github.com/superfaceai/cli/tree/m
 
 ## `superface create:map PROFILEID PROVIDERNAME`
 
-Prepares map, based on profile and provider on a local filesystem. Created file contains created structure with information from profile and provider files. Before running this command you should have prepared profile (run sf prepare:profile) and provider (run sf prepare:provider)
+Creates map, based on profile and provider on a local filesystem. Created file contains structure with information from profile and provider files. Before running this command you should have created profile (run sf create:profile) and provider (run sf create:provider)
 
 ```
 USAGE
@@ -223,9 +223,9 @@ FLAGS
   --station              When set to true, command will create map in folder structure of Superface station
 
 DESCRIPTION
-  Prepares map, based on profile and provider on a local filesystem. Created file contains created structure with
-  information from profile and provider files. Before running this command you should have prepared profile (run sf
-  prepare:profile) and provider (run sf prepare:provider)
+  Creates map, based on profile and provider on a local filesystem. Created file contains structure with information
+  from profile and provider files. Before running this command you should have created profile (run sf create:profile)
+  and provider (run sf create:provider)
 
 EXAMPLES
   $ superface create:map starwars/character-information swapi --force
@@ -240,7 +240,7 @@ _See code: [dist/commands/create/map.ts](https://github.com/superfaceai/cli/tree
 
 ## `superface create:mock-map PROFILEID`
 
-Prepares map for mock provider on a local filesystem. Created map always returns success result example from profile file. Before running this command you should have created profile file (run sf create:profile).
+Creates map for mock provider on a local filesystem. Created map always returns success result example from profile file. Before running this command you should have created profile file (run sf create:profile).
 
 ```
 USAGE
@@ -259,7 +259,7 @@ FLAGS
   --station           When set to true, command will create map in folder structure of Superface station
 
 DESCRIPTION
-  Prepares map for mock provider on a local filesystem. Created map always returns success result example from profile
+  Creates map for mock provider on a local filesystem. Created map always returns success result example from profile
   file. Before running this command you should have created profile file (run sf create:profile).
 
 EXAMPLES
@@ -345,7 +345,7 @@ _See code: [dist/commands/create/profile.ts](https://github.com/superfaceai/cli/
 
 ## `superface create:provider PROVIDERNAME`
 
-Prepares provider on a local filesystem and adds it to super.json. You do not have to touch super.json or created provider.json file after running this command.
+Creates provider on a local filesystem and adds it to super.json. You do not have to touch super.json or created provider.json file after running this command.
 
 ```
 USAGE
@@ -364,15 +364,15 @@ FLAGS
   --station           When set to true, command will create map in folder structure of Superface station
 
 DESCRIPTION
-  Prepares provider on a local filesystem and adds it to super.json. You do not have to touch super.json or created
+  Creates provider on a local filesystem and adds it to super.json. You do not have to touch super.json or created
   provider.json file after running this command.
 
 EXAMPLES
-  $ superface prepare:provider swapi --force
+  $ superface create:provider swapi --force
 
-  $ superface prepare:provider swapi -s 3
+  $ superface create:provider swapi -s 3
 
-  $ superface prepare:provider swapi --station
+  $ superface create:provider swapi --station
 ```
 
 _See code: [dist/commands/create/provider.ts](https://github.com/superfaceai/cli/tree/main/src/commands/create/provider.ts)_

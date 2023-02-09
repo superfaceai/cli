@@ -9,7 +9,7 @@ jest.mock('../publish.utils', () => ({
   loadProfile: jest.fn(),
 }));
 
-describe('Prepare test logic', () => {
+describe('Create test logic', () => {
   let logger: MockLogger;
   const profileId = ProfileId.fromScopeName('test', 'profile');
   const profilePath = 'profilePath';
@@ -48,7 +48,7 @@ describe('Prepare test logic', () => {
     jest.resetAllMocks();
   });
 
-  it('Writes prepared test to file', async () => {
+  it('Writes created test to file', async () => {
     jest.mocked(loadProfile).mockResolvedValue({
       ast: mockProfile,
       from: { kind: 'local', path: '', source: '' },
@@ -73,7 +73,7 @@ describe('Prepare test logic', () => {
     );
   });
 
-  it('Writes prepared test to file with force flag', async () => {
+  it('Writes created test to file with force flag', async () => {
     jest.mocked(loadProfile).mockResolvedValue({
       ast: mockProfile,
       from: { kind: 'local', path: '', source: '' },
@@ -101,7 +101,7 @@ describe('Prepare test logic', () => {
     );
   });
 
-  it('Writes prepared test to file with station flag', async () => {
+  it('Writes created test to file with station flag', async () => {
     jest.mocked(loadProfile).mockResolvedValue({
       ast: mockProfile,
       from: { kind: 'local', path: '', source: '' },
