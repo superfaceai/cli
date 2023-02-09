@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.0.1] - 2023-02-09
 ### Fixed
 - Fixed create provider security schema resolution
 - Remove misleading messages
@@ -213,7 +214,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Transpile command
 - CI github flow
 
-[Unreleased]: https://github.com/superfaceai/cli/compare/v3.0.0...HEAD
+[Unreleased]: https://github.com/superfaceai/cli/compare/v3.0.1...HEAD
+[3.0.1]: https://github.com/superfaceai/cli/compare/v3.0.0...v3.0.1
 [3.0.0]: https://github.com/superfaceai/cli/compare/v2.0.0...v3.0.0
 [2.0.0]: https://github.com/superfaceai/cli/compare/v1.1.1...v2.0.0
 [1.1.1]: https://github.com/superfaceai/cli/compare/v1.1.0...v1.1.1
