@@ -14,12 +14,12 @@ export class Provider extends Command {
   public static strict = true;
 
   public static description =
-    'Prepares provider on a local filesystem and adds it to super.json. You do not have to touch super.json or created provider.json file after running this command.';
+    'Creates provider on a local filesystem and adds it to super.json. You do not have to touch super.json or created provider.json file after running this command.';
 
   public static examples = [
-    '$ superface prepare:provider swapi --force',
-    '$ superface prepare:provider swapi -s 3',
-    '$ superface prepare:provider swapi --station',
+    '$ superface create:provider swapi --force',
+    '$ superface create:provider swapi -s 3',
+    '$ superface create:provider swapi --station',
   ];
 
   public static args = [

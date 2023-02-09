@@ -85,14 +85,14 @@ describe('Init CLI command', () => {
     ];
 
     expect(stdout.output).toContain(
-      messages.createProfile(
+      messages.createEmptyProfile(
         'my-profile@1.0.0',
         'fixtures/playgrounds/test/my-profile.supr'
       )
     );
 
     expect(stdout.output).toContain(
-      messages.createProfile(
+      messages.createEmptyProfile(
         'my-scope/my-profile@1.0.0',
         'fixtures/playgrounds/test/my-scope/my-profile.supr'
       )

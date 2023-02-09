@@ -26,14 +26,14 @@ jest.mock('@superfaceai/one-sdk', () => ({
   loadSuperJson: jest.fn(),
 }));
 
-describe('Prepare mock map test command', () => {
+describe('Create mock map test command', () => {
   const userError = createUserError(false);
 
   afterEach(() => {
     jest.resetAllMocks();
   });
 
-  describe('running prepare command', () => {
+  describe('running create command', () => {
     let instance: MockMapTest;
     let logger: MockLogger;
 

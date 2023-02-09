@@ -62,7 +62,7 @@ export async function createMockMap(
 
   if (created) {
     logger.success(
-      'prepareMap',
+      'createMap',
       id.profile.id,
       id.provider ?? 'mock',
       filePath,

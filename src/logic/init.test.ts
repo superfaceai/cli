@@ -8,7 +8,7 @@ import { createUserError } from '../common/error';
 import { mkdir, mkdirQuiet } from '../common/io';
 import { OutputStream } from '../common/output-stream';
 import { ProfileId } from '../common/profile';
-import { createProfile } from './create';
+import { createEmptyProfile } from './create';
 import { generateSpecifiedProfiles, initSuperface } from './init';
 
 jest.mock('../common/io', () => ({
@@ -21,7 +21,7 @@ jest.mock('@superfaceai/parser', () => ({
 }));
 
 jest.mock('./create', () => ({
-  createProfile: jest.fn(),
+  createEmptyProfile: jest.fn(),
 }));
 
 describe('Init logic', () => {
@@ -95,7 +95,7 @@ describe('Init logic', () => {
             version: { major: 2 },
           },
         });
-      jest.mocked(createProfile).mockResolvedValue(undefined);
+      jest.mocked(createEmptyProfile).mockResolvedValue(undefined);
       const mockPath = 'test';
       const mockSuperJson = {};
       const mockProfileIds = ['first-profile-id', 'second-profile-id'];
@@ -116,8 +116,8 @@ describe('Init logic', () => {
       expect(parseProfileId).toHaveBeenNthCalledWith(1, 'first-profile-id');
       expect(parseProfileId).toHaveBeenNthCalledWith(2, 'second-profile-id');
 
-      expect(createProfile).toHaveBeenCalledTimes(2);
-      expect(createProfile).toHaveBeenNthCalledWith(
+      expect(createEmptyProfile).toHaveBeenCalledTimes(2);
+      expect(createEmptyProfile).toHaveBeenNthCalledWith(
         1,
         {
           basePath: 'test',
@@ -129,7 +129,7 @@ describe('Init logic', () => {
         },
         expect.anything()
       );
-      expect(createProfile).toHaveBeenNthCalledWith(
+      expect(createEmptyProfile).toHaveBeenNthCalledWith(
         2,
         {
           basePath: 'test',
@@ -148,7 +148,7 @@ describe('Init logic', () => {
         kind: 'error',
         message: 'mockMessage',
       });
-      jest.mocked(createProfile).mockResolvedValue(undefined);
+      jest.mocked(createEmptyProfile).mockResolvedValue(undefined);
       const mockPath = 'test';
       const mockSuperJson = {};
       const mockProfileIds = ['first-profile-id'];
@@ -168,7 +168,7 @@ describe('Init logic', () => {
       expect(parseProfileId).toHaveBeenCalledTimes(1);
       expect(parseProfileId).toHaveBeenCalledWith('first-profile-id');
 
-      expect(createProfile).not.toHaveBeenCalled();
+      expect(createEmptyProfile).not.toHaveBeenCalled();
     });
   });
 });

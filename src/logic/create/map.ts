@@ -71,7 +71,7 @@ export async function createMap(
 
   if (created) {
     logger.success(
-      'prepareMap',
+      'createMap',
       id.profile.id,
       id.provider,
       filePath,

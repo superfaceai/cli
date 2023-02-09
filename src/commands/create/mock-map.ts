@@ -14,7 +14,7 @@ export class MockMap extends Command {
   public static strict = true;
 
   public static description =
-    'Prepares map for mock provider on a local filesystem. Created map always returns success result example from profile file. Before running this command you should have created profile file (run sf create:profile).';
+    'Creates map for mock provider on a local filesystem. Created map always returns success result example from profile file. Before running this command you should have created profile file (run sf create:profile).';
 
   public static args = [
     {

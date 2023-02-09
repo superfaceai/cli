@@ -141,7 +141,7 @@ describe('Parse use case details', () => {
                   name: 'field',
                   kind: 'boolean',
                   value: true,
-                }
+                },
               ],
             },
             result: {

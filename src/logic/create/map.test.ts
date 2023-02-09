@@ -24,7 +24,7 @@ jest.mock('../../common/super-json-utils', () => ({
   getProviderFile: jest.fn(),
 }));
 
-describe('Prepare map logic', () => {
+describe('Create map logic', () => {
   let logger: MockLogger;
   const userError = createUserError(false);
   const profileId = ProfileId.fromScopeName('test', 'profile');
@@ -72,7 +72,7 @@ describe('Prepare map logic', () => {
     jest.resetAllMocks();
   });
 
-  it('Writes prepared map to file', async () => {
+  it('Writes created map to file', async () => {
     await createMap(
       {
         id: {
@@ -96,7 +96,7 @@ describe('Prepare map logic', () => {
     expect(writeOnceSpy).toBeCalledWith(superJsonPath, expect.any(String));
   });
 
-  it('Writes prepared map to file with variant', async () => {
+  it('Writes created map to file with variant', async () => {
     await createMap(
       {
         id: {
@@ -121,7 +121,7 @@ describe('Prepare map logic', () => {
     expect(writeOnceSpy).toBeCalledWith(superJsonPath, expect.any(String));
   });
 
-  it('Writes prepared map to file with force flag', async () => {
+  it('Writes created map to file with force flag', async () => {
     await createMap(
       {
         id: {
@@ -148,7 +148,7 @@ describe('Prepare map logic', () => {
     expect(writeOnceSpy).toBeCalledWith(superJsonPath, expect.any(String));
   });
 
-  it('Writes prepared map to file with station flag', async () => {
+  it('Writes created map to file with station flag', async () => {
     await createMap(
       {
         id: {

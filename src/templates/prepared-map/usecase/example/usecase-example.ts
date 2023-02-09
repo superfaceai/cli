@@ -34,4 +34,8 @@ export type ExampleNone = {
   kind: 'none';
 };
 
-export type UseCaseExample = ExampleArray | ExampleObject | ExampleScalar | ExampleNone;
+export type UseCaseExample =
+  | ExampleArray
+  | ExampleObject
+  | ExampleScalar
+  | ExampleNone;
