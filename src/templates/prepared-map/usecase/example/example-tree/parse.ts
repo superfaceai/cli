@@ -33,7 +33,7 @@ export function parseObjectLiteral(
       properties.push({
         name: field.key.join('.'),
         ...parseNoneLiteral(field.value),
-      })
+      });
     } else {
       properties.push({
         name: field.key.join('.'),
@@ -59,7 +59,7 @@ export function parseListLiteral(node: ComlinkListLiteralNode): ExampleArray {
 
 export function parseNoneLiteral(_node: ComlinkNoneLiteralNode): ExampleNone {
   return {
-    kind: 'none'
+    kind: 'none',
   };
 }
 

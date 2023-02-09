@@ -239,23 +239,23 @@ const init = {
   ${quiet}`,
 };
 
-const prepare = {
-  prepareProfile: (profile: string, path: string, station?: boolean) =>
-    `Created profile at "${path}".\n\nnext command suggestions:\nsf prepare:provider <provider-name> ${
+const create = {
+  createFullProfile: (profile: string, path: string, station?: boolean) =>
+    `Created profile at "${path}".\n\nnext command suggestions:\nsf create:provider <provider-name> ${
       station === true ? ' --station' : ''
-    }\nsf prepare:map ${profile} <provider-name> ${
+    }\nsf create:map ${profile} <provider-name> ${
       station === true ? ' --station' : ''
     }`,
-  prepareMap: (
+  createMap: (
     profile: string,
     provider: string,
     path: string,
     station?: boolean
   ) =>
-    `Created map at path: "${path}"".\n\nnext command suggestions:\nsf prepare:test ${profile} ${provider} ${
+    `Created map at path: "${path}"".\n\nnext command suggestions:\nsf create:test ${profile} ${provider} ${
       station === true ? ' --station' : ''
     }`,
-  prepareTest: (
+  createTest: (
     profile: string,
     provider: string,
     path: string,
@@ -277,23 +277,16 @@ const prepare = {
       `Follow https://github.com/superfaceai/testing/blob/dev/README.md to run created test`
     );
   },
-  prepareProvider: (provider: string, path: string, station?: boolean) =>
-    `Created provider at path: "${path}".\n⚠️ Edit .env file for your credentials\n\nnext command suggestions:\nsf prepare:profile <profileId> ${
+  createProvider: (provider: string, path: string, station?: boolean) =>
+    `Created provider at path: "${path}".\n⚠️ Edit .env file for your credentials\n\nnext command suggestions:\nsf create:profile <profileId> ${
       station === true ? ' --station' : ''
-    }\nsf prepare:map <profileId> ${provider} ${
+    }\nsf create:map <profileId> ${provider} ${
       station === true ? ' --station' : ''
-    }\nsf prepare:test <profileId> ${provider} ${
+    }\nsf create:test <profileId> ${provider} ${
       station === true ? ' --station' : ''
     }`,
-};
-
-const create = {
-  createProfile: (profile: string, path: string) =>
+  createEmptyProfile: (profile: string, path: string) =>
     `Created profile: "${profile}" at path: "${path}"`,
-  createMap: (profile: string, provider: string, path: string) =>
-    `Created map for profile: "${profile}" and provider: "${provider}" at path: "${path}"`,
-  createProvider: (provider: string, path: string) =>
-    `Created provider: "${provider}" at path: "${path}"`,
   unverifiedPrefix: (provider: string, prefix: string) =>
     `Published provider name must have prefix: "${prefix}"\nIf you are planning to publish this map or provider consider renaming it, eg: "${prefix}${provider}"`,
   providerAlreadyExists: (provider: string) =>
@@ -355,7 +348,6 @@ export const messages = {
   ...init,
   ...configure,
   ...packageManager,
-  ...prepare,
   ...create,
   ...compile,
   ...quickstart,

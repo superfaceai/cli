@@ -13,7 +13,7 @@ import { mkdir, mkdirQuiet } from '../common/io';
 import type { ILogger } from '../common/log';
 import { OutputStream } from '../common/output-stream';
 import { ProfileId } from '../common/profile';
-import { createProfile } from './create';
+import { createEmptyProfile } from './create';
 
 /**
  * Initializes superface at the given path.
@@ -109,7 +109,7 @@ export async function generateSpecifiedProfiles(
 
     const { scope, name, version } = parsedProfile.value;
 
-    await createProfile(
+    await createEmptyProfile(
       {
         basePath: path,
         profile: ProfileId.fromScopeName(scope, name),

@@ -25,14 +25,14 @@ jest.mock('@superfaceai/one-sdk', () => ({
   loadSuperJson: jest.fn(),
 }));
 
-describe('Prepare provider command', () => {
+describe('Cretae provider command', () => {
   const userError = createUserError(false);
 
   afterEach(() => {
     jest.resetAllMocks();
   });
 
-  describe('running prepare command', () => {
+  describe('running create command', () => {
     let instance: Provider;
     let logger: MockLogger;
 
