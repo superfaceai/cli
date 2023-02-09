@@ -45,17 +45,10 @@ async function enterSecuritySchema(
       name: 'schema',
       message: `Select authentication method for ${baseUrl}:`,
       type: 'list',
-      choices: [
-        'API Key',
-        'Bearer Token',
-        'Basic Authentication',
-        'Digest Authentication',
-        'none',
-      ],
+      choices: Object.values(SecuritySchemeName),
     })
   ).schema;
 
-  console.log('from user', schema);
   if (schema === SecuritySchemeName.API_KEY) {
     return enterApiKeySecurity();
   } else if (schema === SecuritySchemeName.BEARER_TOKEN) {

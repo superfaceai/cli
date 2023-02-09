@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- create provider security schema resolution
+
 ## [3.0.0] - 2023-02-08
 ### Added
 - New `prepare:map` command
