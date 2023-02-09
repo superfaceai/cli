@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Fixed
+- Fixed create provider security schema resolution
 - Remove misleading messages
 
 ## [3.0.0] - 2023-02-08
