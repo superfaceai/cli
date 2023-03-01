@@ -682,5 +682,96 @@ describe('Publish CLI command', () => {
         },
       });
     }, 30000);
+
+    // it('publishes provider with remote profile and map and switch flag', async () => {
+    //   const mockSuperJson = {
+    //     profiles: {
+    //       [profileId.id]: {
+    //         version: profileVersion,
+    //         priority: [unverifiedProvider],
+    //         providers: {
+    //           [unverifiedProvider]: {},
+    //         },
+    //       },
+    //     },
+    //     providers: {
+    //       [unverifiedProvider]: {
+    //         file: `../../../../${sourceFixture.unverifiedProvider}`,
+    //       },
+    //     },
+    //   };
+
+    //   await mkdir(joinPath(tempDir, 'superface'));
+    //   await OutputStream.writeOnce(
+    //     joinPath(tempDir, 'superface', 'super.json'),
+    //     JSON.stringify(mockSuperJson, undefined, 2)
+    //   );
+
+    //   const result = await execCLI(
+    //     tempDir,
+    //     [
+    //       'publish',
+    //       'provider',
+    //       '--profileId',
+    //       profileId.id,
+    //       '--providerName',
+    //       unverifiedProvider,
+    //       '--switch',
+    //     ],
+    //     mockServer.url,
+    //     {
+    //       inputs: [
+    //         // Confirm publish
+    //         { value: 'y', timeout: 4000 },
+    //         { value: ENTER, timeout: 500 },
+    //       ],
+    //       env: { NETRC_FILEPATH: NETRC_FILENAME },
+    //     }
+    //   );
+
+    //   expect(result.stdout).toContain(
+    //     messages.fetchProfile(profileId.id, profileVersion)
+    //   );
+    //   expect(result.stdout).toContain(
+    //     messages.fetchMap(
+    //       `${profileId.id}@${profileVersion}`,
+    //       unverifiedProvider,
+    //       '1.0.0'
+    //     )
+    //   );
+    //   expect(result.stdout).toContain(
+    //     messages.localProviderFound(
+    //       unverifiedProvider,
+    //       resolve(sourceFixture.unverifiedProvider)
+    //     )
+    //   );
+    //   expect(result.stdout).toContain(
+    //     messages.publishProvider(unverifiedProvider)
+    //   );
+    //   expect(result.stdout).toContain(messages.publishSuccessful('provider'));
+
+    //   // Check super.json
+    //   const superJson = (
+    //     await loadSuperJson(
+    //       joinPath(tempDir, 'superface', 'super.json'),
+    //       NodeFileSystem
+    //     )
+    //   ).unwrap();
+
+    //   expect(superJson).toEqual({
+    //     profiles: {
+    //       [profileId.id]: {
+    //         version: profileVersion,
+    //         priority: [unverifiedProvider],
+    //         providers: {
+    //           [unverifiedProvider]: {},
+    //         },
+    //       },
+    //     },
+    //     providers: {
+    //       [unverifiedProvider]: {},
+    //     },
+    //   });
+    // }, 30000);
   });
 });
