@@ -348,9 +348,6 @@ describe('Publish CLI command', () => {
             // Confirm publish
             { value: 'y', timeout: 4000 },
             { value: ENTER, timeout: 500 },
-            // Confirm transition
-            { value: 'y', timeout: 4000 },
-            { value: ENTER, timeout: 500 },
           ],
           env: { NETRC_FILEPATH: NETRC_FILENAME },
         }
@@ -668,7 +665,7 @@ describe('Publish CLI command', () => {
       });
     }, 30000);
 
-    it('publishes provider with remote profile and map and switch falg', async () => {
+    it('publishes provider with remote profile and map and switch flag', async () => {
       const mockSuperJson = {
         profiles: {
           [profileId.id]: {
