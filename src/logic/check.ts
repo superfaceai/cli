@@ -23,8 +23,8 @@ import type {
   MapFromMetadata,
   ProfileFromMetadata,
   ProviderFromMetadata,
-} from './publish.utils';
-import { loadMap, loadProfile, loadProvider } from './publish.utils';
+} from './publish/publish.utils';
+import { loadMap, loadProfile, loadProvider } from './publish/publish.utils';
 
 /**
  * Represents result of map & profile check
@@ -360,7 +360,7 @@ export function formatHuman({
     if (result.kind === 'profileMap') {
       // Profile
       if (result.profileFrom.kind === 'local') {
-        message += `Checking local profile "${result.profileId}" at path\n"${result.profileFrom.path}"`;
+        message += `Checking local profile "${result.profileId}" at path\n"${result.profileFrom.path}" `;
       } else {
         message += `Checking remote profile "${
           ProfileId.fromId(result.profileId).withoutVersion

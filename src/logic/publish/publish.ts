@@ -2,20 +2,21 @@ import type { SuperJsonDocument } from '@superfaceai/ast';
 import { ServiceApiError } from '@superfaceai/service-client';
 import { yellow } from 'chalk';
 
-import type { ILogger } from '../common';
-import { UNVERIFIED_PROVIDER_PREFIX } from '../common';
-import type { UserError } from '../common/error';
-import { fetchProviderInfo, SuperfaceClient } from '../common/http';
-import { loadNetrc } from '../common/netrc';
-import type { ProfileId } from '../common/profile';
+import type { ILogger } from '../../common';
+import { UNVERIFIED_PROVIDER_PREFIX } from '../../common';
+import type { UserError } from '../../common/error';
+import { fetchProviderInfo, SuperfaceClient } from '../../common/http';
+import { loadNetrc } from '../../common/netrc';
+import type { ProfileId } from '../../common/profile';
 import {
   formatHuman as checkFormatHuman,
   formatJson as checkFormatJson,
-} from './check';
+} from '../check';
 import {
   formatHuman as lintFormatHuman,
   formatJson as lintFormatJson,
-} from './lint';
+} from '../lint';
+import { handlePublish } from './handle-publish';
 import {
   loadMap,
   loadProfile,
@@ -26,7 +27,6 @@ import {
 
 export async function publish(
   {
-    publishing,
     superJson,
     superJsonPath,
     profile,
@@ -35,7 +35,6 @@ export async function publish(
     version,
     options,
   }: {
-    publishing: 'map' | 'profile' | 'provider';
     superJson: SuperJsonDocument;
     superJsonPath: string;
     profile: ProfileId;
@@ -53,47 +52,38 @@ export async function publish(
     };
   },
   { logger, userError }: { logger: ILogger; userError: UserError }
-): Promise<string | undefined> {
+): Promise<
+  | { error: string }
+  | {
+      error?: undefined;
+      published: { map: boolean; profile: boolean; provider: boolean };
+    }
+> {
   // Profile
   const profileFiles = await loadProfile(
     { superJson, superJsonPath, profile, version },
     { logger }
   );
-  if (profileFiles.from.kind !== 'local' && publishing === 'profile') {
-    throw userError(
-      `Profile: "${profile.id}" not found on local file system`,
-      1
-    );
-  }
 
   // Map
   const mapFiles = await loadMap(
     { superJson, superJsonPath, profile, provider, map, version },
     { logger }
   );
-  if (mapFiles.from.kind !== 'local' && publishing == 'map') {
-    throw userError(
-      `Map for profile: "${profile.id}" and provider: "${provider}" not found on local filesystem`,
-      1
-    );
-  }
 
   // Provider
   const providerFiles = await loadProvider(superJson, superJsonPath, provider, {
     logger,
   });
 
-  if (providerFiles.from.kind === 'remote' && publishing === 'provider') {
-    throw userError(
-      `Provider: "${provider}" not found on local file system`,
-      1
-    );
-  }
-
   // Check
   const checkReports = prePublishCheck(
     {
-      publishing,
+      publishing: {
+        map: mapFiles.from.kind === 'local',
+        profile: profileFiles.from.kind === 'local',
+        provider: providerFiles.from.kind === 'local',
+      },
       profileAst: profileFiles.ast,
       mapAst: mapFiles.ast,
       providerJson: providerFiles.source,
@@ -115,38 +105,42 @@ export async function publish(
     lintReport.errors.length !== 0 ||
     lintReport.warnings.length !== 0
   ) {
-    if (options?.json !== undefined) {
-      return JSON.stringify({
-        check: {
-          reports: checkFormatJson(checkReports),
-          total: {
-            errors: checkIssues.filter(issue => issue.kind === 'error').length,
-            warnings: checkIssues.filter(issue => issue.kind === 'warn').length,
+    if (options?.json === true) {
+      return {
+        error: JSON.stringify({
+          check: {
+            reports: checkFormatJson(checkReports),
+            total: {
+              errors: checkIssues.filter(issue => issue.kind === 'error')
+                .length,
+              warnings: checkIssues.filter(issue => issue.kind === 'warn')
+                .length,
+            },
           },
-        },
-        lint: {
-          reports: lintFormatJson(lintReport),
-          total: {
-            errors: lintReport.errors.length,
-            warnings: lintReport.warnings.length,
+          lint: {
+            reports: lintFormatJson(lintReport),
+            total: {
+              errors: lintReport.errors.length,
+              warnings: lintReport.warnings.length,
+            },
           },
-        },
-      });
+        }),
+      };
     } else {
       let reportStr = yellow('Check results:\n');
       reportStr += checkFormatHuman({
         checkResults: checkReports,
-        emoji: options?.emoji === true,
-        color: options?.color === true,
+        emoji: options?.emoji ?? true,
+        color: options?.color ?? true,
       });
       reportStr += yellow('\n\nLint results:\n');
       reportStr += lintFormatHuman({
         report: lintReport,
-        emoji: options?.emoji === true,
-        color: options?.color === true,
+        emoji: options?.emoji ?? true,
+        color: options?.color ?? true,
       });
 
-      return reportStr;
+      return { error: reportStr };
     }
   }
 
@@ -157,13 +151,13 @@ export async function publish(
     process.env.SUPERFACE_REFRESH_TOKEN === undefined
   ) {
     throw userError(
-      `You have to be logged in to publish ${publishing}. Please run: "sf login"`,
+      `You have to be logged in to publish files. Please run: "superface login"`,
       1
     );
   }
 
   // Check provider name
-  if (publishing === 'map') {
+  if (mapFiles.from.kind === 'local') {
     // If we are working with local provider and name does not start with unverified we check existance of provider in SF register
     if (
       !mapFiles.ast.header.provider.startsWith(UNVERIFIED_PROVIDER_PREFIX) &&
@@ -186,7 +180,7 @@ export async function publish(
       }
     }
   }
-  if (publishing === 'provider') {
+  if (providerFiles.from.kind === 'local') {
     if (!providerFiles.source.name.startsWith(UNVERIFIED_PROVIDER_PREFIX)) {
       throw userError(
         `When publishing provider, provider name: "${providerFiles.source.name}" in provider.json must have prefix "${UNVERIFIED_PROVIDER_PREFIX}"`,
@@ -195,22 +189,48 @@ export async function publish(
     }
   }
 
+  const profileSource =
+    profileFiles.from.kind === 'local' ? profileFiles.from.source : undefined;
+  const mapSource =
+    mapFiles.from.kind === 'local' ? mapFiles.from.source : undefined;
+  const providerSource =
+    providerFiles.from.kind === 'local'
+      ? JSON.stringify(providerFiles.source)
+      : undefined;
+
   const client = SuperfaceClient.getClient();
 
-  if (publishing === 'provider') {
-    logger.info('publishProvider', provider);
-    await client.createProvider(JSON.stringify(providerFiles.source), {
-      dryRun: options?.dryRun,
-    });
-  } else if (publishing === 'profile' && profileFiles.from.kind === 'local') {
-    logger.info('publishProfile', profile.id);
-    await client.createProfile(profileFiles.from.source, {
-      dryRun: options?.dryRun,
-    });
-  } else if (publishing === 'map' && mapFiles.from.kind === 'local') {
-    logger.info('publishMap', profile.id, provider);
-    await client.createMap(mapFiles.from.source, { dryRun: options?.dryRun });
-  }
+  const dryRunResult = await handlePublish(
+    {
+      profileId: profile.id,
+      profileSource: profileSource,
+      providerName: provider,
+      providerSource: providerSource,
+      mapSource,
+      options: { dryRun: true },
+    },
+    { logger, userError, client }
+  );
 
-  return;
+  await handlePublish(
+    {
+      profileId: profile.id,
+      profileSource:
+        dryRunResult.skipProfile === true ? undefined : profileSource,
+      providerName: provider,
+      providerSource:
+        dryRunResult.skipProvider === true ? undefined : providerSource,
+      mapSource: dryRunResult.skipMap === true ? undefined : mapSource,
+      options: { dryRun: true },
+    },
+    { logger, userError, client }
+  );
+
+  return {
+    published: {
+      map: mapFiles.from.kind === 'local',
+      profile: profileFiles.from.kind === 'local',
+      provider: providerFiles.from.kind === 'local',
+    },
+  };
 }

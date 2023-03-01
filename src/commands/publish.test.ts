@@ -16,7 +16,7 @@ import {
   reconfigureProvider,
 } from '../logic/configure';
 import { detectSuperJson } from '../logic/install';
-import { publish } from '../logic/publish';
+import { publish } from '../logic/publish/publish';
 import { CommandInstance } from '../test/utils';
 import Install from './install';
 import Publish from './publish';

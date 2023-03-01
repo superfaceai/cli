@@ -27,8 +27,8 @@ import type {
   MapFromMetadata,
   ProfileFromMetadata,
   ProviderFromMetadata,
-} from './publish.utils';
-import { loadMap, loadProfile, loadProvider } from './publish.utils';
+} from './publish/publish.utils';
+import { loadMap, loadProfile, loadProvider } from './publish/publish.utils';
 
 jest.mock('./publish.utils', () => ({
   loadMap: jest.fn(),
