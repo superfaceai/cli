@@ -662,7 +662,7 @@ describe('Publish CLI command', () => {
         })
       ).resolves.toBeUndefined();
 
-      expect(promptSpy).toHaveBeenCalledTimes(1);
+      expect(promptSpy).toHaveBeenCalledTimes(2);
       expect(loadSpy).toHaveBeenCalled();
       expect(publish).toHaveBeenCalledWith(
         {
@@ -692,7 +692,8 @@ describe('Publish CLI command', () => {
       jest.mocked(reconfigureProfileProvider).mockResolvedValue(undefined);
       const promptSpy = jest
         .spyOn(inquirer, 'prompt')
-        .mockResolvedValueOnce({ upload: true });
+        .mockResolvedValueOnce({ upload: true })
+        .mockResolvedValue({ continue: true });
 
       jest.mocked(detectSuperJson).mockResolvedValue('.');
       const mockSuperJson = {
@@ -733,7 +734,7 @@ describe('Publish CLI command', () => {
         })
       ).resolves.toBeUndefined();
 
-      expect(promptSpy).toHaveBeenCalledTimes(1);
+      expect(promptSpy).toHaveBeenCalledTimes(2);
       expect(loadSpy).toHaveBeenCalled();
       expect(publish).toHaveBeenCalledWith(
         {
@@ -772,7 +773,8 @@ describe('Publish CLI command', () => {
       jest.mocked(reconfigureProvider).mockResolvedValue(undefined);
       const promptSpy = jest
         .spyOn(inquirer, 'prompt')
-        .mockResolvedValueOnce({ upload: true });
+        .mockResolvedValueOnce({ upload: true })
+        .mockResolvedValue({ continue: true });
 
       jest.mocked(detectSuperJson).mockResolvedValue('.');
       const mockSuperJson = {
@@ -811,7 +813,7 @@ describe('Publish CLI command', () => {
         })
       ).resolves.toBeUndefined();
 
-      expect(promptSpy).toHaveBeenCalledTimes(1);
+      expect(promptSpy).toHaveBeenCalledTimes(2);
       expect(loadSpy).toHaveBeenCalled();
       expect(publish).toHaveBeenCalledWith(
         {
@@ -916,7 +918,9 @@ describe('Publish CLI command', () => {
       jest.mocked(reconfigureProfileProvider).mockResolvedValue(undefined);
       const promptSpy = jest
         .spyOn(inquirer, 'prompt')
-        .mockResolvedValueOnce({ upload: true });
+        .mockResolvedValueOnce({ upload: true })
+        .mockResolvedValue({ continue: true });
+
       const mockPath = '../path/to/provider';
       jest.mocked(detectSuperJson).mockResolvedValue('.');
       const mockSuperJson = {
@@ -956,7 +960,7 @@ describe('Publish CLI command', () => {
         })
       ).resolves.toBeUndefined();
 
-      expect(promptSpy).toHaveBeenCalledTimes(1);
+      expect(promptSpy).toHaveBeenCalledTimes(2);
       expect(loadSpy).toHaveBeenCalled();
       expect(publish).toHaveBeenCalledWith(
         {
@@ -993,7 +997,9 @@ describe('Publish CLI command', () => {
       jest.mocked(reconfigureProvider).mockResolvedValue(undefined);
       const promptSpy = jest
         .spyOn(inquirer, 'prompt')
-        .mockResolvedValueOnce({ upload: true });
+        .mockResolvedValueOnce({ upload: true })
+        .mockResolvedValue({ continue: true });
+
       jest.mocked(detectSuperJson).mockResolvedValue('.');
       const mockSuperJson = {
         profiles: {
@@ -1032,7 +1038,7 @@ describe('Publish CLI command', () => {
         })
       ).resolves.toBeUndefined();
 
-      expect(promptSpy).toHaveBeenCalledTimes(1);
+      expect(promptSpy).toHaveBeenCalledTimes(2);
       expect(loadSpy).toHaveBeenCalled();
       expect(publish).toHaveBeenCalledWith(
         {
@@ -1072,7 +1078,9 @@ describe('Publish CLI command', () => {
       const mockPath = '../path/to/map';
       const promptSpy = jest
         .spyOn(inquirer, 'prompt')
-        .mockResolvedValueOnce({ upload: true });
+        .mockResolvedValueOnce({ upload: true })
+        .mockResolvedValue({ continue: true });
+
       jest.mocked(detectSuperJson).mockResolvedValue('.');
       const mockSuperJson = {
         profiles: {
@@ -1112,7 +1120,7 @@ describe('Publish CLI command', () => {
         })
       ).resolves.toBeUndefined();
 
-      expect(promptSpy).toHaveBeenCalledTimes(1);
+      expect(promptSpy).toHaveBeenCalledTimes(2);
       expect(loadSpy).toHaveBeenCalled();
       expect(publish).toHaveBeenCalledWith(
         {
@@ -1154,7 +1162,8 @@ describe('Publish CLI command', () => {
 
       const promptSpy = jest
         .spyOn(inquirer, 'prompt')
-        .mockResolvedValueOnce({ upload: true });
+        .mockResolvedValueOnce({ upload: true })
+        .mockResolvedValue({ continue: true });
 
       jest.mocked(detectSuperJson).mockResolvedValue('.');
       const mockSuperJson = {
@@ -1191,7 +1200,7 @@ describe('Publish CLI command', () => {
         })
       ).resolves.toBeUndefined();
 
-      expect(promptSpy).toHaveBeenCalledTimes(1);
+      expect(promptSpy).toHaveBeenCalledTimes(2);
       expect(loadSpy).toHaveBeenCalled();
       expect(publish).toHaveBeenCalledWith(
         {
@@ -1218,6 +1227,76 @@ describe('Publish CLI command', () => {
     });
 
     it('calls publish correctly when publishing profile with --switch flag', async () => {
+      const installSpy = jest
+        .spyOn(Install, 'run')
+        .mockResolvedValue(undefined);
+
+      const promptSpy = jest
+        .spyOn(inquirer, 'prompt')
+        .mockResolvedValueOnce({ upload: true });
+
+      jest.mocked(detectSuperJson).mockResolvedValue('.');
+      const mockSuperJson = {
+        profiles: {
+          [profileId]: {
+            file: mockProfilePath,
+            providers: {
+              [providerName]: {},
+            },
+          },
+        },
+        providers: {
+          [providerName]: {},
+        },
+      };
+      const loadSpy = jest
+        .spyOn(SuperJson, 'loadSuperJson')
+        .mockResolvedValue(ok(mockSuperJson));
+      jest.mocked(publish).mockResolvedValue(undefined);
+      const writeOnceSpy = jest
+        .spyOn(OutputStream, 'writeOnce')
+        .mockResolvedValue(undefined);
+
+      await expect(
+        instance.execute({
+          logger,
+          userError,
+          argv: ['profile'],
+          flags: {
+            profileId,
+            providerName,
+            switch: true,
+          },
+        })
+      ).resolves.toBeUndefined();
+
+      expect(promptSpy).toHaveBeenCalledTimes(1);
+      expect(loadSpy).toHaveBeenCalled();
+      expect(publish).toHaveBeenCalledWith(
+        {
+          publishing: 'profile',
+          superJson: mockSuperJson,
+          superJsonPath: 'super.json',
+          profile: ProfileId.fromId(profileId, { userError }),
+          provider: providerName,
+          map: {
+            variant: undefined,
+          },
+          version: undefined,
+          options: {
+            quiet: undefined,
+            dryRun: undefined,
+            emoji: true,
+            json: undefined,
+          },
+        },
+        expect.anything()
+      );
+      expect(installSpy).toHaveBeenCalledWith([profileId, '-f']);
+      expect(writeOnceSpy).not.toHaveBeenCalled();
+    });
+
+    it('calls publish correctly when publishing profile with --noSwitch flag', async () => {
       const installSpy = jest
         .spyOn(Install, 'run')
         .mockResolvedValue(undefined);
@@ -1257,12 +1336,12 @@ describe('Publish CLI command', () => {
           flags: {
             profileId,
             providerName,
-            switch: true,
+            noSwitch: true,
           },
         })
       ).resolves.toBeUndefined();
 
-      expect(promptSpy).toHaveBeenCalledTimes(2);
+      expect(promptSpy).toHaveBeenCalledTimes(1);
       expect(loadSpy).toHaveBeenCalled();
       expect(publish).toHaveBeenCalledWith(
         {
@@ -1284,7 +1363,7 @@ describe('Publish CLI command', () => {
         },
         expect.anything()
       );
-      expect(installSpy).toHaveBeenCalledWith([profileId, '-f']);
+      expect(installSpy).not.toHaveBeenCalled();
       expect(writeOnceSpy).not.toHaveBeenCalled();
     });
 

@@ -73,8 +73,15 @@ export default class Publish extends Command {
     }),
     switch: flags.boolean({
       description:
-        'After publish user will be asked if he wants to switch to remote version of profile/map/provider',
+        'After publish switch to the remote version of profile/map/provider',
       default: false,
+      exclusive: ['no-switch'],
+    }),
+    noSwitch: flags.boolean({
+      description:
+        'After publish do NOT switch to the remote version of profile/map/provider',
+      default: false,
+      exclusive: ['switch'],
     }),
   };
 
@@ -277,8 +284,9 @@ export default class Publish extends Command {
     }
 
     logger.success('publishSuccessful', documentType);
-    let transition = true;
-    if (flags.switch === true) {
+    let transition = flags.noSwitch === true ? false : true;
+
+    if (flags.switch !== true && flags.noSwitch !== true) {
       if (flags.force !== true) {
         const prompt: { continue: boolean } = await inquirer.prompt({
           name: 'continue',
