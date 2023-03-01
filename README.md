@@ -235,7 +235,7 @@ EXAMPLES
   $ superface create:map starwars/character-information swapi --station
 ```
 
-_See code: [dist/commands/create/map.ts](https://github.com/superfaceai/cli/tree/main/src/commands/create/map.ts)_
+_See code: [src/commands/create/map.ts](https://github.com/superfaceai/cli/tree/main/src/commands/create/map.ts)_
 
 
 ## `superface create:mock-map PROFILEID`
@@ -270,7 +270,7 @@ EXAMPLES
   $ superface create:mock-map starwars/character-information --station
 ```
 
-_See code: [dist/commands/create/mock-map.ts](https://github.com/superfaceai/cli/tree/main/src/commands/create/mock-map.ts)_
+_See code: [src/commands/create/mock-map.ts](https://github.com/superfaceai/cli/tree/main/src/commands/create/mock-map.ts)_
 
 ## `superface create:mock-map-test PROFILEID`
 
@@ -304,7 +304,7 @@ EXAMPLES
   $ superface create:mock-map-test starwars/character-information --station
 ```
 
-_See code: [dist/commands/create/mock-map-test.ts](https://github.com/superfaceai/cli/tree/main/src/commands/create/mock-map-test.ts)_
+_See code: [src/commands/create/mock-map-test.ts](https://github.com/superfaceai/cli/tree/main/src/commands/create/mock-map-test.ts)_
 
 ## `superface create:profile PROFILEID`
 
@@ -341,7 +341,7 @@ EXAMPLES
   $ superface create:profile starwars/character-information --station
 ```
 
-_See code: [dist/commands/create/profile.js](https://github.com/superfaceai/cli/blob/v3.0.1/dist/commands/create/profile.js)_
+_See code: [src/commands/create/profile.ts](https://github.com/superfaceai/cli/tree/main/src/commands/commands/create/profile.ts)_
 
 ## `superface create:provider PROVIDERNAME`
 
@@ -375,7 +375,7 @@ EXAMPLES
   $ superface create:provider swapi --station
 ```
 
-_See code: [dist/commands/create/provider.ts](https://github.com/superfaceai/cli/tree/main/src/commands/create/provider.ts)_
+_See code: [src/commands/create/provider.ts](https://github.com/superfaceai/cli/tree/main/src/commands/create/provider.ts)_
 
 ## `superface create:test PROFILEID PROVIDERNAME`
 
@@ -412,7 +412,7 @@ EXAMPLES
   $ superface create:test starwars/character-information swapi -q
 ```
 
-_See code: [dist/commands/create/test.ts](https://github.com/superfaceai/cli/tree/main/src/commands/create/test.ts)_
+_See code: [src/commands/create/test.ts](https://github.com/superfaceai/cli/tree/main/src/commands/create/test.ts)_
 
 ## `superface init [NAME]`
 
@@ -584,7 +584,7 @@ EXAMPLES
   $ superface logout
 ```
 
-_See code: [dist/commands/logout.ts](https://github.com/superfaceai/cli/tree/main/src/commands/logout.ts)_
+_See code: [src/commands/logout.ts](https://github.com/superfaceai/cli/tree/main/src/commands/logout.ts)_
 
 ## `superface publish DOCUMENTTYPE`
 
