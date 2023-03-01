@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
-- `switch` flag to `publish` command
+- `switch` and `noSwitch` flag to `publish` command
 
 ## [3.0.1] - 2023-02-09
 ### Fixed
