@@ -593,7 +593,7 @@ Uploads map/profile/provider to Store. Published file must be locally linked in 
 ```
 USAGE
   $ superface publish DOCUMENTTYPE --profileId <value> --providerName <value> [-q] [--noColor] [--noEmoji]
-    [-h] [--dryRun] [-f] [-s <value>] [-j] [--switch]
+    [-h] [--dryRun] [-f] [-s <value>] [-j] [--noSwitch | [--switch | ]]
 
 ARGUMENTS
   DOCUMENTTYPE  (map|profile|provider) Document type of published file
@@ -608,10 +608,10 @@ FLAGS
   --dryRun                Runs without sending the actual request.
   --noColor               When set to true, disables all colored output.
   --noEmoji               When set to true, disables displaying emoji in output.
+  --noSwitch              After publish do NOT switch to the remote version of profile/map/provider
   --profileId=<value>     (required) Profile Id in format [scope/](optional)[name]
   --providerName=<value>  (required) Name of the provider. This argument is used to publish a map or a provider.
-  --switch                After publish user will be asked if he wants to switch to remote version of
-                          profile/map/provider
+  --switch                After publish switch to the remote version of profile/map/provider
 
 DESCRIPTION
   Uploads map/profile/provider to Store. Published file must be locally linked in super.json. This command runs Check
