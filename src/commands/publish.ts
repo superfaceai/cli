@@ -71,6 +71,11 @@ export default class Publish extends Command {
       char: 'j',
       description: 'Formats result to JSON',
     }),
+    switch: flags.boolean({
+      description:
+        'After publish user will be asked if he wants to switch to remote version of profile/map/provider',
+      default: false,
+    }),
   };
 
   public static examples = [
@@ -273,14 +278,16 @@ export default class Publish extends Command {
 
     logger.success('publishSuccessful', documentType);
     let transition = true;
-    if (flags.force !== true) {
-      const prompt: { continue: boolean } = await inquirer.prompt({
-        name: 'continue',
-        message: `Do you want to switch to remote ${documentType} instead of a locally linked one?:`,
-        type: 'confirm',
-        default: true,
-      });
-      transition = prompt.continue;
+    if (flags.switch === true) {
+      if (flags.force !== true) {
+        const prompt: { continue: boolean } = await inquirer.prompt({
+          name: 'continue',
+          message: `Do you want to switch to remote ${documentType} instead of a locally linked one?:`,
+          type: 'confirm',
+          default: true,
+        });
+        transition = prompt.continue;
+      }
     }
     if (transition) {
       if (documentType === 'profile') {

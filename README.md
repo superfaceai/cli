@@ -161,7 +161,7 @@ Configures new provider and map for already installed profile. Provider configur
 
 ```
 USAGE
-  $ superface configure [PROVIDERNAME] -p <value> [-q] [--noColor] [--noEmoji] [-h] [--write-env] [-f]
+  $ superface configure PROVIDERNAME -p <value> [-q] [--noColor] [--noEmoji] [-h] [--write-env] [-f]
     [--localProvider <value>] [--localMap <value>] [--mapVariant <value>]
 
 ARGUMENTS
@@ -205,8 +205,8 @@ Creates map, based on profile and provider on a local filesystem. Created file c
 
 ```
 USAGE
-  $ superface create:map [PROFILEID] [PROVIDERNAME] [-q] [--noColor] [--noEmoji] [-h] [-s <value>] [-v <value>]
-    [-f] [--station]
+  $ superface create:map PROFILEID PROVIDERNAME [-q] [--noColor] [--noEmoji] [-h] [-s <value>] [-v <value>] [-f]
+    [--station]
 
 ARGUMENTS
   PROFILEID     Profile Id in format [scope](optional)/[name]
@@ -244,7 +244,7 @@ Creates map for mock provider on a local filesystem. Created map always returns 
 
 ```
 USAGE
-  $ superface create:mock-map [PROFILEID] [-q] [--noColor] [--noEmoji] [-h] [-s <value>] [-f] [--station]
+  $ superface create:mock-map PROFILEID [-q] [--noColor] [--noEmoji] [-h] [-s <value>] [-f] [--station]
 
 ARGUMENTS
   PROFILEID  Profile Id in format [scope](optional)/[name]
@@ -278,7 +278,7 @@ Creates test for mock provider map on a local filesystem. Created test expects s
 
 ```
 USAGE
-  $ superface create:mock-map-test [PROFILEID] [-q] [--noColor] [--noEmoji] [-h] [-s <value>] [-f] [--station]
+  $ superface create:mock-map-test PROFILEID [-q] [--noColor] [--noEmoji] [-h] [-s <value>] [-f] [--station]
 
 ARGUMENTS
   PROFILEID  Profile Id in format [scope](optional)/[name]
@@ -312,8 +312,8 @@ creates profile file on local filesystem and links it to super.json.
 
 ```
 USAGE
-  $ superface create:profile [PROFILEID] [-q] [--noColor] [--noEmoji] [-h] [-v <value>] [-u <value>] [-s <value>]
-    [-f] [--station]
+  $ superface create:profile PROFILEID [-q] [--noColor] [--noEmoji] [-h] [-v <value>] [-u <value>] [-s <value>] [-f]
+    [--station]
 
 ARGUMENTS
   PROFILEID  Profile Id in format [scope](optional)/[name]
@@ -341,7 +341,7 @@ EXAMPLES
   $ superface create:profile starwars/character-information --station
 ```
 
-_See code: [dist/commands/create/profile.ts](https://github.com/superfaceai/cli/tree/main/src/commands/create/profile.ts)_
+_See code: [dist/commands/create/profile.js](https://github.com/superfaceai/cli/blob/v3.0.1/dist/commands/create/profile.js)_
 
 ## `superface create:provider PROVIDERNAME`
 
@@ -349,7 +349,7 @@ Creates provider on a local filesystem and adds it to super.json. You do not hav
 
 ```
 USAGE
-  $ superface create:provider [PROVIDERNAME] [-q] [--noColor] [--noEmoji] [-h] [-s <value>] [-f] [--station]
+  $ superface create:provider PROVIDERNAME [-q] [--noColor] [--noEmoji] [-h] [-s <value>] [-f] [--station]
 
 ARGUMENTS
   PROVIDERNAME  Name of provider
@@ -383,8 +383,7 @@ Creates test file for specified profile and provider. Examples in profile are us
 
 ```
 USAGE
-  $ superface create:test [PROFILEID] [PROVIDERNAME] [-q] [--noColor] [--noEmoji] [-h] [-s <value>] [-f]
-    [--station]
+  $ superface create:test PROFILEID PROVIDERNAME [-q] [--noColor] [--noEmoji] [-h] [-s <value>] [-f] [--station]
 
 ARGUMENTS
   PROFILEID     Profile Id in format [scope](optional)/[name]
@@ -593,8 +592,8 @@ Uploads map/profile/provider to Store. Published file must be locally linked in 
 
 ```
 USAGE
-  $ superface publish [DOCUMENTTYPE] --profileId <value> --providerName <value> [-q] [--noColor] [--noEmoji]
-    [-h] [--dryRun] [-f] [-s <value>] [-j]
+  $ superface publish DOCUMENTTYPE --profileId <value> --providerName <value> [-q] [--noColor] [--noEmoji]
+    [-h] [--dryRun] [-f] [-s <value>] [-j] [--switch]
 
 ARGUMENTS
   DOCUMENTTYPE  (map|profile|provider) Document type of published file
@@ -611,6 +610,8 @@ FLAGS
   --noEmoji               When set to true, disables displaying emoji in output.
   --profileId=<value>     (required) Profile Id in format [scope/](optional)[name]
   --providerName=<value>  (required) Name of the provider. This argument is used to publish a map or a provider.
+  --switch                After publish user will be asked if he wants to switch to remote version of
+                          profile/map/provider
 
 DESCRIPTION
   Uploads map/profile/provider to Store. Published file must be locally linked in super.json. This command runs Check
