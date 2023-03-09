@@ -192,8 +192,8 @@ describe('Parse structure tree', () => {
   });
 
   describe('visitObjecDefinition', () => {
-    it('throws when type is not defined', () => {
-      expect(() =>
+    it('falls back to string when type is not defined', () => {
+      expect(
         visitObjecDefinition(
           {
             kind: 'ObjectDefinition',
@@ -208,7 +208,16 @@ describe('Parse structure tree', () => {
           {},
           {}
         )
-      ).toThrow(new Error('Type is undefined'));
+      ).toEqual({
+        kind: 'object',
+        properties: [
+          {
+            name: 'test',
+            kind: 'string',
+            value: '',
+          },
+        ],
+      });
     });
 
     it('returns example object for object with FieldDefinition fields', () => {

@@ -194,10 +194,13 @@ export function visitObjecDefinition(
     kind: 'object',
     properties: object.fields.map(field => {
       const namedFieldNode = namedFieldDefinitionsCache[field.fieldName];
-      const type = field.type ?? namedFieldNode?.type;
-      if (type === undefined) {
-        throw new Error('Type is undefined');
-      }
+      // Fallback to string if type is not defined
+      const type = field.type ??
+        namedFieldNode?.type ?? {
+          kind: 'PrimitiveTypeName',
+          name: 'string',
+          location: field.location,
+        };
       const model = visit(
         type,
         namedModelDefinitionsCache,
