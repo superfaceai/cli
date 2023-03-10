@@ -773,9 +773,9 @@
     typescript "^4"
 
 "@superfaceai/service-client@^5.0.0":
-  version "5.0.0"
-  resolved "https://registry.yarnpkg.com/@superfaceai/service-client/-/service-client-5.0.0.tgz#931ee77a6e483ac8ddac49c7b23acb7231ecf01d"
-  integrity sha512-rdADPdMEoIRbhUTZgXxfUKBP2tW6Fc5Fp/z57AmjHK5PTqBuZKxkYT0nvZSJPxNpx8bcLIP0Um93NxZ1qvAiZg==
+  version "5.2.0"
+  resolved "https://registry.yarnpkg.com/@superfaceai/service-client/-/service-client-5.2.0.tgz#462ebe71c7c0ddf7db95d0f5f567537ba5a86141"
+  integrity sha512-CSecvuJMrmwETh2HUs7X3DNy0dNp+rNnsk6eAeqTZN78/YhsE+yIJcFbTu88G8QVI7YhtAjZdTdlBkGxNFWidA==
   dependencies:
     cross-fetch "^3.1.5"
 
