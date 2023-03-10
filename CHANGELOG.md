@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - `switch` and `noSwitch` flag to `publish` command
 
+### Fixed
+- Undefined type bug in `create:map` command
+
 ## [3.0.1] - 2023-02-09
 ### Fixed
 - Fixed create provider security schema resolution
