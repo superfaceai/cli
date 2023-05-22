@@ -172,7 +172,7 @@ describe('HTTP functions', () => {
         authenticate: false,
         method: 'GET',
         headers: {
-          'Content-Type': ContentType.JSON,
+          'Accept': ContentType.JSON,
         },
       });
     }, 10000);
@@ -199,7 +199,7 @@ describe('HTTP functions', () => {
         authenticate: false,
         method: 'GET',
         headers: {
-          'Content-Type': ContentType.JSON,
+          'Accept': ContentType.JSON,
         },
       });
     }, 10000);
@@ -588,7 +588,7 @@ describe('HTTP functions', () => {
         authenticate: false,
         method: 'GET',
         headers: {
-          'Content-Type': ContentType.JSON,
+          'Accept': ContentType.JSON,
         },
       });
     }, 10000);
@@ -650,7 +650,7 @@ describe('HTTP functions', () => {
         authenticate: false,
         method: 'GET',
         headers: {
-          'Content-Type': ContentType.JSON,
+          'Accept': ContentType.JSON,
         },
       });
     }, 10000);
@@ -678,7 +678,7 @@ describe('HTTP functions', () => {
         authenticate: false,
         method: 'GET',
         headers: {
-          'Content-Type': ContentType.JSON,
+          'Accept': ContentType.JSON,
         },
       });
     }, 10000);
