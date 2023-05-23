@@ -144,7 +144,7 @@ export async function mockResponsesForProvider(
 
   await server
     .forGet('/providers/' + provider)
-    .withHeaders({ 'Content-Type': ContentType.JSON })
+    .withHeaders({ 'Accept': ContentType.JSON })
     .thenJson(200, mockProviderResponse);
 }
 
@@ -172,7 +172,7 @@ export async function mockResponsesForProfileProviders(
   await server
     .forGet('/providers')
     .withQuery({ profile: profile })
-    .withHeaders({ 'Content-Type': ContentType.JSON })
+    .withHeaders({ 'Accept': ContentType.JSON })
     .thenJson(200, { data: providersInfo });
 }
 
