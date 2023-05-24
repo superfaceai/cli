@@ -31,10 +31,7 @@ http POST {{>Path input=inputExampleScalarName}} {
 
   {{assign 'step' (inc @root.step 1)}}// {{@root.step}}) Optionally map unsuccessful HTTP response to the use case error
   response 500 {
-    return map error {{#if error }}{{#ifeq error.modelType "Scalar"}}{{>Scalar error.model }}{{/ifeq}}{{#ifeq error.modelType "Object"}}{{>Object error use=" =" indent=4 }}{{/ifeq}}{{#ifeq error.modelType "List"}}{{>Array error use=":" indent=4 }}{{/ifeq}}{{newLine 2}}{{/if }}
-    {{#unless error }}
-    //empty error
-    {{/unless }}
+    {{#if error }}return map error {{#ifeq error.modelType "Scalar"}}{{>Scalar error.model }}{{/ifeq}}{{#ifeq error.modelType "Object"}}{{>Object error use=" =" indent=4 }}{{/ifeq}}{{#ifeq error.modelType "List"}}{{>Array error use=":" indent=4 }}{{/ifeq}}{{newLine 2}}{{/if }}{{#unless error }}//empty error - add error definition to profile{{/unless }}
   }
 }
 `;
