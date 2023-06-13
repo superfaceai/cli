@@ -1,4 +1,4 @@
-import { basename } from 'path';
+import { basename, extname } from 'path';
 
 import type { Flags } from '../common/command.abstract';
 import { Command } from '../common/command.abstract';
@@ -80,7 +80,7 @@ export default class Prepare extends Command {
     if (name !== undefined) {
       apiName = name;
     } else if (resolved.filename !== undefined) {
-      apiName = basename(resolved.filename, '.txt');
+      apiName = basename(resolved.filename, extname(resolved.filename));
     }
 
     // TODO: should take also user error and logger
@@ -122,11 +122,17 @@ async function resolveSource(
       1
     );
   }
+
   if (!(await exists(urlOrPath))) {
     throw userError(`File ${urlOrPath} does not exist.`, 1);
   }
 
-  const content = await readFile(urlOrPath, { encoding: 'utf-8' });
+  let content: string;
+  try {
+    content = await readFile(urlOrPath, { encoding: 'utf-8' });
+  } catch (e) {
+    throw userError(`Could not read file ${urlOrPath}.`, 1);
+  }
 
   return { filename: urlOrPath, source: content };
 }
