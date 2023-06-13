@@ -29,7 +29,7 @@ export async function poll(
       throw Error(`Polling failed with reason: ${result.failure_reason}`);
     }
 
-    //TODO: get events from response and present them to user
+    // TODO: get events from response and present them to user
 
     await new Promise(resolve =>
       setTimeout(resolve, pollingIntervalMilliseconds)

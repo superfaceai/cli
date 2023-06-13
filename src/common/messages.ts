@@ -1,5 +1,10 @@
 import { SyntaxError } from '@superfaceai/parser';
 
+const prepare = {
+  preparationStarted: () => 'Starting preparation process',
+  sfDirectory: () => 'Creating "superface" directory',
+};
+
 const common = {
   initSuperface: () =>
     'Initializing superface directory with empty "super.json"',
@@ -360,6 +365,7 @@ export const messages = {
   ...loggout,
   ...generate,
   ...compatibility,
+  ...prepare,
 };
 
 export type MessageKeys = keyof typeof messages;
