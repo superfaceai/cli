@@ -44,6 +44,8 @@ const parseProviders = (logger: ILogger, providers?: string[]): string[] => {
 };
 
 export default class Install extends Command {
+  public static hidden = true;
+
   public static description =
     'Automatically initializes superface directory in current working directory if needed, communicates with Superface Store API, stores profiles and compiled files to a local system. Install without any arguments tries to install profiles and providers listed in super.json';
 

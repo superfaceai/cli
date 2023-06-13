@@ -26,6 +26,8 @@ import { publish } from '../logic/publish';
 import Install from './install';
 
 export default class Publish extends Command {
+  public static hidden = true;
+
   public static strict = true;
 
   public static description =

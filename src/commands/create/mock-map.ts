@@ -11,6 +11,8 @@ import { ProfileId } from '../../common/profile';
 import { createMockMap } from '../../logic/create/mock-map';
 
 export class MockMap extends Command {
+  public static hidden = true;
+
   public static strict = true;
 
   public static description =
