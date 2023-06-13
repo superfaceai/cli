@@ -20,6 +20,8 @@ import { detectSuperJson } from '../logic/install';
 import type { MapToValidate, ProfileToValidate } from '../logic/lint';
 
 export default class Check extends Command {
+  public static hidden = true;
+
   public static strict = false;
 
   public static description =

@@ -22,6 +22,8 @@ import Check from './check';
 type OutputFormatFlag = 'long' | 'short' | 'json';
 
 export default class Lint extends Command {
+  public static hidden = true;
+
   public static description =
     'Lints all maps and profiles locally linked in super.json. Also can be used to lint specific profile and its maps, in that case remote files can be used.Outputs the linter issues to STDOUT by default.\nLinter ends with non zero exit code if errors are found.';
 

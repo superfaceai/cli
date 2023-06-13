@@ -16,6 +16,8 @@ import { createTest } from '../../logic/create/test';
 import { detectSuperJson } from '../../logic/install';
 
 export default class CreateTest extends Command {
+  public static hidden = true;
+
   public static strict = false;
 
   public static description =

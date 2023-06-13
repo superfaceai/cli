@@ -78,6 +78,8 @@ async function promptProviders(logger: ILogger): Promise<string[]> {
 }
 
 export default class Init extends Command {
+  public static hidden = true;
+
   public static description = 'Initializes superface local folder structure.';
 
   public static examples = [
