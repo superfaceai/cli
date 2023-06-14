@@ -1,5 +1,9 @@
-import type { ProviderJson } from '@superfaceai/ast';
-import { isProviderJson, isValidProviderName } from '@superfaceai/ast';
+import type {
+  ProviderJson} from '@superfaceai/ast';
+import {
+  AssertionError,
+  assertProviderJson,
+ isValidProviderName } from '@superfaceai/ast';
 import { basename } from 'path';
 
 import type { Flags } from '../common/command.abstract';
@@ -62,7 +66,14 @@ export default class New extends Command {
   }): Promise<void> {
     const { providerName, prompt } = args;
 
-    if (providerName === undefined || !isValidProviderName(providerName)) {
+    if (providerName === undefined) {
+      throw userError(
+        'Missing provider name. Please provide it as firsat argument.',
+        1
+      );
+    }
+
+    if (!isValidProviderName(providerName)) {
       throw userError('Invalid provider name', 1);
     }
 
@@ -85,10 +96,19 @@ export default class New extends Command {
       buildProviderPath(providerName),
       'utf-8'
     );
+    let providerJson: ProviderJson;
+    try {
+      providerJson = JSON.parse(providerJsonFile) as ProviderJson;
+    } catch (e) {
+      throw userError(`Invalid provider.json file.`, 1);
+    }
 
-    const providerJson = JSON.parse(providerJsonFile) as ProviderJson;
-
-    if (!isProviderJson(providerJson)) {
+    try {
+      assertProviderJson(providerJson);
+    } catch (e) {
+      if (e instanceof AssertionError) {
+        throw userError(`Invalid provider.json file. ${e.message}`, 1);
+      }
       throw userError(`Invalid provider.json file.`, 1);
     }
 
@@ -99,13 +119,22 @@ export default class New extends Command {
       );
     }
 
-    const profileResult = await newProfile(providerJson, prompt);
+    const profileResult = await newProfile(
+      {
+        providerJson,
+        prompt,
+        options: { quiet: flags.quiet },
+      },
+      { logger }
+    );
 
     const profilePath = buildProfilePath(
-      `${profileResult.scope !== undefined ? profileResult.scope + '.' : ''}${profileResult.name
+      `${profileResult.scope !== undefined ? profileResult.scope + '.' : ''}${
+        profileResult.name
       }`
     );
 
+    // TODO: force flag? or overwrite by default?
     if (await exists(profilePath)) {
       throw userError(`Profile ${basename(profilePath)} already exists.`, 1);
     }

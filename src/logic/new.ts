@@ -1,10 +1,24 @@
 import type { ProviderJson } from '@superfaceai/ast';
 
+import type { ILogger } from '../common';
+
 export async function newProfile(
-  _provideJson: ProviderJson,
-  _prompt?: string
+  {
+    providerJson,
+    prompt,
+    options,
+  }: {
+    providerJson: ProviderJson;
+    prompt: string;
+    options?: { quiet?: boolean };
+  },
+  { logger }: { logger: ILogger }
 ): Promise<{ source: string; scope?: string; name: string }> {
-  return {
+  logger.info('startProfileGeneration', providerJson.name);
+
+  console.log('newProfile', providerJson, prompt, options);
+  
+return {
     name: 'character-information',
     scope: 'starwars',
     source: `name = "starwars/character-information"

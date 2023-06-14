@@ -1,5 +1,9 @@
 import { SyntaxError } from '@superfaceai/parser';
 
+const newCommand = {
+  startProfileGeneration: (providerName: string) =>
+    `Starting profile generation for provider: "${providerName}"`,
+};
 const common = {
   initSuperface: () =>
     'Initializing superface directory with empty "super.json"',
@@ -360,6 +364,7 @@ export const messages = {
   ...loggout,
   ...generate,
   ...compatibility,
+  ...newCommand,
 };
 
 export type MessageKeys = keyof typeof messages;
