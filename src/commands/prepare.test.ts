@@ -117,9 +117,11 @@ describe('prepare CLI command', () => {
       });
 
       expect(prepareProviderJson).toHaveBeenCalledWith(
-        url,
-        undefined,
-        { quiet: undefined },
+        {
+          urlOrSource: url,
+          name: undefined,
+          options: { quiet: undefined },
+        },
         { logger }
       );
 
@@ -144,9 +146,11 @@ describe('prepare CLI command', () => {
       });
 
       expect(prepareProviderJson).toHaveBeenCalledWith(
-        url,
-        name,
-        { quiet: undefined },
+        {
+          urlOrSource: url,
+          name,
+          options: { quiet: undefined },
+        },
         { logger }
       );
 
@@ -174,9 +178,11 @@ describe('prepare CLI command', () => {
       });
 
       expect(prepareProviderJson).toHaveBeenCalledWith(
-        fileContent,
-        'file',
-        { quiet: undefined },
+        {
+          urlOrSource: fileContent,
+          name: 'file',
+          options: { quiet: undefined },
+        },
         { logger }
       );
 
@@ -205,9 +211,11 @@ describe('prepare CLI command', () => {
       });
 
       expect(prepareProviderJson).toHaveBeenCalledWith(
-        fileContent,
-        name,
-        { quiet: undefined },
+        {
+          urlOrSource: fileContent,
+          name,
+          options: { quiet: undefined },
+        },
         { logger }
       );
 

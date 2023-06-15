@@ -75,7 +75,6 @@ export default class Prepare extends Command {
 
     const resolved = await resolveSource(urlOrPath, { userError });
 
-    // TODO: parse file name to get name,
     let apiName;
     if (name !== undefined) {
       apiName = name;
@@ -83,11 +82,13 @@ export default class Prepare extends Command {
       apiName = basename(resolved.filename, extname(resolved.filename));
     }
 
-    // TODO: should take also user error and logger
+    // TODO: should take also user error?
     const providerJson = await prepareProviderJson(
-      resolved.source,
-      apiName,
-      { quiet: flags.quiet },
+      {
+        urlOrSource: resolved.source,
+        name: apiName,
+        options: { quiet: flags.quiet },
+      },
       { logger }
     );
 

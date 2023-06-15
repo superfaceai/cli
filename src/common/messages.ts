@@ -112,6 +112,8 @@ const fetch = {
   couldNotFetch: (entitiy: string, error: unknown) =>
     // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
     `Could not fetch "${entitiy}": "${error}"`,
+  pollingEvent: (type: string, description: string) =>
+    `Polling: ${type} - ${description}`,
 };
 
 const configure = {

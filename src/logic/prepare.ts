@@ -1,49 +1,94 @@
 import type { ProviderJson } from '@superfaceai/ast';
+import { assertProviderJson } from '@superfaceai/ast';
+import type { ServiceClient } from '@superfaceai/service-client';
 
 import type { ILogger } from '../common';
-// import { SuperfaceClient } from '../common/http';
-// import { poll } from '../common/polling';
-import { mockProviderJson } from '../test/provider-json';
+import { SuperfaceClient } from '../common/http';
+import { pollUrl } from '../common/polling';
 
 export async function prepareProviderJson(
-  _urlOrSource: string,
-  _name: string | undefined,
-  _options: {
-    quiet?: boolean;
+  {
+    urlOrSource,
+    name,
+    options,
+  }: {
+    urlOrSource: string;
+    name: string | undefined;
+    options?: {
+      quiet?: boolean;
+    };
   },
   { logger }: { logger: ILogger }
 ): Promise<ProviderJson> {
   logger.info('preparationStarted');
-  // TODO: error handling, validation, move to common/http.ts?
-  // const client = SuperfaceClient.getClient();
-  // const jobUrlResponse = await client.fetch(`/providers`, {
-  //   method: 'POST',
-  //   body: JSON.stringify({ source: urlOrSource, name }),
-  // });
 
-  // if (jobUrlResponse.status !== 202) {
-  //   throw Error(`Unexpected status code ${jobUrlResponse.status} received`);
-  // }
+  const client = SuperfaceClient.getClient();
 
-  // const jobUrl = (
-  //   (await jobUrlResponse.json()) as {
-  //     href: string;
-  //   }
-  // ).href;
+  const jobUrl = await startProviderPreparation(
+    { source: urlOrSource, name },
+    { client }
+  );
 
-  // // TODO: poll return value of POST /providers until it is ready
-  // const resultUrl = await poll(jobUrl);
+  const resultUrl = await pollUrl(
+    { url: jobUrl, options: { quiet: options?.quiet } },
+    { logger, client }
+  );
 
-  // const resultResponse = await client.fetch(resultUrl);
+  return finishProviderPreparation(resultUrl, {
+    client,
+  });
+}
 
-  // if (resultResponse.status !== 200) {
-  //   throw Error(`Unexpected status code ${resultResponse.status} received`);
-  // }
+async function startProviderPreparation(
+  { source, name }: { source: string; name?: string },
+  { client }: { client: ServiceClient }
+): Promise<string> {
+  const jobUrlResponse = await client.fetch(`/authoring/providers`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ source, name }),
+  });
 
-  // //TODO: validate result json, separate function, is it ProviderJson or Provider definition?
-  // const result = (await resultResponse.json()) as ProviderJson;
+  if (jobUrlResponse.status !== 202) {
+    throw Error(`Unexpected status code ${jobUrlResponse.status} received`);
+  }
 
-  // return result;
+  const responseBody = (await jobUrlResponse.json()) as Record<string, unknown>;
 
-  return mockProviderJson({ name: _name });
+  if (
+    typeof responseBody === 'object' &&
+    responseBody !== null &&
+    'href' in responseBody &&
+    typeof responseBody.href === 'string'
+  ) {
+    return responseBody.href;
+  } else {
+    throw Error(
+      `Unexpected response body ${JSON.stringify(responseBody)} received`
+    );
+  }
+}
+
+async function finishProviderPreparation(
+  resultUrl: string,
+  { client }: { client: ServiceClient }
+): Promise<ProviderJson> {
+  const resultResponse = await client.fetch(resultUrl, {
+    method: 'GET',
+    headers: {
+      accept: 'application/json',
+    },
+    // Url from server is complete, so we don't need to add baseUrl
+    baseUrl: '',
+  });
+
+  if (resultResponse.status !== 200) {
+    throw Error(`Unexpected status code ${resultResponse.status} received`);
+  }
+
+  const body = (await resultResponse.json()) as unknown;
+
+  return assertProviderJson(body);
 }
