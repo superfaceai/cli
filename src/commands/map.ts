@@ -1,6 +1,10 @@
 import type { ProfileDocumentNode, ProviderJson } from '@superfaceai/ast';
-import { isProviderJson, isValidProviderName } from '@superfaceai/ast';
-import { parseDocumentId, parseProfile,Source } from '@superfaceai/parser';
+import {
+  AssertionError,
+  assertProviderJson,
+  isValidProviderName,
+} from '@superfaceai/ast';
+import { parseDocumentId, parseProfile, Source } from '@superfaceai/parser';
 import { basename } from 'path';
 
 import type { Flags } from '../common/command.abstract';
@@ -66,9 +70,24 @@ export default class Map extends Command {
   }): Promise<void> {
     const { providerName, profileId } = args;
 
+    // TODO: resuse check from New command
     // Check provider name
-    if (providerName === undefined || !isValidProviderName(providerName)) {
+    if (providerName === undefined) {
+      throw userError(
+        'Missing provider name. Please provide it as first argument.',
+        1
+      );
+    }
+
+    if (!isValidProviderName(providerName)) {
       throw userError('Invalid provider name', 1);
+    }
+
+    if (!(await exists(buildProviderPath(providerName)))) {
+      throw userError(
+        `Provider ${providerName} does not exist. Make sure to run "sf prepare" before running this command.`,
+        1
+      );
     }
 
     const providerJsonFile = await readFile(
@@ -76,9 +95,19 @@ export default class Map extends Command {
       'utf-8'
     );
 
-    const providerJson = JSON.parse(providerJsonFile) as ProviderJson;
+    let providerJson: ProviderJson;
+    try {
+      providerJson = JSON.parse(providerJsonFile) as ProviderJson;
+    } catch (e) {
+      throw userError(`Invalid provider.json file.`, 1);
+    }
 
-    if (!isProviderJson(providerJson)) {
+    try {
+      assertProviderJson(providerJson);
+    } catch (e) {
+      if (e instanceof AssertionError) {
+        throw userError(`Invalid provider.json file. ${e.message}`, 1);
+      }
       throw userError(`Invalid provider.json file.`, 1);
     }
 
@@ -91,7 +120,10 @@ export default class Map extends Command {
 
     // Check profile name
     if (profileId === undefined) {
-      throw userError('Missing profile id', 1);
+      throw userError(
+        'Missing profile id. Please provide it as first argument.',
+        1
+      );
     }
 
     // TODO: move provide Id handling to common?
@@ -132,12 +164,15 @@ export default class Map extends Command {
       );
     }
 
-    const map = await mapProviderToProfile(providerJson, profileSource);
+    const map = await mapProviderToProfile(
+      { providerJson, profileSource, options: { quiet: flags.quiet } },
+      { logger }
+    );
 
     const mapPath = buildMapPath(profileId, providerName);
 
     if (await exists(mapPath)) {
-      throw userError(`?ap ${basename(mapPath)} already exists.`, 1);
+      throw userError(`Map ${basename(mapPath)} already exists.`, 1);
     }
 
     await OutputStream.writeOnce(mapPath, map);

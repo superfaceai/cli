@@ -1,13 +1,36 @@
 import type { ProviderJson } from '@superfaceai/ast';
 
+import type { ILogger } from '../common';
+
 export async function mapProviderToProfile(
-  _providerJson: ProviderJson,
-  _profileSource: string
+  {
+    providerJson,
+    profileSource,
+    options,
+  }: {
+    providerJson: ProviderJson;
+    profileSource: string;
+    options?: {
+      quiet?: boolean;
+    };
+  },
+  { logger }: { logger: ILogger }
 ): Promise<string> {
+  console.log(
+    'providerJson',
+    providerJson,
+    'profileSource',
+    profileSource,
+    'options',
+    options,
+    'logger',
+    logger
+  );
+
   return `function RetrieveCharacterHomeworld({ input, parameters, services }) {
     const searchCharacterResult = searchCharacter(input, services);
     const getHomeworldResult = getHomeworld(searchCharacterResult);
-  
+    
     return getHomeworldResult;
   }
   
