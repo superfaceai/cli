@@ -158,7 +158,7 @@ describe('polling', () => {
     expect(logger.stdout).toEqual([['pollingEvent', ['info', 'first']]]);
   });
 
-  it('throews when fetch returns unexpected status code', async () => {
+  it('throws when fetch returns unexpected status code', async () => {
     mockFetch.mockResolvedValueOnce(
       mockResponse(400, 'Bad Request', undefined)
     );
@@ -188,7 +188,7 @@ describe('polling', () => {
     expect(logger.stdout).toEqual([]);
   });
 
-  it('throews when fetch returns unexpected body', async () => {
+  it('throws when fetch returns unexpected body', async () => {
     mockFetch.mockResolvedValueOnce(
       mockResponse(200, 'ok', undefined, { foo: 'bar' })
     );
