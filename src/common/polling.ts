@@ -93,7 +93,7 @@ export async function pollUrl(
     if (result.status === PollStatus.Successful) {
       return result.result_url;
     } else if (result.status === PollStatus.Failed) {
-      throw Error(`Polling failed with reason: ${result.failure_reason}`);
+      throw Error(`Failed to prepare provider: ${result.failure_reason}`);
     }
 
     // get events from response and present them to user
@@ -108,7 +108,7 @@ export async function pollUrl(
     );
   }
 
-  throw Error(`Polling timed out after ${timeoutMilliseconds} milliseconds`);
+  throw Error(`Prepare provider timed out after ${timeoutMilliseconds} milliseconds`);
 }
 
 async function pollFetch(

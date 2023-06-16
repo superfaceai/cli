@@ -15,7 +15,7 @@ import { prepareProviderJson } from '../logic/prepare';
 export default class Prepare extends Command {
   // TODO: add description
   public static description =
-    'Prepares API documentation for generation of integration. Currently, you can use Open Api Specification and Readme IO dev portals from file (yaml or json) or URL. This command prepares provider definition that can be used to generate integration code.';
+    'Prepares API documentation for integration generation from provider URL or local file with OpenAPI specification in yaml or json format. Or from the URL to the readme.io dev portal.  This command prepares a provider definition that can be used to generate integration code.';
 
   public static examples = [
     'superface prepare https://raw.githubusercontent.com/APIs-guru/openapi-directory/main/APIs/openai.com/1.2.0/openapi.yaml',
