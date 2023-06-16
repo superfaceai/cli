@@ -204,7 +204,7 @@ describe('polling', () => {
         { logger, client }
       )
     ).rejects.toThrow(`Unexpected response from server: {
-  \"foo\": \"bar\"
+  "foo": "bar"
 }`);
 
     expect(mockFetch).toHaveBeenCalledTimes(1);
