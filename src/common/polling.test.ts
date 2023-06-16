@@ -143,7 +143,7 @@ describe('polling', () => {
         },
         { logger, client }
       )
-    ).rejects.toThrow('Polling timed out after 1000 milliseconds');
+    ).rejects.toThrow('Prepare provider timed out after 1000 milliseconds');
 
     expect(mockFetch).toHaveBeenCalledTimes(1);
 

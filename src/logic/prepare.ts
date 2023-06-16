@@ -6,6 +6,41 @@ import type { ILogger } from '../common';
 import { SuperfaceClient } from '../common/http';
 import { pollUrl } from '../common/polling';
 
+export type ProviderPreparationResponse = {
+  provider_id: string;
+  definition: ProviderJson;
+  docs_url: string;
+};
+
+function assertProviderResponse(
+  input: unknown
+): asserts input is ProviderPreparationResponse {
+  if (
+    typeof input === 'object' &&
+    input !== null &&
+    'provider_id' in input &&
+    'docs_url' in input &&
+    'definition' in input
+  ) {
+    const tmp = input as {
+      provider_id: string;
+      definition: ProviderJson;
+      docs_url: string;
+    };
+
+    if (
+      typeof tmp.provider_id === 'string' &&
+      typeof tmp.docs_url === 'string'
+    ) {
+      assertProviderJson(tmp.definition);
+
+      return;
+    }
+  }
+
+  throw Error(`Unexpected response received`);
+}
+
 export async function prepareProviderJson(
   {
     urlOrSource,
@@ -34,9 +69,12 @@ export async function prepareProviderJson(
     { logger, client }
   );
 
-  return finishProviderPreparation(resultUrl, {
-    client,
-  });
+  // TODO: use docs_url to keep track of docs
+  return (
+    await finishProviderPreparation(resultUrl, {
+      client,
+    })
+  ).definition;
 }
 
 async function startProviderPreparation(
@@ -74,7 +112,7 @@ async function startProviderPreparation(
 async function finishProviderPreparation(
   resultUrl: string,
   { client }: { client: ServiceClient }
-): Promise<ProviderJson> {
+): Promise<ProviderPreparationResponse> {
   const resultResponse = await client.fetch(resultUrl, {
     method: 'GET',
     headers: {
@@ -90,5 +128,7 @@ async function finishProviderPreparation(
 
   const body = (await resultResponse.json()) as unknown;
 
-  return assertProviderJson(body);
+  assertProviderResponse(body);
+
+  return body;
 }

@@ -38,12 +38,11 @@ describe('prepareProviderJson', () => {
       )
       // Fetch result
       .mockResolvedValueOnce(
-        mockResponse(
-          200,
-          'ok',
-          undefined,
-          mockProviderJson({ name: providerName })
-        )
+        mockResponse(200, 'ok', undefined, {
+          docs_url: 'test',
+          provider_id: providerName,
+          definition: mockProviderJson({ name: providerName }),
+        })
       );
 
     jest.mocked(pollUrl).mockResolvedValueOnce('https://superface.ai/job/123');
@@ -224,9 +223,7 @@ describe('prepareProviderJson', () => {
         },
         { logger }
       )
-    ).rejects.toEqual(
-      new Error('$: must have required property "defaultService"')
-    );
+    ).rejects.toEqual(new Error('Unexpected response received'));
 
     expect(fetch).toHaveBeenNthCalledWith(1, '/authoring/providers', {
       body: '{"source":"https://superface.ai/path/to/oas.json","name":"test-provider"}',

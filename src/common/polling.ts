@@ -108,7 +108,9 @@ export async function pollUrl(
     );
   }
 
-  throw Error(`Prepare provider timed out after ${timeoutMilliseconds} milliseconds`);
+  throw Error(
+    `Prepare provider timed out after ${timeoutMilliseconds} milliseconds`
+  );
 }
 
 async function pollFetch(
