@@ -23,6 +23,41 @@ type PollResponse =
     }
   | { status: PollStatus.Failed; failure_reason: string };
 
+function isPollResponse(input: unknown): input is PollResponse {
+  if (typeof input === 'object' && input !== null && 'status' in input) {
+    const tmp = input as {
+      status: string;
+      result_url?: string;
+      failure_reason?: string;
+      events?: { occuredAt: Date; type: string; description: string }[];
+    };
+
+    if (
+      tmp.status === PollStatus.Successful &&
+      typeof tmp.result_url === 'string'
+    ) {
+      return true;
+    } else if (
+      tmp.status === PollStatus.Pending &&
+      Array.isArray(tmp.events) &&
+      tmp.events.every(
+        event =>
+          typeof event.type === 'string' &&
+          typeof event.description === 'string'
+      )
+    ) {
+      return true;
+    } else if (
+      tmp.status === PollStatus.Failed &&
+      typeof tmp.failure_reason === 'string'
+    ) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
 export async function pollUrl(
   {
     url,
@@ -89,11 +124,15 @@ async function pollFetch(
     },
   });
   if (result.status === 200) {
-    // TODO: validate result json
-    const data = (await result.json()) as PollResponse;
+    const data = (await result.json()) as unknown;
 
-    return data;
-  } else {
-    throw Error(`Unexpected status code ${result.status} received`);
+    if (isPollResponse(data)) {
+      return data;
+    }
+
+    throw Error(
+      `Unexpected response from server: ${JSON.stringify(data, null, 2)}`
+    );
   }
+  throw Error(`Unexpected status code ${result.status} received`);
 }
