@@ -129,7 +129,8 @@ export default class New extends Command {
     );
 
     const profilePath = buildProfilePath(
-      `${profileResult.scope !== undefined ? profileResult.scope + '.' : ''}${profileResult.name
+      `${profileResult.scope !== undefined ? profileResult.scope + '.' : ''}${
+        profileResult.name
       }`
     );
 
