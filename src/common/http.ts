@@ -75,7 +75,6 @@ export class SuperfaceClient {
 }
 export function getServicesUrl(): string {
   const envUrl = process.env[SF_API_URL_VARIABLE];
-
   if (envUrl !== undefined) {
     const passedValue = new URL(envUrl).href;
     // remove ending /

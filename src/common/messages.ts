@@ -1,5 +1,10 @@
 import { SyntaxError } from '@superfaceai/parser';
 
+const prepare = {
+  preparationStarted: () => 'Starting preparation process',
+  sfDirectory: () => 'Creating "superface" directory',
+};
+
 const common = {
   initSuperface: () =>
     'Initializing superface directory with empty "super.json"',
@@ -107,6 +112,8 @@ const fetch = {
   couldNotFetch: (entitiy: string, error: unknown) =>
     // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
     `Could not fetch "${entitiy}": "${error}"`,
+  pollingEvent: (type: string, description: string) =>
+    `Polling: ${type} - ${description}`,
 };
 
 const configure = {
@@ -360,6 +367,7 @@ export const messages = {
   ...loggout,
   ...generate,
   ...compatibility,
+  ...prepare,
 };
 
 export type MessageKeys = keyof typeof messages;

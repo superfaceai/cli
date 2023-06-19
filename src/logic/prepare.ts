@@ -1,0 +1,134 @@
+import type { ProviderJson } from '@superfaceai/ast';
+import { assertProviderJson } from '@superfaceai/ast';
+import type { ServiceClient } from '@superfaceai/service-client';
+
+import type { ILogger } from '../common';
+import { SuperfaceClient } from '../common/http';
+import { pollUrl } from '../common/polling';
+
+export type ProviderPreparationResponse = {
+  provider_id: string;
+  definition: ProviderJson;
+  docs_url: string;
+};
+
+function assertProviderResponse(
+  input: unknown
+): asserts input is ProviderPreparationResponse {
+  if (
+    typeof input === 'object' &&
+    input !== null &&
+    'provider_id' in input &&
+    'docs_url' in input &&
+    'definition' in input
+  ) {
+    const tmp = input as {
+      provider_id: string;
+      definition: ProviderJson;
+      docs_url: string;
+    };
+
+    if (
+      typeof tmp.provider_id === 'string' &&
+      typeof tmp.docs_url === 'string'
+    ) {
+      assertProviderJson(tmp.definition);
+
+      return;
+    }
+  }
+
+  throw Error(`Unexpected response received`);
+}
+
+export async function prepareProviderJson(
+  {
+    urlOrSource,
+    name,
+    options,
+  }: {
+    urlOrSource: string;
+    name: string | undefined;
+    options?: {
+      quiet?: boolean;
+    };
+  },
+  { logger }: { logger: ILogger }
+): Promise<ProviderJson> {
+  logger.info('preparationStarted');
+
+  const client = SuperfaceClient.getClient();
+
+  const jobUrl = await startProviderPreparation(
+    { source: urlOrSource, name },
+    { client }
+  );
+
+  const resultUrl = await pollUrl(
+    { url: jobUrl, options: { quiet: options?.quiet } },
+    { logger, client }
+  );
+
+  // TODO: use docs_url to keep track of docs
+  return (
+    await finishProviderPreparation(resultUrl, {
+      client,
+    })
+  ).definition;
+}
+
+async function startProviderPreparation(
+  { source, name }: { source: string; name?: string },
+  { client }: { client: ServiceClient }
+): Promise<string> {
+  const jobUrlResponse = await client.fetch(`/authoring/providers`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ source, name }),
+  });
+
+  if (jobUrlResponse.status !== 202) {
+    throw Error(`Unexpected status code ${jobUrlResponse.status} received`);
+  }
+
+  const responseBody = (await jobUrlResponse.json()) as Record<string, unknown>;
+
+  if (
+    typeof responseBody === 'object' &&
+    responseBody !== null &&
+    'href' in responseBody &&
+    typeof responseBody.href === 'string'
+  ) {
+    return responseBody.href;
+  } else {
+    throw Error(
+      `Unexpected response body ${JSON.stringify(responseBody)} received`
+    );
+  }
+}
+
+async function finishProviderPreparation(
+  resultUrl: string,
+  { client }: { client: ServiceClient }
+): Promise<ProviderPreparationResponse> {
+  const resultResponse = await client.fetch(resultUrl, {
+    method: 'GET',
+    headers: {
+      accept: 'application/json',
+    },
+    // Url from server is complete, so we don't need to add baseUrl
+    baseUrl: '',
+  });
+
+  if (resultResponse.status !== 200) {
+    throw Error(`Unexpected status code ${resultResponse.status} received`);
+  }
+
+  const body = (await resultResponse.json()) as unknown;
+
+  assertProviderResponse(body);
+
+  return body;
+}
