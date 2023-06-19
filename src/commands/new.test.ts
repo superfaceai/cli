@@ -156,13 +156,11 @@ describe('new CLI command', () => {
       const prompt = 'test';
       jest.mocked(exists).mockResolvedValueOnce(true);
       jest.mocked(readFile).mockResolvedValueOnce(JSON.stringify(providerJson));
-      jest
-        .mocked(newProfile)
-        .mockResolvedValueOnce({
-          source: 'profile',
-          name: profileName,
-          scope: profileSope,
-        });
+      jest.mocked(newProfile).mockResolvedValueOnce({
+        source: 'profile',
+        name: profileName,
+        scope: profileSope,
+      });
 
       await instance.execute({
         logger,
@@ -191,13 +189,11 @@ describe('new CLI command', () => {
     it('prepares profile with scope', async () => {
       jest.mocked(exists).mockResolvedValueOnce(true);
       jest.mocked(readFile).mockResolvedValueOnce(JSON.stringify(providerJson));
-      jest
-        .mocked(newProfile)
-        .mockResolvedValueOnce({
-          source: profileSource,
-          name: profileName,
-          scope: profileSope,
-        });
+      jest.mocked(newProfile).mockResolvedValueOnce({
+        source: profileSource,
+        name: profileName,
+        scope: profileSope,
+      });
 
       await instance.execute({
         logger,

@@ -1,9 +1,9 @@
-import type {
-  ProviderJson} from '@superfaceai/ast';
+import type { ProviderJson } from '@superfaceai/ast';
 import {
   AssertionError,
   assertProviderJson,
- isValidProviderName } from '@superfaceai/ast';
+  isValidProviderName,
+} from '@superfaceai/ast';
 import { basename } from 'path';
 
 import type { Flags } from '../common/command.abstract';
@@ -68,7 +68,7 @@ export default class New extends Command {
 
     if (providerName === undefined) {
       throw userError(
-        'Missing provider name. Please provide it as firsat argument.',
+        'Missing provider name. Please provide it as first argument.',
         1
       );
     }
@@ -129,8 +129,7 @@ export default class New extends Command {
     );
 
     const profilePath = buildProfilePath(
-      `${profileResult.scope !== undefined ? profileResult.scope + '.' : ''}${
-        profileResult.name
+      `${profileResult.scope !== undefined ? profileResult.scope + '.' : ''}${profileResult.name
       }`
     );
 

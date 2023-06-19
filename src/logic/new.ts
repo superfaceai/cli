@@ -17,8 +17,8 @@ export async function newProfile(
   logger.info('startProfileGeneration', providerJson.name);
 
   console.log('newProfile', providerJson, prompt, options);
-  
-return {
+
+  return {
     name: 'character-information',
     scope: 'starwars',
     source: `name = "starwars/character-information"
