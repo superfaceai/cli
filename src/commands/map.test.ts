@@ -15,7 +15,7 @@ describe('MapCLI command', () => {
   const profileName = 'test';
 
   const profileSource = (scope: string | undefined, name: string) => `
-  name = "${scope ? scope + '/' : ''}${name}"
+  name = "${scope !== undefined ? scope + '/' : ''}${name}"
   version = "1.0.0"
   
   "usecase title"

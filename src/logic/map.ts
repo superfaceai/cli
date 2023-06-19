@@ -1,117 +1,156 @@
 import type { ProviderJson } from '@superfaceai/ast';
+import { parseMap, Source } from '@superfaceai/parser';
+import type { ServiceClient } from '@superfaceai/service-client';
 
 import type { ILogger } from '../common';
+import { SuperfaceClient } from '../common/http';
+import { pollUrl } from '../common/polling';
+
+export type MapPreparationResponse = {
+  id: string;
+  source: string;
+};
+
+function assertMapResponse(
+  input: unknown
+): asserts input is MapPreparationResponse {
+  if (
+    typeof input === 'object' &&
+    input !== null &&
+    'id' in input &&
+    'source' in input
+  ) {
+    const tmp = input as { id: string; source: string };
+
+    try {
+      parseMap(new Source(tmp.source));
+    } catch (e) {
+      throw Error(
+        `Unexpected response received - unable to parse map: ${JSON.stringify(
+          e,
+          undefined,
+          2
+        )}`
+      );
+    }
+
+    if (typeof tmp.id === 'string' && typeof tmp.source === 'string') {
+      return;
+    }
+  }
+
+  throw Error(`Unexpected response received`);
+}
 
 export async function mapProviderToProfile(
   {
     providerJson,
-    profileSource,
+    profile,
     options,
   }: {
     providerJson: ProviderJson;
-    profileSource: string;
+    profile: {
+      scope?: string;
+      source: string;
+      name: string;
+    };
     options?: {
       quiet?: boolean;
     };
   },
   { logger }: { logger: ILogger }
 ): Promise<string> {
-  console.log(
-    'providerJson',
-    providerJson,
-    'profileSource',
-    profileSource,
-    'options',
-    options,
-    'logger',
-    logger
+  const client = SuperfaceClient.getClient();
+
+  const jobUrl = await startMapPreparation(
+    // TODO: add old map if exists
+    { providerJson, profile, map: undefined },
+    { client }
   );
 
-  return `function RetrieveCharacterHomeworld({ input, parameters, services }) {
-    const searchCharacterResult = searchCharacter(input, services);
-    const getHomeworldResult = getHomeworld(searchCharacterResult);
-    
-    return getHomeworldResult;
+  const resultUrl = await pollUrl(
+    { url: jobUrl, options: { quiet: options?.quiet } },
+    { logger, client }
+  );
+
+  return (
+    await finishMapPreparation(resultUrl, {
+      client,
+    })
+  ).source;
+}
+
+async function startMapPreparation(
+  {
+    profile,
+    providerJson,
+    map,
+  }: {
+    profile: {
+      scope?: string;
+      source: string;
+      name: string;
+    };
+    providerJson: ProviderJson;
+    map?: string;
+  },
+  { client }: { client: ServiceClient }
+): Promise<string> {
+  const profileId = `${profile.scope !== undefined ? profile.scope + '.' : ''}${
+    profile.name
+  }`;
+  const jobUrlResponse = await client.fetch(`/comlinks/${profileId}/maps`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      map,
+      provider: providerJson,
+      profile: profile.source,
+    }),
+  });
+
+  if (jobUrlResponse.status !== 202) {
+    throw Error(`Unexpected status code ${jobUrlResponse.status} received`);
   }
-  
-  function searchCharacter(input, services) {
-    const url = \`\${services.default}/people\`;
-    const options = {
-      method: 'GET',
-      query: {
-        search: input.search,
-      },
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    };
-  
-    const response = std.unstable.fetch(url, options).response();
-    const body = response.bodyAuto() ?? {};
-  
-    if (response.status !== 200) {
-      const error = {
-        detail: \`Error fetching data: \${response.status}\`,
-        rate_limit: 10000,
-        remaining_requests: parseInt(
-          response.headers['x-ratelimit-remaining'][0] ?? '0',
-          10
-        ),
-        reset_time: response.headers['x-ratelimit-reset'][0] ?? '',
-      };
-      throw new std.unstable.MapError(error);
-    }
-  
-    const result = {
-      homeworld: body.results[0]?.homeworld ?? '',
-    };
-  
-    return result;
+
+  const responseBody = (await jobUrlResponse.json()) as Record<string, unknown>;
+
+  if (
+    typeof responseBody === 'object' &&
+    responseBody !== null &&
+    'href' in responseBody &&
+    typeof responseBody.href === 'string'
+  ) {
+    return responseBody.href;
+  } else {
+    throw Error(
+      `Unexpected response body ${JSON.stringify(responseBody)} received`
+    );
   }
-  
-  function getHomeworld(searchCharacterResult) {
-    const homeworld_url = searchCharacterResult.homeworld;
-    const options = {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    };
-  
-    const response = std.unstable.fetch(homeworld_url, options).response();
-    const body = response.bodyAuto() ?? {};
-  
-    if (response.status !== 200) {
-      const error = {
-        detail: \`Failed to fetch homeworld information. Status: \${response.status}\`,
-        rate_limit: 10000,
-        remaining_requests: parseInt(
-          response.headers['x-ratelimit-remaining'][0] ?? '0',
-          10
-        ),
-        reset_time: response.headers['x-ratelimit-reset'][0] ?? '',
-      };
-      throw new std.unstable.MapError(error);
-    }
-  
-    const result = {
-      name: body.name,
-      diameter: body.diameter,
-      rotation_period: body.rotation_period,
-      orbital_period: body.orbital_period,
-      gravity: body.gravity,
-      population: body.population,
-      climate: body.climate,
-      terrain: body.terrain,
-      surface_water: body.surface_water,
-      residents: body.residents,
-      films: body.films,
-      url: body.url,
-      created: body.created,
-      edited: body.edited,
-    };
-  
-    return result;
+}
+
+async function finishMapPreparation(
+  resultUrl: string,
+  { client }: { client: ServiceClient }
+): Promise<MapPreparationResponse> {
+  const resultResponse = await client.fetch(resultUrl, {
+    method: 'GET',
+    headers: {
+      accept: 'application/json',
+    },
+    // Url from server is complete, so we don't need to add baseUrl
+    baseUrl: '',
+  });
+
+  if (resultResponse.status !== 200) {
+    throw Error(`Unexpected status code ${resultResponse.status} received`);
   }
-  `;
+
+  const body = (await resultResponse.json()) as unknown;
+
+  assertMapResponse(body);
+
+  return body;
 }

@@ -163,14 +163,23 @@ export default class Map extends Command {
         1
       );
     }
-
+    // TODO: load old map?
     const map = await mapProviderToProfile(
-      { providerJson, profileSource, options: { quiet: flags.quiet } },
+      {
+        providerJson,
+        profile: {
+          source: profileSource,
+          name: profileAst.header.name,
+          scope: profileAst.header.scope,
+        },
+        options: { quiet: flags.quiet },
+      },
       { logger }
     );
 
     const mapPath = buildMapPath(profileId, providerName);
 
+    // TODO: force flag? Ask for confirmation?
     if (await exists(mapPath)) {
       throw userError(`Map ${basename(mapPath)} already exists.`, 1);
     }
