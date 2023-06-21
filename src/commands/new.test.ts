@@ -51,7 +51,7 @@ describe('new CLI command', () => {
       await expect(
         instance.execute({ logger, userError, flags: {}, args: {} })
       ).rejects.toThrow(
-        'Missing provider name. Please provide it as firsat argument.'
+        'Missing provider name. Please provide it as first argument.'
       );
     });
 

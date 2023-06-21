@@ -7,10 +7,12 @@ import { SuperfaceClient } from '../common/http';
 import { pollUrl } from '../common/polling';
 
 export type ProfilePreparationResponse = {
-  // TODO: id format? . or /? or something else?
+  // Id of the profile with . separated scope and name
   id: string;
-  // TODO: get AST from server to avoid parsing (possible problems with AST/Parser versioning)
-  source: string;
+  // TODO: get AST from server to avoid parsing (possible problems with AST/Parser versioning)?
+  profile: {
+    source: string;
+  };
 };
 
 function assertProfileResponse(
@@ -20,12 +22,22 @@ function assertProfileResponse(
     typeof input === 'object' &&
     input !== null &&
     'id' in input &&
-    'source' in input
+    'profile' in input
   ) {
-    const tmp = input as { id: string; source: string };
+    const tmp = input as { id: string; profile: { source?: string } };
+
+    if (typeof tmp.profile.source !== 'string') {
+      throw Error(
+        `Unexpected response received - missing profile source: ${JSON.stringify(
+          tmp,
+          null,
+          2
+        )}`
+      );
+    }
 
     try {
-      parseProfile(new Source(tmp.source));
+      parseProfile(new Source(tmp.profile.source));
     } catch (e) {
       throw Error(
         `Unexpected response received - unable to parse profile source: ${JSON.stringify(
@@ -59,8 +71,6 @@ export async function newProfile(
 ): Promise<{ source: string; scope?: string; name: string }> {
   logger.info('startProfileGeneration', providerJson.name);
 
-  console.log('newProfile', providerJson, prompt, options);
-
   const client = SuperfaceClient.getClient();
 
   const jobUrl = await startProfilePreparation(
@@ -92,7 +102,7 @@ export async function newProfile(
   }
 
   return {
-    source: profileResponse.source,
+    source: profileResponse.profile.source,
     scope,
     name,
   };
@@ -103,7 +113,7 @@ async function startProfilePreparation(
   { client }: { client: ServiceClient }
 ): Promise<string> {
   // TODO: check real url
-  const jobUrlResponse = await client.fetch(`/comlinks`, {
+  const jobUrlResponse = await client.fetch(`/authoring/profiles`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
