@@ -7,20 +7,14 @@ import { SuperfaceClient } from '../common/http';
 import { pollUrl } from '../common/polling';
 
 export type MapPreparationResponse = {
-  id: string;
   source: string;
 };
 
 function assertMapResponse(
   input: unknown
 ): asserts input is MapPreparationResponse {
-  if (
-    typeof input === 'object' &&
-    input !== null &&
-    'id' in input &&
-    'source' in input
-  ) {
-    const tmp = input as { id: string; source: string };
+  if (typeof input === 'object' && input !== null && 'source' in input) {
+    const tmp = input as { source: string };
 
     try {
       parseMap(new Source(tmp.source));
@@ -34,9 +28,7 @@ function assertMapResponse(
       );
     }
 
-    if (typeof tmp.id === 'string' && typeof tmp.source === 'string') {
-      return;
-    }
+    return;
   }
 
   throw Error(`Unexpected response received`);
@@ -99,17 +91,20 @@ async function startMapPreparation(
   const profileId = `${profile.scope !== undefined ? profile.scope + '.' : ''}${
     profile.name
   }`;
-  const jobUrlResponse = await client.fetch(`/comlinks/${profileId}/maps`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      map,
-      provider: providerJson,
-      profile: profile.source,
-    }),
-  });
+  const jobUrlResponse = await client.fetch(
+    `/authoring/profiles/${profileId}/maps`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        map,
+        provider: providerJson,
+        profile: profile.source,
+      }),
+    }
+  );
 
   if (jobUrlResponse.status !== 202) {
     throw Error(`Unexpected status code ${jobUrlResponse.status} received`);

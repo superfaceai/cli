@@ -308,7 +308,11 @@ describe('MapCLI command', () => {
       expect(mapProviderToProfile).toHaveBeenCalledWith(
         {
           providerJson,
-          profileSource: profileSource(undefined, profileName),
+          profile: {
+            source: profileSource(undefined, profileName),
+            name: profileName,
+            scope: undefined,
+          },
           options: { quiet: undefined },
         },
         { logger }
@@ -344,7 +348,11 @@ describe('MapCLI command', () => {
       expect(mapProviderToProfile).toHaveBeenCalledWith(
         {
           providerJson,
-          profileSource: profileSource(profileScope, profileName),
+          profile: {
+            source: profileSource(profileScope, profileName),
+            name: profileName,
+            scope: profileScope,
+          },
           options: { quiet: undefined },
         },
         { logger }
@@ -380,7 +388,11 @@ describe('MapCLI command', () => {
       expect(mapProviderToProfile).toHaveBeenCalledWith(
         {
           providerJson,
-          profileSource: profileSource(undefined, profileName),
+          profile: {
+            source: profileSource(undefined, profileName),
+            name: profileName,
+            scope: undefined,
+          },
           options: { quiet: undefined },
         },
         { logger }
