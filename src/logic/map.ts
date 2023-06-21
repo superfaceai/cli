@@ -1,5 +1,4 @@
 import type { ProviderJson } from '@superfaceai/ast';
-import { parseMap, Source } from '@superfaceai/parser';
 import type { ServiceClient } from '@superfaceai/service-client';
 
 import type { ILogger } from '../common';
@@ -16,19 +15,9 @@ function assertMapResponse(
   if (typeof input === 'object' && input !== null && 'source' in input) {
     const tmp = input as { source: string };
 
-    try {
-      parseMap(new Source(tmp.source));
-    } catch (e) {
-      throw Error(
-        `Unexpected response received - unable to parse map: ${JSON.stringify(
-          e,
-          undefined,
-          2
-        )}`
-      );
+    if (typeof tmp.source === 'string') {
+      return;
     }
-
-    return;
   }
 
   throw Error(`Unexpected response received`);
