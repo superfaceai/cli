@@ -88,7 +88,7 @@ describe('new CLI command', () => {
           args: { providerName: 'test', prompt: 'test' },
         })
       ).rejects.toThrow(
-        'Provider test does not exist. Make sure to tun "sf prepare" before running this command.'
+        'Provider test does not exist. Make sure to run "sf prepare" before running this command.'
       );
     });
 
