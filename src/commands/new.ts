@@ -18,7 +18,7 @@ import { newProfile } from '../logic/new';
 export default class New extends Command {
   // TODO: add description
   public static description =
-    'Generates Comlink profile from prepared API documentation. Comlink profile defines interface od API integration. Use name of provider as first argument and description of your use case as second argument';
+    'Generates Comlink profile from prepared API documentation. Comlink profile defines interface of API integration. Use name of provider as first argument and description of your use case as second argument';
 
   public static examples = [
     'superface new swapi "retrieve character\'s homeworld by their name',
@@ -87,7 +87,7 @@ export default class New extends Command {
 
     if (!(await exists(buildProviderPath(providerName)))) {
       throw userError(
-        `Provider ${providerName} does not exist. Make sure to tun "sf prepare" before running this command.`,
+        `Provider ${providerName} does not exist. Make sure to run "sf prepare" before running this command.`,
         1
       );
     }
