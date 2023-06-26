@@ -1,5 +1,9 @@
 import { SyntaxError } from '@superfaceai/parser';
 
+const newCommand = {
+  startProfileGeneration: (providerName: string) =>
+    `Starting profile generation for provider: "${providerName}"`,
+};
 const prepare = {
   preparationStarted: () => 'Starting preparation process',
   sfDirectory: () => 'Creating "superface" directory',
@@ -367,6 +371,7 @@ export const messages = {
   ...loggout,
   ...generate,
   ...compatibility,
+  ...newCommand,
   ...prepare,
 };
 
