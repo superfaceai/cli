@@ -12,17 +12,17 @@ export async function writeApplicationCode(
     profile,
     useCaseName,
   }: // target
-    {
-      providerJson: ProviderJson;
-      profile: {
-        source: string;
-        name: string;
-        scope?: string;
-      };
-      useCaseName: string;
-      // TODO: add more target languages
-      // target: 'js';
-    },
+  {
+    providerJson: ProviderJson;
+    profile: {
+      source: string;
+      name: string;
+      scope?: string;
+    };
+    useCaseName: string;
+    // TODO: add more target languages
+    // target: 'js';
+  },
   { logger, userError }: { logger: ILogger; userError: UserError }
 ): Promise<string> {
   let profileAst: ProfileDocumentNode;
