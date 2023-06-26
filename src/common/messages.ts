@@ -1,5 +1,13 @@
 import { SyntaxError } from '@superfaceai/parser';
 
+const execute = {
+  executingCommand: (file: string) => `Executing: "${file}"`,
+  childProcessOutput: (output: string) => `${output}`,
+  childProcessExited: (code: number | null) =>
+    code === null
+      ? `Child process exited without code`
+      : `Child process exited with code ${code}`,
+};
 const newCommand = {
   startProfileGeneration: (providerName: string) =>
     `Starting profile generation for provider: "${providerName}"`,
@@ -373,6 +381,7 @@ export const messages = {
   ...compatibility,
   ...newCommand,
   ...prepare,
+  ...execute,
 };
 
 export type MessageKeys = keyof typeof messages;
