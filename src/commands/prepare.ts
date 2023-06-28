@@ -1,3 +1,5 @@
+import type { ProviderJson } from '@superfaceai/ast';
+import Listr from 'listr';
 import { basename, extname } from 'path';
 
 import type { Flags } from '../common/command.abstract';
@@ -73,40 +75,97 @@ export default class Prepare extends Command {
       );
     }
 
-    const resolved = await resolveSource(urlOrPath, { userError });
-
-    let apiName;
-    if (name !== undefined) {
-      apiName = name;
-    } else if (resolved.filename !== undefined) {
-      apiName = basename(resolved.filename, extname(resolved.filename));
-    }
-
-    // TODO: should take also user error?
-    const providerJson = await prepareProviderJson(
+    let providerJson: ProviderJson;
+    let resolved: { source: string; name?: string };
+    const tasks = new Listr<
       {
-        urlOrSource: resolved.source,
-        name: apiName,
-        options: { quiet: flags.quiet },
+        urlOrPath: string;
+        name: string | undefined;
+      }
+    >([
+      {
+        title: 'Resolving inputs',
+        task: async ctx => {
+          resolved = await resolveInputs(ctx.urlOrPath!, ctx.name, {
+            userError,
+          });
+        },
       },
-      { logger }
-    );
+      {
+        title: 'Preparing API provider definition',
+        task: async () => {
+          // TODO: should take also user error?
+          providerJson = await prepareProviderJson(
+            {
+              urlOrSource: resolved.source,
+              name: resolved.name,
+              options: { quiet: flags.quiet },
+            },
+            { logger }
+          );
+        },
+      },
+      {
+        title: 'Writing provider definition',
+        task: async () => {
+          await writeProviderJson(providerJson, { logger, userError });
+        },
+      },
+    ]);
 
-    // TODO: force flag
-    if (await exists(buildProviderPath(providerJson.name))) {
-      throw userError(`Provider ${providerJson.name} already exists.`, 1);
-    }
+    const r = await tasks.run({
+      urlOrPath,
+      name,
+    });
 
-    if (!(await exists(buildSuperfaceDirPath()))) {
-      logger.info('sfDirectory');
-      await mkdir(buildSuperfaceDirPath(), { recursive: true });
-    }
+    console.log('r', r);
+  }
+}
 
-    await OutputStream.writeOnce(
-      buildProviderPath(providerJson.name),
-      JSON.stringify(providerJson, null, 2)
+async function writeProviderJson(
+  providerJson: ProviderJson,
+  { logger, userError }: { logger: ILogger; userError: UserError }
+): Promise<void> {
+  // TODO: force flag
+  if (await exists(buildProviderPath(providerJson.name))) {
+    throw userError(`Provider ${providerJson.name} already exists.`, 1);
+  }
+
+  if (!(await exists(buildSuperfaceDirPath()))) {
+    logger.info('sfDirectory');
+    await mkdir(buildSuperfaceDirPath(), { recursive: true });
+  }
+
+  await OutputStream.writeOnce(
+    buildProviderPath(providerJson.name),
+    JSON.stringify(providerJson, null, 2)
+  );
+}
+
+async function resolveInputs(
+  urlOrPath: string,
+  name: string | undefined,
+  { userError }: { userError: UserError }
+): Promise<{
+  source: string;
+  name?: string;
+}> {
+  const resolvedSource = await resolveSource(urlOrPath, { userError });
+
+  let apiName;
+  if (name !== undefined) {
+    apiName = name;
+  } else if (resolvedSource.filename !== undefined) {
+    apiName = basename(
+      resolvedSource.filename,
+      extname(resolvedSource.filename)
     );
   }
+
+  return {
+    source: resolvedSource.source,
+    name: apiName,
+  };
 }
 
 async function resolveSource(
