@@ -1,5 +1,8 @@
-import type { ProfileDocumentNode, ProviderJson } from '@superfaceai/ast';
-import { parseProfile, Source } from '@superfaceai/parser';
+import type {
+  ProfileDocumentNode,
+  ProviderJson,
+  UseCaseDefinitionNode,
+} from '@superfaceai/ast';
 
 import type { ILogger } from '../../common';
 import type { UserError } from '../../common/error';
@@ -10,29 +13,38 @@ import { jsApplicationCode } from './js';
 export async function writeApplicationCode(
   {
     providerJson,
-    profile,
-    useCaseName,
-  }: // target
+    profileAst,
+  }: // useCaseName,
+  // target
   {
     providerJson: ProviderJson;
-    profile: {
-      source: string;
-      name: string;
-      scope?: string;
-    };
-    useCaseName: string;
+    profileAst: ProfileDocumentNode;
     // TODO: add more target languages
     // target: 'js';
   },
   { logger, userError }: { logger: ILogger; userError: UserError }
 ): Promise<string> {
-  let profileAst: ProfileDocumentNode;
+  const useCases = profileAst.definitions.filter(
+    (definition): definition is UseCaseDefinitionNode => {
+      return definition.kind === 'UseCaseDefinition';
+    }
+  );
 
-  try {
-    profileAst = parseProfile(new Source(profile.source));
-  } catch (error) {
-    throw userError(`Invalid profile source: ${stringifyError(error)}`, 1);
+  if (useCases.length === 0) {
+    throw userError(
+      `No use cases found in profile ${profileAst.header.name}`,
+      1
+    );
   }
+
+  if (useCases.length > 1) {
+    throw userError(
+      `Multiple use cases found in profile ${profileAst.header.name}. Currently only one use case is per profile file is supported.`,
+      1
+    );
+  }
+
+  const useCaseName = useCases[0].useCaseName;
 
   // TODO: this should be language independent and also take use case name as input
   let inputExample: string;
@@ -49,8 +61,8 @@ export async function writeApplicationCode(
   return jsApplicationCode(
     {
       profile: {
-        name: profile.name,
-        scope: profile.scope,
+        name: profileAst.header.name,
+        scope: profileAst.header.scope,
       },
       useCaseName,
       provider: providerJson.name,
