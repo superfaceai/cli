@@ -61,31 +61,55 @@ describe('MapCLI command', () => {
 
     describe('checking provider name argument', () => {
       it('throws when provider name is not provided', async () => {
+        jest.mocked(exists).mockResolvedValueOnce(true);
+        jest
+          .mocked(readFile)
+          .mockResolvedValueOnce(profileSource(profileScope, profileName));
+
         await expect(
-          instance.execute({ logger, userError, flags: {}, args: {} })
+          instance.execute({
+            logger,
+            userError,
+            flags: {},
+            args: { profileId: `${profileScope}.${profileName}` },
+          })
         ).rejects.toThrow(
           'Missing provider name. Please provide it as first argument.'
         );
       });
 
       it('throws when provider name is invalid', async () => {
+        jest.mocked(exists).mockResolvedValueOnce(true);
+        jest
+          .mocked(readFile)
+          .mockResolvedValueOnce(profileSource(profileScope, profileName));
         await expect(
           instance.execute({
             logger,
             userError,
             flags: {},
-            args: { providerName: '!_0%L' },
+            args: {
+              providerName: '!_0%L',
+              profileId: `${profileScope}.${profileName}`,
+            },
           })
         ).rejects.toThrow('Invalid provider name');
       });
 
       it('throws when provider file does not exist', async () => {
+        jest.mocked(exists).mockResolvedValueOnce(true);
+        jest
+          .mocked(readFile)
+          .mockResolvedValueOnce(profileSource(profileScope, profileName));
         await expect(
           instance.execute({
             logger,
             userError,
             flags: {},
-            args: { providerName: 'test', profileId: 'get-user' },
+            args: {
+              providerName: 'test',
+              profileId: `${profileScope}.${profileName}`,
+            },
           })
         ).rejects.toThrow(
           'Provider test does not exist. Make sure to run "sf prepare" before running this command.'
@@ -102,7 +126,10 @@ describe('MapCLI command', () => {
             logger,
             userError,
             flags: {},
-            args: { providerName: 'test', profileId: 'get-user' },
+            args: {
+              providerName: 'test',
+              profileId: `${profileScope}.${profileName}`,
+            },
           })
         ).rejects.toThrow('File read error');
       });
@@ -115,7 +142,10 @@ describe('MapCLI command', () => {
             logger,
             userError,
             flags: {},
-            args: { providerName: 'test', profileId: 'get-user' },
+            args: {
+              providerName: 'test',
+              profileId: `${profileScope}.${profileName}`,
+            },
           })
         ).rejects.toThrow(``);
       });
@@ -128,7 +158,10 @@ describe('MapCLI command', () => {
             logger,
             userError,
             flags: {},
-            args: { providerName: 'test', profileId: 'get-user' },
+            args: {
+              providerName: 'test',
+              profileId: `${profileScope}.${profileName}`,
+            },
           })
         ).rejects.toThrow(``);
       });
@@ -145,7 +178,10 @@ describe('MapCLI command', () => {
             logger,
             userError,
             flags: {},
-            args: { providerName: 'test', profileId: 'get-user' },
+            args: {
+              providerName: 'test',
+              profileId: `${profileScope}.${profileName}`,
+            },
           })
         ).rejects.toThrow(``);
       });
@@ -250,8 +286,9 @@ describe('MapCLI command', () => {
           .mockResolvedValueOnce(true);
         jest
           .mocked(readFile)
-          .mockResolvedValueOnce(JSON.stringify(providerJson))
-          .mockResolvedValueOnce(profileSource(undefined, 'get-user2'));
+          .mockResolvedValueOnce(profileSource(undefined, 'other'))
+          .mockResolvedValueOnce(JSON.stringify(providerJson));
+
         await expect(
           instance.execute({
             logger,
@@ -271,8 +308,9 @@ describe('MapCLI command', () => {
           .mockResolvedValueOnce(true);
         jest
           .mocked(readFile)
-          .mockResolvedValueOnce(JSON.stringify(providerJson))
-          .mockResolvedValueOnce(profileSource('other', profileName));
+          .mockResolvedValueOnce(profileSource('other', profileName))
+          .mockResolvedValueOnce(JSON.stringify(providerJson));
+
         await expect(
           instance.execute({
             logger,
@@ -294,8 +332,9 @@ describe('MapCLI command', () => {
         .mockResolvedValueOnce(false);
       jest
         .mocked(readFile)
-        .mockResolvedValueOnce(JSON.stringify(providerJson))
-        .mockResolvedValueOnce(profileSource(undefined, profileName));
+        .mockResolvedValueOnce(profileSource(undefined, profileName))
+        .mockResolvedValueOnce(JSON.stringify(providerJson));
+
       jest.mocked(mapProviderToProfile).mockResolvedValueOnce(mapSource);
 
       await instance.execute({
@@ -334,8 +373,9 @@ describe('MapCLI command', () => {
         .mockResolvedValueOnce(false);
       jest
         .mocked(readFile)
-        .mockResolvedValueOnce(JSON.stringify(providerJson))
-        .mockResolvedValueOnce(profileSource(profileScope, profileName));
+        .mockResolvedValueOnce(profileSource(profileScope, profileName))
+        .mockResolvedValueOnce(JSON.stringify(providerJson));
+
       jest.mocked(mapProviderToProfile).mockResolvedValueOnce(mapSource);
 
       await instance.execute({
@@ -374,8 +414,9 @@ describe('MapCLI command', () => {
         .mockResolvedValueOnce(false);
       jest
         .mocked(readFile)
-        .mockResolvedValueOnce(JSON.stringify(providerJson))
-        .mockResolvedValueOnce(profileSource(undefined, profileName));
+        .mockResolvedValueOnce(profileSource(undefined, profileName))
+        .mockResolvedValueOnce(JSON.stringify(providerJson));
+
       jest.mocked(mapProviderToProfile).mockResolvedValueOnce(mapSource);
 
       await instance.execute({
