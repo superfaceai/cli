@@ -127,7 +127,7 @@ describe('Error functions', () => {
   });
 
   describe('when stringifing error', () => {
-    it('stringifies usser error correctly', async () => {
+    it('stringifies user error correctly', async () => {
       const result = stringifyError(createUserError(false)('user error', 1));
       expect(result).toEqual(expect.stringContaining('user error'));
       expect(result).toEqual(expect.stringContaining('stack'));
