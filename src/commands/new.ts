@@ -159,7 +159,7 @@ function checkPrompt(
   }
 }
 
-async function resolveProviderJson(
+export async function resolveProviderJson(
   providerName: string | undefined,
   { userError }: { userError: UserError }
 ): Promise<ProviderJson> {
