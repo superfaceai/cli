@@ -1,5 +1,6 @@
 import { MockLogger } from '../../common';
 import { createUserError } from '../../common/error';
+import { buildAssetsPath } from '../../common/file-structure';
 import { writeApplicationCode } from './application-code';
 
 describe('writeApplicationCode', () => {
@@ -65,7 +66,7 @@ import { OneClient } from '@superfaceai/one-sdk/node/index.js';
   
 config();
 async function main() {
-  const client = new OneClient({ assetsPath: 'superface' });
+  const client = new OneClient({ assetsPath: '${buildAssetsPath()}' });
 
   const profile = await client.getProfile('${scope}/${name}');
   const result = await profile

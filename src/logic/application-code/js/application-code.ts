@@ -1,7 +1,7 @@
 import type { IntegrationParameter, SecurityScheme } from '@superfaceai/ast';
 
 import type { ILogger } from '../../../common';
-import { buildAssetstPath } from '../../../common/file-structure';
+import { buildAssetsPath } from '../../../common/file-structure';
 import { prepareParametersString } from './parameters';
 import { prepareSecurityString } from './security';
 
@@ -44,7 +44,7 @@ import { OneClient } from '${pathToSdk}';
   
 config();
 async function main() {
-  const client = new OneClient({ assetsPath: '${buildAssetstPath()}' });
+  const client = new OneClient({ assetsPath: '${buildAssetsPath()}' });
 
   const profile = await client.getProfile('${profileId}');
   const result = await profile
