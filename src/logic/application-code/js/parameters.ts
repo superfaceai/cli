@@ -21,8 +21,6 @@ export function prepareParametersString(
     logger.info('requiredParameterValue', value);
   });
 
-  console.log(parametersMap);
-
   return (
     '{ ' +
     Object.entries(parametersMap)
