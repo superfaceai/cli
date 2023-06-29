@@ -77,22 +77,21 @@ export default class Prepare extends Command {
 
     let providerJson: ProviderJson;
     let resolved: { source: string; name?: string };
-    const tasks = new Listr<
-      {
-        urlOrPath: string;
-        name: string | undefined;
-      }
-    >([
+    const tasks = new Listr<{
+      urlOrPath: string;
+      name: string | undefined;
+    }>([
       {
         title: 'Resolving inputs',
         task: async ctx => {
-          resolved = await resolveInputs(ctx.urlOrPath!, ctx.name, {
+          resolved = await resolveInputs(ctx.urlOrPath, ctx.name, {
             userError,
           });
         },
       },
       {
         title: 'Preparing API provider definition',
+        enabled: () => resolved !== undefined,
         task: async () => {
           // TODO: should take also user error?
           providerJson = await prepareProviderJson(
@@ -107,18 +106,17 @@ export default class Prepare extends Command {
       },
       {
         title: 'Writing provider definition',
+        enabled: () => providerJson !== undefined,
         task: async () => {
           await writeProviderJson(providerJson, { logger, userError });
         },
       },
     ]);
 
-    const r = await tasks.run({
+    await tasks.run({
       urlOrPath,
       name,
     });
-
-    console.log('r', r);
   }
 }
 
