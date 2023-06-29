@@ -73,3 +73,20 @@ export function assertIsExecError(
 
   throw developerError(`unexpected error: ${inspect(error)}`, 103);
 }
+
+export function stringifyError(error: unknown): string {
+  try {
+    if (error instanceof Error) {
+      const plainObject: Record<string, unknown> = {};
+      Object.getOwnPropertyNames(error).forEach(function (key) {
+        plainObject[key] = error[key as keyof Error];
+      });
+
+      return JSON.stringify(plainObject, null, 2);
+    }
+  } catch (e) {
+    void e;
+  }
+
+  return inspect(error, true, null, true);
+}
