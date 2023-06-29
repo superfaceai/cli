@@ -147,7 +147,7 @@ describe('MapCLI command', () => {
               profileId: `${profileScope}.${profileName}`,
             },
           })
-        ).rejects.toThrow(``);
+        ).rejects.toThrow(`Invalid provider.json file.`);
       });
 
       it('throws when provider is not Provider JSON', async () => {
@@ -163,7 +163,7 @@ describe('MapCLI command', () => {
               profileId: `${profileScope}.${profileName}`,
             },
           })
-        ).rejects.toThrow(``);
+        ).rejects.toThrow(`Invalid provider.json file.`);
       });
 
       it('throws when provider names does not match', async () => {
@@ -183,7 +183,9 @@ describe('MapCLI command', () => {
               profileId: `${profileScope}.${profileName}`,
             },
           })
-        ).rejects.toThrow(``);
+        ).rejects.toThrow(
+          `Provider name in provider.json file does not match provider name in command.`
+        );
       });
     });
 
@@ -276,7 +278,7 @@ describe('MapCLI command', () => {
             flags: {},
             args: { providerName, profileId: profileName },
           })
-        ).rejects.toThrow();
+        ).rejects.toThrow(`Invalid profile ${profileName}: `);
       });
 
       it('throws when profile names does not match', async () => {
