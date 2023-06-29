@@ -1,8 +1,15 @@
 import inquirer from 'inquirer';
 
 import type { ILogger } from '../../common';
-import type { UserError } from '../../common/error';
+import { type UserError } from '../../common/error';
+import { stringifyError } from '../../common/error';
 import type { IPackageManager } from '../../common/package-manager';
+import { dirname } from 'path';
+import { exists } from '../../common/io';
+import {
+  DEFAULT_SUPERFACE_DIR,
+  buildSuperfaceDirPath,
+} from '../../common/file-structure';
 
 export async function setupJsProject({
   logger,
@@ -13,6 +20,28 @@ export async function setupJsProject({
   pm: IPackageManager;
   userError: UserError;
 }) {
+  let originalDir: string | undefined;
+  // Check directory
+  if (dirname(process.cwd()) !== DEFAULT_SUPERFACE_DIR) {
+    if (!(await exists(buildSuperfaceDirPath()))) {
+      throw userError(
+        'Superface directory not found. Please run "superface prepare" first.',
+        1
+      );
+    }
+
+    try {
+      originalDir = process.cwd();
+
+      process.chdir('superface');
+    } catch (error) {
+      throw userError(
+        `Error when changing directory: ${stringifyError(error)}`,
+        1
+      );
+    }
+  }
+
   // Check/init package-manager
   if (!(await pm.packageJsonExists())) {
     logger.warn('packageJsonNotFound');
@@ -41,7 +70,7 @@ export async function setupJsProject({
 
   // Install SDK
   logger.success('installPackage', '@superfaceai/one-sdk');
-  await pm.installPackage('@superfaceai/one-sdk');
+  await pm.installPackage('@superfaceai/one-sdk@3.0.0-alpha.12');
 
   // Prompt user for dotenv installation
   if (
@@ -57,6 +86,10 @@ export async function setupJsProject({
   // TODO: SDK token
   // TODO: .env file
   // TODO: get used security
+
+  if (originalDir !== undefined) {
+    process.chdir(originalDir);
+  }
 }
 
 async function confirmPrompt(

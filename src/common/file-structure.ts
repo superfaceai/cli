@@ -1,6 +1,6 @@
 import { join, resolve } from 'path';
 
-const DEFAULT_SUPERFACE_DIR = 'superface';
+export const DEFAULT_SUPERFACE_DIR = 'superface';
 
 const PROFILE_EXTENSION = '.profile';
 
