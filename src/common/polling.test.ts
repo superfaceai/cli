@@ -41,7 +41,7 @@ describe('polling', () => {
       )
       .mockResolvedValueOnce(
         mockResponse(200, 'ok', undefined, {
-          status: 'Successful',
+          status: 'Success',
           result_url: resultUrl,
         })
       );
