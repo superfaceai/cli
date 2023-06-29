@@ -3,6 +3,7 @@ import { SyntaxError } from '@superfaceai/parser';
 const newCommand = {
   startProfileGeneration: (providerName: string) =>
     `Starting profile generation for provider: "${providerName}"`,
+  saveProfile: (path: string) => `Saving to: "${path}"`,
 };
 const prepare = {
   preparationStarted: () => 'Starting preparation process',
