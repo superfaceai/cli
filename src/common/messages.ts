@@ -1,5 +1,12 @@
 import { SyntaxError } from '@superfaceai/parser';
 
+const applicationCode = {
+  requiredSecurityValue: (value: string): string =>
+    `Security ${value} is required for integration, please provide it in .env file`,
+  requiredParameterValue: (value: string): string =>
+    `Parameter ${value} is required for integration, please provide it in .env file`,
+};
+
 const newCommand = {
   startProfileGeneration: (providerName: string) =>
     `Starting profile generation for provider: "${providerName}"`,
@@ -374,6 +381,7 @@ export const messages = {
   ...compatibility,
   ...newCommand,
   ...prepare,
+  ...applicationCode,
 };
 
 export type MessageKeys = keyof typeof messages;

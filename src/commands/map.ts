@@ -6,6 +6,7 @@ import { basename } from 'path';
 import type { Flags } from '../common/command.abstract';
 import { Command } from '../common/command.abstract';
 import type { UserError } from '../common/error';
+import { stringifyError } from '../common/error';
 import { buildMapPath, buildProfilePath } from '../common/file-structure';
 import { exists, readFile } from '../common/io';
 import type { ILogger } from '../common/log';
@@ -150,10 +151,7 @@ async function resolveProfileSource(
   try {
     profileAst = parseProfile(new Source(profileSource, profileId));
   } catch (e) {
-    throw userError(
-      `Invalid profile ${profileId}: ${JSON.stringify(e, undefined, 2)}`,
-      1
-    );
+    throw userError(`Invalid profile ${profileId}: ${stringifyError(e)}`, 1);
   }
 
   // TODO: revisit name check

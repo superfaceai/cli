@@ -135,8 +135,14 @@ describe('MapCLI command', () => {
       });
 
       it('throws when provider is not valid JSON', async () => {
-        jest.mocked(exists).mockResolvedValueOnce(true);
-        jest.mocked(readFile).mockResolvedValueOnce('file content');
+        jest
+          .mocked(exists)
+          .mockResolvedValueOnce(true)
+          .mockResolvedValueOnce(true);
+        jest
+          .mocked(readFile)
+          .mockResolvedValueOnce(profileSource(profileScope, profileName))
+          .mockResolvedValueOnce('file content');
         await expect(
           instance.execute({
             logger,
@@ -151,8 +157,14 @@ describe('MapCLI command', () => {
       });
 
       it('throws when provider is not Provider JSON', async () => {
-        jest.mocked(exists).mockResolvedValueOnce(true);
-        jest.mocked(readFile).mockResolvedValueOnce('{"test": 1}');
+        jest
+          .mocked(exists)
+          .mockResolvedValueOnce(true)
+          .mockResolvedValueOnce(true);
+        jest
+          .mocked(readFile)
+          .mockResolvedValueOnce(profileSource(profileScope, profileName))
+          .mockResolvedValueOnce('{"test": 1}');
         await expect(
           instance.execute({
             logger,
@@ -167,11 +179,15 @@ describe('MapCLI command', () => {
       });
 
       it('throws when provider names does not match', async () => {
-        jest.mocked(exists).mockResolvedValueOnce(true);
+        jest
+          .mocked(exists)
+          .mockResolvedValueOnce(true)
+          .mockResolvedValueOnce(true);
         jest
           .mocked(readFile)
+          .mockResolvedValueOnce(profileSource(profileScope, profileName))
           .mockResolvedValueOnce(
-            JSON.stringify(mockProviderJson({ name: 'test2' }))
+            JSON.stringify(mockProviderJson({ name: 'test-provider' }))
           );
         await expect(
           instance.execute({

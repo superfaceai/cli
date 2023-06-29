@@ -6,6 +6,7 @@ import {
   assertIsIOError,
   createUserError,
   developerError,
+  stringifyError,
 } from './error';
 
 describe('Error functions', () => {
@@ -122,6 +123,41 @@ describe('Error functions', () => {
       expect(() =>
         assertIsExecError({ stderr: 'test', stdout: 'test' })
       ).not.toThrow();
+    });
+  });
+
+  describe('when stringifing error', () => {
+    it('stringifies user error correctly', async () => {
+      const result = stringifyError(createUserError(false)('user error', 1));
+      expect(result).toEqual(expect.stringContaining('user error'));
+      expect(result).toEqual(expect.stringContaining('stack'));
+      expect(result).toEqual(expect.stringContaining('1'));
+    });
+
+    it('stringifies CLI error correctly', async () => {
+      const result = stringifyError(
+        new CLIError('❌ Internal error: developer error')
+      );
+      expect(result).toEqual(
+        expect.stringContaining('Internal error: developer error')
+      );
+      expect(result).toEqual(expect.stringContaining('stack'));
+      expect(result).toEqual(expect.stringContaining('1'));
+    });
+
+    it('stringifies error correctly', async () => {
+      const result = stringifyError(new Error('test'));
+      expect(result).toEqual(expect.stringContaining('test'));
+      expect(result).toEqual(expect.stringContaining('stack'));
+    });
+
+    it('stringifies simple type correctly', async () => {
+      expect(stringifyError(null)).toEqual(expect.stringContaining('null'));
+      expect(stringifyError({})).toEqual('{}');
+      expect(stringifyError(undefined)).toEqual(
+        expect.stringContaining('undefined')
+      );
+      expect(stringifyError('error')).toEqual(expect.stringContaining('error'));
     });
   });
 });
