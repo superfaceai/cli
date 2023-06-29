@@ -3,6 +3,7 @@ import { parseProfile, Source } from '@superfaceai/parser';
 
 import type { ILogger } from '../../common';
 import type { UserError } from '../../common/error';
+import { stringifyError } from '../../common/error';
 import { prepareUseCaseInput } from './input/prepare-usecase-input';
 import { jsApplicationCode } from './js';
 
@@ -30,10 +31,7 @@ export async function writeApplicationCode(
   try {
     profileAst = parseProfile(new Source(profile.source));
   } catch (error) {
-    throw userError(
-      `Invalid profile source: ${JSON.stringify(error, null, 2)}`,
-      1
-    );
+    throw userError(`Invalid profile source: ${stringifyError(error)}`, 1);
   }
 
   // TODO: this should be language independent and also take use case name as input
@@ -43,7 +41,7 @@ export async function writeApplicationCode(
   } catch (error) {
     // TODO: fallback to empty object?
     throw userError(
-      `Input example construction failed: ${JSON.stringify(error, null, 2)}`,
+      `Input example construction failed: ${stringifyError(error)}`,
       1
     );
   }

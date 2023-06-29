@@ -49,7 +49,12 @@ describe('new CLI command', () => {
 
     it('throws when provider name is not provided', async () => {
       await expect(
-        instance.execute({ logger, userError, flags: {}, args: {} })
+        instance.execute({
+          logger,
+          userError,
+          flags: {},
+          args: { prompt: 'test' },
+        })
       ).rejects.toThrow(
         'Missing provider name. Please provide it as first argument.'
       );
@@ -61,7 +66,7 @@ describe('new CLI command', () => {
           logger,
           userError,
           flags: {},
-          args: { providerName: '!_0%L' },
+          args: { providerName: '!_0%L', prompt: 'test' },
         })
       ).rejects.toThrow('Invalid provider name');
     });
