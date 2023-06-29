@@ -57,6 +57,7 @@ npx @superfaceai/cli install [profileId eg. communication/send-email]
   <!-- commands -->
 * [`superface login`](#superface-login)
 * [`superface logout`](#superface-logout)
+* [`superface prepare URLORPATH [NAME]`](#superface-prepare-urlorpath-name)
 * [`superface whoami`](#superface-whoami)
 
 ## `superface login`
@@ -106,7 +107,42 @@ EXAMPLES
   $ superface logout
 ```
 
-_See code: [src/commands/logout.ts](https://github.com/superfaceai/cli/tree/main/src/commands/logout.ts)_
+_See code: [dist/commands/logout.ts](https://github.com/superfaceai/cli/tree/main/src/commands/logout.ts)_
+
+## `superface prepare URLORPATH [NAME]`
+
+Prepares API documentation for integration generation from provider URL or local file with OpenAPI specification in yaml or json format. Or from the URL to the readme.io dev portal.  This command prepares a provider definition that can be used to generate integration code.
+
+```
+USAGE
+  $ superface prepare URLORPATH [NAME] [-q] [--noColor] [--noEmoji] [-h]
+
+ARGUMENTS
+  URLORPATH  URL or path to the API documentation.
+  NAME       API name. If not provided, it will be inferred from URL or file name.
+
+FLAGS
+  -h, --help   show CLI help
+  -q, --quiet  When set to true, disables the shell echo output of action.
+  --noColor    When set to true, disables all colored output.
+  --noEmoji    When set to true, disables displaying emoji in output.
+
+DESCRIPTION
+  Prepares API documentation for integration generation from provider URL or local file with OpenAPI specification in
+  yaml or json format. Or from the URL to the readme.io dev portal.  This command prepares a provider definition that
+  can be used to generate integration code.
+
+EXAMPLES
+  $ superface prepare https://raw.githubusercontent.com/APIs-guru/openapi-directory/main/APIs/openai.com/1.2.0/openapi.yaml
+
+  $ superface prepare https://raw.githubusercontent.com/APIs-guru/openapi-directory/main/APIs/openai.com/1.2.0/openapi.yaml openai
+
+  $ superface prepare prepare path/to/openapi.json
+
+  $ superface prepare prepare https://workable.readme.io/reference/stages
+```
+
+_See code: [dist/commands/prepare.ts](https://github.com/superfaceai/cli/tree/main/src/commands/prepare.ts)_
 
 ## `superface whoami`
 

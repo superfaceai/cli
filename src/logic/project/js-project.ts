@@ -1,15 +1,18 @@
-import inquirer from "inquirer";
-import { ILogger } from "../../common";
-import { UserError } from "../../common/error";
-import { IPackageManager } from "../../common/package-manager";
+import inquirer from 'inquirer';
 
+import type { ILogger } from '../../common';
+import type { UserError } from '../../common/error';
+import type { IPackageManager } from '../../common/package-manager';
 
 export async function setupJsProject({
   logger,
   pm,
   userError,
-}: { logger: ILogger; pm: IPackageManager; userError: UserError }) {
-
+}: {
+  logger: ILogger;
+  pm: IPackageManager;
+  userError: UserError;
+}) {
   // Check/init package-manager
   if (!(await pm.packageJsonExists())) {
     logger.warn('packageJsonNotFound');
@@ -51,9 +54,9 @@ export async function setupJsProject({
     await pm.installPackage('dotenv');
   }
 
-  //TODO: SDK token
-  //TODO: .env file
-  //TODO: get used security
+  // TODO: SDK token
+  // TODO: .env file
+  // TODO: get used security
 }
 
 async function confirmPrompt(
