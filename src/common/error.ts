@@ -1,6 +1,8 @@
 import { CLIError } from '@oclif/errors';
 import { inspect } from 'util';
 
+import type { UX } from './ux';
+
 /**
  * User error.
  *
@@ -10,7 +12,9 @@ import { inspect } from 'util';
  */
 export const createUserError =
   (emoji: boolean) =>
-  (message: string, code: number): CLIError => {
+  (message: string, code: number, ux?: UX): CLIError => {
+    ux?.fail(message);
+
     if (code <= 0) {
       throw developerError('expected positive error code', 1);
     }

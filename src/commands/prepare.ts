@@ -1,5 +1,4 @@
 import type { ProviderJson } from '@superfaceai/ast';
-import Listr from 'listr';
 import { basename, extname } from 'path';
 
 import type { Flags } from '../common/command.abstract';
@@ -12,6 +11,7 @@ import {
 import { exists, mkdir, readFile } from '../common/io';
 import type { ILogger } from '../common/log';
 import { OutputStream } from '../common/output-stream';
+import { UX } from '../common/ux';
 import { prepareProviderJson } from '../logic/prepare';
 
 export default class Prepare extends Command {
@@ -66,6 +66,7 @@ export default class Prepare extends Command {
     flags: Flags<typeof Prepare.flags>;
     args: { urlOrPath?: string; name?: string };
   }): Promise<void> {
+    const ux = new UX();
     const { urlOrPath, name } = args;
 
     if (urlOrPath === undefined) {
@@ -75,58 +76,32 @@ export default class Prepare extends Command {
       );
     }
 
-    let providerJson: ProviderJson;
-    let resolved: { source: string; name?: string };
-    const tasks = new Listr<{
-      urlOrPath: string;
-      name: string | undefined;
-    }>([
-      {
-        title: 'Resolving inputs',
-        task: async ctx => {
-          resolved = await resolveInputs(ctx.urlOrPath, ctx.name, {
-            userError,
-          });
-        },
-      },
-      {
-        title: 'Preparing API provider definition',
-        enabled: () => resolved !== undefined,
-        task: async () => {
-          // TODO: should take also user error?
-          providerJson = await prepareProviderJson(
-            {
-              urlOrSource: resolved.source,
-              name: resolved.name,
-              options: { quiet: flags.quiet },
-            },
-            { logger }
-          );
-        },
-      },
-      {
-        title: 'Writing provider definition',
-        enabled: () => providerJson !== undefined,
-        task: async () => {
-          await writeProviderJson(providerJson, { logger, userError });
-        },
-      },
-    ]);
-
-    await tasks.run({
-      urlOrPath,
-      name,
+    const resolved = await resolveInputs(urlOrPath, name, {
+      userError,
+      ux,
     });
+
+    // TODO: should take also user error?
+    const providerJson = await prepareProviderJson(
+      {
+        urlOrSource: resolved.source,
+        name: resolved.name,
+        options: { quiet: flags.quiet },
+      },
+      { logger }
+    );
+
+    await writeProviderJson(providerJson, { logger, userError, ux });
   }
 }
 
-async function writeProviderJson(
+export async function writeProviderJson(
   providerJson: ProviderJson,
-  { logger, userError }: { logger: ILogger; userError: UserError }
+  { logger, userError, ux }: { logger: ILogger; userError: UserError; ux: UX }
 ): Promise<void> {
   // TODO: force flag
   if (await exists(buildProviderPath(providerJson.name))) {
-    throw userError(`Provider ${providerJson.name} already exists.`, 1);
+    throw userError(`Provider ${providerJson.name} already exists.`, 1, ux);
   }
 
   if (!(await exists(buildSuperfaceDirPath()))) {
@@ -143,12 +118,17 @@ async function writeProviderJson(
 async function resolveInputs(
   urlOrPath: string,
   name: string | undefined,
-  { userError }: { userError: UserError }
+  { userError, ux }: { userError: UserError; ux: UX }
 ): Promise<{
   source: string;
   name?: string;
 }> {
-  const resolvedSource = await resolveSource(urlOrPath, { userError });
+  ux.start('Resolving inputs');
+
+  // slep for 2 seconds
+  await new Promise(resolve => setTimeout(resolve, 2000));
+
+  const resolvedSource = await resolveSource(urlOrPath, { userError, ux });
 
   let apiName;
   if (name !== undefined) {
@@ -160,6 +140,8 @@ async function resolveInputs(
     );
   }
 
+  ux.succeed('Resolved inputs');
+
   return {
     source: resolvedSource.source,
     name: apiName,
@@ -168,7 +150,7 @@ async function resolveInputs(
 
 async function resolveSource(
   urlOrPath: string,
-  { userError }: { userError: UserError }
+  { userError, ux }: { userError: UserError; ux: UX }
 ): Promise<{ filename?: string; source: string }> {
   if (isUrl(urlOrPath)) {
     return { source: urlOrPath };
@@ -177,19 +159,20 @@ async function resolveSource(
   if (!/(\.txt|\.json|\.yaml|\.yml)$/gm.test(urlOrPath)) {
     throw userError(
       `Invalid file extension. Supported extensions are: .txt, .json, .yaml, .yml.`,
-      1
+      1,
+      ux
     );
   }
 
   if (!(await exists(urlOrPath))) {
-    throw userError(`File ${urlOrPath} does not exist.`, 1);
+    throw userError(`File ${urlOrPath} does not exist.`, 1, ux);
   }
 
   let content: string;
   try {
     content = await readFile(urlOrPath, { encoding: 'utf-8' });
   } catch (e) {
-    throw userError(`Could not read file ${urlOrPath}.`, 1);
+    throw userError(`Could not read file ${urlOrPath}.`, 1, ux);
   }
 
   return { filename: urlOrPath, source: content };
