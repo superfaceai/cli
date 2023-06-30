@@ -11,6 +11,7 @@ import { buildMapPath, buildProfilePath } from '../common/file-structure';
 import { exists, readFile } from '../common/io';
 import type { ILogger } from '../common/log';
 import { OutputStream } from '../common/output-stream';
+import { writeApplicationCode } from '../logic/application-code/application-code';
 import { mapProviderToProfile } from '../logic/map';
 import { resolveProviderJson } from './new';
 
@@ -66,7 +67,12 @@ export default class Map extends Command {
 
     let map: string;
     let providerJson: ProviderJson;
-    let profile: { source: string; name: string; scope: string | undefined };
+    let profile: {
+      ast: ProfileDocumentNode;
+      source: string;
+      name: string;
+      scope: string | undefined;
+    };
 
     const tasks = new Listr<{
       providerName: string | undefined;
@@ -104,10 +110,33 @@ export default class Map extends Command {
       },
       {
         title: 'Saving integration code',
-        enabled: () => providerJson !== undefined,
+        enabled: () =>
+          providerJson !== undefined &&
+          profile !== undefined &&
+          map !== undefined,
         task: async () => {
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           await saveMap(profileId!, providerName!, map, { userError });
+        },
+      },
+      {
+        title: 'Preparing boilerplate code',
+        enabled: () =>
+          providerJson !== undefined &&
+          profile !== undefined &&
+          map !== undefined,
+        task: async () => {
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          await writeApplicationCode(
+            {
+              providerJson,
+              profileAst: profile.ast,
+            },
+            {
+              logger,
+              userError,
+            }
+          );
         },
       },
     ]);
@@ -118,14 +147,19 @@ export default class Map extends Command {
       quiet: flags.quiet,
     });
 
-    // TODO: write boilerplate code - profile AST is needed for that
+    // TODO: install dependencies
   }
 }
 
 async function resolveProfileSource(
   profileId: string | undefined,
   { userError }: { userError: UserError }
-): Promise<{ source: string; name: string; scope: string | undefined }> {
+): Promise<{
+  source: string;
+  ast: ProfileDocumentNode;
+  name: string;
+  scope: string | undefined;
+}> {
   // Check profile name
   if (profileId === undefined) {
     throw userError(
@@ -171,6 +205,7 @@ async function resolveProfileSource(
 
   return {
     source: profileSource,
+    ast: profileAst,
     name: profileAst.header.name,
     scope: profileAst.header.scope,
   };
