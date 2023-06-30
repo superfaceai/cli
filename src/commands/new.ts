@@ -4,7 +4,6 @@ import {
   assertProviderJson,
   isValidProviderName,
 } from '@superfaceai/ast';
-import Listr from 'listr';
 import { basename } from 'path';
 
 import type { Flags } from '../common/command.abstract';
@@ -14,6 +13,7 @@ import { buildProfilePath, buildProviderPath } from '../common/file-structure';
 import { exists, readFile } from '../common/io';
 import type { ILogger } from '../common/log';
 import { OutputStream } from '../common/output-stream';
+import { UX } from '../common/ux';
 import { newProfile } from '../logic/new';
 
 const MAX_PROMPT_LENGTH = 200;
@@ -67,58 +67,39 @@ export default class New extends Command {
     flags: Flags<typeof New.flags>;
     args: { providerName?: string; prompt?: string };
   }): Promise<void> {
+    const ux = UX.create();
     const { providerName, prompt } = args;
 
-    let providerJson: ProviderJson;
-    let profile: { source: string; scope?: string; name: string };
-    const tasks = new Listr<{
-      providerName: string | undefined;
-      prompt: string | undefined;
-    }>([
-      {
-        title: 'Checking input arguments',
-        task: async ctx => {
-          checkPrompt(ctx.prompt, { userError });
-        },
-      },
-      {
-        title: 'Loading provider definition',
-        task: async ctx => {
-          providerJson = await resolveProviderJson(ctx.providerName, {
-            userError,
-          });
-        },
-      },
-      {
-        title: 'Preparing Comlink interface your use case',
-        enabled: () => providerJson !== undefined,
-        task: async ctx => {
-          // TODO: should take also user error?
-          profile = await newProfile(
-            {
-              providerJson,
-              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-              prompt: ctx.prompt!,
-              // TODO: add quiet flag to ctx?
-              options: { quiet: flags.quiet },
-            },
-            { logger }
-          );
-        },
-      },
-      {
-        title: 'Saving Comlink interface your use case',
-        enabled: () => providerJson !== undefined,
-        task: async () => {
-          await saveProfile(profile, { logger, userError });
-        },
-      },
-    ]);
 
-    await tasks.run({
-      providerName,
-      prompt,
+    ux.start('Checking input arguments');
+
+    checkPrompt(prompt, { userError });
+
+    ux.succeed('Input arguments checked');
+
+    ux.start('Loading provider definition');
+    const providerJson = await resolveProviderJson(providerName, {
+      userError,
     });
+
+    ux.succeed('Provider definition loaded');
+
+    ux.start('Preparing Comlink interface your use case');
+    // TODO: should take also user error?
+    const profile = await newProfile(
+      {
+        providerJson,
+        prompt: prompt,
+        options: { quiet: flags.quiet },
+      },
+      { logger }
+    );
+    ux.succeed('Comlink interface prepared');
+
+    ux.start('Saving Comlink interface your use case');
+    await saveProfile(profile, { logger, userError });
+
+    ux.succeed('Comlink interface saved');
   }
 }
 

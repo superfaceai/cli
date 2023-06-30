@@ -52,6 +52,7 @@ export class UX {
     if (UX.instance === undefined) {
       UX.instance = new UX();
     }
-    return UX.instance;
+    
+return UX.instance;
   }
 }

@@ -66,7 +66,7 @@ export default class Prepare extends Command {
     flags: Flags<typeof Prepare.flags>;
     args: { urlOrPath?: string; name?: string };
   }): Promise<void> {
-    const ux = UX.create()
+    const ux = UX.create();
     const { urlOrPath, name } = args;
 
     if (urlOrPath === undefined) {
@@ -91,7 +91,7 @@ export default class Prepare extends Command {
       { logger }
     );
 
-    await writeProviderJson(providerJson, { logger, userError, });
+    await writeProviderJson(providerJson, { logger, userError });
   }
 }
 
@@ -150,7 +150,7 @@ async function resolveInputs(
 
 async function resolveSource(
   urlOrPath: string,
-  { userError }: { userError: UserError; }
+  { userError }: { userError: UserError }
 ): Promise<{ filename?: string; source: string }> {
   if (isUrl(urlOrPath)) {
     return { source: urlOrPath };
@@ -159,7 +159,7 @@ async function resolveSource(
   if (!/(\.txt|\.json|\.yaml|\.yml)$/gm.test(urlOrPath)) {
     throw userError(
       `Invalid file extension. Supported extensions are: .txt, .json, .yaml, .yml.`,
-      1,
+      1
     );
   }
 

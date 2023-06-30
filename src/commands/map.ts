@@ -1,6 +1,5 @@
-import type { ProfileDocumentNode, ProviderJson } from '@superfaceai/ast';
+import type { ProfileDocumentNode } from '@superfaceai/ast';
 import { parseDocumentId, parseProfile, Source } from '@superfaceai/parser';
-import Listr from 'listr';
 import { basename } from 'path';
 
 import type { Flags } from '../common/command.abstract';
@@ -11,6 +10,7 @@ import { buildMapPath, buildProfilePath } from '../common/file-structure';
 import { exists, readFile } from '../common/io';
 import type { ILogger } from '../common/log';
 import { OutputStream } from '../common/output-stream';
+import { UX } from '../common/ux';
 import { writeApplicationCode } from '../logic/application-code/application-code';
 import { mapProviderToProfile } from '../logic/map';
 import { resolveProviderJson } from './new';
@@ -63,89 +63,51 @@ export default class Map extends Command {
     flags: Flags<typeof Map.flags>;
     args: { providerName?: string; profileId?: string };
   }): Promise<void> {
+    const ux = UX.create();
     const { providerName, profileId } = args;
 
-    let map: string;
-    let providerJson: ProviderJson;
-    let profile: {
-      ast: ProfileDocumentNode;
-      source: string;
-      name: string;
-      scope: string | undefined;
-    };
+    ux.start('Loading profile');
+    const profile = await resolveProfileSource(profileId, { userError });
+    ux.succeed('Profile loaded');
 
-    const tasks = new Listr<{
-      providerName: string | undefined;
-      profileId: string | undefined;
-      quiet: boolean | undefined;
-    }>([
-      {
-        title: 'Loading profile',
-        task: async ctx => {
-          profile = await resolveProfileSource(ctx.profileId, { userError });
-        },
-      },
-      {
-        title: 'Loading provider definition',
-        task: async ctx => {
-          providerJson = await resolveProviderJson(ctx.providerName, {
-            userError,
-          });
-        },
-      },
-      {
-        title: 'Preparing integration code for your use case',
-        enabled: () => providerJson !== undefined && profile !== undefined,
-        task: async ctx => {
-          // TODO: load old map?
-          map = await mapProviderToProfile(
-            {
-              providerJson,
-              profile,
-              options: { quiet: ctx.quiet },
-            },
-            { logger }
-          );
-        },
-      },
-      {
-        title: 'Saving integration code',
-        enabled: () =>
-          providerJson !== undefined &&
-          profile !== undefined &&
-          map !== undefined,
-        task: async () => {
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          await saveMap(profileId!, providerName!, map, { userError });
-        },
-      },
-      {
-        title: 'Preparing boilerplate code',
-        enabled: () =>
-          providerJson !== undefined &&
-          profile !== undefined &&
-          map !== undefined,
-        task: async () => {
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          await writeApplicationCode(
-            {
-              providerJson,
-              profileAst: profile.ast,
-            },
-            {
-              logger,
-              userError,
-            }
-          );
-        },
-      },
-    ]);
-
-    await tasks.run({
-      providerName,
-      profileId,
-      quiet: flags.quiet,
+    ux.start('Loading provider definition');
+    const providerJson = await resolveProviderJson(providerName, {
+      userError,
     });
+
+    ux.succeed('Provider definition loaded');
+
+    ux.start('Preparing integration code for your use case');
+    // TODO: load old map?
+    const map = await mapProviderToProfile(
+      {
+        providerJson,
+        profile,
+        options: { quiet: flags.quiet },
+      },
+      { logger }
+    );
+
+    ux.succeed('Integration code prepared');
+
+    ux.start('Saving integration code');
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    await saveMap(profileId!, providerName!, map, { userError });
+    ux.succeed('Integration code saved');
+
+    ux.start('Preparing boilerplate code');
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    await writeApplicationCode(
+      {
+        providerJson,
+        profileAst: profile.ast,
+      },
+      {
+        logger,
+        userError,
+      }
+    );
+    ux.succeed('Boilerplate code prepared');
 
     // TODO: install dependencies
   }

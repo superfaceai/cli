@@ -104,7 +104,9 @@ describe('polling', () => {
         },
         { logger, client }
       )
-    ).rejects.toThrow('Failed to prepare provider: Operation has been cancelled.');
+    ).rejects.toThrow(
+      'Failed to prepare provider: Operation has been cancelled.'
+    );
 
     expect(mockFetch).toHaveBeenCalledTimes(3);
 

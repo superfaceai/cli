@@ -23,7 +23,7 @@ type PollResponse =
       }[];
     }
   | { status: PollStatus.Failed; failure_reason: string }
-  | { status: PollStatus.Cancelled }
+  | { status: PollStatus.Cancelled };
 
 function isPollResponse(input: unknown): input is PollResponse {
   if (typeof input === 'object' && input !== null && 'status' in input) {
@@ -54,9 +54,7 @@ function isPollResponse(input: unknown): input is PollResponse {
       typeof tmp.failure_reason === 'string'
     ) {
       return true;
-    } else if (
-      tmp.status === PollStatus.Cancelled
-    ) {
+    } else if (tmp.status === PollStatus.Cancelled) {
       return true;
     }
   }
