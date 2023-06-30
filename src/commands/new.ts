@@ -83,7 +83,7 @@ export default class New extends Command {
 
     ux.succeed('Provider definition loaded');
 
-    ux.start('Preparing Comlink interface your use case');
+    ux.start('Creating profile for your use case');
     // TODO: should take also user error?
     const profile = await newProfile(
       {
@@ -93,13 +93,13 @@ export default class New extends Command {
       },
       { logger, userError, ux }
     );
-    ux.succeed('Comlink interface prepared');
+    ux.succeed('Profile created');
 
-    ux.start('Saving Comlink interface your use case');
+    ux.start('Saving profile for your use case');
     await saveProfile(profile, { logger, userError });
 
     ux.succeed(
-      `Comlink interface saved. You can use it to generate integration code for your use case by running 'superface map  ${
+      `Profile saved. You can use it to generate integration code for your use case by running 'superface map  ${
         providerJson.name
       } ${profile.scope !== undefined ? `${profile.scope}.` : ''}${
         profile.name

@@ -82,7 +82,7 @@ export default class Prepare extends Command {
       userError,
     });
 
-    ux.succeed('Resolved inputs');
+    ux.succeed('Inputs resolved');
 
     ux.start('Preparing provider definition');
     const providerJson = await prepareProviderJson(
@@ -94,7 +94,7 @@ export default class Prepare extends Command {
       { userError, ux }
     );
 
-    ux.succeed('Provider definition prepared successfully');
+    ux.succeed('Provider definition successfully prepared');
 
     ux.start('Saving provider definition');
     await writeProviderJson(providerJson, { logger, userError });
