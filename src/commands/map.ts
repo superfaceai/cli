@@ -1,12 +1,15 @@
-import type { ProfileDocumentNode } from '@superfaceai/ast';
+import type { ProfileDocumentNode, ProviderJson } from '@superfaceai/ast';
 import { parseDocumentId, parseProfile, Source } from '@superfaceai/parser';
-import { basename } from 'path';
 
 import type { Flags } from '../common/command.abstract';
 import { Command } from '../common/command.abstract';
 import type { UserError } from '../common/error';
 import { stringifyError } from '../common/error';
-import { buildMapPath, buildProfilePath } from '../common/file-structure';
+import {
+  buildMapPath,
+  buildProfilePath,
+  buildRunFilePath,
+} from '../common/file-structure';
 import { exists, readFile } from '../common/io';
 import type { ILogger } from '../common/log';
 import { OutputStream } from '../common/output-stream';
@@ -92,25 +95,52 @@ export default class Map extends Command {
 
     ux.start('Saving integration code');
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    await saveMap(profileId!, providerName!, map, { userError });
+    await saveMap(profileId!, providerName!, map);
     ux.succeed('Integration code saved');
 
     ux.start('Preparing boilerplate code');
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    await writeApplicationCode(
-      {
-        providerJson,
-        profileAst: profile.ast,
-      },
-      {
-        logger,
-        userError,
-      }
+
+    const saved = await saveBoilerplateCode(providerJson, profile.ast, {
+      logger,
+      userError,
+    });
+    ux.succeed(
+      saved ? 'Boilerplate code prepared.' : 'Boilerplate code already exists.'
     );
-    ux.succeed('Boilerplate code prepared.');
 
     // TODO: install dependencies
   }
+}
+
+async function saveBoilerplateCode(
+  providerJson: ProviderJson,
+  profileAst: ProfileDocumentNode,
+  { userError, logger }: { userError: UserError; logger: ILogger }
+): Promise<boolean> {
+  const path = buildRunFilePath(
+    providerJson.name,
+    profileAst.header.name,
+    'JS'
+  );
+
+  if (await exists(path)) {
+    return false;
+  }
+
+  const code = await writeApplicationCode(
+    {
+      providerJson,
+      profileAst,
+    },
+    {
+      logger,
+      userError,
+    }
+  );
+
+  await OutputStream.writeOnce(path, code);
+
+  return true;
 }
 
 async function resolveProfileSource(
@@ -176,15 +206,9 @@ async function resolveProfileSource(
 async function saveMap(
   profileId: string,
   providerName: string,
-  map: string,
-  { userError }: { userError: UserError }
+  map: string
 ): Promise<void> {
   const mapPath = buildMapPath(profileId, providerName);
-
-  // TODO: force flag? Ask for confirmation?
-  if (await exists(mapPath)) {
-    throw userError(`Map ${basename(mapPath)} already exists.`, 1);
-  }
 
   await OutputStream.writeOnce(mapPath, map);
 }
