@@ -93,7 +93,7 @@ describe('newProfile', () => {
     });
     expect(pollUrl).toHaveBeenCalledWith(
       { options: { quiet: undefined }, url: 'https://superface.ai/job/123' },
-      { logger, client: expect.any(ServiceClient), ux, userError }
+      { client: expect.any(ServiceClient), ux, userError }
     );
     expect(fetch).toHaveBeenNthCalledWith(2, 'https://superface.ai/job/123', {
       baseUrl: '',
@@ -142,7 +142,7 @@ describe('newProfile', () => {
     });
     expect(pollUrl).toHaveBeenCalledWith(
       { options: { quiet: undefined }, url: 'https://superface.ai/job/123' },
-      { logger, client: expect.any(ServiceClient), ux, userError }
+      { client: expect.any(ServiceClient), ux, userError }
     );
     expect(fetch).toHaveBeenNthCalledWith(2, 'https://superface.ai/job/123', {
       baseUrl: '',
@@ -233,7 +233,7 @@ describe('newProfile', () => {
     });
     expect(pollUrl).toHaveBeenCalledWith(
       { options: { quiet: undefined }, url: 'https://superface.ai/job/123' },
-      { logger, client: expect.any(ServiceClient), ux, userError }
+      { client: expect.any(ServiceClient), ux, userError }
     );
   });
 
@@ -268,7 +268,7 @@ describe('newProfile', () => {
     });
     expect(pollUrl).toHaveBeenCalledWith(
       { options: { quiet: undefined }, url: 'https://superface.ai/job/123' },
-      { logger, client: expect.any(ServiceClient), ux, userError }
+      { client: expect.any(ServiceClient), ux, userError }
     );
     expect(fetch).toHaveBeenNthCalledWith(2, 'https://superface.ai/job/123', {
       baseUrl: '',
@@ -310,7 +310,7 @@ describe('newProfile', () => {
     });
     expect(pollUrl).toHaveBeenCalledWith(
       { options: { quiet: undefined }, url: 'https://superface.ai/job/123' },
-      { logger, client: expect.any(ServiceClient), ux, userError }
+      { client: expect.any(ServiceClient), ux, userError }
     );
     expect(fetch).toHaveBeenNthCalledWith(2, 'https://superface.ai/job/123', {
       baseUrl: '',

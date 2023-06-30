@@ -91,7 +91,7 @@ export default class Prepare extends Command {
         name: resolved.name,
         options: { quiet: flags.quiet },
       },
-      { logger, userError, ux }
+      { userError, ux }
     );
 
     ux.succeed('Provider definition prepared successfully');

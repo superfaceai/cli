@@ -82,7 +82,7 @@ export async function newProfile(
 
   const resultUrl = await pollUrl(
     { url: jobUrl, options: { quiet: options?.quiet } },
-    { logger, client, userError, ux }
+    { client, userError, ux }
   );
 
   const profileResponse = await finishProfilePreparation(resultUrl, {

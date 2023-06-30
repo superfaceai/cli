@@ -6,6 +6,8 @@ import { createSpinner } from 'nanospinner';
 export class UX {
   private static instance: UX | undefined;
 
+  private log: string[] = [];
+
   private readonly spinner: Spinner;
 
   private constructor() {
@@ -38,7 +40,8 @@ export class UX {
     if (!text.endsWith('\n')) {
       text += '\n';
     }
-    this.spinner.update({ text });
+    this.log.push(text);
+    this.spinner.update({ text: this.log.join('\n') });
   }
 
   public warn(text: string): void {

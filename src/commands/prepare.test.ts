@@ -124,7 +124,7 @@ describe('prepare CLI command', () => {
           name: undefined,
           options: { quiet: undefined },
         },
-        { logger, ux, userError }
+        { ux, userError }
       );
 
       expect(mockWriteOnce).toHaveBeenCalledWith(
@@ -153,7 +153,7 @@ describe('prepare CLI command', () => {
           name,
           options: { quiet: undefined },
         },
-        { logger, ux, userError }
+        { ux, userError }
       );
 
       expect(mockWriteOnce).toHaveBeenCalledWith(
@@ -185,7 +185,7 @@ describe('prepare CLI command', () => {
           name: 'file',
           options: { quiet: undefined },
         },
-        { logger, ux, userError }
+        { ux, userError }
       );
 
       expect(mockWriteOnce).toHaveBeenCalledWith(
@@ -218,7 +218,7 @@ describe('prepare CLI command', () => {
           name,
           options: { quiet: undefined },
         },
-        { logger, userError, ux }
+        { userError, ux }
       );
 
       expect(mockWriteOnce).toHaveBeenCalledWith(

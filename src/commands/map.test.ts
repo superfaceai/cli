@@ -382,7 +382,7 @@ describe('MapCLI command', () => {
           },
           options: { quiet: undefined },
         },
-        { logger, ux, userError }
+        { ux, userError }
       );
 
       expect(mockWriteOnce).toHaveBeenCalledWith(
@@ -426,7 +426,7 @@ describe('MapCLI command', () => {
           },
           options: { quiet: undefined },
         },
-        { logger, ux, userError }
+        { ux, userError }
       );
 
       expect(writeApplicationCode).toHaveBeenCalledWith(
@@ -482,7 +482,7 @@ describe('MapCLI command', () => {
           },
           options: { quiet: undefined },
         },
-        { logger, ux, userError }
+        { ux, userError }
       );
 
       expect(writeApplicationCode).toHaveBeenCalledWith(

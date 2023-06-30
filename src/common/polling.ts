@@ -1,7 +1,7 @@
 import type { ServiceClient } from '@superfaceai/service-client';
 
 import type { UserError } from './error';
-import type { ILogger } from './log';
+// import type { ILogger } from './log';
 import type { UX } from './ux';
 
 // TODO: timeout must be way longer than 60 seconds, because of the time it takes to build the provider
@@ -96,12 +96,12 @@ export async function pollUrl(
     };
   },
   {
-    logger,
+    // logger,
     client,
     userError,
     ux,
   }: {
-    logger: ILogger;
+    // logger: ILogger;
     client: ServiceClient;
     userError: UserError;
     ux: UX;
@@ -142,7 +142,7 @@ export async function pollUrl(
       const lastEvent = result.events[result.events.length - 1];
 
       ux.info(`${lastEvent.type} - ${lastEvent.description}`);
-      logger.info('pollingEvent', lastEvent.type, lastEvent.description);
+      // logger.info('pollingEvent', lastEvent.type, lastEvent.description);
     }
 
     await new Promise(resolve =>

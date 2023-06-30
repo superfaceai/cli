@@ -85,7 +85,7 @@ export default class Map extends Command {
         profile,
         options: { quiet: flags.quiet },
       },
-      { logger, userError, ux }
+      { userError, ux }
     );
 
     ux.succeed('Integration code prepared');
