@@ -12,8 +12,13 @@ enum PollStatus {
   Failed = 'Failed',
   Cancelled = 'Cancelled',
 }
+enum PollResultType {
+  Provider = 'Provider',
+  Profile = 'Profile',
+  Map = 'Map',
+}
 type PollResponse =
-  | { result_url: string; status: PollStatus.Success }
+  | { result_url: string; status: PollStatus.Success, result_type: PollResultType }
   | {
       status: PollStatus.Pending;
       events: {
@@ -21,18 +26,24 @@ type PollResponse =
         type: string;
         description: string;
       }[];
+      result_type: PollResultType
     }
-  | { status: PollStatus.Failed; failure_reason: string }
-  | { status: PollStatus.Cancelled }
+  | { status: PollStatus.Failed; failure_reason: string; result_type: PollResultType }
+  | { status: PollStatus.Cancelled; result_type: PollResultType }
 
 function isPollResponse(input: unknown): input is PollResponse {
   if (typeof input === 'object' && input !== null && 'status' in input) {
     const tmp = input as {
       status: string;
       result_url?: string;
+      result_type: string;
       failure_reason?: string;
       events?: { occuredAt: Date; type: string; description: string }[];
     };
+
+    if( !Object.values<string>(PollResultType).includes(tmp.result_type)) {
+      return false;
+    }
 
     if (
       tmp.status === PollStatus.Success &&
@@ -99,9 +110,9 @@ export async function pollUrl(
     if (result.status === PollStatus.Success) {
       return result.result_url;
     } else if (result.status === PollStatus.Failed) {
-      throw Error(`Failed to prepare provider: ${result.failure_reason}`);
+      throw Error(`Failed to ${getJobDescription(result.result_type)}: ${result.failure_reason}`);
     } else if (result.status === PollStatus.Cancelled) {
-      throw Error(`Failed to prepare provider: Operation has been cancelled.`);
+      throw Error(`Failed to ${getJobDescription(result.result_type)}: Operation has been cancelled.`);
     }
 
     // get events from response and present them to user
@@ -117,8 +128,20 @@ export async function pollUrl(
   }
 
   throw Error(
-    `Prepare provider timed out after ${timeoutMilliseconds} milliseconds`
+    `Operation timed out after ${timeoutMilliseconds} milliseconds`
   );
+}
+
+function getJobDescription(resultType: string) {
+  if(resultType === PollResultType.Provider) {
+    return 'prepare provider'
+  } else if(resultType === PollResultType.Profile) {
+    return 'create profile';
+  } else if(resultType === PollResultType.Map) {
+    return 'create map'
+  }
+
+  return `create ${resultType.toLowerCase()}`
 }
 
 async function pollFetch(
