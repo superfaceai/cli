@@ -26,6 +26,7 @@ describe('polling', () => {
       .mockResolvedValueOnce(
         mockResponse(200, 'ok', undefined, {
           status: 'Pending',
+          result_type: 'Provider',
           events: [
             { type: 'info', description: 'first', occuredAt: new Date() },
           ],
@@ -34,6 +35,7 @@ describe('polling', () => {
       .mockResolvedValueOnce(
         mockResponse(200, 'ok', undefined, {
           status: 'Pending',
+          result_type: 'Provider',
           events: [
             { type: 'info', description: 'second', occuredAt: new Date() },
           ],
@@ -42,6 +44,7 @@ describe('polling', () => {
       .mockResolvedValueOnce(
         mockResponse(200, 'ok', undefined, {
           status: 'Success',
+          result_type: 'Provider',
           result_url: resultUrl,
         })
       );
@@ -77,6 +80,7 @@ describe('polling', () => {
       .mockResolvedValueOnce(
         mockResponse(200, 'ok', undefined, {
           status: 'Pending',
+          result_type: 'Provider',
           events: [
             { type: 'info', description: 'first', occuredAt: new Date() },
           ],
@@ -85,6 +89,7 @@ describe('polling', () => {
       .mockResolvedValueOnce(
         mockResponse(200, 'ok', undefined, {
           status: 'Pending',
+          result_type: 'Provider',
           events: [
             { type: 'info', description: 'second', occuredAt: new Date() },
           ],
@@ -92,6 +97,7 @@ describe('polling', () => {
       )
       .mockResolvedValueOnce(
         mockResponse(200, 'ok', undefined, {
+          result_type: 'Provider',
           status: 'Cancelled',
         })
       );
@@ -127,6 +133,7 @@ describe('polling', () => {
       .mockResolvedValueOnce(
         mockResponse(200, 'ok', undefined, {
           status: 'Pending',
+          result_type: 'Provider',
           events: [
             { type: 'info', description: 'first', occuredAt: new Date() },
           ],
@@ -135,6 +142,7 @@ describe('polling', () => {
       .mockResolvedValueOnce(
         mockResponse(200, 'ok', undefined, {
           status: 'Pending',
+          result_type: 'Provider',
           events: [
             { type: 'info', description: 'second', occuredAt: new Date() },
           ],
@@ -143,6 +151,7 @@ describe('polling', () => {
       .mockResolvedValueOnce(
         mockResponse(200, 'ok', undefined, {
           status: 'Failed',
+          result_type: 'Provider',
           failure_reason: 'test',
         })
       );
@@ -177,6 +186,7 @@ describe('polling', () => {
     mockFetch.mockResolvedValueOnce(
       mockResponse(200, 'ok', undefined, {
         status: 'Pending',
+        result_type: 'Provider',
         events: [{ type: 'info', description: 'first', occuredAt: new Date() }],
       })
     );
@@ -193,7 +203,7 @@ describe('polling', () => {
         },
         { logger, client }
       )
-    ).rejects.toThrow('Prepare provider timed out after 1000 milliseconds');
+    ).rejects.toThrow('Operation timed out after 1000 milliseconds');
 
     expect(mockFetch).toHaveBeenCalledTimes(1);
 
@@ -268,5 +278,70 @@ describe('polling', () => {
     });
 
     expect(logger.stdout).toEqual([]);
+  });
+
+  describe('result type specific error', () => {
+    it('returns prepare provider specific error', async () => {
+      mockFetch
+        .mockResolvedValueOnce(
+          mockResponse(200, 'ok', undefined, {
+            status: 'Failed',
+            result_type: 'Provider',
+            failure_reason: 'test',
+          })
+        );
+
+      await expect(
+        pollUrl(
+          {
+            url: jobUrl,
+            options: { quiet: false },
+          },
+          { logger, client }
+        )
+      ).rejects.toThrow('Failed to prepare provider: test');
+    });
+
+    it('returns create profile specific error', async () => {
+      mockFetch
+        .mockResolvedValueOnce(
+          mockResponse(200, 'ok', undefined, {
+            status: 'Failed',
+            result_type: 'Profile',
+            failure_reason: 'test',
+          })
+        );
+
+      await expect(
+        pollUrl(
+          {
+            url: jobUrl,
+            options: { quiet: false },
+          },
+          { logger, client }
+        )
+      ).rejects.toThrow('Failed to create profile: test');
+    });
+
+    it('returns create map specific error', async () => {
+      mockFetch
+        .mockResolvedValueOnce(
+          mockResponse(200, 'ok', undefined, {
+            status: 'Failed',
+            result_type: 'Map',
+            failure_reason: 'test',
+          })
+        );
+
+      await expect(
+        pollUrl(
+          {
+            url: jobUrl,
+            options: { quiet: false },
+          },
+          { logger, client }
+        )
+      ).rejects.toThrow('Failed to create map: test');
+    });
   });
 });
