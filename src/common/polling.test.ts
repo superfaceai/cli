@@ -41,7 +41,7 @@ describe('polling', () => {
       )
       .mockResolvedValueOnce(
         mockResponse(200, 'ok', undefined, {
-          status: 'Successful',
+          status: 'Success',
           result_url: resultUrl,
         })
       );
@@ -55,6 +55,56 @@ describe('polling', () => {
         { logger, client }
       )
     ).resolves.toEqual(resultUrl);
+
+    expect(mockFetch).toHaveBeenCalledTimes(3);
+
+    expect(mockFetch).toHaveBeenCalledWith(jobUrl, {
+      method: 'GET',
+      baseUrl: '',
+      headers: {
+        accept: 'application/json',
+      },
+    });
+
+    expect(logger.stdout).toEqual([
+      ['pollingEvent', ['info', 'first']],
+      ['pollingEvent', ['info', 'second']],
+    ]);
+  });
+
+  it('polls until job is cancelled', async () => {
+    mockFetch
+      .mockResolvedValueOnce(
+        mockResponse(200, 'ok', undefined, {
+          status: 'Pending',
+          events: [
+            { type: 'info', description: 'first', occuredAt: new Date() },
+          ],
+        })
+      )
+      .mockResolvedValueOnce(
+        mockResponse(200, 'ok', undefined, {
+          status: 'Pending',
+          events: [
+            { type: 'info', description: 'second', occuredAt: new Date() },
+          ],
+        })
+      )
+      .mockResolvedValueOnce(
+        mockResponse(200, 'ok', undefined, {
+          status: 'Cancelled',
+        })
+      );
+
+    await expect(
+      pollUrl(
+        {
+          url: jobUrl,
+          options: { quiet: false },
+        },
+        { logger, client }
+      )
+    ).rejects.toThrow('Failed to prepare provider: Operation has been cancelled.');
 
     expect(mockFetch).toHaveBeenCalledTimes(3);
 
