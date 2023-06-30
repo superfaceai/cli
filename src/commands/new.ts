@@ -98,7 +98,13 @@ export default class New extends Command {
     ux.start('Saving Comlink interface your use case');
     await saveProfile(profile, { logger, userError });
 
-    ux.succeed('Comlink interface saved');
+    ux.succeed(
+      `Comlink interface saved. You can use it to generate integration code for your use case by running 'superface map  ${
+        providerJson.name
+      } ${profile.scope !== undefined ? `${profile.scope}.` : ''}${
+        profile.name
+      }'`
+    );
   }
 }
 

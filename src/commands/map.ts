@@ -107,7 +107,7 @@ export default class Map extends Command {
         userError,
       }
     );
-    ux.succeed('Boilerplate code prepared');
+    ux.succeed('Boilerplate code prepared.');
 
     // TODO: install dependencies
   }

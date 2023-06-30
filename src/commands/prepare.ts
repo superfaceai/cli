@@ -99,7 +99,9 @@ export default class Prepare extends Command {
     ux.start('Saving provider definition');
     await writeProviderJson(providerJson, { logger, userError });
 
-    ux.succeed('Provider definition saved successfully');
+    ux.succeed(
+      `Provider definition saved successfully.\nYou can use it to generate integration code interface with 'superface new ${providerJson.name}' "<use case description>".`
+    );
   }
 }
 
