@@ -14,8 +14,17 @@ enum PollStatus {
   Failed = 'Failed',
   Cancelled = 'Cancelled',
 }
+enum PollResultType {
+  Provider = 'Provider',
+  Profile = 'Profile',
+  Map = 'Map',
+}
 type PollResponse =
-  | { result_url: string; status: PollStatus.Success }
+  | {
+      result_url: string;
+      status: PollStatus.Success;
+      result_type: PollResultType;
+    }
   | {
       status: PollStatus.Pending;
       events: {
@@ -23,18 +32,28 @@ type PollResponse =
         type: string;
         description: string;
       }[];
+      result_type: PollResultType;
     }
-  | { status: PollStatus.Failed; failure_reason: string }
-  | { status: PollStatus.Cancelled };
+  | {
+      status: PollStatus.Failed;
+      failure_reason: string;
+      result_type: PollResultType;
+    }
+  | { status: PollStatus.Cancelled; result_type: PollResultType };
 
 function isPollResponse(input: unknown): input is PollResponse {
   if (typeof input === 'object' && input !== null && 'status' in input) {
     const tmp = input as {
       status: string;
       result_url?: string;
+      result_type: string;
       failure_reason?: string;
       events?: { occuredAt: Date; type: string; description: string }[];
     };
+
+    if (!Object.values<string>(PollResultType).includes(tmp.result_type)) {
+      return false;
+    }
 
     if (
       tmp.status === PollStatus.Success &&
@@ -104,12 +123,16 @@ export async function pollUrl(
       return result.result_url;
     } else if (result.status === PollStatus.Failed) {
       throw userError(
-        `Failed to prepare provider: ${result.failure_reason}`,
+        `Failed to ${getJobDescription(result.result_type)}: ${
+          result.failure_reason
+        }`,
         1
       );
     } else if (result.status === PollStatus.Cancelled) {
       throw userError(
-        `Failed to prepare provider: Operation has been cancelled.`,
+        `Failed to ${getJobDescription(
+          result.result_type
+        )}: Operation has been cancelled.`,
         1
       );
     }
@@ -128,9 +151,21 @@ export async function pollUrl(
   }
 
   throw userError(
-    `Prepare provider timed out after ${timeoutMilliseconds} milliseconds`,
+    `Operation timed out after ${timeoutMilliseconds} milliseconds`,
     1
   );
+}
+
+function getJobDescription(resultType: string) {
+  if (resultType === PollResultType.Provider) {
+    return 'prepare provider';
+  } else if (resultType === PollResultType.Profile) {
+    return 'create profile';
+  } else if (resultType === PollResultType.Map) {
+    return 'create map';
+  }
+
+  return `create ${resultType.toLowerCase()}`;
 }
 
 async function pollFetch(
