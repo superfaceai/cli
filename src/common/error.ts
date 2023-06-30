@@ -24,6 +24,7 @@ export const createUserError =
   };
 export type UserError = ReturnType<typeof createUserError>;
 
+export type DeveloperError = typeof developerError;
 /**
  * Developer error.
  *

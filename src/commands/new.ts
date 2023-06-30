@@ -70,7 +70,6 @@ export default class New extends Command {
     const ux = UX.create();
     const { providerName, prompt } = args;
 
-
     ux.start('Checking input arguments');
 
     checkPrompt(prompt, { userError });
@@ -92,7 +91,7 @@ export default class New extends Command {
         prompt: prompt,
         options: { quiet: flags.quiet },
       },
-      { logger }
+      { logger, userError, ux }
     );
     ux.succeed('Comlink interface prepared');
 

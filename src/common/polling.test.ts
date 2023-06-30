@@ -1,8 +1,10 @@
 import type { ServiceClient } from '@superfaceai/service-client';
 
 import { mockResponse } from '../test/utils';
+import { createUserError } from './error';
 import { MockLogger } from './log';
 import { pollUrl } from './polling';
+import { UX } from './ux';
 
 const mockFetch = jest.fn();
 
@@ -10,6 +12,8 @@ describe('polling', () => {
   const jobUrl = 'https://superface.ai/job/123';
   let logger: MockLogger;
   const client = { fetch: mockFetch } as unknown as jest.Mocked<ServiceClient>;
+  const userError = createUserError(false);
+  const ux = UX.create();
 
   beforeEach(() => {
     logger = new MockLogger();
@@ -52,7 +56,7 @@ describe('polling', () => {
           url: jobUrl,
           options: { quiet: false },
         },
-        { logger, client }
+        { logger, client, ux, userError }
       )
     ).resolves.toEqual(resultUrl);
 
@@ -102,7 +106,7 @@ describe('polling', () => {
           url: jobUrl,
           options: { quiet: false },
         },
-        { logger, client }
+        { logger, client, ux, userError }
       )
     ).rejects.toThrow(
       'Failed to prepare provider: Operation has been cancelled.'
@@ -155,7 +159,7 @@ describe('polling', () => {
           url: jobUrl,
           options: { quiet: false },
         },
-        { logger, client }
+        { logger, client, ux, userError }
       )
     ).rejects.toThrow('test');
 
@@ -193,7 +197,7 @@ describe('polling', () => {
             pollingIntervalSeconds: 1,
           },
         },
-        { logger, client }
+        { logger, client, ux, userError }
       )
     ).rejects.toThrow('Prepare provider timed out after 1000 milliseconds');
 
@@ -223,7 +227,7 @@ describe('polling', () => {
             quiet: false,
           },
         },
-        { logger, client }
+        { logger, client, ux, userError }
       )
     ).rejects.toThrow('Unexpected status code 400 received');
 
@@ -253,7 +257,7 @@ describe('polling', () => {
             quiet: false,
           },
         },
-        { logger, client }
+        { logger, client, ux, userError }
       )
     ).rejects.toThrow(`Unexpected response from server: {
   "foo": "bar"

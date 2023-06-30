@@ -2,6 +2,7 @@ import { MockLogger } from '../common';
 import { createUserError } from '../common/error';
 import { exists, readFile } from '../common/io';
 import { OutputStream } from '../common/output-stream';
+import { UX } from '../common/ux';
 import { prepareProviderJson } from '../logic/prepare';
 import { mockProviderJson } from '../test/provider-json';
 import { CommandInstance } from '../test/utils';
@@ -13,6 +14,7 @@ jest.mock('../common/output-stream');
 
 describe('prepare CLI command', () => {
   const userError = createUserError(false);
+  const ux = UX.create();
 
   afterEach(() => {
     jest.resetAllMocks();
@@ -122,7 +124,7 @@ describe('prepare CLI command', () => {
           name: undefined,
           options: { quiet: undefined },
         },
-        { logger }
+        { logger, ux, userError }
       );
 
       expect(mockWriteOnce).toHaveBeenCalledWith(
@@ -151,7 +153,7 @@ describe('prepare CLI command', () => {
           name,
           options: { quiet: undefined },
         },
-        { logger }
+        { logger, ux, userError }
       );
 
       expect(mockWriteOnce).toHaveBeenCalledWith(
@@ -183,7 +185,7 @@ describe('prepare CLI command', () => {
           name: 'file',
           options: { quiet: undefined },
         },
-        { logger }
+        { logger, ux, userError }
       );
 
       expect(mockWriteOnce).toHaveBeenCalledWith(
@@ -216,7 +218,7 @@ describe('prepare CLI command', () => {
           name,
           options: { quiet: undefined },
         },
-        { logger }
+        { logger, userError, ux }
       );
 
       expect(mockWriteOnce).toHaveBeenCalledWith(

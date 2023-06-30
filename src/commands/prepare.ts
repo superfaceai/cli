@@ -69,6 +69,8 @@ export default class Prepare extends Command {
     const ux = UX.create();
     const { urlOrPath, name } = args;
 
+    ux.start('Resolving inputs');
+
     if (urlOrPath === undefined) {
       throw userError(
         'Missing first argument, please provide URL or filepath of API documentation.',
@@ -78,20 +80,26 @@ export default class Prepare extends Command {
 
     const resolved = await resolveInputs(urlOrPath, name, {
       userError,
-      ux,
     });
 
-    // TODO: should take also user error?
+    ux.succeed('Resolved inputs');
+
+    ux.start('Preparing provider definition');
     const providerJson = await prepareProviderJson(
       {
         urlOrSource: resolved.source,
         name: resolved.name,
         options: { quiet: flags.quiet },
       },
-      { logger }
+      { logger, userError, ux }
     );
 
+    ux.succeed('Provider definition prepared successfully');
+
+    ux.start('Saving provider definition');
     await writeProviderJson(providerJson, { logger, userError });
+
+    ux.succeed('Provider definition saved successfully');
   }
 }
 
@@ -118,16 +126,11 @@ export async function writeProviderJson(
 async function resolveInputs(
   urlOrPath: string,
   name: string | undefined,
-  { userError, ux }: { userError: UserError; ux: UX }
+  { userError }: { userError: UserError }
 ): Promise<{
   source: string;
   name?: string;
 }> {
-  ux.start('Resolving inputs');
-
-  // slep for 2 seconds
-  await new Promise(resolve => setTimeout(resolve, 2000));
-
   const resolvedSource = await resolveSource(urlOrPath, { userError });
 
   let apiName;
@@ -139,8 +142,6 @@ async function resolveInputs(
       extname(resolvedSource.filename)
     );
   }
-
-  ux.succeed('Resolved inputs');
 
   return {
     source: resolvedSource.source,

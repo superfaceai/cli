@@ -1,8 +1,10 @@
 import { ServiceClient } from '@superfaceai/service-client';
 
 import { MockLogger } from '../common';
+import { createUserError } from '../common/error';
 import { SuperfaceClient } from '../common/http';
 import { pollUrl } from '../common/polling';
+import { UX } from '../common/ux';
 import { mockProviderJson } from '../test/provider-json';
 import { mockResponse } from '../test/utils';
 import { newProfile } from './new';
@@ -11,6 +13,8 @@ jest.mock('@superfaceai/service-client');
 jest.mock('../common/polling');
 
 describe('newProfile', () => {
+  const userError = createUserError(false);
+  const ux = UX.create();
   const mockProvider = mockProviderJson({ name: 'test-provider' });
   const prompt = 'test';
   const mockProfileScope = 'test-scope';
@@ -74,7 +78,7 @@ describe('newProfile', () => {
           providerJson: mockProvider,
           prompt,
         },
-        { logger }
+        { logger, userError, ux }
       )
     ).resolves.toEqual({
       scope: mockProfileScope,
@@ -89,7 +93,7 @@ describe('newProfile', () => {
     });
     expect(pollUrl).toHaveBeenCalledWith(
       { options: { quiet: undefined }, url: 'https://superface.ai/job/123' },
-      { logger, client: expect.any(ServiceClient) }
+      { logger, client: expect.any(ServiceClient), ux, userError }
     );
     expect(fetch).toHaveBeenNthCalledWith(2, 'https://superface.ai/job/123', {
       baseUrl: '',
@@ -124,7 +128,7 @@ describe('newProfile', () => {
           providerJson: mockProvider,
           prompt,
         },
-        { logger }
+        { logger, ux, userError }
       )
     ).resolves.toEqual({
       name: mockProfileName,
@@ -138,7 +142,7 @@ describe('newProfile', () => {
     });
     expect(pollUrl).toHaveBeenCalledWith(
       { options: { quiet: undefined }, url: 'https://superface.ai/job/123' },
-      { logger, client: expect.any(ServiceClient) }
+      { logger, client: expect.any(ServiceClient), ux, userError }
     );
     expect(fetch).toHaveBeenNthCalledWith(2, 'https://superface.ai/job/123', {
       baseUrl: '',
@@ -159,7 +163,7 @@ describe('newProfile', () => {
           providerJson: mockProvider,
           prompt,
         },
-        { logger }
+        { logger, userError, ux }
       )
     ).rejects.toEqual(Error('Unexpected status code 400 received'));
 
@@ -185,7 +189,7 @@ describe('newProfile', () => {
           providerJson: mockProvider,
           prompt,
         },
-        { logger }
+        { logger, userError, ux }
       )
     ).rejects.toEqual(
       Error('Unexpected response body {"test":"test"} received')
@@ -218,7 +222,7 @@ describe('newProfile', () => {
           providerJson: mockProvider,
           prompt,
         },
-        { logger }
+        { logger, userError, ux }
       )
     ).rejects.toEqual(error);
 
@@ -229,7 +233,7 @@ describe('newProfile', () => {
     });
     expect(pollUrl).toHaveBeenCalledWith(
       { options: { quiet: undefined }, url: 'https://superface.ai/job/123' },
-      { logger, client: expect.any(ServiceClient) }
+      { logger, client: expect.any(ServiceClient), ux, userError }
     );
   });
 
@@ -253,7 +257,7 @@ describe('newProfile', () => {
           providerJson: mockProvider,
           prompt,
         },
-        { logger }
+        { logger, userError, ux }
       )
     ).rejects.toEqual(new Error('Unexpected status code 400 received'));
 
@@ -264,7 +268,7 @@ describe('newProfile', () => {
     });
     expect(pollUrl).toHaveBeenCalledWith(
       { options: { quiet: undefined }, url: 'https://superface.ai/job/123' },
-      { logger, client: expect.any(ServiceClient) }
+      { logger, client: expect.any(ServiceClient), ux, userError }
     );
     expect(fetch).toHaveBeenNthCalledWith(2, 'https://superface.ai/job/123', {
       baseUrl: '',
@@ -295,7 +299,7 @@ describe('newProfile', () => {
           providerJson: mockProvider,
           prompt,
         },
-        { logger }
+        { logger, userError, ux }
       )
     ).rejects.toEqual(new Error('Unexpected response received'));
 
@@ -306,7 +310,7 @@ describe('newProfile', () => {
     });
     expect(pollUrl).toHaveBeenCalledWith(
       { options: { quiet: undefined }, url: 'https://superface.ai/job/123' },
-      { logger, client: expect.any(ServiceClient) }
+      { logger, client: expect.any(ServiceClient), ux, userError }
     );
     expect(fetch).toHaveBeenNthCalledWith(2, 'https://superface.ai/job/123', {
       baseUrl: '',

@@ -1,6 +1,8 @@
 import type { ServiceClient } from '@superfaceai/service-client';
 
+import type { UserError } from './error';
 import type { ILogger } from './log';
+import type { UX } from './ux';
 
 // TODO: timeout must be way longer than 60 seconds, because of the time it takes to build the provider
 export const DEFAULT_POLLING_TIMEOUT_SECONDS = 60;
@@ -77,9 +79,13 @@ export async function pollUrl(
   {
     logger,
     client,
+    userError,
+    ux,
   }: {
     logger: ILogger;
     client: ServiceClient;
+    userError: UserError;
+    ux: UX;
   }
 ): Promise<string> {
   const startPollingTimeStamp = new Date();
@@ -92,20 +98,27 @@ export async function pollUrl(
     new Date().getTime() - startPollingTimeStamp.getTime() <
     timeoutMilliseconds
   ) {
-    const result = await pollFetch(url, { client });
+    const result = await pollFetch(url, { client, userError });
 
     if (result.status === PollStatus.Success) {
       return result.result_url;
     } else if (result.status === PollStatus.Failed) {
-      throw Error(`Failed to prepare provider: ${result.failure_reason}`);
+      throw userError(
+        `Failed to prepare provider: ${result.failure_reason}`,
+        1
+      );
     } else if (result.status === PollStatus.Cancelled) {
-      throw Error(`Failed to prepare provider: Operation has been cancelled.`);
+      throw userError(
+        `Failed to prepare provider: Operation has been cancelled.`,
+        1
+      );
     }
 
     // get events from response and present them to user
     if (result.events.length > 0 && options?.quiet !== true) {
       const lastEvent = result.events[result.events.length - 1];
 
+      ux.info(`${lastEvent.type} - ${lastEvent.description}`);
       logger.info('pollingEvent', lastEvent.type, lastEvent.description);
     }
 
@@ -114,14 +127,15 @@ export async function pollUrl(
     );
   }
 
-  throw Error(
-    `Prepare provider timed out after ${timeoutMilliseconds} milliseconds`
+  throw userError(
+    `Prepare provider timed out after ${timeoutMilliseconds} milliseconds`,
+    1
   );
 }
 
 async function pollFetch(
   url: string,
-  { client }: { client: ServiceClient }
+  { client, userError }: { client: ServiceClient; userError: UserError }
 ): Promise<PollResponse> {
   const result = await client.fetch(url, {
     method: 'GET',
@@ -138,9 +152,10 @@ async function pollFetch(
       return data;
     }
 
-    throw Error(
-      `Unexpected response from server: ${JSON.stringify(data, null, 2)}`
+    throw userError(
+      `Unexpected response from server: ${JSON.stringify(data, null, 2)}`,
+      1
     );
   }
-  throw Error(`Unexpected status code ${result.status} received`);
+  throw userError(`Unexpected status code ${result.status} received`, 1);
 }

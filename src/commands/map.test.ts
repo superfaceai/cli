@@ -4,6 +4,7 @@ import { MockLogger } from '../common';
 import { createUserError } from '../common/error';
 import { exists, readFile } from '../common/io';
 import { OutputStream } from '../common/output-stream';
+import { UX } from '../common/ux';
 import { writeApplicationCode } from '../logic/application-code/application-code';
 import { mapProviderToProfile } from '../logic/map';
 import { mockProviderJson } from '../test/provider-json';
@@ -35,6 +36,7 @@ describe('MapCLI command', () => {
   const profileScope = 'test-scope';
   const providerJson = mockProviderJson({ name: providerName });
   const userError = createUserError(false);
+  const ux = UX.create();
 
   afterEach(() => {
     jest.resetAllMocks();
@@ -380,7 +382,7 @@ describe('MapCLI command', () => {
           },
           options: { quiet: undefined },
         },
-        { logger }
+        { logger, ux, userError }
       );
 
       expect(mockWriteOnce).toHaveBeenCalledWith(
@@ -424,7 +426,7 @@ describe('MapCLI command', () => {
           },
           options: { quiet: undefined },
         },
-        { logger }
+        { logger, ux, userError }
       );
 
       expect(writeApplicationCode).toHaveBeenCalledWith(
@@ -480,7 +482,7 @@ describe('MapCLI command', () => {
           },
           options: { quiet: undefined },
         },
-        { logger }
+        { logger, ux, userError }
       );
 
       expect(writeApplicationCode).toHaveBeenCalledWith(
