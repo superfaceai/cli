@@ -74,14 +74,11 @@ export default class New extends Command {
 
     checkPrompt(prompt, { userError });
 
-    ux.succeed('Input arguments checked');
-
-    ux.start('Loading provider definition');
     const providerJson = await resolveProviderJson(providerName, {
       userError,
     });
 
-    ux.succeed('Provider definition loaded');
+    ux.succeed('Input arguments checked');
 
     ux.start('Creating profile for your use case');
     // TODO: should take also user error?
