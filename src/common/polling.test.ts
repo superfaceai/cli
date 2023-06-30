@@ -1,19 +1,17 @@
 import type { ServiceClient } from '@superfaceai/service-client';
 
 import { mockResponse } from '../test/utils';
-import { MockLogger } from './log';
+import { createUserError } from './error';
 import { pollUrl } from './polling';
+import { UX } from './ux';
 
 const mockFetch = jest.fn();
 
 describe('polling', () => {
   const jobUrl = 'https://superface.ai/job/123';
-  let logger: MockLogger;
   const client = { fetch: mockFetch } as unknown as jest.Mocked<ServiceClient>;
-
-  beforeEach(() => {
-    logger = new MockLogger();
-  });
+  const userError = createUserError(false);
+  const ux = UX.create();
 
   afterEach(() => {
     jest.resetAllMocks();
@@ -55,7 +53,7 @@ describe('polling', () => {
           url: jobUrl,
           options: { quiet: false },
         },
-        { logger, client }
+        { client, ux, userError }
       )
     ).resolves.toEqual(resultUrl);
 
@@ -68,11 +66,6 @@ describe('polling', () => {
         accept: 'application/json',
       },
     });
-
-    expect(logger.stdout).toEqual([
-      ['pollingEvent', ['info', 'first']],
-      ['pollingEvent', ['info', 'second']],
-    ]);
   });
 
   it('polls until job is cancelled', async () => {
@@ -108,9 +101,11 @@ describe('polling', () => {
           url: jobUrl,
           options: { quiet: false },
         },
-        { logger, client }
+        { client, ux, userError }
       )
-    ).rejects.toThrow('Failed to prepare provider: Operation has been cancelled.');
+    ).rejects.toThrow(
+      'Failed to prepare provider: Operation has been cancelled.'
+    );
 
     expect(mockFetch).toHaveBeenCalledTimes(3);
 
@@ -121,11 +116,6 @@ describe('polling', () => {
         accept: 'application/json',
       },
     });
-
-    expect(logger.stdout).toEqual([
-      ['pollingEvent', ['info', 'first']],
-      ['pollingEvent', ['info', 'second']],
-    ]);
   });
 
   it('polls until job fails', async () => {
@@ -162,7 +152,7 @@ describe('polling', () => {
           url: jobUrl,
           options: { quiet: false },
         },
-        { logger, client }
+        { client, ux, userError }
       )
     ).rejects.toThrow('test');
 
@@ -175,11 +165,6 @@ describe('polling', () => {
         accept: 'application/json',
       },
     });
-
-    expect(logger.stdout).toEqual([
-      ['pollingEvent', ['info', 'first']],
-      ['pollingEvent', ['info', 'second']],
-    ]);
   });
 
   it('polls until timeout', async () => {
@@ -201,7 +186,7 @@ describe('polling', () => {
             pollingIntervalSeconds: 1,
           },
         },
-        { logger, client }
+        { client, ux, userError }
       )
     ).rejects.toThrow('Operation timed out after 1000 milliseconds');
 
@@ -214,8 +199,6 @@ describe('polling', () => {
         accept: 'application/json',
       },
     });
-
-    expect(logger.stdout).toEqual([['pollingEvent', ['info', 'first']]]);
   });
 
   it('throws when fetch returns unexpected status code', async () => {
@@ -231,7 +214,7 @@ describe('polling', () => {
             quiet: false,
           },
         },
-        { logger, client }
+        { client, ux, userError }
       )
     ).rejects.toThrow('Unexpected status code 400 received');
 
@@ -244,8 +227,6 @@ describe('polling', () => {
         accept: 'application/json',
       },
     });
-
-    expect(logger.stdout).toEqual([]);
   });
 
   it('throws when fetch returns unexpected body', async () => {
@@ -261,7 +242,7 @@ describe('polling', () => {
             quiet: false,
           },
         },
-        { logger, client }
+        { client, ux, userError }
       )
     ).rejects.toThrow(`Unexpected response from server: {
   "foo": "bar"
@@ -276,20 +257,17 @@ describe('polling', () => {
         accept: 'application/json',
       },
     });
-
-    expect(logger.stdout).toEqual([]);
   });
 
   describe('result type specific error', () => {
     it('returns prepare provider specific error', async () => {
-      mockFetch
-        .mockResolvedValueOnce(
-          mockResponse(200, 'ok', undefined, {
-            status: 'Failed',
-            result_type: 'Provider',
-            failure_reason: 'test',
-          })
-        );
+      mockFetch.mockResolvedValueOnce(
+        mockResponse(200, 'ok', undefined, {
+          status: 'Failed',
+          result_type: 'Provider',
+          failure_reason: 'test',
+        })
+      );
 
       await expect(
         pollUrl(
@@ -297,20 +275,19 @@ describe('polling', () => {
             url: jobUrl,
             options: { quiet: false },
           },
-          { logger, client }
+          { client, ux, userError }
         )
       ).rejects.toThrow('Failed to prepare provider: test');
     });
 
     it('returns create profile specific error', async () => {
-      mockFetch
-        .mockResolvedValueOnce(
-          mockResponse(200, 'ok', undefined, {
-            status: 'Failed',
-            result_type: 'Profile',
-            failure_reason: 'test',
-          })
-        );
+      mockFetch.mockResolvedValueOnce(
+        mockResponse(200, 'ok', undefined, {
+          status: 'Failed',
+          result_type: 'Profile',
+          failure_reason: 'test',
+        })
+      );
 
       await expect(
         pollUrl(
@@ -318,20 +295,19 @@ describe('polling', () => {
             url: jobUrl,
             options: { quiet: false },
           },
-          { logger, client }
+          { client, ux, userError }
         )
       ).rejects.toThrow('Failed to create profile: test');
     });
 
     it('returns create map specific error', async () => {
-      mockFetch
-        .mockResolvedValueOnce(
-          mockResponse(200, 'ok', undefined, {
-            status: 'Failed',
-            result_type: 'Map',
-            failure_reason: 'test',
-          })
-        );
+      mockFetch.mockResolvedValueOnce(
+        mockResponse(200, 'ok', undefined, {
+          status: 'Failed',
+          result_type: 'Map',
+          failure_reason: 'test',
+        })
+      );
 
       await expect(
         pollUrl(
@@ -339,7 +315,7 @@ describe('polling', () => {
             url: jobUrl,
             options: { quiet: false },
           },
-          { logger, client }
+          { client, ux, userError }
         )
       ).rejects.toThrow('Failed to create map: test');
     });

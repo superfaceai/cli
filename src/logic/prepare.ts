@@ -2,9 +2,10 @@ import type { ProviderJson } from '@superfaceai/ast';
 import { assertProviderJson } from '@superfaceai/ast';
 import type { ServiceClient } from '@superfaceai/service-client';
 
-import type { ILogger } from '../common';
+import type { UserError } from '../common/error';
 import { SuperfaceClient } from '../common/http';
 import { pollUrl } from '../common/polling';
+import type { UX } from '../common/ux';
 
 export type ProviderPreparationResponse = {
   provider_id: string;
@@ -53,33 +54,32 @@ export async function prepareProviderJson(
       quiet?: boolean;
     };
   },
-  { logger }: { logger: ILogger }
+  { userError, ux }: { userError: UserError; ux: UX }
 ): Promise<ProviderJson> {
-  logger.info('preparationStarted');
-
   const client = SuperfaceClient.getClient();
 
   const jobUrl = await startProviderPreparation(
     { source: urlOrSource, name },
-    { client }
+    { client, userError }
   );
 
   const resultUrl = await pollUrl(
     { url: jobUrl, options: { quiet: options?.quiet } },
-    { logger, client }
+    { client, ux, userError }
   );
 
   // TODO: use docs_url to keep track of docs
   return (
     await finishProviderPreparation(resultUrl, {
       client,
+      userError,
     })
   ).definition;
 }
 
 async function startProviderPreparation(
   { source, name }: { source: string; name?: string },
-  { client }: { client: ServiceClient }
+  { client, userError }: { client: ServiceClient; userError: UserError }
 ): Promise<string> {
   const jobUrlResponse = await client.fetch(`/authoring/providers`, {
     method: 'POST',
@@ -90,7 +90,10 @@ async function startProviderPreparation(
   });
 
   if (jobUrlResponse.status !== 202) {
-    throw Error(`Unexpected status code ${jobUrlResponse.status} received`);
+    throw userError(
+      `Unexpected status code ${jobUrlResponse.status} received`,
+      1
+    );
   }
 
   const responseBody = (await jobUrlResponse.json()) as Record<string, unknown>;
@@ -103,15 +106,16 @@ async function startProviderPreparation(
   ) {
     return responseBody.href;
   } else {
-    throw Error(
-      `Unexpected response body ${JSON.stringify(responseBody)} received`
+    throw userError(
+      `Unexpected response body ${JSON.stringify(responseBody)} received`,
+      1
     );
   }
 }
 
 async function finishProviderPreparation(
   resultUrl: string,
-  { client }: { client: ServiceClient }
+  { client, userError }: { client: ServiceClient; userError: UserError }
 ): Promise<ProviderPreparationResponse> {
   const resultResponse = await client.fetch(resultUrl, {
     method: 'GET',
@@ -123,7 +127,10 @@ async function finishProviderPreparation(
   });
 
   if (resultResponse.status !== 200) {
-    throw Error(`Unexpected status code ${resultResponse.status} received`);
+    throw userError(
+      `Unexpected status code ${resultResponse.status} received`,
+      1
+    );
   }
 
   const body = (await resultResponse.json()) as unknown;

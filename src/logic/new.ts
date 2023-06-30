@@ -3,8 +3,10 @@ import { parseProfile, Source } from '@superfaceai/parser';
 import type { ServiceClient } from '@superfaceai/service-client';
 
 import type { ILogger } from '../common';
+import type { UserError } from '../common/error';
 import { SuperfaceClient } from '../common/http';
 import { pollUrl } from '../common/polling';
+import type { UX } from '../common/ux';
 
 export type ProfilePreparationResponse = {
   // Id of the profile with . separated scope and name
@@ -67,7 +69,7 @@ export async function newProfile(
     prompt: string;
     options?: { quiet?: boolean };
   },
-  { logger }: { logger: ILogger }
+  { logger, userError, ux }: { logger: ILogger; userError: UserError; ux: UX }
 ): Promise<{ source: string; scope?: string; name: string }> {
   logger.info('startProfileGeneration', providerJson.name);
 
@@ -80,7 +82,7 @@ export async function newProfile(
 
   const resultUrl = await pollUrl(
     { url: jobUrl, options: { quiet: options?.quiet } },
-    { logger, client }
+    { client, userError, ux }
   );
 
   const profileResponse = await finishProfilePreparation(resultUrl, {
