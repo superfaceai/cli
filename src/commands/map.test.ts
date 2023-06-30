@@ -1,7 +1,10 @@
+import { parseProfile, Source } from '@superfaceai/parser';
+
 import { MockLogger } from '../common';
 import { createUserError } from '../common/error';
 import { exists, readFile } from '../common/io';
 import { OutputStream } from '../common/output-stream';
+import { writeApplicationCode } from '../logic/application-code/application-code';
 import { mapProviderToProfile } from '../logic/map';
 import { mockProviderJson } from '../test/provider-json';
 import { CommandInstance } from '../test/utils';
@@ -10,6 +13,7 @@ import Map from './map';
 jest.mock('../common/io');
 jest.mock('../common/output-stream');
 jest.mock('../logic/map');
+jest.mock('../logic/application-code/application-code');
 
 describe('MapCLI command', () => {
   const profileName = 'test';
@@ -343,6 +347,9 @@ describe('MapCLI command', () => {
     });
 
     it('throws when map already exists', async () => {
+      const source = profileSource(undefined, profileName);
+      const ast = parseProfile(new Source(source));
+
       jest
         .mocked(exists)
         .mockResolvedValueOnce(true)
@@ -350,7 +357,7 @@ describe('MapCLI command', () => {
         .mockResolvedValueOnce(false);
       jest
         .mocked(readFile)
-        .mockResolvedValueOnce(profileSource(undefined, profileName))
+        .mockResolvedValueOnce(source)
         .mockResolvedValueOnce(JSON.stringify(providerJson));
 
       jest.mocked(mapProviderToProfile).mockResolvedValueOnce(mapSource);
@@ -366,7 +373,8 @@ describe('MapCLI command', () => {
         {
           providerJson,
           profile: {
-            source: profileSource(undefined, profileName),
+            ast,
+            source,
             name: profileName,
             scope: undefined,
           },
@@ -384,6 +392,8 @@ describe('MapCLI command', () => {
     });
 
     it('prepares map with scope', async () => {
+      const source = profileSource(profileScope, profileName);
+      const ast = parseProfile(new Source(source));
       jest
         .mocked(exists)
         .mockResolvedValueOnce(true)
@@ -391,7 +401,7 @@ describe('MapCLI command', () => {
         .mockResolvedValueOnce(false);
       jest
         .mocked(readFile)
-        .mockResolvedValueOnce(profileSource(profileScope, profileName))
+        .mockResolvedValueOnce(source)
         .mockResolvedValueOnce(JSON.stringify(providerJson));
 
       jest.mocked(mapProviderToProfile).mockResolvedValueOnce(mapSource);
@@ -407,13 +417,25 @@ describe('MapCLI command', () => {
         {
           providerJson,
           profile: {
-            source: profileSource(profileScope, profileName),
+            source,
+            ast,
             name: profileName,
             scope: profileScope,
           },
           options: { quiet: undefined },
         },
         { logger }
+      );
+
+      expect(writeApplicationCode).toHaveBeenCalledWith(
+        {
+          providerJson,
+          profileAst: ast,
+        },
+        {
+          logger,
+          userError,
+        }
       );
 
       expect(mockWriteOnce).toHaveBeenCalledWith(
@@ -425,6 +447,9 @@ describe('MapCLI command', () => {
     });
 
     it('prepares map without scope', async () => {
+      const source = profileSource(undefined, profileName);
+      const ast = parseProfile(new Source(source));
+
       jest
         .mocked(exists)
         .mockResolvedValueOnce(true)
@@ -432,7 +457,7 @@ describe('MapCLI command', () => {
         .mockResolvedValueOnce(false);
       jest
         .mocked(readFile)
-        .mockResolvedValueOnce(profileSource(undefined, profileName))
+        .mockResolvedValueOnce(source)
         .mockResolvedValueOnce(JSON.stringify(providerJson));
 
       jest.mocked(mapProviderToProfile).mockResolvedValueOnce(mapSource);
@@ -448,13 +473,25 @@ describe('MapCLI command', () => {
         {
           providerJson,
           profile: {
-            source: profileSource(undefined, profileName),
+            source,
+            ast,
             name: profileName,
             scope: undefined,
           },
           options: { quiet: undefined },
         },
         { logger }
+      );
+
+      expect(writeApplicationCode).toHaveBeenCalledWith(
+        {
+          providerJson,
+          profileAst: ast,
+        },
+        {
+          logger,
+          userError,
+        }
       );
 
       expect(mockWriteOnce).toHaveBeenCalledWith(

@@ -4,10 +4,13 @@ import { createSpinner } from 'nanospinner';
 
 // TODO: This could be singleton that is injectet into each command class as dependency and there is a helper methot to get instance from user error handler - on error we need to call fail method
 export class UX {
+  private static instance: UX | undefined;
+
   private readonly spinner: Spinner;
 
-  constructor() {
+  private constructor() {
     this.spinner = createSpinner(undefined, { color: 'cyan' });
+    UX.instance = this;
   }
 
   public start(text: string): void {
@@ -43,5 +46,12 @@ export class UX {
       text += '\n';
     }
     this.spinner.warn({ text: yellow(text), mark: yellow('⚠') });
+  }
+
+  public static create(): UX {
+    if (UX.instance === undefined) {
+      UX.instance = new UX();
+    }
+    return UX.instance;
   }
 }

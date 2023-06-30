@@ -66,7 +66,7 @@ export default class Prepare extends Command {
     flags: Flags<typeof Prepare.flags>;
     args: { urlOrPath?: string; name?: string };
   }): Promise<void> {
-    const ux = new UX();
+    const ux = UX.create()
     const { urlOrPath, name } = args;
 
     if (urlOrPath === undefined) {
@@ -91,17 +91,17 @@ export default class Prepare extends Command {
       { logger }
     );
 
-    await writeProviderJson(providerJson, { logger, userError, ux });
+    await writeProviderJson(providerJson, { logger, userError, });
   }
 }
 
 export async function writeProviderJson(
   providerJson: ProviderJson,
-  { logger, userError, ux }: { logger: ILogger; userError: UserError; ux: UX }
+  { logger, userError }: { logger: ILogger; userError: UserError }
 ): Promise<void> {
   // TODO: force flag
   if (await exists(buildProviderPath(providerJson.name))) {
-    throw userError(`Provider ${providerJson.name} already exists.`, 1, ux);
+    throw userError(`Provider ${providerJson.name} already exists.`, 1);
   }
 
   if (!(await exists(buildSuperfaceDirPath()))) {
@@ -128,7 +128,7 @@ async function resolveInputs(
   // slep for 2 seconds
   await new Promise(resolve => setTimeout(resolve, 2000));
 
-  const resolvedSource = await resolveSource(urlOrPath, { userError, ux });
+  const resolvedSource = await resolveSource(urlOrPath, { userError });
 
   let apiName;
   if (name !== undefined) {
@@ -150,7 +150,7 @@ async function resolveInputs(
 
 async function resolveSource(
   urlOrPath: string,
-  { userError, ux }: { userError: UserError; ux: UX }
+  { userError }: { userError: UserError; }
 ): Promise<{ filename?: string; source: string }> {
   if (isUrl(urlOrPath)) {
     return { source: urlOrPath };
@@ -160,19 +160,18 @@ async function resolveSource(
     throw userError(
       `Invalid file extension. Supported extensions are: .txt, .json, .yaml, .yml.`,
       1,
-      ux
     );
   }
 
   if (!(await exists(urlOrPath))) {
-    throw userError(`File ${urlOrPath} does not exist.`, 1, ux);
+    throw userError(`File ${urlOrPath} does not exist.`, 1);
   }
 
   let content: string;
   try {
     content = await readFile(urlOrPath, { encoding: 'utf-8' });
   } catch (e) {
-    throw userError(`Could not read file ${urlOrPath}.`, 1, ux);
+    throw userError(`Could not read file ${urlOrPath}.`, 1);
   }
 
   return { filename: urlOrPath, source: content };
