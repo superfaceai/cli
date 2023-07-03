@@ -13,7 +13,10 @@ import { buildProfilePath, buildProviderPath } from '../common/file-structure';
 import { exists, readFile } from '../common/io';
 import type { ILogger } from '../common/log';
 import { OutputStream } from '../common/output-stream';
+import { UX } from '../common/ux';
 import { newProfile } from '../logic/new';
+
+const MAX_PROMPT_LENGTH = 200;
 
 export default class New extends Command {
   // TODO: add description
@@ -64,81 +67,129 @@ export default class New extends Command {
     flags: Flags<typeof New.flags>;
     args: { providerName?: string; prompt?: string };
   }): Promise<void> {
+    const ux = UX.create();
     const { providerName, prompt } = args;
 
-    if (providerName === undefined) {
-      throw userError(
-        'Missing provider name. Please provide it as first argument.',
-        1
-      );
-    }
+    ux.start('Checking input arguments');
 
-    if (!isValidProviderName(providerName)) {
-      throw userError('Invalid provider name', 1);
-    }
+    checkPrompt(prompt, { userError });
 
-    // TODO: length check?
-    if (prompt === undefined) {
-      throw userError(
-        'Missing short description of your use case in natural language. Please provide it as second argument.',
-        1
-      );
-    }
+    const providerJson = await resolveProviderJson(providerName, {
+      userError,
+    });
 
-    if (!(await exists(buildProviderPath(providerName)))) {
-      throw userError(
-        `Provider ${providerName} does not exist. Make sure to run "sf prepare" before running this command.`,
-        1
-      );
-    }
+    ux.succeed('Input arguments checked');
 
-    const providerJsonFile = await readFile(
-      buildProviderPath(providerName),
-      'utf-8'
-    );
-    let providerJson: ProviderJson;
-    try {
-      providerJson = JSON.parse(providerJsonFile) as ProviderJson;
-    } catch (e) {
-      throw userError(`Invalid provider.json file.`, 1);
-    }
-
-    try {
-      assertProviderJson(providerJson);
-    } catch (e) {
-      if (e instanceof AssertionError) {
-        throw userError(`Invalid provider.json file. ${e.message}`, 1);
-      }
-      throw userError(`Invalid provider.json file.`, 1);
-    }
-
-    if (providerName !== providerJson.name) {
-      throw userError(
-        `Provider name in provider.json file does not match provider name in command.`,
-        1
-      );
-    }
-
-    const profileResult = await newProfile(
+    ux.start('Creating profile for your use case');
+    // TODO: should take also user error?
+    const profile = await newProfile(
       {
         providerJson,
-        prompt,
+        prompt: prompt,
         options: { quiet: flags.quiet },
       },
-      { logger }
+      { logger, userError, ux }
     );
+    ux.succeed('Profile created');
 
-    const profilePath = buildProfilePath(
-      `${profileResult.scope !== undefined ? profileResult.scope + '.' : ''}${
-        profileResult.name
-      }`
+    ux.start('Saving profile for your use case');
+    await saveProfile(profile, { logger, userError });
+
+    ux.succeed(
+      `Profile saved. You can use it to generate integration code for your use case by running 'superface map  ${
+        providerJson.name
+      } ${profile.scope !== undefined ? `${profile.scope}.` : ''}${
+        profile.name
+      }'`
     );
-
-    // TODO: force flag? or overwrite by default?
-    if (await exists(profilePath)) {
-      throw userError(`Profile ${basename(profilePath)} already exists.`, 1);
-    }
-
-    await OutputStream.writeOnce(profilePath, profileResult.source);
   }
+}
+
+async function saveProfile(
+  { source, scope, name }: { source: string; scope?: string; name: string },
+  { logger, userError }: { logger: ILogger; userError: UserError }
+): Promise<void> {
+  const profilePath = buildProfilePath(
+    `${scope !== undefined ? scope + '.' : ''}${name}`
+  );
+
+  logger.info('saveProfile', profilePath);
+
+  // TODO: force flag? or overwrite by default?
+  if (await exists(profilePath)) {
+    throw userError(`Profile ${basename(profilePath)} already exists.`, 1);
+  }
+
+  await OutputStream.writeOnce(profilePath, source);
+}
+
+function checkPrompt(
+  prompt: string | undefined,
+  { userError }: { userError: UserError }
+): asserts prompt is string {
+  if (prompt === undefined) {
+    throw userError(
+      'Missing short description of your use case in natural language. Please provide it as second argument.',
+      1
+    );
+  }
+
+  if (prompt.length > MAX_PROMPT_LENGTH) {
+    throw userError(
+      `Description of your use case is too long. Maximum length is ${MAX_PROMPT_LENGTH} characters.`,
+      1
+    );
+  }
+}
+
+export async function resolveProviderJson(
+  providerName: string | undefined,
+  { userError }: { userError: UserError }
+): Promise<ProviderJson> {
+  if (providerName === undefined) {
+    throw userError(
+      'Missing provider name. Please provide it as first argument.',
+      1
+    );
+  }
+
+  if (!isValidProviderName(providerName)) {
+    throw userError('Invalid provider name', 1);
+  }
+
+  if (!(await exists(buildProviderPath(providerName)))) {
+    throw userError(
+      `Provider ${providerName} does not exist. Make sure to run "sf prepare" before running this command.`,
+      1
+    );
+  }
+
+  const providerJsonFile = await readFile(
+    buildProviderPath(providerName),
+    'utf-8'
+  );
+  let providerJson: ProviderJson;
+  try {
+    providerJson = JSON.parse(providerJsonFile) as ProviderJson;
+  } catch (e) {
+    throw userError(`Invalid provider.json file.`, 1);
+  }
+
+  try {
+    assertProviderJson(providerJson);
+  } catch (e) {
+    if (e instanceof AssertionError) {
+      throw userError(`Invalid provider.json file. ${e.message}`, 1);
+    }
+    throw userError(`Invalid provider.json file.`, 1);
+  }
+
+  if (providerName !== providerJson.name) {
+    throw userError(
+      `Provider name in provider.json file does not match provider name in command.`,
+      1
+    );
+  }
+
+  return providerJson;
 }

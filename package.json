@@ -65,6 +65,7 @@
     "handlebars": "^4.7.7",
     "inquirer": "^7.3.3",
     "inquirer-file-tree-selection-prompt": "^1.0.7",
+    "nanospinner": "^1.1.0",
     "netrc-parser": "^3.1.6",
     "open": "^8.2.1",
     "rimraf": "^3.0.2",

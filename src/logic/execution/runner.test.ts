@@ -5,6 +5,7 @@ import { MockLogger } from '../../common';
 import { createUserError } from '../../common/error';
 import { executeRunner } from './runner';
 
+// TODO: finish tests
 describe('executeRunner', () => {
   it.skip('executes integration', async () => {
     const mockChildProcess = new EventEmitter() as ChildProcess;

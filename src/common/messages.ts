@@ -8,9 +8,17 @@ const execute = {
       ? `Child process exited without code`
       : `Child process exited with code ${code}`,
 };
+const applicationCode = {
+  requiredSecurityValue: (value: string): string =>
+    `Security ${value} is required for integration, please provide it in .env file`,
+  requiredParameterValue: (value: string): string =>
+    `Parameter ${value} is required for integration, please provide it in .env file`,
+};
+
 const newCommand = {
   startProfileGeneration: (providerName: string) =>
     `Starting profile generation for provider: "${providerName}"`,
+  saveProfile: (path: string) => `Saving to: "${path}"`,
 };
 const prepare = {
   preparationStarted: () => 'Starting preparation process',
@@ -382,6 +390,7 @@ export const messages = {
   ...newCommand,
   ...prepare,
   ...execute,
+  ...applicationCode,
 };
 
 export type MessageKeys = keyof typeof messages;

@@ -2,6 +2,7 @@ import { MockLogger } from '../common';
 import { createUserError } from '../common/error';
 import { exists, readFile } from '../common/io';
 import { OutputStream } from '../common/output-stream';
+import { UX } from '../common/ux';
 import { newProfile } from '../logic/new';
 import { mockProviderJson } from '../test/provider-json';
 import { CommandInstance } from '../test/utils';
@@ -19,6 +20,7 @@ describe('new CLI command', () => {
   const providerJson = mockProviderJson({ name: providerName });
   const prompt = 'test';
   const userError = createUserError(false);
+  const ux = UX.create();
 
   afterEach(() => {
     jest.resetAllMocks();
@@ -49,7 +51,12 @@ describe('new CLI command', () => {
 
     it('throws when provider name is not provided', async () => {
       await expect(
-        instance.execute({ logger, userError, flags: {}, args: {} })
+        instance.execute({
+          logger,
+          userError,
+          flags: {},
+          args: { prompt: 'test' },
+        })
       ).rejects.toThrow(
         'Missing provider name. Please provide it as first argument.'
       );
@@ -61,7 +68,7 @@ describe('new CLI command', () => {
           logger,
           userError,
           flags: {},
-          args: { providerName: '!_0%L' },
+          args: { providerName: '!_0%L', prompt: 'test' },
         })
       ).rejects.toThrow('Invalid provider name');
     });
@@ -177,7 +184,7 @@ describe('new CLI command', () => {
           prompt,
           options: { quiet: undefined },
         },
-        { logger }
+        { logger, ux, userError }
       );
 
       expect(mockWriteOnce).toHaveBeenCalledWith(
@@ -210,7 +217,7 @@ describe('new CLI command', () => {
           prompt,
           options: { quiet: undefined },
         },
-        { logger }
+        { logger, ux, userError }
       );
 
       expect(mockWriteOnce).toHaveBeenCalledWith(
@@ -241,7 +248,7 @@ describe('new CLI command', () => {
           prompt,
           options: { quiet: undefined },
         },
-        { logger }
+        { logger, ux, userError }
       );
 
       expect(mockWriteOnce).toHaveBeenCalledWith(

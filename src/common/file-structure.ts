@@ -36,6 +36,10 @@ export function buildMapPath(profileId: string, providerName: string): string {
   );
 }
 
+export function buildAssetsPath(): string {
+  return resolve(process.cwd(), DEFAULT_SUPERFACE_DIR);
+}
+
 export function buildRunFilePath(
   profileId: string,
   providerName: string,
