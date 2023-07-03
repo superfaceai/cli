@@ -7,10 +7,10 @@ import { OutputStream } from '../common/output-stream';
 import { UX } from '../common/ux';
 import { writeApplicationCode } from '../logic/application-code/application-code';
 import { mapProviderToProfile } from '../logic/map';
+import { prepareJsProject } from '../logic/project';
 import { mockProviderJson } from '../test/provider-json';
 import { CommandInstance } from '../test/utils';
 import Map from './map';
-import { prepareJsProject } from '../logic/project';
 
 jest.mock('../common/io');
 jest.mock('../common/output-stream');

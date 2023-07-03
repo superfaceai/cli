@@ -1,4 +1,4 @@
-import { ILogger } from '../../common';
+import type { ILogger } from '../../common';
 import { buildProjectDefinitionFilePath } from '../../common/file-structure';
 import { exists } from '../../common/io';
 import { OutputStream } from '../../common/output-stream';
@@ -15,9 +15,6 @@ export async function prepareJsProject(
     "main": "index.js",
     "engines" : { 
       "node" : ">=18.0.0"
-    },
-    "scripts": {
-      "test": "echo \"Error: no test specified\" && exit 1"
     },
     "keywords": [],
     "author": "",

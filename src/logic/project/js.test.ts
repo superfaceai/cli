@@ -30,6 +30,7 @@ describe('prepareJsProject', () => {
 
     jest.clearAllMocks();
   });
+
   it('creates package.json if it does not exist', async () => {
     jest.mocked(exists).mockResolvedValueOnce(false);
 

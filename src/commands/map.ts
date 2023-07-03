@@ -13,8 +13,8 @@ import { OutputStream } from '../common/output-stream';
 import { UX } from '../common/ux';
 import { writeApplicationCode } from '../logic/application-code/application-code';
 import { mapProviderToProfile } from '../logic/map';
-import { resolveProviderJson } from './new';
 import { prepareJsProject } from '../logic/project';
+import { resolveProviderJson } from './new';
 
 export default class Map extends Command {
   // TODO: add description
