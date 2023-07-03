@@ -10,11 +10,13 @@ import { mapProviderToProfile } from '../logic/map';
 import { mockProviderJson } from '../test/provider-json';
 import { CommandInstance } from '../test/utils';
 import Map from './map';
+import { prepareJsProject } from '../logic/project';
 
 jest.mock('../common/io');
 jest.mock('../common/output-stream');
 jest.mock('../logic/map');
 jest.mock('../logic/application-code/application-code');
+jest.mock('../logic/project');
 
 describe('MapCLI command', () => {
   const profileName = 'test';
@@ -446,6 +448,8 @@ describe('MapCLI command', () => {
         ),
         mapSource
       );
+
+      expect(prepareJsProject).toHaveBeenCalled();
     });
 
     it('prepares map without scope', async () => {
@@ -502,6 +506,8 @@ describe('MapCLI command', () => {
         ),
         mapSource
       );
+
+      expect(prepareJsProject).toHaveBeenCalled();
     });
   });
 });

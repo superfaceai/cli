@@ -5,6 +5,10 @@ const applicationCode = {
     `Security ${value} is required for integration, please provide it in .env file`,
   requiredParameterValue: (value: string): string =>
     `Parameter ${value} is required for integration, please provide it in .env file`,
+  projectDefinitionFileCreated: (path: string, name: string): string =>
+    `${name} file created at ${path}`,
+  projectDefinitionFileExists: (path: string, name: string): string =>
+    `${name} file already exists at ${path}`,
 };
 
 const newCommand = {

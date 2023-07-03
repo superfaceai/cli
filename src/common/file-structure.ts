@@ -53,3 +53,14 @@ export function buildRunFilePath(
     `${profileId}.${providerName}${extension}`
   );
 }
+
+export function buildProjectDefinitionFilePath(
+  language: 'JS' | 'Python' = 'JS'
+): string {
+  if (language === 'Python') {
+    throw new Error('Python is not supported yet');
+  }
+  const file = 'package.json';
+
+  return join(resolve(process.cwd()), DEFAULT_SUPERFACE_DIR, file);
+}

@@ -14,6 +14,7 @@ import { UX } from '../common/ux';
 import { writeApplicationCode } from '../logic/application-code/application-code';
 import { mapProviderToProfile } from '../logic/map';
 import { resolveProviderJson } from './new';
+import { prepareJsProject } from '../logic/project';
 
 export default class Map extends Command {
   // TODO: add description
@@ -34,6 +35,14 @@ export default class Map extends Command {
       name: 'profileId',
       description: 'Id of profile, eg: starwars.character-information',
       required: false,
+    },
+    {
+      // TODO: add language support and value validation
+      name: 'language',
+      description: 'Language which will use generated code. Default is `js`.',
+      required: false,
+      // Hidden because we support only js for now
+      hidden: true,
     },
   ];
 
@@ -110,6 +119,7 @@ export default class Map extends Command {
     ux.succeed('Boilerplate code prepared.');
 
     // TODO: install dependencies
+    await prepareJsProject(undefined, undefined, { logger });
   }
 }
 
