@@ -36,6 +36,7 @@ describe('MapCLI command', () => {
   const mapSource = 'map';
   const providerName = 'test-provider';
   const profileScope = 'test-scope';
+  const mockApplicationCode = 'mocked application code';
   const providerJson = mockProviderJson({ name: providerName });
   const userError = createUserError(false);
   const ux = UX.create();
@@ -408,6 +409,10 @@ describe('MapCLI command', () => {
         .mockResolvedValueOnce(source)
         .mockResolvedValueOnce(JSON.stringify(providerJson));
 
+      jest
+        .mocked(writeApplicationCode)
+        .mockResolvedValueOnce(mockApplicationCode);
+
       jest.mocked(mapProviderToProfile).mockResolvedValueOnce(mapSource);
 
       await instance.execute({
@@ -448,6 +453,12 @@ describe('MapCLI command', () => {
         ),
         mapSource
       );
+      expect(mockWriteOnce).toHaveBeenCalledWith(
+        expect.stringContaining(
+          `superface/${profileScope}.${profileName}.${providerName}.mjs`
+        ),
+        mockApplicationCode
+      );
 
       expect(prepareJsProject).toHaveBeenCalled();
     });
@@ -467,6 +478,10 @@ describe('MapCLI command', () => {
         .mockResolvedValueOnce(JSON.stringify(providerJson));
 
       jest.mocked(mapProviderToProfile).mockResolvedValueOnce(mapSource);
+
+      jest
+        .mocked(writeApplicationCode)
+        .mockResolvedValueOnce(mockApplicationCode);
 
       await instance.execute({
         logger,
@@ -507,6 +522,10 @@ describe('MapCLI command', () => {
         mapSource
       );
 
+      expect(mockWriteOnce).toHaveBeenCalledWith(
+        expect.stringContaining(`superface/${profileName}.${providerName}.mjs`),
+        mockApplicationCode
+      );
       expect(prepareJsProject).toHaveBeenCalled();
     });
   });

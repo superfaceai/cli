@@ -117,8 +117,16 @@ export default class Map extends Command {
       saved ? 'Boilerplate code prepared.' : 'Boilerplate code already exists.'
     );
 
+    ux.start('Setting up local project');
     // TODO: install dependencies
     await prepareJsProject(undefined, undefined, { logger });
+
+    ux.succeed(
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      `Local project set up. You can now install defined dependencies and run \`superface execute ${
+        providerJson.name
+      } ${profileId!}\` to execute your integration.`
+    );
   }
 }
 
@@ -128,8 +136,10 @@ async function saveBoilerplateCode(
   { userError, logger }: { userError: UserError; logger: ILogger }
 ): Promise<boolean> {
   const path = buildRunFilePath(
+    `${
+      profileAst.header.scope !== undefined ? profileAst.header.scope + '.' : ''
+    }${profileAst.header.name}`,
     providerJson.name,
-    profileAst.header.name,
     'JS'
   );
 
