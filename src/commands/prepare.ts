@@ -1,5 +1,4 @@
 import type { ProviderJson } from '@superfaceai/ast';
-import Listr from 'listr';
 import { basename, extname } from 'path';
 
 import type { Flags } from '../common/command.abstract';
@@ -12,6 +11,7 @@ import {
 import { exists, mkdir, readFile } from '../common/io';
 import type { ILogger } from '../common/log';
 import { OutputStream } from '../common/output-stream';
+import { UX } from '../common/ux';
 import { prepareProviderJson } from '../logic/prepare';
 
 export default class Prepare extends Command {
@@ -66,7 +66,10 @@ export default class Prepare extends Command {
     flags: Flags<typeof Prepare.flags>;
     args: { urlOrPath?: string; name?: string };
   }): Promise<void> {
+    const ux = UX.create();
     const { urlOrPath, name } = args;
+
+    ux.start('Resolving inputs');
 
     if (urlOrPath === undefined) {
       throw userError(
@@ -75,52 +78,34 @@ export default class Prepare extends Command {
       );
     }
 
-    let providerJson: ProviderJson;
-    let resolved: { source: string; name?: string };
-    const tasks = new Listr<{
-      urlOrPath: string;
-      name: string | undefined;
-    }>([
-      {
-        title: 'Resolving inputs',
-        task: async ctx => {
-          resolved = await resolveInputs(ctx.urlOrPath, ctx.name, {
-            userError,
-          });
-        },
-      },
-      {
-        title: 'Preparing API provider definition',
-        enabled: () => resolved !== undefined,
-        task: async () => {
-          // TODO: should take also user error?
-          providerJson = await prepareProviderJson(
-            {
-              urlOrSource: resolved.source,
-              name: resolved.name,
-              options: { quiet: flags.quiet },
-            },
-            { logger }
-          );
-        },
-      },
-      {
-        title: 'Writing provider definition',
-        enabled: () => providerJson !== undefined,
-        task: async () => {
-          await writeProviderJson(providerJson, { logger, userError });
-        },
-      },
-    ]);
-
-    await tasks.run({
-      urlOrPath,
-      name,
+    const resolved = await resolveInputs(urlOrPath, name, {
+      userError,
     });
+
+    ux.succeed('Inputs resolved');
+
+    ux.start('Preparing provider definition');
+    const providerJson = await prepareProviderJson(
+      {
+        urlOrSource: resolved.source,
+        name: resolved.name,
+        options: { quiet: flags.quiet },
+      },
+      { userError, ux }
+    );
+
+    ux.succeed('Provider definition successfully prepared');
+
+    ux.start('Saving provider definition');
+    await writeProviderJson(providerJson, { logger, userError });
+
+    ux.succeed(
+      `Provider definition saved successfully.\nYou can use it to generate integration code interface with 'superface new ${providerJson.name}' "<use case description>".`
+    );
   }
 }
 
-async function writeProviderJson(
+export async function writeProviderJson(
   providerJson: ProviderJson,
   { logger, userError }: { logger: ILogger; userError: UserError }
 ): Promise<void> {

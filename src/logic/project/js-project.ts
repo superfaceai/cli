@@ -1,15 +1,15 @@
 import inquirer from 'inquirer';
+import { dirname } from 'path';
 
 import type { ILogger } from '../../common';
-import { type UserError } from '../../common/error';
+import type { UserError } from '../../common/error';
 import { stringifyError } from '../../common/error';
-import type { IPackageManager } from '../../common/package-manager';
-import { dirname } from 'path';
-import { exists } from '../../common/io';
 import {
-  DEFAULT_SUPERFACE_DIR,
   buildSuperfaceDirPath,
+  DEFAULT_SUPERFACE_DIR,
 } from '../../common/file-structure';
+import { exists } from '../../common/io';
+import type { IPackageManager } from '../../common/package-manager';
 
 export async function setupJsProject({
   logger,

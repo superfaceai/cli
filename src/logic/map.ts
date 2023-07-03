@@ -1,9 +1,10 @@
 import type { ProviderJson } from '@superfaceai/ast';
 import type { ServiceClient } from '@superfaceai/service-client';
 
-import type { ILogger } from '../common';
+import type { UserError } from '../common/error';
 import { SuperfaceClient } from '../common/http';
 import { pollUrl } from '../common/polling';
+import type { UX } from '../common/ux';
 
 export type MapPreparationResponse = {
   source: string;
@@ -39,7 +40,7 @@ export async function mapProviderToProfile(
       quiet?: boolean;
     };
   },
-  { logger }: { logger: ILogger }
+  { ux, userError }: { ux: UX; userError: UserError }
 ): Promise<string> {
   const client = SuperfaceClient.getClient();
 
@@ -51,7 +52,7 @@ export async function mapProviderToProfile(
 
   const resultUrl = await pollUrl(
     { url: jobUrl, options: { quiet: options?.quiet } },
-    { logger, client }
+    { client, ux, userError }
   );
 
   return (
