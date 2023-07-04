@@ -11,10 +11,10 @@ import { resolveProviderJson } from './new';
 export default class Execute extends Command {
   // TODO: add description
   public static description =
-    'This commands executes created integration. Commands `prepare`, `new` and `map` must be run before this command.';
+    'This commands executes created integration. Commands `prepare`, `new` and `map` must be run before this command. This command will execute integration usni Node and print result to stdout.';
 
   public static examples = [
-    'superface execute <provider-name> <optional-profile-scope>.<profile-name> <optional-language>',
+    'superface execute resend communication/send-email',
   ];
 
   public static args = [
@@ -33,6 +33,8 @@ export default class Execute extends Command {
       description: 'Language of generated integration. Default is JS.',
       required: false,
       default: 'JS',
+      // Hidden because we support only js for now
+      hidden: true,
     },
   ];
 
@@ -80,7 +82,9 @@ export default class Execute extends Command {
     // Check that map exists
     if (!(await exists(buildMapPath(profileId!, providerJson.name)))) {
       throw userError(
-        `Map for profile ${profileId!} and provider ${providerJson.name} does not exist.`,
+        `Map for profile ${profileId!} and provider ${
+          providerJson.name
+        } does not exist.`,
         1
       );
     }
@@ -93,7 +97,9 @@ export default class Execute extends Command {
     );
     if (!(await exists(runfile))) {
       throw userError(
-        `Runfile for profile ${profileId!} and provider ${providerJson.name} does not exist.`,
+        `Runfile for profile ${profileId!} and provider ${
+          providerJson.name
+        } does not exist.`,
         1
       );
     }

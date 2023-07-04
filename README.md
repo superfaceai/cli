@@ -55,10 +55,41 @@ npx @superfaceai/cli install [profileId eg. communication/send-email]
 ## Usage
 
   <!-- commands -->
+* [`superface execute PROVIDERNAME PROFILEID`](#superface-execute-providername-profileid)
 * [`superface login`](#superface-login)
 * [`superface logout`](#superface-logout)
+* [`superface map PROVIDERNAME [PROFILEID]`](#superface-map-providername-profileid)
+* [`superface new PROVIDERNAME [PROMPT]`](#superface-new-providername-prompt)
 * [`superface prepare URLORPATH [NAME]`](#superface-prepare-urlorpath-name)
 * [`superface whoami`](#superface-whoami)
+
+## `superface execute PROVIDERNAME PROFILEID`
+
+This commands executes created integration. Commands `prepare`, `new` and `map` must be run before this command. This command will execute integration usni Node and print result to stdout.
+
+```
+USAGE
+  $ superface execute PROVIDERNAME PROFILEID [LANGUAGE] [-q] [--noColor] [--noEmoji] [-h]
+
+ARGUMENTS
+  PROVIDERNAME  Name of provider.
+  PROFILEID     Id of profile, eg: starwars.character-information
+
+FLAGS
+  -h, --help   show CLI help
+  -q, --quiet  When set to true, disables the shell echo output of action.
+  --noColor    When set to true, disables all colored output.
+  --noEmoji    When set to true, disables displaying emoji in output.
+
+DESCRIPTION
+  This commands executes created integration. Commands `prepare`, `new` and `map` must be run before this command. This
+  command will execute integration usni Node and print result to stdout.
+
+EXAMPLES
+  $ superface execute resend communication/send-email
+```
+
+_See code: [dist/commands/execute.ts](https://github.com/superfaceai/cli/tree/main/src/commands/execute.ts)_
 
 ## `superface login`
 
@@ -109,9 +140,70 @@ EXAMPLES
 
 _See code: [dist/commands/logout.ts](https://github.com/superfaceai/cli/tree/main/src/commands/logout.ts)_
 
+## `superface map PROVIDERNAME [PROFILEID]`
+
+This commands uses Conlink profile and provider definition from `superface` folder to generate JS map and boilerplate code. Created integration is saved in `superface` folder and is ready to be used by our WASM OneSDK. User should check security, integration parameters and input in created files before execution. Created integration can be tested by running `execute` command
+
+```
+USAGE
+  $ superface map PROVIDERNAME [PROFILEID] [LANGUAGE] [-q] [--noColor] [--noEmoji] [-h]
+
+ARGUMENTS
+  PROVIDERNAME  Name of provider.
+  PROFILEID     Id of profile, eg: starwars/character-information
+
+FLAGS
+  -h, --help   show CLI help
+  -q, --quiet  When set to true, disables the shell echo output of action.
+  --noColor    When set to true, disables all colored output.
+  --noEmoji    When set to true, disables displaying emoji in output.
+
+DESCRIPTION
+  This commands uses Conlink profile and provider definition from `superface` folder to generate JS map and boilerplate
+  code. Created integration is saved in `superface` folder and is ready to be used by our WASM OneSDK. User should check
+  security, integration parameters and input in created files before execution. Created integration can be tested by
+  running `execute` command
+
+EXAMPLES
+  $ superface map resend communication/send-email
+```
+
+_See code: [dist/commands/map.ts](https://github.com/superfaceai/cli/tree/main/src/commands/map.ts)_
+
+## `superface new PROVIDERNAME [PROMPT]`
+
+Generates Comlink profile from prepared API documentation. Comlink profile defines interface of API integration. Use name of provider as first argument and description of your use case as second argument. You need to run `superface prepare ` command before running this command.
+
+```
+USAGE
+  $ superface new PROVIDERNAME [PROMPT] [-q] [--noColor] [--noEmoji] [-h]
+
+ARGUMENTS
+  PROVIDERNAME  URL or path to the API documentation.
+  PROMPT        API name. If not provided, it will be inferred from URL or file name.
+
+FLAGS
+  -h, --help   show CLI help
+  -q, --quiet  When set to true, disables the shell echo output of action.
+  --noColor    When set to true, disables all colored output.
+  --noEmoji    When set to true, disables displaying emoji in output.
+
+DESCRIPTION
+  Generates Comlink profile from prepared API documentation. Comlink profile defines interface of API integration. Use
+  name of provider as first argument and description of your use case as second argument. You need to run `superface
+  prepare ` command before running this command.
+
+EXAMPLES
+  $ superface new swapi "retrieve character's homeworld by their name"
+
+  $ superface new resend "Send email to user"
+```
+
+_See code: [dist/commands/new.ts](https://github.com/superfaceai/cli/tree/main/src/commands/new.ts)_
+
 ## `superface prepare URLORPATH [NAME]`
 
-Prepares API documentation for integration generation from provider URL or local file with OpenAPI specification in yaml or json format. Or from the URL to the readme.io dev portal.  This command prepares a provider definition that can be used to generate integration code.
+Prepares API documentation for integration generation from provider URL or local file with OpenAPI specification in yaml or json format. Or from the URL to the readme.io dev portal.If you want to use plain text documentation you need to format the docs with **the separator**. The documentation conventionally consists of various topics, usually set apart by separate pages or big headings. They might be _authentication, rate limiting, general rules, API operations (sometimes grouped by resources)_.
 
 ```
 USAGE
@@ -129,17 +221,44 @@ FLAGS
 
 DESCRIPTION
   Prepares API documentation for integration generation from provider URL or local file with OpenAPI specification in
-  yaml or json format. Or from the URL to the readme.io dev portal.  This command prepares a provider definition that
-  can be used to generate integration code.
+  yaml or json format. Or from the URL to the readme.io dev portal.If you want to use plain text documentation you need
+  to format the docs with **the separator**. The documentation conventionally consists of various topics, usually set
+  apart by separate pages or big headings. They might be _authentication, rate limiting, general rules, API operations
+  (sometimes grouped by resources)_.
+
+  It's highly recommended each of these topics (or chunks) is set apart in the docs provided for Superface, too. For
+  that, we use _the separator_.
+
+  The separator is a long `===========` ended with a newline. Technically 5 _equal_ characters are enough to form a
+  separator. The API docs ready for EDGAR might look something like the following:
+
+  `
+  # Welcome to our docs
+  (...)
+  ================================
+  # API Basics
+  (...)
+  ================================
+  # Authorizing Requests
+  (...)
+  ================================
+  # /todos/:id/items
+  This endpoint lists all items (...)
+  ================================
+  (...)
+  `
+  This command prepares a provider definition that can be used to generate integration code. Superface trie to fill as
+  much as possibe from the API documentation, but some parts are required to be filled manually. You can find the
+  prepared provider definition in the `superface/` directory in the current working directory.
 
 EXAMPLES
   $ superface prepare https://raw.githubusercontent.com/APIs-guru/openapi-directory/main/APIs/openai.com/1.2.0/openapi.yaml
 
   $ superface prepare https://raw.githubusercontent.com/APIs-guru/openapi-directory/main/APIs/openai.com/1.2.0/openapi.yaml openai
 
-  $ superface prepare prepare path/to/openapi.json
+  $ superface prepare path/to/openapi.json
 
-  $ superface prepare prepare https://workable.readme.io/reference/stages
+  $ superface prepare https://workable.readme.io/reference/stages workable
 ```
 
 _See code: [dist/commands/prepare.ts](https://github.com/superfaceai/cli/tree/main/src/commands/prepare.ts)_

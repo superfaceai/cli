@@ -22,11 +22,9 @@ import { resolveProviderJson } from './new';
 export default class Map extends Command {
   // TODO: add description
   public static description =
-    'This commands uses Conlink profile and provider definition from `superface` folder and generate JS map and boilerplate code. Created integration is saved in `superface` folder and is ready to be used by our WASM OneSDK. User should check security, integration parameters and input before execution. Created integration can be tested by running `execute` command';
+    'This commands uses Conlink profile and provider definition from `superface` folder to generate JS map and boilerplate code. Created integration is saved in `superface` folder and is ready to be used by our WASM OneSDK. User should check security, integration parameters and input in created files before execution. Created integration can be tested by running `execute` command';
 
-  public static examples = [
-    'superface map <provider-name> <optional-profile-scope>.<profile-name>.profile',
-  ];
+  public static examples = ['superface map resend communication/send-email'];
 
   public static args = [
     {
@@ -36,7 +34,7 @@ export default class Map extends Command {
     },
     {
       name: 'profileId',
-      description: 'Id of profile, eg: starwars.character-information',
+      description: 'Id of profile, eg: starwars/character-information',
       required: false,
     },
     {

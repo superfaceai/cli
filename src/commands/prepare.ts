@@ -15,15 +15,34 @@ import { UX } from '../common/ux';
 import { prepareProviderJson } from '../logic/prepare';
 
 export default class Prepare extends Command {
-  // TODO: add description
-  public static description =
-    'Prepares API documentation for integration generation from provider URL or local file with OpenAPI specification in yaml or json format. Or from the URL to the readme.io dev portal.  This command prepares a provider definition that can be used to generate integration code.';
+  public static description = `Prepares API documentation for integration generation from provider URL or local file with OpenAPI specification in yaml or json format. Or from the URL to the readme.io dev portal.If you want to use plain text documentation you need to format the docs with **the separator**. The documentation conventionally consists of various topics, usually set apart by separate pages or big headings. They might be _authentication, rate limiting, general rules, API operations (sometimes grouped by resources)_.
+
+    It's highly recommended each of these topics (or chunks) is set apart in the docs provided for Superface, too. For that, we use _the separator_.
+    
+    The separator is a long \`===========\` ended with a newline. Technically 5 _equal_ characters are enough to form a separator. The API docs ready for EDGAR might look something like the following:
+    
+    \`
+    # Welcome to our docs
+    (...)
+    ================================
+    # API Basics
+    (...)
+    ================================
+    # Authorizing Requests
+    (...)
+    ================================
+    # /todos/:id/items
+    This endpoint lists all items (...)
+    ================================
+    (...)
+    \`
+    This command prepares a provider definition that can be used to generate integration code. Superface trie to fill as much as possibe from the API documentation, but some parts are required to be filled manually. You can find the prepared provider definition in the \`superface/\` directory in the current working directory.`;
 
   public static examples = [
     'superface prepare https://raw.githubusercontent.com/APIs-guru/openapi-directory/main/APIs/openai.com/1.2.0/openapi.yaml',
     'superface prepare https://raw.githubusercontent.com/APIs-guru/openapi-directory/main/APIs/openai.com/1.2.0/openapi.yaml openai',
-    'superface prepare prepare path/to/openapi.json',
-    'superface prepare prepare https://workable.readme.io/reference/stages',
+    'superface prepare path/to/openapi.json',
+    'superface prepare https://workable.readme.io/reference/stages workable',
   ];
 
   public static args = [
