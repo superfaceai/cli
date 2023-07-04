@@ -80,7 +80,9 @@ export default class Execute extends Command {
     // Check that map exists
     if (!(await exists(buildMapPath(profileId!, providerJson.name)))) {
       throw userError(
-        `Map for profile ${profileId!} and provider ${providerJson.name} does not exist.`,
+        `Map for profile ${profileId!} and provider ${
+          providerJson.name
+        } does not exist.`,
         1
       );
     }
@@ -93,7 +95,9 @@ export default class Execute extends Command {
     );
     if (!(await exists(runfile))) {
       throw userError(
-        `Runfile for profile ${profileId!} and provider ${providerJson.name} does not exist.`,
+        `Runfile for profile ${profileId!} and provider ${
+          providerJson.name
+        } does not exist.`,
         1
       );
     }
