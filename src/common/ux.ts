@@ -7,12 +7,15 @@ export class UX {
 
   private readonly spinner: Spinner;
 
+  private lastText = '';
+
   private constructor() {
-    this.spinner = createSpinner(undefined, { color: 'cyan' });
+    this.spinner = createSpinner(undefined, { color: 'cyan', interval: 80 });
     UX.instance = this;
   }
 
   public start(text: string): void {
+    this.lastText = '';
     if (!text.endsWith('\n')) {
       text += '\n';
     }
@@ -37,7 +40,12 @@ export class UX {
     if (!text.endsWith('\n')) {
       text += '\n';
     }
-    this.spinner.update({ text });
+
+    if (text !== this.lastText) {
+      this.spinner.update({ text });
+    }
+
+    this.lastText = text;
   }
 
   public warn(text: string): void {
