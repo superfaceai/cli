@@ -167,37 +167,51 @@ describe('writeApplicationCode', () => {
       },
       { logger, userError }
     );
+    console.log(result);
 
     expect(result).toEqual(`import { config } from 'dotenv';
-import { OneClient } from '@superfaceai/one-sdk/node/index.js';
-  
-config();
-async function main() {
-  const client = new OneClient({ assetsPath: '${buildAssetsPath()}' });
+  // Load OneClient from SDK
+  import { OneClient } from '@superfaceai/one-sdk/node/index.js';
 
-  const profile = await client.getProfile('${scope}/${name}');
-  const result = await profile
-    .getUseCase('${useCaseName}')
-    .perform(
-     {
+  // Load environment variables from .env file
+  config();
+  async function main() {
+    const client = new OneClient({
+      env = {
+        // Specify log level for OneClient
+        "ONESDK_DEV_LOG": "trace"
+      },
+      // Specify path to assets folder
+      assetsPath: '${buildAssetsPath()}'
+    });
+
+    // Load profile and use case
+    const profile = await client.getProfile('${scope}/${name}');
+    const useCase = profile.getUseCase('${useCaseName}')
+
+    try {
+      // Execute use case
+      const result = await useCase.perform(
+        // Use case input
+         {
         id: 1,
       },
-      {
-        provider: 'test',
-        parameters: {},
-        security: {}
-      }
-    );
+        {
+          provider: 'test',
+          parameters: {},
+          // Security values for provider
+          security: {}
+        }
+      );
 
-  console.log("RESULT:", JSON.stringify(result, null, 2));
+      console.log("RESULT:", JSON.stringify(result, null, 2));
 
-  await new Promise(resolve => setTimeout(() => {
-    console.log('all job done, exiting...');
-    resolve();
-  }, 2000));
-}
+    } catch (e) {
+      console.log("ERROR:", JSON.stringify(e, null, 2));
+    }
+  }
 
-void main();`);
+  void main();`);
   });
 
   it('should throw when there is no use case definitions', async () => {

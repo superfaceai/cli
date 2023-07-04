@@ -38,33 +38,45 @@ export function jsApplicationCode(
   });
   const securityString = prepareSecurityString(provider, security, { logger });
 
-  // TODO: make template nicer
   return `import { config } from 'dotenv';
-import { OneClient } from '${pathToSdk}';
-  
-config();
-async function main() {
-  const client = new OneClient({ assetsPath: '${buildAssetsPath()}' });
+  // Load OneClient from SDK
+  import { OneClient } from '${pathToSdk}';
 
-  const profile = await client.getProfile('${profileId}');
-  const result = await profile
-    .getUseCase('${useCaseName}')
-    .perform(
-    ${input},
-      {
-        provider: '${provider}',
-        parameters: ${parametersString},
-        security: ${securityString}
-      }
-    );
+  // Load environment variables from .env file
+  config();
+  async function main() {
+    const client = new OneClient({
+      env = {
+        // Specify log level for OneClient
+        "ONESDK_DEV_LOG": "trace"
+      },
+      // Specify path to assets folder
+      assetsPath: '${buildAssetsPath()}'
+    });
 
-  console.log("RESULT:", JSON.stringify(result, null, 2));
+    // Load profile and use case
+    const profile = await client.getProfile('${profileId}');
+    const useCase = profile.getUseCase('${useCaseName}')
 
-  await new Promise(resolve => setTimeout(() => {
-    console.log('all job done, exiting...');
-    resolve();
-  }, 2000));
-}
+    try {
+      // Execute use case
+      const result = await useCase.perform(
+        // Use case input
+        ${input},
+        {
+          provider: '${provider}',
+          parameters: ${parametersString},
+          // Security values for provider
+          security: ${securityString}
+        }
+      );
 
-void main();`;
+      console.log("RESULT:", JSON.stringify(result, null, 2));
+
+    } catch (e) {
+      console.log("ERROR:", JSON.stringify(e, null, 2));
+    }
+  }
+
+  void main();`;
 }
