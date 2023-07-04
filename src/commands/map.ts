@@ -13,12 +13,12 @@ import {
 import { exists, readFile } from '../common/io';
 import type { ILogger } from '../common/log';
 import { OutputStream } from '../common/output-stream';
+import { ProfileId } from '../common/profile';
 import { UX } from '../common/ux';
 import { writeApplicationCode } from '../logic/application-code/application-code';
 import { mapProviderToProfile } from '../logic/map';
 import { prepareJsProject } from '../logic/project';
 import { resolveProviderJson } from './new';
-import { ProfileId } from '../common/profile';
 
 export default class Map extends Command {
   // TODO: add description
@@ -134,10 +134,9 @@ export default class Map extends Command {
     ux.succeed(
       `Local project set up. You can now install defined dependencies and run \`superface execute ${
         providerJson.name
-      } ${ProfileId.fromScopeName(
-        profile.scope,
-        profile.name
-      )}\` to execute your integration.`
+      } ${
+        ProfileId.fromScopeName(profile.scope, profile.name).id
+      }\` to execute your integration.`
     );
   }
 }
