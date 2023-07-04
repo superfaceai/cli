@@ -167,7 +167,7 @@ async function saveBoilerplateCode(
   return true;
 }
 
-async function resolveProfileSource(
+export async function resolveProfileSource(
   profileId: string | undefined,
   { userError }: { userError: UserError }
 ): Promise<{

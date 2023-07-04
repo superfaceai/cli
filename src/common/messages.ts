@@ -1,5 +1,13 @@
 import { SyntaxError } from '@superfaceai/parser';
 
+const execute = {
+  executingCommand: (file: string) => `Executing: "${file}"`,
+  childProcessOutput: (output: string) => `${output}`,
+  childProcessExited: (code: number | null) =>
+    code === null
+      ? `Child process exited without code`
+      : `Child process exited with code ${code}`,
+};
 const applicationCode = {
   requiredSecurityValue: (value: string): string =>
     `Security ${value} is required for integration, please provide it in .env file`,
@@ -385,6 +393,7 @@ export const messages = {
   ...compatibility,
   ...newCommand,
   ...prepare,
+  ...execute,
   ...applicationCode,
 };
 

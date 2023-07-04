@@ -122,7 +122,7 @@ describe('new CLI command', () => {
           flags: {},
           args: { providerName: 'test', prompt: 'test' },
         })
-      ).rejects.toThrow(``);
+      ).rejects.toThrow(`Invalid provider.json file.`);
     });
 
     it('throws when provider is not Provider JSON', async () => {
@@ -135,7 +135,7 @@ describe('new CLI command', () => {
           flags: {},
           args: { providerName: 'test', prompt: 'test' },
         })
-      ).rejects.toThrow(``);
+      ).rejects.toThrow(`Invalid provider.json file.`);
     });
 
     it('throws when provider names does not match', async () => {
@@ -143,7 +143,7 @@ describe('new CLI command', () => {
       jest
         .mocked(readFile)
         .mockResolvedValueOnce(
-          JSON.stringify(mockProviderJson({ name: 'test2' }))
+          JSON.stringify(mockProviderJson({ name: 'test-provider' }))
         );
       await expect(
         instance.execute({
@@ -152,7 +152,9 @@ describe('new CLI command', () => {
           flags: {},
           args: { providerName: 'test', prompt: 'test' },
         })
-      ).rejects.toThrow(``);
+      ).rejects.toThrow(
+        `Provider name in provider.json file does not match provider name in command.`
+      );
     });
 
     it('throws when profile already exists', async () => {
