@@ -22,10 +22,11 @@ const MAX_PROMPT_LENGTH = 200;
 export default class New extends Command {
   // TODO: add description
   public static description =
-    'Generates Comlink profile from prepared API documentation. Comlink profile defines interface of API integration. Use name of provider as first argument and description of your use case as second argument';
+    'Creates new Comlink Profile for your use case based on the selected API. Comlink Profile defines the interface of the API integration. Use name of API provider as the first argument followed by the description of your use case. You need to run `superface prepare` command before running this command.';
 
   public static examples = [
-    'superface new swapi "retrieve character\'s homeworld by their name',
+    'superface new swapi "retrieve character\'s homeworld by their name"',
+    'superface new resend "Send email to user"',
   ];
 
   public static args = [

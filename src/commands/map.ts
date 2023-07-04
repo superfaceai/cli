@@ -23,11 +23,9 @@ import { resolveProviderJson } from './new';
 export default class Map extends Command {
   // TODO: add description
   public static description =
-    'This commands uses Conlink profile and provider definition from `superface` folder and generate JS map and boilerplate code. Created integration is saved in `superface` folder and is ready to be used by our WASM OneSDK. User should check security, integration parameters and input before execution. Created integration can be tested by running `execute` command';
+    'Creates a new (or updates an existing) Comlink Map that maps the use case to the selected API provider. After Map is available, the integration is ready to be used by our WASM OneSDK. You should check security, integration parameters and input in the created files before execution. The created Comlinks can be tested by running `superface execute` command';
 
-  public static examples = [
-    'superface map <provider-name> <optional-profile-scope>/<profile-name>',
-  ];
+  public static examples = ['superface map resend communication/send-email'];
 
   public static args = [
     {
