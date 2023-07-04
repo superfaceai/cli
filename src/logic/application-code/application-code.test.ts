@@ -167,7 +167,6 @@ describe('writeApplicationCode', () => {
       },
       { logger, userError }
     );
-    console.log(result);
 
     expect(result).toEqual(`import { config } from 'dotenv';
   // Load OneClient from SDK
@@ -177,10 +176,8 @@ describe('writeApplicationCode', () => {
   config();
   async function main() {
     const client = new OneClient({
-      env = {
-        // Specify log level for OneClient
-        "ONESDK_DEV_LOG": "trace"
-      },
+      // Optionally you can your OneSdk token to be able to monitor your usage
+      //token:
       // Specify path to assets folder
       assetsPath: '${buildAssetsPath()}'
     });
