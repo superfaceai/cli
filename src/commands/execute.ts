@@ -4,6 +4,7 @@ import { Command } from '../common/command.abstract';
 import type { UserError } from '../common/error';
 import { buildMapPath, buildRunFilePath } from '../common/file-structure';
 import { exists } from '../common/io';
+import { ProfileId } from '../common/profile';
 import { execute } from '../logic/execution';
 import { resolveProfileSource } from './map';
 import { resolveProviderJson } from './new';
@@ -66,10 +67,14 @@ export default class Execute extends Command {
   }): Promise<void> {
     const { providerName, profileId, language } = args;
 
-    // TODO: resuse check from New command
     const providerJson = await resolveProviderJson(providerName, { userError });
 
-    await resolveProfileSource(profileId, { userError });
+    const profile = await resolveProfileSource(profileId, { userError });
+
+    const parsedProfileId = ProfileId.fromScopeName(
+      profile.scope,
+      profile.name
+    ).id;
 
     // Check language
     if (language !== undefined && language !== 'JS') {
@@ -80,26 +85,31 @@ export default class Execute extends Command {
     }
 
     // Check that map exists
-    if (!(await exists(buildMapPath(profileId!, providerJson.name)))) {
+    if (
+      !(await exists(
+        buildMapPath({
+          profileName: profile.name,
+          providerName: providerJson.name,
+          profileScope: profile.scope,
+        })
+      ))
+    ) {
       throw userError(
-        `Map for profile ${profileId!} and provider ${
-          providerJson.name
-        } does not exist.`,
+        `Map for profile ${parsedProfileId} and provider ${providerJson.name} does not exist.`,
         1
       );
     }
 
     // Check that runfile exists
-    const runfile = buildRunFilePath(
-      profileId!,
-      providerJson.name,
-      language ?? 'JS'
-    );
+    const runfile = buildRunFilePath({
+      profileName: profile.name,
+      providerName: providerJson.name,
+      profileScope: profile.scope,
+      language: language ?? 'JS',
+    });
     if (!(await exists(runfile))) {
       throw userError(
-        `Runfile for profile ${profileId!} and provider ${
-          providerJson.name
-        } does not exist.`,
+        `Runfile for profile ${parsedProfileId} and provider ${providerJson.name} does not exist.`,
         1
       );
     }

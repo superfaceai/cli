@@ -13,6 +13,7 @@ import {
 import { exists, readFile } from '../common/io';
 import type { ILogger } from '../common/log';
 import { OutputStream } from '../common/output-stream';
+import { ProfileId } from '../common/profile';
 import { UX } from '../common/ux';
 import { writeApplicationCode } from '../logic/application-code/application-code';
 import { mapProviderToProfile } from '../logic/map';
@@ -78,6 +79,7 @@ export default class Map extends Command {
 
     ux.start('Loading profile');
     const profile = await resolveProfileSource(profileId, { userError });
+
     ux.succeed('Profile loaded');
 
     ux.start('Loading provider definition');
@@ -101,8 +103,12 @@ export default class Map extends Command {
     ux.succeed('Integration code prepared');
 
     ux.start('Saving integration code');
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    await saveMap(profileId!, providerName!, map);
+    await saveMap({
+      map,
+      profileName: profile.ast.header.name,
+      providerName: providerJson.name,
+      profileScope: profile.ast.header.scope,
+    });
     ux.succeed('Integration code saved');
 
     ux.start('Preparing boilerplate code');
@@ -124,10 +130,11 @@ export default class Map extends Command {
     );
 
     ux.succeed(
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       `Local project set up. You can now install defined dependencies and run \`superface execute ${
         providerJson.name
-      } ${profileId!}\` to execute your integration.`
+      } ${
+        ProfileId.fromScopeName(profile.scope, profile.name).id
+      }\` to execute your integration.`
     );
   }
 }
@@ -137,13 +144,12 @@ async function saveBoilerplateCode(
   profileAst: ProfileDocumentNode,
   { userError, logger }: { userError: UserError; logger: ILogger }
 ): Promise<boolean> {
-  const path = buildRunFilePath(
-    `${
-      profileAst.header.scope !== undefined ? profileAst.header.scope + '.' : ''
-    }${profileAst.header.name}`,
-    providerJson.name,
-    'JS'
-  );
+  const path = buildRunFilePath({
+    profileName: profileAst.header.name,
+    providerName: providerJson.name,
+    profileScope: profileAst.header.scope,
+    language: 'JS',
+  });
 
   if (await exists(path)) {
     return false;
@@ -188,11 +194,16 @@ export async function resolveProfileSource(
     throw userError(`Invalid profile id: ${parsedProfileId.message}`, 1);
   }
 
-  if (!(await exists(buildProfilePath(profileId)))) {
+  const path = buildProfilePath(
+    parsedProfileId.value.scope,
+    parsedProfileId.value.middle[0]
+  );
+
+  if (!(await exists(path))) {
     throw userError(`Profile ${profileId} does not exist.`, 1);
   }
 
-  const profileSource = await readFile(buildProfilePath(profileId), 'utf-8');
+  const profileSource = await readFile(path, 'utf-8');
 
   // TODO: this might be problematic - not matchiing parser versions between CLI and Server
   let profileAst: ProfileDocumentNode;
@@ -225,12 +236,22 @@ export async function resolveProfileSource(
   };
 }
 
-async function saveMap(
-  profileId: string,
-  providerName: string,
-  map: string
-): Promise<void> {
-  const mapPath = buildMapPath(profileId, providerName);
+async function saveMap({
+  profileName,
+  profileScope,
+  providerName,
+  map,
+}: {
+  profileName: string;
+  profileScope: string | undefined;
+  providerName: string;
+  map: string;
+}): Promise<void> {
+  const mapPath = buildMapPath({
+    profileName,
+    profileScope,
+    providerName,
+  });
 
   await OutputStream.writeOnce(mapPath, map);
 }

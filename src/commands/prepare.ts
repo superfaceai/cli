@@ -24,26 +24,26 @@ export default class Prepare extends Command {
   
 If you want to use plain text documentation you need to format the docs with **the separator**. The documentation conventionally consists of various topics, usually set apart by separate pages or big headings. They might be _authentication, rate limiting, general rules, API operations (sometimes grouped by resources)_.
 
-    It's highly recommended each of these topics (or chunks) is set apart in the docs provided for Superface, too. For that, we use _the separator_.
-    
-    The separator is a long \`===========\` ended with a newline. Technically 5 _equal_ characters are enough to form a separator. The API docs ready for the ingest might look something like the following:
-    
-    \`
-    # Welcome to our docs
-    (...)
-    ================================
-    # API Basics
-    (...)
-    ================================
-    # Authorizing Requests
-    (...)
-    ================================
-    # /todos/:id/items
-    This endpoint lists all items (...)
-    ================================
-    (...)
-    \`
-    This command prepares a Provider JSON metadata definition that can be used to generate the integration code. Superface tries to fill as much as possibe from the API documentation, but some parts are required to be filled manually. You can find the prepared provider definition in the \`superface/\` directory in the current working directory.`;
+It's highly recommended each of these topics (or chunks) is set apart in the docs provided for Superface, too. For that, we use _the separator_.
+
+The separator is a long \`===========\` ended with a newline. Technically 5 _equal_ characters are enough to form a separator. The API docs ready for the ingest might look something like the following:
+
+\`
+# Welcome to our docs
+(...)
+================================
+# API Basics
+(...)
+================================
+# Authorizing Requests
+(...)
+================================
+# /todos/:id/items
+This endpoint lists all items (...)
+================================
+(...)
+\`
+This command prepares a Provider JSON metadata definition that can be used to generate the integration code. Superface tries to fill as much as possibe from the API documentation, but some parts are required to be filled manually. You can find the prepared provider definition in the \`superface/\` directory in the current working directory.`;
 
   public static examples = [
     'superface prepare https://raw.githubusercontent.com/APIs-guru/openapi-directory/main/APIs/openai.com/1.2.0/openapi.yaml',
@@ -126,7 +126,7 @@ If you want to use plain text documentation you need to format the docs with **t
     await writeProviderJson(providerJson, { logger, userError });
 
     ux.succeed(
-      `Provider definition saved successfully.\nYou can use it to generate integration code interface with 'superface new ${providerJson.name}' "<use case description>".`
+      `Provider definition saved successfully.\nYou can use it to generate integration code interface with 'superface new ${providerJson.name} "<use case description>"'.`
     );
   }
 }
