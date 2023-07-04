@@ -11,7 +11,7 @@ import { resolveProviderJson } from './new';
 export default class Execute extends Command {
   // TODO: add description
   public static description =
-    'This commands executes created integration. Commands `prepare`, `new` and `map` must be run before this command. This command will execute integration usni Node and print result to stdout.';
+    'Run the created integration. Commands `prepare`, `new` and `map` must be run before this command. This command will execute integration using Node.js (more runners coming soon)';
 
   public static examples = [
     'superface execute resend communication/send-email',
