@@ -89,7 +89,7 @@ export async function newProfile(
     client,
   });
 
-  //Supports both . and / in profile id
+  // Supports both . and / in profile id
   const parsedProfileId = parseDocumentId(
     profileResponse.id.replace(/\./, '/')
   );
