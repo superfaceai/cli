@@ -70,7 +70,7 @@ export default class Execute extends Command {
 
     const parsedProfileId = `${
       profile.scope !== undefined ? `${profile.scope}/` : ''
-    }.${profile.name}`;
+    }${profile.name}`;
 
     // Check language
     if (language !== undefined && language !== 'JS') {
