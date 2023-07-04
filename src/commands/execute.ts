@@ -4,6 +4,7 @@ import { Command } from '../common/command.abstract';
 import type { UserError } from '../common/error';
 import { buildMapPath, buildRunFilePath } from '../common/file-structure';
 import { exists } from '../common/io';
+import { ProfileId } from '../common/profile';
 import { execute } from '../logic/execution';
 import { resolveProfileSource } from './map';
 import { resolveProviderJson } from './new';
@@ -68,9 +69,10 @@ export default class Execute extends Command {
 
     const profile = await resolveProfileSource(profileId, { userError });
 
-    const parsedProfileId = `${
-      profile.scope !== undefined ? `${profile.scope}/` : ''
-    }${profile.name}`;
+    const parsedProfileId = ProfileId.fromScopeName(
+      profile.scope,
+      profile.name
+    ).id;
 
     // Check language
     if (language !== undefined && language !== 'JS') {

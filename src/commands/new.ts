@@ -15,6 +15,7 @@ import type { ILogger } from '../common/log';
 import { OutputStream } from '../common/output-stream';
 import { UX } from '../common/ux';
 import { newProfile } from '../logic/new';
+import { ProfileId } from '../common/profile';
 
 const MAX_PROMPT_LENGTH = 200;
 
@@ -98,9 +99,7 @@ export default class New extends Command {
     ux.succeed(
       `Profile saved. You can use it to generate integration code for your use case by running 'superface map  ${
         providerJson.name
-      } ${profile.scope !== undefined ? `${profile.scope}.` : ''}${
-        profile.name
-      }'`
+      } ${ProfileId.fromScopeName(profile.scope, profile.name)}'`
     );
   }
 }

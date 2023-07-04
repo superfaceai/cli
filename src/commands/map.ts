@@ -18,6 +18,7 @@ import { writeApplicationCode } from '../logic/application-code/application-code
 import { mapProviderToProfile } from '../logic/map';
 import { prepareJsProject } from '../logic/project';
 import { resolveProviderJson } from './new';
+import { ProfileId } from '../common/profile';
 
 export default class Map extends Command {
   // TODO: add description
@@ -80,9 +81,6 @@ export default class Map extends Command {
 
     ux.start('Loading profile');
     const profile = await resolveProfileSource(profileId, { userError });
-    const parsedProfileId = `${
-      profile.scope !== undefined ? `${profile.scope}/` : ''
-    }.${profile.name}`;
 
     ux.succeed('Profile loaded');
 
@@ -134,7 +132,12 @@ export default class Map extends Command {
     );
 
     ux.succeed(
-      `Local project set up. You can now install defined dependencies and run \`superface execute ${providerJson.name} ${parsedProfileId}\` to execute your integration.`
+      `Local project set up. You can now install defined dependencies and run \`superface execute ${
+        providerJson.name
+      } ${ProfileId.fromScopeName(
+        profile.scope,
+        profile.name
+      )}\` to execute your integration.`
     );
   }
 }
