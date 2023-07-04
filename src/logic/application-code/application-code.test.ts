@@ -2,7 +2,7 @@ import type { ProfileDocumentNode } from '@superfaceai/ast';
 
 import { MockLogger } from '../../common';
 import { createUserError } from '../../common/error';
-import { buildAssetsPath } from '../../common/file-structure';
+import { buildSuperfaceDirPath } from '../../common/file-structure';
 import { writeApplicationCode } from './application-code';
 
 describe('writeApplicationCode', () => {
@@ -167,7 +167,6 @@ describe('writeApplicationCode', () => {
       },
       { logger, userError }
     );
-    console.log(result);
 
     expect(result).toEqual(`import { config } from 'dotenv';
   // Load OneClient from SDK
@@ -182,7 +181,7 @@ describe('writeApplicationCode', () => {
         "ONESDK_DEV_LOG": "trace"
       },
       // Specify path to assets folder
-      assetsPath: '${buildAssetsPath()}'
+      assetsPath: '${buildSuperfaceDirPath()}'
     });
 
     // Load profile and use case

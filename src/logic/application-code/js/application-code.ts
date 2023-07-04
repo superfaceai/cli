@@ -1,7 +1,7 @@
 import type { IntegrationParameter, SecurityScheme } from '@superfaceai/ast';
 
 import type { ILogger } from '../../../common';
-import { buildAssetsPath } from '../../../common/file-structure';
+import { buildSuperfaceDirPath } from '../../../common/file-structure';
 import { prepareParametersString } from './parameters';
 import { prepareSecurityString } from './security';
 
@@ -51,7 +51,7 @@ export function jsApplicationCode(
         "ONESDK_DEV_LOG": "trace"
       },
       // Specify path to assets folder
-      assetsPath: '${buildAssetsPath()}'
+      assetsPath: '${buildSuperfaceDirPath()}'
     });
 
     // Load profile and use case

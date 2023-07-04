@@ -13,6 +13,7 @@ import { buildProfilePath, buildProviderPath } from '../common/file-structure';
 import { exists, readFile } from '../common/io';
 import type { ILogger } from '../common/log';
 import { OutputStream } from '../common/output-stream';
+import { ProfileId } from '../common/profile';
 import { UX } from '../common/ux';
 import { newProfile } from '../logic/new';
 
@@ -98,9 +99,7 @@ export default class New extends Command {
     ux.succeed(
       `Profile saved. You can use it to generate integration code for your use case by running 'superface map  ${
         providerJson.name
-      } ${profile.scope !== undefined ? `${profile.scope}.` : ''}${
-        profile.name
-      }'`
+      } ${ProfileId.fromScopeName(profile.scope, profile.name).id}'`
     );
   }
 }
@@ -109,9 +108,7 @@ async function saveProfile(
   { source, scope, name }: { source: string; scope?: string; name: string },
   { logger, userError }: { logger: ILogger; userError: UserError }
 ): Promise<void> {
-  const profilePath = buildProfilePath(
-    `${scope !== undefined ? scope + '.' : ''}${name}`
-  );
+  const profilePath = buildProfilePath(scope, name);
 
   logger.info('saveProfile', profilePath);
 
