@@ -12,11 +12,14 @@ export function buildSuperfaceDirPath(): string {
   return join(resolve(process.cwd()), DEFAULT_SUPERFACE_DIR);
 }
 
-export function buildProfilePath(profileId: string): string {
+export function buildProfilePath(
+  scope: string | undefined,
+  name: string
+): string {
   return join(
     resolve(process.cwd()),
     DEFAULT_SUPERFACE_DIR,
-    `${profileId}${PROFILE_EXTENSION}`
+    `${scope !== undefined ? `${scope}.` : ''}${name}${PROFILE_EXTENSION}`
   );
 }
 
@@ -28,29 +31,43 @@ export function buildProviderPath(providerName: string): string {
   );
 }
 
-export function buildMapPath(profileId: string, providerName: string): string {
+export function buildMapPath({
+  profileScope,
+  profileName,
+  providerName,
+}: {
+  profileScope?: string;
+  profileName: string;
+  providerName: string;
+}): string {
   return join(
     resolve(process.cwd()),
     DEFAULT_SUPERFACE_DIR,
-    `${profileId}.${providerName}${MAP_EXTENSION}`
+    `${
+      profileScope !== undefined ? `${profileScope}.` : ''
+    }${profileName}.${providerName}${MAP_EXTENSION}`
   );
 }
 
-export function buildAssetsPath(): string {
-  return resolve(process.cwd(), DEFAULT_SUPERFACE_DIR);
-}
-
-export function buildRunFilePath(
-  profileId: string,
-  providerName: string,
-  language: 'JS' | 'Python'
-): string {
+export function buildRunFilePath({
+  profileScope,
+  profileName,
+  providerName,
+  language,
+}: {
+  profileScope?: string;
+  profileName: string;
+  providerName: string;
+  language: 'JS' | 'Python';
+}): string {
   const extension = language === 'JS' ? '.mjs' : '.py';
 
   return join(
     resolve(process.cwd()),
     DEFAULT_SUPERFACE_DIR,
-    `${profileId}.${providerName}${extension}`
+    `${
+      profileScope !== undefined ? `${profileScope}.` : ''
+    }${profileName}.${providerName}${extension}`
   );
 }
 

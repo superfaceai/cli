@@ -109,9 +109,7 @@ async function saveProfile(
   { source, scope, name }: { source: string; scope?: string; name: string },
   { logger, userError }: { logger: ILogger; userError: UserError }
 ): Promise<void> {
-  const profilePath = buildProfilePath(
-    `${scope !== undefined ? scope + '.' : ''}${name}`
-  );
+  const profilePath = buildProfilePath(scope, name);
 
   logger.info('saveProfile', profilePath);
 

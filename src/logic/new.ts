@@ -1,5 +1,5 @@
 import type { ProviderJson } from '@superfaceai/ast';
-import { parseProfile, Source } from '@superfaceai/parser';
+import { parseDocumentId, parseProfile, Source } from '@superfaceai/parser';
 import type { ServiceClient } from '@superfaceai/service-client';
 
 import type { ILogger } from '../common';
@@ -89,24 +89,18 @@ export async function newProfile(
     client,
   });
 
-  const idParts = profileResponse.id.split('.');
-
-  // Spliting id to scope and name
-  // TODO: do not split id, but use it as is?
-  let scope: string | undefined;
-  let name: string;
-  // TODO: validate id format (number of .)?
-  if (idParts.length > 1) {
-    scope = idParts[0];
-    name = idParts[1];
-  } else {
-    name = idParts[0];
+  //Supports both . and / in profile id
+  const parsedProfileId = parseDocumentId(
+    profileResponse.id.replace(/\./, '/')
+  );
+  if (parsedProfileId.kind == 'error') {
+    throw userError(`Invalid profile id: ${parsedProfileId.message}`, 1);
   }
 
   return {
     source: profileResponse.profile.source,
-    scope,
-    name,
+    scope: parsedProfileId.value.scope,
+    name: parsedProfileId.value.middle[0],
   };
 }
 
