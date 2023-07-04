@@ -10,7 +10,7 @@ export class UX {
   private lastText = '';
 
   private constructor() {
-    this.spinner = createSpinner(undefined, { color: 'cyan', interval: 80 });
+    this.spinner = createSpinner(undefined, { color: 'cyan', interval: 25 });
     UX.instance = this;
   }
 
