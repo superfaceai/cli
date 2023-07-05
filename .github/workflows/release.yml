@@ -95,6 +95,7 @@ jobs:
           formula-path: Formula/superface.rb
           homebrew-tap: superfaceai/homebrew-cli
           base-branch: main
+          tag-name: ${{ env.RELEASE_TAG }}
           download-url: ${{ env.TARBALL_URL }}
           commit-message: |
             Updating {{formulaName}} to ${{ env.NEW_VERSION }}
