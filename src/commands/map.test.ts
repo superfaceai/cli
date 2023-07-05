@@ -214,11 +214,16 @@ describe('MapCLI command', () => {
       });
 
       it('throws when provider defines only url with TODO', async () => {
-        jest.mocked(exists).mockResolvedValueOnce(true);
+        jest
+          .mocked(exists)
+          .mockResolvedValueOnce(true)
+          .mockResolvedValueOnce(true);
+
         const providerJson = mockProviderJson({ name: 'test' });
         providerJson.services[0].baseUrl = 'https://TODO.com';
         jest
           .mocked(readFile)
+          .mockResolvedValueOnce(profileSource(profileScope, profileName))
           .mockResolvedValueOnce(JSON.stringify(providerJson));
         await expect(
           instance.execute({
@@ -227,7 +232,7 @@ describe('MapCLI command', () => {
             flags: {},
             args: {
               providerName: 'test',
-              profileId: `${profileScope}.${profileName}`,
+              profileId: `${profileScope}/${profileName}`,
             },
           })
         ).rejects.toThrow(
