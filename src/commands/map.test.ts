@@ -212,6 +212,28 @@ describe('MapCLI command', () => {
           `Provider name in provider.json file does not match provider name in command.`
         );
       });
+
+      it('throws when provider defines only url with TODO', async () => {
+        jest.mocked(exists).mockResolvedValueOnce(true);
+        const providerJson = mockProviderJson({ name: 'test' });
+        providerJson.services[0].baseUrl = 'https://TODO.com';
+        jest
+          .mocked(readFile)
+          .mockResolvedValueOnce(JSON.stringify(providerJson));
+        await expect(
+          instance.execute({
+            logger,
+            userError,
+            flags: {},
+            args: {
+              providerName: 'test',
+              profileId: `${profileScope}.${profileName}`,
+            },
+          })
+        ).rejects.toThrow(
+          `Provider.json file is not properly configured. Please make sure to replace 'TODO' in baseUrl with the actual base url of the API.`
+        );
+      });
     });
 
     describe('checking profile id argument', () => {

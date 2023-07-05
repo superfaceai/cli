@@ -189,5 +189,15 @@ export async function resolveProviderJson(
     );
   }
 
+  if (
+    providerJson.services.length === 1 &&
+    providerJson.services[0].baseUrl.includes('TODO')
+  ) {
+    throw userError(
+      `Provider.json file is not properly configured. Please make sure to replace 'TODO' in baseUrl with the actual base url of the API.`,
+      1
+    );
+  }
+
   return providerJson;
 }
