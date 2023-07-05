@@ -121,7 +121,18 @@ This command prepares a Provider JSON metadata definition that can be used to ge
       { userError, ux }
     );
 
-    ux.succeed('Provider definition successfully prepared');
+    if (
+      providerJson.services.length === 0 ||
+      (providerJson.services.length === 1 &&
+        providerJson.services[0].baseUrl.includes('TODO'))
+    ) {
+      // TODO: provide more info - url to docs
+      ux.warn(
+        'Provider definition prepared, but some parts are missing. Please fill them manually.'
+      );
+    } else {
+      ux.succeed('Provider definition successfully prepared');
+    }
 
     ux.start('Saving provider definition');
     await writeProviderJson(providerJson, { logger, userError });
