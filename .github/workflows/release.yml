@@ -80,11 +80,13 @@ jobs:
 
       # Publish version to public repository
       - name: Publish
-        run: |
-          yarn publish --verbose --access public --tag ${{ env.RELEASE_TAG }}
-          echo "TARBALL_URL=$(npm view @superfaceai/cli@${{ env.NEW_VERSION }} level dist.tarball)" >> $GITHUB_ENV
+        run: yarn publish --verbose --access public --tag ${{ env.RELEASE_TAG }}
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPMJS_BOT_PAT }}
+
+      # Get package tarball
+      - name: Get package tarball
+        run: echo "TARBALL_URL=$(npm view @superfaceai/cli@${{ env.NEW_VERSION }} level dist.tarball)" >> $GITHUB_ENV
 
       # Update Homebrew formula to the new version
       # TODO: !!! Run only on stable releases
@@ -95,8 +97,8 @@ jobs:
           formula-path: Formula/superface.rb
           homebrew-tap: superfaceai/homebrew-cli
           base-branch: main
-          tag-name: ${{ env.RELEASE_TAG }}
           download-url: ${{ env.TARBALL_URL }}
+          tag-name: ${{ env.RELEASE_TAG }}
           commit-message: |
             Updating {{formulaName}} to ${{ env.NEW_VERSION }}
         env:
