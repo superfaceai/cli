@@ -98,7 +98,7 @@ jobs:
           homebrew-tap: superfaceai/homebrew-cli
           base-branch: main
           download-url: ${{ env.TARBALL_URL }}
-          tag-name: ${{ env.RELEASE_TAG }}
+          tag-name: ${{ env.NEW_VERSION }}
           commit-message: |
             Updating {{formulaName}} to ${{ env.NEW_VERSION }}
         env:
