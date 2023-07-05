@@ -1,5 +1,7 @@
 import { join, resolve } from 'path';
 
+import { SupportedLanguages } from '../logic/application-code/application-code';
+
 const DEFAULT_SUPERFACE_DIR = 'superface';
 
 const PROFILE_EXTENSION = '.profile';
@@ -58,9 +60,9 @@ export function buildRunFilePath({
   profileScope?: string;
   profileName: string;
   providerName: string;
-  language: 'JS' | 'Python';
+  language: SupportedLanguages;
 }): string {
-  const extension = language === 'JS' ? '.mjs' : '.py';
+  const extension = language === SupportedLanguages.JS ? '.mjs' : '.py';
 
   return join(
     resolve(process.cwd()),
@@ -72,9 +74,9 @@ export function buildRunFilePath({
 }
 
 export function buildProjectDefinitionFilePath(
-  language: 'JS' | 'Python' = 'JS'
+  language: SupportedLanguages = SupportedLanguages.JS
 ): string {
-  if (language === 'Python') {
+  if (language === SupportedLanguages.PYTHON) {
     throw new Error('Python is not supported yet');
   }
   const file = 'package.json';

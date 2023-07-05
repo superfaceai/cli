@@ -2,6 +2,7 @@ import type { ILogger } from '../../common';
 import { buildProjectDefinitionFilePath } from '../../common/file-structure';
 import { exists } from '../../common/io';
 import { OutputStream } from '../../common/output-stream';
+import { SupportedLanguages } from '../application-code';
 
 export async function prepareJsProject(
   sdkVerion = '3.0.0-alpha.12',
@@ -25,7 +26,7 @@ export async function prepareJsProject(
     }
   }`;
 
-  const packageJsonPath = buildProjectDefinitionFilePath('JS');
+  const packageJsonPath = buildProjectDefinitionFilePath(SupportedLanguages.JS);
 
   if (!(await exists(packageJsonPath))) {
     await OutputStream.writeOnce(packageJsonPath, packageJson);

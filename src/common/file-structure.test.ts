@@ -1,3 +1,4 @@
+import { SupportedLanguages } from '../logic';
 import {
   buildMapPath,
   buildProfilePath,
@@ -63,27 +64,54 @@ describe('fileStructure', () => {
   });
 
   describe('buildRunFilePath', () => {
-    it('builds runfile path', () => {
-      expect(
-        buildRunFilePath({
-          profileName: 'profile',
-          providerName: 'provider',
-          language: 'JS',
-        })
-      ).toEqual(expect.stringContaining(`/superface/profile.provider.mjs`));
+    describe('JS', () => {
+      it('builds runfile path', () => {
+        expect(
+          buildRunFilePath({
+            profileName: 'profile',
+            providerName: 'provider',
+            language: SupportedLanguages.JS,
+          })
+        ).toEqual(expect.stringContaining(`/superface/profile.provider.mjs`));
+      });
+
+      it('builds runfile path with scope', () => {
+        expect(
+          buildRunFilePath({
+            profileScope: 'scope',
+            profileName: 'profile',
+            providerName: 'provider',
+            language: SupportedLanguages.JS,
+          })
+        ).toEqual(
+          expect.stringContaining(`/superface/scope.profile.provider.mjs`)
+        );
+      });
     });
 
-    it('builds runfile path with scope', () => {
-      expect(
-        buildRunFilePath({
-          profileScope: 'scope',
-          profileName: 'profile',
-          providerName: 'provider',
-          language: 'JS',
-        })
-      ).toEqual(
-        expect.stringContaining(`/superface/scope.profile.provider.mjs`)
-      );
+    describe('Python', () => {
+      it('builds runfile path', () => {
+        expect(
+          buildRunFilePath({
+            profileName: 'profile',
+            providerName: 'provider',
+            language: SupportedLanguages.PYTHON,
+          })
+        ).toEqual(expect.stringContaining(`/superface/profile.provider.py`));
+      });
+
+      it('builds runfile path with scope', () => {
+        expect(
+          buildRunFilePath({
+            profileScope: 'scope',
+            profileName: 'profile',
+            providerName: 'provider',
+            language: SupportedLanguages.PYTHON,
+          })
+        ).toEqual(
+          expect.stringContaining(`/superface/scope.profile.provider.py`)
+        );
+      });
     });
   });
 

@@ -2,14 +2,15 @@ import { spawn } from 'child_process';
 
 import type { ILogger } from '../../common';
 import type { UserError } from '../../common/error';
+import type { SupportedLanguages } from '../application-code';
 import { executeRunner } from './runner';
 
 export async function execute(
   file: string,
-  engine: 'JS' = 'JS',
+  language: SupportedLanguages,
   { userError, logger }: { userError: UserError; logger: ILogger }
 ): Promise<void> {
-  const command = prepareCommand(file, engine);
+  const command = prepareCommand(file, language);
 
   logger.info(
     'executingCommand',
@@ -28,43 +29,10 @@ export async function execute(
 
 function prepareCommand(
   file: string,
-  _engine: 'JS' = 'JS'
+  _language: SupportedLanguages
 ): { command: string; args: string[] } {
   return {
     command: 'node',
     args: ['--experimental-wasi-unstable-preview1', file],
   };
 }
-
-// describe('execute', () => {
-//   it('executes integration', async () => {
-//     const mockLogger: ILogger = {
-//       info: jest.fn(),
-//       error: jest.fn(),
-//       success: jest.fn(),
-//     };
-//     const mockUserError: UserError = jest.fn() as any;
-//     await execute('src/logic/execute.ts', 'JS', {
-//       logger: mockLogger,
-//       userError: mockUserError,
-//     });
-//     expect(mockLogger.info).toHaveBeenCalledWith(
-//       'executingCommand',
-//       expect.stringContaining('node')
-//     );
-//   });
-
-//   it('throws when integration fails', async () => {
-//     const mockLogger: ILogger = {
-//       info: jest.fn(),
-//       error: jest.fn(),
-//       success: jest.fn(),
-//     };
-//     const mockUserError: UserError = jest.fn() as any;
-//     await expect(
-//       execute('src/logic/execute.ts', 'JS', {
-//         logger: mockLogger,
-//         userError: mockUserError,
-//       })
-//     ).rejects.toThrowError();
-//   }

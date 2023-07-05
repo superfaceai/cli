@@ -214,6 +214,25 @@ describe('MapCLI command', () => {
       });
     });
 
+    describe('checking language argument', () => {
+      it('throws when language is invalid', async () => {
+        jest.mocked(exists).mockResolvedValueOnce(true);
+        jest
+          .mocked(readFile)
+          .mockResolvedValueOnce(JSON.stringify(providerJson));
+        await expect(
+          instance.execute({
+            logger,
+            userError,
+            flags: {},
+            args: { providerName, language: 'Some other lang' },
+          })
+        ).rejects.toThrow(
+          'Language Some other lang is not supported. Supported languages are: python, js'
+        );
+      });
+    });
+
     describe('checking profile id argument', () => {
       it('throws when profile id is not provided', async () => {
         jest.mocked(exists).mockResolvedValueOnce(true);
@@ -438,6 +457,7 @@ describe('MapCLI command', () => {
 
       expect(writeApplicationCode).toHaveBeenCalledWith(
         {
+          language: 'js',
           providerJson,
           profileAst: ast,
         },
@@ -508,6 +528,7 @@ describe('MapCLI command', () => {
         {
           providerJson,
           profileAst: ast,
+          language: 'js',
         },
         {
           logger,
@@ -524,6 +545,73 @@ describe('MapCLI command', () => {
 
       expect(mockWriteOnce).toHaveBeenCalledWith(
         expect.stringContaining(`superface/${profileName}.${providerName}.mjs`),
+        mockApplicationCode
+      );
+      expect(prepareJsProject).toHaveBeenCalled();
+    });
+
+    it('prepares map with language specified', async () => {
+      const source = profileSource(undefined, profileName);
+      const ast = parseProfile(new Source(source));
+
+      jest
+        .mocked(exists)
+        .mockResolvedValueOnce(true)
+        .mockResolvedValueOnce(true)
+        .mockResolvedValueOnce(false);
+      jest
+        .mocked(readFile)
+        .mockResolvedValueOnce(source)
+        .mockResolvedValueOnce(JSON.stringify(providerJson));
+
+      jest.mocked(mapProviderToProfile).mockResolvedValueOnce(mapSource);
+
+      jest
+        .mocked(writeApplicationCode)
+        .mockResolvedValueOnce(mockApplicationCode);
+
+      await instance.execute({
+        logger,
+        userError,
+        flags: {},
+        args: { providerName, profileId: profileName, language: 'python' },
+      });
+
+      expect(mapProviderToProfile).toHaveBeenCalledWith(
+        {
+          providerJson,
+          profile: {
+            source,
+            ast,
+            name: profileName,
+            scope: undefined,
+          },
+          options: { quiet: undefined },
+        },
+        { ux, userError }
+      );
+
+      expect(writeApplicationCode).toHaveBeenCalledWith(
+        {
+          providerJson,
+          profileAst: ast,
+          language: 'python',
+        },
+        {
+          logger,
+          userError,
+        }
+      );
+
+      expect(mockWriteOnce).toHaveBeenCalledWith(
+        expect.stringContaining(
+          `superface/${profileName}.${providerName}.map.js`
+        ),
+        mapSource
+      );
+
+      expect(mockWriteOnce).toHaveBeenCalledWith(
+        expect.stringContaining(`superface/${profileName}.${providerName}.py`),
         mockApplicationCode
       );
       expect(prepareJsProject).toHaveBeenCalled();

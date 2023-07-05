@@ -9,18 +9,23 @@ import type { UserError } from '../../common/error';
 import { stringifyError } from '../../common/error';
 import { prepareUseCaseInput } from './input/prepare-usecase-input';
 import { jsApplicationCode } from './js';
+import { pythonApplicationCode } from './python';
+
+export enum SupportedLanguages {
+  PYTHON = 'python',
+  JS = 'js',
+}
 
 export async function writeApplicationCode(
   {
     providerJson,
     profileAst,
+    language,
   }: // useCaseName,
-  // target
   {
     providerJson: ProviderJson;
     profileAst: ProfileDocumentNode;
-    // TODO: add more target languages
-    // target: 'js';
+    language: SupportedLanguages;
   },
   { logger, userError }: { logger: ILogger; userError: UserError }
 ): Promise<string> {
@@ -58,18 +63,37 @@ export async function writeApplicationCode(
     );
   }
 
-  return jsApplicationCode(
-    {
-      profile: {
-        name: profileAst.header.name,
-        scope: profileAst.header.scope,
-      },
-      useCaseName,
-      provider: providerJson.name,
-      input: inputExample,
-      parameters: providerJson.parameters,
-      security: providerJson.securitySchemes,
-    },
-    { logger }
-  );
+  switch (language) {
+    case SupportedLanguages.PYTHON:
+      return pythonApplicationCode(
+        {
+          profile: {
+            name: profileAst.header.name,
+            scope: profileAst.header.scope,
+          },
+          useCaseName,
+          provider: providerJson.name,
+          input: inputExample,
+          parameters: providerJson.parameters,
+          security: providerJson.securitySchemes,
+        },
+        { logger }
+      );
+
+    case SupportedLanguages.JS:
+      return jsApplicationCode(
+        {
+          profile: {
+            name: profileAst.header.name,
+            scope: profileAst.header.scope,
+          },
+          useCaseName,
+          provider: providerJson.name,
+          input: inputExample,
+          parameters: providerJson.parameters,
+          security: providerJson.securitySchemes,
+        },
+        { logger }
+      );
+  }
 }

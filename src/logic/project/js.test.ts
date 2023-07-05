@@ -2,6 +2,7 @@ import { MockLogger } from '../../common';
 import { buildProjectDefinitionFilePath } from '../../common/file-structure';
 import { exists } from '../../common/io';
 import { OutputStream } from '../../common/output-stream';
+import { SupportedLanguages } from '../application-code';
 import { prepareJsProject } from './js';
 
 jest.mock('../../common/output-stream');
@@ -37,7 +38,7 @@ describe('prepareJsProject', () => {
     await prepareJsProject('3.0.0-alpha.12', '^16.0.3', { logger });
 
     expect(mockWriteOnce).toHaveBeenCalledWith(
-      buildProjectDefinitionFilePath('JS'),
+      buildProjectDefinitionFilePath(SupportedLanguages.JS),
       expect.any(String)
     );
   });
