@@ -1,4 +1,5 @@
 import type { ProviderJson } from '@superfaceai/ast';
+import { isValidProviderName } from '@superfaceai/ast';
 import { basename, extname } from 'path';
 
 import type { Flags } from '../common/command.abstract';
@@ -161,14 +162,23 @@ async function resolveInputs(
 }> {
   const resolvedSource = await resolveSource(urlOrPath, { userError });
 
-  let apiName;
+  let apiName: string | undefined = undefined;
   if (name !== undefined) {
+    if (!isValidProviderName(name)) {
+      throw userError(
+        `Invalid provider name '${name}'. Provider name must match: ^[a-z][_-0-9a-z]*$`,
+        1
+      );
+    }
+
     apiName = name;
   } else if (resolvedSource.filename !== undefined) {
+    // Try to infer name from filename
     apiName = basename(
       resolvedSource.filename,
       extname(resolvedSource.filename)
-    );
+      // replace special characters with dashes
+    ).replace(/[^a-z0-9]/gi, '-');
   }
 
   return {
