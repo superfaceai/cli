@@ -80,9 +80,26 @@ jobs:
 
       # Publish version to public repository
       - name: Publish
-        run: yarn publish --verbose --access public --tag ${{ env.RELEASE_TAG }}
+        run: |
+          yarn publish --verbose --access public --tag ${{ env.RELEASE_TAG }}
+          echo "TARBALL_URL=$(npm view @superfaceai/cli@${{ env.NEW_VERSION }} level dist.tarball)" >> $GITHUB_ENV
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPMJS_BOT_PAT }}
+
+      # Update Homebrew formula to the new version
+      # TODO: !!! Run only on stable releases
+      - name: Update Homebrew Formula
+        uses: mislav/bump-homebrew-formula-action@v2
+        with:
+          formula-name: superface
+          formula-path: Formula/superface.rb
+          homebrew-tap: superfaceai/homebrew-cli
+          base-branch: main
+          download-url: ${{ env.TARBALL_URL }}
+          commit-message: |
+            Updating {{formulaName}} to ${{ env.NEW_VERSION }}
+        env:
+          COMMITTER_TOKEN: ${{ secrets.GH_BOT_PAT }}
 
       # Push changes to origin
       - name: Push changes to repository
