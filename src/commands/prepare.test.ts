@@ -44,6 +44,22 @@ describe('prepare CLI command', () => {
     });
 
     it('throws when first argument is not provided', async () => {
+      jest.mocked(exists).mockResolvedValueOnce(true);
+      jest.mocked(readFile).mockResolvedValueOnce('file content');
+
+      await expect(
+        instance.execute({
+          logger,
+          userError,
+          flags: {},
+          args: { urlOrPath: 'path/to/file.yaml', name: 'd.!"-=' },
+        })
+      ).rejects.toThrow(
+        `Invalid provider name 'd.!"-='. Provider name must match: ^[a-z][_-0-9a-z]*$`
+      );
+    });
+
+    it('throws when provided name is not valid provider name', async () => {
       await expect(
         instance.execute({ logger, userError, flags: {}, args: {} })
       ).rejects.toThrow(
@@ -176,13 +192,13 @@ describe('prepare CLI command', () => {
         logger,
         userError,
         flags: {},
-        args: { urlOrPath: 'path/to/file.yaml' },
+        args: { urlOrPath: 'path/to/file.docs.2!87.yaml' },
       });
 
       expect(prepareProviderJson).toHaveBeenCalledWith(
         {
           urlOrSource: fileContent,
-          name: 'file',
+          name: 'file-docs-2-87',
           options: { quiet: undefined },
         },
         { ux, userError }

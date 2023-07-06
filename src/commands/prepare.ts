@@ -1,4 +1,5 @@
 import type { ProviderJson } from '@superfaceai/ast';
+import { isValidProviderName } from '@superfaceai/ast';
 import { basename, extname } from 'path';
 
 import type { Flags } from '../common/command.abstract';
@@ -120,7 +121,18 @@ This command prepares a Provider JSON metadata definition that can be used to ge
       { userError, ux }
     );
 
-    ux.succeed('Provider definition successfully prepared');
+    if (
+      providerJson.services.length === 0 ||
+      (providerJson.services.length === 1 &&
+        providerJson.services[0].baseUrl.includes('TODO'))
+    ) {
+      // TODO: provide more info - url to docs
+      ux.warn(
+        'Provider definition prepared, but some parts are missing. Please fill them manually.'
+      );
+    } else {
+      ux.succeed('Provider definition successfully prepared');
+    }
 
     ux.start('Saving provider definition');
     await writeProviderJson(providerJson, { logger, userError });
@@ -161,14 +173,23 @@ async function resolveInputs(
 }> {
   const resolvedSource = await resolveSource(urlOrPath, { userError });
 
-  let apiName;
+  let apiName: string | undefined = undefined;
   if (name !== undefined) {
+    if (!isValidProviderName(name)) {
+      throw userError(
+        `Invalid provider name '${name}'. Provider name must match: ^[a-z][_-0-9a-z]*$`,
+        1
+      );
+    }
+
     apiName = name;
   } else if (resolvedSource.filename !== undefined) {
+    // Try to infer name from filename
     apiName = basename(
       resolvedSource.filename,
       extname(resolvedSource.filename)
-    );
+      // replace special characters with dashes
+    ).replace(/[^a-z0-9]/gi, '-');
   }
 
   return {

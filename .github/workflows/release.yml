@@ -84,6 +84,26 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPMJS_BOT_PAT }}
 
+      # Get package tarball
+      - name: Get package tarball
+        run: echo "TARBALL_URL=$(npm view @superfaceai/cli@${{ env.NEW_VERSION }} level dist.tarball)" >> $GITHUB_ENV
+
+      # Update Homebrew formula to the new version
+      # TODO: !!! Run only on stable releases
+      - name: Update Homebrew Formula
+        uses: mislav/bump-homebrew-formula-action@v2
+        with:
+          formula-name: superface
+          formula-path: Formula/superface.rb
+          homebrew-tap: superfaceai/homebrew-cli
+          base-branch: main
+          download-url: ${{ env.TARBALL_URL }}
+          tag-name: ${{ env.NEW_VERSION }}
+          commit-message: |
+            Updating {{formulaName}} to ${{ env.NEW_VERSION }}
+        env:
+          COMMITTER_TOKEN: ${{ secrets.GH_BOT_PAT }}
+
       # Push changes to origin
       - name: Push changes to repository
         env:

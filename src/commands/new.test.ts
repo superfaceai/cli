@@ -157,6 +157,23 @@ describe('new CLI command', () => {
       );
     });
 
+    it('throws when provider defines only url with TODO', async () => {
+      jest.mocked(exists).mockResolvedValueOnce(true);
+      const providerJson = mockProviderJson({ name: 'test' });
+      providerJson.services[0].baseUrl = 'https://TODO.com';
+      jest.mocked(readFile).mockResolvedValueOnce(JSON.stringify(providerJson));
+      await expect(
+        instance.execute({
+          logger,
+          userError,
+          flags: {},
+          args: { providerName: 'test', prompt: 'test' },
+        })
+      ).rejects.toThrow(
+        `Provider.json file is not properly configured. Please make sure to replace 'TODO' in baseUrl with the actual base url of the API.`
+      );
+    });
+
     it('throws when profile already exists', async () => {
       const providerName = 'test';
       const profileName = 'test';
