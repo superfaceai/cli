@@ -20,7 +20,7 @@ import {
   writeApplicationCode,
 } from '../logic/application-code/application-code';
 import { mapProviderToProfile } from '../logic/map';
-import { prepareJsProject } from '../logic/project';
+import { prepareProject } from '../logic/project';
 import { resolveProviderJson } from './new';
 
 export default class Map extends Command {
@@ -136,12 +136,16 @@ export default class Map extends Command {
     );
 
     ux.start(`Setting up local project in ${resolvedLanguage}`);
-    // TODO: install dependencies
-    await prepareJsProject(undefined, undefined, { logger });
 
-    ux.warn(
-      `You need to have Node version 18.0.0 or higher installed to run the integration. Used dependencies:\n"@superfaceai/one-sdk"\n"dotenv"\nYou can install defined dependencies by running \`npm install\` in \`superface\` directory.`
+    // TODO: install dependencies
+    const project = await prepareProject(resolvedLanguage);
+
+    ux.succeed(
+      project.saved
+        ? `Dependency definition prepared for ${resolvedLanguage}.`
+        : `Dependency definition for ${resolvedLanguage} code already exists.`
     );
+    ux.warn(project.installationGuide);
 
     ux.succeed(
       `Local project set up. You can now install defined dependencies and run \`superface execute ${

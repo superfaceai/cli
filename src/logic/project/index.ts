@@ -1,1 +1,1 @@
-export { prepareJsProject } from './js';
+export * from './prepare-project';

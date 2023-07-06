@@ -5,9 +5,12 @@ import { createUserError } from '../common/error';
 import { exists, readFile } from '../common/io';
 import { OutputStream } from '../common/output-stream';
 import { UX } from '../common/ux';
-import { writeApplicationCode } from '../logic/application-code/application-code';
+import {
+  SupportedLanguages,
+  writeApplicationCode,
+} from '../logic/application-code/application-code';
 import { mapProviderToProfile } from '../logic/map';
-import { prepareJsProject } from '../logic/project';
+import { prepareProject } from '../logic/project';
 import { mockProviderJson } from '../test/provider-json';
 import { CommandInstance } from '../test/utils';
 import Map from './map';
@@ -401,6 +404,11 @@ describe('MapCLI command', () => {
       const source = profileSource(undefined, profileName);
       const ast = parseProfile(new Source(source));
 
+      jest.mocked(prepareProject).mockResolvedValueOnce({
+        saved: true,
+        installationGuide: 'test',
+      });
+
       jest
         .mocked(exists)
         .mockResolvedValueOnce(true)
@@ -445,6 +453,12 @@ describe('MapCLI command', () => {
     it('prepares map with scope', async () => {
       const source = profileSource(profileScope, profileName);
       const ast = parseProfile(new Source(source));
+
+      jest.mocked(prepareProject).mockResolvedValueOnce({
+        saved: true,
+        installationGuide: 'test',
+      });
+
       jest
         .mocked(exists)
         .mockResolvedValueOnce(true)
@@ -507,12 +521,17 @@ describe('MapCLI command', () => {
         mockApplicationCode
       );
 
-      expect(prepareJsProject).toHaveBeenCalled();
+      expect(prepareProject).toHaveBeenCalledWith(SupportedLanguages.JS);
     });
 
     it('prepares map without scope', async () => {
       const source = profileSource(undefined, profileName);
       const ast = parseProfile(new Source(source));
+
+      jest.mocked(prepareProject).mockResolvedValueOnce({
+        saved: true,
+        installationGuide: 'test',
+      });
 
       jest
         .mocked(exists)
@@ -574,12 +593,17 @@ describe('MapCLI command', () => {
         expect.stringContaining(`superface/${profileName}.${providerName}.mjs`),
         mockApplicationCode
       );
-      expect(prepareJsProject).toHaveBeenCalled();
+      expect(prepareProject).toHaveBeenCalledWith(SupportedLanguages.JS);
     });
 
     it('prepares map with language specified', async () => {
       const source = profileSource(undefined, profileName);
       const ast = parseProfile(new Source(source));
+
+      jest.mocked(prepareProject).mockResolvedValueOnce({
+        saved: true,
+        installationGuide: 'test',
+      });
 
       jest
         .mocked(exists)
@@ -641,7 +665,7 @@ describe('MapCLI command', () => {
         expect.stringContaining(`superface/${profileName}.${providerName}.py`),
         mockApplicationCode
       );
-      expect(prepareJsProject).toHaveBeenCalled();
+      expect(prepareProject).toHaveBeenCalledWith(SupportedLanguages.PYTHON);
     });
   });
 });

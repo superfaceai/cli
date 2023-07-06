@@ -76,10 +76,12 @@ export function buildRunFilePath({
 export function buildProjectDefinitionFilePath(
   language: SupportedLanguages = SupportedLanguages.JS
 ): string {
+  let file: string;
   if (language === SupportedLanguages.PYTHON) {
-    throw new Error('Python is not supported yet');
+    file = 'requirements.txt';
+  } else {
+    file = 'package.json';
   }
-  const file = 'package.json';
 
   return join(resolve(process.cwd()), DEFAULT_SUPERFACE_DIR, file);
 }
