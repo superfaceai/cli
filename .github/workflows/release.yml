@@ -89,8 +89,8 @@ jobs:
         run: echo "TARBALL_URL=$(npm view @superfaceai/cli@${{ env.NEW_VERSION }} level dist.tarball)" >> $GITHUB_ENV
 
       # Update Homebrew formula to the new version
-      # TODO: !!! Run only on stable releases
-      - name: Update Homebrew Formula
+      - name: Update Homebrew Formula (only stable releases)
+        if: startsWith(github.event.inputs.release-level, 'pre') != true
         uses: mislav/bump-homebrew-formula-action@v2
         with:
           formula-name: superface
