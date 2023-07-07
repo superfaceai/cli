@@ -47,7 +47,7 @@ export async function mapProviderToProfile(
   const jobUrl = await startMapPreparation(
     // TODO: add old map if exists
     { providerJson, profile, map: undefined },
-    { client }
+    { client, userError }
   );
 
   const resultUrl = await pollUrl(
@@ -76,7 +76,7 @@ async function startMapPreparation(
     providerJson: ProviderJson;
     map?: string;
   },
-  { client }: { client: ServiceClient }
+  { client, userError }: { client: ServiceClient; userError: UserError }
 ): Promise<string> {
   const profileId = `${profile.scope !== undefined ? profile.scope + '.' : ''}${
     profile.name
@@ -97,7 +97,16 @@ async function startMapPreparation(
   );
 
   if (jobUrlResponse.status !== 202) {
-    throw Error(`Unexpected status code ${jobUrlResponse.status} received`);
+    if (jobUrlResponse.status === 401) {
+      throw userError(
+        `This command is available to authenticated users only. Please log in using \`superface login\``,
+        1
+      );
+    }
+    throw userError(
+      `Unexpected status code ${jobUrlResponse.status} received`,
+      1
+    );
   }
 
   const responseBody = (await jobUrlResponse.json()) as Record<string, unknown>;

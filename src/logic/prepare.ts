@@ -90,6 +90,12 @@ async function startProviderPreparation(
   });
 
   if (jobUrlResponse.status !== 202) {
+    if (jobUrlResponse.status === 401) {
+      throw userError(
+        `You are not authorized to access this resource. Make sure that you are logged in.`,
+        1
+      );
+    }
     throw userError(
       `Unexpected status code ${jobUrlResponse.status} received`,
       1
