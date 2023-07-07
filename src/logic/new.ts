@@ -77,7 +77,7 @@ export async function newProfile(
 
   const jobUrl = await startProfilePreparation(
     { providerJson, prompt },
-    { client }
+    { client, userError }
   );
 
   const resultUrl = await pollUrl(
@@ -106,7 +106,7 @@ export async function newProfile(
 
 async function startProfilePreparation(
   { providerJson, prompt }: { providerJson: ProviderJson; prompt: string },
-  { client }: { client: ServiceClient }
+  { client, userError }: { client: ServiceClient; userError: UserError }
 ): Promise<string> {
   // TODO: check real url
   const jobUrlResponse = await client.fetch(`/authoring/profiles`, {
@@ -118,7 +118,16 @@ async function startProfilePreparation(
   });
 
   if (jobUrlResponse.status !== 202) {
-    throw Error(`Unexpected status code ${jobUrlResponse.status} received`);
+    if (jobUrlResponse.status === 401) {
+      throw userError(
+        `You are not authorized to access this resource. Make sure that you are logged in.`,
+        1
+      );
+    }
+    throw userError(
+      `Unexpected status code ${jobUrlResponse.status} received`,
+      1
+    );
   }
 
   const responseBody = (await jobUrlResponse.json()) as Record<string, unknown>;
@@ -131,8 +140,9 @@ async function startProfilePreparation(
   ) {
     return responseBody.href;
   } else {
-    throw Error(
-      `Unexpected response body ${JSON.stringify(responseBody)} received`
+    throw userError(
+      `Unexpected response body ${JSON.stringify(responseBody)} received`,
+      1
     );
   }
 }

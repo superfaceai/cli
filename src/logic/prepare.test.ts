@@ -97,6 +97,35 @@ describe('prepareProviderJson', () => {
     expect(pollUrl).not.toHaveBeenCalled();
   });
 
+  it('throws when job creation API call fails with 401', async () => {
+    const fetch = jest
+      .spyOn(ServiceClient.prototype, 'fetch')
+      // Create job
+      .mockResolvedValueOnce(mockResponse(401, 'forgot to log in', undefined));
+
+    await expect(
+      prepareProviderJson(
+        {
+          urlOrSource: 'https://superface.ai/path/to/oas.json',
+          name: providerName,
+        },
+        { ux, userError }
+      )
+    ).rejects.toEqual(
+      userError(
+        'You are not authorized to access this resource. Make sure that you are logged in.',
+        1
+      )
+    );
+
+    expect(fetch).toHaveBeenNthCalledWith(1, '/authoring/providers', {
+      body: '{"source":"https://superface.ai/path/to/oas.json","name":"test-provider"}',
+      headers: { 'Content-Type': 'application/json' },
+      method: 'POST',
+    });
+    expect(pollUrl).not.toHaveBeenCalled();
+  });
+
   it('throws when job creation API call returns unexpected data', async () => {
     const fetch = jest
       .spyOn(ServiceClient.prototype, 'fetch')
