@@ -1,6 +1,8 @@
 import type {
+  IntegrationParameter,
   ProfileDocumentNode,
   ProviderJson,
+  SecurityScheme,
   UseCaseDefinitionNode,
 } from '@superfaceai/ast';
 
@@ -15,6 +17,29 @@ export enum SupportedLanguages {
   PYTHON = 'python',
   JS = 'js',
 }
+
+export type ApplicationCodeWriter = (
+  {
+    profile,
+    useCaseName,
+    provider,
+    input,
+    parameters,
+    security,
+  }: {
+    profile: {
+      name: string;
+      scope?: string;
+    };
+    useCaseName: string;
+    provider: string;
+    // TODO:  more language independent type for input?
+    input: string;
+    parameters?: IntegrationParameter[];
+    security?: SecurityScheme[];
+  },
+  { logger }: { logger: ILogger }
+) => string;
 
 export async function writeApplicationCode(
   {
@@ -63,37 +88,25 @@ export async function writeApplicationCode(
     );
   }
 
-  switch (language) {
-    case SupportedLanguages.PYTHON:
-      return pythonApplicationCode(
-        {
-          profile: {
-            name: profileAst.header.name,
-            scope: profileAst.header.scope,
-          },
-          useCaseName,
-          provider: providerJson.name,
-          input: inputExample,
-          parameters: providerJson.parameters,
-          security: providerJson.securitySchemes,
-        },
-        { logger }
-      );
+  const APPLICATION_CODE_MAP: {
+    [key in SupportedLanguages]: ApplicationCodeWriter;
+  } = {
+    js: jsApplicationCode,
+    python: pythonApplicationCode,
+  };
 
-    case SupportedLanguages.JS:
-      return jsApplicationCode(
-        {
-          profile: {
-            name: profileAst.header.name,
-            scope: profileAst.header.scope,
-          },
-          useCaseName,
-          provider: providerJson.name,
-          input: inputExample,
-          parameters: providerJson.parameters,
-          security: providerJson.securitySchemes,
-        },
-        { logger }
-      );
-  }
+  return APPLICATION_CODE_MAP[language](
+    {
+      profile: {
+        name: profileAst.header.name,
+        scope: profileAst.header.scope,
+      },
+      useCaseName,
+      provider: providerJson.name,
+      input: inputExample,
+      parameters: providerJson.parameters,
+      security: providerJson.securitySchemes,
+    },
+    { logger }
+  );
 }

@@ -3,10 +3,11 @@ import type { IntegrationParameter, SecurityScheme } from '@superfaceai/ast';
 import type { ILogger } from '../../../common';
 import { buildSuperfaceDirPath } from '../../../common/file-structure';
 import { ProfileId } from '../../../common/profile';
+import type { ApplicationCodeWriter } from '../application-code';
 import { prepareParametersString } from './parameters';
 import { prepareSecurityString } from './security';
 
-export function jsApplicationCode(
+export const jsApplicationCode: ApplicationCodeWriter = (
   {
     profile,
     useCaseName,
@@ -27,7 +28,7 @@ export function jsApplicationCode(
     security?: SecurityScheme[];
   },
   { logger }: { logger: ILogger }
-): string {
+) => {
   // TODO: revisit this
   const pathToSdk = '@superfaceai/one-sdk/node/index.js';
 
@@ -77,4 +78,4 @@ async function main() {
 }
 
 void main();`;
-}
+};

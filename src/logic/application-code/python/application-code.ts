@@ -3,10 +3,11 @@ import type { IntegrationParameter, SecurityScheme } from '@superfaceai/ast';
 import type { ILogger } from '../../../common';
 import { buildSuperfaceDirPath } from '../../../common/file-structure';
 import { ProfileId } from '../../../common/profile';
+import type { ApplicationCodeWriter } from '../application-code';
 import { prepareParametersString } from '../js/parameters';
 import { prepareSecurityString } from '../js/security';
 
-export function pythonApplicationCode(
+export const pythonApplicationCode: ApplicationCodeWriter = (
   {
     profile,
     useCaseName,
@@ -21,13 +22,12 @@ export function pythonApplicationCode(
     };
     useCaseName: string;
     provider: string;
-    // TODO:  more language independent type for input?
     input: string;
     parameters?: IntegrationParameter[];
     security?: SecurityScheme[];
   },
   { logger }: { logger: ILogger }
-): string {
+) => {
   const profileId = ProfileId.fromScopeName(profile.scope, profile.name).id;
 
   const parametersString = prepareParametersString(provider, parameters, {
@@ -60,4 +60,4 @@ try:
   print(f"RESULT: {result}")
 except Exception as e:
   print(f"ERROR: {e}")`;
-}
+};

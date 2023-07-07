@@ -62,7 +62,12 @@ export function buildRunFilePath({
   providerName: string;
   language: SupportedLanguages;
 }): string {
-  const extension = language === SupportedLanguages.JS ? '.mjs' : '.py';
+  const EXTENSION_MAP: { [key in SupportedLanguages]: string } = {
+    js: '.mjs',
+    python: '.py',
+  };
+
+  const extension = EXTENSION_MAP[language];
 
   return join(
     resolve(process.cwd()),
@@ -76,12 +81,14 @@ export function buildRunFilePath({
 export function buildProjectDefinitionFilePath(
   language: SupportedLanguages = SupportedLanguages.JS
 ): string {
-  let file: string;
-  if (language === SupportedLanguages.PYTHON) {
-    file = 'requirements.txt';
-  } else {
-    file = 'package.json';
-  }
+  const FILENAME_MAP: { [key in SupportedLanguages]: string } = {
+    js: 'package.json',
+    python: 'requirements.txt',
+  };
 
-  return join(resolve(process.cwd()), DEFAULT_SUPERFACE_DIR, file);
+  return join(
+    resolve(process.cwd()),
+    DEFAULT_SUPERFACE_DIR,
+    FILENAME_MAP[language]
+  );
 }
