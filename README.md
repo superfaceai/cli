@@ -1,3 +1,4 @@
+[Website](https://superface.ai) | [Get Started](https://superface.ai/docs/introduction/getting-started) | [Documentation](https://superface.ai/docs) | [Discord](https://sfc.is/discord) | [Twitter](https://twitter.com/superfaceai) | [Support](https://superface.ai/support)
 
 <img src="https://github.com/superfaceai/cli/blob/main/docs/LogoGreen.png" alt="superface logo" width="100" height="100">
 
@@ -278,10 +279,6 @@ _See code: [src/commands/whoami.ts](https://github.com/superfaceai/cli/tree/main
 Superface is not man-in-the-middle so it does not require any access to secrets that are needed to communicate with provider API. Superface CLI only prepares super.json file with authorization fields in form of environment variable. You just set correct variables and communicate directly with provider API.
 
 You can find more information in [SDK repository](https://github.com/superfaceai/one-sdk-js/blob/main/SECURITY.md).
-
-## Support
-
-If you need any additional support, have any questions or you just want to talk you can do that through our [documentation page](https://docs.superface.ai).
 
 ## Development
 
