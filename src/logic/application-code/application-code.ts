@@ -1,6 +1,8 @@
 import type {
+  IntegrationParameter,
   ProfileDocumentNode,
   ProviderJson,
+  SecurityScheme,
   UseCaseDefinitionNode,
 } from '@superfaceai/ast';
 
@@ -9,18 +11,46 @@ import type { UserError } from '../../common/error';
 import { stringifyError } from '../../common/error';
 import { prepareUseCaseInput } from './input/prepare-usecase-input';
 import { jsApplicationCode } from './js';
+import { pythonApplicationCode } from './python';
+
+export enum SupportedLanguages {
+  PYTHON = 'python',
+  JS = 'js',
+}
+
+export type ApplicationCodeWriter = (
+  {
+    profile,
+    useCaseName,
+    provider,
+    input,
+    parameters,
+    security,
+  }: {
+    profile: {
+      name: string;
+      scope?: string;
+    };
+    useCaseName: string;
+    provider: string;
+    // TODO:  more language independent type for input?
+    input: string;
+    parameters?: IntegrationParameter[];
+    security?: SecurityScheme[];
+  },
+  { logger }: { logger: ILogger }
+) => string;
 
 export async function writeApplicationCode(
   {
     providerJson,
     profileAst,
+    language,
   }: // useCaseName,
-  // target
   {
     providerJson: ProviderJson;
     profileAst: ProfileDocumentNode;
-    // TODO: add more target languages
-    // target: 'js';
+    language: SupportedLanguages;
   },
   { logger, userError }: { logger: ILogger; userError: UserError }
 ): Promise<string> {
@@ -58,7 +88,14 @@ export async function writeApplicationCode(
     );
   }
 
-  return jsApplicationCode(
+  const APPLICATION_CODE_MAP: {
+    [key in SupportedLanguages]: ApplicationCodeWriter;
+  } = {
+    js: jsApplicationCode,
+    python: pythonApplicationCode,
+  };
+
+  return APPLICATION_CODE_MAP[language](
     {
       profile: {
         name: profileAst.header.name,

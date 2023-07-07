@@ -15,9 +15,12 @@ import type { ILogger } from '../common/log';
 import { OutputStream } from '../common/output-stream';
 import { ProfileId } from '../common/profile';
 import { UX } from '../common/ux';
-import { writeApplicationCode } from '../logic/application-code/application-code';
+import {
+  SupportedLanguages,
+  writeApplicationCode,
+} from '../logic/application-code/application-code';
 import { mapProviderToProfile } from '../logic/map';
-import { prepareJsProject } from '../logic/project';
+import { prepareProject } from '../logic/project';
 import { resolveProviderJson } from './new';
 
 export default class Map extends Command {
@@ -43,6 +46,8 @@ export default class Map extends Command {
       name: 'language',
       description: 'Language which will use generated code. Default is `js`.',
       required: false,
+      default: 'js',
+      options: Object.values(SupportedLanguages),
       // Hidden because we support only js for now
       hidden: true,
     },
@@ -72,10 +77,12 @@ export default class Map extends Command {
     logger: ILogger;
     userError: UserError;
     flags: Flags<typeof Map.flags>;
-    args: { providerName?: string; profileId?: string };
+    args: { providerName?: string; profileId?: string; language?: string };
   }): Promise<void> {
     const ux = UX.create();
-    const { providerName, profileId } = args;
+    const { providerName, profileId, language } = args;
+
+    const resolvedLanguage = resolveLanguage(language, { userError });
 
     ux.start('Loading profile');
     const profile = await resolveProfileSource(profileId, { userError });
@@ -111,23 +118,34 @@ export default class Map extends Command {
     });
     ux.succeed('Integration code saved');
 
-    ux.start('Preparing boilerplate code');
+    ux.start(`Preparing boilerplate code for ${resolvedLanguage}`);
 
-    const saved = await saveBoilerplateCode(providerJson, profile.ast, {
-      logger,
-      userError,
-    });
+    const saved = await saveBoilerplateCode(
+      providerJson,
+      profile.ast,
+      resolvedLanguage,
+      {
+        logger,
+        userError,
+      }
+    );
     ux.succeed(
-      saved ? 'Boilerplate code prepared.' : 'Boilerplate code already exists.'
+      saved
+        ? `Boilerplate code prepared for ${resolvedLanguage}.`
+        : `Boilerplate for ${resolvedLanguage} code already exists.`
     );
 
-    ux.start('Setting up local project');
+    ux.start(`Setting up local project in ${resolvedLanguage}`);
+
     // TODO: install dependencies
-    await prepareJsProject(undefined, undefined, { logger });
+    const project = await prepareProject(resolvedLanguage);
 
-    ux.warn(
-      `You need to have Node version 18.0.0 or higher installed to run the integration. Used dependencies:\n"@superfaceai/one-sdk"\n"dotenv"\nYou can install defined dependencies by running \`npm install\` in \`superface\` directory.`
+    ux.succeed(
+      project.saved
+        ? `Dependency definition prepared for ${resolvedLanguage}.`
+        : `Dependency definition for ${resolvedLanguage} code already exists.`
     );
+    ux.warn(project.installationGuide);
 
     ux.succeed(
       `Local project set up. You can now install defined dependencies and run \`superface execute ${
@@ -139,16 +157,39 @@ export default class Map extends Command {
   }
 }
 
+export function resolveLanguage(
+  language: string | undefined,
+  { userError }: { userError: UserError }
+): SupportedLanguages {
+  if (language === undefined) {
+    return SupportedLanguages.JS;
+  }
+  switch (language) {
+    case 'js':
+      return SupportedLanguages.JS;
+    case 'python':
+      return SupportedLanguages.PYTHON;
+    default:
+      throw userError(
+        `Language ${language} is not supported. Supported languages are: ${Object.values(
+          SupportedLanguages
+        ).join(', ')}`,
+        1
+      );
+  }
+}
+
 async function saveBoilerplateCode(
   providerJson: ProviderJson,
   profileAst: ProfileDocumentNode,
+  language: SupportedLanguages,
   { userError, logger }: { userError: UserError; logger: ILogger }
 ): Promise<boolean> {
   const path = buildRunFilePath({
     profileName: profileAst.header.name,
     providerName: providerJson.name,
     profileScope: profileAst.header.scope,
-    language: 'JS',
+    language,
   });
 
   if (await exists(path)) {
@@ -159,6 +200,7 @@ async function saveBoilerplateCode(
     {
       providerJson,
       profileAst,
+      language,
     },
     {
       logger,

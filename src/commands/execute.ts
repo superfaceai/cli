@@ -5,8 +5,9 @@ import type { UserError } from '../common/error';
 import { buildMapPath, buildRunFilePath } from '../common/file-structure';
 import { exists } from '../common/io';
 import { ProfileId } from '../common/profile';
+import { SupportedLanguages } from '../logic';
 import { execute } from '../logic/execution';
-import { resolveProfileSource } from './map';
+import { resolveLanguage, resolveProfileSource } from './map';
 import { resolveProviderJson } from './new';
 
 export default class Execute extends Command {
@@ -30,10 +31,13 @@ export default class Execute extends Command {
       required: true,
     },
     {
+      // TODO: add language support
       name: 'language',
-      description: 'Language of generated integration. Default is JS.',
+      description: 'Language which will use generated code. Default is `js`.',
+      // TODO: this will be required when we support more languages
       required: false,
-      default: 'JS',
+      default: 'js',
+      options: Object.keys(SupportedLanguages),
       // Hidden because we support only js for now
       hidden: true,
     },
@@ -67,6 +71,8 @@ export default class Execute extends Command {
   }): Promise<void> {
     const { providerName, profileId, language } = args;
 
+    const resolvedLanguage = resolveLanguage(language, { userError });
+
     const providerJson = await resolveProviderJson(providerName, { userError });
 
     const profile = await resolveProfileSource(profileId, { userError });
@@ -75,14 +81,6 @@ export default class Execute extends Command {
       profile.scope,
       profile.name
     ).id;
-
-    // Check language
-    if (language !== undefined && language !== 'JS') {
-      throw userError(
-        `Language ${language} is not supported. Currently only JS is supported.`,
-        1
-      );
-    }
 
     // Check that map exists
     if (
@@ -105,7 +103,7 @@ export default class Execute extends Command {
       profileName: profile.name,
       providerName: providerJson.name,
       profileScope: profile.scope,
-      language: language ?? 'JS',
+      language: resolvedLanguage,
     });
     if (!(await exists(runfile))) {
       throw userError(
@@ -114,6 +112,6 @@ export default class Execute extends Command {
       );
     }
 
-    await execute(runfile, language ?? 'JS', { logger, userError });
+    await execute(runfile, resolvedLanguage, { logger, userError });
   }
 }
