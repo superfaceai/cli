@@ -120,6 +120,13 @@ This command prepares a Provider JSON metadata definition that can be used to ge
       },
       { userError, ux }
     );
+    ux.succeed('Provider definition prepared');
+
+    ux.start('Saving provider definition');
+    const providerJsonPath = await writeProviderJson(providerJson, {
+      logger,
+      userError,
+    });
 
     if (
       providerJson.services.length === 0 ||
@@ -128,17 +135,12 @@ This command prepares a Provider JSON metadata definition that can be used to ge
     ) {
       // TODO: provide more info - url to docs
       ux.warn(
-        'Provider definition prepared, but some parts are missing. Please fill them manually.'
+        `Provider definition prepared, but some parts are missing. Please fill them manually in ${providerJsonPath}.`
       );
-    } else {
-      ux.succeed('Provider definition successfully prepared');
     }
 
-    ux.start('Saving provider definition');
-    await writeProviderJson(providerJson, { logger, userError });
-
     ux.succeed(
-      `Provider definition saved successfully.\nYou can use it to generate integration code interface with 'superface new ${providerJson.name} "<use case description>"'.`
+      `Provider definition saved successfully to ${providerJsonPath}.\nYou can use it to generate integration code interface with 'superface new ${providerJson.name} "<use case description>"'.`
     );
   }
 }
@@ -146,7 +148,7 @@ This command prepares a Provider JSON metadata definition that can be used to ge
 export async function writeProviderJson(
   providerJson: ProviderJson,
   { logger, userError }: { logger: ILogger; userError: UserError }
-): Promise<void> {
+): Promise<string> {
   // TODO: force flag
   if (await exists(buildProviderPath(providerJson.name))) {
     throw userError(`Provider ${providerJson.name} already exists.`, 1);
@@ -157,10 +159,11 @@ export async function writeProviderJson(
     await mkdir(buildSuperfaceDirPath(), { recursive: true });
   }
 
-  await OutputStream.writeOnce(
-    buildProviderPath(providerJson.name),
-    JSON.stringify(providerJson, null, 2)
-  );
+  const path = buildProviderPath(providerJson.name);
+
+  await OutputStream.writeOnce(path, JSON.stringify(providerJson, null, 2));
+
+  return path;
 }
 
 async function resolveInputs(

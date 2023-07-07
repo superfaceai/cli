@@ -8,6 +8,7 @@ export async function preparePythonProject(
 ): Promise<{
   saved: boolean;
   installationGuide: string;
+  path: string;
 }> {
   // TODO: revisit when SDK supports python
   const requirements = `Brotli==1.0.9
@@ -27,8 +28,8 @@ wasmtime==9.0.0`;
   if (!(await exists(requirementsPath))) {
     await OutputStream.writeOnce(requirementsPath, requirements);
 
-    return { saved: true, installationGuide };
+    return { saved: true, installationGuide, path: requirementsPath };
   }
 
-  return { saved: false, installationGuide };
+  return { saved: false, installationGuide, path: requirementsPath };
 }

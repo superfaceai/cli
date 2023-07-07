@@ -33,6 +33,7 @@ describe('preparePythonProject', () => {
     await expect(preparePythonProject('3.0.0-alpha.12')).resolves.toEqual({
       saved: true,
       installationGuide: expect.any(String),
+      path: expect.stringContaining('superface/requirements.txt'),
     });
 
     expect(mockWriteOnce).toHaveBeenCalledWith(
@@ -47,6 +48,7 @@ describe('preparePythonProject', () => {
     await expect(preparePythonProject('3.0.0-alpha.12')).resolves.toEqual({
       saved: false,
       installationGuide: expect.any(String),
+      path: expect.stringContaining('superface/requirements.txt'),
     });
 
     expect(mockWriteOnce).not.toHaveBeenCalled();

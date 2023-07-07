@@ -32,7 +32,7 @@ describe('prepareJsProject', () => {
 
     await expect(
       prepareJsProject('3.0.0-alpha.12', '^16.0.3')
-    ).resolves.toEqual({ saved: true, installationGuide: expect.any(String) });
+    ).resolves.toEqual({ saved: true, installationGuide: expect.any(String), path: expect.stringContaining('superface/package.json') });
 
     expect(mockWriteOnce).toHaveBeenCalledWith(
       buildProjectDefinitionFilePath(SupportedLanguages.JS),
@@ -45,7 +45,7 @@ describe('prepareJsProject', () => {
 
     await expect(
       prepareJsProject('3.0.0-alpha.12', '^16.0.3')
-    ).resolves.toEqual({ saved: false, installationGuide: expect.any(String) });
+    ).resolves.toEqual({ saved: false, installationGuide: expect.any(String), path: expect.stringContaining('superface/package.json') });
 
     expect(mockWriteOnce).not.toHaveBeenCalled();
   });

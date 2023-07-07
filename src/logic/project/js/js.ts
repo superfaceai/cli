@@ -9,6 +9,7 @@ export async function prepareJsProject(
 ): Promise<{
   saved: boolean;
   installationGuide: string;
+  path: string;
 }> {
   const packageJson = `{
     "name": "auto-generated-superface-project",
@@ -34,8 +35,8 @@ export async function prepareJsProject(
   if (!(await exists(packageJsonPath))) {
     await OutputStream.writeOnce(packageJsonPath, packageJson);
 
-    return { saved: true, installationGuide };
+    return { saved: true, installationGuide, path: packageJsonPath };
   }
 
-  return { saved: false, installationGuide };
+  return { saved: false, installationGuide, path: packageJsonPath };
 }

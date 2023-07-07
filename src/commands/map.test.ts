@@ -407,6 +407,7 @@ describe('MapCLI command', () => {
       jest.mocked(prepareProject).mockResolvedValueOnce({
         saved: true,
         installationGuide: 'test',
+        path: 'test',
       });
 
       jest
@@ -457,6 +458,7 @@ describe('MapCLI command', () => {
       jest.mocked(prepareProject).mockResolvedValueOnce({
         saved: true,
         installationGuide: 'test',
+        path: 'test',
       });
 
       jest
@@ -531,6 +533,7 @@ describe('MapCLI command', () => {
       jest.mocked(prepareProject).mockResolvedValueOnce({
         saved: true,
         installationGuide: 'test',
+        path: 'test',
       });
 
       jest
@@ -603,6 +606,7 @@ describe('MapCLI command', () => {
       jest.mocked(prepareProject).mockResolvedValueOnce({
         saved: true,
         installationGuide: 'test',
+        path: 'test',
       });
 
       jest
