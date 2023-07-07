@@ -1,55 +1,27 @@
-# CLI
+[Website](https://superface.ai) | [Get Started](https://superface.ai/docs/introduction/getting-started) | [Documentation](https://superface.ai/docs) | [Discord](https://sfc.is/discord) | [Twitter](https://twitter.com/superfaceai) | [Support](https://superface.ai/support)
+
+<img src="https://github.com/superfaceai/cli/blob/main/docs/LogoGreen.png" alt="superface logo" width="100" height="100">
+
+# Superface CLI
+
+**Let AI connect the APIs for you.**
 
 [![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/superfaceai/cli/main.yml)](https://github.com/superfaceai/cli/actions/workflows/main.yml)
-![NPM](https://img.shields.io/npm/v/@superfaceai/cli)
+[![Stable Release](https://img.shields.io/github/v/release/superfaceai/cli?label=homebrew)](#install)
 [![NPM](https://img.shields.io/npm/l/@superfaceai/cli)](LICENSE)
 ![TypeScript](https://img.shields.io/badge/%3C%2F%3E-Typescript-blue)
 
-<img src="https://github.com/superfaceai/cli/blob/main/docs/LogoGreen.png" alt="superface logo" width="150" height="150">
-
-Superface CLI provides access to superface tooling from the CLI.
-
-## Table of Contents
-
-- [Background](#background)
-- [Install](#install)
-- [Usage](#usage)
-- [Security](#security)
-- [Support](#support)
-- [Development](#development)
-- [Maintainers](#maintainers)
-- [Contributing](#contributing)
-- [License](#license)
-
-## Background
-
-Superface (super-interface) is a higher-order API, an abstraction on top of modern APIs like GraphQL and REST. Superface gives you the one interface to discover, connect, and query any capabilities available via conventional APIs.
-
-Through its focus on application-level semantics, Superface decouples the clients from servers, enabling fully autonomous evolution. As such, it minimizes the code base as well as errors and downtimes while providing unmatched resiliency and redundancy.
-
-Superface allows for switching providers at runtime in milliseconds with no development cost. Furthermore, Superface decentralizes the composition and aggregation of integrations, and thus creates an Autonomous Integration Mesh.
-
-Motivation behind Superface is nicely described in this [video](https://www.youtube.com/watch?v=BCvq3NXFb94) from APIdays conference.
-
-You can get more information at https://superface.ai and https://superface.ai/docs.
+Superface CLI abstracts APIs into the business cases you need. Point at API docs,
+state your desired use case, let AI create an integration code, then use it
+in your application. You remain in control of the code, and your app communicates
+directly with your chosen APIs without any middlemen or proxy.
 
 ## Install
 
-To install this package, just install the cli globally using one of the following commands:
+[Install Homebrew](https://brew.sh/), then install Superface CLI with:
 
 ```shell
-# if using yarn
-yarn global add @superfaceai/cli
-# otherwise
-npm install --global @superfaceai/cli
-```
-
-Or you can use NPX directly with Superface CLI commands:
-
-```shell
-npx @superfaceai/cli [command]
-# eg.
-npx @superfaceai/cli install [profileId eg. communication/send-email]
+brew install superfaceai/cli/superface
 ```
 
 ## Usage
@@ -295,16 +267,6 @@ _See code: [src/commands/whoami.ts](https://github.com/superfaceai/cli/tree/main
 
 <!-- commandsstop -->
 
-## Security
-
-Superface is not man-in-the-middle so it does not require any access to secrets that are needed to communicate with provider API. Superface CLI only prepares super.json file with authorization fields in form of environment variable. You just set correct variables and communicate directly with provider API.
-
-You can find more information in [SDK repository](https://github.com/superfaceai/one-sdk-js/blob/main/SECURITY.md).
-
-## Support
-
-If you need any additional support, have any questions or you just want to talk you can do that through our [documentation page](https://docs.superface.ai).
-
 ## Development
 
 When developing, start with cloning the repository using `git clone https://github.com/superfaceai/cli.git` (or `git clone git@github.com:superfaceai/cli.git` if you have repository access).
@@ -332,13 +294,6 @@ To install a local artifact globally, symlink the binary (`ln -s bin/superface <
 
 **Note**: You can change url of API requests by setting `SUPERFACE_API_URL` environment variable to desired base url.
 
-## Maintainers
-
-- [@Lukáš Valenta](https://github.com/lukas-valenta)
-- [@Edward](https://github.com/TheEdward162)
-- [@Vratislav Kalenda](https://github.com/Vratislav)
-- [@Z](https://github.com/zdne)
-
 ## Contributing
 
 **Please open an issue first if you want to make larger changes**
@@ -362,5 +317,5 @@ Note: If editing the README, please conform to the [standard-readme](https://git
 
 ## License
 
-The Superface is licensed under the [MIT](LICENSE).
-© 2021 Superface
+The Superface CLI is licensed under the [MIT](LICENSE).
+© 2023 Superface
