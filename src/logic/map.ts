@@ -99,7 +99,7 @@ async function startMapPreparation(
   if (jobUrlResponse.status !== 202) {
     if (jobUrlResponse.status === 401) {
       throw userError(
-        `You are not authorized to access this resource. Make sure that you are logged in.`,
+        `This command is available to authenticated users only. Please log in using \`superface login\``,
         1
       );
     }
