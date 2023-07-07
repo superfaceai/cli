@@ -332,13 +332,6 @@ To install a local artifact globally, symlink the binary (`ln -s bin/superface <
 
 **Note**: You can change url of API requests by setting `SUPERFACE_API_URL` environment variable to desired base url.
 
-## Maintainers
-
-- [@Lukáš Valenta](https://github.com/lukas-valenta)
-- [@Edward](https://github.com/TheEdward162)
-- [@Vratislav Kalenda](https://github.com/Vratislav)
-- [@Z](https://github.com/zdne)
-
 ## Contributing
 
 **Please open an issue first if you want to make larger changes**
