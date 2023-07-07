@@ -1,25 +1,14 @@
-# CLI
+
+<img src="https://github.com/superfaceai/cli/blob/main/docs/LogoGreen.png" alt="superface logo" width="100" height="100">
+
+# Superface CLI
+
+**Let AI connect the APIs for you.**
 
 [![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/superfaceai/cli/main.yml)](https://github.com/superfaceai/cli/actions/workflows/main.yml)
-![NPM](https://img.shields.io/npm/v/@superfaceai/cli)
+[![Stable Release](https://img.shields.io/github/v/release/superfaceai/cli?label=homebrew)](#install)
 [![NPM](https://img.shields.io/npm/l/@superfaceai/cli)](LICENSE)
 ![TypeScript](https://img.shields.io/badge/%3C%2F%3E-Typescript-blue)
-
-<img src="https://github.com/superfaceai/cli/blob/main/docs/LogoGreen.png" alt="superface logo" width="150" height="150">
-
-Superface CLI provides access to superface tooling from the CLI.
-
-## Table of Contents
-
-- [Background](#background)
-- [Install](#install)
-- [Usage](#usage)
-- [Security](#security)
-- [Support](#support)
-- [Development](#development)
-- [Maintainers](#maintainers)
-- [Contributing](#contributing)
-- [License](#license)
 
 ## Background
 
