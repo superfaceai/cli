@@ -211,7 +211,7 @@ describe('mapProviderToProfile', () => {
       )
     ).rejects.toEqual(
       userError(
-        'You are not authorized to access this resource. Make sure that you are logged in.',
+        'This command is available to authenticated users only. Please log in using `superface login`',
         1
       )
     );
