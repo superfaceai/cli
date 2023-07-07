@@ -24,21 +24,10 @@ You can get more information at https://superface.ai and https://superface.ai/do
 
 ## Install
 
-To install this package, just install the cli globally using one of the following commands:
+[Install Homebrew](https://brew.sh/), then install Superface CLI with:
 
 ```shell
-# if using yarn
-yarn global add @superfaceai/cli
-# otherwise
-npm install --global @superfaceai/cli
-```
-
-Or you can use NPX directly with Superface CLI commands:
-
-```shell
-npx @superfaceai/cli [command]
-# eg.
-npx @superfaceai/cli install [profileId eg. communication/send-email]
+brew install superfaceai/cli/superface
 ```
 
 ## Usage
