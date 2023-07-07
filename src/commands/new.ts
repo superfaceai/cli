@@ -95,10 +95,10 @@ export default class New extends Command {
     ux.succeed('Profile created');
 
     ux.start('Saving profile for your use case');
-    await saveProfile(profile, { logger, userError });
+    const profilePath = await saveProfile(profile, { logger, userError });
 
     ux.succeed(
-      `Profile saved. You can use it to generate integration code for your use case by running 'superface map  ${
+      `Profile saved to ${profilePath}. You can use it to generate integration code for your use case by running 'superface map ${
         providerJson.name
       } ${ProfileId.fromScopeName(profile.scope, profile.name).id}'`
     );
@@ -108,7 +108,7 @@ export default class New extends Command {
 async function saveProfile(
   { source, scope, name }: { source: string; scope?: string; name: string },
   { logger, userError }: { logger: ILogger; userError: UserError }
-): Promise<void> {
+): Promise<string> {
   const profilePath = buildProfilePath(scope, name);
 
   logger.info('saveProfile', profilePath);
@@ -119,6 +119,8 @@ async function saveProfile(
   }
 
   await OutputStream.writeOnce(profilePath, source);
+
+  return profilePath;
 }
 
 function checkPrompt(

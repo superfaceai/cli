@@ -110,17 +110,17 @@ export default class Map extends Command {
     ux.succeed('Integration code prepared');
 
     ux.start('Saving integration code');
-    await saveMap({
+    const mapPath = await saveMap({
       map,
       profileName: profile.ast.header.name,
       providerName: providerJson.name,
       profileScope: profile.ast.header.scope,
     });
-    ux.succeed('Integration code saved');
+    ux.succeed(`Integration code saved to ${mapPath}`);
 
     ux.start(`Preparing boilerplate code for ${resolvedLanguage}`);
 
-    const saved = await saveBoilerplateCode(
+    const boilerplate = await saveBoilerplateCode(
       providerJson,
       profile.ast,
       resolvedLanguage,
@@ -130,9 +130,9 @@ export default class Map extends Command {
       }
     );
     ux.succeed(
-      saved
-        ? `Boilerplate code prepared for ${resolvedLanguage}.`
-        : `Boilerplate for ${resolvedLanguage} code already exists.`
+      boilerplate.saved
+        ? `Boilerplate code prepared for ${resolvedLanguage} at ${boilerplate.path}.`
+        : `Boilerplate for ${resolvedLanguage} code already exists at ${boilerplate.path}.`
     );
 
     ux.start(`Setting up local project in ${resolvedLanguage}`);
@@ -142,8 +142,8 @@ export default class Map extends Command {
 
     ux.succeed(
       project.saved
-        ? `Dependency definition prepared for ${resolvedLanguage}.`
-        : `Dependency definition for ${resolvedLanguage} code already exists.`
+        ? `Dependency definition prepared for ${resolvedLanguage} at ${project.path}.`
+        : `Dependency definition for ${resolvedLanguage} code already exists at ${project.path}.`
     );
     ux.warn(project.installationGuide);
 
@@ -184,7 +184,7 @@ async function saveBoilerplateCode(
   profileAst: ProfileDocumentNode,
   language: SupportedLanguages,
   { userError, logger }: { userError: UserError; logger: ILogger }
-): Promise<boolean> {
+): Promise<{ saved: boolean; path: string }> {
   const path = buildRunFilePath({
     profileName: profileAst.header.name,
     providerName: providerJson.name,
@@ -193,7 +193,10 @@ async function saveBoilerplateCode(
   });
 
   if (await exists(path)) {
-    return false;
+    return {
+      saved: false,
+      path,
+    };
   }
 
   const code = await writeApplicationCode(
@@ -210,7 +213,10 @@ async function saveBoilerplateCode(
 
   await OutputStream.writeOnce(path, code);
 
-  return true;
+  return {
+    saved: true,
+    path,
+  };
 }
 
 export async function resolveProfileSource(
@@ -288,7 +294,7 @@ async function saveMap({
   profileScope: string | undefined;
   providerName: string;
   map: string;
-}): Promise<void> {
+}): Promise<string> {
   const mapPath = buildMapPath({
     profileName,
     profileScope,
@@ -296,4 +302,6 @@ async function saveMap({
   });
 
   await OutputStream.writeOnce(mapPath, map);
+
+  return mapPath;
 }
