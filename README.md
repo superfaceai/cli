@@ -274,12 +274,6 @@ _See code: [src/commands/whoami.ts](https://github.com/superfaceai/cli/tree/main
 
 <!-- commandsstop -->
 
-## Security
-
-Superface is not man-in-the-middle so it does not require any access to secrets that are needed to communicate with provider API. Superface CLI only prepares super.json file with authorization fields in form of environment variable. You just set correct variables and communicate directly with provider API.
-
-You can find more information in [SDK repository](https://github.com/superfaceai/one-sdk-js/blob/main/SECURITY.md).
-
 ## Development
 
 When developing, start with cloning the repository using `git clone https://github.com/superfaceai/cli.git` (or `git clone git@github.com:superfaceai/cli.git` if you have repository access).
