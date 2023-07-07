@@ -11,17 +11,10 @@
 [![NPM](https://img.shields.io/npm/l/@superfaceai/cli)](LICENSE)
 ![TypeScript](https://img.shields.io/badge/%3C%2F%3E-Typescript-blue)
 
-## Background
-
-Superface (super-interface) is a higher-order API, an abstraction on top of modern APIs like GraphQL and REST. Superface gives you the one interface to discover, connect, and query any capabilities available via conventional APIs.
-
-Through its focus on application-level semantics, Superface decouples the clients from servers, enabling fully autonomous evolution. As such, it minimizes the code base as well as errors and downtimes while providing unmatched resiliency and redundancy.
-
-Superface allows for switching providers at runtime in milliseconds with no development cost. Furthermore, Superface decentralizes the composition and aggregation of integrations, and thus creates an Autonomous Integration Mesh.
-
-Motivation behind Superface is nicely described in this [video](https://www.youtube.com/watch?v=BCvq3NXFb94) from APIdays conference.
-
-You can get more information at https://superface.ai and https://superface.ai/docs.
+Superface CLI abstracts APIs into the business cases you need. Point at API docs,
+state your desired use case, let AI create an integration code, then use it
+in your application. You remain in control of the code, and your app communicates
+directly with your chosen APIs without any middlemen or proxy.
 
 ## Install
 
