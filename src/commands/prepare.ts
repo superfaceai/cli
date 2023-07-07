@@ -140,7 +140,7 @@ This command prepares a Provider JSON metadata definition that can be used to ge
     }
 
     ux.succeed(
-      `Provider definition saved successfully tp ${providerJsonPath}.\nYou can use it to generate integration code interface with 'superface new ${providerJson.name} "<use case description>"'.`
+      `Provider definition saved successfully to ${providerJsonPath}.\nYou can use it to generate integration code interface with 'superface new ${providerJson.name} "<use case description>"'.`
     );
   }
 }
