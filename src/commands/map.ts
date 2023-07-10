@@ -10,10 +10,12 @@ import {
   buildProfilePath,
   buildRunFilePath,
 } from '../common/file-structure';
+import { SuperfaceClient } from '../common/http';
 import { exists, readFile } from '../common/io';
 import type { ILogger } from '../common/log';
 import { OutputStream } from '../common/output-stream';
 import { ProfileId } from '../common/profile';
+import { resolveProviderJson } from '../common/provider';
 import { UX } from '../common/ux';
 import {
   SupportedLanguages,
@@ -21,7 +23,6 @@ import {
 } from '../logic/application-code/application-code';
 import { mapProviderToProfile } from '../logic/map';
 import { prepareProject } from '../logic/project';
-import { resolveProviderJson } from './new';
 
 export default class Map extends Command {
   // TODO: add description
@@ -90,9 +91,20 @@ export default class Map extends Command {
     ux.succeed('Profile loaded');
 
     ux.start('Loading provider definition');
-    const providerJson = await resolveProviderJson(providerName, {
+    const resolvedProviderJson = await resolveProviderJson(providerName, {
       userError,
+      client: SuperfaceClient.getClient(),
     });
+
+    if (resolvedProviderJson.source === 'local') {
+      ux.succeed(
+        `Input arguments checked. Provider JSON resolved from local file ${resolvedProviderJson.path}`
+      );
+    } else {
+      ux.succeed(
+        `Input arguments checked. Provider JSON resolved from Superface server`
+      );
+    }
 
     ux.succeed('Provider definition loaded');
 
@@ -100,7 +112,7 @@ export default class Map extends Command {
     // TODO: load old map?
     const map = await mapProviderToProfile(
       {
-        providerJson,
+        providerJson: resolvedProviderJson.providerJson,
         profile,
         options: { quiet: flags.quiet },
       },
@@ -113,7 +125,7 @@ export default class Map extends Command {
     const mapPath = await saveMap({
       map,
       profileName: profile.ast.header.name,
-      providerName: providerJson.name,
+      providerName: resolvedProviderJson.providerJson.name,
       profileScope: profile.ast.header.scope,
     });
     ux.succeed(`Integration code saved to ${mapPath}`);
@@ -121,7 +133,7 @@ export default class Map extends Command {
     ux.start(`Preparing boilerplate code for ${resolvedLanguage}`);
 
     const boilerplate = await saveBoilerplateCode(
-      providerJson,
+      resolvedProviderJson.providerJson,
       profile.ast,
       resolvedLanguage,
       {
@@ -149,7 +161,7 @@ export default class Map extends Command {
 
     ux.succeed(
       `Local project set up. You can now install defined dependencies and run \`superface execute ${
-        providerJson.name
+        resolvedProviderJson.providerJson.name
       } ${
         ProfileId.fromScopeName(profile.scope, profile.name).id
       }\` to execute your integration.`
