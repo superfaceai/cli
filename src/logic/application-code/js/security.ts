@@ -1,19 +1,19 @@
 import type { SecurityScheme } from '@superfaceai/ast';
 import { prepareSecurityValues } from '@superfaceai/ast';
 
-import type { ILogger } from '../../../common';
-
-export function prepareSecurityString(
+export function prepareSecurity(
   providerName: string,
-  security: SecurityScheme[] | undefined,
-  { logger }: { logger: ILogger }
-): string {
+  security: SecurityScheme[] | undefined
+): {
+  securityString: string;
+  required: string[];
+} {
   if (!security || security.length === 0) {
-    return '{}';
+    return { securityString: '{}', required: [] };
   }
-
   const securityValues = prepareSecurityValues(providerName, security);
 
+  const required: string[] = [];
   const result: string[] = [];
 
   // TODO: selecting single security scheme is not supported yet
@@ -29,7 +29,7 @@ export function prepareSecurityString(
     const valueString: string[] = [];
     Object.entries(securityValueWithoutId).forEach(
       ([key, value]: [string, string]) => {
-        logger.info('requiredSecurityValue', value);
+        required.push(value);
 
         valueString.push(
           `${key}: process.env.${
@@ -42,5 +42,5 @@ export function prepareSecurityString(
     result.push(`${escapedId}: { ${valueString.join(', ')} }`);
   }
 
-  return '{ ' + result.join(', ') + ' }';
+  return { securityString: '{ ' + result.join(', ') + ' }', required };
 }

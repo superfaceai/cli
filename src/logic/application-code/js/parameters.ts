@@ -1,27 +1,30 @@
 import type { IntegrationParameter } from '@superfaceai/ast';
 import { prepareProviderParameters } from '@superfaceai/ast';
 
-import type { ILogger } from '../../../common';
+// import type { ILogger } from '../../../common';
 
-export function prepareParametersString(
+export function prepareParameters(
   providerName: string,
-  parameters: IntegrationParameter[] | undefined,
-  { logger }: { logger: ILogger }
-): string {
+  parameters: IntegrationParameter[] | undefined
+  // { logger }: { logger: ILogger }
+): { parametersString: string; required: string[] } {
   if (!parameters) {
-    return '{}';
+    return { parametersString: '{}', required: [] };
   }
+
+  const required: string[] = [];
 
   const parametersMap = prepareProviderParameters(providerName, parameters);
 
   if (Object.keys(parametersMap).length === 0) {
-    return '{}';
+    return { parametersString: '{}', required };
   }
   Object.values(parametersMap).forEach(value => {
-    logger.info('requiredParameterValue', value);
+    required.push(value);
+    // logger.info('requiredParameterValue', value);
   });
 
-  return (
+  const parametersString =
     '{ ' +
     Object.entries(parametersMap)
       .map(
@@ -31,6 +34,7 @@ export function prepareParametersString(
           }`
       )
       .join(', ') +
-    ' }'
-  );
+    ' }';
+
+  return { parametersString, required };
 }

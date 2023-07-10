@@ -26,7 +26,8 @@ describe('jsApplicationCode', () => {
       { logger }
     );
 
-    expect(result).toEqual(`import { config } from 'dotenv';
+    expect(result).toEqual({
+      code: `import { config } from 'dotenv';
 // Load OneClient from SDK
 import { OneClient } from '@superfaceai/one-sdk/node/index.js';
 
@@ -64,6 +65,9 @@ async function main() {
   }
 }
 
-void main();`);
+void main();`,
+      requiredParameters: [],
+      requiredSecurity: [],
+    });
   });
 });
