@@ -50,6 +50,8 @@ try:
   )
   print(f"RESULT: {result}")
 except Exception as e:
-  print(f"ERROR: {e}")`);
+  print(f"ERROR: {e}")
+finally:
+  client.send_metrics_to_superface()`);
   });
 });

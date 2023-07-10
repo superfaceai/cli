@@ -37,7 +37,7 @@ export const pythonApplicationCode: ApplicationCodeWriter = (
 
   return `import os
 from dotenv import load_dotenv
-from superfaceai.one_sdk import OneClient
+from one_sdk import OneClient
 
 load_dotenv()
 
@@ -59,5 +59,7 @@ try:
   )
   print(f"RESULT: {result}")
 except Exception as e:
-  print(f"ERROR: {e}")`;
+  print(f"ERROR: {e}")
+finally:
+  client.send_metrics_to_superface()`;
 };
