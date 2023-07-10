@@ -117,7 +117,7 @@ describe('resolveProviderJson', () => {
           client,
         })
       ).rejects.toThrowError(
-        `Provider test does not exist. Make sure to run \"sf prepare\" before running this command.`
+        `Provider test does not exist. Make sure to run "sf prepare" before running this command.`
       );
     });
 
