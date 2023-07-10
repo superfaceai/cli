@@ -4,8 +4,8 @@ import type { ILogger } from '../../../common';
 import { buildSuperfaceDirPath } from '../../../common/file-structure';
 import { ProfileId } from '../../../common/profile';
 import type { ApplicationCodeWriter } from '../application-code';
-import { prepareParametersString } from '../js/parameters';
-import { prepareSecurityString } from '../js/security';
+import { prepareParametersString } from './parameters';
+import { prepareSecurityString } from './security';
 
 export const pythonApplicationCode: ApplicationCodeWriter = (
   {
