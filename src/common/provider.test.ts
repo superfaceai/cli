@@ -3,7 +3,6 @@ import type { ServiceClient } from '@superfaceai/service-client';
 
 import { mockResponse } from '../test/utils';
 import { createUserError, stringifyError } from './error';
-import { buildProviderPath } from './file-structure';
 import { exists, readFile } from './io';
 import { OutputStream } from './output-stream';
 import { resolveProviderJson } from './provider';
@@ -118,7 +117,7 @@ describe('resolveProviderJson', () => {
           client,
         })
       ).rejects.toThrowError(
-        `Provider test does not exist both locally (checked ${buildProviderPath('test')}) and remotely. Make sure to run "sf prepare" before running this command.`
+        `Provider test does not exist. Make sure to run \"sf prepare\" before running this command.`
       );
     });
 

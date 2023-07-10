@@ -69,7 +69,9 @@ export async function resolveProviderJson(
     }
 
     throw userError(
-      `Provider.json file downloaded but it is not properly configured. Please make sure to replace 'TODO' in baseUrl with the actual base url of the API.`,
+      `Provider.json file saved to: ${buildProviderPath(
+        providerName
+      )} but it is not properly configured. Please make sure to replace 'TODO' in baseUrl with the actual base url of the API.`,
       1
     );
   }
@@ -118,9 +120,7 @@ async function resolveRemote(
     }
   } else if (providerResponse.status === 404) {
     throw userError(
-      `Provider ${providerName} does not exist both locally (checked ${buildProviderPath(
-        providerName
-      )}) and remotely. Make sure to run "sf prepare" before running this command.`,
+      `Provider ${providerName} does not exist. Make sure to run "sf prepare" before running this command.`,
       1
     );
   } else {
