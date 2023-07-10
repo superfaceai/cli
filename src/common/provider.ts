@@ -120,7 +120,7 @@ async function resolveRemote(
     }
   } else if (providerResponse.status === 404) {
     throw userError(
-      `Provider ${providerName} does not exist. Make sure to run "sf prepare" before running this command.`,
+      `Provider ${providerName} does not exist. Make sure to run "superface prepare" before running this command.`,
       1
     );
   } else {

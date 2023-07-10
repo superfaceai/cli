@@ -113,7 +113,7 @@ describe('prepareProviderJson', () => {
       )
     ).rejects.toEqual(
       userError(
-        'You are not authorized to access this resource. Make sure that you are logged in.',
+        "You are not authorized. Please login using 'superface login'.",
         1
       )
     );
