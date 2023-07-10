@@ -3,10 +3,10 @@ import type { ServiceClient } from '@superfaceai/service-client';
 
 import { mockResponse } from '../test/utils';
 import { createUserError, stringifyError } from './error';
+import { buildProviderPath } from './file-structure';
 import { exists, readFile } from './io';
 import { OutputStream } from './output-stream';
 import { resolveProviderJson } from './provider';
-import { buildProviderPath } from './file-structure';
 
 jest.mock('./io');
 jest.mock('../common/output-stream');
