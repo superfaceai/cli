@@ -1,4 +1,3 @@
-import { MockLogger } from '../common';
 import { createUserError } from '../common/error';
 import { buildProviderPath } from '../common/file-structure';
 import { exists, readFile } from '../common/io';
@@ -32,7 +31,6 @@ describe('new CLI command', () => {
 
     let mockWriteOnce: jest.Mock;
     let instance: New;
-    let logger: MockLogger;
 
     beforeAll(() => {
       // Mock static side of OutputStream
@@ -42,7 +40,6 @@ describe('new CLI command', () => {
 
     beforeEach(() => {
       instance = CommandInstance(New);
-      logger = new MockLogger();
     });
 
     afterAll(() => {
@@ -53,7 +50,6 @@ describe('new CLI command', () => {
     it('throws when provider name is not provided', async () => {
       await expect(
         instance.execute({
-          logger,
           userError,
           flags: {},
           args: { prompt: 'test' },
@@ -66,7 +62,6 @@ describe('new CLI command', () => {
     it('throws when provider name is invalid', async () => {
       await expect(
         instance.execute({
-          logger,
           userError,
           flags: {},
           args: { providerName: '!_0%L', prompt: 'test' },
@@ -77,7 +72,6 @@ describe('new CLI command', () => {
     it('throws when prompt is not provided', async () => {
       await expect(
         instance.execute({
-          logger,
           userError,
           flags: {},
           args: { providerName: 'test' },
@@ -90,7 +84,6 @@ describe('new CLI command', () => {
     it('throws when provider file does not exist', async () => {
       await expect(
         instance.execute({
-          logger,
           userError,
           flags: {},
           args: { providerName: 'test', prompt: 'test' },
@@ -107,7 +100,6 @@ describe('new CLI command', () => {
       jest.mocked(readFile).mockRejectedValueOnce(new Error('File read error'));
       await expect(
         instance.execute({
-          logger,
           userError,
           flags: {},
           args: { providerName: 'test', prompt: 'test' },
@@ -120,7 +112,6 @@ describe('new CLI command', () => {
       jest.mocked(readFile).mockResolvedValueOnce('file content');
       await expect(
         instance.execute({
-          logger,
           userError,
           flags: {},
           args: { providerName: 'test', prompt: 'test' },
@@ -133,7 +124,6 @@ describe('new CLI command', () => {
       jest.mocked(readFile).mockResolvedValueOnce('{"test": 1}');
       await expect(
         instance.execute({
-          logger,
           userError,
           flags: {},
           args: { providerName: 'test', prompt: 'test' },
@@ -150,7 +140,6 @@ describe('new CLI command', () => {
         );
       await expect(
         instance.execute({
-          logger,
           userError,
           flags: {},
           args: { providerName: 'test', prompt: 'test' },
@@ -167,7 +156,6 @@ describe('new CLI command', () => {
       jest.mocked(readFile).mockResolvedValueOnce(JSON.stringify(providerJson));
       await expect(
         instance.execute({
-          logger,
           userError,
           flags: {},
           args: { providerName: 'test', prompt: 'test' },
@@ -192,7 +180,6 @@ describe('new CLI command', () => {
       });
 
       await instance.execute({
-        logger,
         userError,
         flags: {},
         args: { providerName, prompt },
@@ -204,7 +191,7 @@ describe('new CLI command', () => {
           prompt,
           options: { quiet: undefined },
         },
-        { logger, ux, userError }
+        { ux, userError }
       );
 
       expect(mockWriteOnce).toHaveBeenCalledWith(
@@ -225,7 +212,6 @@ describe('new CLI command', () => {
       });
 
       await instance.execute({
-        logger,
         userError,
         flags: {},
         args: { providerName, prompt },
@@ -237,7 +223,7 @@ describe('new CLI command', () => {
           prompt,
           options: { quiet: undefined },
         },
-        { logger, ux, userError }
+        { ux, userError }
       );
 
       expect(mockWriteOnce).toHaveBeenCalledWith(
@@ -256,7 +242,6 @@ describe('new CLI command', () => {
         .mockResolvedValueOnce({ source: 'profile', name: profileName });
 
       await instance.execute({
-        logger,
         userError,
         flags: {},
         args: { providerName, prompt },
@@ -268,7 +253,7 @@ describe('new CLI command', () => {
           prompt,
           options: { quiet: undefined },
         },
-        { logger, ux, userError }
+        { ux, userError }
       );
 
       expect(mockWriteOnce).toHaveBeenCalledWith(

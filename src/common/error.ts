@@ -14,7 +14,7 @@ export const createUserError =
   (emoji: boolean) =>
   (message: string, code: number): CLIError => {
     // Make sure that UX is stoped before throwing an error.
-    UX.create().fail(message);
+    UX.clear();
 
     if (code <= 0) {
       throw developerError('expected positive error code', 1);

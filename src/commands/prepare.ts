@@ -109,8 +109,6 @@ This command prepares a Provider JSON metadata definition that can be used to ge
       userError,
     });
 
-    ux.succeed('Inputs resolved');
-
     ux.start('Preparing provider definition');
     const providerJson = await prepareProviderJson(
       {
@@ -120,7 +118,6 @@ This command prepares a Provider JSON metadata definition that can be used to ge
       },
       { userError, ux }
     );
-    ux.succeed('Provider definition prepared');
 
     ux.start('Saving provider definition');
     const providerJsonPath = await writeProviderJson(providerJson, {
@@ -133,15 +130,15 @@ This command prepares a Provider JSON metadata definition that can be used to ge
       (providerJson.services.length === 1 &&
         providerJson.services[0].baseUrl.includes('TODO'))
     ) {
-      // TODO: provide more info - url to docs
+      // TODO: provide more info - url to REAL docs
       ux.warn(
-        `Provider definition prepared, but some parts are missing. Please fill them manually in ${providerJsonPath}.`
+        `Provider definition prepared, but some parts are missing. Please fill them manually in ${providerJsonPath}. Link to documentation:\nhttps://pr-115-superface-docs.vercel.app/docs/guides/editing-provider-files\nYou can use it to generate integration code interface with 'superface new ${providerJson.name} "<use case description>"'.`
+      );
+    } else {
+      ux.succeed(
+        `Provider definition saved successfully to ${providerJsonPath}.\nYou can use it to generate integration code interface with 'superface new ${providerJson.name} "<use case description>"'.`
       );
     }
-
-    ux.succeed(
-      `Provider definition saved successfully to ${providerJsonPath}.\nYou can use it to generate integration code interface with 'superface new ${providerJson.name} "<use case description>"'.`
-    );
   }
 }
 
@@ -180,7 +177,7 @@ async function resolveInputs(
   if (name !== undefined) {
     if (!isValidProviderName(name)) {
       throw userError(
-        `Invalid provider name '${name}'. Provider name must match: ^[a-z][_-0-9a-z]*$`,
+        `Invalid provider name '${name}'. Provider name must match: ^[a-z][_\\-a-z]*$`,
         1
       );
     }

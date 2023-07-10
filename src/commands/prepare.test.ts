@@ -55,7 +55,7 @@ describe('prepare CLI command', () => {
           args: { urlOrPath: 'path/to/file.yaml', name: 'd.!"-=' },
         })
       ).rejects.toThrow(
-        `Invalid provider name 'd.!"-='. Provider name must match: ^[a-z][_-0-9a-z]*$`
+        `Invalid provider name 'd.!"-='. Provider name must match: ^[a-z][_\\-a-z]*$`
       );
     });
 

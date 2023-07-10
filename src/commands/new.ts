@@ -11,7 +11,6 @@ import { Command } from '../common/command.abstract';
 import type { UserError } from '../common/error';
 import { buildProfilePath, buildProviderPath } from '../common/file-structure';
 import { exists, readFile } from '../common/io';
-import type { ILogger } from '../common/log';
 import { OutputStream } from '../common/output-stream';
 import { ProfileId } from '../common/profile';
 import { UX } from '../common/ux';
@@ -51,7 +50,6 @@ export default class New extends Command {
     const { flags, args } = this.parse(New);
     await super.initialize(flags);
     await this.execute({
-      logger: this.logger,
       userError: this.userError,
       flags,
       args,
@@ -59,12 +57,10 @@ export default class New extends Command {
   }
 
   public async execute({
-    logger,
     userError,
     flags,
     args,
   }: {
-    logger: ILogger;
     userError: UserError;
     flags: Flags<typeof New.flags>;
     args: { providerName?: string; prompt?: string };
@@ -80,8 +76,6 @@ export default class New extends Command {
       userError,
     });
 
-    ux.succeed('Input arguments checked');
-
     ux.start('Creating profile for your use case');
     // TODO: should take also user error?
     const profile = await newProfile(
@@ -90,12 +84,11 @@ export default class New extends Command {
         prompt: prompt,
         options: { quiet: flags.quiet },
       },
-      { logger, userError, ux }
+      { userError, ux }
     );
-    ux.succeed('Profile created');
 
     ux.start('Saving profile for your use case');
-    const profilePath = await saveProfile(profile, { logger, userError });
+    const profilePath = await saveProfile(profile, { userError });
 
     ux.succeed(
       `Profile saved to ${profilePath}. You can use it to generate integration code for your use case by running 'superface map ${
@@ -107,11 +100,9 @@ export default class New extends Command {
 
 async function saveProfile(
   { source, scope, name }: { source: string; scope?: string; name: string },
-  { logger, userError }: { logger: ILogger; userError: UserError }
+  { userError }: { userError: UserError }
 ): Promise<string> {
   const profilePath = buildProfilePath(scope, name);
-
-  logger.info('saveProfile', profilePath);
 
   // TODO: force flag? or overwrite by default?
   if (await exists(profilePath)) {

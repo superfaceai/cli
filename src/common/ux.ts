@@ -16,31 +16,18 @@ export class UX {
 
   public start(text: string): void {
     this.lastText = '';
-    if (!text.endsWith('\n')) {
-      text += '\n';
-    }
     this.spinner.start({ text });
   }
 
   public succeed(text: string): void {
-    if (!text.endsWith('\n')) {
-      text += '\n';
-    }
     this.spinner.success({ text: green(text), mark: green('✔') });
   }
 
   public fail(text: string): void {
-    if (!text.endsWith('\n')) {
-      text += '\n';
-    }
     this.spinner.error({ text: red(text), mark: red('✖') });
   }
 
   public info(text: string): void {
-    if (!text.endsWith('\n')) {
-      text += '\n';
-    }
-
     if (text !== this.lastText) {
       this.spinner.update({ text });
     }
@@ -49,9 +36,6 @@ export class UX {
   }
 
   public warn(text: string): void {
-    if (!text.endsWith('\n')) {
-      text += '\n';
-    }
     this.spinner.warn({ text: yellow(text), mark: yellow('⚠') });
   }
 
@@ -61,5 +45,9 @@ export class UX {
     }
 
     return UX.instance;
+  }
+
+  public static clear(): void {
+    UX.instance?.spinner.stop();
   }
 }
