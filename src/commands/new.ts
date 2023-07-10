@@ -1,18 +1,14 @@
-import type { ProviderJson } from '@superfaceai/ast';
-import {
-  AssertionError,
-  assertProviderJson,
-  isValidProviderName,
-} from '@superfaceai/ast';
 import { basename } from 'path';
 
 import type { Flags } from '../common/command.abstract';
 import { Command } from '../common/command.abstract';
 import type { UserError } from '../common/error';
-import { buildProfilePath, buildProviderPath } from '../common/file-structure';
-import { exists, readFile } from '../common/io';
+import { buildProfilePath } from '../common/file-structure';
+import { SuperfaceClient } from '../common/http';
+import { exists } from '../common/io';
 import { OutputStream } from '../common/output-stream';
 import { ProfileId } from '../common/profile';
+import { resolveProviderJson } from '../common/provider';
 import { UX } from '../common/ux';
 import { newProfile } from '../logic/new';
 
@@ -72,15 +68,16 @@ export default class New extends Command {
 
     checkPrompt(prompt, { userError });
 
-    const providerJson = await resolveProviderJson(providerName, {
+    const resolvedProviderJson = await resolveProviderJson(providerName, {
       userError,
+      client: SuperfaceClient.getClient(),
     });
 
     ux.start('Creating profile for your use case');
     // TODO: should take also user error?
     const profile = await newProfile(
       {
-        providerJson,
+        providerJson: resolvedProviderJson.providerJson,
         prompt: prompt,
         options: { quiet: flags.quiet },
       },
@@ -92,7 +89,7 @@ export default class New extends Command {
 
     ux.succeed(
       `Profile saved to ${profilePath}. You can use it to generate integration code for your use case by running 'superface map ${
-        providerJson.name
+        resolvedProviderJson.providerJson.name
       } ${ProfileId.fromScopeName(profile.scope, profile.name).id}'`
     );
   }
@@ -131,67 +128,4 @@ function checkPrompt(
       1
     );
   }
-}
-
-export async function resolveProviderJson(
-  providerName: string | undefined,
-  { userError }: { userError: UserError }
-): Promise<ProviderJson> {
-  if (providerName === undefined) {
-    throw userError(
-      'Missing provider name. Please provide it as first argument.',
-      1
-    );
-  }
-
-  if (!isValidProviderName(providerName)) {
-    throw userError('Invalid provider name', 1);
-  }
-
-  const path = buildProviderPath(providerName);
-  if (!(await exists(path))) {
-    throw userError(
-      `Provider ${providerName} does not exist at ${path}. Make sure to run "sf prepare" before running this command.`,
-      1
-    );
-  }
-
-  const providerJsonFile = await readFile(
-    buildProviderPath(providerName),
-    'utf-8'
-  );
-  let providerJson: ProviderJson;
-  try {
-    providerJson = JSON.parse(providerJsonFile) as ProviderJson;
-  } catch (e) {
-    throw userError(`Invalid provider.json file.`, 1);
-  }
-
-  try {
-    assertProviderJson(providerJson);
-  } catch (e) {
-    if (e instanceof AssertionError) {
-      throw userError(`Invalid provider.json file. ${e.message}`, 1);
-    }
-    throw userError(`Invalid provider.json file.`, 1);
-  }
-
-  if (providerName !== providerJson.name) {
-    throw userError(
-      `Provider name in provider.json file does not match provider name in command.`,
-      1
-    );
-  }
-
-  if (
-    providerJson.services.length === 1 &&
-    providerJson.services[0].baseUrl.includes('TODO')
-  ) {
-    throw userError(
-      `Provider.json file is not properly configured. Please make sure to replace 'TODO' in baseUrl with the actual base url of the API.`,
-      1
-    );
-  }
-
-  return providerJson;
 }
