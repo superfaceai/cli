@@ -28,7 +28,7 @@ describe('pythonApplicationCode', () => {
 
     expect(result).toEqual(`import os
 from dotenv import load_dotenv
-from superfaceai.one_sdk import OneClient
+from one_sdk import OneClient
 
 load_dotenv()
 

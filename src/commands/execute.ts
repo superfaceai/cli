@@ -3,12 +3,14 @@ import type { Flags } from '../common/command.abstract';
 import { Command } from '../common/command.abstract';
 import type { UserError } from '../common/error';
 import { buildMapPath, buildRunFilePath } from '../common/file-structure';
+import { SuperfaceClient } from '../common/http';
 import { exists } from '../common/io';
 import { ProfileId } from '../common/profile';
+import { resolveProviderJson } from '../common/provider';
+import { UX } from '../common/ux';
 import { SupportedLanguages } from '../logic';
 import { execute } from '../logic/execution';
 import { resolveLanguage, resolveProfileSource } from './map';
-import { resolveProviderJson } from './new';
 
 export default class Execute extends Command {
   // TODO: add description
@@ -69,11 +71,26 @@ export default class Execute extends Command {
     flags: Flags<typeof Execute.flags>;
     args: { providerName?: string; profileId?: string; language?: string };
   }): Promise<void> {
+    const ux = UX.create();
     const { providerName, profileId, language } = args;
 
     const resolvedLanguage = resolveLanguage(language, { userError });
 
-    const providerJson = await resolveProviderJson(providerName, { userError });
+    ux.start('Loading provider definition');
+    const resolvedProviderJson = await resolveProviderJson(providerName, {
+      userError,
+      client: SuperfaceClient.getClient(),
+    });
+
+    if (resolvedProviderJson.source === 'local') {
+      ux.succeed(
+        `Input arguments checked. Provider JSON resolved from local file ${resolvedProviderJson.path}`
+      );
+    } else {
+      ux.succeed(
+        `Input arguments checked. Provider JSON resolved from Superface server`
+      );
+    }
 
     const profile = await resolveProfileSource(profileId, { userError });
 
@@ -87,13 +104,13 @@ export default class Execute extends Command {
       !(await exists(
         buildMapPath({
           profileName: profile.name,
-          providerName: providerJson.name,
+          providerName: resolvedProviderJson.providerJson.name,
           profileScope: profile.scope,
         })
       ))
     ) {
       throw userError(
-        `Map for profile ${parsedProfileId} and provider ${providerJson.name} does not exist.`,
+        `Map for profile ${parsedProfileId} and provider ${resolvedProviderJson.providerJson.name} does not exist.`,
         1
       );
     }
@@ -101,13 +118,13 @@ export default class Execute extends Command {
     // Check that runfile exists
     const runfile = buildRunFilePath({
       profileName: profile.name,
-      providerName: providerJson.name,
+      providerName: resolvedProviderJson.providerJson.name,
       profileScope: profile.scope,
       language: resolvedLanguage,
     });
     if (!(await exists(runfile))) {
       throw userError(
-        `Runfile for profile ${parsedProfileId} and provider ${providerJson.name} does not exist.`,
+        `Runfile for profile ${parsedProfileId} and provider ${resolvedProviderJson.providerJson.name} does not exist.`,
         1
       );
     }

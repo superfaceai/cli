@@ -1,6 +1,5 @@
 import { MockLogger } from '../common';
 import { createUserError } from '../common/error';
-import { buildProviderPath } from '../common/file-structure';
 import { exists, readFile } from '../common/io';
 import { OutputStream } from '../common/output-stream';
 import { execute } from '../logic/execution';
@@ -84,102 +83,6 @@ describe('execute CLI command', () => {
           })
         ).rejects.toThrow(
           'Language Some other lang is not supported. Supported languages are: python, js'
-        );
-      });
-    });
-
-    describe('checking provider name argument', () => {
-      it('throws when provider name is not provided', async () => {
-        await expect(
-          instance.execute({ logger, userError, flags: {}, args: {} })
-        ).rejects.toThrow(
-          'Missing provider name. Please provide it as first argument.'
-        );
-      });
-
-      it('throws when provider name is invalid', async () => {
-        await expect(
-          instance.execute({
-            logger,
-            userError,
-            flags: {},
-            args: { providerName: '!_0%L' },
-          })
-        ).rejects.toThrow('Invalid provider name');
-      });
-
-      it('throws when provider file does not exist', async () => {
-        await expect(
-          instance.execute({
-            logger,
-            userError,
-            flags: {},
-            args: { providerName: 'test', profileId: 'test' },
-          })
-        ).rejects.toThrow(
-          `Provider test does not exist at ${buildProviderPath(
-            'test'
-          )}. Make sure to run "sf prepare" before running this command.`
-        );
-      });
-
-      it('throws when reading of file fails', async () => {
-        jest.mocked(exists).mockResolvedValueOnce(true);
-        jest
-          .mocked(readFile)
-          .mockRejectedValueOnce(new Error('File read error'));
-        await expect(
-          instance.execute({
-            logger,
-            userError,
-            flags: {},
-            args: { providerName: 'test', profileId: 'test' },
-          })
-        ).rejects.toThrow('File read error');
-      });
-
-      it('throws when provider is not valid JSON', async () => {
-        jest.mocked(exists).mockResolvedValueOnce(true);
-        jest.mocked(readFile).mockResolvedValueOnce('file content');
-        await expect(
-          instance.execute({
-            logger,
-            userError,
-            flags: {},
-            args: { providerName: 'test', profileId: 'test' },
-          })
-        ).rejects.toThrow(`Invalid provider.json file.`);
-      });
-
-      it('throws when provider is not Provider JSON', async () => {
-        jest.mocked(exists).mockResolvedValueOnce(true);
-        jest.mocked(readFile).mockResolvedValueOnce('{"test": 1}');
-        await expect(
-          instance.execute({
-            logger,
-            userError,
-            flags: {},
-            args: { providerName: 'test', profileId: 'test' },
-          })
-        ).rejects.toThrow(`Invalid provider.json file.`);
-      });
-
-      it('throws when provider names does not match', async () => {
-        jest.mocked(exists).mockResolvedValueOnce(true);
-        jest
-          .mocked(readFile)
-          .mockResolvedValueOnce(
-            JSON.stringify(mockProviderJson({ name: 'test-api' }))
-          );
-        await expect(
-          instance.execute({
-            logger,
-            userError,
-            flags: {},
-            args: { providerName, profileId: `${profileScope}.${profileName}` },
-          })
-        ).rejects.toThrow(
-          `Provider name in provider.json file does not match provider name in command.`
         );
       });
     });
