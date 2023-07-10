@@ -6,6 +6,7 @@ import { createUserError, stringifyError } from './error';
 import { exists, readFile } from './io';
 import { OutputStream } from './output-stream';
 import { resolveProviderJson } from './provider';
+import { buildProviderPath } from './file-structure';
 
 jest.mock('./io');
 jest.mock('../common/output-stream');
@@ -117,7 +118,7 @@ describe('resolveProviderJson', () => {
           client,
         })
       ).rejects.toThrowError(
-        'Provider test does not exist both locally and remotely. Make sure to run "sf prepare" before running this command.'
+        `Provider test does not exist both locally (checked ${buildProviderPath('test')}) and remotely. Make sure to run "sf prepare" before running this command.`
       );
     });
 

@@ -118,7 +118,9 @@ async function resolveRemote(
     }
   } else if (providerResponse.status === 404) {
     throw userError(
-      `Provider ${providerName} does not exist both locally and remotely. Make sure to run "sf prepare" before running this command.`,
+      `Provider ${providerName} does not exist both locally (checked ${buildProviderPath(
+        providerName
+      )}) and remotely. Make sure to run "sf prepare" before running this command.`,
       1
     );
   } else {

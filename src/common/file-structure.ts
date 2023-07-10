@@ -11,6 +11,10 @@ const PROVIDER_EXTENSION = '.provider.json';
 const MAP_EXTENSION = '.map.js';
 
 export function buildSuperfaceDirPath(): string {
+  // If user is in superface dir, use it
+  if (process.cwd().endsWith('/' + DEFAULT_SUPERFACE_DIR))
+    return resolve(process.cwd());
+
   return join(resolve(process.cwd()), DEFAULT_SUPERFACE_DIR);
 }
 
@@ -19,18 +23,13 @@ export function buildProfilePath(
   name: string
 ): string {
   return join(
-    resolve(process.cwd()),
-    DEFAULT_SUPERFACE_DIR,
+    buildSuperfaceDirPath(),
     `${scope !== undefined ? `${scope}.` : ''}${name}${PROFILE_EXTENSION}`
   );
 }
 
 export function buildProviderPath(providerName: string): string {
-  return join(
-    resolve(process.cwd()),
-    DEFAULT_SUPERFACE_DIR,
-    `${providerName}${PROVIDER_EXTENSION}`
-  );
+  return join(buildSuperfaceDirPath(), `${providerName}${PROVIDER_EXTENSION}`);
 }
 
 export function buildMapPath({
@@ -43,8 +42,7 @@ export function buildMapPath({
   providerName: string;
 }): string {
   return join(
-    resolve(process.cwd()),
-    DEFAULT_SUPERFACE_DIR,
+    buildSuperfaceDirPath(),
     `${
       profileScope !== undefined ? `${profileScope}.` : ''
     }${profileName}.${providerName}${MAP_EXTENSION}`
@@ -70,8 +68,7 @@ export function buildRunFilePath({
   const extension = EXTENSION_MAP[language];
 
   return join(
-    resolve(process.cwd()),
-    DEFAULT_SUPERFACE_DIR,
+    buildSuperfaceDirPath(),
     `${
       profileScope !== undefined ? `${profileScope}.` : ''
     }${profileName}.${providerName}${extension}`
@@ -86,9 +83,5 @@ export function buildProjectDefinitionFilePath(
     python: 'requirements.txt',
   };
 
-  return join(
-    resolve(process.cwd()),
-    DEFAULT_SUPERFACE_DIR,
-    FILENAME_MAP[language]
-  );
+  return join(buildSuperfaceDirPath(), FILENAME_MAP[language]);
 }
