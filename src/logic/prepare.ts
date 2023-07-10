@@ -92,7 +92,7 @@ async function startProviderPreparation(
   if (jobUrlResponse.status !== 202) {
     if (jobUrlResponse.status === 401) {
       throw userError(
-        `You are not authorized. Please login using \'superface login\'.`,
+        `You are not authorized. Please login using 'superface login'.`,
         1
       );
     }
