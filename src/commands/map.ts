@@ -131,7 +131,7 @@ export default class Map extends Command {
     );
     ux.succeed(
       boilerplate.saved
-        ? `Boilerplate code prepared for ${resolvedLanguage} at ${boilerplate.path}.`
+        ? `Boilerplate code prepared for ${resolvedLanguage} at ${boilerplate.path}`
         : `Boilerplate for ${resolvedLanguage} code already exists at ${boilerplate.path}.`
     );
 

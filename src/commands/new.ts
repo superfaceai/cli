@@ -157,9 +157,10 @@ export async function resolveProviderJson(
     throw userError('Invalid provider name', 1);
   }
 
-  if (!(await exists(buildProviderPath(providerName)))) {
+  const path = buildProviderPath(providerName);
+  if (!(await exists(path))) {
     throw userError(
-      `Provider ${providerName} does not exist. Make sure to run "sf prepare" before running this command.`,
+      `Provider ${providerName} does not exist at ${path}. Make sure to run "sf prepare" before running this command.`,
       1
     );
   }

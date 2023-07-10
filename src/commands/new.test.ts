@@ -1,5 +1,6 @@
 import { MockLogger } from '../common';
 import { createUserError } from '../common/error';
+import { buildProviderPath } from '../common/file-structure';
 import { exists, readFile } from '../common/io';
 import { OutputStream } from '../common/output-stream';
 import { UX } from '../common/ux';
@@ -95,7 +96,9 @@ describe('new CLI command', () => {
           args: { providerName: 'test', prompt: 'test' },
         })
       ).rejects.toThrow(
-        'Provider test does not exist. Make sure to run "sf prepare" before running this command.'
+        `Provider test does not exist at ${buildProviderPath(
+          'test'
+        )}. Make sure to run "sf prepare" before running this command.`
       );
     });
 
