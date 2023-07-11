@@ -1,11 +1,9 @@
 import type { ServiceClient } from '@superfaceai/service-client';
 
 import type { UserError } from './error';
-// import type { ILogger } from './log';
 import type { UX } from './ux';
 
-// TODO: timeout must be way longer than 60 seconds, because of the time it takes to build the provider
-export const DEFAULT_POLLING_TIMEOUT_SECONDS = 60;
+export const DEFAULT_POLLING_TIMEOUT_SECONDS = 300;
 export const DEFAULT_POLLING_INTERVAL_SECONDS = 1;
 
 enum PollStatus {
