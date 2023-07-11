@@ -2,7 +2,11 @@ import type { ILogger } from '../common';
 import type { Flags } from '../common/command.abstract';
 import { Command } from '../common/command.abstract';
 import type { UserError } from '../common/error';
-import { buildMapPath, buildRunFilePath } from '../common/file-structure';
+import {
+  buildMapPath,
+  buildRunFilePath,
+  isInsideSuperfaceDir,
+} from '../common/file-structure';
 import { SuperfaceClient } from '../common/http';
 import { exists } from '../common/io';
 import { ProfileId } from '../common/profile';
@@ -15,7 +19,7 @@ import { resolveLanguage, resolveProfileSource } from './map';
 export default class Execute extends Command {
   // TODO: add description
   public static description =
-    'Run the created integration. Commands `prepare`, `new` and `map` must be run before this command. This command will execute integration using Node.js (more runners coming soon)';
+    'Run the created integration in superface directory. Commands `prepare`, `new` and `map` must be run before this command. This command will execute integration using Node.js (more runners coming soon)';
 
   public static examples = [
     'superface execute resend communication/send-email',
@@ -74,6 +78,9 @@ export default class Execute extends Command {
     const ux = UX.create();
     const { providerName, profileId, language } = args;
 
+    if (!isInsideSuperfaceDir()) {
+      throw userError('Command must be run inside superface directory', 1);
+    }
     const resolvedLanguage = resolveLanguage(language, { userError });
 
     ux.start('Loading provider definition');

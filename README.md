@@ -37,7 +37,7 @@ brew install superfaceai/cli/superface
 
 ## `superface execute PROVIDERNAME PROFILEID`
 
-Run the created integration. Commands `prepare`, `new` and `map` must be run before this command. This command will execute integration using Node.js (more runners coming soon)
+Run the created integration in superface directory. Commands `prepare`, `new` and `map` must be run before this command. This command will execute integration using Node.js (more runners coming soon)
 
 ```
 USAGE
