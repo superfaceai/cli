@@ -4,7 +4,7 @@ import { OutputStream } from '../../../common/output-stream';
 import { SupportedLanguages } from '../../application-code';
 
 export async function prepareJsProject(
-  sdkVerion = '3.0.0-beta.0',
+  sdkVerion = 'beta',
   dotenvVersion = '^16.0.3'
 ): Promise<{
   saved: boolean;
