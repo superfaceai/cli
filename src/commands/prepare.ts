@@ -132,11 +132,11 @@ This command prepares a Provider JSON metadata definition that can be used to ge
     ) {
       // TODO: provide more info - url to REAL docs
       ux.warn(
-        `Provider definition prepared, but some parts are missing. Please fill them manually in ${providerJsonPath}. Link to documentation:\nhttps://pr-115-superface-docs.vercel.app/docs/guides/editing-provider-files\nYou can use it to generate integration code interface with 'superface new ${providerJson.name} "<use case description>"'.`
+        `[ACTION REQUIRED]: Provider definition is incomplete. Please fill in the details at ${providerJsonPath}. Documentation Guide:\nhttps://sfc.is/editing-providers\nYou can then create a new profile using 'superface new ${providerJson.name} "<use case description>"'.`
       );
     } else {
       ux.succeed(
-        `Provider definition saved successfully to ${providerJsonPath}.\nYou can use it to generate integration code interface with 'superface new ${providerJson.name} "<use case description>"'.`
+        `Provider definition saved to ${providerJsonPath}.\nYou can now create a new profile using 'superface new ${providerJson.name} "<use case description>"'.`
       );
     }
   }
