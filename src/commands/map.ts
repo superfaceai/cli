@@ -147,6 +147,12 @@ export default class Map extends Command {
         : `Boilerplate for ${resolvedLanguage} code already exists at ${boilerplate.path}.`
     );
 
+    if (boilerplate.envVariables !== undefined) {
+      ux.warn(
+        `Please set the following environment variables before running the integration:\n${boilerplate.envVariables}`
+      );
+    }
+
     ux.start(`Setting up local project in ${resolvedLanguage}`);
 
     // TODO: install dependencies
@@ -196,7 +202,7 @@ async function saveBoilerplateCode(
   profileAst: ProfileDocumentNode,
   language: SupportedLanguages,
   { userError, logger }: { userError: UserError; logger: ILogger }
-): Promise<{ saved: boolean; path: string }> {
+): Promise<{ saved: boolean; path: string; envVariables: string | undefined }> {
   const path = buildRunFilePath({
     profileName: profileAst.header.name,
     providerName: providerJson.name,
@@ -208,6 +214,7 @@ async function saveBoilerplateCode(
     return {
       saved: false,
       path,
+      envVariables: undefined,
     };
   }
 
@@ -223,11 +230,22 @@ async function saveBoilerplateCode(
     }
   );
 
-  await OutputStream.writeOnce(path, code);
+  let envVariables: string | undefined;
+  if (code.requiredParameters.length > 0 || code.requiredSecurity.length > 0) {
+    envVariables = code.requiredParameters
+      .map(p => `Integration parameter ${p}`)
+      .join('\n');
+    envVariables +=
+      '\n' +
+      code.requiredSecurity.map(s => `Security variable ${s}`).join('\n');
+  }
+
+  await OutputStream.writeOnce(path, code.code);
 
   return {
     saved: true,
     path,
+    envVariables,
   };
 }
 

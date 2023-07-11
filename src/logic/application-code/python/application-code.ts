@@ -1,41 +1,35 @@
 import type { IntegrationParameter, SecurityScheme } from '@superfaceai/ast';
 
-import type { ILogger } from '../../../common';
 import { buildSuperfaceDirPath } from '../../../common/file-structure';
 import { ProfileId } from '../../../common/profile';
 import type { ApplicationCodeWriter } from '../application-code';
-import { prepareParametersString } from './parameters';
-import { prepareSecurityString } from './security';
+import { prepareParameters } from './parameters';
+import { prepareSecurity } from './security';
 
-export const pythonApplicationCode: ApplicationCodeWriter = (
-  {
-    profile,
-    useCaseName,
-    provider,
-    input,
-    parameters,
-    security,
-  }: {
-    profile: {
-      name: string;
-      scope?: string;
-    };
-    useCaseName: string;
-    provider: string;
-    input: string;
-    parameters?: IntegrationParameter[];
-    security?: SecurityScheme[];
-  },
-  { logger }: { logger: ILogger }
-) => {
+export const pythonApplicationCode: ApplicationCodeWriter = ({
+  profile,
+  useCaseName,
+  provider,
+  input,
+  parameters,
+  security,
+}: {
+  profile: {
+    name: string;
+    scope?: string;
+  };
+  useCaseName: string;
+  provider: string;
+  input: string;
+  parameters?: IntegrationParameter[];
+  security?: SecurityScheme[];
+}) => {
   const profileId = ProfileId.fromScopeName(profile.scope, profile.name).id;
 
-  const parametersString = prepareParametersString(provider, parameters, {
-    logger,
-  });
-  const securityString = prepareSecurityString(provider, security, { logger });
+  const preparedParameters = prepareParameters(provider, parameters);
+  const preparedSecurity = prepareSecurity(provider, security);
 
-  return `import os
+  const code = `import os
 from dotenv import load_dotenv
 from one_sdk import OneClient
 
@@ -54,12 +48,18 @@ try:
   result = use_case.perform(
     ${input},
     provider = "${provider}",
-    parameters = ${parametersString},
-    security = ${securityString}
+    parameters = ${preparedParameters.parametersString},
+    security = ${preparedSecurity.securityString}
   )
   print(f"RESULT: {result}")
 except Exception as e:
   print(f"ERROR: {e}")
 finally:
   client.send_metrics_to_superface()`;
+
+  return {
+    code,
+    requiredParameters: preparedParameters.required,
+    requiredSecurity: preparedSecurity.required,
+  };
 };

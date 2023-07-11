@@ -39,7 +39,11 @@ export type ApplicationCodeWriter = (
     security?: SecurityScheme[];
   },
   { logger }: { logger: ILogger }
-) => string;
+) => {
+  code: string;
+  requiredParameters: string[];
+  requiredSecurity: string[];
+};
 
 export async function writeApplicationCode(
   {
@@ -53,7 +57,11 @@ export async function writeApplicationCode(
     language: SupportedLanguages;
   },
   { logger, userError }: { logger: ILogger; userError: UserError }
-): Promise<string> {
+): Promise<{
+  code: string;
+  requiredParameters: string[];
+  requiredSecurity: string[];
+}> {
   const useCases = profileAst.definitions.filter(
     (definition): definition is UseCaseDefinitionNode => {
       return definition.kind === 'UseCaseDefinition';

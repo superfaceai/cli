@@ -26,7 +26,8 @@ describe('pythonApplicationCode', () => {
       { logger }
     );
 
-    expect(result).toEqual(`import os
+    expect(result).toEqual({
+      code: `import os
 from dotenv import load_dotenv
 from one_sdk import OneClient
 
@@ -52,6 +53,9 @@ try:
 except Exception as e:
   print(f"ERROR: {e}")
 finally:
-  client.send_metrics_to_superface()`);
+  client.send_metrics_to_superface()`,
+      requiredParameters: [],
+      requiredSecurity: [],
+    });
   });
 });

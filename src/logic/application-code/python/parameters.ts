@@ -1,36 +1,39 @@
 import type { IntegrationParameter } from '@superfaceai/ast';
 import { prepareProviderParameters } from '@superfaceai/ast';
 
-import type { ILogger } from '../../../common';
-
-export function prepareParametersString(
+export function prepareParameters(
   providerName: string,
-  parameters: IntegrationParameter[] | undefined,
-  { logger }: { logger: ILogger }
-): string {
-  if (!parameters) {
-    return '{}';
+  parameters: IntegrationParameter[] | undefined
+): {
+  parametersString: string;
+  required: string[];
+} {
+  if (!parameters || parameters.length === 0) {
+    return { parametersString: '{}', required: [] };
   }
 
   const parametersMap = prepareProviderParameters(providerName, parameters);
+  const required: string[] = [];
 
   if (Object.keys(parametersMap).length === 0) {
-    return '{}';
+    return { parametersString: '{}', required: [] };
   }
   Object.values(parametersMap).forEach(value => {
-    logger.info('requiredParameterValue', value);
+    required.push(value);
   });
 
-  return (
-    '{ ' +
-    Object.entries(parametersMap)
-      .map(
-        ([key, value]) =>
-          `"${key}": os.getenv('${
-            value.startsWith('$') ? value.slice(1) : value
-          }')`
-      )
-      .join(', ') +
-    ' }'
-  );
+  return {
+    parametersString:
+      '{ ' +
+      Object.entries(parametersMap)
+        .map(
+          ([key, value]) =>
+            `"${key}": os.getenv('${
+              value.startsWith('$') ? value.slice(1) : value
+            }')`
+        )
+        .join(', ') +
+      ' }',
+    required,
+  };
 }
