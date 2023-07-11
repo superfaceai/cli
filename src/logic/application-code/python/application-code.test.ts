@@ -26,7 +26,8 @@ describe('pythonApplicationCode', () => {
       { logger }
     );
 
-    expect(result).toEqual(`import os
+    expect(result).toEqual({
+      code: `import os
 from dotenv import load_dotenv
 from superfaceai.one_sdk import OneClient
 
@@ -50,6 +51,9 @@ try:
   )
   print(f"RESULT: {result}")
 except Exception as e:
-  print(f"ERROR: {e}")`);
+  print(f"ERROR: {e}")`,
+      requiredParameters: [],
+      requiredSecurity: [],
+    });
   });
 });

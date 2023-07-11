@@ -1,38 +1,39 @@
-import { MockLogger } from '../../../common';
-import { prepareParametersString } from './parameters';
+import { prepareParameters } from './parameters';
 
-describe('prepareParametersString', () => {
-  const logger = new MockLogger();
-
+describe('prepareParameters', () => {
   it('should return empty object if parameters are undefined', () => {
-    expect(prepareParametersString('provider', undefined, { logger })).toEqual(
-      '{}'
-    );
+    expect(prepareParameters('provider', undefined)).toEqual({
+      parametersString: '{}',
+      required: [],
+    });
   });
 
   it('should return empty object if parameters are empty', () => {
-    expect(prepareParametersString('provider', [], { logger })).toEqual('{}');
+    expect(prepareParameters('provider', [])).toEqual({
+      parametersString: '{}',
+      required: [],
+    });
   });
 
   it('should return correct parameters string', () => {
     expect(
-      prepareParametersString(
-        'provider',
-        [{ name: 'test', default: 'value' }],
-        { logger }
-      )
-    ).toEqual('{ test: process.env.PROVIDER_TEST }');
+      prepareParameters('provider', [{ name: 'test', default: 'value' }])
+    ).toEqual({
+      parametersString: '{ test: process.env.PROVIDER_TEST }',
+      required: ['$PROVIDER_TEST'],
+    });
   });
 
   it('should return correct parameters string with multiple parameters', () => {
     expect(
-      prepareParametersString(
-        'provider',
-        [{ name: 'test' }, { name: 'test2', default: 'value' }],
-        { logger }
-      )
-    ).toEqual(
-      '{ test: process.env.PROVIDER_TEST, test2: process.env.PROVIDER_TEST2 }'
-    );
+      prepareParameters('provider', [
+        { name: 'test' },
+        { name: 'test2', default: 'value' },
+      ])
+    ).toEqual({
+      parametersString:
+        '{ test: process.env.PROVIDER_TEST, test2: process.env.PROVIDER_TEST2 }',
+      required: ['$PROVIDER_TEST', '$PROVIDER_TEST2'],
+    });
   });
 });

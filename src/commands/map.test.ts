@@ -39,7 +39,11 @@ describe('MapCLI command', () => {
   const mapSource = 'map';
   const providerName = 'test-provider';
   const profileScope = 'test-scope';
-  const mockApplicationCode = 'mocked application code';
+  const mockApplicationCode = {
+    code: 'mocked application code',
+    requiredParameters: ['TEST_PARAMETER'],
+    requiredSecurity: ['TEST_SECURITY'],
+  };
   const providerJson = mockProviderJson({ name: providerName });
   const userError = createUserError(false);
   const ux = UX.create();
@@ -247,6 +251,10 @@ describe('MapCLI command', () => {
         .mockResolvedValueOnce(source)
         .mockResolvedValueOnce(JSON.stringify(providerJson));
 
+      jest
+        .mocked(writeApplicationCode)
+        .mockResolvedValueOnce(mockApplicationCode);
+
       jest.mocked(mapProviderToProfile).mockResolvedValueOnce(mapSource);
 
       await instance.execute({
@@ -347,7 +355,7 @@ describe('MapCLI command', () => {
         expect.stringContaining(
           `superface/${profileScope}.${profileName}.${providerName}.mjs`
         ),
-        mockApplicationCode
+        mockApplicationCode.code
       );
 
       expect(prepareProject).toHaveBeenCalledWith(SupportedLanguages.JS);
@@ -421,7 +429,7 @@ describe('MapCLI command', () => {
 
       expect(mockWriteOnce).toHaveBeenCalledWith(
         expect.stringContaining(`superface/${profileName}.${providerName}.mjs`),
-        mockApplicationCode
+        mockApplicationCode.code
       );
       expect(prepareProject).toHaveBeenCalledWith(SupportedLanguages.JS);
     });
@@ -494,7 +502,7 @@ describe('MapCLI command', () => {
 
       expect(mockWriteOnce).toHaveBeenCalledWith(
         expect.stringContaining(`superface/${profileName}.${providerName}.py`),
-        mockApplicationCode
+        mockApplicationCode.code
       );
       expect(prepareProject).toHaveBeenCalledWith(SupportedLanguages.PYTHON);
     });

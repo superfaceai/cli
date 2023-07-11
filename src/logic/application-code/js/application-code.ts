@@ -1,45 +1,39 @@
 import type { IntegrationParameter, SecurityScheme } from '@superfaceai/ast';
 
-import type { ILogger } from '../../../common';
 import { buildSuperfaceDirPath } from '../../../common/file-structure';
 import { ProfileId } from '../../../common/profile';
 import type { ApplicationCodeWriter } from '../application-code';
-import { prepareParametersString } from './parameters';
-import { prepareSecurityString } from './security';
+import { prepareParameters } from './parameters';
+import { prepareSecurity } from './security';
 
-export const jsApplicationCode: ApplicationCodeWriter = (
-  {
-    profile,
-    useCaseName,
-    provider,
-    input,
-    parameters,
-    security,
-  }: {
-    profile: {
-      name: string;
-      scope?: string;
-    };
-    useCaseName: string;
-    provider: string;
-    // TODO:  more language independent type for input?
-    input: string;
-    parameters?: IntegrationParameter[];
-    security?: SecurityScheme[];
-  },
-  { logger }: { logger: ILogger }
-) => {
+export const jsApplicationCode: ApplicationCodeWriter = ({
+  profile,
+  useCaseName,
+  provider,
+  input,
+  parameters,
+  security,
+}: {
+  profile: {
+    name: string;
+    scope?: string;
+  };
+  useCaseName: string;
+  provider: string;
+  // TODO:  more language independent type for input?
+  input: string;
+  parameters?: IntegrationParameter[];
+  security?: SecurityScheme[];
+}) => {
   // TODO: revisit this
   const pathToSdk = '@superfaceai/one-sdk/node/index.js';
 
   const profileId = ProfileId.fromScopeName(profile.scope, profile.name).id;
 
-  const parametersString = prepareParametersString(provider, parameters, {
-    logger,
-  });
-  const securityString = prepareSecurityString(provider, security, { logger });
+  const preparedParameters = prepareParameters(provider, parameters);
+  const preparedSecurity = prepareSecurity(provider, security);
 
-  return `import { config } from 'dotenv';
+  const code = `import { config } from 'dotenv';
 // Load OneClient from SDK
 import { OneClient } from '${pathToSdk}';
 
@@ -64,9 +58,9 @@ async function main() {
       ${input},
       {
         provider: '${provider}',
-        parameters: ${parametersString},
+        parameters: ${preparedParameters.parametersString},
         // Security values for provider
-        security: ${securityString}
+        security: ${preparedSecurity.securityString}
       }
     );
 
@@ -78,4 +72,10 @@ async function main() {
 }
 
 void main();`;
+
+  return {
+    code,
+    requiredParameters: preparedParameters.required,
+    requiredSecurity: preparedSecurity.required,
+  };
 };

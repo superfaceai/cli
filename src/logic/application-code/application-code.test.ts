@@ -164,9 +164,11 @@ describe('writeApplicationCode', () => {
       { logger, userError }
     );
 
-    expect(result).toEqual(
-      expect.stringContaining(`import { config } from 'dotenv'`)
-    );
+    expect(result).toEqual({
+      code: expect.stringContaining(`import { config } from 'dotenv'`),
+      requiredParameters: [],
+      requiredSecurity: [],
+    });
   });
 
   it('should return python application code', async () => {
@@ -190,7 +192,11 @@ describe('writeApplicationCode', () => {
       { logger, userError }
     );
 
-    expect(result).toEqual(expect.stringContaining(`import os`));
+    expect(result).toEqual({
+      code: expect.stringContaining(`import os`),
+      requiredParameters: [],
+      requiredSecurity: [],
+    });
   });
 
   it('should throw when there is no use case definitions', async () => {
