@@ -122,6 +122,11 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      # Wait for GH assets to be downloadable
+      - name: Wait for assets (10s)
+        run: sleep 10s
+        shell: bash
+
       # Update Homebrew formula to the new version
       # TODO: !!! Run only on stable releases
       - name: Update Homebrew Formula
