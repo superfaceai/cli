@@ -73,7 +73,6 @@ usecase Test safe {
   describe('for python', () => {
     it('should prepare input for use case', () => {
       const input = prepareUseCaseInput(ast, SupportedLanguages.PYTHON);
-      console.log(input);
       expect(input).toEqual(`{
         "a" : 'Luke',
         "b": 1.2,
