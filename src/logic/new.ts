@@ -2,7 +2,6 @@ import type { ProviderJson } from '@superfaceai/ast';
 import { parseDocumentId, parseProfile, Source } from '@superfaceai/parser';
 import type { ServiceClient } from '@superfaceai/service-client';
 
-import type { ILogger } from '../common';
 import type { UserError } from '../common/error';
 import { SuperfaceClient } from '../common/http';
 import { pollUrl } from '../common/polling';
@@ -69,15 +68,13 @@ export async function newProfile(
     prompt: string;
     options?: { quiet?: boolean };
   },
-  { logger, userError, ux }: { logger: ILogger; userError: UserError; ux: UX }
+  { userError, ux }: { userError: UserError; ux: UX }
 ): Promise<{ source: string; scope?: string; name: string }> {
-  logger.info('startProfileGeneration', providerJson.name);
-
   const client = SuperfaceClient.getClient();
 
   const jobUrl = await startProfilePreparation(
     { providerJson, prompt },
-    { client }
+    { client, userError }
   );
 
   const resultUrl = await pollUrl(
@@ -106,7 +103,7 @@ export async function newProfile(
 
 async function startProfilePreparation(
   { providerJson, prompt }: { providerJson: ProviderJson; prompt: string },
-  { client }: { client: ServiceClient }
+  { client, userError }: { client: ServiceClient; userError: UserError }
 ): Promise<string> {
   // TODO: check real url
   const jobUrlResponse = await client.fetch(`/authoring/profiles`, {
@@ -118,7 +115,16 @@ async function startProfilePreparation(
   });
 
   if (jobUrlResponse.status !== 202) {
-    throw Error(`Unexpected status code ${jobUrlResponse.status} received`);
+    if (jobUrlResponse.status === 401) {
+      throw userError(
+        `You are not authorized. Please login using 'superface login'.`,
+        1
+      );
+    }
+    throw userError(
+      `Unexpected status code ${jobUrlResponse.status} received`,
+      1
+    );
   }
 
   const responseBody = (await jobUrlResponse.json()) as Record<string, unknown>;
@@ -131,8 +137,9 @@ async function startProfilePreparation(
   ) {
     return responseBody.href;
   } else {
-    throw Error(
-      `Unexpected response body ${JSON.stringify(responseBody)} received`
+    throw userError(
+      `Unexpected response body ${JSON.stringify(responseBody)} received`,
+      1
     );
   }
 }

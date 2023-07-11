@@ -191,6 +191,46 @@ describe('mapProviderToProfile', () => {
     expect(pollUrl).not.toHaveBeenCalled();
   });
 
+  it('throws when job creation API call fails with 401', async () => {
+    const fetch = jest
+      .spyOn(ServiceClient.prototype, 'fetch')
+      // Create job
+      .mockResolvedValueOnce(mockResponse(401, 'forgot to log in', undefined));
+
+    await expect(
+      mapProviderToProfile(
+        {
+          providerJson,
+          profile: {
+            name: profileName,
+            scope: profileScope,
+            source: profileSource,
+          },
+        },
+        { userError, ux }
+      )
+    ).rejects.toEqual(
+      userError(
+        'This command is available to authenticated users only. Please log in using `superface login`',
+        1
+      )
+    );
+
+    expect(fetch).toHaveBeenNthCalledWith(
+      1,
+      `/authoring/profiles/${profileScope}.${profileName}/maps`,
+      {
+        body: JSON.stringify({
+          provider: providerJson,
+          profile: profileSource,
+        }),
+        headers: { 'Content-Type': 'application/json' },
+        method: 'POST',
+      }
+    );
+    expect(pollUrl).not.toHaveBeenCalled();
+  });
+
   it('throws when job creation API call returns unexpected data', async () => {
     const fetch = jest
       .spyOn(ServiceClient.prototype, 'fetch')

@@ -2,17 +2,24 @@ import type { ILogger } from '../common';
 import type { Flags } from '../common/command.abstract';
 import { Command } from '../common/command.abstract';
 import type { UserError } from '../common/error';
-import { buildMapPath, buildRunFilePath } from '../common/file-structure';
+import {
+  buildMapPath,
+  buildRunFilePath,
+  isInsideSuperfaceDir,
+} from '../common/file-structure';
+import { SuperfaceClient } from '../common/http';
 import { exists } from '../common/io';
 import { ProfileId } from '../common/profile';
+import { resolveProviderJson } from '../common/provider';
+import { UX } from '../common/ux';
+import { SupportedLanguages } from '../logic';
 import { execute } from '../logic/execution';
-import { resolveProfileSource } from './map';
-import { resolveProviderJson } from './new';
+import { resolveLanguage, resolveProfileSource } from './map';
 
 export default class Execute extends Command {
   // TODO: add description
   public static description =
-    'Run the created integration. Commands `prepare`, `new` and `map` must be run before this command. This command will execute integration using Node.js (more runners coming soon)';
+    'Run the created integration in superface directory. Commands `prepare`, `new` and `map` must be run before this command. This command will execute integration using Node.js (more runners coming soon)';
 
   public static examples = [
     'superface execute resend communication/send-email',
@@ -30,10 +37,13 @@ export default class Execute extends Command {
       required: true,
     },
     {
+      // TODO: add language support
       name: 'language',
-      description: 'Language of generated integration. Default is JS.',
+      description: 'Language which will use generated code. Default is `js`.',
+      // TODO: this will be required when we support more languages
       required: false,
-      default: 'JS',
+      default: 'js',
+      options: Object.keys(SupportedLanguages),
       // Hidden because we support only js for now
       hidden: true,
     },
@@ -65,9 +75,29 @@ export default class Execute extends Command {
     flags: Flags<typeof Execute.flags>;
     args: { providerName?: string; profileId?: string; language?: string };
   }): Promise<void> {
+    const ux = UX.create();
     const { providerName, profileId, language } = args;
 
-    const providerJson = await resolveProviderJson(providerName, { userError });
+    if (!isInsideSuperfaceDir()) {
+      throw userError('Command must be run inside superface directory', 1);
+    }
+    const resolvedLanguage = resolveLanguage(language, { userError });
+
+    ux.start('Loading provider definition');
+    const resolvedProviderJson = await resolveProviderJson(providerName, {
+      userError,
+      client: SuperfaceClient.getClient(),
+    });
+
+    if (resolvedProviderJson.source === 'local') {
+      ux.succeed(
+        `Input arguments checked. Provider JSON resolved from local file ${resolvedProviderJson.path}`
+      );
+    } else {
+      ux.succeed(
+        `Input arguments checked. Provider JSON resolved from Superface server`
+      );
+    }
 
     const profile = await resolveProfileSource(profileId, { userError });
 
@@ -76,26 +106,18 @@ export default class Execute extends Command {
       profile.name
     ).id;
 
-    // Check language
-    if (language !== undefined && language !== 'JS') {
-      throw userError(
-        `Language ${language} is not supported. Currently only JS is supported.`,
-        1
-      );
-    }
-
     // Check that map exists
     if (
       !(await exists(
         buildMapPath({
           profileName: profile.name,
-          providerName: providerJson.name,
+          providerName: resolvedProviderJson.providerJson.name,
           profileScope: profile.scope,
         })
       ))
     ) {
       throw userError(
-        `Map for profile ${parsedProfileId} and provider ${providerJson.name} does not exist.`,
+        `Map for profile ${parsedProfileId} and provider ${resolvedProviderJson.providerJson.name} does not exist.`,
         1
       );
     }
@@ -103,17 +125,17 @@ export default class Execute extends Command {
     // Check that runfile exists
     const runfile = buildRunFilePath({
       profileName: profile.name,
-      providerName: providerJson.name,
+      providerName: resolvedProviderJson.providerJson.name,
       profileScope: profile.scope,
-      language: language ?? 'JS',
+      language: resolvedLanguage,
     });
     if (!(await exists(runfile))) {
       throw userError(
-        `Runfile for profile ${parsedProfileId} and provider ${providerJson.name} does not exist.`,
+        `Runfile for profile ${parsedProfileId} and provider ${resolvedProviderJson.providerJson.name} does not exist.`,
         1
       );
     }
 
-    await execute(runfile, language ?? 'JS', { logger, userError });
+    await execute(runfile, resolvedLanguage, { logger, userError });
   }
 }

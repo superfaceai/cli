@@ -1,6 +1,5 @@
 import { ServiceClient } from '@superfaceai/service-client';
 
-import { MockLogger } from '../common';
 import { createUserError } from '../common/error';
 import { SuperfaceClient } from '../common/http';
 import { pollUrl } from '../common/polling';
@@ -38,15 +37,12 @@ describe('newProfile', () => {
     }
   }
   `;
-  let logger: MockLogger;
 
   afterEach(() => {
     jest.resetAllMocks();
   });
 
   beforeEach(async () => {
-    logger = new MockLogger();
-
     jest
       .spyOn(SuperfaceClient, 'getClient')
       .mockImplementation(() => new ServiceClient());
@@ -78,7 +74,7 @@ describe('newProfile', () => {
           providerJson: mockProvider,
           prompt,
         },
-        { logger, userError, ux }
+        { userError, ux }
       )
     ).resolves.toEqual({
       scope: mockProfileScope,
@@ -128,7 +124,7 @@ describe('newProfile', () => {
           providerJson: mockProvider,
           prompt,
         },
-        { logger, userError, ux }
+        { userError, ux }
       )
     ).resolves.toEqual({
       scope: mockProfileScope,
@@ -178,7 +174,7 @@ describe('newProfile', () => {
           providerJson: mockProvider,
           prompt,
         },
-        { logger, ux, userError }
+        { ux, userError }
       )
     ).resolves.toEqual({
       name: mockProfileName,
@@ -213,9 +209,38 @@ describe('newProfile', () => {
           providerJson: mockProvider,
           prompt,
         },
-        { logger, userError, ux }
+        { userError, ux }
       )
     ).rejects.toEqual(Error('Unexpected status code 400 received'));
+
+    expect(fetch).toHaveBeenNthCalledWith(1, '/authoring/profiles', {
+      body: JSON.stringify({ prompt, provider: mockProvider }),
+      headers: { 'Content-Type': 'application/json' },
+      method: 'POST',
+    });
+    expect(pollUrl).not.toHaveBeenCalled();
+  });
+
+  it('throws when job creation API call fails with 401', async () => {
+    const fetch = jest
+      .spyOn(ServiceClient.prototype, 'fetch')
+      // Create job
+      .mockResolvedValueOnce(mockResponse(401, 'forgot to log in', undefined));
+
+    await expect(
+      newProfile(
+        {
+          providerJson: mockProvider,
+          prompt,
+        },
+        { userError, ux }
+      )
+    ).rejects.toEqual(
+      userError(
+        "You are not authorized. Please login using 'superface login'.",
+        1
+      )
+    );
 
     expect(fetch).toHaveBeenNthCalledWith(1, '/authoring/profiles', {
       body: JSON.stringify({ prompt, provider: mockProvider }),
@@ -239,7 +264,7 @@ describe('newProfile', () => {
           providerJson: mockProvider,
           prompt,
         },
-        { logger, userError, ux }
+        { userError, ux }
       )
     ).rejects.toEqual(
       Error('Unexpected response body {"test":"test"} received')
@@ -272,7 +297,7 @@ describe('newProfile', () => {
           providerJson: mockProvider,
           prompt,
         },
-        { logger, userError, ux }
+        { userError, ux }
       )
     ).rejects.toEqual(error);
 
@@ -307,7 +332,7 @@ describe('newProfile', () => {
           providerJson: mockProvider,
           prompt,
         },
-        { logger, userError, ux }
+        { userError, ux }
       )
     ).rejects.toEqual(new Error('Unexpected status code 400 received'));
 
@@ -349,7 +374,7 @@ describe('newProfile', () => {
           providerJson: mockProvider,
           prompt,
         },
-        { logger, userError, ux }
+        { userError, ux }
       )
     ).rejects.toEqual(new Error('Unexpected response received'));
 

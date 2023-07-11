@@ -1,5 +1,6 @@
 import { MockLogger } from '../common';
 import { createUserError } from '../common/error';
+import { isInsideSuperfaceDir } from '../common/file-structure';
 import { exists, readFile } from '../common/io';
 import { OutputStream } from '../common/output-stream';
 import { execute } from '../logic/execution';
@@ -10,6 +11,11 @@ import Execute from './execute';
 jest.mock('../common/io');
 jest.mock('../common/output-stream');
 jest.mock('../logic/execution');
+
+jest.mock('../common/file-structure', () => ({
+  ...jest.requireActual('../common/file-structure'),
+  isInsideSuperfaceDir: jest.fn(),
+}));
 
 describe('execute CLI command', () => {
   const providerName = 'provider-name';
@@ -64,123 +70,194 @@ describe('execute CLI command', () => {
       OutputStream.writeOnce = originalWriteOnce;
     });
 
-    it('throws when provider name is not provided', async () => {
-      await expect(
-        instance.execute({ logger, userError, flags: {}, args: {} })
-      ).rejects.toThrow(
-        'Missing provider name. Please provide it as first argument.'
-      );
-    });
+    describe('checking language argument', () => {
+      it('throws when cwd is not in superface folder', async () => {
+        jest.mocked(exists).mockResolvedValueOnce(true);
+        jest.mocked(isInsideSuperfaceDir).mockReturnValue(false);
+        jest
+          .mocked(readFile)
+          .mockResolvedValueOnce(JSON.stringify(providerJson));
+        await expect(
+          instance.execute({
+            logger,
+            userError,
+            flags: {},
+            args: {
+              providerName,
+              profileId: profileName,
+              language: 'python',
+            },
+          })
+        ).rejects.toThrow('Command must be run inside superface directory');
+      });
 
-    it('throws when provider name is invalid', async () => {
-      await expect(
-        instance.execute({
-          logger,
-          userError,
-          flags: {},
-          args: { providerName: '!_0%L' },
-        })
-      ).rejects.toThrow('Invalid provider name');
-    });
-
-    it('throws when provider file does not exist', async () => {
-      await expect(
-        instance.execute({
-          logger,
-          userError,
-          flags: {},
-          args: { providerName: 'test', profileId: 'test' },
-        })
-      ).rejects.toThrow(
-        'Provider test does not exist. Make sure to run "sf prepare" before running this command.'
-      );
-    });
-
-    it('throws when reading of file fails', async () => {
-      jest.mocked(exists).mockResolvedValueOnce(true);
-      jest.mocked(readFile).mockRejectedValueOnce(new Error('File read error'));
-      await expect(
-        instance.execute({
-          logger,
-          userError,
-          flags: {},
-          args: { providerName: 'test', profileId: 'test' },
-        })
-      ).rejects.toThrow('File read error');
-    });
-
-    it('throws when provider is not valid JSON', async () => {
-      jest.mocked(exists).mockResolvedValueOnce(true);
-      jest.mocked(readFile).mockResolvedValueOnce('file content');
-      await expect(
-        instance.execute({
-          logger,
-          userError,
-          flags: {},
-          args: { providerName: 'test', profileId: 'test' },
-        })
-      ).rejects.toThrow(`Invalid provider.json file.`);
-    });
-
-    it('throws when provider is not Provider JSON', async () => {
-      jest.mocked(exists).mockResolvedValueOnce(true);
-      jest.mocked(readFile).mockResolvedValueOnce('{"test": 1}');
-      await expect(
-        instance.execute({
-          logger,
-          userError,
-          flags: {},
-          args: { providerName: 'test', profileId: 'test' },
-        })
-      ).rejects.toThrow(`Invalid provider.json file.`);
-    });
-
-    it('throws when provider names does not match', async () => {
-      jest.mocked(exists).mockResolvedValueOnce(true);
-      jest
-        .mocked(readFile)
-        .mockResolvedValueOnce(
-          JSON.stringify(mockProviderJson({ name: 'test-api' }))
+      it('throws when language is invalid', async () => {
+        jest.mocked(exists).mockResolvedValueOnce(true);
+        jest.mocked(isInsideSuperfaceDir).mockReturnValue(true);
+        jest
+          .mocked(readFile)
+          .mockResolvedValueOnce(JSON.stringify(providerJson));
+        await expect(
+          instance.execute({
+            logger,
+            userError,
+            flags: {},
+            args: {
+              providerName,
+              profileId: profileName,
+              language: 'Some other lang',
+            },
+          })
+        ).rejects.toThrow(
+          'Language Some other lang is not supported. Supported languages are: python, js'
         );
-      await expect(
-        instance.execute({
-          logger,
-          userError,
-          flags: {},
-          args: { providerName, profileId: `${profileScope}.${profileName}` },
-        })
-      ).rejects.toThrow(
-        `Provider name in provider.json file does not match provider name in command.`
-      );
+      });
     });
 
-    // TODO: Add tests for profile name validation
+    describe('checking profile id argument', () => {
+      it('throws when profile id is not provided', async () => {
+        jest.mocked(exists).mockResolvedValueOnce(true);
+        jest.mocked(isInsideSuperfaceDir).mockReturnValue(true);
+        jest
+          .mocked(readFile)
+          .mockResolvedValueOnce(JSON.stringify(providerJson));
+        await expect(
+          instance.execute({
+            logger,
+            userError,
+            flags: {},
+            args: { providerName },
+          })
+        ).rejects.toThrow(
+          'Missing profile id. Please provide it as first argument.'
+        );
+      });
 
-    it('throws when language is not valid', async () => {
-      jest
-        .mocked(exists)
-        .mockResolvedValueOnce(true)
-        .mockResolvedValueOnce(true)
-        .mockResolvedValueOnce(true);
-      jest
-        .mocked(readFile)
-        .mockResolvedValueOnce(JSON.stringify(providerJson))
-        .mockResolvedValueOnce(mockProfileSource(profileScope, profileName));
+      it('throws when profile id is invalid', async () => {
+        jest.mocked(exists).mockResolvedValueOnce(true);
+        jest.mocked(isInsideSuperfaceDir).mockReturnValue(true);
+        jest
+          .mocked(readFile)
+          .mockResolvedValueOnce(JSON.stringify(providerJson));
+        await expect(
+          instance.execute({
+            logger,
+            userError,
+            flags: {},
+            args: { providerName, profileId: '!_0%L' },
+          })
+        ).rejects.toThrow(
+          'Invalid profile id: "!_0%L" is not a valid lowercase identifier'
+        );
+      });
 
-      await expect(
-        instance.execute({
-          logger,
-          userError,
-          flags: {},
-          args: {
-            providerName,
-            profileId: `${profileScope}.${profileName}`,
-            language: 'Java',
-          },
-        })
-      ).rejects.toThrow(
-        `Language Java is not supported. Currently only JS is supported.`
-      );
+      it('throws when profile file does not exist', async () => {
+        jest
+          .mocked(exists)
+          .mockResolvedValueOnce(true)
+          .mockResolvedValueOnce(false);
+        jest.mocked(isInsideSuperfaceDir).mockReturnValue(true);
+
+        jest
+          .mocked(readFile)
+          .mockResolvedValueOnce(JSON.stringify(providerJson));
+        await expect(
+          instance.execute({
+            logger,
+            userError,
+            flags: {},
+            args: { providerName, profileId: '!_0%L' },
+          })
+        ).rejects.toThrow(
+          'Invalid profile id: "!_0%L" is not a valid lowercase identifier'
+        );
+      });
+
+      it('throws when reading of file fails', async () => {
+        jest
+          .mocked(exists)
+          .mockResolvedValueOnce(true)
+          .mockResolvedValueOnce(true);
+        jest.mocked(isInsideSuperfaceDir).mockReturnValue(true);
+
+        jest
+          .mocked(readFile)
+          .mockRejectedValueOnce(new Error('File read error'));
+        await expect(
+          instance.execute({
+            logger,
+            userError,
+            flags: {},
+            args: { providerName, profileId: profileName },
+          })
+        ).rejects.toThrow('File read error');
+      });
+
+      it('throws when profile source is not valid Comlink', async () => {
+        jest
+          .mocked(exists)
+          .mockResolvedValueOnce(true)
+          .mockResolvedValueOnce(true);
+        jest.mocked(isInsideSuperfaceDir).mockReturnValue(true);
+        jest
+          .mocked(readFile)
+          .mockResolvedValueOnce(JSON.stringify(providerJson))
+          .mockResolvedValueOnce('something');
+        await expect(
+          instance.execute({
+            logger,
+            userError,
+            flags: {},
+            args: { providerName, profileId: profileName },
+          })
+        ).rejects.toThrow(`Invalid profile ${profileName}: `);
+      });
+
+      it('throws when profile names does not match', async () => {
+        jest
+          .mocked(exists)
+          .mockResolvedValueOnce(true)
+          .mockResolvedValueOnce(true);
+        jest.mocked(isInsideSuperfaceDir).mockReturnValue(true);
+        jest
+          .mocked(readFile)
+          .mockResolvedValueOnce(JSON.stringify(providerJson))
+          .mockResolvedValueOnce(mockProfileSource(undefined, 'other'));
+
+        await expect(
+          instance.execute({
+            logger,
+            userError,
+            flags: {},
+            args: { providerName, profileId: profileName },
+          })
+        ).rejects.toThrow(
+          'Profile name in profile file does not match profile name in command.'
+        );
+      });
+
+      it('throws when profile scopes does not match', async () => {
+        jest
+          .mocked(exists)
+          .mockResolvedValueOnce(true)
+          .mockResolvedValueOnce(true);
+        jest.mocked(isInsideSuperfaceDir).mockReturnValue(true);
+        jest
+          .mocked(readFile)
+          .mockResolvedValueOnce(JSON.stringify(providerJson))
+          .mockResolvedValueOnce(mockProfileSource('other', profileName));
+
+        await expect(
+          instance.execute({
+            logger,
+            userError,
+            flags: {},
+            args: { providerName, profileId: profileName },
+          })
+        ).rejects.toThrow(
+          'Profile scope in profile file does not match profile scope in command.'
+        );
+      });
     });
 
     it('throws when map file does not exist', async () => {
@@ -189,6 +266,7 @@ describe('execute CLI command', () => {
         .mockResolvedValueOnce(true)
         .mockResolvedValueOnce(true)
         .mockResolvedValueOnce(false);
+      jest.mocked(isInsideSuperfaceDir).mockReturnValue(true);
       jest
         .mocked(readFile)
         .mockResolvedValueOnce(JSON.stringify(providerJson))
@@ -206,6 +284,7 @@ describe('execute CLI command', () => {
 
     it('executes runfile - profile with scope', async () => {
       jest.mocked(exists).mockResolvedValue(true);
+      jest.mocked(isInsideSuperfaceDir).mockReturnValue(true);
       jest
         .mocked(readFile)
         .mockResolvedValueOnce(JSON.stringify(providerJson))
@@ -224,7 +303,7 @@ describe('execute CLI command', () => {
         expect.stringContaining(
           `${profileScope}.${profileName}.${providerName}.mjs`
         ),
-        'JS',
+        'js',
         {
           logger,
           userError,
@@ -234,6 +313,7 @@ describe('execute CLI command', () => {
 
     it('executes runfile - profile without scope', async () => {
       jest.mocked(exists).mockResolvedValue(true);
+      jest.mocked(isInsideSuperfaceDir).mockReturnValue(true);
       jest
         .mocked(readFile)
         .mockResolvedValueOnce(JSON.stringify(providerJson))
@@ -250,7 +330,7 @@ describe('execute CLI command', () => {
 
       expect(execute).toHaveBeenCalledWith(
         expect.stringContaining(`${profileName}.${providerName}.mjs`),
-        'JS',
+        'js',
         {
           logger,
           userError,

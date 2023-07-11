@@ -2,16 +2,11 @@ import type { ProfileDocumentNode } from '@superfaceai/ast';
 
 import { MockLogger } from '../../common';
 import { createUserError } from '../../common/error';
-import { buildSuperfaceDirPath } from '../../common/file-structure';
-import { writeApplicationCode } from './application-code';
+import { SupportedLanguages, writeApplicationCode } from './application-code';
 
 describe('writeApplicationCode', () => {
   const logger = new MockLogger();
   const userError = createUserError(false);
-
-  const name = 'test-name';
-  const scope = 'test-scope';
-  const useCaseName = 'TestUseCase';
 
   const ast: ProfileDocumentNode = {
     kind: 'ProfileDocument',
@@ -148,7 +143,7 @@ describe('writeApplicationCode', () => {
     },
   };
 
-  it('should return correct application code', async () => {
+  it('should return JS application code', async () => {
     const result = await writeApplicationCode(
       {
         providerJson: {
@@ -164,51 +159,44 @@ describe('writeApplicationCode', () => {
           parameters: [],
         },
         profileAst: ast,
+        language: SupportedLanguages.JS,
       },
       { logger, userError }
     );
 
-    expect(result).toEqual(`import { config } from 'dotenv';
-  // Load OneClient from SDK
-  import { OneClient } from '@superfaceai/one-sdk/node/index.js';
-
-  // Load environment variables from .env file
-  config();
-  async function main() {
-    const client = new OneClient({
-      // Optionally you can your OneSdk token to be able to monitor your usage
-      //token:
-      // Specify path to assets folder
-      assetsPath: '${buildSuperfaceDirPath()}'
+    expect(result).toEqual({
+      code: expect.stringContaining(`import { config } from 'dotenv'`),
+      requiredParameters: [],
+      requiredSecurity: [],
     });
+  });
 
-    // Load profile and use case
-    const profile = await client.getProfile('${scope}/${name}');
-    const useCase = profile.getUseCase('${useCaseName}')
-
-    try {
-      // Execute use case
-      const result = await useCase.perform(
-        // Use case input
-         {
-        id: 1,
+  it('should return python application code', async () => {
+    const result = await writeApplicationCode(
+      {
+        providerJson: {
+          name: 'test',
+          defaultService: 'test',
+          services: [
+            {
+              baseUrl: 'https://test.com',
+              id: 'test',
+            },
+          ],
+          securitySchemes: [],
+          parameters: [],
+        },
+        profileAst: ast,
+        language: SupportedLanguages.PYTHON,
       },
-        {
-          provider: 'test',
-          parameters: {},
-          // Security values for provider
-          security: {}
-        }
-      );
+      { logger, userError }
+    );
 
-      console.log("RESULT:", JSON.stringify(result, null, 2));
-
-    } catch (e) {
-      console.log("ERROR:", JSON.stringify(e, null, 2));
-    }
-  }
-
-  void main();`);
+    expect(result).toEqual({
+      code: expect.stringContaining(`import os`),
+      requiredParameters: [],
+      requiredSecurity: [],
+    });
   });
 
   it('should throw when there is no use case definitions', async () => {
@@ -255,6 +243,7 @@ describe('writeApplicationCode', () => {
                 '5c6e1b9d962778fd7826f60053c689bce4b0bf7b5b94be4ae6db38bc0b5c8c1d',
             },
           },
+          language: SupportedLanguages.JS,
         },
         { logger, userError }
       )
@@ -314,6 +303,7 @@ describe('writeApplicationCode', () => {
                 '5c6e1b9d962778fd7826f60053c689bce4b0bf7b5b94be4ae6db38bc0b5c8c1d',
             },
           },
+          language: SupportedLanguages.JS,
         },
         { logger, userError }
       )

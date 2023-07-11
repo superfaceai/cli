@@ -71,38 +71,35 @@ describe('prepareSecurity', () => {
       prepareSecurity('test', [headerApiKey, queryApiKey, bodyApiKey])
     ).toEqual({
       required: ['$TEST_API_KEY', '$TEST_API_KEY', '$TEST_API_KEY'],
-      securityString:
-        "{ 'apikey-header': { apikey: process.env.TEST_API_KEY }, 'apikey-query': { apikey: process.env.TEST_API_KEY }, 'apikey-body': { apikey: process.env.TEST_API_KEY } }",
+      securityString: `{ "apikey-header": { "apikey": os.getenv('TEST_API_KEY') }, "apikey-query": { "apikey": os.getenv('TEST_API_KEY') }, "apikey-body": { "apikey": os.getenv('TEST_API_KEY') } }`,
     });
   });
 
   it('correctly prepares security string for api key security with name', () => {
     expect(prepareSecurity('test', [bodyApiKeyWithName])).toEqual({
       required: ['$TEST_API_KEY'],
-      securityString: "{ 'apikey-body': { apikey: process.env.TEST_API_KEY } }",
+      securityString: `{ "apikey-body": { "apikey": os.getenv('TEST_API_KEY') } }`,
     });
   });
 
   it('correctly prepares security string for bearer security', () => {
     expect(prepareSecurity('test', [bearerHttp])).toEqual({
       required: ['$TEST_TOKEN'],
-      securityString: '{ bearer: { token: process.env.TEST_TOKEN } }',
+      securityString: `{ "bearer": { "token": os.getenv('TEST_TOKEN') } }`,
     });
   });
 
   it('correctly prepares security string for basic security', () => {
     expect(prepareSecurity('test', [basicHttp])).toEqual({
       required: ['$TEST_USERNAME', '$TEST_PASSWORD'],
-      securityString:
-        '{ basic: { username: process.env.TEST_USERNAME, password: process.env.TEST_PASSWORD } }',
+      securityString: `{ "basic": { "username": os.getenv('TEST_USERNAME'), "password": os.getenv('TEST_PASSWORD') } }`,
     });
   });
 
   it('correctly prepares security string for digest security', () => {
     expect(prepareSecurity('test', [digestHttp])).toEqual({
       required: ['$TEST_USERNAME', '$TEST_PASSWORD'],
-      securityString:
-        '{ digest: { username: process.env.TEST_USERNAME, password: process.env.TEST_PASSWORD } }',
+      securityString: `{ "digest": { "username": os.getenv('TEST_USERNAME'), "password": os.getenv('TEST_PASSWORD') } }`,
     });
   });
 });

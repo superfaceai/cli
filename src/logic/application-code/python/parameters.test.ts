@@ -19,7 +19,7 @@ describe('prepareParameters', () => {
     expect(
       prepareParameters('provider', [{ name: 'test', default: 'value' }])
     ).toEqual({
-      parametersString: '{ test: process.env.PROVIDER_TEST }',
+      parametersString: `{ "test": os.getenv('PROVIDER_TEST') }`,
       required: ['$PROVIDER_TEST'],
     });
   });
@@ -31,8 +31,7 @@ describe('prepareParameters', () => {
         { name: 'test2', default: 'value' },
       ])
     ).toEqual({
-      parametersString:
-        '{ test: process.env.PROVIDER_TEST, test2: process.env.PROVIDER_TEST2 }',
+      parametersString: `{ "test": os.getenv('PROVIDER_TEST'), "test2": os.getenv('PROVIDER_TEST2') }`,
       required: ['$PROVIDER_TEST', '$PROVIDER_TEST2'],
     });
   });

@@ -1,19 +1,14 @@
-import type { ProviderJson } from '@superfaceai/ast';
-import {
-  AssertionError,
-  assertProviderJson,
-  isValidProviderName,
-} from '@superfaceai/ast';
 import { basename } from 'path';
 
 import type { Flags } from '../common/command.abstract';
 import { Command } from '../common/command.abstract';
 import type { UserError } from '../common/error';
-import { buildProfilePath, buildProviderPath } from '../common/file-structure';
-import { exists, readFile } from '../common/io';
-import type { ILogger } from '../common/log';
+import { buildProfilePath } from '../common/file-structure';
+import { SuperfaceClient } from '../common/http';
+import { exists } from '../common/io';
 import { OutputStream } from '../common/output-stream';
 import { ProfileId } from '../common/profile';
+import { resolveProviderJson } from '../common/provider';
 import { UX } from '../common/ux';
 import { newProfile } from '../logic/new';
 
@@ -51,7 +46,6 @@ export default class New extends Command {
     const { flags, args } = this.parse(New);
     await super.initialize(flags);
     await this.execute({
-      logger: this.logger,
       userError: this.userError,
       flags,
       args,
@@ -59,12 +53,10 @@ export default class New extends Command {
   }
 
   public async execute({
-    logger,
     userError,
     flags,
     args,
   }: {
-    logger: ILogger;
     userError: UserError;
     flags: Flags<typeof New.flags>;
     args: { providerName?: string; prompt?: string };
@@ -76,30 +68,28 @@ export default class New extends Command {
 
     checkPrompt(prompt, { userError });
 
-    const providerJson = await resolveProviderJson(providerName, {
+    const resolvedProviderJson = await resolveProviderJson(providerName, {
       userError,
+      client: SuperfaceClient.getClient(),
     });
-
-    ux.succeed('Input arguments checked');
 
     ux.start('Creating profile for your use case');
     // TODO: should take also user error?
     const profile = await newProfile(
       {
-        providerJson,
+        providerJson: resolvedProviderJson.providerJson,
         prompt: prompt,
         options: { quiet: flags.quiet },
       },
-      { logger, userError, ux }
+      { userError, ux }
     );
-    ux.succeed('Profile created');
 
     ux.start('Saving profile for your use case');
-    await saveProfile(profile, { logger, userError });
+    const profilePath = await saveProfile(profile, { userError });
 
     ux.succeed(
-      `Profile saved. You can use it to generate integration code for your use case by running 'superface map  ${
-        providerJson.name
+      `Profile saved to ${profilePath}. You can use it to generate integration code for your use case by running 'superface map ${
+        resolvedProviderJson.providerJson.name
       } ${ProfileId.fromScopeName(profile.scope, profile.name).id}'`
     );
   }
@@ -107,11 +97,9 @@ export default class New extends Command {
 
 async function saveProfile(
   { source, scope, name }: { source: string; scope?: string; name: string },
-  { logger, userError }: { logger: ILogger; userError: UserError }
-): Promise<void> {
+  { userError }: { userError: UserError }
+): Promise<string> {
   const profilePath = buildProfilePath(scope, name);
-
-  logger.info('saveProfile', profilePath);
 
   // TODO: force flag? or overwrite by default?
   if (await exists(profilePath)) {
@@ -119,6 +107,8 @@ async function saveProfile(
   }
 
   await OutputStream.writeOnce(profilePath, source);
+
+  return profilePath;
 }
 
 function checkPrompt(
@@ -138,66 +128,4 @@ function checkPrompt(
       1
     );
   }
-}
-
-export async function resolveProviderJson(
-  providerName: string | undefined,
-  { userError }: { userError: UserError }
-): Promise<ProviderJson> {
-  if (providerName === undefined) {
-    throw userError(
-      'Missing provider name. Please provide it as first argument.',
-      1
-    );
-  }
-
-  if (!isValidProviderName(providerName)) {
-    throw userError('Invalid provider name', 1);
-  }
-
-  if (!(await exists(buildProviderPath(providerName)))) {
-    throw userError(
-      `Provider ${providerName} does not exist. Make sure to run "sf prepare" before running this command.`,
-      1
-    );
-  }
-
-  const providerJsonFile = await readFile(
-    buildProviderPath(providerName),
-    'utf-8'
-  );
-  let providerJson: ProviderJson;
-  try {
-    providerJson = JSON.parse(providerJsonFile) as ProviderJson;
-  } catch (e) {
-    throw userError(`Invalid provider.json file.`, 1);
-  }
-
-  try {
-    assertProviderJson(providerJson);
-  } catch (e) {
-    if (e instanceof AssertionError) {
-      throw userError(`Invalid provider.json file. ${e.message}`, 1);
-    }
-    throw userError(`Invalid provider.json file.`, 1);
-  }
-
-  if (providerName !== providerJson.name) {
-    throw userError(
-      `Provider name in provider.json file does not match provider name in command.`,
-      1
-    );
-  }
-
-  if (
-    providerJson.services.length === 1 &&
-    providerJson.services[0].baseUrl.includes('TODO')
-  ) {
-    throw userError(
-      `Provider.json file is not properly configured. Please make sure to replace 'TODO' in baseUrl with the actual base url of the API.`,
-      1
-    );
-  }
-
-  return providerJson;
 }

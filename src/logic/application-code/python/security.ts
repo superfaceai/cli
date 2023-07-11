@@ -11,20 +11,15 @@ export function prepareSecurity(
   if (!security || security.length === 0) {
     return { securityString: '{}', required: [] };
   }
+
   const securityValues = prepareSecurityValues(providerName, security);
 
-  const required: string[] = [];
   const result: string[] = [];
+  const required: string[] = [];
 
   // TODO: selecting single security scheme is not supported yet
   for (const securityValue of securityValues) {
     const { id, ...securityValueWithoutId } = securityValue;
-
-    let escapedId = id;
-    // Escape id
-    if (id.includes('-')) {
-      escapedId = `'${id}'`;
-    }
 
     const valueString: string[] = [];
     Object.entries(securityValueWithoutId).forEach(
@@ -32,14 +27,14 @@ export function prepareSecurity(
         required.push(value);
 
         valueString.push(
-          `${key}: process.env.${
+          `"${key}": os.getenv('${
             value.startsWith('$') ? value.slice(1) : value
-          }`
+          }')`
         );
       }
     );
 
-    result.push(`${escapedId}: { ${valueString.join(', ')} }`);
+    result.push(`"${id}": { ${valueString.join(', ')} }`);
   }
 
   return { securityString: '{ ' + result.join(', ') + ' }', required };

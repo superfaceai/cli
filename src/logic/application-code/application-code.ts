@@ -1,6 +1,8 @@
 import type {
+  IntegrationParameter,
   ProfileDocumentNode,
   ProviderJson,
+  SecurityScheme,
   UseCaseDefinitionNode,
 } from '@superfaceai/ast';
 
@@ -9,21 +11,68 @@ import type { UserError } from '../../common/error';
 import { stringifyError } from '../../common/error';
 import { prepareUseCaseInput } from './input/prepare-usecase-input';
 import { jsApplicationCode } from './js';
+import { pythonApplicationCode } from './python';
+
+export enum SupportedLanguages {
+  PYTHON = 'python',
+  JS = 'js',
+}
+
+export function getLanguageName(language: SupportedLanguages): string {
+  const LANGUAGE_MAP: {
+    [key in SupportedLanguages]: string;
+  } = {
+    js: 'JavaScript',
+    python: 'Python',
+  };
+
+  return LANGUAGE_MAP[language];
+}
+
+export type ApplicationCodeWriter = (
+  {
+    profile,
+    useCaseName,
+    provider,
+    input,
+    parameters,
+    security,
+  }: {
+    profile: {
+      name: string;
+      scope?: string;
+    };
+    useCaseName: string;
+    provider: string;
+    // TODO:  more language independent type for input?
+    input: string;
+    parameters?: IntegrationParameter[];
+    security?: SecurityScheme[];
+  },
+  { logger }: { logger: ILogger }
+) => {
+  code: string;
+  requiredParameters: string[];
+  requiredSecurity: string[];
+};
 
 export async function writeApplicationCode(
   {
     providerJson,
     profileAst,
+    language,
   }: // useCaseName,
-  // target
   {
     providerJson: ProviderJson;
     profileAst: ProfileDocumentNode;
-    // TODO: add more target languages
-    // target: 'js';
+    language: SupportedLanguages;
   },
   { logger, userError }: { logger: ILogger; userError: UserError }
-): Promise<string> {
+): Promise<{
+  code: string;
+  requiredParameters: string[];
+  requiredSecurity: string[];
+}> {
   const useCases = profileAst.definitions.filter(
     (definition): definition is UseCaseDefinitionNode => {
       return definition.kind === 'UseCaseDefinition';
@@ -58,7 +107,14 @@ export async function writeApplicationCode(
     );
   }
 
-  return jsApplicationCode(
+  const APPLICATION_CODE_MAP: {
+    [key in SupportedLanguages]: ApplicationCodeWriter;
+  } = {
+    js: jsApplicationCode,
+    python: pythonApplicationCode,
+  };
+
+  return APPLICATION_CODE_MAP[language](
     {
       profile: {
         name: profileAst.header.name,

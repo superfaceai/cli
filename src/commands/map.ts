@@ -10,15 +10,20 @@ import {
   buildProfilePath,
   buildRunFilePath,
 } from '../common/file-structure';
+import { SuperfaceClient } from '../common/http';
 import { exists, readFile } from '../common/io';
 import type { ILogger } from '../common/log';
 import { OutputStream } from '../common/output-stream';
 import { ProfileId } from '../common/profile';
+import { resolveProviderJson } from '../common/provider';
 import { UX } from '../common/ux';
-import { writeApplicationCode } from '../logic/application-code/application-code';
+import {
+  getLanguageName,
+  SupportedLanguages,
+  writeApplicationCode,
+} from '../logic/application-code/application-code';
 import { mapProviderToProfile } from '../logic/map';
-import { prepareJsProject } from '../logic/project';
-import { resolveProviderJson } from './new';
+import { prepareProject } from '../logic/project';
 
 export default class Map extends Command {
   // TODO: add description
@@ -43,6 +48,8 @@ export default class Map extends Command {
       name: 'language',
       description: 'Language which will use generated code. Default is `js`.',
       required: false,
+      default: 'js',
+      options: Object.values(SupportedLanguages),
       // Hidden because we support only js for now
       hidden: true,
     },
@@ -72,66 +79,83 @@ export default class Map extends Command {
     logger: ILogger;
     userError: UserError;
     flags: Flags<typeof Map.flags>;
-    args: { providerName?: string; profileId?: string };
+    args: { providerName?: string; profileId?: string; language?: string };
   }): Promise<void> {
     const ux = UX.create();
-    const { providerName, profileId } = args;
+    const { providerName, profileId, language } = args;
+
+    const resolvedLanguage = resolveLanguage(language, { userError });
 
     ux.start('Loading profile');
     const profile = await resolveProfileSource(profileId, { userError });
 
-    ux.succeed('Profile loaded');
-
     ux.start('Loading provider definition');
-    const providerJson = await resolveProviderJson(providerName, {
+    const resolvedProviderJson = await resolveProviderJson(providerName, {
       userError,
+      client: SuperfaceClient.getClient(),
     });
-
-    ux.succeed('Provider definition loaded');
 
     ux.start('Preparing integration code for your use case');
     // TODO: load old map?
     const map = await mapProviderToProfile(
       {
-        providerJson,
+        providerJson: resolvedProviderJson.providerJson,
         profile,
         options: { quiet: flags.quiet },
       },
       { userError, ux }
     );
-
-    ux.succeed('Integration code prepared');
-
-    ux.start('Saving integration code');
-    await saveMap({
+    const mapPath = await saveMap({
       map,
       profileName: profile.ast.header.name,
-      providerName: providerJson.name,
+      providerName: resolvedProviderJson.providerJson.name,
       profileScope: profile.ast.header.scope,
     });
-    ux.succeed('Integration code saved');
+    ux.succeed(`Integration code saved to ${mapPath}`);
 
-    ux.start('Preparing boilerplate code');
+    ux.start(`Preparing boilerplate code for ${resolvedLanguage}`);
 
-    const saved = await saveBoilerplateCode(providerJson, profile.ast, {
-      logger,
-      userError,
-    });
+    const boilerplate = await saveBoilerplateCode(
+      resolvedProviderJson.providerJson,
+      profile.ast,
+      resolvedLanguage,
+      {
+        logger,
+        userError,
+      }
+    );
     ux.succeed(
-      saved ? 'Boilerplate code prepared.' : 'Boilerplate code already exists.'
+      boilerplate.saved
+        ? `Boilerplate code prepared for ${resolvedLanguage} at ${boilerplate.path}`
+        : `Boilerplate for ${getLanguageName(
+            resolvedLanguage
+          )} already exists at ${boilerplate.path}.`
     );
 
-    ux.start('Setting up local project');
+    if (boilerplate.envVariables !== undefined) {
+      ux.warn(
+        `Please set the following environment variables before running the integration:\n${boilerplate.envVariables}`
+      );
+    }
+
+    ux.start(`Setting up local project in ${resolvedLanguage}`);
+
     // TODO: install dependencies
-    await prepareJsProject(undefined, undefined, { logger });
+    const project = await prepareProject(resolvedLanguage);
 
-    ux.warn(
-      `You need to have Node version 18.0.0 or higher installed to run the integration. Used dependencies:\n"@superfaceai/one-sdk"\n"dotenv"\nYou can install defined dependencies by running \`npm install\` in \`superface\` directory.`
-    );
+    if (project.saved) {
+      ux.succeed(
+        `Dependency definition prepared for ${getLanguageName(
+          resolvedLanguage
+        )} at ${project.path}.`
+      );
+    }
+
+    ux.warn(project.installationGuide);
 
     ux.succeed(
       `Local project set up. You can now install defined dependencies and run \`superface execute ${
-        providerJson.name
+        resolvedProviderJson.providerJson.name
       } ${
         ProfileId.fromScopeName(profile.scope, profile.name).id
       }\` to execute your integration.`
@@ -139,26 +163,54 @@ export default class Map extends Command {
   }
 }
 
+export function resolveLanguage(
+  language: string | undefined,
+  { userError }: { userError: UserError }
+): SupportedLanguages {
+  if (language === undefined) {
+    return SupportedLanguages.JS;
+  }
+  switch (language) {
+    case 'js':
+      return SupportedLanguages.JS;
+    case 'python':
+      return SupportedLanguages.PYTHON;
+    default:
+      throw userError(
+        `Language ${language} is not supported. Supported languages are: ${Object.values(
+          SupportedLanguages
+        ).join(', ')}`,
+        1
+      );
+  }
+}
+
 async function saveBoilerplateCode(
   providerJson: ProviderJson,
   profileAst: ProfileDocumentNode,
+  language: SupportedLanguages,
   { userError, logger }: { userError: UserError; logger: ILogger }
-): Promise<boolean> {
+): Promise<{ saved: boolean; path: string; envVariables: string | undefined }> {
   const path = buildRunFilePath({
     profileName: profileAst.header.name,
     providerName: providerJson.name,
     profileScope: profileAst.header.scope,
-    language: 'JS',
+    language,
   });
 
   if (await exists(path)) {
-    return false;
+    return {
+      saved: false,
+      path,
+      envVariables: undefined,
+    };
   }
 
   const code = await writeApplicationCode(
     {
       providerJson,
       profileAst,
+      language,
     },
     {
       logger,
@@ -166,9 +218,23 @@ async function saveBoilerplateCode(
     }
   );
 
-  await OutputStream.writeOnce(path, code);
+  let envVariables: string | undefined;
+  if (code.requiredParameters.length > 0 || code.requiredSecurity.length > 0) {
+    envVariables = code.requiredParameters
+      .map(p => `Integration parameter ${p}`)
+      .join('\n');
+    envVariables +=
+      '\n' +
+      code.requiredSecurity.map(s => `Security variable ${s}`).join('\n');
+  }
 
-  return true;
+  await OutputStream.writeOnce(path, code.code);
+
+  return {
+    saved: true,
+    path,
+    envVariables,
+  };
 }
 
 export async function resolveProfileSource(
@@ -246,7 +312,7 @@ async function saveMap({
   profileScope: string | undefined;
   providerName: string;
   map: string;
-}): Promise<void> {
+}): Promise<string> {
   const mapPath = buildMapPath({
     profileName,
     profileScope,
@@ -254,4 +320,6 @@ async function saveMap({
   });
 
   await OutputStream.writeOnce(mapPath, map);
+
+  return mapPath;
 }
