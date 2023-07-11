@@ -1,4 +1,3 @@
-import { MockLogger } from '../common';
 import { createUserError } from '../common/error';
 import { exists, readFile } from '../common/io';
 import { OutputStream } from '../common/output-stream';
@@ -31,7 +30,6 @@ describe('new CLI command', () => {
 
     let mockWriteOnce: jest.Mock;
     let instance: New;
-    let logger: MockLogger;
 
     beforeAll(() => {
       // Mock static side of OutputStream
@@ -41,7 +39,6 @@ describe('new CLI command', () => {
 
     beforeEach(() => {
       instance = CommandInstance(New);
-      logger = new MockLogger();
     });
 
     afterAll(() => {
@@ -52,7 +49,6 @@ describe('new CLI command', () => {
     it('throws when prompt is not provided', async () => {
       await expect(
         instance.execute({
-          logger,
           userError,
           flags: {},
           args: { providerName: 'test' },
@@ -77,7 +73,6 @@ describe('new CLI command', () => {
       });
 
       await instance.execute({
-        logger,
         userError,
         flags: {},
         args: { providerName, prompt },
@@ -89,7 +84,7 @@ describe('new CLI command', () => {
           prompt,
           options: { quiet: undefined },
         },
-        { logger, ux, userError }
+        { ux, userError }
       );
 
       expect(mockWriteOnce).toHaveBeenCalledWith(
@@ -110,7 +105,6 @@ describe('new CLI command', () => {
       });
 
       await instance.execute({
-        logger,
         userError,
         flags: {},
         args: { providerName, prompt },
@@ -122,7 +116,7 @@ describe('new CLI command', () => {
           prompt,
           options: { quiet: undefined },
         },
-        { logger, ux, userError }
+        { ux, userError }
       );
 
       expect(mockWriteOnce).toHaveBeenCalledWith(
@@ -141,7 +135,6 @@ describe('new CLI command', () => {
         .mockResolvedValueOnce({ source: 'profile', name: profileName });
 
       await instance.execute({
-        logger,
         userError,
         flags: {},
         args: { providerName, prompt },
@@ -153,7 +146,7 @@ describe('new CLI command', () => {
           prompt,
           options: { quiet: undefined },
         },
-        { logger, ux, userError }
+        { ux, userError }
       );
 
       expect(mockWriteOnce).toHaveBeenCalledWith(

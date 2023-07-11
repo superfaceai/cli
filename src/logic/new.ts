@@ -2,7 +2,6 @@ import type { ProviderJson } from '@superfaceai/ast';
 import { parseDocumentId, parseProfile, Source } from '@superfaceai/parser';
 import type { ServiceClient } from '@superfaceai/service-client';
 
-import type { ILogger } from '../common';
 import type { UserError } from '../common/error';
 import { SuperfaceClient } from '../common/http';
 import { pollUrl } from '../common/polling';
@@ -69,10 +68,8 @@ export async function newProfile(
     prompt: string;
     options?: { quiet?: boolean };
   },
-  { logger, userError, ux }: { logger: ILogger; userError: UserError; ux: UX }
+  { userError, ux }: { userError: UserError; ux: UX }
 ): Promise<{ source: string; scope?: string; name: string }> {
-  logger.info('startProfileGeneration', providerJson.name);
-
   const client = SuperfaceClient.getClient();
 
   const jobUrl = await startProfilePreparation(
