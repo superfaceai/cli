@@ -30,7 +30,7 @@ export async function prepareJsProject(
 
   const packageJsonPath = buildProjectDefinitionFilePath(SupportedLanguages.JS);
 
-  const installationGuide = `You need to have Node version 18.0.0 or higher installed to run the integration. Used dependencies:\n"@superfaceai/one-sdk"\n"dotenv"\nYou can install defined dependencies by running \`npm install\` in \`superface\` directory.`;
+  const installationGuide = `You need to have Node version 18.0.0 or higher installed to run the integration.\nYou can install defined dependencies by running \`npm install\` in \`superface\` directory.`;
 
   if (!(await exists(packageJsonPath))) {
     await OutputStream.writeOnce(packageJsonPath, packageJson);

@@ -109,8 +109,6 @@ This command prepares a Provider JSON metadata definition that can be used to ge
       userError,
     });
 
-    ux.succeed('Inputs resolved');
-
     ux.start('Preparing provider definition');
     const providerJson = await prepareProviderJson(
       {
@@ -120,9 +118,7 @@ This command prepares a Provider JSON metadata definition that can be used to ge
       },
       { userError, ux }
     );
-    ux.succeed('Provider definition prepared');
 
-    ux.start('Saving provider definition');
     const providerJsonPath = await writeProviderJson(providerJson, {
       logger,
       userError,
@@ -133,15 +129,15 @@ This command prepares a Provider JSON metadata definition that can be used to ge
       (providerJson.services.length === 1 &&
         providerJson.services[0].baseUrl.includes('TODO'))
     ) {
-      // TODO: provide more info - url to docs
+      // TODO: provide more info - url to REAL docs
       ux.warn(
-        `Provider definition prepared, but some parts are missing. Please fill them manually in ${providerJsonPath}.`
+        `[ACTION REQUIRED]: Provider definition is incomplete. Please fill in the details at ${providerJsonPath}. Documentation Guide:\nhttps://sfc.is/editing-providers\nYou can then create a new profile using 'superface new ${providerJson.name} "<use case description>"'.`
+      );
+    } else {
+      ux.succeed(
+        `Provider definition saved to ${providerJsonPath}.\nYou can now create a new profile using 'superface new ${providerJson.name} "<use case description>"'.`
       );
     }
-
-    ux.succeed(
-      `Provider definition saved successfully to ${providerJsonPath}.\nYou can use it to generate integration code interface with 'superface new ${providerJson.name} "<use case description>"'.`
-    );
   }
 }
 
@@ -180,7 +176,7 @@ async function resolveInputs(
   if (name !== undefined) {
     if (!isValidProviderName(name)) {
       throw userError(
-        `Invalid provider name '${name}'. Provider name must match: ^[a-z][_-0-9a-z]*$`,
+        `Invalid provider name '${name}'. Provider name must match: ^[a-z][_\\-a-z]*$`,
         1
       );
     }

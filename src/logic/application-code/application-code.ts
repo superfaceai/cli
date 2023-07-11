@@ -18,6 +18,17 @@ export enum SupportedLanguages {
   JS = 'js',
 }
 
+export function getLanguageName(language: SupportedLanguages): string {
+  const LANGUAGE_MAP: {
+    [key in SupportedLanguages]: string;
+  } = {
+    js: 'JavaScript',
+    python: 'Python',
+  };
+
+  return LANGUAGE_MAP[language];
+}
+
 export type ApplicationCodeWriter = (
   {
     profile,

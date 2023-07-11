@@ -18,6 +18,7 @@ import { ProfileId } from '../common/profile';
 import { resolveProviderJson } from '../common/provider';
 import { UX } from '../common/ux';
 import {
+  getLanguageName,
   SupportedLanguages,
   writeApplicationCode,
 } from '../logic/application-code/application-code';
@@ -88,25 +89,11 @@ export default class Map extends Command {
     ux.start('Loading profile');
     const profile = await resolveProfileSource(profileId, { userError });
 
-    ux.succeed('Profile loaded');
-
     ux.start('Loading provider definition');
     const resolvedProviderJson = await resolveProviderJson(providerName, {
       userError,
       client: SuperfaceClient.getClient(),
     });
-
-    if (resolvedProviderJson.source === 'local') {
-      ux.succeed(
-        `Input arguments checked. Provider JSON resolved from local file ${resolvedProviderJson.path}`
-      );
-    } else {
-      ux.succeed(
-        `Input arguments checked. Provider JSON resolved from Superface server`
-      );
-    }
-
-    ux.succeed('Provider definition loaded');
 
     ux.start('Preparing integration code for your use case');
     // TODO: load old map?
@@ -118,10 +105,6 @@ export default class Map extends Command {
       },
       { userError, ux }
     );
-
-    ux.succeed('Integration code prepared');
-
-    ux.start('Saving integration code');
     const mapPath = await saveMap({
       map,
       profileName: profile.ast.header.name,
@@ -144,7 +127,9 @@ export default class Map extends Command {
     ux.succeed(
       boilerplate.saved
         ? `Boilerplate code prepared for ${resolvedLanguage} at ${boilerplate.path}`
-        : `Boilerplate for ${resolvedLanguage} code already exists at ${boilerplate.path}.`
+        : `Boilerplate for ${getLanguageName(
+            resolvedLanguage
+          )} already exists at ${boilerplate.path}.`
     );
 
     if (boilerplate.envVariables !== undefined) {
@@ -158,11 +143,14 @@ export default class Map extends Command {
     // TODO: install dependencies
     const project = await prepareProject(resolvedLanguage);
 
-    ux.succeed(
-      project.saved
-        ? `Dependency definition prepared for ${resolvedLanguage} at ${project.path}.`
-        : `Dependency definition for ${resolvedLanguage} code already exists at ${project.path}.`
-    );
+    if (project.saved) {
+      ux.succeed(
+        `Dependency definition prepared for ${getLanguageName(
+          resolvedLanguage
+        )} at ${project.path}.`
+      );
+    }
+
     ux.warn(project.installationGuide);
 
     ux.succeed(
