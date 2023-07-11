@@ -10,6 +10,10 @@ const PROVIDER_EXTENSION = '.provider.json';
 
 const MAP_EXTENSION = '.map.js';
 
+export function isInsideSuperfaceDir(): boolean {
+  return process.cwd().endsWith('/' + DEFAULT_SUPERFACE_DIR);
+}
+
 export function buildSuperfaceDirPath(): string {
   // If user is in superface dir, use it
   if (process.cwd().endsWith('/' + DEFAULT_SUPERFACE_DIR))

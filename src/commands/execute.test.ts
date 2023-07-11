@@ -1,5 +1,6 @@
 import { MockLogger } from '../common';
 import { createUserError } from '../common/error';
+import { isInsideSuperfaceDir } from '../common/file-structure';
 import { exists, readFile } from '../common/io';
 import { OutputStream } from '../common/output-stream';
 import { execute } from '../logic/execution';
@@ -10,6 +11,11 @@ import Execute from './execute';
 jest.mock('../common/io');
 jest.mock('../common/output-stream');
 jest.mock('../logic/execution');
+
+jest.mock('../common/file-structure', () => ({
+  ...jest.requireActual('../common/file-structure'),
+  isInsideSuperfaceDir: jest.fn(),
+}));
 
 describe('execute CLI command', () => {
   const providerName = 'provider-name';
@@ -65,8 +71,29 @@ describe('execute CLI command', () => {
     });
 
     describe('checking language argument', () => {
+      it('throws when cwd is not in superface folder', async () => {
+        jest.mocked(exists).mockResolvedValueOnce(true);
+        jest.mocked(isInsideSuperfaceDir).mockReturnValue(false);
+        jest
+          .mocked(readFile)
+          .mockResolvedValueOnce(JSON.stringify(providerJson));
+        await expect(
+          instance.execute({
+            logger,
+            userError,
+            flags: {},
+            args: {
+              providerName,
+              profileId: profileName,
+              language: 'python',
+            },
+          })
+        ).rejects.toThrow('Command must be run inside superface directory');
+      });
+
       it('throws when language is invalid', async () => {
         jest.mocked(exists).mockResolvedValueOnce(true);
+        jest.mocked(isInsideSuperfaceDir).mockReturnValue(true);
         jest
           .mocked(readFile)
           .mockResolvedValueOnce(JSON.stringify(providerJson));
@@ -90,6 +117,7 @@ describe('execute CLI command', () => {
     describe('checking profile id argument', () => {
       it('throws when profile id is not provided', async () => {
         jest.mocked(exists).mockResolvedValueOnce(true);
+        jest.mocked(isInsideSuperfaceDir).mockReturnValue(true);
         jest
           .mocked(readFile)
           .mockResolvedValueOnce(JSON.stringify(providerJson));
@@ -107,6 +135,7 @@ describe('execute CLI command', () => {
 
       it('throws when profile id is invalid', async () => {
         jest.mocked(exists).mockResolvedValueOnce(true);
+        jest.mocked(isInsideSuperfaceDir).mockReturnValue(true);
         jest
           .mocked(readFile)
           .mockResolvedValueOnce(JSON.stringify(providerJson));
@@ -127,6 +156,8 @@ describe('execute CLI command', () => {
           .mocked(exists)
           .mockResolvedValueOnce(true)
           .mockResolvedValueOnce(false);
+        jest.mocked(isInsideSuperfaceDir).mockReturnValue(true);
+
         jest
           .mocked(readFile)
           .mockResolvedValueOnce(JSON.stringify(providerJson));
@@ -147,6 +178,8 @@ describe('execute CLI command', () => {
           .mocked(exists)
           .mockResolvedValueOnce(true)
           .mockResolvedValueOnce(true);
+        jest.mocked(isInsideSuperfaceDir).mockReturnValue(true);
+
         jest
           .mocked(readFile)
           .mockRejectedValueOnce(new Error('File read error'));
@@ -165,6 +198,7 @@ describe('execute CLI command', () => {
           .mocked(exists)
           .mockResolvedValueOnce(true)
           .mockResolvedValueOnce(true);
+        jest.mocked(isInsideSuperfaceDir).mockReturnValue(true);
         jest
           .mocked(readFile)
           .mockResolvedValueOnce(JSON.stringify(providerJson))
@@ -184,6 +218,7 @@ describe('execute CLI command', () => {
           .mocked(exists)
           .mockResolvedValueOnce(true)
           .mockResolvedValueOnce(true);
+        jest.mocked(isInsideSuperfaceDir).mockReturnValue(true);
         jest
           .mocked(readFile)
           .mockResolvedValueOnce(JSON.stringify(providerJson))
@@ -206,6 +241,7 @@ describe('execute CLI command', () => {
           .mocked(exists)
           .mockResolvedValueOnce(true)
           .mockResolvedValueOnce(true);
+        jest.mocked(isInsideSuperfaceDir).mockReturnValue(true);
         jest
           .mocked(readFile)
           .mockResolvedValueOnce(JSON.stringify(providerJson))
@@ -230,6 +266,7 @@ describe('execute CLI command', () => {
         .mockResolvedValueOnce(true)
         .mockResolvedValueOnce(true)
         .mockResolvedValueOnce(false);
+      jest.mocked(isInsideSuperfaceDir).mockReturnValue(true);
       jest
         .mocked(readFile)
         .mockResolvedValueOnce(JSON.stringify(providerJson))
@@ -247,6 +284,7 @@ describe('execute CLI command', () => {
 
     it('executes runfile - profile with scope', async () => {
       jest.mocked(exists).mockResolvedValue(true);
+      jest.mocked(isInsideSuperfaceDir).mockReturnValue(true);
       jest
         .mocked(readFile)
         .mockResolvedValueOnce(JSON.stringify(providerJson))
@@ -275,6 +313,7 @@ describe('execute CLI command', () => {
 
     it('executes runfile - profile without scope', async () => {
       jest.mocked(exists).mockResolvedValue(true);
+      jest.mocked(isInsideSuperfaceDir).mockReturnValue(true);
       jest
         .mocked(readFile)
         .mockResolvedValueOnce(JSON.stringify(providerJson))
