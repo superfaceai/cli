@@ -79,7 +79,7 @@ export async function writeApplicationCode(
   // TODO: this should be language independent and also take use case name as input
   let inputExample: string;
   try {
-    inputExample = prepareUseCaseInput(profileAst);
+    inputExample = prepareUseCaseInput(profileAst, language);
   } catch (error) {
     // TODO: fallback to empty object?
     throw userError(

@@ -5,12 +5,16 @@ import type {
   UseCaseDefinitionNode,
 } from '@superfaceai/ast';
 
+import type { SupportedLanguages } from '../application-code';
 import { buildUseCaseExamples } from './example/build';
 import type { UseCaseExample } from './example/usecase-example';
 import INPUT_TEMPLATE from './templates';
 import { makeRenderer } from './templates/template-renderer';
 
-export function prepareUseCaseInput(ast: ProfileDocumentNode): string {
+export function prepareUseCaseInput(
+  ast: ProfileDocumentNode,
+  language: SupportedLanguages
+): string {
   const namedModelDefinitionsCache: {
     [key: string]: NamedModelDefinitionNode;
   } = {};
@@ -55,9 +59,16 @@ export function prepareUseCaseInput(ast: ProfileDocumentNode): string {
       successExamples.push(...successExamplesForUseCase);
     });
 
+  // const QUOTES_MAP: {
+  //   [key in SupportedLanguages]: string;
+  // } = {
+  //   js: '',
+  //   python: '"',
+  // };
+
   const inputExample = successExamples.find(e => e.input !== undefined)?.input;
 
   const render = makeRenderer(INPUT_TEMPLATE, 'Input');
 
-  return render({ input: inputExample });
+  return render({ input: inputExample, language });
 }
