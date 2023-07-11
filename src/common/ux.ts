@@ -10,7 +10,7 @@ export class UX {
   private lastText = '';
 
   private constructor() {
-    this.spinner = createSpinner(undefined, { color: 'cyan', interval: 25 });
+    this.spinner = createSpinner(undefined, { color: 'cyan', interval: 50 });
     UX.instance = this;
   }
 
@@ -28,7 +28,9 @@ export class UX {
   }
 
   public info(text: string): void {
-    if (text !== this.lastText) {
+    if (text.trim() !== this.lastText.trim()) {
+
+      this.spinner.clear();
       this.spinner.update({ text });
     }
 
@@ -37,6 +39,10 @@ export class UX {
 
   public warn(text: string): void {
     this.spinner.warn({ text: yellow(text), mark: yellow('⚠') });
+  }
+
+  public stop(): void {
+    this.spinner.stop();
   }
 
   public static create(): UX {
@@ -48,6 +54,7 @@ export class UX {
   }
 
   public static clear(): void {
+    UX.instance?.spinner.clear();
     UX.instance?.spinner.stop();
   }
 }

@@ -1,5 +1,5 @@
 import type { ProviderJson } from '@superfaceai/ast';
-import { parseDocumentId, parseProfile, Source } from '@superfaceai/parser';
+import { parseDocumentId } from '@superfaceai/parser';
 import type { ServiceClient } from '@superfaceai/service-client';
 
 import type { UserError } from '../common/error';
@@ -17,7 +17,8 @@ export type ProfilePreparationResponse = {
 };
 
 function assertProfileResponse(
-  input: unknown
+  input: unknown,
+  { userError }: { userError: UserError }
 ): asserts input is ProfilePreparationResponse {
   if (
     typeof input === 'object' &&
@@ -28,26 +29,26 @@ function assertProfileResponse(
     const tmp = input as { id: string; profile: { source?: string } };
 
     if (typeof tmp.profile.source !== 'string') {
-      throw Error(
+      throw userError(
         `Unexpected response received - missing profile source: ${JSON.stringify(
           tmp,
           null,
           2
-        )}`
+        )}`, 1
       );
     }
 
-    try {
-      parseProfile(new Source(tmp.profile.source));
-    } catch (e) {
-      throw Error(
-        `Unexpected response received - unable to parse profile source: ${JSON.stringify(
-          e,
-          null,
-          2
-        )}`
-      );
-    }
+    // try {
+    //   parseProfile(new Source(tmp.profile.source));
+    // } catch (e) {
+    //   throw userError(
+    //     `Unexpected response received - unable to parse profile source: ${JSON.stringify(
+    //       e,
+    //       null,
+    //       2
+    //     )}`, 1
+    //   );
+    // }
 
     // TODO: validate id format?
     if (typeof tmp.id === 'string') {
@@ -84,6 +85,7 @@ export async function newProfile(
 
   const profileResponse = await finishProfilePreparation(resultUrl, {
     client,
+    userError,
   });
 
   // Supports both . and / in profile id
@@ -146,7 +148,7 @@ async function startProfilePreparation(
 
 async function finishProfilePreparation(
   resultUrl: string,
-  { client }: { client: ServiceClient }
+  { client, userError }: { client: ServiceClient, userError: UserError }
 ): Promise<ProfilePreparationResponse> {
   const resultResponse = await client.fetch(resultUrl, {
     method: 'GET',
@@ -158,12 +160,12 @@ async function finishProfilePreparation(
   });
 
   if (resultResponse.status !== 200) {
-    throw Error(`Unexpected status code ${resultResponse.status} received`);
+    throw userError(`Unexpected status code ${resultResponse.status} received`, 1);
   }
 
   const body = (await resultResponse.json()) as unknown;
 
-  assertProfileResponse(body);
+  assertProfileResponse(body, { userError });
 
   return body;
 }

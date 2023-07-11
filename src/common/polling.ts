@@ -4,7 +4,7 @@ import type { UserError } from './error';
 import type { UX } from './ux';
 
 export const DEFAULT_POLLING_TIMEOUT_SECONDS = 300;
-export const DEFAULT_POLLING_INTERVAL_SECONDS = 1;
+export const DEFAULT_POLLING_INTERVAL_SECONDS = 2;
 
 enum PollStatus {
   Success = 'Success',
@@ -19,24 +19,24 @@ enum PollResultType {
 }
 type PollResponse =
   | {
-      result_url: string;
-      status: PollStatus.Success;
-      result_type: PollResultType;
-    }
+    result_url: string;
+    status: PollStatus.Success;
+    result_type: PollResultType;
+  }
   | {
-      status: PollStatus.Pending;
-      events: {
-        occuredAt: Date;
-        type: string;
-        description: string;
-      }[];
-      result_type: PollResultType;
-    }
+    status: PollStatus.Pending;
+    events: {
+      occuredAt: Date;
+      type: string;
+      description: string;
+    }[];
+    result_type: PollResultType;
+  }
   | {
-      status: PollStatus.Failed;
-      failure_reason: string;
-      result_type: PollResultType;
-    }
+    status: PollStatus.Failed;
+    failure_reason: string;
+    result_type: PollResultType;
+  }
   | { status: PollStatus.Cancelled; result_type: PollResultType };
 
 function isPollResponse(input: unknown): input is PollResponse {
@@ -94,12 +94,10 @@ export async function pollUrl(
     };
   },
   {
-    // logger,
     client,
     userError,
     ux,
   }: {
-    // logger: ILogger;
     client: ServiceClient;
     userError: UserError;
     ux: UX;
@@ -111,6 +109,8 @@ export async function pollUrl(
   const pollingIntervalMilliseconds =
     (options?.pollingIntervalSeconds ?? DEFAULT_POLLING_INTERVAL_SECONDS) *
     1000;
+
+  let lastEvenetDescription = '';
   while (
     new Date().getTime() - startPollingTimeStamp.getTime() <
     timeoutMilliseconds
@@ -118,11 +118,11 @@ export async function pollUrl(
     const result = await pollFetch(url, { client, userError });
 
     if (result.status === PollStatus.Success) {
+      ux.succeed(`Successfully finished operation`);
       return result.result_url;
     } else if (result.status === PollStatus.Failed) {
       throw userError(
-        `Failed to ${getJobDescription(result.result_type)}: ${
-          result.failure_reason
+        `Failed to ${getJobDescription(result.result_type)}: ${result.failure_reason
         }`,
         1
       );
@@ -133,19 +133,23 @@ export async function pollUrl(
         )}: Operation has been cancelled.`,
         1
       );
+    } else if (result.status === PollStatus.Pending) {
+      // get events from response and present them to user
+      if (result.events.length > 0 && options?.quiet !== true) {
+        const currentEvent = result.events[result.events.length - 1];
+
+        if (currentEvent.description !== lastEvenetDescription) {
+          // console.log(`${currentEvent.type} - ${currentEvent.description}`);
+          ux.info(`${currentEvent.type} - ${currentEvent.description}`);
+        }
+
+        lastEvenetDescription = currentEvent.description;
+
+        await new Promise(resolve =>
+          setTimeout(resolve, pollingIntervalMilliseconds)
+        );
+      }
     }
-
-    // get events from response and present them to user
-    if (result.events.length > 0 && options?.quiet !== true) {
-      const lastEvent = result.events[result.events.length - 1];
-
-      ux.info(`${lastEvent.type} - ${lastEvent.description}`);
-      // logger.info('pollingEvent', lastEvent.type, lastEvent.description);
-    }
-
-    await new Promise(resolve =>
-      setTimeout(resolve, pollingIntervalMilliseconds)
-    );
   }
 
   throw userError(
@@ -179,7 +183,19 @@ async function pollFetch(
     },
   });
   if (result.status === 200) {
-    const data = (await result.json()) as unknown;
+    let data: unknown;
+    try {
+      data = (await result.json()) as unknown;
+    } catch (error) {
+      throw userError(
+        `Unexpected response from server: ${JSON.stringify(
+          await result.text(),
+          null,
+          2
+        )}`,
+        1
+      );
+    }
 
     if (isPollResponse(data)) {
       return data;

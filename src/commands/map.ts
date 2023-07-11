@@ -128,8 +128,8 @@ export default class Map extends Command {
       boilerplate.saved
         ? `Boilerplate code prepared for ${resolvedLanguage} at ${boilerplate.path}`
         : `Boilerplate for ${getLanguageName(
-            resolvedLanguage
-          )} already exists at ${boilerplate.path}.`
+          resolvedLanguage
+        )} already exists at ${boilerplate.path}.`
     );
 
     if (boilerplate.envVariables !== undefined) {
@@ -154,10 +154,8 @@ export default class Map extends Command {
     ux.warn(project.installationGuide);
 
     ux.succeed(
-      `Local project set up. You can now install defined dependencies and run \`superface execute ${
-        resolvedProviderJson.providerJson.name
-      } ${
-        ProfileId.fromScopeName(profile.scope, profile.name).id
+      `Local project set up. You can now install defined dependencies and run \`superface execute ${resolvedProviderJson.providerJson.name
+      } ${ProfileId.fromScopeName(profile.scope, profile.name).id
       }\` to execute your integration.`
     );
   }
