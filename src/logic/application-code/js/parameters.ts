@@ -1,12 +1,9 @@
 import type { IntegrationParameter } from '@superfaceai/ast';
 import { prepareProviderParameters } from '@superfaceai/ast';
 
-// import type { ILogger } from '../../../common';
-
 export function prepareParameters(
   providerName: string,
   parameters: IntegrationParameter[] | undefined
-  // { logger }: { logger: ILogger }
 ): { parametersString: string; required: string[] } {
   if (!parameters) {
     return { parametersString: '{}', required: [] };
@@ -21,7 +18,6 @@ export function prepareParameters(
   }
   Object.values(parametersMap).forEach(value => {
     required.push(value);
-    // logger.info('requiredParameterValue', value);
   });
 
   const parametersString =
