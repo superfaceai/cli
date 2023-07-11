@@ -131,7 +131,7 @@ jobs:
           formula-path: Formula/superface.rb
           homebrew-tap: superfaceai/homebrew-cli
           base-branch: main
-          download-url: https://github.com/${{ github.repository }}/archive/refs/tags/${{ env.TARBALL_NAME }}
+          download-url: https://github.com/${{ github.repository }}/releases/download/${{ env.NEW_VERSION }}/${{ env.TARBALL_NAME }}
           tag-name: ${{ env.NEW_VERSION }}
           commit-message: |
             Updating {{formulaName}} to ${{ env.NEW_VERSION }}
