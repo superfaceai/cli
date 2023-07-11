@@ -29,7 +29,7 @@ describe('jsApplicationCode', () => {
     expect(result).toEqual({
       code: `import { config } from 'dotenv';
 // Load OneClient from SDK
-import { OneClient } from '@superfaceai/one-sdk/node/index.js';
+import { OneClient, PerformError, UnexpectedError } from '@superfaceai/one-sdk/node/index.js';
 
 // Load environment variables from .env file
 config();
@@ -61,7 +61,13 @@ async function main() {
     console.log("RESULT:", JSON.stringify(result, null, 2));
 
   } catch (e) {
-    console.log("ERROR:", JSON.stringify(e, null, 2));
+    if (e instanceof PerformError) {
+      console.log('ERROR RESULT:', e.errorResult);
+    } else if (e instanceof UnexpectedError) {
+      console.error('ERROR:', e);
+    } else {
+      throw e;
+    }
   }
 }
 

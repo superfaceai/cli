@@ -25,7 +25,6 @@ export const jsApplicationCode: ApplicationCodeWriter = ({
   parameters?: IntegrationParameter[];
   security?: SecurityScheme[];
 }) => {
-  // TODO: revisit this
   const pathToSdk = '@superfaceai/one-sdk/node/index.js';
 
   const profileId = ProfileId.fromScopeName(profile.scope, profile.name).id;
@@ -35,7 +34,7 @@ export const jsApplicationCode: ApplicationCodeWriter = ({
 
   const code = `import { config } from 'dotenv';
 // Load OneClient from SDK
-import { OneClient } from '${pathToSdk}';
+import { OneClient, PerformError, UnexpectedError } from '${pathToSdk}';
 
 // Load environment variables from .env file
 config();
@@ -67,7 +66,13 @@ async function main() {
     console.log("RESULT:", JSON.stringify(result, null, 2));
 
   } catch (e) {
-    console.log("ERROR:", JSON.stringify(e, null, 2));
+    if (e instanceof PerformError) {
+      console.log('ERROR RESULT:', e.errorResult);
+    } else if (e instanceof UnexpectedError) {
+      console.error('ERROR:', e);
+    } else {
+      throw e;
+    }
   }
 }
 
