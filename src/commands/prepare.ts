@@ -119,7 +119,6 @@ This command prepares a Provider JSON metadata definition that can be used to ge
       { userError, ux }
     );
 
-    ux.start('Saving provider definition');
     const providerJsonPath = await writeProviderJson(providerJson, {
       logger,
       userError,
