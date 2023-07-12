@@ -5,7 +5,7 @@ import { SupportedLanguages } from '../../application-code';
 
 export async function prepareJsProject(
   // https://www.npmjs.com/package/@superfaceai/one-sdk?activeTab=versions
-  sdkVerion = 'beta', // get latest beta using the `beta` tag
+  sdkVersion = 'beta', // get latest beta using the `beta` tag
   dotenvVersion = '^16.0.3'
 ): Promise<{
   saved: boolean;
@@ -24,7 +24,7 @@ export async function prepareJsProject(
     "author": "",
     "license": "ISC",
     "dependencies": {
-      "@superfaceai/one-sdk": "${sdkVerion}",
+      "@superfaceai/one-sdk": "${sdkVersion}",
       "dotenv": "${dotenvVersion}"
     }
   }`;
