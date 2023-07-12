@@ -24,6 +24,12 @@ const BEARER_AUTH: SecurityScheme = {
   scheme: HttpScheme.BEARER,
 };
 
+const EXISTING_DOTENV = `# Deployment zone
+# for AWS
+MY_PROVIDER_PARAM_TWO=us-west-1
+MY_PROVIDER_TOKEN=
+`;
+
 describe('createNewDotenv', () => {
   describe('when there is no previous .env', () => {
     it('creates valid .env when no parameters or security schemes are given', () => {
@@ -77,6 +83,67 @@ MY_PROVIDER_TOKEN=
           'MY_PROVIDER_USERNAME',
           'MY_PROVIDER_PASSWORD',
           'MY_PROVIDER_TOKEN',
+        ],
+      });
+    });
+  });
+
+  describe('when there is a previous existing .env', () => {
+    it('creates valid .env when no parameters or security schemes are given', () => {
+      const result = createNewDotenv({
+        previousDotenv: EXISTING_DOTENV,
+        providerName: PROVIDER_NAME,
+      });
+
+      expect(result).toStrictEqual({
+        content: EXISTING_DOTENV,
+        addedEnvVariables: [],
+      });
+    });
+
+    it('creates valid .env when 2 parameters but no security schemes are given', () => {
+      const result = createNewDotenv({
+        previousDotenv: EXISTING_DOTENV,
+        providerName: PROVIDER_NAME,
+        parameters: [PARAMETER, PARAMETER_WITH_DEFAULT],
+      });
+
+      expect(result).toStrictEqual({
+        content: `# Deployment zone
+# for AWS
+MY_PROVIDER_PARAM_TWO=us-west-1
+MY_PROVIDER_TOKEN=
+
+# Parameter description
+MY_PROVIDER_PARAM_ONE=
+`,
+        addedEnvVariables: ['MY_PROVIDER_PARAM_ONE'],
+      });
+    });
+
+    it('creates valid .env when 2 parameters and 2 security schemes are given', () => {
+      const result = createNewDotenv({
+        previousDotenv: EXISTING_DOTENV,
+        providerName: PROVIDER_NAME,
+        parameters: [PARAMETER, PARAMETER_WITH_DEFAULT],
+        security: [BASIC_AUTH, BEARER_AUTH],
+      });
+
+      expect(result).toStrictEqual({
+        content: `# Deployment zone
+# for AWS
+MY_PROVIDER_PARAM_TWO=us-west-1
+MY_PROVIDER_TOKEN=
+
+# Parameter description
+MY_PROVIDER_PARAM_ONE=
+MY_PROVIDER_USERNAME=
+MY_PROVIDER_PASSWORD=
+`,
+        addedEnvVariables: [
+          'MY_PROVIDER_PARAM_ONE',
+          'MY_PROVIDER_USERNAME',
+          'MY_PROVIDER_PASSWORD',
         ],
       });
     });
