@@ -4,7 +4,8 @@ import { OutputStream } from '../../../common/output-stream';
 import { SupportedLanguages } from '../../application-code';
 
 export async function prepareJsProject(
-  sdkVerion = 'beta',
+  // https://www.npmjs.com/package/@superfaceai/one-sdk?activeTab=versions
+  sdkVerion = 'beta', // get latest beta using the `beta` tag
   dotenvVersion = '^16.0.3'
 ): Promise<{
   saved: boolean;

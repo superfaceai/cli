@@ -84,26 +84,6 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPMJS_BOT_PAT }}
 
-      # Get package tarball
-      - name: Get package tarball
-        run: echo "TARBALL_URL=$(npm view @superfaceai/cli@${{ env.NEW_VERSION }} level dist.tarball)" >> $GITHUB_ENV
-
-      # Update Homebrew formula to the new version
-      # TODO: !!! Run only on stable releases
-      - name: Update Homebrew Formula
-        uses: mislav/bump-homebrew-formula-action@v2
-        with:
-          formula-name: superface
-          formula-path: Formula/superface.rb
-          homebrew-tap: superfaceai/homebrew-cli
-          base-branch: main
-          download-url: ${{ env.TARBALL_URL }}
-          tag-name: ${{ env.NEW_VERSION }}
-          commit-message: |
-            Updating {{formulaName}} to ${{ env.NEW_VERSION }}
-        env:
-          COMMITTER_TOKEN: ${{ secrets.GH_BOT_PAT }}
-
       # Push changes to origin
       - name: Push changes to repository
         env:
@@ -120,6 +100,16 @@ jobs:
           path-to-changelog: CHANGELOG.md
           version: ${{ env.NEW_VERSION }}
           operation: read
+  
+      # Create name for package tarball (reused in further steps)
+      - name: Make package tarball name
+        run: echo "TARBALL_NAME=superfaceai-cli-${{ env.NEW_VERSION }}.tgz" >> $GITHUB_ENV
+
+      # Create package tarball
+      - name: Create package tarball
+        run: yarn pack --filename $FILENAME
+        env:
+          FILENAME: ${{ env.TARBALL_NAME }}
 
       # Update release documentation
       - name: Update GitHub release documentation
@@ -128,8 +118,30 @@ jobs:
           tag_name: ${{ env.NEW_VERSION }}
           body: ${{ steps.get-changelog.outputs.changelog }}
           prerelease: ${{ startsWith(github.event.inputs.release-level, 'pre') }}
+          files: ${{ env.TARBALL_NAME }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # Wait for GH assets to be downloadable
+      - name: Wait for assets (10s)
+        run: sleep 10s
+        shell: bash
+
+      # Update Homebrew formula to the new version
+      # TODO: !!! Run only on stable releases
+      - name: Update Homebrew Formula
+        uses: mislav/bump-homebrew-formula-action@v2
+        with:
+          formula-name: superface
+          formula-path: Formula/superface.rb
+          homebrew-tap: superfaceai/homebrew-cli
+          base-branch: main
+          download-url: https://github.com/${{ github.repository }}/releases/download/${{ env.NEW_VERSION }}/${{ env.TARBALL_NAME }}
+          tag-name: ${{ env.NEW_VERSION }}
+          commit-message: |
+            Updating {{formulaName}} to ${{ env.NEW_VERSION }}
+        env:
+          COMMITTER_TOKEN: ${{ secrets.GH_BOT_PAT }}
 
       # Trigger Daily test for released version (excluding pre releases)
       - name: Trigger Daily Test
