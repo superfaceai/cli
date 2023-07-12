@@ -30,7 +30,7 @@ describe('preparePythonProject', () => {
   it('creates package.json if it does not exist', async () => {
     jest.mocked(exists).mockResolvedValueOnce(false);
 
-    await expect(preparePythonProject('3.0.0-alpha.12')).resolves.toEqual({
+    await expect(preparePythonProject('1.0.0b1')).resolves.toEqual({
       saved: true,
       installationGuide: expect.any(String),
       path: expect.stringContaining('superface/requirements.txt'),
@@ -45,7 +45,7 @@ describe('preparePythonProject', () => {
   it('does not create package.json if it exists', async () => {
     jest.mocked(exists).mockResolvedValueOnce(true);
 
-    await expect(preparePythonProject('3.0.0-alpha.12')).resolves.toEqual({
+    await expect(preparePythonProject('1.0.0b1')).resolves.toEqual({
       saved: false,
       installationGuide: expect.any(String),
       path: expect.stringContaining('superface/requirements.txt'),

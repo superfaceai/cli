@@ -29,10 +29,20 @@ export async function execute(
 
 function prepareCommand(
   file: string,
-  _language: SupportedLanguages
+  language: SupportedLanguages
 ): { command: string; args: string[] } {
-  return {
-    command: 'node',
-    args: ['--experimental-wasi-unstable-preview1', file],
+  const COMMAND_MAP: {
+    [key in SupportedLanguages]: { command: string; args: string[] };
+  } = {
+    js: {
+      command: 'node',
+      args: ['--experimental-wasi-unstable-preview1', file],
+    },
+    python: {
+      command: 'python3',
+      args: [file],
+    },
   };
+
+  return COMMAND_MAP[language];
 }

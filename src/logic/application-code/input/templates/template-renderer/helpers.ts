@@ -1,4 +1,7 @@
 /* eslint-disable */
+
+import { SupportedLanguages } from '../../../application-code';
+
 //TODO: add types
 export const HELPERS = [
   {
@@ -84,6 +87,25 @@ export const HELPERS = [
     name: 'inc',
     helper: function (value: any = 0, amount = 2) {
       return parseInt(value) + amount;
+    },
+  },
+  {
+    name: 'quotes',
+    helper: function (language: string) {
+      if (language === SupportedLanguages.PYTHON) {
+        return `"`;
+      }
+      return '';
+    },
+  },
+
+  {
+    name: 'booleanValue',
+    helper: function (language: string, value: boolean) {
+      if (language === SupportedLanguages.PYTHON) {
+        return value ? 'True' : 'False';
+      }
+      return value;
     },
   },
 

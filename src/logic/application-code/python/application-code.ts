@@ -3,8 +3,8 @@ import type { IntegrationParameter, SecurityScheme } from '@superfaceai/ast';
 import { buildSuperfaceDirPath } from '../../../common/file-structure';
 import { ProfileId } from '../../../common/profile';
 import type { ApplicationCodeWriter } from '../application-code';
-import { prepareParameters } from '../js/parameters';
-import { prepareSecurity } from '../js/security';
+import { prepareParameters } from './parameters';
+import { prepareSecurity } from './security';
 
 export const pythonApplicationCode: ApplicationCodeWriter = ({
   profile,
@@ -31,7 +31,8 @@ export const pythonApplicationCode: ApplicationCodeWriter = ({
 
   const code = `import os
 from dotenv import load_dotenv
-from superfaceai.one_sdk import OneClient
+import sys
+from one_sdk import OneClient, PerformError, UnexpectedError
 
 load_dotenv()
 
@@ -53,7 +54,14 @@ try:
   )
   print(f"RESULT: {result}")
 except Exception as e:
-  print(f"ERROR: {e}")`;
+  if isinstance(e, PerformError):
+    print(f"ERROR RESULT: {e.error_result}")
+  elif isinstance(e, UnexpectedError):
+    print(f"ERROR:", e, file=sys.stderr)
+  else:
+    raise e
+finally:
+  client.send_metrics_to_superface()`;
 
   return {
     code,
