@@ -55,11 +55,11 @@ try:
   print(f"RESULT: {result}")
 except Exception as e:
   if isinstance(e, PerformError):
-    print(f"ERROR RESULT: {e.error_result}")
+  print(f"ERROR RESULT: {e.error_result}")
   elif isinstance(e, UnexpectedError):
-    print(f"ERROR:", e, file=sys.stderr)
+  print(f"ERROR:", e, file=sys.stderr)
   else:
-    raise e
+  raise e
 finally:
   client.send_metrics_to_superface()`;
 
