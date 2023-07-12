@@ -3,14 +3,15 @@ import { exists } from '../../../common/io';
 import { OutputStream } from '../../../common/output-stream';
 import { SupportedLanguages } from '../../application-code';
 
-export async function preparePythonProject(sdkVerion = '1.0.0b0'): Promise<{
+export async function preparePythonProject(
+  sdkVersion = '1b' // beta on major 1
+): Promise<{
   saved: boolean;
   installationGuide: string;
   path: string;
 }> {
-  // TODO: revisit when SDK supports python
   const requirements = `
-one-sdk==${sdkVerion}
+one-sdk>=${sdkVersion}
 python-dotenv==1.0.0
 Brotli==1.0.9
 certifi==2023.5.7
