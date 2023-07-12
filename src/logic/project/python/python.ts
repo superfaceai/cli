@@ -23,7 +23,7 @@ wasmtime==10.0.0`;
     SupportedLanguages.PYTHON
   );
 
-  const installationGuide = `You need to have Python version 3.0.0 or higher installed to run the integration. You can check used dependencies in: ${requirementsPath}\nYou can install defined dependencies by running \`python3 -m pip install -r requirements.txt\` in \`superface\` directory.`;
+  const installationGuide = `You need to have Python version 3.8 or higher installed to run the integration. You can check used dependencies in: ${requirementsPath}\nYou can install defined dependencies by running \`python3 -m pip install -r requirements.txt\` in \`superface\` directory.`;
 
   if (!(await exists(requirementsPath))) {
     await OutputStream.writeOnce(requirementsPath, requirements);
