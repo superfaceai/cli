@@ -3,6 +3,7 @@ import type { IntegrationParameter, SecurityScheme } from '@superfaceai/ast';
 import { buildSuperfaceDirPath } from '../../../common/file-structure';
 import { ProfileId } from '../../../common/profile';
 import type { ApplicationCodeWriter } from '../application-code';
+import { ONESDK_TOKEN_COMMENT, ONESDK_TOKEN_ENV } from '../dotenv';
 import { prepareParameters } from './parameters';
 import { prepareSecurity } from './security';
 
@@ -37,8 +38,8 @@ from one_sdk import OneClient, PerformError, UnexpectedError
 load_dotenv()
 
 client = OneClient(
-  # Optionally you can use your OneSDK token to monitor your usage. Get one at https://superface.ai/app
-  # token =
+  # ${ONESDK_TOKEN_COMMENT}
+  token = os.getenv("${ONESDK_TOKEN_ENV}"),
   # Specify path to assets folder
   assets_path = "${buildSuperfaceDirPath()}"
 )

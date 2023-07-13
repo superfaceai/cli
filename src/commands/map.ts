@@ -11,7 +11,7 @@ import {
   buildProjectDotenvFilePath,
   buildRunFilePath,
 } from '../common/file-structure';
-import { SuperfaceClient } from '../common/http';
+import { fetchSDKToken, SuperfaceClient } from '../common/http';
 import { exists, readFile, readFileQuiet } from '../common/io';
 import type { ILogger } from '../common/log';
 import { OutputStream } from '../common/output-stream';
@@ -234,6 +234,7 @@ async function saveDotenv(
 ): Promise<{ dotenvPath: string; newEnvVariables: string[] }> {
   const dotenvPath = buildProjectDotenvFilePath();
 
+  const { token } = await fetchSDKToken();
   const existingDotenv = await readFileQuiet(dotenvPath);
 
   const newDotenv = createNewDotenv({
@@ -241,6 +242,7 @@ async function saveDotenv(
     providerName: providerJson.name,
     parameters: providerJson.parameters,
     security: providerJson.securitySchemes,
+    token,
   });
 
   if (newDotenv.content) {

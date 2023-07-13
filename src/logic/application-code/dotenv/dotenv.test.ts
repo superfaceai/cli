@@ -23,8 +23,10 @@ const BEARER_AUTH: SecurityScheme = {
   type: SecurityType.HTTP,
   scheme: HttpScheme.BEARER,
 };
+const TOKEN = 'sfs_b31314b7fc8...8ec1930e';
 
-const EXISTING_DOTENV = `# Deployment zone
+const EXISTING_DOTENV = `SUPERFACE_ONESDK_TOKEN=sfs_b31314b7fc8...8ec1930e
+# Deployment zone
 # for AWS
 MY_PROVIDER_PARAM_TWO=us-west-1
 MY_PROVIDER_TOKEN=
@@ -32,12 +34,28 @@ MY_PROVIDER_TOKEN=
 
 describe('createNewDotenv', () => {
   describe('when there is no previous .env', () => {
-    it('creates valid .env when no parameters or security schemes are given', () => {
+    it('creates valid .env when no token, no parameters or security schemes are given', () => {
       const result = createNewDotenv({ providerName: PROVIDER_NAME });
 
       expect(result).toStrictEqual({
-        content: '',
-        addedEnvVariables: [],
+        content: `# Set your OneSDK token to monitor your usage out-of-the-box. Get yours at https://superface.ai/app
+SUPERFACE_ONESDK_TOKEN=
+`,
+        addedEnvVariables: ['SUPERFACE_ONESDK_TOKEN'],
+      });
+    });
+
+    it('creates valid .env when valid token but no parameters or security schemes are given', () => {
+      const result = createNewDotenv({
+        providerName: PROVIDER_NAME,
+        token: TOKEN,
+      });
+
+      expect(result).toStrictEqual({
+        content: `# OneSDK token lets you monitor your usage out-of-the-box at https://superface.ai/app
+SUPERFACE_ONESDK_TOKEN=sfs_b31314b7fc8...8ec1930e
+`,
+        addedEnvVariables: ['SUPERFACE_ONESDK_TOKEN'],
       });
     });
 
@@ -45,17 +63,25 @@ describe('createNewDotenv', () => {
       const result = createNewDotenv({
         providerName: PROVIDER_NAME,
         parameters: [PARAMETER, PARAMETER_WITH_DEFAULT],
+        token: TOKEN,
       });
 
       expect(result).toStrictEqual({
-        content: `# Parameter description
+        content: `# OneSDK token lets you monitor your usage out-of-the-box at https://superface.ai/app
+SUPERFACE_ONESDK_TOKEN=sfs_b31314b7fc8...8ec1930e
+
+# Parameter description
 MY_PROVIDER_PARAM_ONE=
 
 # Deployment zone
 # for AWS
 MY_PROVIDER_PARAM_TWO=us-west-1
 `,
-        addedEnvVariables: ['MY_PROVIDER_PARAM_ONE', 'MY_PROVIDER_PARAM_TWO'],
+        addedEnvVariables: [
+          'SUPERFACE_ONESDK_TOKEN',
+          'MY_PROVIDER_PARAM_ONE',
+          'MY_PROVIDER_PARAM_TWO',
+        ],
       });
     });
 
@@ -64,10 +90,14 @@ MY_PROVIDER_PARAM_TWO=us-west-1
         providerName: PROVIDER_NAME,
         parameters: [PARAMETER, PARAMETER_WITH_DEFAULT],
         security: [BASIC_AUTH, BEARER_AUTH],
+        token: TOKEN,
       });
 
       expect(result).toStrictEqual({
-        content: `# Parameter description
+        content: `# OneSDK token lets you monitor your usage out-of-the-box at https://superface.ai/app
+SUPERFACE_ONESDK_TOKEN=sfs_b31314b7fc8...8ec1930e
+
+# Parameter description
 MY_PROVIDER_PARAM_ONE=
 
 # Deployment zone
@@ -78,6 +108,7 @@ MY_PROVIDER_PASSWORD=
 MY_PROVIDER_TOKEN=
 `,
         addedEnvVariables: [
+          'SUPERFACE_ONESDK_TOKEN',
           'MY_PROVIDER_PARAM_ONE',
           'MY_PROVIDER_PARAM_TWO',
           'MY_PROVIDER_USERNAME',
@@ -89,7 +120,7 @@ MY_PROVIDER_TOKEN=
   });
 
   describe('when there is a previous existing .env', () => {
-    it('creates valid .env when no parameters or security schemes are given', () => {
+    it('creates valid .env when no token, no parameters or security schemes are given', () => {
       const result = createNewDotenv({
         previousDotenv: EXISTING_DOTENV,
         providerName: PROVIDER_NAME,
@@ -109,7 +140,8 @@ MY_PROVIDER_TOKEN=
       });
 
       expect(result).toStrictEqual({
-        content: `# Deployment zone
+        content: `SUPERFACE_ONESDK_TOKEN=sfs_b31314b7fc8...8ec1930e
+# Deployment zone
 # for AWS
 MY_PROVIDER_PARAM_TWO=us-west-1
 MY_PROVIDER_TOKEN=
@@ -130,7 +162,8 @@ MY_PROVIDER_PARAM_ONE=
       });
 
       expect(result).toStrictEqual({
-        content: `# Deployment zone
+        content: `SUPERFACE_ONESDK_TOKEN=sfs_b31314b7fc8...8ec1930e
+# Deployment zone
 # for AWS
 MY_PROVIDER_PARAM_TWO=us-west-1
 MY_PROVIDER_TOKEN=

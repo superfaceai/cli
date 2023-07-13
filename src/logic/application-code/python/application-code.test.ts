@@ -35,8 +35,8 @@ from one_sdk import OneClient, PerformError, UnexpectedError
 load_dotenv()
 
 client = OneClient(
-  # Optionally you can use your OneSDK token to monitor your usage. Get one at https://superface.ai/app
-  # token =
+  # OneSDK token lets you monitor your usage out-of-the-box at https://superface.ai/app
+  token = os.getenv("SUPERFACE_ONESDK_TOKEN"),
   # Specify path to assets folder
   assets_path = "${buildSuperfaceDirPath()}"
 )

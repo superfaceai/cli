@@ -165,3 +165,22 @@ export async function fetchMapAST(id: {
 
   return assertMapDocumentNode(JSON.parse(response));
 }
+
+export async function fetchSDKToken(
+  defaultProjectName = 'default-project'
+): Promise<{ token: string | null }> {
+  const client = SuperfaceClient.getClient();
+
+  try {
+    const userInfo = await client.getUserInfo();
+    const accountHandle = userInfo.accounts[0].handle;
+
+    const project = await client.getProject(accountHandle, defaultProjectName);
+
+    const token = project.sdk_auth_tokens?.[0].token ?? null;
+
+    return { token };
+  } catch (_) {
+    return { token: null };
+  }
+}

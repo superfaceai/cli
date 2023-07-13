@@ -2,6 +2,7 @@ import { parseProfile, Source } from '@superfaceai/parser';
 
 import { MockLogger } from '../common';
 import { createUserError } from '../common/error';
+import { fetchSDKToken } from '../common/http';
 import { exists, readFile } from '../common/io';
 import { OutputStream } from '../common/output-stream';
 import { UX } from '../common/ux';
@@ -19,6 +20,7 @@ import Map from './map';
 
 jest.mock('../common/io');
 jest.mock('../common/output-stream');
+jest.mock('../common/http');
 jest.mock('../logic/map');
 jest.mock('../logic/application-code/application-code');
 jest.mock('../logic/application-code/dotenv');
@@ -51,6 +53,7 @@ describe('MapCLI command', () => {
     content: 'TEST_PARAMETER=\nTEST_SECURITY=',
     addedEnvVariables: ['TEST_PARAMETER', 'TEST_SECURITY'],
   };
+  const mockToken = { token: 'sfs_b31314b7fc8...8ec1930e' };
   const providerJson = mockProviderJson({ name: providerName });
   const userError = createUserError(false);
   const ux = UX.create();
@@ -262,6 +265,7 @@ describe('MapCLI command', () => {
         .mocked(writeApplicationCode)
         .mockResolvedValueOnce(mockApplicationCode);
 
+      jest.mocked(fetchSDKToken).mockResolvedValueOnce(mockToken);
       jest.mocked(createNewDotenv).mockReturnValueOnce(mockDotenv);
 
       jest.mocked(mapProviderToProfile).mockResolvedValueOnce(mapSource);
@@ -319,6 +323,7 @@ describe('MapCLI command', () => {
         .mocked(writeApplicationCode)
         .mockResolvedValueOnce(mockApplicationCode);
 
+      jest.mocked(fetchSDKToken).mockResolvedValueOnce(mockToken);
       jest.mocked(createNewDotenv).mockReturnValueOnce(mockDotenv);
 
       jest.mocked(mapProviderToProfile).mockResolvedValueOnce(mapSource);
@@ -398,6 +403,7 @@ describe('MapCLI command', () => {
         .mocked(writeApplicationCode)
         .mockResolvedValueOnce(mockApplicationCode);
 
+      jest.mocked(fetchSDKToken).mockResolvedValueOnce(mockToken);
       jest.mocked(createNewDotenv).mockReturnValueOnce(mockDotenv);
 
       await instance.execute({
@@ -473,6 +479,7 @@ describe('MapCLI command', () => {
         .mocked(writeApplicationCode)
         .mockResolvedValueOnce(mockApplicationCode);
 
+      jest.mocked(fetchSDKToken).mockResolvedValueOnce(mockToken);
       jest.mocked(createNewDotenv).mockReturnValueOnce(mockDotenv);
 
       await instance.execute({

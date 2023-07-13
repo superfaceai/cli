@@ -4,6 +4,12 @@ import {
   prepareSecurityValues,
 } from '@superfaceai/ast';
 
+import {
+  ONESDK_TOKEN_COMMENT,
+  ONESDK_TOKEN_ENV,
+  ONESDK_TOKEN_UNAVAILABLE_COMMENT,
+} from './onesdk-token';
+
 export type NewDotenv = {
   content: string;
   addedEnvVariables: string[];
@@ -20,25 +26,40 @@ export function createNewDotenv({
   providerName,
   parameters,
   security,
+  token,
 }: {
   previousDotenv?: string;
   providerName: string;
   parameters?: IntegrationParameter[];
   security?: SecurityScheme[];
+  token?: string | null;
 }): NewDotenv {
   const previousContent = previousDotenv ?? '';
 
   const parameterEnvs = getParameterEnvs(providerName, parameters);
   const securityEnvs = getSecurityEnvs(providerName, security);
-  const allProviderEnvVariables = [...parameterEnvs, ...securityEnvs];
+  const tokenEnv = makeTokenEnv(token);
+
+  const allEnvVariables = [tokenEnv, ...parameterEnvs, ...securityEnvs];
 
   const newEnvsOnly = makeFilterForNewEnvs(previousContent);
 
-  const newEnvVariables = allProviderEnvVariables.filter(newEnvsOnly);
+  const newEnvVariables = allEnvVariables.filter(newEnvsOnly);
 
   return {
     content: serializeContent(previousContent, newEnvVariables),
     addedEnvVariables: newEnvVariables.map(e => e.name),
+  };
+}
+
+function makeTokenEnv(token?: string | null): EnvVar {
+  return {
+    name: ONESDK_TOKEN_ENV,
+    value: token ?? undefined,
+    comment:
+      token !== undefined && token !== null
+        ? ONESDK_TOKEN_COMMENT
+        : ONESDK_TOKEN_UNAVAILABLE_COMMENT,
   };
 }
 
