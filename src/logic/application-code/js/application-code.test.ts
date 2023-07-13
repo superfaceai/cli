@@ -35,7 +35,7 @@ import { OneClient, PerformError, UnexpectedError } from '@superfaceai/one-sdk/n
 config();
 
 const client = new OneClient({
-  // OneSDK token lets your monitor your usage out-of-the-box at https://superface.ai/app
+  // OneSDK token lets you monitor your usage out-of-the-box at https://superface.ai/app
   token: process.env.SUPERFACE_ONESDK_TOKEN,
   // Specify path to assets folder
   assetsPath: '${buildSuperfaceDirPath()}'

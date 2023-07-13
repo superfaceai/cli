@@ -52,7 +52,7 @@ SUPERFACE_ONESDK_TOKEN=
       });
 
       expect(result).toStrictEqual({
-        content: `# OneSDK token lets your monitor your usage out-of-the-box at https://superface.ai/app
+        content: `# OneSDK token lets you monitor your usage out-of-the-box at https://superface.ai/app
 SUPERFACE_ONESDK_TOKEN=sfs_b31314b7fc8...8ec1930e
 `,
         addedEnvVariables: ['SUPERFACE_ONESDK_TOKEN'],
@@ -67,7 +67,7 @@ SUPERFACE_ONESDK_TOKEN=sfs_b31314b7fc8...8ec1930e
       });
 
       expect(result).toStrictEqual({
-        content: `# OneSDK token lets your monitor your usage out-of-the-box at https://superface.ai/app
+        content: `# OneSDK token lets you monitor your usage out-of-the-box at https://superface.ai/app
 SUPERFACE_ONESDK_TOKEN=sfs_b31314b7fc8...8ec1930e
 
 # Parameter description
@@ -94,7 +94,7 @@ MY_PROVIDER_PARAM_TWO=us-west-1
       });
 
       expect(result).toStrictEqual({
-        content: `# OneSDK token lets your monitor your usage out-of-the-box at https://superface.ai/app
+        content: `# OneSDK token lets you monitor your usage out-of-the-box at https://superface.ai/app
 SUPERFACE_ONESDK_TOKEN=sfs_b31314b7fc8...8ec1930e
 
 # Parameter description
