@@ -1,6 +1,5 @@
 import { MockLogger } from '../../../common';
 import { buildSuperfaceDirPath } from '../../../common/file-structure';
-import { ONESDK_TOKEN_COMMENT, ONESDK_TOKEN_ENV } from '../dotenv';
 import { pythonApplicationCode } from './application-code';
 
 describe('pythonApplicationCode', () => {
@@ -36,8 +35,8 @@ from one_sdk import OneClient, PerformError, UnexpectedError
 load_dotenv()
 
 client = OneClient(
-  # ${ONESDK_TOKEN_COMMENT}
-  token = os.getenv("${ONESDK_TOKEN_ENV}")
+  # OneSDK token lets your monitor your usage out-of-the-box at https://superface.ai/app
+  token = os.getenv("SUPERFACE_ONESDK_TOKEN")
   # Specify path to assets folder
   assets_path = "${buildSuperfaceDirPath()}"
 )
