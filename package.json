@@ -74,9 +74,6 @@
   "oclif": {
     "commands": "dist/commands",
     "bin": "superface",
-    "hooks": {
-      "init": "dist/hooks/init"
-    },
     "plugins": [
       "@oclif/plugin-warn-if-update-available"
     ],
