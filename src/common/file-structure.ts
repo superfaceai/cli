@@ -89,3 +89,7 @@ export function buildProjectDefinitionFilePath(
 
   return join(buildSuperfaceDirPath(), FILENAME_MAP[language]);
 }
+
+export function buildProjectDotenvFilePath(): string {
+  return join(buildSuperfaceDirPath(), '.env');
+}
