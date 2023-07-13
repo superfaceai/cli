@@ -38,45 +38,42 @@ import { OneClient, PerformError, UnexpectedError } from '${pathToSdk}';
 
 // Load environment variables from .env file
 config();
-async function main() {
-  const client = new OneClient({
-    // Optionally you can use your OneSDK token to monitor your usage. Get one at https://superface.ai/app
-    // token:
-    // Specify path to assets folder
-    assetsPath: '${buildSuperfaceDirPath()}'
-  });
 
-  // Load profile and use case
-  const profile = await client.getProfile('${profileId}');
-  const useCase = profile.getUseCase('${useCaseName}')
+const client = new OneClient({
+  // Optionally you can use your OneSDK token to monitor your usage. Get one at https://superface.ai/app
+  // token:
+  // Specify path to assets folder
+  assetsPath: '${buildSuperfaceDirPath()}'
+});
 
-  try {
-    // Execute use case
-    const result = await useCase.perform(
-      // Use case input
-      ${input},
-      {
-        provider: '${provider}',
-        parameters: ${preparedParameters.parametersString},
-        // Security values for provider
-        security: ${preparedSecurity.securityString}
-      }
-    );
+// Load profile and use case
+const profile = await client.getProfile('${profileId}');
+const useCase = profile.getUseCase('${useCaseName}')
 
-    console.log("RESULT:", JSON.stringify(result, null, 2));
-
-  } catch (e) {
-    if (e instanceof PerformError) {
-      console.log('ERROR RESULT:', e.errorResult);
-    } else if (e instanceof UnexpectedError) {
-      console.error('ERROR:', e);
-    } else {
-      throw e;
+try {
+  // Execute use case
+  const result = await useCase.perform(
+    // Use case input
+    ${input},
+    {
+      provider: '${provider}',
+      parameters: ${preparedParameters.parametersString},
+      // Security values for provider
+      security: ${preparedSecurity.securityString}
     }
+  );
+
+  console.log("RESULT:", JSON.stringify(result, null, 2));
+} catch (e) {
+  if (e instanceof PerformError) {
+    console.log('ERROR RESULT:', e.errorResult);
+  } else if (e instanceof UnexpectedError) {
+    console.error('ERROR:', e);
+  } else {
+    throw e;
   }
 }
-
-void main();`;
+`;
 
   return {
     code,
