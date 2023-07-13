@@ -36,7 +36,7 @@ load_dotenv()
 
 client = OneClient(
   # OneSDK token lets you monitor your usage out-of-the-box at https://superface.ai/app
-  token = os.getenv("SUPERFACE_ONESDK_TOKEN")
+  token = os.getenv("SUPERFACE_ONESDK_TOKEN"),
   # Specify path to assets folder
   assets_path = "${buildSuperfaceDirPath()}"
 )

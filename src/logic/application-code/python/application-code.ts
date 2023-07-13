@@ -39,7 +39,7 @@ load_dotenv()
 
 client = OneClient(
   # ${ONESDK_TOKEN_COMMENT}
-  token = os.getenv("${ONESDK_TOKEN_ENV}")
+  token = os.getenv("${ONESDK_TOKEN_ENV}"),
   # Specify path to assets folder
   assets_path = "${buildSuperfaceDirPath()}"
 )
