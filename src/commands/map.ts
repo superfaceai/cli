@@ -50,9 +50,8 @@ export default class Map extends Command {
       name: 'language',
       description: 'Language which will use generated code. Default is `js`.',
       required: false,
-      default: 'js',
       options: Object.values(SupportedLanguages),
-      // Hidden because we support only js for now
+      // Hidden until we figure better language select DX
       hidden: true,
     },
   ];
@@ -87,6 +86,7 @@ export default class Map extends Command {
     const { providerName, profileId, language } = args;
 
     const resolvedLanguage = resolveLanguage(language, { userError });
+    const hasExplicitLanguageSelect = language !== undefined;
 
     ux.start('Loading profile');
     const profile = await resolveProfileSource(profileId, { userError });
@@ -157,12 +157,15 @@ export default class Map extends Command {
 
     ux.warn(project.installationGuide);
 
+    const executeCommand = makeExecuteCommand({
+      providerName: resolvedProviderJson.providerJson.name,
+      profileScope: profile.scope,
+      profileName: profile.name,
+      resolvedLanguage,
+      hasExplicitLanguageSelect,
+    });
     ux.succeed(
-      `Local project set up. You can now install defined dependencies and run \`superface execute ${
-        resolvedProviderJson.providerJson.name
-      } ${
-        ProfileId.fromScopeName(profile.scope, profile.name).id
-      }\` to execute your integration.`
+      `Local project set up. You can now install defined dependencies and run \`${executeCommand}\` to execute your integration.`
     );
   }
 }
@@ -340,4 +343,26 @@ async function saveMap({
   await OutputStream.writeOnce(mapPath, map);
 
   return mapPath;
+}
+
+function makeExecuteCommand({
+  providerName,
+  profileScope,
+  profileName,
+  resolvedLanguage,
+  hasExplicitLanguageSelect,
+}: {
+  providerName: string;
+  profileScope: string | undefined;
+  profileName: string;
+  resolvedLanguage: SupportedLanguages;
+  hasExplicitLanguageSelect: boolean;
+}): string {
+  const sfExecute = `superface execute ${providerName} ${
+    ProfileId.fromScopeName(profileScope, profileName).id
+  }`;
+
+  return hasExplicitLanguageSelect
+    ? `${sfExecute} ${resolvedLanguage}`
+    : sfExecute;
 }
