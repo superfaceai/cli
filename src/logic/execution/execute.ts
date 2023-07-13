@@ -36,7 +36,7 @@ function prepareCommand(
   } = {
     js: {
       command: 'node',
-      args: ['--experimental-wasi-unstable-preview1', file],
+      args: ['--no-warnings', '--experimental-wasi-unstable-preview1', file],
     },
     python: {
       command: 'python3',
