@@ -3,6 +3,7 @@ import {
   buildMapPath,
   buildProfilePath,
   buildProjectDefinitionFilePath,
+  buildProjectDotenvFilePath,
   buildProviderPath,
   buildRunFilePath,
   buildSuperfaceDirPath,
@@ -119,6 +120,14 @@ describe('fileStructure', () => {
     it('builds project definition file path', () => {
       expect(buildProjectDefinitionFilePath()).toEqual(
         expect.stringContaining(`/superface/package.json`)
+      );
+    });
+  });
+
+  describe('buildProjectDotenvFilePath', () => {
+    it('builds project .env file path', () => {
+      expect(buildProjectDotenvFilePath()).toEqual(
+        expect.stringContaining(`/superface/.env`)
       );
     });
   });

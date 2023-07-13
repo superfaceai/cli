@@ -5,10 +5,12 @@ import { createUserError } from '../common/error';
 import { exists, readFile } from '../common/io';
 import { OutputStream } from '../common/output-stream';
 import { UX } from '../common/ux';
+import type { NewDotenv } from '../logic';
 import {
+  createNewDotenv,
   SupportedLanguages,
   writeApplicationCode,
-} from '../logic/application-code/application-code';
+} from '../logic/application-code';
 import { mapProviderToProfile } from '../logic/map';
 import { prepareProject } from '../logic/project';
 import { mockProviderJson } from '../test/provider-json';
@@ -19,6 +21,7 @@ jest.mock('../common/io');
 jest.mock('../common/output-stream');
 jest.mock('../logic/map');
 jest.mock('../logic/application-code/application-code');
+jest.mock('../logic/application-code/dotenv');
 jest.mock('../logic/project');
 
 describe('MapCLI command', () => {
@@ -43,6 +46,10 @@ describe('MapCLI command', () => {
     code: 'mocked application code',
     requiredParameters: ['TEST_PARAMETER'],
     requiredSecurity: ['TEST_SECURITY'],
+  };
+  const mockDotenv: NewDotenv = {
+    content: 'TEST_PARAMETER=\nTEST_SECURITY=',
+    addedEnvVariables: ['TEST_PARAMETER', 'TEST_SECURITY'],
   };
   const providerJson = mockProviderJson({ name: providerName });
   const userError = createUserError(false);
@@ -255,6 +262,8 @@ describe('MapCLI command', () => {
         .mocked(writeApplicationCode)
         .mockResolvedValueOnce(mockApplicationCode);
 
+      jest.mocked(createNewDotenv).mockReturnValueOnce(mockDotenv);
+
       jest.mocked(mapProviderToProfile).mockResolvedValueOnce(mapSource);
 
       await instance.execute({
@@ -309,6 +318,8 @@ describe('MapCLI command', () => {
       jest
         .mocked(writeApplicationCode)
         .mockResolvedValueOnce(mockApplicationCode);
+
+      jest.mocked(createNewDotenv).mockReturnValueOnce(mockDotenv);
 
       jest.mocked(mapProviderToProfile).mockResolvedValueOnce(mapSource);
 
@@ -387,6 +398,8 @@ describe('MapCLI command', () => {
         .mocked(writeApplicationCode)
         .mockResolvedValueOnce(mockApplicationCode);
 
+      jest.mocked(createNewDotenv).mockReturnValueOnce(mockDotenv);
+
       await instance.execute({
         logger,
         userError,
@@ -459,6 +472,8 @@ describe('MapCLI command', () => {
       jest
         .mocked(writeApplicationCode)
         .mockResolvedValueOnce(mockApplicationCode);
+
+      jest.mocked(createNewDotenv).mockReturnValueOnce(mockDotenv);
 
       await instance.execute({
         logger,
