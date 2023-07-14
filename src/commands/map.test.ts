@@ -51,7 +51,7 @@ describe('MapCLI command', () => {
   };
   const mockDotenv: NewDotenv = {
     content: 'TEST_PARAMETER=\nTEST_SECURITY=',
-    addedEnvVariables: ['TEST_PARAMETER', 'TEST_SECURITY'],
+    newEmptyEnvVariables: ['TEST_PARAMETER', 'TEST_SECURITY'],
   };
   const mockToken = { token: 'sfs_b31314b7fc8...8ec1930e' };
   const providerJson = mockProviderJson({ name: providerName });
@@ -247,7 +247,8 @@ describe('MapCLI command', () => {
 
       jest.mocked(prepareProject).mockResolvedValueOnce({
         saved: true,
-        installationGuide: 'test',
+        dependencyInstallCommand: 'make install',
+        languageDependency: 'TestLang > 18',
         path: 'test',
       });
 
@@ -305,7 +306,8 @@ describe('MapCLI command', () => {
 
       jest.mocked(prepareProject).mockResolvedValueOnce({
         saved: true,
-        installationGuide: 'test',
+        dependencyInstallCommand: 'make install',
+        languageDependency: 'TestLang > 18',
         path: 'test',
       });
 
@@ -383,7 +385,8 @@ describe('MapCLI command', () => {
 
       jest.mocked(prepareProject).mockResolvedValueOnce({
         saved: true,
-        installationGuide: 'test',
+        dependencyInstallCommand: 'make install',
+        languageDependency: 'TestLang > 18',
         path: 'test',
       });
 
@@ -459,7 +462,8 @@ describe('MapCLI command', () => {
 
       jest.mocked(prepareProject).mockResolvedValueOnce({
         saved: true,
-        installationGuide: 'test',
+        dependencyInstallCommand: 'make install',
+        languageDependency: 'TestLang > 18',
         path: 'test',
       });
 

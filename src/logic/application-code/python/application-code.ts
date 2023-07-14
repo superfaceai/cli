@@ -40,12 +40,14 @@ load_dotenv()
 client = OneClient(
   # ${ONESDK_TOKEN_COMMENT}
   token = os.getenv("${ONESDK_TOKEN_ENV}"),
-  # Specify path to assets folder
+  # Path to Comlinks within your project
   assets_path = "${buildSuperfaceDirPath()}"
 )
 
+# Load Comlink profile and use case
 profile = client.get_profile("${profileId}")
 use_case = profile.get_usecase("${useCaseName}")
+
 try:
   result = use_case.perform(
     ${input},

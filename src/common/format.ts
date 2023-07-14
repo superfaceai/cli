@@ -1,3 +1,5 @@
+import { relative } from 'path';
+
 export function formatWordPlurality(num: number, word: string): string {
   if (num === 1) {
     return `${num} ${word}`;
@@ -21,4 +23,11 @@ export function startCase(input: string, delimiter = ' '): string {
       result + (index ? delimiter : '') + capitalize(word),
     ''
   );
+}
+
+export function formatPath(
+  absolutePath: string,
+  relativeTo = process.cwd()
+): string {
+  return relative(relativeTo, absolutePath);
 }

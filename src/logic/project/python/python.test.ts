@@ -32,7 +32,8 @@ describe('preparePythonProject', () => {
 
     await expect(preparePythonProject('1.0.0b1')).resolves.toEqual({
       saved: true,
-      installationGuide: expect.any(String),
+      dependencyInstallCommand: expect.any(String),
+      languageDependency: expect.any(String),
       path: expect.stringContaining('superface/requirements.txt'),
     });
 
@@ -47,7 +48,8 @@ describe('preparePythonProject', () => {
 
     await expect(preparePythonProject('1.0.0b1')).resolves.toEqual({
       saved: false,
-      installationGuide: expect.any(String),
+      dependencyInstallCommand: expect.any(String),
+      languageDependency: expect.any(String),
       path: expect.stringContaining('superface/requirements.txt'),
     });
 

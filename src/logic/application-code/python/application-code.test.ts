@@ -35,14 +35,16 @@ from one_sdk import OneClient, PerformError, UnexpectedError
 load_dotenv()
 
 client = OneClient(
-  # OneSDK token lets you monitor your usage out-of-the-box at https://superface.ai/app
+  # The token for monitoring your Comlinks at https://superface.ai
   token = os.getenv("SUPERFACE_ONESDK_TOKEN"),
-  # Specify path to assets folder
+  # Path to Comlinks within your project
   assets_path = "${buildSuperfaceDirPath()}"
 )
 
+# Load Comlink profile and use case
 profile = client.get_profile("${scope}/${name}")
 use_case = profile.get_usecase("${useCaseName}")
+
 try:
   result = use_case.perform(
     {},

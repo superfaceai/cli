@@ -38,10 +38,10 @@ describe('createNewDotenv', () => {
       const result = createNewDotenv({ providerName: PROVIDER_NAME });
 
       expect(result).toStrictEqual({
-        content: `# Set your OneSDK token to monitor your usage out-of-the-box. Get yours at https://superface.ai/app
+        content: `# Set your OneSDK token to monitor your usage out-of-the-box. Get yours at https://superface.ai
 SUPERFACE_ONESDK_TOKEN=
 `,
-        addedEnvVariables: ['SUPERFACE_ONESDK_TOKEN'],
+        newEmptyEnvVariables: ['SUPERFACE_ONESDK_TOKEN'],
       });
     });
 
@@ -52,10 +52,10 @@ SUPERFACE_ONESDK_TOKEN=
       });
 
       expect(result).toStrictEqual({
-        content: `# OneSDK token lets you monitor your usage out-of-the-box at https://superface.ai/app
+        content: `# The token for monitoring your Comlinks at https://superface.ai
 SUPERFACE_ONESDK_TOKEN=sfs_b31314b7fc8...8ec1930e
 `,
-        addedEnvVariables: ['SUPERFACE_ONESDK_TOKEN'],
+        newEmptyEnvVariables: [],
       });
     });
 
@@ -67,7 +67,7 @@ SUPERFACE_ONESDK_TOKEN=sfs_b31314b7fc8...8ec1930e
       });
 
       expect(result).toStrictEqual({
-        content: `# OneSDK token lets you monitor your usage out-of-the-box at https://superface.ai/app
+        content: `# The token for monitoring your Comlinks at https://superface.ai
 SUPERFACE_ONESDK_TOKEN=sfs_b31314b7fc8...8ec1930e
 
 # Parameter description
@@ -77,11 +77,7 @@ MY_PROVIDER_PARAM_ONE=
 # for AWS
 MY_PROVIDER_PARAM_TWO=us-west-1
 `,
-        addedEnvVariables: [
-          'SUPERFACE_ONESDK_TOKEN',
-          'MY_PROVIDER_PARAM_ONE',
-          'MY_PROVIDER_PARAM_TWO',
-        ],
+        newEmptyEnvVariables: ['MY_PROVIDER_PARAM_ONE'],
       });
     });
 
@@ -94,7 +90,7 @@ MY_PROVIDER_PARAM_TWO=us-west-1
       });
 
       expect(result).toStrictEqual({
-        content: `# OneSDK token lets you monitor your usage out-of-the-box at https://superface.ai/app
+        content: `# The token for monitoring your Comlinks at https://superface.ai
 SUPERFACE_ONESDK_TOKEN=sfs_b31314b7fc8...8ec1930e
 
 # Parameter description
@@ -107,10 +103,8 @@ MY_PROVIDER_USERNAME=
 MY_PROVIDER_PASSWORD=
 MY_PROVIDER_TOKEN=
 `,
-        addedEnvVariables: [
-          'SUPERFACE_ONESDK_TOKEN',
+        newEmptyEnvVariables: [
           'MY_PROVIDER_PARAM_ONE',
-          'MY_PROVIDER_PARAM_TWO',
           'MY_PROVIDER_USERNAME',
           'MY_PROVIDER_PASSWORD',
           'MY_PROVIDER_TOKEN',
@@ -128,7 +122,7 @@ MY_PROVIDER_TOKEN=
 
       expect(result).toStrictEqual({
         content: EXISTING_DOTENV,
-        addedEnvVariables: [],
+        newEmptyEnvVariables: [],
       });
     });
 
@@ -149,7 +143,7 @@ MY_PROVIDER_TOKEN=
 # Parameter description
 MY_PROVIDER_PARAM_ONE=
 `,
-        addedEnvVariables: ['MY_PROVIDER_PARAM_ONE'],
+        newEmptyEnvVariables: ['MY_PROVIDER_PARAM_ONE'],
       });
     });
 
@@ -173,7 +167,7 @@ MY_PROVIDER_PARAM_ONE=
 MY_PROVIDER_USERNAME=
 MY_PROVIDER_PASSWORD=
 `,
-        addedEnvVariables: [
+        newEmptyEnvVariables: [
           'MY_PROVIDER_PARAM_ONE',
           'MY_PROVIDER_USERNAME',
           'MY_PROVIDER_PASSWORD',

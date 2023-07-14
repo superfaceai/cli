@@ -12,7 +12,7 @@ import {
 
 export type NewDotenv = {
   content: string;
-  addedEnvVariables: string[];
+  newEmptyEnvVariables: string[];
 };
 
 type EnvVar = {
@@ -48,7 +48,9 @@ export function createNewDotenv({
 
   return {
     content: serializeContent(previousContent, newEnvVariables),
-    addedEnvVariables: newEnvVariables.map(e => e.name),
+    newEmptyEnvVariables: newEnvVariables
+      .filter(e => e.value === undefined)
+      .map(e => e.name),
   };
 }
 

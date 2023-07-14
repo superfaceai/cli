@@ -43,11 +43,11 @@ config();
 const client = new OneClient({
   // ${ONESDK_TOKEN_COMMENT}
   token: process.env.${ONESDK_TOKEN_ENV},
-  // Specify path to assets folder
+  // Path to Comlinks within your project
   assetsPath: '${buildSuperfaceDirPath()}'
 });
 
-// Load profile and use case
+// Load Comlink profile and use case
 const profile = await client.getProfile('${profileId}');
 const useCase = profile.getUseCase('${useCaseName}')
 

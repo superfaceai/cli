@@ -34,7 +34,8 @@ describe('prepareJsProject', () => {
       prepareJsProject('3.0.0-alpha.12', '^16.0.3')
     ).resolves.toEqual({
       saved: true,
-      installationGuide: expect.any(String),
+      dependencyInstallCommand: expect.any(String),
+      languageDependency: expect.any(String),
       path: expect.stringContaining('superface/package.json'),
     });
 
@@ -51,7 +52,8 @@ describe('prepareJsProject', () => {
       prepareJsProject('3.0.0-alpha.12', '^16.0.3')
     ).resolves.toEqual({
       saved: false,
-      installationGuide: expect.any(String),
+      dependencyInstallCommand: expect.any(String),
+      languageDependency: expect.any(String),
       path: expect.stringContaining('superface/package.json'),
     });
 
