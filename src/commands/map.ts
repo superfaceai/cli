@@ -264,7 +264,7 @@ async function saveDotenv(
 
   return {
     dotenvPath,
-    newEnvVariables: newDotenv.addedEnvVariables,
+    newEnvVariables: newDotenv.newEmptyEnvVariables,
   };
 }
 
