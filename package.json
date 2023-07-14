@@ -15,6 +15,7 @@
     "dist/"
   ],
   "scripts": {
+    "prebuild": "rimraf dist",
     "build": "tsc -p tsconfig.release.json --outDir dist",
     "test": "yarn test:fast && yarn test:integration",
     "test:clean": "jest --clear-cache && jest",
