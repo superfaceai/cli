@@ -35,13 +35,13 @@ import { OneClient, PerformError, UnexpectedError } from '@superfaceai/one-sdk/n
 config();
 
 const client = new OneClient({
-  // OneSDK token lets you monitor your usage out-of-the-box at https://superface.ai/app
+  // The token for monitoring your Comlinks at https://superface.ai
   token: process.env.SUPERFACE_ONESDK_TOKEN,
-  // Specify path to assets folder
+  // Path to Comlinks within your project
   assetsPath: '${buildSuperfaceDirPath()}'
 });
 
-// Load profile and use case
+// Load Comlink profile and use case
 const profile = await client.getProfile('${scope}/${name}');
 const useCase = profile.getUseCase('${useCaseName}')
 

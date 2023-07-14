@@ -38,7 +38,7 @@ describe('createNewDotenv', () => {
       const result = createNewDotenv({ providerName: PROVIDER_NAME });
 
       expect(result).toStrictEqual({
-        content: `# Set your OneSDK token to monitor your usage out-of-the-box. Get yours at https://superface.ai/app
+        content: `# Set your OneSDK token to monitor your usage out-of-the-box. Get yours at https://superface.ai
 SUPERFACE_ONESDK_TOKEN=
 `,
         newEmptyEnvVariables: ['SUPERFACE_ONESDK_TOKEN'],
@@ -52,7 +52,7 @@ SUPERFACE_ONESDK_TOKEN=
       });
 
       expect(result).toStrictEqual({
-        content: `# OneSDK token lets you monitor your usage out-of-the-box at https://superface.ai/app
+        content: `# The token for monitoring your Comlinks at https://superface.ai
 SUPERFACE_ONESDK_TOKEN=sfs_b31314b7fc8...8ec1930e
 `,
         newEmptyEnvVariables: [],
@@ -67,7 +67,7 @@ SUPERFACE_ONESDK_TOKEN=sfs_b31314b7fc8...8ec1930e
       });
 
       expect(result).toStrictEqual({
-        content: `# OneSDK token lets you monitor your usage out-of-the-box at https://superface.ai/app
+        content: `# The token for monitoring your Comlinks at https://superface.ai
 SUPERFACE_ONESDK_TOKEN=sfs_b31314b7fc8...8ec1930e
 
 # Parameter description
@@ -90,7 +90,7 @@ MY_PROVIDER_PARAM_TWO=us-west-1
       });
 
       expect(result).toStrictEqual({
-        content: `# OneSDK token lets you monitor your usage out-of-the-box at https://superface.ai/app
+        content: `# The token for monitoring your Comlinks at https://superface.ai
 SUPERFACE_ONESDK_TOKEN=sfs_b31314b7fc8...8ec1930e
 
 # Parameter description
