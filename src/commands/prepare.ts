@@ -9,6 +9,7 @@ import {
   buildProviderPath,
   buildSuperfaceDirPath,
 } from '../common/file-structure';
+import { formatPath } from '../common/format';
 import { exists, mkdir, readFile } from '../common/io';
 import type { ILogger } from '../common/log';
 import { OutputStream } from '../common/output-stream';
@@ -129,13 +130,18 @@ This command prepares a Provider JSON metadata definition that can be used to ge
       (providerJson.services.length === 1 &&
         providerJson.services[0].baseUrl.includes('TODO'))
     ) {
-      // TODO: provide more info - url to REAL docs
-      ux.warn(
-        `[ACTION REQUIRED]: Provider definition is incomplete. Please fill in the details at ${providerJsonPath}. Documentation Guide:\nhttps://sfc.is/editing-providers\nYou can then create a new profile using 'superface new ${providerJson.name} "<use case description>"'.`
-      );
+      ux.warn(`[ACTION REQUIRED]: Provider definition requires attention. Please check and edit '${formatPath(
+        providerJsonPath
+      )}' (reference: https://sfc.is/editing-providers).
+
+Create a new Comlink profile using:
+superface new ${providerJson.name} "use case description"`);
     } else {
       ux.succeed(
-        `Provider definition saved to ${providerJsonPath}.\nYou can now create a new profile using 'superface new ${providerJson.name} "<use case description>"'.`
+        `Provider definition saved to '${formatPath(providerJsonPath)}'.
+
+Create a new Comlink profile using:
+superface new ${providerJson.name} "use case description"`
       );
     }
   }
