@@ -11,6 +11,7 @@ import {
   buildProjectDotenvFilePath,
   buildRunFilePath,
 } from '../common/file-structure';
+import { formatPath } from '../common/format';
 import { fetchSDKToken, SuperfaceClient } from '../common/http';
 import { exists, readFile, readFileQuiet } from '../common/io';
 import type { ILogger } from '../common/log';
@@ -20,12 +21,24 @@ import { resolveProviderJson } from '../common/provider';
 import { UX } from '../common/ux';
 import { createNewDotenv } from '../logic';
 import {
-  getLanguageName,
   SupportedLanguages,
   writeApplicationCode,
 } from '../logic/application-code/application-code';
 import { mapProviderToProfile } from '../logic/map';
 import { prepareProject } from '../logic/project';
+
+type Status = {
+  filesCreated: string[];
+  dotenv?: {
+    path: string;
+    newVars: string[];
+  };
+  execution?: {
+    languageDependency: string;
+    dependencyInstallCommand: string;
+    executeCommand: string;
+  };
+};
 
 export default class Map extends Command {
   // TODO: add description
@@ -97,6 +110,10 @@ export default class Map extends Command {
       client: SuperfaceClient.getClient(),
     });
 
+    const status: Status = {
+      filesCreated: [],
+    };
+
     ux.start('Preparing integration code for your use case');
     // TODO: load old map?
     const map = await mapProviderToProfile(
@@ -113,7 +130,8 @@ export default class Map extends Command {
       providerName: resolvedProviderJson.providerJson.name,
       profileScope: profile.ast.header.scope,
     });
-    ux.succeed(`Integration code saved to ${mapPath}`);
+
+    status.filesCreated.push(mapPath);
 
     ux.start(`Preparing boilerplate code for ${resolvedLanguage}`);
 
@@ -126,36 +144,23 @@ export default class Map extends Command {
         userError,
       }
     );
-    ux.succeed(
-      boilerplate.saved
-        ? `Boilerplate code prepared for ${resolvedLanguage} at ${boilerplate.path}`
-        : `Boilerplate for ${getLanguageName(
-            resolvedLanguage
-          )} already exists at ${boilerplate.path}.`
-    );
+    if (boilerplate.saved) {
+      status.filesCreated.push(boilerplate.path);
+    }
 
     const dotenv = await saveDotenv(resolvedProviderJson.providerJson);
 
     if (dotenv.newEnvVariables.length > 0) {
-      ux.warn(
-        `${dotenv.newEnvVariables.length} new environment variables were added to ${dotenv.dotenvPath}. Please set their values before running the integration`
-      );
+      status.dotenv = {
+        path: dotenv.dotenvPath,
+        newVars: dotenv.newEnvVariables,
+      };
     }
 
     ux.start(`Setting up local project in ${resolvedLanguage}`);
 
     // TODO: install dependencies
     const project = await prepareProject(resolvedLanguage);
-
-    if (project.saved) {
-      ux.succeed(
-        `Dependency definition prepared for ${getLanguageName(
-          resolvedLanguage
-        )} at ${project.path}.`
-      );
-    }
-
-    ux.warn(project.installationGuide);
 
     const executeCommand = makeExecuteCommand({
       providerName: resolvedProviderJson.providerJson.name,
@@ -164,9 +169,14 @@ export default class Map extends Command {
       resolvedLanguage,
       hasExplicitLanguageSelect,
     });
-    ux.succeed(
-      `Local project set up. You can now install defined dependencies and run \`${executeCommand}\` to execute your integration.`
-    );
+
+    status.execution = {
+      languageDependency: project.languageDependency,
+      dependencyInstallCommand: project.dependencyInstallCommand,
+      executeCommand: executeCommand,
+    };
+
+    ux.succeed(makeMessage(status));
   }
 }
 
@@ -365,4 +375,32 @@ function makeExecuteCommand({
   return hasExplicitLanguageSelect
     ? `${sfExecute} ${resolvedLanguage}`
     : sfExecute;
+}
+
+function makeMessage(status: Status): string {
+  let message = `📡 Comlink established!`;
+
+  if (status.filesCreated.length > 0) {
+    message += `
+
+Files created:
+${status.filesCreated.map(file => `- ${formatPath(file)}`).join('\n')}`;
+  }
+
+  if (status.dotenv) {
+    message += `
+
+Set the following environment variables in '${formatPath(status.dotenv.path)}':
+${status.dotenv.newVars.map(env => `- $${env}`).join('\n')}`;
+  }
+
+  if (status.execution) {
+    message += `
+
+Run (${status.execution.languageDependency}):
+cd superface && ${status.execution.dependencyInstallCommand}
+${status.execution.executeCommand}`;
+  }
+
+  return message;
 }

@@ -247,7 +247,8 @@ describe('MapCLI command', () => {
 
       jest.mocked(prepareProject).mockResolvedValueOnce({
         saved: true,
-        installationGuide: 'test',
+        dependencyInstallCommand: 'make install',
+        languageDependency: 'TestLang > 18',
         path: 'test',
       });
 
@@ -305,7 +306,8 @@ describe('MapCLI command', () => {
 
       jest.mocked(prepareProject).mockResolvedValueOnce({
         saved: true,
-        installationGuide: 'test',
+        dependencyInstallCommand: 'make install',
+        languageDependency: 'TestLang > 18',
         path: 'test',
       });
 
@@ -383,7 +385,8 @@ describe('MapCLI command', () => {
 
       jest.mocked(prepareProject).mockResolvedValueOnce({
         saved: true,
-        installationGuide: 'test',
+        dependencyInstallCommand: 'make install',
+        languageDependency: 'TestLang > 18',
         path: 'test',
       });
 
@@ -459,7 +462,8 @@ describe('MapCLI command', () => {
 
       jest.mocked(prepareProject).mockResolvedValueOnce({
         saved: true,
-        installationGuide: 'test',
+        dependencyInstallCommand: 'make install',
+        languageDependency: 'TestLang > 18',
         path: 'test',
       });
 
