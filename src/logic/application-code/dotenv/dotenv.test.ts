@@ -33,6 +33,26 @@ MY_PROVIDER_TOKEN=
 `;
 
 describe('createNewDotenv', () => {
+  it('when duplicate parameters or security schemes are given, adds the env only once', () => {
+    const result = createNewDotenv({
+      providerName: PROVIDER_NAME,
+      parameters: [PARAMETER, PARAMETER, PARAMETER],
+      security: [BEARER_AUTH,BEARER_AUTH,BEARER_AUTH],
+      token: TOKEN,
+    });
+
+    expect(result).toStrictEqual({
+      content: `# The token for monitoring your Comlinks at https://superface.ai
+SUPERFACE_ONESDK_TOKEN=sfs_b31314b7fc8...8ec1930e
+
+# Parameter description
+MY_PROVIDER_PARAM_ONE=
+MY_PROVIDER_TOKEN=
+`,
+      newEmptyEnvVariables: ['MY_PROVIDER_PARAM_ONE', 'MY_PROVIDER_TOKEN'],
+    });
+  });
+
   describe('OneSDK token', () => {
     it('when no token is given, adds empty token env', () => {
       const result = createNewDotenv({ providerName: PROVIDER_NAME });
