@@ -2,6 +2,8 @@ import { green, hex, red } from 'chalk';
 import type { Spinner } from 'nanospinner';
 import { createSpinner } from 'nanospinner';
 
+import { template } from '../common/chalk-template';
+
 const WARN_COLOR = '#B48817';
 
 export class UX {
@@ -22,11 +24,11 @@ export class UX {
   }
 
   public succeed(text: string): void {
-    this.spinner.success({ text: green(text), mark: green('✔') });
+    this.spinner.success({ text: green(template(text)), mark: green('✔') });
   }
 
   public fail(text: string): void {
-    this.spinner.error({ text: red(text), mark: red('✖') });
+    this.spinner.error({ text: red(template(text)), mark: red('✖') });
   }
 
   public info(text: string): void {
@@ -39,7 +41,7 @@ export class UX {
 
   public warn(text: string): void {
     this.spinner.warn({
-      text: hex(WARN_COLOR)(text),
+      text: hex(WARN_COLOR)(template(text)),
       mark: hex(WARN_COLOR)('⚠'),
     });
   }
