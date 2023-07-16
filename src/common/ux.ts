@@ -1,6 +1,8 @@
-import { green, red, yellow } from 'chalk';
+import { green, hex, red } from 'chalk';
 import type { Spinner } from 'nanospinner';
 import { createSpinner } from 'nanospinner';
+
+const WARN_COLOR = '#B48817';
 
 export class UX {
   private static instance: UX | undefined;
@@ -36,7 +38,10 @@ export class UX {
   }
 
   public warn(text: string): void {
-    this.spinner.warn({ text: yellow(text), mark: yellow('⚠') });
+    this.spinner.warn({
+      text: hex(WARN_COLOR)(text),
+      mark: hex(WARN_COLOR)('⚠'),
+    });
   }
 
   public static create(): UX {
