@@ -130,12 +130,15 @@ This command prepares a Provider JSON metadata definition that can be used to ge
       (providerJson.services.length === 1 &&
         providerJson.services[0].baseUrl.includes('TODO'))
     ) {
-      ux.warn(`[ACTION REQUIRED]: Provider definition requires attention. Please check and edit '${formatPath(
-        providerJsonPath
-      )}' (reference: https://sfc.is/editing-providers).
+      ux.warn(`{inverse  ACTION REQUIRED }
+Documentation was indexed but the Provider definition requires attention.
 
-Create a new Comlink profile using:
-superface new ${providerJson.name} "use case description"`);
+{bold 1) Edit '{underline ${formatPath(
+        providerJsonPath
+      )}}'. See {underline https://sfc.is/editing-providers}}
+
+2) Create a new Comlink profile using:
+   superface new ${providerJson.name} "use case description"`);
     } else {
       ux.succeed(
         `Provider definition saved to '${formatPath(providerJsonPath)}'.
