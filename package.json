@@ -1,6 +1,6 @@
 {
   "name": "@superfaceai/cli",
-  "version": "4.0.0-beta.8",
+  "version": "4.0.0-beta.14",
   "description": "Superface CLI utility",
   "main": "dist/index.js",
   "repository": "https://github.com/superfaceai/cli.git",
@@ -15,6 +15,7 @@
     "dist/"
   ],
   "scripts": {
+    "prebuild": "rimraf dist",
     "build": "tsc -p tsconfig.release.json --outDir dist",
     "test": "yarn test:fast && yarn test:integration",
     "test:clean": "jest --clear-cache && jest",
@@ -74,9 +75,6 @@
   "oclif": {
     "commands": "dist/commands",
     "bin": "superface",
-    "hooks": {
-      "init": "dist/hooks/init"
-    },
     "plugins": [
       "@oclif/plugin-warn-if-update-available"
     ],

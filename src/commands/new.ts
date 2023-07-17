@@ -4,6 +4,7 @@ import type { Flags } from '../common/command.abstract';
 import { Command } from '../common/command.abstract';
 import type { UserError } from '../common/error';
 import { buildProfilePath } from '../common/file-structure';
+import { formatPath } from '../common/format';
 import { SuperfaceClient } from '../common/http';
 import { exists } from '../common/io';
 import { OutputStream } from '../common/output-stream';
@@ -88,9 +89,12 @@ export default class New extends Command {
     const profilePath = await saveProfile(profile, { userError });
 
     ux.succeed(
-      `Profile saved to ${profilePath}. You can use it to generate integration code for your use case by running 'superface map ${
-        resolvedProviderJson.providerJson.name
-      } ${ProfileId.fromScopeName(profile.scope, profile.name).id}'`
+      `New Comlink profile saved to '${formatPath(profilePath)}'.
+
+Create your use case code by running:
+superface map ${resolvedProviderJson.providerJson.name} ${
+        ProfileId.fromScopeName(profile.scope, profile.name).id
+      }`
     );
   }
 }

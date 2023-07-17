@@ -3,6 +3,7 @@ import type { IntegrationParameter, SecurityScheme } from '@superfaceai/ast';
 import { buildSuperfaceDirPath } from '../../../common/file-structure';
 import { ProfileId } from '../../../common/profile';
 import type { ApplicationCodeWriter } from '../application-code';
+import { ONESDK_TOKEN_COMMENT, ONESDK_TOKEN_ENV } from '../dotenv';
 import { prepareParameters } from './parameters';
 import { prepareSecurity } from './security';
 
@@ -25,7 +26,6 @@ export const jsApplicationCode: ApplicationCodeWriter = ({
   parameters?: IntegrationParameter[];
   security?: SecurityScheme[];
 }) => {
-  // TODO: revisit this
   const pathToSdk = '@superfaceai/one-sdk/node/index.js';
 
   const profileId = ProfileId.fromScopeName(profile.scope, profile.name).id;
@@ -35,43 +35,46 @@ export const jsApplicationCode: ApplicationCodeWriter = ({
 
   const code = `import { config } from 'dotenv';
 // Load OneClient from SDK
-import { OneClient } from '${pathToSdk}';
+import { OneClient, PerformError, UnexpectedError } from '${pathToSdk}';
 
 // Load environment variables from .env file
 config();
-async function main() {
-  const client = new OneClient({
-    // Optionally you can use your OneSDK token to monitor your usage. Get one at https://superface.ai/app
-    // token:
-    // Specify path to assets folder
-    assetsPath: '${buildSuperfaceDirPath()}'
-  });
 
-  // Load profile and use case
-  const profile = await client.getProfile('${profileId}');
-  const useCase = profile.getUseCase('${useCaseName}')
+const client = new OneClient({
+  // ${ONESDK_TOKEN_COMMENT}
+  token: process.env.${ONESDK_TOKEN_ENV},
+  // Path to Comlinks within your project
+  assetsPath: '${buildSuperfaceDirPath()}'
+});
 
-  try {
-    // Execute use case
-    const result = await useCase.perform(
-      // Use case input
-      ${input},
-      {
-        provider: '${provider}',
-        parameters: ${preparedParameters.parametersString},
-        // Security values for provider
-        security: ${preparedSecurity.securityString}
-      }
-    );
+// Load Comlink profile and use case
+const profile = await client.getProfile('${profileId}');
+const useCase = profile.getUseCase('${useCaseName}')
 
-    console.log("RESULT:", JSON.stringify(result, null, 2));
+try {
+  // Execute use case
+  const result = await useCase.perform(
+    // Use case input
+    ${input},
+    {
+      provider: '${provider}',
+      parameters: ${preparedParameters.parametersString},
+      // Security values for provider
+      security: ${preparedSecurity.securityString}
+    }
+  );
 
-  } catch (e) {
-    console.log("ERROR:", JSON.stringify(e, null, 2));
+  console.log("RESULT:", JSON.stringify(result, null, 2));
+} catch (e) {
+  if (e instanceof PerformError) {
+    console.log('ERROR RESULT:', e.errorResult);
+  } else if (e instanceof UnexpectedError) {
+    console.error('ERROR:', e);
+  } else {
+    throw e;
   }
 }
-
-void main();`;
+`;
 
   return {
     code,

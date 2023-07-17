@@ -12,16 +12,16 @@ import { UX } from './ux';
  */
 export const createUserError =
   (emoji: boolean) =>
-    (message: string, code: number): CLIError => {
-      // Make sure that UX is stoped before throwing an error.
-      UX.clear();
+  (message: string, code: number): CLIError => {
+    // Make sure that UX is stoped before throwing an error.
+    UX.clear();
 
-      if (code <= 0) {
-        throw developerError('expected positive error code', 1);
-      }
+    if (code <= 0) {
+      throw developerError('expected positive error code', 1);
+    }
 
-      return new CLIError(emoji ? '❌ ' + message : message, { exit: code });
-    };
+    return new CLIError(emoji ? '❌ ' + message : message, { exit: code });
+  };
 export type UserError = ReturnType<typeof createUserError>;
 
 export type DeveloperError = typeof developerError;

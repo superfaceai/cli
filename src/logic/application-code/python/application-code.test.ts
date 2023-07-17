@@ -29,19 +29,22 @@ describe('pythonApplicationCode', () => {
     expect(result).toEqual({
       code: `import os
 from dotenv import load_dotenv
-from superfaceai.one_sdk import OneClient
+import sys
+from one_sdk import OneClient, PerformError, UnexpectedError
 
 load_dotenv()
 
 client = OneClient(
-  # Optionally you can use your OneSDK token to monitor your usage. Get one at https://superface.ai/app
-  # token =
-  # Specify path to assets folder
+  # The token for monitoring your Comlinks at https://superface.ai
+  token = os.getenv("SUPERFACE_ONESDK_TOKEN"),
+  # Path to Comlinks within your project
   assets_path = "${buildSuperfaceDirPath()}"
 )
 
+# Load Comlink profile and use case
 profile = client.get_profile("${scope}/${name}")
 use_case = profile.get_usecase("${useCaseName}")
+
 try:
   result = use_case.perform(
     {},
@@ -51,7 +54,14 @@ try:
   )
   print(f"RESULT: {result}")
 except Exception as e:
-  print(f"ERROR: {e}")`,
+  if isinstance(e, PerformError):
+    print(f"ERROR RESULT: {e.error_result}")
+  elif isinstance(e, UnexpectedError):
+    print(f"ERROR:", e, file=sys.stderr)
+  else:
+    raise e
+finally:
+  client.send_metrics_to_superface()`,
       requiredParameters: [],
       requiredSecurity: [],
     });

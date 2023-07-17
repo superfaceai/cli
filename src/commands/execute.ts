@@ -37,14 +37,12 @@ export default class Execute extends Command {
       required: true,
     },
     {
-      // TODO: add language support
       name: 'language',
       description: 'Language which will use generated code. Default is `js`.',
-      // TODO: this will be required when we support more languages
       required: false,
       default: 'js',
-      options: Object.keys(SupportedLanguages),
-      // Hidden because we support only js for now
+      options: Object.values(SupportedLanguages),
+      // Hidden until we figure better language select DX
       hidden: true,
     },
   ];

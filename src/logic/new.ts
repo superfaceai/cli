@@ -34,7 +34,8 @@ function assertProfileResponse(
           tmp,
           null,
           2
-        )}`, 1
+        )}`,
+        1
       );
     }
 
@@ -148,7 +149,7 @@ async function startProfilePreparation(
 
 async function finishProfilePreparation(
   resultUrl: string,
-  { client, userError }: { client: ServiceClient, userError: UserError }
+  { client, userError }: { client: ServiceClient; userError: UserError }
 ): Promise<ProfilePreparationResponse> {
   const resultResponse = await client.fetch(resultUrl, {
     method: 'GET',
@@ -160,7 +161,10 @@ async function finishProfilePreparation(
   });
 
   if (resultResponse.status !== 200) {
-    throw userError(`Unexpected status code ${resultResponse.status} received`, 1);
+    throw userError(
+      `Unexpected status code ${resultResponse.status} received`,
+      1
+    );
   }
 
   const body = (await resultResponse.json()) as unknown;

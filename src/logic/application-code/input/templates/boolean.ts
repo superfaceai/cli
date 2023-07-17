@@ -1,1 +1,1 @@
-export default '{{value}}';
+export default '{{booleanValue language value}}';

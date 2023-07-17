@@ -29,7 +29,6 @@ export class UX {
 
   public info(text: string): void {
     if (text.trim() !== this.lastText.trim()) {
-
       this.spinner.clear();
       this.spinner.update({ text });
     }

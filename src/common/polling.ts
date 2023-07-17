@@ -19,24 +19,24 @@ enum PollResultType {
 }
 type PollResponse =
   | {
-    result_url: string;
-    status: PollStatus.Success;
-    result_type: PollResultType;
-  }
+      result_url: string;
+      status: PollStatus.Success;
+      result_type: PollResultType;
+    }
   | {
-    status: PollStatus.Pending;
-    events: {
-      occuredAt: Date;
-      type: string;
-      description: string;
-    }[];
-    result_type: PollResultType;
-  }
+      status: PollStatus.Pending;
+      events: {
+        occuredAt: Date;
+        type: string;
+        description: string;
+      }[];
+      result_type: PollResultType;
+    }
   | {
-    status: PollStatus.Failed;
-    failure_reason: string;
-    result_type: PollResultType;
-  }
+      status: PollStatus.Failed;
+      failure_reason: string;
+      result_type: PollResultType;
+    }
   | { status: PollStatus.Cancelled; result_type: PollResultType };
 
 function isPollResponse(input: unknown): input is PollResponse {
@@ -119,10 +119,12 @@ export async function pollUrl(
 
     if (result.status === PollStatus.Success) {
       ux.succeed(`Successfully finished operation`);
-      return result.result_url;
+      
+return result.result_url;
     } else if (result.status === PollStatus.Failed) {
       throw userError(
-        `Failed to ${getJobDescription(result.result_type)}: ${result.failure_reason
+        `Failed to ${getJobDescription(result.result_type)}: ${
+          result.failure_reason
         }`,
         1
       );

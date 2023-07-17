@@ -4,11 +4,13 @@ import { OutputStream } from '../../../common/output-stream';
 import { SupportedLanguages } from '../../application-code';
 
 export async function prepareJsProject(
-  sdkVerion = '3.0.0-alpha.12',
+  // https://www.npmjs.com/package/@superfaceai/one-sdk?activeTab=versions
+  sdkVersion = 'beta', // get latest beta using the `beta` tag
   dotenvVersion = '^16.0.3'
 ): Promise<{
   saved: boolean;
-  installationGuide: string;
+  dependencyInstallCommand: string;
+  languageDependency: string;
   path: string;
 }> {
   const packageJson = `{
@@ -23,20 +25,31 @@ export async function prepareJsProject(
     "author": "",
     "license": "ISC",
     "dependencies": {
-      "@superfaceai/one-sdk": "${sdkVerion}",
+      "@superfaceai/one-sdk": "${sdkVersion}",
       "dotenv": "${dotenvVersion}"
     }
   }`;
 
   const packageJsonPath = buildProjectDefinitionFilePath(SupportedLanguages.JS);
 
-  const installationGuide = `You need to have Node version 18.0.0 or higher installed to run the integration.\nYou can install defined dependencies by running \`npm install\` in \`superface\` directory.`;
+  const languageDependency = 'Node.js > 18.0.0';
+  const dependencyInstallCommand = 'npm install';
 
   if (!(await exists(packageJsonPath))) {
     await OutputStream.writeOnce(packageJsonPath, packageJson);
 
-    return { saved: true, installationGuide, path: packageJsonPath };
+    return {
+      saved: true,
+      dependencyInstallCommand,
+      languageDependency,
+      path: packageJsonPath,
+    };
   }
 
-  return { saved: false, installationGuide, path: packageJsonPath };
+  return {
+    saved: false,
+    dependencyInstallCommand,
+    languageDependency,
+    path: packageJsonPath,
+  };
 }

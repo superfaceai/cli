@@ -80,8 +80,9 @@ async function startMapPreparation(
   },
   { client, userError }: { client: ServiceClient; userError: UserError }
 ): Promise<string> {
-  const profileId = `${profile.scope !== undefined ? profile.scope + '.' : ''}${profile.name
-    }`;
+  const profileId = `${profile.scope !== undefined ? profile.scope + '.' : ''}${
+    profile.name
+  }`;
   const jobUrlResponse = await client.fetch(
     `/authoring/profiles/${profileId}/maps`,
     {
@@ -128,7 +129,7 @@ async function startMapPreparation(
 
 async function finishMapPreparation(
   resultUrl: string,
-  { client, userError }: { client: ServiceClient, userError: UserError }
+  { client, userError }: { client: ServiceClient; userError: UserError }
 ): Promise<MapPreparationResponse> {
   const resultResponse = await client.fetch(resultUrl, {
     method: 'GET',
@@ -140,7 +141,10 @@ async function finishMapPreparation(
   });
 
   if (resultResponse.status !== 200) {
-    throw userError(`Unexpected status code ${resultResponse.status} received`, 1);
+    throw userError(
+      `Unexpected status code ${resultResponse.status} received`,
+      1
+    );
   }
 
   const body = (await resultResponse.json()) as unknown;

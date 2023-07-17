@@ -29,43 +29,46 @@ describe('jsApplicationCode', () => {
     expect(result).toEqual({
       code: `import { config } from 'dotenv';
 // Load OneClient from SDK
-import { OneClient } from '@superfaceai/one-sdk/node/index.js';
+import { OneClient, PerformError, UnexpectedError } from '@superfaceai/one-sdk/node/index.js';
 
 // Load environment variables from .env file
 config();
-async function main() {
-  const client = new OneClient({
-    // Optionally you can use your OneSDK token to monitor your usage. Get one at https://superface.ai/app
-    // token:
-    // Specify path to assets folder
-    assetsPath: '${buildSuperfaceDirPath()}'
-  });
 
-  // Load profile and use case
-  const profile = await client.getProfile('${scope}/${name}');
-  const useCase = profile.getUseCase('${useCaseName}')
+const client = new OneClient({
+  // The token for monitoring your Comlinks at https://superface.ai
+  token: process.env.SUPERFACE_ONESDK_TOKEN,
+  // Path to Comlinks within your project
+  assetsPath: '${buildSuperfaceDirPath()}'
+});
 
-  try {
-    // Execute use case
-    const result = await useCase.perform(
-      // Use case input
-      {},
-      {
-        provider: '${provider}',
-        parameters: {},
-        // Security values for provider
-        security: {}
-      }
-    );
+// Load Comlink profile and use case
+const profile = await client.getProfile('${scope}/${name}');
+const useCase = profile.getUseCase('${useCaseName}')
 
-    console.log("RESULT:", JSON.stringify(result, null, 2));
+try {
+  // Execute use case
+  const result = await useCase.perform(
+    // Use case input
+    {},
+    {
+      provider: '${provider}',
+      parameters: {},
+      // Security values for provider
+      security: {}
+    }
+  );
 
-  } catch (e) {
-    console.log("ERROR:", JSON.stringify(e, null, 2));
+  console.log("RESULT:", JSON.stringify(result, null, 2));
+} catch (e) {
+  if (e instanceof PerformError) {
+    console.log('ERROR RESULT:', e.errorResult);
+  } else if (e instanceof UnexpectedError) {
+    console.error('ERROR:', e);
+  } else {
+    throw e;
   }
 }
-
-void main();`,
+`,
       requiredParameters: [],
       requiredSecurity: [],
     });
