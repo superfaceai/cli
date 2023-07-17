@@ -11,6 +11,8 @@ import { ProfileId } from '../../common/profile';
 import { createMap } from '../../logic/create/map';
 
 export class Map extends Command {
+  public static hidden = true;
+
   public static strict = true;
 
   public static description =

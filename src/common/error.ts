@@ -1,6 +1,8 @@
 import { CLIError } from '@oclif/errors';
 import { inspect } from 'util';
 
+import { UX } from './ux';
+
 /**
  * User error.
  *
@@ -11,6 +13,9 @@ import { inspect } from 'util';
 export const createUserError =
   (emoji: boolean) =>
   (message: string, code: number): CLIError => {
+    // Make sure that UX is stoped before throwing an error.
+    UX.clear();
+
     if (code <= 0) {
       throw developerError('expected positive error code', 1);
     }
@@ -19,6 +24,7 @@ export const createUserError =
   };
 export type UserError = ReturnType<typeof createUserError>;
 
+export type DeveloperError = typeof developerError;
 /**
  * Developer error.
  *
@@ -72,4 +78,21 @@ export function assertIsExecError(
   }
 
   throw developerError(`unexpected error: ${inspect(error)}`, 103);
+}
+
+export function stringifyError(error: unknown): string {
+  try {
+    if (error instanceof Error) {
+      const plainObject: Record<string, unknown> = {};
+      Object.getOwnPropertyNames(error).forEach(function (key) {
+        plainObject[key] = error[key as keyof Error];
+      });
+
+      return JSON.stringify(plainObject, null, 2);
+    }
+  } catch (e) {
+    void e;
+  }
+
+  return inspect(error, true, null, true);
 }

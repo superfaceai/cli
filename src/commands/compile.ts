@@ -19,6 +19,8 @@ import { compile } from '../logic/compile';
 import { detectSuperJson } from '../logic/install';
 
 export default class Compile extends Command {
+  public static hidden = true;
+
   public static description =
     'Compiles locally linked maps and profiles in `super.json`. When running without `--profileId` flag, all locally linked files are compiled. When running with `--profileId`, a single local profile source file, and all its local maps are compiled. When running with `--profileId` and `--providerName`, a single local profile and a single local map are compiled.';
 

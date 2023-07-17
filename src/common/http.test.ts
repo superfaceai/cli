@@ -1,6 +1,7 @@
 import type { AstMetadata, ProviderJson } from '@superfaceai/ast';
 import { ApiKeyPlacement, HttpScheme, SecurityType } from '@superfaceai/ast';
 import { ServiceApiError, ServiceClient } from '@superfaceai/service-client';
+import { UserAccountType } from '@superfaceai/service-client/dist/interfaces/identity_api_response';
 
 import type { SuperfaceClient } from '../common/http';
 import {
@@ -11,6 +12,7 @@ import {
   fetchProfileInfo,
   fetchProviderInfo,
   fetchProviders,
+  fetchSDKToken,
   getServicesUrl,
 } from '../common/http';
 import { mockResponse } from '../test/utils';
@@ -172,7 +174,7 @@ describe('HTTP functions', () => {
         authenticate: false,
         method: 'GET',
         headers: {
-          'Accept': ContentType.JSON,
+          Accept: ContentType.JSON,
         },
       });
     }, 10000);
@@ -199,7 +201,7 @@ describe('HTTP functions', () => {
         authenticate: false,
         method: 'GET',
         headers: {
-          'Accept': ContentType.JSON,
+          Accept: ContentType.JSON,
         },
       });
     }, 10000);
@@ -588,7 +590,7 @@ describe('HTTP functions', () => {
         authenticate: false,
         method: 'GET',
         headers: {
-          'Accept': ContentType.JSON,
+          Accept: ContentType.JSON,
         },
       });
     }, 10000);
@@ -650,7 +652,7 @@ describe('HTTP functions', () => {
         authenticate: false,
         method: 'GET',
         headers: {
-          'Accept': ContentType.JSON,
+          Accept: ContentType.JSON,
         },
       });
     }, 10000);
@@ -678,7 +680,7 @@ describe('HTTP functions', () => {
         authenticate: false,
         method: 'GET',
         headers: {
-          'Accept': ContentType.JSON,
+          Accept: ContentType.JSON,
         },
       });
     }, 10000);
@@ -801,5 +803,120 @@ describe('HTTP functions', () => {
         }
       );
     }, 10000);
+  });
+
+  describe('when fetching default OneSDK token', () => {
+    const ACCNT_HANDLE = 'testuser';
+    const DEFAULT_PROJECT = 'default-project';
+    const TOKEN = 'sfs_b31314b7fc8...8ec1930e';
+
+    const mockUserResponse = {
+      name: 'test.user',
+      email: 'test.user@superface.test',
+      accounts: [
+        {
+          handle: ACCNT_HANDLE,
+          type: UserAccountType.PERSONAL,
+        },
+      ],
+    };
+
+    const mockGetProjectResponse = {
+      url: `https://superface.test/projects/${ACCNT_HANDLE}/${DEFAULT_PROJECT}`,
+      name: DEFAULT_PROJECT,
+      sdk_auth_tokens: [
+        {
+          token: TOKEN,
+          created_at: '2023-07-03T13:58:08.235Z',
+        },
+      ],
+      settings: {
+        email_notifications: true,
+      },
+      created_at: '2023-07-03T13:58:08.231Z',
+    };
+
+    const mockUserError = new ServiceApiError({
+      status: 401,
+      title: 'Unauthorized',
+      detail: '',
+      instance: '/id/user',
+    });
+
+    const mockGetProjectError = new ServiceApiError({
+      status: 404,
+      instance: `/projects/${ACCNT_HANDLE}/default-projec`,
+      title: 'Project not found',
+      detail: `Project ${ACCNT_HANDLE}/default-projec doesn't exist`,
+    });
+
+    let getUserInfoSpy: jest.SpyInstance;
+    let getProjectSpy: jest.SpyInstance;
+
+    beforeEach(async () => {
+      jest.resetAllMocks();
+
+      getUserInfoSpy = jest
+        .spyOn(ServiceClient.prototype, 'getUserInfo')
+        .mockResolvedValue(mockUserResponse);
+
+      getProjectSpy = jest
+        .spyOn(ServiceClient.prototype, 'getProject')
+        .mockResolvedValue(mockGetProjectResponse);
+    });
+
+    it('returns token (obtains account handle, then fetches project by handle and name)', async () => {
+      const result = await fetchSDKToken();
+
+      expect(getUserInfoSpy).toHaveBeenCalledTimes(1);
+      expect(getProjectSpy).toHaveBeenCalledTimes(1);
+      expect(getProjectSpy).toHaveBeenCalledWith(ACCNT_HANDLE, DEFAULT_PROJECT);
+
+      expect(result).toStrictEqual({ token: TOKEN });
+    });
+
+    it('returns null as a token when obtaining account handle fails', async () => {
+      getUserInfoSpy = jest
+        .spyOn(ServiceClient.prototype, 'getUserInfo')
+        .mockRejectedValue(mockUserError);
+
+      const result = await fetchSDKToken();
+
+      expect(getUserInfoSpy).toHaveBeenCalledTimes(1);
+      expect(getProjectSpy).toHaveBeenCalledTimes(0);
+
+      expect(result).toStrictEqual({ token: null });
+    });
+
+    it('returns null as a token when fetching the project fails', async () => {
+      getProjectSpy = jest
+        .spyOn(ServiceClient.prototype, 'getProject')
+        .mockRejectedValue(mockGetProjectError);
+
+      const result = await fetchSDKToken();
+
+      expect(getUserInfoSpy).toHaveBeenCalledTimes(1);
+      expect(getProjectSpy).toHaveBeenCalledTimes(1);
+      expect(getProjectSpy).toHaveBeenCalledWith(ACCNT_HANDLE, DEFAULT_PROJECT);
+
+      expect(result).toStrictEqual({ token: null });
+    });
+
+    it('returns null as a token when the project fetched lacks tokens', async () => {
+      getProjectSpy = jest
+        .spyOn(ServiceClient.prototype, 'getProject')
+        .mockResolvedValue({
+          ...mockGetProjectResponse,
+          sdk_auth_tokens: [],
+        });
+
+      const result = await fetchSDKToken();
+
+      expect(getUserInfoSpy).toHaveBeenCalledTimes(1);
+      expect(getProjectSpy).toHaveBeenCalledTimes(1);
+      expect(getProjectSpy).toHaveBeenCalledWith(ACCNT_HANDLE, DEFAULT_PROJECT);
+
+      expect(result).toStrictEqual({ token: null });
+    });
   });
 });

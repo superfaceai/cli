@@ -15,6 +15,8 @@ import { initSuperface } from '../logic/init';
 import { detectSuperJson } from '../logic/install';
 
 export default class Configure extends Command {
+  public static hidden = true;
+
   public static description =
     'Configures new provider and map for already installed profile. Provider configuration is dowloaded from a Superface registry or from local file.';
 

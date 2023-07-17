@@ -11,6 +11,8 @@ import { ProfileId } from '../../common/profile';
 import { createMockMapTest } from '../../logic/create/mock-map-test';
 
 export class MockMapTest extends Command {
+  public static hidden = true;
+
   public static strict = true;
 
   public static description =

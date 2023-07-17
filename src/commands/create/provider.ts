@@ -11,6 +11,8 @@ import { createProvider } from '../../logic/create/provider';
 import { detectSuperJson } from '../../logic/install';
 
 export class Provider extends Command {
+  public static hidden = true;
+
   public static strict = true;
 
   public static description =

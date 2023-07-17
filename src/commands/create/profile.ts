@@ -19,6 +19,8 @@ import { createProfile } from '../../logic/create/profile';
 import { detectSuperJson } from '../../logic/install';
 
 export class Profile extends Command {
+  public static hidden = true;
+
   public static strict = true;
 
   public static description =

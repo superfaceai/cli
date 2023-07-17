@@ -1,5 +1,34 @@
 import { SyntaxError } from '@superfaceai/parser';
 
+const execute = {
+  executingCommand: (file: string) => `Executing: "${file}"`,
+  childProcessOutput: (output: string) => `${output}`,
+  childProcessExited: (code: number | null) =>
+    code === null
+      ? `Child process exited without code`
+      : `Child process exited with code ${code}`,
+};
+const applicationCode = {
+  requiredSecurityValue: (value: string): string =>
+    `Security ${value} is required for integration, please provide it in .env file`,
+  requiredParameterValue: (value: string): string =>
+    `Parameter ${value} is required for integration, please provide it in .env file`,
+  projectDefinitionFileCreated: (path: string, name: string): string =>
+    `${name} file created at ${path}`,
+  projectDefinitionFileExists: (path: string, name: string): string =>
+    `${name} file already exists at ${path}`,
+};
+
+const newCommand = {
+  startProfileGeneration: (providerName: string) =>
+    `Starting profile generation for provider: "${providerName}"`,
+  saveProfile: (path: string) => `Saving to: "${path}"`,
+};
+const prepare = {
+  preparationStarted: () => 'Starting preparation process',
+  sfDirectory: () => 'Creating "superface" directory',
+};
+
 const common = {
   initSuperface: () =>
     'Initializing superface directory with empty "super.json"',
@@ -107,6 +136,8 @@ const fetch = {
   couldNotFetch: (entitiy: string, error: unknown) =>
     // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
     `Could not fetch "${entitiy}": "${error}"`,
+  pollingEvent: (type: string, description: string) =>
+    `Polling: ${type} - ${description}`,
 };
 
 const configure = {
@@ -360,6 +391,10 @@ export const messages = {
   ...loggout,
   ...generate,
   ...compatibility,
+  ...newCommand,
+  ...prepare,
+  ...execute,
+  ...applicationCode,
 };
 
 export type MessageKeys = keyof typeof messages;

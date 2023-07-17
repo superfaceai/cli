@@ -1,541 +1,67 @@
-# CLI
+[Website](https://superface.ai) | [Get Started](https://superface.ai/docs/introduction/getting-started) | [Documentation](https://superface.ai/docs) | [Discord](https://sfc.is/discord) | [Twitter](https://twitter.com/superfaceai) | [Support](https://superface.ai/support)
+
+<img src="https://github.com/superfaceai/cli/blob/main/docs/LogoGreen.png" alt="superface logo" width="100" height="100">
+
+# Superface CLI
+
+**Let AI connect the APIs for you.**
 
 [![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/superfaceai/cli/main.yml)](https://github.com/superfaceai/cli/actions/workflows/main.yml)
-![NPM](https://img.shields.io/npm/v/@superfaceai/cli)
+[![Stable Release](https://img.shields.io/github/v/release/superfaceai/cli?label=homebrew)](#install)
 [![NPM](https://img.shields.io/npm/l/@superfaceai/cli)](LICENSE)
 ![TypeScript](https://img.shields.io/badge/%3C%2F%3E-Typescript-blue)
 
-<img src="https://github.com/superfaceai/cli/blob/main/docs/LogoGreen.png" alt="superface logo" width="150" height="150">
-
-Superface CLI provides access to superface tooling from the CLI.
-
-## Table of Contents
-
-- [Background](#background)
-- [Install](#install)
-- [Usage](#usage)
-- [Security](#security)
-- [Support](#support)
-- [Development](#development)
-- [Maintainers](#maintainers)
-- [Contributing](#contributing)
-- [License](#license)
-
-## Background
-
-Superface (super-interface) is a higher-order API, an abstraction on top of modern APIs like GraphQL and REST. Superface gives you the one interface to discover, connect, and query any capabilities available via conventional APIs.
-
-Through its focus on application-level semantics, Superface decouples the clients from servers, enabling fully autonomous evolution. As such, it minimizes the code base as well as errors and downtimes while providing unmatched resiliency and redundancy.
-
-Superface allows for switching providers at runtime in milliseconds with no development cost. Furthermore, Superface decentralizes the composition and aggregation of integrations, and thus creates an Autonomous Integration Mesh.
-
-Motivation behind Superface is nicely described in this [video](https://www.youtube.com/watch?v=BCvq3NXFb94) from APIdays conference.
-
-You can get more information at https://superface.ai and https://superface.ai/docs.
+Superface CLI abstracts APIs into the business cases you need. Point at API docs,
+state your desired use case, let AI create an integration code, then use it
+in your application. You remain in control of the code, and your app communicates
+directly with your chosen APIs without any middlemen or proxy.
 
 ## Install
 
-To install this package, just install the cli globally using one of the following commands:
+[Install Homebrew](https://brew.sh/), then install Superface CLI with:
 
 ```shell
-# if using yarn
-yarn global add @superfaceai/cli
-# otherwise
-npm install --global @superfaceai/cli
-```
-
-Or you can use NPX directly with Superface CLI commands:
-
-```shell
-npx @superfaceai/cli [command]
-# eg.
-npx @superfaceai/cli install [profileId eg. communication/send-email]
+brew install superfaceai/cli/superface
 ```
 
 ## Usage
 
   <!-- commands -->
-* [`superface check`](#superface-check)
-* [`superface compile`](#superface-compile)
-* [`superface configure PROVIDERNAME`](#superface-configure-providername)
-* [`superface create:map PROFILEID PROVIDERNAME`](#superface-createmap-profileid-providername)
-* [`superface create:mock-map PROFILEID`](#superface-createmock-map-profileid)
-* [`superface create:mock-map-test PROFILEID`](#superface-createmock-map-test-profileid)
-* [`superface create:profile PROFILEID`](#superface-createprofile-profileid)
-* [`superface create:provider PROVIDERNAME`](#superface-createprovider-providername)
-* [`superface create:test PROFILEID PROVIDERNAME`](#superface-createtest-profileid-providername)
-* [`superface init [NAME]`](#superface-init-name)
-* [`superface install [PROFILEID]`](#superface-install-profileid)
-* [`superface lint`](#superface-lint)
+* [`superface execute PROVIDERNAME PROFILEID`](#superface-execute-providername-profileid)
 * [`superface login`](#superface-login)
 * [`superface logout`](#superface-logout)
-* [`superface publish DOCUMENTTYPE`](#superface-publish-documenttype)
+* [`superface map PROVIDERNAME [PROFILEID]`](#superface-map-providername-profileid)
+* [`superface new PROVIDERNAME [PROMPT]`](#superface-new-providername-prompt)
+* [`superface prepare URLORPATH [NAME]`](#superface-prepare-urlorpath-name)
 * [`superface whoami`](#superface-whoami)
 
-## `superface check`
+## `superface execute PROVIDERNAME PROFILEID`
 
-Checks all maps, profiles and providers locally linked in super.json. Also can be used to check specific profile and its maps, in that case remote files can be used.
-
-```
-USAGE
-  $ superface check [-q] [--noColor] [--noEmoji] [-h] [--profileId <value>] [--providerName <value>] [-s
-    <value>] [-j] [-f]
-
-FLAGS
-  -f, --failOnWarning     When true command will fail on warning
-  -h, --help              show CLI help
-  -j, --json              Formats result to JSON
-  -q, --quiet             When set to true, disables the shell echo output of action.
-  -s, --scan=<value>      When number provided, scan for super.json outside cwd within range represented by this number.
-  --noColor               When set to true, disables all colored output.
-  --noEmoji               When set to true, disables displaying emoji in output.
-  --profileId=<value>     Profile Id in format [scope/](optional)[name]
-  --providerName=<value>  Name of provider.
-
-DESCRIPTION
-  Checks all maps, profiles and providers locally linked in super.json. Also can be used to check specific profile and
-  its maps, in that case remote files can be used.
-  Command ends with non zero exit code if errors are found.
-
-EXAMPLES
-  $ superface check
-
-  $ superface check -f
-
-  $ superface check --profileId starwars/character-information
-
-  $ superface check --profileId starwars/character-information --providerName swapi
-
-  $ superface check --profileId starwars/character-information --providerName swapi -j
-
-  $ superface check --profileId starwars/character-information --providerName swapi -s 3
-
-  $ superface check --profileId starwars/character-information --providerName swapi -q
-```
-
-_See code: [src/commands/check.ts](https://github.com/superfaceai/cli/tree/main/src/commands/check.ts)_
-
-## `superface compile`
-
-Compiles locally linked maps and profiles in `super.json`. When running without `--profileId` flag, all locally linked files are compiled. When running with `--profileId`, a single local profile source file, and all its local maps are compiled. When running with `--profileId` and `--providerName`, a single local profile and a single local map are compiled.
+Run the created integration in superface directory. Commands `prepare`, `new` and `map` must be run before this command. This command will execute integration using Node.js (more runners coming soon)
 
 ```
 USAGE
-  $ superface compile [-q] [--noColor] [--noEmoji] [-h] [--profileId <value>] [--providerName <value>] [-s
-    <value>] [--onlyProfile | --onlyMap]
-
-FLAGS
-  -h, --help              show CLI help
-  -q, --quiet             When set to true, disables the shell echo output of action.
-  -s, --scan=<value>      When number provided, scan for super.json outside cwd within range represented by this number.
-  --noColor               When set to true, disables all colored output.
-  --noEmoji               When set to true, disables displaying emoji in output.
-  --onlyMap               Compile only a map/maps
-  --onlyProfile           Compile only a profile/profiles
-  --profileId=<value>     Profile Id in format [scope/](optional)[name]
-  --providerName=<value>  Name of provider. This argument is used to compile map
-
-DESCRIPTION
-  Compiles locally linked maps and profiles in `super.json`. When running without `--profileId` flag, all locally linked
-  files are compiled. When running with `--profileId`, a single local profile source file, and all its local maps are
-  compiled. When running with `--profileId` and `--providerName`, a single local profile and a single local map are
-  compiled.
-
-EXAMPLES
-  $ superface compile
-
-  $ superface compile --profileId starwars/character-information --profile
-
-  $ superface compile --profileId starwars/character-information --profile -q
-
-  $ superface compile --profileId starwars/character-information --providerName swapi --onlyMap
-
-  $ superface compile --profileId starwars/character-information --providerName swapi --onlyProfile
-```
-
-_See code: [src/commands/compile.ts](https://github.com/superfaceai/cli/tree/main/src/commands/compile.ts)_
-
-## `superface configure PROVIDERNAME`
-
-Configures new provider and map for already installed profile. Provider configuration is dowloaded from a Superface registry or from local file.
-
-```
-USAGE
-  $ superface configure PROVIDERNAME -p <value> [-q] [--noColor] [--noEmoji] [-h] [--write-env] [-f]
-    [--localProvider <value>] [--localMap <value>] [--mapVariant <value>]
+  $ superface execute PROVIDERNAME PROFILEID [LANGUAGE] [-q] [--noColor] [--noEmoji] [-h]
 
 ARGUMENTS
-  PROVIDERNAME  Provider name.
+  PROVIDERNAME  Name of provider.
+  PROFILEID     Id of profile, eg: starwars.character-information
 
 FLAGS
-  -f, --force              When set to true and when provider exists in super.json, overwrites them.
-  -h, --help               show CLI help
-  -p, --profile=<value>    (required) Specifies profile to associate with provider
-  -q, --quiet              When set to true, disables the shell echo output of action.
-  --localMap=<value>       Optional filepath to .suma map file
-  --localProvider=<value>  Optional filepath to provider.json file
-  --mapVariant=<value>     Optional map variant
-  --noColor                When set to true, disables all colored output.
-  --noEmoji                When set to true, disables displaying emoji in output.
-  --write-env              When set to true command writes security variables to .env file
+  -h, --help   show CLI help
+  -q, --quiet  When set to true, disables the shell echo output of action.
+  --noColor    When set to true, disables all colored output.
+  --noEmoji    When set to true, disables displaying emoji in output.
 
 DESCRIPTION
-  Configures new provider and map for already installed profile. Provider configuration is dowloaded from a Superface
-  registry or from local file.
+  Run the created integration. Commands `prepare`, `new` and `map` must be run before this command. This command will
+  execute integration using Node.js (more runners coming soon)
 
 EXAMPLES
-  $ superface configure twilio -p send-sms
-
-  $ superface configure twilio -p send-sms -q
-
-  $ superface configure twilio -p send-sms -f
-
-  $ superface configure twilio -p send-sms --localProvider providers/twilio.provider.json
-
-  $ superface configure twilio -p send-sms --localMap maps/send-sms.twilio.suma
-
-  $ superface configure twilio -p send-sms --mapVariant generated
+  $ superface execute resend communication/send-email
 ```
 
-_See code: [src/commands/configure.ts](https://github.com/superfaceai/cli/tree/main/src/commands/configure.ts)_
-
-## `superface create:map PROFILEID PROVIDERNAME`
-
-Creates map, based on profile and provider on a local filesystem. Created file contains structure with information from profile and provider files. Before running this command you should have created profile (run sf create:profile) and provider (run sf create:provider)
-
-```
-USAGE
-  $ superface create:map PROFILEID PROVIDERNAME [-q] [--noColor] [--noEmoji] [-h] [-s <value>] [-v <value>] [-f]
-    [--station]
-
-ARGUMENTS
-  PROFILEID     Profile Id in format [scope](optional)/[name]
-  PROVIDERNAME  Name of provider
-
-FLAGS
-  -f, --force            When set to true and when profile exists in local filesystem, overwrites them.
-  -h, --help             show CLI help
-  -q, --quiet            When set to true, disables the shell echo output of action.
-  -s, --scan=<value>     When number provided, scan for super.json outside cwd within range represented by this number.
-  -v, --variant=<value>  Variant of a map
-  --noColor              When set to true, disables all colored output.
-  --noEmoji              When set to true, disables displaying emoji in output.
-  --station              When set to true, command will create map in folder structure of Superface station
-
-DESCRIPTION
-  Creates map, based on profile and provider on a local filesystem. Created file contains structure with information
-  from profile and provider files. Before running this command you should have created profile (run sf create:profile)
-  and provider (run sf create:provider)
-
-EXAMPLES
-  $ superface create:map starwars/character-information swapi --force
-
-  $ superface create:map starwars/character-information swapi -s 3
-
-  $ superface create:map starwars/character-information swapi --station
-```
-
-_See code: [src/commands/create/map.ts](https://github.com/superfaceai/cli/tree/main/src/commands/create/map.ts)_
-
-
-## `superface create:mock-map PROFILEID`
-
-Creates map for mock provider on a local filesystem. Created map always returns success result example from profile file. Before running this command you should have created profile file (run sf create:profile).
-
-```
-USAGE
-  $ superface create:mock-map PROFILEID [-q] [--noColor] [--noEmoji] [-h] [-s <value>] [-f] [--station]
-
-ARGUMENTS
-  PROFILEID  Profile Id in format [scope](optional)/[name]
-
-FLAGS
-  -f, --force         When set to true and when profile exists in local filesystem, overwrites them.
-  -h, --help          show CLI help
-  -q, --quiet         When set to true, disables the shell echo output of action.
-  -s, --scan=<value>  When number provided, scan for super.json outside cwd within range represented by this number.
-  --noColor           When set to true, disables all colored output.
-  --noEmoji           When set to true, disables displaying emoji in output.
-  --station           When set to true, command will create map in folder structure of Superface station
-
-DESCRIPTION
-  Creates map for mock provider on a local filesystem. Created map always returns success result example from profile
-  file. Before running this command you should have created profile file (run sf create:profile).
-
-EXAMPLES
-  $ superface create:mock-map starwars/character-information --force
-
-  $ superface create:mock-map starwars/character-information -s 3
-
-  $ superface create:mock-map starwars/character-information --station
-```
-
-_See code: [src/commands/create/mock-map.ts](https://github.com/superfaceai/cli/tree/main/src/commands/create/mock-map.ts)_
-
-## `superface create:mock-map-test PROFILEID`
-
-Creates test for mock provider map on a local filesystem. Created test expects success result example from profile file. Before running this command you should have created mock provider map (run sf create:mock-map).
-
-```
-USAGE
-  $ superface create:mock-map-test PROFILEID [-q] [--noColor] [--noEmoji] [-h] [-s <value>] [-f] [--station]
-
-ARGUMENTS
-  PROFILEID  Profile Id in format [scope](optional)/[name]
-
-FLAGS
-  -f, --force         When set to true and when profile exists in local filesystem, overwrites them.
-  -h, --help          show CLI help
-  -q, --quiet         When set to true, disables the shell echo output of action.
-  -s, --scan=<value>  When number provided, scan for super.json outside cwd within range represented by this number.
-  --noColor           When set to true, disables all colored output.
-  --noEmoji           When set to true, disables displaying emoji in output.
-  --station           When set to true, command will create map in folder structure of Superface station
-
-DESCRIPTION
-  Creates test for mock provider map on a local filesystem. Created test expects success result example from profile
-  file. Before running this command you should have created mock provider map (run sf create:mock-map).
-
-EXAMPLES
-  $ superface create:mock-map-test starwars/character-information --force
-
-  $ superface create:mock-map-test starwars/character-information -s 3
-
-  $ superface create:mock-map-test starwars/character-information --station
-```
-
-_See code: [src/commands/create/mock-map-test.ts](https://github.com/superfaceai/cli/tree/main/src/commands/create/mock-map-test.ts)_
-
-## `superface create:profile PROFILEID`
-
-creates profile file on local filesystem and links it to super.json.
-
-```
-USAGE
-  $ superface create:profile PROFILEID [-q] [--noColor] [--noEmoji] [-h] [-v <value>] [-u <value>] [-s <value>] [-f]
-    [--station]
-
-ARGUMENTS
-  PROFILEID  Profile Id in format [scope](optional)/[name]
-
-FLAGS
-  -f, --force               When set to true and when profile exists in local filesystem, overwrites them.
-  -h, --help                show CLI help
-  -q, --quiet               When set to true, disables the shell echo output of action.
-  -s, --scan=<value>        When number provided, scan for super.json outside cwd within range represented by this
-                            number.
-  -u, --usecase=<value>...  Usecases that profile contains
-  -v, --version=<value>     [default: 1.0.0] Version of a profile
-  --noColor                 When set to true, disables all colored output.
-  --noEmoji                 When set to true, disables displaying emoji in output.
-  --station                 When set to true, command will create profile in folder structure of Superface station
-
-DESCRIPTION
-  creates profile file on local filesystem and links it to super.json.
-
-EXAMPLES
-  $ superface create:profile starwars/character-information --force
-
-  $ superface create:profile starwars/character-information -s 3
-
-  $ superface create:profile starwars/character-information --station
-```
-
-_See code: [src/commands/create/profile.ts](https://github.com/superfaceai/cli/tree/main/src/commands/commands/create/profile.ts)_
-
-## `superface create:provider PROVIDERNAME`
-
-Creates provider on a local filesystem and adds it to super.json. You do not have to touch super.json or created provider.json file after running this command.
-
-```
-USAGE
-  $ superface create:provider PROVIDERNAME [-q] [--noColor] [--noEmoji] [-h] [-s <value>] [-f] [--station]
-
-ARGUMENTS
-  PROVIDERNAME  Name of provider
-
-FLAGS
-  -f, --force         When set to true and when profile exists in local filesystem, overwrites them.
-  -h, --help          show CLI help
-  -q, --quiet         When set to true, disables the shell echo output of action.
-  -s, --scan=<value>  When number provided, scan for super.json outside cwd within range represented by this number.
-  --noColor           When set to true, disables all colored output.
-  --noEmoji           When set to true, disables displaying emoji in output.
-  --station           When set to true, command will create map in folder structure of Superface station
-
-DESCRIPTION
-  Creates provider on a local filesystem and adds it to super.json. You do not have to touch super.json or created
-  provider.json file after running this command.
-
-EXAMPLES
-  $ superface create:provider swapi --force
-
-  $ superface create:provider swapi -s 3
-
-  $ superface create:provider swapi --station
-```
-
-_See code: [src/commands/create/provider.ts](https://github.com/superfaceai/cli/tree/main/src/commands/create/provider.ts)_
-
-## `superface create:test PROFILEID PROVIDERNAME`
-
-Creates test file for specified profile and provider. Examples in profile are used as an input and @superfaceai/testing library is used to orchestrate tests.
-
-```
-USAGE
-  $ superface create:test PROFILEID PROVIDERNAME [-q] [--noColor] [--noEmoji] [-h] [-s <value>] [-f] [--station]
-
-ARGUMENTS
-  PROFILEID     Profile Id in format [scope](optional)/[name]
-  PROVIDERNAME  Name of provider
-
-FLAGS
-  -f, --force         When set to true and when profile exists in local filesystem, overwrites them.
-  -h, --help          show CLI help
-  -q, --quiet         When set to true, disables the shell echo output of action.
-  -s, --scan=<value>  When number provided, scan for super.json outside cwd within range represented by this number.
-  --noColor           When set to true, disables all colored output.
-  --noEmoji           When set to true, disables displaying emoji in output.
-  --station           When set to true, command will create map in folder structure of Superface station
-
-DESCRIPTION
-  Creates test file for specified profile and provider. Examples in profile are used as an input and
-  @superfaceai/testing library is used to orchestrate tests.
-
-EXAMPLES
-  $ superface create:test starwars/character-information swapi
-
-  $ superface create:test starwars/character-information swapi --station
-
-  $ superface create:test starwars/character-information swapi --force
-
-  $ superface create:test starwars/character-information swapi -q
-```
-
-_See code: [src/commands/create/test.ts](https://github.com/superfaceai/cli/tree/main/src/commands/create/test.ts)_
-
-## `superface init [NAME]`
-
-Initializes superface local folder structure.
-
-```
-USAGE
-  $ superface init [NAME] [-q] [--noColor] [--noEmoji] [-h] [--profiles <value>] [--providers <value>] [-p]
-
-ARGUMENTS
-  NAME  Name of parent directory.
-
-FLAGS
-  -h, --help              show CLI help
-  -p, --prompt            When set to true, prompt will be executed.
-  -q, --quiet             When set to true, disables the shell echo output of action.
-  --noColor               When set to true, disables all colored output.
-  --noEmoji               When set to true, disables displaying emoji in output.
-  --profiles=<value>...   Profile identifiers.
-  --providers=<value>...  Provider names.
-
-DESCRIPTION
-  Initializes superface local folder structure.
-
-EXAMPLES
-  $ superface init
-
-  $ superface init foo
-
-  $ superface init foo --providers bar twilio
-
-  $ superface init foo --profiles my-profile@1.1.0 another-profile@2.0 --providers osm gmaps
-```
-
-_See code: [src/commands/init.ts](https://github.com/superfaceai/cli/tree/main/src/commands/init.ts)_
-
-## `superface install [PROFILEID]`
-
-Automatically initializes superface directory in current working directory if needed, communicates with Superface Store API, stores profiles and compiled files to a local system. Install without any arguments tries to install profiles and providers listed in super.json
-
-```
-USAGE
-  $ superface install [PROFILEID] [-q] [--noColor] [--noEmoji] [-h] [-p <value>] [-f] [-l] [-s <value>]
-
-ARGUMENTS
-  PROFILEID  Profile identifier consisting of scope (optional), profile name and its version.
-
-FLAGS
-  -f, --force                 When set to true and when profile exists in local filesystem, overwrites them.
-  -h, --help                  show CLI help
-  -l, --local                 When set to true, profile id argument is used as a filepath to profile.supr file.
-  -p, --providers=<value>...  Provider name.
-  -q, --quiet                 When set to true, disables the shell echo output of action.
-  -s, --scan=<value>          When number provided, scan for super.json outside cwd within range represented by this
-                              number.
-  --noColor                   When set to true, disables all colored output.
-  --noEmoji                   When set to true, disables displaying emoji in output.
-
-DESCRIPTION
-  Automatically initializes superface directory in current working directory if needed, communicates with Superface
-  Store API, stores profiles and compiled files to a local system. Install without any arguments tries to install
-  profiles and providers listed in super.json
-
-EXAMPLES
-  $ superface install
-
-  $ superface install sms/service@1.0
-
-  $ superface install sms/service@1.0 --providers twilio tyntec
-
-  $ superface install sms/service@1.0 -p twilio
-
-  $ superface install --local sms/service.supr
-```
-
-_See code: [src/commands/install.ts](https://github.com/superfaceai/cli/tree/main/src/commands/install.ts)_
-
-## `superface lint`
-
-Lints all maps and profiles locally linked in super.json. Also can be used to lint specific profile and its maps, in that case remote files can be used.Outputs the linter issues to STDOUT by default.
-
-```
-USAGE
-  $ superface lint [-q] [--noColor] [--noEmoji] [-h] [--providerName <value>] [--profileId <value>] [-o
-    <value>] [--append] [-f long|short|json] [-s <value>]
-
-FLAGS
-  -f, --outputFormat=<option>  [default: short] Output format to use to display errors and warnings.
-                               <options: long|short|json>
-  -h, --help                   show CLI help
-  -o, --output=<value>         [default: -] Filename where the output will be written. `-` is stdout, `-2` is stderr.
-  -q, --quiet                  When set to true, disables the shell echo output of action.
-  -s, --scan=<value>           When number provided, scan for super.json outside cwd within range represented by this
-                               number.
-  --append                     Open output file in append mode instead of truncating it if it exists. Has no effect with
-                               stdout and stderr streams.
-  --noColor                    When set to true, disables all colored output.
-  --noEmoji                    When set to true, disables displaying emoji in output.
-  --profileId=<value>          Profile Id in format [scope/](optional)[name]
-  --providerName=<value>       Provider name
-
-DESCRIPTION
-  Lints all maps and profiles locally linked in super.json. Also can be used to lint specific profile and its maps, in
-  that case remote files can be used.Outputs the linter issues to STDOUT by default.
-  Linter ends with non zero exit code if errors are found.
-
-EXAMPLES
-  $ superface lint
-
-  $ superface lint -f long
-
-  $ superface lint --profileId starwars/character-information
-
-  $ superface lint --profileId starwars/character-information --providerName swapi
-
-  $ superface lint -o -2
-
-  $ superface lint -f json
-
-  $ superface lint -s 3
-```
-
-_See code: [src/commands/lint.ts](https://github.com/superfaceai/cli/tree/main/src/commands/lint.ts)_
+_See code: [dist/commands/execute.ts](https://github.com/superfaceai/cli/tree/main/src/commands/execute.ts)_
 
 ## `superface login`
 
@@ -584,50 +110,135 @@ EXAMPLES
   $ superface logout
 ```
 
-_See code: [src/commands/logout.ts](https://github.com/superfaceai/cli/tree/main/src/commands/logout.ts)_
+_See code: [dist/commands/logout.ts](https://github.com/superfaceai/cli/tree/main/src/commands/logout.ts)_
 
-## `superface publish DOCUMENTTYPE`
+## `superface map PROVIDERNAME [PROFILEID]`
 
-Uploads map/profile/provider to Store. Published file must be locally linked in super.json. This command runs Check and Lint internaly to ensure quality
+Creates a new (or updates an existing) Comlink Map that maps the use case to the selected API provider. After Map is available, the integration is ready to be used by our WASM OneSDK. You should check security, integration parameters and input in the created files before execution. The created Comlinks can be tested by running `superface execute` command
 
 ```
 USAGE
-  $ superface publish DOCUMENTTYPE --profileId <value> --providerName <value> [-q] [--noColor] [--noEmoji]
-    [-h] [--dryRun] [-f] [-s <value>] [-j] [--noSwitch | [--switch | ]]
+  $ superface map PROVIDERNAME [PROFILEID] [LANGUAGE] [-q] [--noColor] [--noEmoji] [-h]
 
 ARGUMENTS
-  DOCUMENTTYPE  (map|profile|provider) Document type of published file
+  PROVIDERNAME  Name of provider.
+  PROFILEID     Id of profile, eg: starwars/character-information
 
 FLAGS
-  -f, --force             Publishes without asking for any confirmation.
-  -h, --help              show CLI help
-  -j, --json              Formats result to JSON
-  -q, --quiet             When set to true, disables the shell echo output of action.
-  -s, --scan=<value>      When a number is provided, scan for super.json outside cwd within the range represented by
-                          this number.
-  --dryRun                Runs without sending the actual request.
-  --noColor               When set to true, disables all colored output.
-  --noEmoji               When set to true, disables displaying emoji in output.
-  --noSwitch              After publish do NOT switch to the remote version of profile/map/provider
-  --profileId=<value>     (required) Profile Id in format [scope/](optional)[name]
-  --providerName=<value>  (required) Name of the provider. This argument is used to publish a map or a provider.
-  --switch                After publish switch to the remote version of profile/map/provider
+  -h, --help   show CLI help
+  -q, --quiet  When set to true, disables the shell echo output of action.
+  --noColor    When set to true, disables all colored output.
+  --noEmoji    When set to true, disables displaying emoji in output.
 
 DESCRIPTION
-  Uploads map/profile/provider to Store. Published file must be locally linked in super.json. This command runs Check
-  and Lint internaly to ensure quality
+  Creates a new (or updates an existing) Comlink Map that maps the use case to the selected API provider. After Map is
+  available, the integration is ready to be used by our WASM OneSDK. You should check security, integration parameters
+  and input in the created files before execution. The created Comlinks can be tested by running `superface execute`
+  command
 
 EXAMPLES
-  $ superface publish map --profileId starwars/character-information --providerName swapi -s 4
-
-  $ superface publish profile --profileId starwars/character-information --providerName swapi -f
-
-  $ superface publish provider --profileId starwars/character-information --providerName swapi -q
-
-  $ superface publish profile --profileId starwars/character-information --providerName swapi --dryRun
+  $ superface map resend communication/send-email
 ```
 
-_See code: [src/commands/publish.ts](https://github.com/superfaceai/cli/tree/main/src/commands/publish.ts)_
+_See code: [dist/commands/map.ts](https://github.com/superfaceai/cli/tree/main/src/commands/map.ts)_
+
+## `superface new PROVIDERNAME [PROMPT]`
+
+Creates new Comlink Profile for your use case based on the selected API. Comlink Profile defines the interface of the API integration. Use name of API provider as the first argument followed by the description of your use case. You need to run `superface prepare` command before running this command.
+
+```
+USAGE
+  $ superface new PROVIDERNAME [PROMPT] [-q] [--noColor] [--noEmoji] [-h]
+
+ARGUMENTS
+  PROVIDERNAME  URL or path to the API documentation.
+  PROMPT        API name. If not provided, it will be inferred from URL or file name.
+
+FLAGS
+  -h, --help   show CLI help
+  -q, --quiet  When set to true, disables the shell echo output of action.
+  --noColor    When set to true, disables all colored output.
+  --noEmoji    When set to true, disables displaying emoji in output.
+
+DESCRIPTION
+  Creates new Comlink Profile for your use case based on the selected API. Comlink Profile defines the interface of the
+  API integration. Use name of API provider as the first argument followed by the description of your use case. You need
+  to run `superface prepare` command before running this command.
+
+EXAMPLES
+  $ superface new swapi "retrieve character's homeworld by their name"
+
+  $ superface new resend "Send email to user"
+```
+
+_See code: [dist/commands/new.ts](https://github.com/superfaceai/cli/tree/main/src/commands/new.ts)_
+
+## `superface prepare URLORPATH [NAME]`
+
+Learns API from the documentation and prepares the API metadata.
+
+```
+USAGE
+  $ superface prepare URLORPATH [NAME] [-q] [--noColor] [--noEmoji] [-h]
+
+ARGUMENTS
+  URLORPATH  URL or path to the API documentation.
+  NAME       API name. If not provided, it will be inferred from URL or file name.
+
+FLAGS
+  -h, --help   show CLI help
+  -q, --quiet  When set to true, disables the shell echo output of action.
+  --noColor    When set to true, disables all colored output.
+  --noEmoji    When set to true, disables displaying emoji in output.
+
+DESCRIPTION
+  Learns API from the documentation and prepares the API metadata.
+
+  The supported documentation formats are:
+  - OpenAPI specification (via URL or local file)
+  - documentation hosted on ReadMe.io (via URL)
+  - plain text (see below)
+
+  If you want to use plain text documentation you need to format the docs with **the separator**. The documentation
+  conventionally consists of various topics, usually set apart by separate pages or big headings. They might be
+  _authentication, rate limiting, general rules, API operations (sometimes grouped by resources)_.
+
+  It's highly recommended each of these topics (or chunks) is set apart in the docs provided for Superface, too. For
+  that, we use _the separator_.
+
+  The separator is a long `===========` ended with a newline. Technically 5 _equal_ characters are enough to form a
+  separator. The API docs ready for the ingest might look something like the following:
+
+  `
+  # Welcome to our docs
+  (...)
+  ================================
+  # API Basics
+  (...)
+  ================================
+  # Authorizing Requests
+  (...)
+  ================================
+  # /todos/:id/items
+  This endpoint lists all items (...)
+  ================================
+  (...)
+  `
+  This command prepares a Provider JSON metadata definition that can be used to generate the integration code. Superface
+  tries to fill as much as possibe from the API documentation, but some parts are required to be filled manually. You
+  can find the prepared provider definition in the `superface/` directory in the current working directory.
+
+EXAMPLES
+  $ superface prepare https://raw.githubusercontent.com/APIs-guru/openapi-directory/main/APIs/openai.com/1.2.0/openapi.yaml
+
+  $ superface prepare https://raw.githubusercontent.com/APIs-guru/openapi-directory/main/APIs/openai.com/1.2.0/openapi.yaml openai
+
+  $ superface prepare path/to/openapi.json
+
+  $ superface prepare https://workable.readme.io/reference/stages workable
+```
+
+_See code: [dist/commands/prepare.ts](https://github.com/superfaceai/cli/tree/main/src/commands/prepare.ts)_
 
 ## `superface whoami`
 
@@ -656,16 +267,6 @@ _See code: [src/commands/whoami.ts](https://github.com/superfaceai/cli/tree/main
 
 <!-- commandsstop -->
 
-## Security
-
-Superface is not man-in-the-middle so it does not require any access to secrets that are needed to communicate with provider API. Superface CLI only prepares super.json file with authorization fields in form of environment variable. You just set correct variables and communicate directly with provider API.
-
-You can find more information in [SDK repository](https://github.com/superfaceai/one-sdk-js/blob/main/SECURITY.md).
-
-## Support
-
-If you need any additional support, have any questions or you just want to talk you can do that through our [documentation page](https://docs.superface.ai).
-
 ## Development
 
 When developing, start with cloning the repository using `git clone https://github.com/superfaceai/cli.git` (or `git clone git@github.com:superfaceai/cli.git` if you have repository access).
@@ -693,13 +294,6 @@ To install a local artifact globally, symlink the binary (`ln -s bin/superface <
 
 **Note**: You can change url of API requests by setting `SUPERFACE_API_URL` environment variable to desired base url.
 
-## Maintainers
-
-- [@Lukáš Valenta](https://github.com/lukas-valenta)
-- [@Edward](https://github.com/TheEdward162)
-- [@Vratislav Kalenda](https://github.com/Vratislav)
-- [@Z](https://github.com/zdne)
-
 ## Contributing
 
 **Please open an issue first if you want to make larger changes**
@@ -723,5 +317,5 @@ Note: If editing the README, please conform to the [standard-readme](https://git
 
 ## License
 
-The Superface is licensed under the [MIT](LICENSE).
-© 2021 Superface
+The Superface CLI is licensed under the [MIT](LICENSE).
+© 2023 Superface
