@@ -1,5 +1,5 @@
 import type { ProviderJson } from '@superfaceai/ast';
-import { parseDocumentId } from '@superfaceai/parser';
+import { parseDocumentId, parseProfile,Source } from '@superfaceai/parser';
 import type { ServiceClient } from '@superfaceai/service-client';
 
 import type { UserError } from '../common/error';
@@ -39,17 +39,18 @@ function assertProfileResponse(
       );
     }
 
-    // try {
-    //   parseProfile(new Source(tmp.profile.source));
-    // } catch (e) {
-    //   throw userError(
-    //     `Unexpected response received - unable to parse profile source: ${JSON.stringify(
-    //       e,
-    //       null,
-    //       2
-    //     )}`, 1
-    //   );
-    // }
+    try {
+      parseProfile(new Source(tmp.profile.source));
+    } catch (e) {
+      throw userError(
+        `Unexpected response received - unable to parse profile source: ${JSON.stringify(
+          e,
+          null,
+          2
+        )}`,
+        1
+      );
+    }
 
     // TODO: validate id format?
     if (typeof tmp.id === 'string') {

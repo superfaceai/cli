@@ -119,8 +119,8 @@ export async function pollUrl(
 
     if (result.status === PollStatus.Success) {
       ux.succeed(`Successfully finished operation`);
-      
-return result.result_url;
+
+      return result.result_url;
     } else if (result.status === PollStatus.Failed) {
       throw userError(
         `Failed to ${getJobDescription(result.result_type)}: ${
