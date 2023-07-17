@@ -14,7 +14,8 @@ export type ProviderPreparationResponse = {
 };
 
 function assertProviderResponse(
-  input: unknown
+  input: unknown,
+  { userError }: { userError: UserError }
 ): asserts input is ProviderPreparationResponse {
   if (
     typeof input === 'object' &&
@@ -39,7 +40,7 @@ function assertProviderResponse(
     }
   }
 
-  throw Error(`Unexpected response received`);
+  throw userError(`Unexpected response received`, 1);
 }
 
 export async function prepareProviderJson(
@@ -141,7 +142,7 @@ async function finishProviderPreparation(
 
   const body = (await resultResponse.json()) as unknown;
 
-  assertProviderResponse(body);
+  assertProviderResponse(body, { userError });
 
   return body;
 }

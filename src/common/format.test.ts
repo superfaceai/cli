@@ -48,9 +48,7 @@ describe('Format utils', () => {
     });
 
     it('formats path to app root from Superface directory', () => {
-      expect(formatPath(APP_PATH, SUPERFACE_DIR_PATH)).toEqual(
-        '..'
-      );
+      expect(formatPath(APP_PATH, SUPERFACE_DIR_PATH)).toEqual('..');
     });
   });
 });

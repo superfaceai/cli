@@ -11,7 +11,8 @@ export type MapPreparationResponse = {
 };
 
 function assertMapResponse(
-  input: unknown
+  input: unknown,
+  { userError }: { userError: UserError }
 ): asserts input is MapPreparationResponse {
   if (typeof input === 'object' && input !== null && 'source' in input) {
     const tmp = input as { source: string };
@@ -21,7 +22,7 @@ function assertMapResponse(
     }
   }
 
-  throw Error(`Unexpected response received`);
+  throw userError(`Unexpected response received`, 1);
 }
 
 export async function mapProviderToProfile(
@@ -58,6 +59,7 @@ export async function mapProviderToProfile(
   return (
     await finishMapPreparation(resultUrl, {
       client,
+      userError,
     })
   ).source;
 }
@@ -127,7 +129,7 @@ async function startMapPreparation(
 
 async function finishMapPreparation(
   resultUrl: string,
-  { client }: { client: ServiceClient }
+  { client, userError }: { client: ServiceClient; userError: UserError }
 ): Promise<MapPreparationResponse> {
   const resultResponse = await client.fetch(resultUrl, {
     method: 'GET',
@@ -139,12 +141,15 @@ async function finishMapPreparation(
   });
 
   if (resultResponse.status !== 200) {
-    throw Error(`Unexpected status code ${resultResponse.status} received`);
+    throw userError(
+      `Unexpected status code ${resultResponse.status} received`,
+      1
+    );
   }
 
   const body = (await resultResponse.json()) as unknown;
 
-  assertMapResponse(body);
+  assertMapResponse(body, { userError });
 
   return body;
 }
