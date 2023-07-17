@@ -40,11 +40,11 @@ export function createNewDotenv({
   const securityEnvs = getSecurityEnvs(providerName, security);
   const tokenEnv = makeTokenEnv(token);
 
-  const allEnvVariables = [tokenEnv, ...parameterEnvs, ...securityEnvs];
-
   const newEnvsOnly = makeFilterForNewEnvs(previousContent);
 
-  const newEnvVariables = allEnvVariables.filter(newEnvsOnly);
+  const newEnvVariables = [tokenEnv, ...parameterEnvs, ...securityEnvs]
+    .filter(uniqueEnvsOnly)
+    .filter(newEnvsOnly);
 
   return {
     content: serializeContent(previousContent, newEnvVariables),
@@ -63,6 +63,10 @@ function makeTokenEnv(token?: string | null): EnvVar {
         ? ONESDK_TOKEN_COMMENT
         : ONESDK_TOKEN_UNAVAILABLE_COMMENT,
   };
+}
+
+function uniqueEnvsOnly(env: EnvVar, ix: number, arr: EnvVar[]): boolean {
+  return arr.findIndex(e => e.name === env.name) === ix;
 }
 
 function makeFilterForNewEnvs(content: string): (e: EnvVar) => boolean {
