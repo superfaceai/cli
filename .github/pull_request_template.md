@@ -18,7 +18,7 @@
 <!--- If you're unsure about any of these, don't hesitate to ask. We're here to help! -->
 <!--- If your changes are only to the internals then make sure any function has its attached documentation updated or added (e.g. descriptive name, doc comment, etc.). If your changes are to user-facing APIs or concepts then make sure README.md is updated accordingly (e.g. command help output). -->
 - [ ] I have updated the documentation accordingly. For updating Oclif commands documentation use [oclif-dev](https://github.com/oclif/dev-cli#oclif-dev-readme).
-- [ ] I have read the **CONTRIBUTION_GUIDE** document.
+- [ ] I have read the **CONTRIBUTING** document.
 - [ ] I haven't repeated the code. (DRY)
 - [ ] I have added tests to cover my changes.
 - [ ] All new and existing tests passed.

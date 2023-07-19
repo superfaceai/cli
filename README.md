@@ -1,6 +1,6 @@
-[Website](https://superface.ai) | [Get Started](https://superface.ai/docs/introduction/getting-started) | [Documentation](https://superface.ai/docs) | [Discord](https://sfc.is/discord) | [Twitter](https://twitter.com/superfaceai) | [Support](https://superface.ai/support)
+[Website](https://superface.ai) | [Get Started](https://superface.ai/docs/introduction/getting-started) | [Documentation](https://superface.ai/docs) | [GitHub Discussions](https://sfc.is/discussions) | [Twitter](https://twitter.com/superfaceai) | [Support](https://superface.ai/support)
 
-<img src="https://github.com/superfaceai/cli/blob/main/docs/LogoGreen.png" alt="superface logo" width="100" height="100">
+<img src="https://github.com/superfaceai/cli/blob/main/docs/LogoGreen.png" alt="Superface" width="100" height="100">
 
 # Superface CLI
 
@@ -298,7 +298,7 @@ To install a local artifact globally, symlink the binary (`ln -s bin/superface <
 
 **Please open an issue first if you want to make larger changes**
 
-Feel free to contribute! Please follow the [Contribution Guide](CONTRIBUTION_GUIDE.md).
+Feel free to contribute! Please follow the [Contribution Guide](CONTRIBUTING.md).
 
 Licenses of node_modules are checked during CI/CD for every commit. Only the following licenses are allowed:
 
@@ -318,4 +318,5 @@ Note: If editing the README, please conform to the [standard-readme](https://git
 ## License
 
 The Superface CLI is licensed under the [MIT](LICENSE).
+
 © 2023 Superface
