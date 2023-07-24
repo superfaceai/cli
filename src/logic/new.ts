@@ -1,5 +1,5 @@
 import type { ProviderJson } from '@superfaceai/ast';
-import { parseDocumentId, parseProfile,Source } from '@superfaceai/parser';
+import { parseDocumentId, parseProfile, Source } from '@superfaceai/parser';
 import type { ServiceClient } from '@superfaceai/service-client';
 
 import type { UserError } from '../common/error';

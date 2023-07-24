@@ -49,7 +49,7 @@ const client = new OneClient({
 
 // Load Comlink profile and use case
 const profile = await client.getProfile('${profileId}');
-const useCase = profile.getUseCase('${useCaseName}')
+const useCase = profile.getUseCase('${useCaseName}');
 
 try {
   // Execute use case
