@@ -37,7 +37,7 @@ describe('createNewDotenv', () => {
     const result = createNewDotenv({
       providerName: PROVIDER_NAME,
       parameters: [PARAMETER, PARAMETER, PARAMETER],
-      security: [BEARER_AUTH,BEARER_AUTH,BEARER_AUTH],
+      security: [BEARER_AUTH, BEARER_AUTH, BEARER_AUTH],
       token: TOKEN,
     });
 
