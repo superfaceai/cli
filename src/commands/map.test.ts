@@ -96,7 +96,11 @@ describe('MapCLI command', () => {
             logger,
             userError,
             flags: {},
-            args: { providerName, language: 'Some other lang' },
+            args: {
+              providerName,
+              profileId: profileName,
+              language: 'Some other lang',
+            },
           })
         ).rejects.toThrow(
           'Language Some other lang is not supported. Supported languages are: python, js'
@@ -104,8 +108,25 @@ describe('MapCLI command', () => {
       });
     });
 
-    describe('checking profile id argument', () => {
+    describe('checking arguments', () => {
       it('throws when profile id is not provided', async () => {
+        jest.mocked(exists).mockResolvedValueOnce(true);
+        jest
+          .mocked(readFile)
+          .mockResolvedValueOnce(JSON.stringify(providerJson));
+        await expect(
+          instance.execute({
+            logger,
+            userError,
+            flags: {},
+            args: { profileId: profileName },
+          })
+        ).rejects.toThrow(
+          'Missing provider name or profile id. Please provide them as first and second argument.'
+        );
+      });
+
+      it('throws when provider is not provided', async () => {
         jest.mocked(exists).mockResolvedValueOnce(true);
         jest
           .mocked(readFile)
@@ -118,10 +139,12 @@ describe('MapCLI command', () => {
             args: { providerName },
           })
         ).rejects.toThrow(
-          'Missing profile id. Please provide it as first argument.'
+          'Missing provider name or profile id. Please provide them as first and second argument.'
         );
       });
+    });
 
+    describe('checking profile id argument', () => {
       it('throws when profile id is invalid', async () => {
         jest.mocked(exists).mockResolvedValueOnce(true);
         jest

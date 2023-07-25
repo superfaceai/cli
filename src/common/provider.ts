@@ -14,20 +14,13 @@ import { OutputStream } from './output-stream';
 
 // TODO: move to common
 export async function resolveProviderJson(
-  providerName: string | undefined,
+  providerName: string,
   { userError, client }: { userError: UserError; client: ServiceClient }
 ): Promise<
   {
     providerJson: ProviderJson;
   } & ({ source: 'local'; path: string } | { source: 'remote' })
 > {
-  if (providerName === undefined) {
-    throw userError(
-      'Missing provider name. Please provide it as first argument.',
-      1
-    );
-  }
-
   if (!isValidProviderName(providerName)) {
     throw userError('Invalid provider name', 1);
   }

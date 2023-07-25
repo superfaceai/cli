@@ -76,6 +76,13 @@ export default class Execute extends Command {
     const ux = UX.create();
     const { providerName, profileId, language } = args;
 
+    if (providerName === undefined || profileId === undefined) {
+      throw userError(
+        'Missing provider name or profile id. Please provide them as first and second argument.',
+        1
+      );
+    }
+
     if (!isInsideSuperfaceDir()) {
       throw userError('Command must be run inside superface directory', 1);
     }

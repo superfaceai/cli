@@ -46,16 +46,38 @@ describe('new CLI command', () => {
       OutputStream.writeOnce = originalWriteOnce;
     });
 
-    it('throws when prompt is not provided', async () => {
-      await expect(
-        instance.execute({
-          userError,
-          flags: {},
-          args: { providerName: 'test' },
-        })
-      ).rejects.toThrow(
-        'Missing short description of your use case in natural language. Please provide it as second argument.'
-      );
+    describe('checking arguments', () => {
+      it('throws when provider is not provided', async () => {
+        jest.mocked(exists).mockResolvedValueOnce(true);
+        jest
+          .mocked(readFile)
+          .mockResolvedValueOnce(JSON.stringify(providerJson));
+        await expect(
+          instance.execute({
+            userError,
+            flags: {},
+            args: { prompt },
+          })
+        ).rejects.toThrow(
+          'Missing provider name or prompt. Please provide them as first and second argument.'
+        );
+      });
+
+      it('throws when prompt is not provided', async () => {
+        jest.mocked(exists).mockResolvedValueOnce(true);
+        jest
+          .mocked(readFile)
+          .mockResolvedValueOnce(JSON.stringify(providerJson));
+        await expect(
+          instance.execute({
+            userError,
+            flags: {},
+            args: { providerName },
+          })
+        ).rejects.toThrow(
+          'Missing provider name or prompt. Please provide them as first and second argument.'
+        );
+      });
     });
 
     it('throws when profile already exists', async () => {

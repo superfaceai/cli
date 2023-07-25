@@ -67,6 +67,13 @@ export default class New extends Command {
 
     ux.start('Checking input arguments');
 
+    if (providerName === undefined || prompt === undefined) {
+      throw userError(
+        'Missing provider name or prompt. Please provide them as first and second argument.',
+        1
+      );
+    }
+
     checkPrompt(prompt, { userError });
 
     const resolvedProviderJson = await resolveProviderJson(providerName, {
