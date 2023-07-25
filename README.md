@@ -31,7 +31,7 @@ brew install superfaceai/cli/superface
 * [`superface login`](#superface-login)
 * [`superface logout`](#superface-logout)
 * [`superface map PROVIDERNAME [PROFILEID]`](#superface-map-providername-profileid)
-* [`superface new PROVIDERNAME [PROMPT]`](#superface-new-providername-prompt)
+* [`superface new PROVIDERNAME PROMPT [PROFILEID]`](#superface-new-providername-prompt-profileid)
 * [`superface prepare URLORPATH [NAME]`](#superface-prepare-urlorpath-name)
 * [`superface whoami`](#superface-whoami)
 
@@ -41,7 +41,7 @@ Run the created integration in superface directory. Commands `prepare`, `new` an
 
 ```
 USAGE
-  $ superface execute PROVIDERNAME PROFILEID [LANGUAGE] [-q] [--noColor] [--noEmoji] [-h]
+  $ superface execute [PROVIDERNAME] [PROFILEID] [LANGUAGE] [-q] [--noColor] [--noEmoji] [-h]
 
 ARGUMENTS
   PROVIDERNAME  Name of provider.
@@ -54,8 +54,8 @@ FLAGS
   --noEmoji    When set to true, disables displaying emoji in output.
 
 DESCRIPTION
-  Run the created integration. Commands `prepare`, `new` and `map` must be run before this command. This command will
-  execute integration using Node.js (more runners coming soon)
+  Run the created integration in superface directory. Commands `prepare`, `new` and `map` must be run before this
+  command. This command will execute integration using Node.js (more runners coming soon)
 
 EXAMPLES
   $ superface execute resend communication/send-email
@@ -118,7 +118,7 @@ Creates a new (or updates an existing) Comlink Map that maps the use case to the
 
 ```
 USAGE
-  $ superface map PROVIDERNAME [PROFILEID] [LANGUAGE] [-q] [--noColor] [--noEmoji] [-h]
+  $ superface map [PROVIDERNAME] [PROFILEID] [LANGUAGE] [-q] [--noColor] [--noEmoji] [-h]
 
 ARGUMENTS
   PROVIDERNAME  Name of provider.
@@ -142,17 +142,18 @@ EXAMPLES
 
 _See code: [dist/commands/map.ts](https://github.com/superfaceai/cli/tree/main/src/commands/map.ts)_
 
-## `superface new PROVIDERNAME [PROMPT]`
+## `superface new PROVIDERNAME PROMPT [PROFILEID]`
 
 Creates new Comlink Profile for your use case based on the selected API. Comlink Profile defines the interface of the API integration. Use name of API provider as the first argument followed by the description of your use case. You need to run `superface prepare` command before running this command.
 
 ```
 USAGE
-  $ superface new PROVIDERNAME [PROMPT] [-q] [--noColor] [--noEmoji] [-h]
+  $ superface new [PROVIDERNAME] [PROMPT] [PROFILEID] [-q] [--noColor] [--noEmoji] [-h]
 
 ARGUMENTS
   PROVIDERNAME  URL or path to the API documentation.
-  PROMPT        API name. If not provided, it will be inferred from URL or file name.
+  PROMPT        Short description of your use case in natural language.
+  PROFILEID     Optional id of profile, eg: starwars/character-information. If not provided it will be inferred from prompt.
 
 FLAGS
   -h, --help   show CLI help
@@ -168,6 +169,8 @@ DESCRIPTION
 EXAMPLES
   $ superface new swapi "retrieve character's homeworld by their name"
 
+  $ superface new swapi "retrieve character's homeworld by their name" swapi/character-information
+
   $ superface new resend "Send email to user"
 ```
 
@@ -179,7 +182,7 @@ Learns API from the documentation and prepares the API metadata.
 
 ```
 USAGE
-  $ superface prepare URLORPATH [NAME] [-q] [--noColor] [--noEmoji] [-h]
+  $ superface prepare [URLORPATH] [NAME] [-q] [--noColor] [--noEmoji] [-h]
 
 ARGUMENTS
   URLORPATH  URL or path to the API documentation.

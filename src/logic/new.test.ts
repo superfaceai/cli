@@ -148,6 +148,63 @@ describe('newProfile', () => {
     });
   });
 
+  it('prepares profile with custom id', async () => {
+    const source = mockProfileSource(mockProfileScope, mockProfileName);
+    const fetch = jest
+      .spyOn(ServiceClient.prototype, 'fetch')
+      // Create job
+      .mockResolvedValueOnce(
+        mockResponse(202, 'ok', undefined, {
+          href: 'https://superface.ai/job/123',
+        })
+      )
+      // Fetch result
+      .mockResolvedValueOnce(
+        mockResponse(200, 'ok', undefined, {
+          id: 'custom-scope' + '/' + 'custom-name',
+          profile: { source },
+        })
+      );
+
+    jest.mocked(pollUrl).mockResolvedValueOnce('https://superface.ai/job/123');
+
+    await expect(
+      newProfile(
+        {
+          providerJson: mockProvider,
+          prompt,
+          profileName: 'custom-name',
+          profileScope: 'custom-scope',
+        },
+        { userError, ux }
+      )
+    ).resolves.toEqual({
+      scope: 'custom-scope',
+      name: 'custom-name',
+      source,
+    });
+
+    expect(fetch).toHaveBeenNthCalledWith(1, '/authoring/profiles', {
+      body: JSON.stringify({
+        prompt,
+        provider: mockProvider,
+        profileName: 'custom-name',
+        profileScope: 'custom-scope',
+      }),
+      headers: { 'Content-Type': 'application/json' },
+      method: 'POST',
+    });
+    expect(pollUrl).toHaveBeenCalledWith(
+      { options: { quiet: undefined }, url: 'https://superface.ai/job/123' },
+      { client: expect.any(ServiceClient), ux, userError }
+    );
+    expect(fetch).toHaveBeenNthCalledWith(2, 'https://superface.ai/job/123', {
+      baseUrl: '',
+      headers: { accept: 'application/json' },
+      method: 'GET',
+    });
+  });
+
   it('prepares profile without scope', async () => {
     const source = mockProfileSource(mockProfileScope, mockProfileName);
     const fetch = jest
