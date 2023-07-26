@@ -44,7 +44,7 @@ const client = new OneClient({
   // ${ONESDK_TOKEN_COMMENT}
   token: process.env.${ONESDK_TOKEN_ENV},
   // Path to Comlinks within your project
-  assetsPath: '${buildSuperfaceDirPath()}'
+  assetsPath: '${escapeAssetspath(buildSuperfaceDirPath())}'
 });
 
 // Load Comlink profile and use case
@@ -82,3 +82,8 @@ try {
     requiredSecurity: preparedSecurity.required,
   };
 };
+
+function escapeAssetspath(path: string): string {
+  // Escape backslashes for Windows
+  return path.replace(/\\/g, '\\\\');
+}
