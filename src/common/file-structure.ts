@@ -1,4 +1,4 @@
-import { join, resolve } from 'path';
+import { basename, join, resolve } from 'path';
 
 import { SupportedLanguages } from '../logic/application-code/application-code';
 
@@ -11,13 +11,12 @@ const PROVIDER_EXTENSION = '.provider.json';
 const MAP_EXTENSION = '.map.js';
 
 export function isInsideSuperfaceDir(): boolean {
-  return process.cwd().endsWith('/' + DEFAULT_SUPERFACE_DIR);
+  return basename(process.cwd()) === DEFAULT_SUPERFACE_DIR;
 }
 
 export function buildSuperfaceDirPath(): string {
   // If user is in superface dir, use it
-  if (process.cwd().endsWith('/' + DEFAULT_SUPERFACE_DIR))
-    return resolve(process.cwd());
+  if (isInsideSuperfaceDir()) return resolve(process.cwd());
 
   return join(resolve(process.cwd()), DEFAULT_SUPERFACE_DIR);
 }
