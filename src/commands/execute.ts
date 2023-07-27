@@ -78,7 +78,7 @@ export default class Execute extends Command {
 
     if (providerName === undefined || profileId === undefined) {
       throw userError(
-        'Missing provider name or profile id. Please provide them as first and second argument.',
+        'Missing provider name or profile ID. Usage: `superface execute PROVIDERNAME PROFILEID`',
         1
       );
     }

@@ -69,7 +69,7 @@ export default class New extends Command {
 
     if (providerName === undefined || prompt === undefined) {
       throw userError(
-        'Missing provider name or prompt. Please provide them as first and second argument.',
+        'Missing provider name or prompt. Usage: `superface new PROVIDERNAME [PROMPT]`',
         1
       );
     }

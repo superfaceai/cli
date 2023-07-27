@@ -100,7 +100,7 @@ export default class Map extends Command {
 
     if (providerName === undefined || profileId === undefined) {
       throw userError(
-        'Missing provider name or profile id. Please provide them as first and second argument.',
+        'Missing provider name or profile ID. Usage: `superface map PROVIDERNAME [PROFILEID]`',
         1
       );
     }
