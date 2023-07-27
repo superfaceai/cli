@@ -41,7 +41,7 @@ export default class New extends Command {
     },
     {
       name: 'profileId',
-      description: 'Optional id of profile, eg: starwars/character-information. If not provided it will be inferred from prompt.',
+      description: 'Optional ID of the new profile, e.g. starwars/character-information. If not provided, profile ID will be inferred from the prompt.',
       required: false,
     },
   ];
