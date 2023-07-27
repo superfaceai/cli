@@ -84,7 +84,7 @@ describe('execute CLI command', () => {
             args: { profileId: profileName },
           })
         ).rejects.toThrow(
-          'Missing provider name or profile id. Please provide them as first and second argument.'
+          'Missing provider name or profile ID. Usage: `superface execute PROVIDERNAME PROFILEID`'
         );
       });
 
@@ -101,7 +101,7 @@ describe('execute CLI command', () => {
             args: { providerName },
           })
         ).rejects.toThrow(
-          'Missing provider name or profile id. Please provide them as first and second argument.'
+          'Missing provider name or profile ID. Usage: `superface execute PROVIDERNAME PROFILEID`'
         );
       });
     });

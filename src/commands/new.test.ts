@@ -59,7 +59,7 @@ describe('new CLI command', () => {
             args: { prompt },
           })
         ).rejects.toThrow(
-          'Missing provider name or prompt. Please provide them as first and second argument.'
+          'Missing provider name or prompt. Usage: `superface new PROVIDERNAME [PROMPT]`'
         );
       });
 
@@ -75,7 +75,7 @@ describe('new CLI command', () => {
             args: { providerName },
           })
         ).rejects.toThrow(
-          'Missing provider name or prompt. Please provide them as first and second argument.'
+          'Missing provider name or prompt. Usage: `superface new PROVIDERNAME [PROMPT]`'
         );
       });
     });
