@@ -243,7 +243,6 @@ describe('MapCLI command', () => {
 
     it('throws when map already exists', async () => {
       const source = profileSource(undefined, profileName);
-      const ast = parseProfile(new Source(source));
 
       jest.mocked(prepareProject).mockResolvedValueOnce({
         saved: true,
@@ -281,12 +280,7 @@ describe('MapCLI command', () => {
       expect(mapProviderToProfile).toHaveBeenCalledWith(
         {
           providerJson,
-          profile: {
-            ast,
-            source,
-            name: profileName,
-            scope: undefined,
-          },
+          profile: source,
           options: { quiet: undefined },
         },
         { ux, userError }
@@ -340,12 +334,8 @@ describe('MapCLI command', () => {
       expect(mapProviderToProfile).toHaveBeenCalledWith(
         {
           providerJson,
-          profile: {
-            source,
-            ast,
-            name: profileName,
-            scope: profileScope,
-          },
+          profile: source,
+
           options: { quiet: undefined },
         },
         { ux, userError }
@@ -419,12 +409,7 @@ describe('MapCLI command', () => {
       expect(mapProviderToProfile).toHaveBeenCalledWith(
         {
           providerJson,
-          profile: {
-            source,
-            ast,
-            name: profileName,
-            scope: undefined,
-          },
+          profile: source,
           options: { quiet: undefined },
         },
         { ux, userError }
@@ -496,12 +481,7 @@ describe('MapCLI command', () => {
       expect(mapProviderToProfile).toHaveBeenCalledWith(
         {
           providerJson,
-          profile: {
-            source,
-            ast,
-            name: profileName,
-            scope: undefined,
-          },
+          profile: source,
           options: { quiet: undefined },
         },
         { ux, userError }

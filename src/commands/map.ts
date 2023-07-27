@@ -119,7 +119,7 @@ export default class Map extends Command {
     const map = await mapProviderToProfile(
       {
         providerJson: resolvedProviderJson.providerJson,
-        profile,
+        profile: profile.source,
         options: { quiet: flags.quiet },
       },
       { userError, ux }
