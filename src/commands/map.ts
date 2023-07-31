@@ -98,6 +98,13 @@ export default class Map extends Command {
     const ux = UX.create();
     const { providerName, profileId, language } = args;
 
+    if (providerName === undefined || profileId === undefined) {
+      throw userError(
+        'Missing provider name or profile ID. Usage: `superface map PROVIDERNAME [PROFILEID]`',
+        1
+      );
+    }
+
     const resolvedLanguage = resolveLanguage(language, { userError });
     const hasExplicitLanguageSelect = language !== undefined;
 
@@ -269,7 +276,7 @@ async function saveDotenv(
 }
 
 export async function resolveProfileSource(
-  profileId: string | undefined,
+  profileId: string,
   { userError }: { userError: UserError }
 ): Promise<{
   source: string;
@@ -277,14 +284,6 @@ export async function resolveProfileSource(
   name: string;
   scope: string | undefined;
 }> {
-  // Check profile name
-  if (profileId === undefined) {
-    throw userError(
-      'Missing profile id. Please provide it as first argument.',
-      1
-    );
-  }
-
   // TODO: move provide Id handling to common?
   const parsedProfileId = parseDocumentId(profileId.replace(/\./, '/'));
   if (parsedProfileId.kind == 'error') {

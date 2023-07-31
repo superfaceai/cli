@@ -70,6 +70,42 @@ describe('execute CLI command', () => {
       OutputStream.writeOnce = originalWriteOnce;
     });
 
+    describe('checking arguments', () => {
+      it('throws when profile id is not provided', async () => {
+        jest.mocked(exists).mockResolvedValueOnce(true);
+        jest
+          .mocked(readFile)
+          .mockResolvedValueOnce(JSON.stringify(providerJson));
+        await expect(
+          instance.execute({
+            logger,
+            userError,
+            flags: {},
+            args: { profileId: profileName },
+          })
+        ).rejects.toThrow(
+          'Missing provider name or profile ID. Usage: `superface execute PROVIDERNAME PROFILEID`'
+        );
+      });
+
+      it('throws when provider is not provided', async () => {
+        jest.mocked(exists).mockResolvedValueOnce(true);
+        jest
+          .mocked(readFile)
+          .mockResolvedValueOnce(JSON.stringify(providerJson));
+        await expect(
+          instance.execute({
+            logger,
+            userError,
+            flags: {},
+            args: { providerName },
+          })
+        ).rejects.toThrow(
+          'Missing provider name or profile ID. Usage: `superface execute PROVIDERNAME PROFILEID`'
+        );
+      });
+    });
+
     describe('checking language argument', () => {
       it('throws when cwd is not in superface folder', async () => {
         jest.mocked(exists).mockResolvedValueOnce(true);
@@ -115,24 +151,6 @@ describe('execute CLI command', () => {
     });
 
     describe('checking profile id argument', () => {
-      it('throws when profile id is not provided', async () => {
-        jest.mocked(exists).mockResolvedValueOnce(true);
-        jest.mocked(isInsideSuperfaceDir).mockReturnValue(true);
-        jest
-          .mocked(readFile)
-          .mockResolvedValueOnce(JSON.stringify(providerJson));
-        await expect(
-          instance.execute({
-            logger,
-            userError,
-            flags: {},
-            args: { providerName },
-          })
-        ).rejects.toThrow(
-          'Missing profile id. Please provide it as first argument.'
-        );
-      });
-
       it('throws when profile id is invalid', async () => {
         jest.mocked(exists).mockResolvedValueOnce(true);
         jest.mocked(isInsideSuperfaceDir).mockReturnValue(true);
