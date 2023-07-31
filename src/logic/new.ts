@@ -123,7 +123,6 @@ async function startProfilePreparation(
   },
   { client, userError }: { client: ServiceClient; userError: UserError }
 ): Promise<string> {
-  // TODO: check real url
   const jobUrlResponse = await client.fetch(`/authoring/profiles`, {
     method: 'POST',
     headers: {
@@ -132,8 +131,8 @@ async function startProfilePreparation(
     body: JSON.stringify({
       prompt,
       provider: providerJson,
-      profileName,
-      profileScope,
+      profile_name: profileName,
+      profile_scope: profileScope,
     }),
   });
 

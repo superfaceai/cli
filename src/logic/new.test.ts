@@ -188,8 +188,8 @@ describe('newProfile', () => {
       body: JSON.stringify({
         prompt,
         provider: mockProvider,
-        profileName: 'custom-name',
-        profileScope: 'custom-scope',
+        profile_name: 'custom-name',
+        profile_scope: 'custom-scope',
       }),
       headers: { 'Content-Type': 'application/json' },
       method: 'POST',
