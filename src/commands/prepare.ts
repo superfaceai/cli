@@ -138,7 +138,7 @@ Documentation was indexed but the Provider definition requires attention.
       )}}'. See {underline https://sfc.is/editing-providers}}
 
 2) Create a new Comlink profile using:
-   superface new ${providerJson.name} "use case description"`);
+{underline.bold superface new ${providerJson.name} "use case description"}`);
     } else {
       ux.succeed(
         `Provider definition saved to '${formatPath(providerJsonPath)}'.
