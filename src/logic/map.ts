@@ -32,11 +32,7 @@ export async function mapProviderToProfile(
     options,
   }: {
     providerJson: ProviderJson;
-    profile: {
-      scope?: string;
-      source: string;
-      name: string;
-    };
+    profile: string;
     options?: {
       quiet?: boolean;
     };
@@ -70,33 +66,23 @@ async function startMapPreparation(
     providerJson,
     map,
   }: {
-    profile: {
-      scope?: string;
-      source: string;
-      name: string;
-    };
+    profile: string;
     providerJson: ProviderJson;
     map?: string;
   },
   { client, userError }: { client: ServiceClient; userError: UserError }
 ): Promise<string> {
-  const profileId = `${profile.scope !== undefined ? profile.scope + '.' : ''}${
-    profile.name
-  }`;
-  const jobUrlResponse = await client.fetch(
-    `/authoring/profiles/${profileId}/maps`,
-    {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        map,
-        provider: providerJson,
-        profile: profile.source,
-      }),
-    }
-  );
+  const jobUrlResponse = await client.fetch(`/authoring/maps`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      map,
+      provider: providerJson,
+      profile,
+    }),
+  });
 
   if (jobUrlResponse.status !== 202) {
     if (jobUrlResponse.status === 401) {
