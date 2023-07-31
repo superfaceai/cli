@@ -117,6 +117,58 @@ describe('new CLI command', () => {
       );
     });
 
+    it('throws when custom profile id is not valid', async () => {
+      jest.mocked(exists).mockResolvedValueOnce(true);
+      jest.mocked(readFile).mockResolvedValueOnce(JSON.stringify(providerJson));
+      jest.mocked(newProfile).mockResolvedValueOnce({
+        source: profileSource,
+        name: 'custom-name',
+        scope: 'custom-scope',
+      });
+
+      await expect(
+        instance.execute({
+          userError,
+          flags: {},
+          args: { providerName, prompt, profileId: 'n0tV4l!d' },
+        })
+      ).rejects.toThrow(
+        'Invalid profile id: "n0tV4l!d" is not a valid lowercase identifier'
+      );
+    });
+
+    it('prepares profile with custom id', async () => {
+      jest.mocked(exists).mockResolvedValueOnce(true);
+      jest.mocked(readFile).mockResolvedValueOnce(JSON.stringify(providerJson));
+      jest.mocked(newProfile).mockResolvedValueOnce({
+        source: profileSource,
+        name: 'custom-name',
+        scope: 'custom-scope',
+      });
+
+      await instance.execute({
+        userError,
+        flags: {},
+        args: { providerName, prompt, profileId: 'custom-scope/custom-name' },
+      });
+
+      expect(newProfile).toHaveBeenCalledWith(
+        {
+          providerJson,
+          prompt,
+          profileName: 'custom-name',
+          profileScope: 'custom-scope',
+          options: { quiet: undefined },
+        },
+        { ux, userError }
+      );
+
+      expect(mockWriteOnce).toHaveBeenCalledWith(
+        expect.stringContaining(`superface/custom-scope.custom-name.profile`),
+        profileSource
+      );
+    });
+
     it('prepares profile with scope', async () => {
       jest.mocked(exists).mockResolvedValueOnce(true);
       jest.mocked(readFile).mockResolvedValueOnce(JSON.stringify(providerJson));

@@ -65,10 +65,14 @@ export async function newProfile(
   {
     providerJson,
     prompt,
+    profileName,
+    profileScope,
     options,
   }: {
     providerJson: ProviderJson;
     prompt: string;
+    profileName?: string;
+    profileScope?: string;
     options?: { quiet?: boolean };
   },
   { userError, ux }: { userError: UserError; ux: UX }
@@ -76,7 +80,7 @@ export async function newProfile(
   const client = SuperfaceClient.getClient();
 
   const jobUrl = await startProfilePreparation(
-    { providerJson, prompt },
+    { providerJson, prompt, profileName, profileScope },
     { client, userError }
   );
 
@@ -106,16 +110,30 @@ export async function newProfile(
 }
 
 async function startProfilePreparation(
-  { providerJson, prompt }: { providerJson: ProviderJson; prompt: string },
+  {
+    providerJson,
+    prompt,
+    profileName,
+    profileScope,
+  }: {
+    providerJson: ProviderJson;
+    prompt: string;
+    profileName?: string;
+    profileScope?: string;
+  },
   { client, userError }: { client: ServiceClient; userError: UserError }
 ): Promise<string> {
-  // TODO: check real url
   const jobUrlResponse = await client.fetch(`/authoring/profiles`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ prompt, provider: providerJson }),
+    body: JSON.stringify({
+      prompt,
+      provider: providerJson,
+      profile_name: profileName,
+      profile_scope: profileScope,
+    }),
   });
 
   if (jobUrlResponse.status !== 202) {

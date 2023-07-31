@@ -22,6 +22,8 @@ export default class New extends Command {
 
   public static examples = [
     'superface new swapi "retrieve character\'s homeworld by their name"',
+    'superface new swapi "retrieve character\'s homeworld by their name" swapi/character-information',
+
     'superface new resend "Send email to user"',
   ];
 
@@ -33,8 +35,13 @@ export default class New extends Command {
     },
     {
       name: 'prompt',
+      description: 'Short description of your use case in natural language.',
+      required: true,
+    },
+    {
+      name: 'profileId',
       description:
-        'API name. If not provided, it will be inferred from URL or file name.',
+        'Optional ID of the new profile, e.g. starwars/character-information. If not provided, profile ID will be inferred from the prompt.',
       required: false,
     },
   ];
@@ -60,10 +67,15 @@ export default class New extends Command {
   }: {
     userError: UserError;
     flags: Flags<typeof New.flags>;
-    args: { providerName?: string; prompt?: string };
+    args: { providerName?: string; prompt?: string; profileId?: string };
   }): Promise<void> {
     const ux = UX.create();
-    const { providerName, prompt } = args;
+    const { providerName, prompt, profileId } = args;
+
+    const customProfileId =
+      profileId !== undefined
+        ? ProfileId.fromId(profileId, { userError })
+        : undefined;
 
     ux.start('Checking input arguments');
 
@@ -87,6 +99,8 @@ export default class New extends Command {
       {
         providerJson: resolvedProviderJson.providerJson,
         prompt: prompt,
+        profileName: customProfileId?.name,
+        profileScope: customProfileId?.scope,
         options: { quiet: flags.quiet },
       },
       { userError, ux }
