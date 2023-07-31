@@ -17,8 +17,7 @@ describe('mapProviderToProfile', () => {
 
   const providerName = 'test-provider';
   const providerJson = mockProviderJson({ name: providerName });
-  const profileScope = 'test-scope';
-  const profileName = 'test-profile';
+
   const mapSource = `js map`;
   const profileSource = ` name = "starwars/spaceship-information"
   version = "1.0.0"
@@ -69,82 +68,20 @@ describe('mapProviderToProfile', () => {
       mapProviderToProfile(
         {
           providerJson,
-          profile: {
-            name: profileName,
-            scope: profileScope,
-            source: profileSource,
-          },
+          profile: profileSource,
         },
         { userError, ux }
       )
     ).resolves.toEqual(mapSource);
 
-    expect(fetch).toHaveBeenNthCalledWith(
-      1,
-      `/authoring/profiles/${profileScope}.${profileName}/maps`,
-      {
-        body: JSON.stringify({
-          provider: providerJson,
-          profile: profileSource,
-        }),
-        headers: { 'Content-Type': 'application/json' },
-        method: 'POST',
-      }
-    );
-    expect(pollUrl).toHaveBeenCalledWith(
-      { options: { quiet: undefined }, url: 'https://superface.ai/job/123' },
-      { client: expect.any(ServiceClient), ux, userError }
-    );
-    expect(fetch).toHaveBeenNthCalledWith(2, 'https://superface.ai/job/123', {
-      baseUrl: '',
-      headers: { accept: 'application/json' },
-      method: 'GET',
+    expect(fetch).toHaveBeenNthCalledWith(1, `/authoring/maps`, {
+      body: JSON.stringify({
+        provider: providerJson,
+        profile: profileSource,
+      }),
+      headers: { 'Content-Type': 'application/json' },
+      method: 'POST',
     });
-  });
-
-  it('prepares map for profile without scope', async () => {
-    const fetch = jest
-      .spyOn(ServiceClient.prototype, 'fetch')
-      // Create job
-      .mockResolvedValueOnce(
-        mockResponse(202, 'ok', undefined, {
-          href: 'https://superface.ai/job/123',
-        })
-      )
-      // Fetch result
-      .mockResolvedValueOnce(
-        mockResponse(200, 'ok', undefined, {
-          source: mapSource,
-        })
-      );
-
-    jest.mocked(pollUrl).mockResolvedValueOnce('https://superface.ai/job/123');
-
-    await expect(
-      mapProviderToProfile(
-        {
-          providerJson,
-          profile: {
-            name: profileName,
-            source: profileSource,
-          },
-        },
-        { userError, ux }
-      )
-    ).resolves.toEqual(mapSource);
-
-    expect(fetch).toHaveBeenNthCalledWith(
-      1,
-      `/authoring/profiles/${profileName}/maps`,
-      {
-        body: JSON.stringify({
-          provider: providerJson,
-          profile: profileSource,
-        }),
-        headers: { 'Content-Type': 'application/json' },
-        method: 'POST',
-      }
-    );
     expect(pollUrl).toHaveBeenCalledWith(
       { options: { quiet: undefined }, url: 'https://superface.ai/job/123' },
       { client: expect.any(ServiceClient), ux, userError }
@@ -166,28 +103,20 @@ describe('mapProviderToProfile', () => {
       mapProviderToProfile(
         {
           providerJson,
-          profile: {
-            name: profileName,
-            scope: profileScope,
-            source: profileSource,
-          },
+          profile: profileSource,
         },
         { userError, ux }
       )
     ).rejects.toEqual(Error('Unexpected status code 400 received'));
 
-    expect(fetch).toHaveBeenNthCalledWith(
-      1,
-      `/authoring/profiles/${profileScope}.${profileName}/maps`,
-      {
-        body: JSON.stringify({
-          provider: providerJson,
-          profile: profileSource,
-        }),
-        headers: { 'Content-Type': 'application/json' },
-        method: 'POST',
-      }
-    );
+    expect(fetch).toHaveBeenNthCalledWith(1, `/authoring/maps`, {
+      body: JSON.stringify({
+        provider: providerJson,
+        profile: profileSource,
+      }),
+      headers: { 'Content-Type': 'application/json' },
+      method: 'POST',
+    });
     expect(pollUrl).not.toHaveBeenCalled();
   });
 
@@ -201,11 +130,7 @@ describe('mapProviderToProfile', () => {
       mapProviderToProfile(
         {
           providerJson,
-          profile: {
-            name: profileName,
-            scope: profileScope,
-            source: profileSource,
-          },
+          profile: profileSource,
         },
         { userError, ux }
       )
@@ -216,18 +141,14 @@ describe('mapProviderToProfile', () => {
       )
     );
 
-    expect(fetch).toHaveBeenNthCalledWith(
-      1,
-      `/authoring/profiles/${profileScope}.${profileName}/maps`,
-      {
-        body: JSON.stringify({
-          provider: providerJson,
-          profile: profileSource,
-        }),
-        headers: { 'Content-Type': 'application/json' },
-        method: 'POST',
-      }
-    );
+    expect(fetch).toHaveBeenNthCalledWith(1, `/authoring/maps`, {
+      body: JSON.stringify({
+        provider: providerJson,
+        profile: profileSource,
+      }),
+      headers: { 'Content-Type': 'application/json' },
+      method: 'POST',
+    });
     expect(pollUrl).not.toHaveBeenCalled();
   });
 
@@ -243,11 +164,7 @@ describe('mapProviderToProfile', () => {
       mapProviderToProfile(
         {
           providerJson,
-          profile: {
-            name: profileName,
-            scope: profileScope,
-            source: profileSource,
-          },
+          profile: profileSource,
         },
         { userError, ux }
       )
@@ -255,18 +172,14 @@ describe('mapProviderToProfile', () => {
       Error('Unexpected response body {"test":"test"} received')
     );
 
-    expect(fetch).toHaveBeenNthCalledWith(
-      1,
-      `/authoring/profiles/${profileScope}.${profileName}/maps`,
-      {
-        body: JSON.stringify({
-          provider: providerJson,
-          profile: profileSource,
-        }),
-        headers: { 'Content-Type': 'application/json' },
-        method: 'POST',
-      }
-    );
+    expect(fetch).toHaveBeenNthCalledWith(1, `/authoring/maps`, {
+      body: JSON.stringify({
+        provider: providerJson,
+        profile: profileSource,
+      }),
+      headers: { 'Content-Type': 'application/json' },
+      method: 'POST',
+    });
     expect(pollUrl).not.toHaveBeenCalled();
   });
 
@@ -287,28 +200,20 @@ describe('mapProviderToProfile', () => {
       mapProviderToProfile(
         {
           providerJson,
-          profile: {
-            name: profileName,
-            scope: profileScope,
-            source: profileSource,
-          },
+          profile: profileSource,
         },
         { userError, ux }
       )
     ).rejects.toEqual(error);
 
-    expect(fetch).toHaveBeenNthCalledWith(
-      1,
-      `/authoring/profiles/${profileScope}.${profileName}/maps`,
-      {
-        body: JSON.stringify({
-          provider: providerJson,
-          profile: profileSource,
-        }),
-        headers: { 'Content-Type': 'application/json' },
-        method: 'POST',
-      }
-    );
+    expect(fetch).toHaveBeenNthCalledWith(1, `/authoring/maps`, {
+      body: JSON.stringify({
+        provider: providerJson,
+        profile: profileSource,
+      }),
+      headers: { 'Content-Type': 'application/json' },
+      method: 'POST',
+    });
     expect(pollUrl).toHaveBeenCalledWith(
       { options: { quiet: undefined }, url: 'https://superface.ai/job/123' },
       { client: expect.any(ServiceClient), ux, userError }
@@ -333,28 +238,20 @@ describe('mapProviderToProfile', () => {
       mapProviderToProfile(
         {
           providerJson,
-          profile: {
-            name: profileName,
-            scope: profileScope,
-            source: profileSource,
-          },
+          profile: profileSource,
         },
         { userError, ux }
       )
     ).rejects.toEqual(new Error('Unexpected status code 400 received'));
 
-    expect(fetch).toHaveBeenNthCalledWith(
-      1,
-      `/authoring/profiles/${profileScope}.${profileName}/maps`,
-      {
-        body: JSON.stringify({
-          provider: providerJson,
-          profile: profileSource,
-        }),
-        headers: { 'Content-Type': 'application/json' },
-        method: 'POST',
-      }
-    );
+    expect(fetch).toHaveBeenNthCalledWith(1, `/authoring/maps`, {
+      body: JSON.stringify({
+        provider: providerJson,
+        profile: profileSource,
+      }),
+      headers: { 'Content-Type': 'application/json' },
+      method: 'POST',
+    });
     expect(pollUrl).toHaveBeenCalledWith(
       { options: { quiet: undefined }, url: 'https://superface.ai/job/123' },
       { client: expect.any(ServiceClient), ux, userError }
@@ -386,28 +283,20 @@ describe('mapProviderToProfile', () => {
       mapProviderToProfile(
         {
           providerJson,
-          profile: {
-            name: profileName,
-            scope: profileScope,
-            source: profileSource,
-          },
+          profile: profileSource,
         },
         { userError, ux }
       )
     ).rejects.toEqual(new Error('Unexpected response received'));
 
-    expect(fetch).toHaveBeenNthCalledWith(
-      1,
-      `/authoring/profiles/${profileScope}.${profileName}/maps`,
-      {
-        body: JSON.stringify({
-          provider: providerJson,
-          profile: profileSource,
-        }),
-        headers: { 'Content-Type': 'application/json' },
-        method: 'POST',
-      }
-    );
+    expect(fetch).toHaveBeenNthCalledWith(1, `/authoring/maps`, {
+      body: JSON.stringify({
+        provider: providerJson,
+        profile: profileSource,
+      }),
+      headers: { 'Content-Type': 'application/json' },
+      method: 'POST',
+    });
     expect(pollUrl).toHaveBeenCalledWith(
       { options: { quiet: undefined }, url: 'https://superface.ai/job/123' },
       { client: expect.any(ServiceClient), ux, userError }

@@ -50,17 +50,6 @@ describe('resolveProviderJson', () => {
     OutputStream.writeOnce = originalWriteOnce;
   });
 
-  it('should throw error when provider name is missing', async () => {
-    await expect(
-      resolveProviderJson(undefined, {
-        userError,
-        client,
-      })
-    ).rejects.toThrowError(
-      'Missing provider name. Please provide it as first argument.'
-    );
-  });
-
   it('should throw error when provider name is invalid', async () => {
     await expect(
       resolveProviderJson('test!', {

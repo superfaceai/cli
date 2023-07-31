@@ -35,13 +35,13 @@ export default class New extends Command {
     },
     {
       name: 'prompt',
-      description:
-        'Short description of your use case in natural language.',
+      description: 'Short description of your use case in natural language.',
       required: true,
     },
     {
       name: 'profileId',
-      description: 'Optional ID of the new profile, e.g. starwars/character-information. If not provided, profile ID will be inferred from the prompt.',
+      description:
+        'Optional ID of the new profile, e.g. starwars/character-information. If not provided, profile ID will be inferred from the prompt.',
       required: false,
     },
   ];
@@ -72,11 +72,19 @@ export default class New extends Command {
     const ux = UX.create();
     const { providerName, prompt, profileId } = args;
 
-    const customProfileId = profileId !== undefined
-      ? ProfileId.fromId(profileId, { userError })
-      : undefined;
+    const customProfileId =
+      profileId !== undefined
+        ? ProfileId.fromId(profileId, { userError })
+        : undefined;
 
     ux.start('Checking input arguments');
+
+    if (providerName === undefined || prompt === undefined) {
+      throw userError(
+        'Missing provider name or prompt. Usage: `superface new PROVIDERNAME [PROMPT]`',
+        1
+      );
+    }
 
     checkPrompt(prompt, { userError });
 
@@ -105,7 +113,8 @@ export default class New extends Command {
       `New Comlink profile saved to '${formatPath(profilePath)}'.
 
 Create your use case code by running:
-superface map ${resolvedProviderJson.providerJson.name} ${ProfileId.fromScopeName(profile.scope, profile.name).id
+superface map ${resolvedProviderJson.providerJson.name} ${
+        ProfileId.fromScopeName(profile.scope, profile.name).id
       }`
     );
   }
