@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Custom `profileId` argument to `new` command
+
+### Fixed
+- File path escaping for Windows
+- Arguments checking
+
 ## [4.0.0] - 2023-07-17
 ### Fixed
 - Updated @superfaceai/service-client to v5.2.1 with fixed getProvidersList, getProvider and getUserInfo methods
