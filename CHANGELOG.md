@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [4.0.1] - 2023-08-01
 ### Added
 - Custom `profileId` argument to `new` command
 
@@ -232,7 +233,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Transpile command
 - CI github flow
 
-[Unreleased]: https://github.com/superfaceai/cli/compare/v4.0.0...HEAD
+[Unreleased]: https://github.com/superfaceai/cli/compare/v4.0.1...HEAD
+[4.0.1]: https://github.com/superfaceai/cli/compare/v4.0.0...v4.0.1
 [4.0.0]: https://github.com/superfaceai/cli/compare/v3.0.2...v4.0.0
 [3.0.2]: https://github.com/superfaceai/cli/compare/v3.0.1...v3.0.2
 [3.0.1]: https://github.com/superfaceai/cli/compare/v3.0.0...v3.0.1

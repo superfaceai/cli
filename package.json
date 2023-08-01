@@ -1,6 +1,6 @@
 {
   "name": "@superfaceai/cli",
-  "version": "4.0.0",
+  "version": "4.0.1",
   "description": "Superface CLI utility",
   "main": "dist/index.js",
   "repository": "https://github.com/superfaceai/cli.git",
