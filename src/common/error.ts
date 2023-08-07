@@ -1,7 +1,7 @@
 import { CLIError } from '@oclif/errors';
 import { inspect } from 'util';
 
-import { SuperfaceClient } from './http';
+import { VERSION } from '../index';
 import { UX } from './ux';
 
 /**
@@ -29,7 +29,7 @@ export const createUserError =
         `\n\nIf you need help with this error, please raise an issue on GitHub Discussions: https://github.com/orgs/superfaceai/discussions/categories/q-a \n\nIdeally include these information:
 command you ran
 error message
-version of the CLI, OS ${SuperfaceClient.userAgent}
+version of the CLI, OS: superface cli/${VERSION} (${process.platform}-${process.arch}) ${process.release.name}-${process.version}
 
 You can copy it from the terminal by pressing Ctrl+Shift+C or Cmd+Shift+C`;
     }

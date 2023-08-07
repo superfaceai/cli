@@ -11,6 +11,8 @@ jest.mock('../common/io', () => ({
   streamEnd: jest.fn(),
 }));
 
+jest.mock('../index');
+
 describe('OutputStream', () => {
   const WORKING_DIR = join('fixtures', 'io');
 
