@@ -18,7 +18,7 @@ jest.mock('inquirer');
 describe('Init CLI command', () => {
   let logger: MockLogger;
   let instance: Init;
-  const userError = createUserError(false);
+  const userError = createUserError(false, false);
 
   describe('when running init command', () => {
     beforeEach(async () => {

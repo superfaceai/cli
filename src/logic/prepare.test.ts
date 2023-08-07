@@ -12,7 +12,7 @@ jest.mock('@superfaceai/service-client');
 jest.mock('../common/polling');
 
 describe('prepareProviderJson', () => {
-  const userError = createUserError(false);
+  const userError = createUserError(false, false);
   const ux = UX.create();
 
   const providerName = 'test-provider';

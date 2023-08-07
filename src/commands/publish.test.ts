@@ -58,7 +58,7 @@ describe('Publish CLI command', () => {
     const mockMapPath = `../path/to/profile${EXTENSIONS.map.source}`;
     const mockProviderPath = '../path/to/profile.json';
 
-    const userError = createUserError(false);
+    const userError = createUserError(false, false);
 
     it('exits when user declines prompt', async () => {
       const promptSpy = jest

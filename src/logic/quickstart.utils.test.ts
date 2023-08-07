@@ -6,7 +6,7 @@ import { profileExists, providerExists } from './quickstart.utils';
 jest.mock('../common/io');
 
 describe('Quickstart logic', () => {
-  const userError = createUserError(false);
+  const userError = createUserError(false, false);
 
   afterEach(() => {
     jest.resetAllMocks();

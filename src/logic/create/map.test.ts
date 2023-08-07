@@ -26,7 +26,7 @@ jest.mock('../../common/super-json-utils', () => ({
 
 describe('Create map logic', () => {
   let logger: MockLogger;
-  const userError = createUserError(false);
+  const userError = createUserError(false, false);
   const profileId = ProfileId.fromScopeName('test', 'profile');
   const profilePath = 'profilePath';
 

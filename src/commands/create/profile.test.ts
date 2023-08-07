@@ -29,7 +29,7 @@ jest.mock('../../logic/install', () => ({
 }));
 
 describe('Create profile command', () => {
-  const userError = createUserError(false);
+  const userError = createUserError(false, false);
   let profileId: string;
   let logger: MockLogger;
   let instance: Profile;

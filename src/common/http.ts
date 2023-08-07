@@ -47,16 +47,17 @@ export enum ContentType {
 export class SuperfaceClient {
   private static serviceClient: ServiceClient | undefined;
 
+  public static userAgent = `superface cli/${VERSION} (${process.platform}-${process.arch}) ${process.release.name}-${process.version} (with @superfaceai/one-sdk@${SDK_VERSION}, @superfaceai/parser@${PARSER_VERSION})`;
+
   public static getClient(): ServiceClient {
     if (!SuperfaceClient.serviceClient) {
-      const userAgent = `superface cli/${VERSION} (${process.platform}-${process.arch}) ${process.release.name}-${process.version} (with @superfaceai/one-sdk@${SDK_VERSION}, @superfaceai/parser@${PARSER_VERSION})`;
       // Use refresh token from env if found
       if (process.env.SUPERFACE_REFRESH_TOKEN !== undefined) {
         SuperfaceClient.serviceClient = new ServiceClient({
           // still use getStoreUrl function to cover cases when user sets baseUrl and refresh token thru env
           baseUrl: getServicesUrl(),
           refreshToken: process.env.SUPERFACE_REFRESH_TOKEN,
-          commonHeaders: { 'User-Agent': userAgent },
+          commonHeaders: { 'User-Agent': SuperfaceClient.userAgent },
           // Do not use seveNetrc - refresh token from enviroment should not be saved
         });
       } else {
@@ -64,7 +65,7 @@ export class SuperfaceClient {
         SuperfaceClient.serviceClient = new ServiceClient({
           baseUrl: netrcRecord.baseUrl,
           refreshToken: netrcRecord.refreshToken,
-          commonHeaders: { 'User-Agent': userAgent },
+          commonHeaders: { 'User-Agent': SuperfaceClient.userAgent },
           refreshTokenUpdatedHandler: saveNetrc,
         });
       }

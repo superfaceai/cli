@@ -8,7 +8,7 @@ import Whoami from './whoami';
 describe('Whoami CLI command', () => {
   let logger: MockLogger;
   let instance: Whoami;
-  const userError = createUserError(false);
+  const userError = createUserError(false, false);
 
   beforeEach(async () => {
     logger = new MockLogger();

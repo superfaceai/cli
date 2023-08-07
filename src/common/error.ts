@@ -1,6 +1,7 @@
 import { CLIError } from '@oclif/errors';
 import { inspect } from 'util';
 
+import { SuperfaceClient } from './http';
 import { UX } from './ux';
 
 /**
@@ -11,7 +12,7 @@ import { UX } from './ux';
  * Has a positive exit code.
  */
 export const createUserError =
-  (emoji: boolean) =>
+  (emoji = true, addSuffix = true) =>
   (message: string, code: number): CLIError => {
     // Make sure that UX is stoped before throwing an error.
     UX.clear();
@@ -20,7 +21,22 @@ export const createUserError =
       throw developerError('expected positive error code', 1);
     }
 
-    return new CLIError(emoji ? '❌ ' + message : message, { exit: code });
+    let final = message;
+
+    if (addSuffix) {
+      final =
+        final +
+        `\n\nIf you need help with this error, please raise an issue on GitHub Discussions: https://github.com/orgs/superfaceai/discussions/categories/q-a \n\nIdeally include these information:
+command you ran
+error message
+version of the CLI, OS ${SuperfaceClient.userAgent}
+
+You can copy it from the terminal by pressing Ctrl+Shift+C or Cmd+Shift+C`;
+    }
+
+    return new CLIError(emoji ? '❌ ' + message + final : final, {
+      exit: code,
+    });
   };
 export type UserError = ReturnType<typeof createUserError>;
 

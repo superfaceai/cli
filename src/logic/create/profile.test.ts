@@ -7,7 +7,7 @@ import { createProfile } from './profile';
 
 describe('Create profile logic', () => {
   let logger: MockLogger;
-  const userError = createUserError(false);
+  const userError = createUserError(false, false);
   const mockVersion = '1.0.0';
   const mockUsecaseNames = ['test-usecase'];
   const mockSuperJson = {};

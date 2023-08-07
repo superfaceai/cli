@@ -13,7 +13,7 @@ jest.mock('../common/io');
 jest.mock('../common/output-stream');
 
 describe('prepare CLI command', () => {
-  const userError = createUserError(false);
+  const userError = createUserError(false, false);
   const ux = UX.create();
 
   afterEach(() => {

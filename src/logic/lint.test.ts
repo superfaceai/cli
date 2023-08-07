@@ -4,7 +4,6 @@ import type {
   MapHeaderNode,
   ProfileDocumentNode,
 } from '@superfaceai/ast';
-// import * as SuperJson from '@superfaceai/one-sdk/dist/schema-tools/superjson/utils';
 import type {
   MapDocumentId,
   ProfileHeaderStructure,
@@ -48,6 +47,7 @@ jest.mock('./check.utils', () => ({
   findLocalProfileSource: jest.fn(),
 }));
 jest.mock('../common/http', () => ({
+  ...jest.requireActual<Record<string, unknown>>('../common/http'),
   fetchMapAST: jest.fn(),
   fetchProfileAST: jest.fn(),
 }));
@@ -60,7 +60,7 @@ jest.mock('@superfaceai/parser', () => ({
 
 describe('Lint logic', () => {
   let logger: MockLogger;
-  const userError = createUserError(false);
+  const userError = createUserError(false, false);
   const mockMapPath = 'mockMapPath';
   const mockProfilePath = 'mockProfilePath';
 

@@ -41,7 +41,7 @@ describe('execute CLI command', () => {
     }
   }
   `;
-  const userError = createUserError(false);
+  const userError = createUserError(false, false);
 
   afterEach(() => {
     jest.resetAllMocks();

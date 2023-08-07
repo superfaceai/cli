@@ -59,7 +59,7 @@ jest.mock('./publish.utils', () => ({
 
 describe('Publish logic', () => {
   let logger: MockLogger;
-  const userError = createUserError(false);
+  const userError = createUserError(false, false);
 
   describe('when publishing', () => {
     const mockProfileId = 'starwars/character-information';

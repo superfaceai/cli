@@ -28,7 +28,7 @@ jest.mock('@superfaceai/parser', () => ({
 
 describe('Compile CLI logic', () => {
   let logger: MockLogger;
-  const userError = createUserError(false);
+  const userError = createUserError(false, false);
   const mockProfile = mockProfileDocumentNode();
   const mockMap = mockMapDocumentNode();
 
