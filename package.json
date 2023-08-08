@@ -15,7 +15,6 @@
     "dist/"
   ],
   "scripts": {
-    "postinstall": "echo \"Superface CLI installed successfully!\" && echo \"Run 'superface --help' to get started.\"",
     "prebuild": "rimraf dist",
     "build": "tsc -p tsconfig.release.json --outDir dist",
     "test": "yarn test:fast && yarn test:integration",
