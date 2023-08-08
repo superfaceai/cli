@@ -2,6 +2,7 @@ import { CLIError } from '@oclif/errors';
 import { inspect } from 'util';
 
 import { VERSION } from '../index';
+import { template } from './chalk-template';
 import { UX } from './ux';
 
 /**
@@ -26,12 +27,14 @@ export const createUserError =
     if (addSuffix) {
       final =
         final +
-        `\n\nIf you need help with this error, please raise an issue on GitHub Discussions: https://github.com/orgs/superfaceai/discussions/categories/q-a \n\nIdeally include these information:
+        template(`\n\nIf you need help with this error, please raise an issue on GitHub Discussions: {underline.bold https://sfc.is/discussions}
+
+Please include the following information:
 command you ran
 error message
 version of the CLI, OS: superface cli/${VERSION} (${process.platform}-${process.arch}) ${process.release.name}-${process.version}
 
-You can copy it from the terminal by pressing Ctrl+Shift+C or Cmd+Shift+C`;
+You can copy it from the terminal by pressing Ctrl+Shift+C or Cmd+Shift+C`);
     }
 
     return new CLIError(emoji ? '❌ ' + message + final : final, {
