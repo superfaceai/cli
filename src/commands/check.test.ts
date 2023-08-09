@@ -37,7 +37,7 @@ describe('Check CLI command', () => {
   let stderr: MockStd;
   let stdout: MockStd;
 
-  const userError = createUserError(false);
+  const userError = createUserError(false, false);
 
   const profileId = 'starwars/character-information';
   const provider = 'swapi';

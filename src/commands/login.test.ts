@@ -44,7 +44,7 @@ describe('Login CLI command', () => {
   const originalValue = process.env.SUPERFACE_REFRESH_TOKEN;
   let logger: MockLogger;
   let instance: Login;
-  const userError = createUserError(false);
+  const userError = createUserError(false, false);
 
   beforeEach(async () => {
     jest.restoreAllMocks();

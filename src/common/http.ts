@@ -48,8 +48,8 @@ export class SuperfaceClient {
   private static serviceClient: ServiceClient | undefined;
 
   public static getClient(): ServiceClient {
+    const userAgent = `superface cli/${VERSION} (${process.platform}-${process.arch}) ${process.release.name}-${process.version} (with @superfaceai/one-sdk@${SDK_VERSION}, @superfaceai/parser@${PARSER_VERSION})`;
     if (!SuperfaceClient.serviceClient) {
-      const userAgent = `superface cli/${VERSION} (${process.platform}-${process.arch}) ${process.release.name}-${process.version} (with @superfaceai/one-sdk@${SDK_VERSION}, @superfaceai/parser@${PARSER_VERSION})`;
       // Use refresh token from env if found
       if (process.env.SUPERFACE_REFRESH_TOKEN !== undefined) {
         SuperfaceClient.serviceClient = new ServiceClient({

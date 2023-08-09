@@ -12,7 +12,7 @@ jest.mock('@superfaceai/service-client');
 jest.mock('../common/polling');
 
 describe('newProfile', () => {
-  const userError = createUserError(false);
+  const userError = createUserError(false, false);
   const ux = UX.create();
   const mockProvider = mockProviderJson({ name: 'test-provider' });
   const prompt = 'test';

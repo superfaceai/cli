@@ -52,7 +52,7 @@ jest.mock('@superfaceai/parser', () => ({
 
 describe('Publish logic utils', () => {
   let logger: MockLogger;
-  const userError = createUserError(false);
+  const userError = createUserError(false, false);
 
   const mockProfileId = 'starwars/character-information';
   const mockProfile = ProfileId.fromId(mockProfileId, { userError });

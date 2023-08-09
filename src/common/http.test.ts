@@ -80,7 +80,7 @@ describe('SuperfaceClient', () => {
 });
 
 describe('HTTP functions', () => {
-  const userError = createUserError(false);
+  const userError = createUserError(false, false);
   const profileId = 'starwars/character-information';
 
   const astMetadata: AstMetadata = {

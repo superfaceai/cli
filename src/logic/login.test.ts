@@ -33,7 +33,7 @@ class MockChildProcess extends EventEmitter {
 
 describe('Login logic', () => {
   let logger: MockLogger;
-  const userError = createUserError(false);
+  const userError = createUserError(false, false);
 
   afterEach(() => {
     jest.resetAllMocks();

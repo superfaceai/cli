@@ -6,7 +6,7 @@ import { SupportedLanguages, writeApplicationCode } from './application-code';
 
 describe('writeApplicationCode', () => {
   const logger = new MockLogger();
-  const userError = createUserError(false);
+  const userError = createUserError(false, false);
 
   const ast: ProfileDocumentNode = {
     kind: 'ProfileDocument',

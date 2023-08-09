@@ -25,7 +25,7 @@ export type Flags<T> = OptionalUndefined<{
 
 export abstract class Command extends OclifCommand {
   protected logger: ILogger = new DummyLogger();
-  protected userError: UserError = createUserError(true);
+  protected userError: UserError = createUserError(true, true);
 
   public static flags = {
     quiet: flags.boolean({
@@ -54,7 +54,7 @@ export abstract class Command extends OclifCommand {
     }
 
     if (flags.noEmoji === true) {
-      this.userError = createUserError(false);
+      this.userError = createUserError(false, true);
     }
   }
 }

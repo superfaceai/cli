@@ -18,7 +18,7 @@ describe('new CLI command', () => {
   const profileSope = 'test-scope';
   const providerJson = mockProviderJson({ name: providerName });
   const prompt = 'test';
-  const userError = createUserError(false);
+  const userError = createUserError(false, false);
   const ux = UX.create();
 
   afterEach(() => {

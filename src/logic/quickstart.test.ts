@@ -34,7 +34,7 @@ jest.mock('inquirer');
 describe('Quickstart logic', () => {
   let logger: MockLogger;
   let pm: PackageManager;
-  const userError = createUserError(false);
+  const userError = createUserError(false, false);
   let mockLoad = jest.fn();
 
   beforeEach(() => {

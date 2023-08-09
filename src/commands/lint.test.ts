@@ -23,7 +23,7 @@ jest.mock('../logic/lint', () => ({
 describe('lint CLI command', () => {
   let logger: MockLogger;
   let instance: Lint;
-  const userError = createUserError(false);
+  const userError = createUserError(false, false);
   const profileId = 'starwars/character-information';
   const provider = 'swapi';
   const defaultFlags = {

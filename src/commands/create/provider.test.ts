@@ -26,7 +26,7 @@ jest.mock('@superfaceai/one-sdk', () => ({
 }));
 
 describe('Create provider command', () => {
-  const userError = createUserError(false);
+  const userError = createUserError(false, false);
 
   afterEach(() => {
     jest.resetAllMocks();

@@ -6,7 +6,7 @@ import { selecetBaseUrl } from './base-url';
 jest.mock('inquirer');
 
 describe('Select base URL logic', () => {
-  const userError = createUserError(false);
+  const userError = createUserError(false, false);
 
   it('returns base url', async () => {
     jest

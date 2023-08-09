@@ -55,7 +55,7 @@ describe('MapCLI command', () => {
   };
   const mockToken = { token: 'sfs_b31314b7fc8...8ec1930e' };
   const providerJson = mockProviderJson({ name: providerName });
-  const userError = createUserError(false);
+  const userError = createUserError(false, false);
   const ux = UX.create();
 
   afterEach(() => {

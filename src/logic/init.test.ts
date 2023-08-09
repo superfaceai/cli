@@ -26,7 +26,7 @@ jest.mock('./create', () => ({
 
 describe('Init logic', () => {
   let logger: MockLogger;
-  const userError = createUserError(false);
+  const userError = createUserError(false, false);
 
   describe('when initialing superface', () => {
     beforeEach(() => {

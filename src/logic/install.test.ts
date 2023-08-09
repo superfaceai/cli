@@ -50,7 +50,7 @@ jest.mock('@superfaceai/parser', () => ({
 
 describe('Install CLI logic', () => {
   let logger: MockLogger;
-  const userError = createUserError(false);
+  const userError = createUserError(false, false);
 
   beforeEach(async () => {
     logger = new MockLogger();

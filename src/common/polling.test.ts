@@ -10,7 +10,7 @@ const mockFetch = jest.fn();
 describe('polling', () => {
   const jobUrl = 'https://superface.ai/job/123';
   const client = { fetch: mockFetch } as unknown as jest.Mocked<ServiceClient>;
-  const userError = createUserError(false);
+  const userError = createUserError(false, false);
   const ux = UX.create();
 
   afterEach(() => {

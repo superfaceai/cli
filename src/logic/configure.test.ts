@@ -35,7 +35,7 @@ jest.mock('@superfaceai/one-sdk/dist/schema-tools/superjson/utils');
 
 describe('Configure CLI logic', () => {
   let logger: MockLogger;
-  const userError = createUserError(false);
+  const userError = createUserError(false, false);
   const providerName = 'test';
   const mockProviderJson: ProviderJson = {
     name: providerName,

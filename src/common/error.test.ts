@@ -13,13 +13,13 @@ describe('Error functions', () => {
   describe('when throwing user error', () => {
     it('throws user error correctly', async () => {
       expect(() => {
-        throw createUserError(false)('user error', 1);
+        throw createUserError(false, false)('user error', 1);
       }).toThrow(new CLIError('user error'));
     });
 
     it('throws developer error on negative exit code', async () => {
       expect(() => {
-        throw createUserError(false)('some error', -1);
+        throw createUserError(false, false)('some error', -1);
       }).toThrow(
         new CLIError('❌ Internal error: expected positive error code', {
           exit: -1,

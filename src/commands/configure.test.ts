@@ -36,7 +36,7 @@ jest.mock('../logic/configure.utils', () => ({
 describe('Configure CLI command', () => {
   let instance: Configure;
   let logger: ILogger;
-  const userError = createUserError(false);
+  const userError = createUserError(false, false);
 
   beforeEach(() => {
     instance = CommandInstance(Configure);

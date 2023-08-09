@@ -32,7 +32,7 @@ jest.mock('./parameters', () => ({
 
 describe('Create map logic', () => {
   let logger: MockLogger;
-  const userError = createUserError(false);
+  const userError = createUserError(false, false);
 
   const provider = 'provider';
   const unverfiedProvider = `${UNVERIFIED_PROVIDER_PREFIX}provider`;

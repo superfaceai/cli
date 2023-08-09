@@ -35,7 +35,7 @@ describe('Install CLI command', () => {
   let logger: MockLogger;
   let instance: Install;
   let pm: PackageManager;
-  const userError = createUserError(false);
+  const userError = createUserError(false, false);
 
   beforeEach(async () => {
     logger = new MockLogger();

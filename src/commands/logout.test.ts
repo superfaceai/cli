@@ -8,7 +8,7 @@ import Logout from './logout';
 describe('Logout CLI command', () => {
   let logger: MockLogger;
   let instance: Logout;
-  const userError = createUserError(false);
+  const userError = createUserError(false, false);
 
   beforeEach(async () => {
     logger = new MockLogger();

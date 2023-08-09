@@ -36,7 +36,7 @@ describe('executeRunner', () => {
     });
 
     const mockLogger = new MockLogger();
-    const userError = createUserError(false);
+    const userError = createUserError(false, false);
 
     await executeRunner(mockChildProcess, 'node', {
       logger: mockLogger,

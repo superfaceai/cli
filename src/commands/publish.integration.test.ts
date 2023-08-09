@@ -30,7 +30,7 @@ describe('Publish CLI command', () => {
   const provider = 'swapi';
   const unverifiedProvider = `${UNVERIFIED_PROVIDER_PREFIX}swapi`;
   const profileId = ProfileId.fromId('starwars/character-information', {
-    userError: createUserError(false),
+    userError: createUserError(false, false),
   });
   const profileVersion = '1.0.2';
 

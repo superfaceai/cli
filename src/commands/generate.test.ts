@@ -21,7 +21,7 @@ describe('Generate CLI command', () => {
 
   let logger: MockLogger;
   let instance: Generate;
-  const userError = createUserError(false);
+  const userError = createUserError(false, false);
 
   beforeEach(() => {
     logger = new MockLogger();

@@ -16,7 +16,7 @@ describe('resolveProviderJson', () => {
   const originalWriteOnce = OutputStream.writeOnce;
 
   let mockWriteOnce: jest.Mock;
-  const userError = createUserError(false);
+  const userError = createUserError(false, false);
 
   let providerJson: ProviderJson;
 

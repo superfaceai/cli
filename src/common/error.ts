@@ -1,6 +1,8 @@
 import { CLIError } from '@oclif/errors';
 import { inspect } from 'util';
 
+import { VERSION } from '../index';
+import { template } from './chalk-template';
 import { UX } from './ux';
 
 /**
@@ -11,7 +13,7 @@ import { UX } from './ux';
  * Has a positive exit code.
  */
 export const createUserError =
-  (emoji: boolean) =>
+  (emoji = true, addSuffix = true) =>
   (message: string, code: number): CLIError => {
     // Make sure that UX is stoped before throwing an error.
     UX.clear();
@@ -20,7 +22,23 @@ export const createUserError =
       throw developerError('expected positive error code', 1);
     }
 
-    return new CLIError(emoji ? '❌ ' + message : message, { exit: code });
+    let final = message;
+
+    if (addSuffix) {
+      final =
+        final +
+        template(`\n\nIf you need help with this error, please raise an issue on GitHub Discussions: {underline.bold https://sfc.is/discussions}
+
+Please include the following information:
+- command you ran
+- error message
+- version of the CLI, OS: superface cli/${VERSION} (${process.platform}-${process.arch}) ${process.release.name}-${process.version}
+`);
+    }
+
+    return new CLIError(emoji ? '❌ ' + message + final : final, {
+      exit: code,
+    });
   };
 export type UserError = ReturnType<typeof createUserError>;
 
