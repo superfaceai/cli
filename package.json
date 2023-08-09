@@ -15,6 +15,7 @@
     "dist/"
   ],
   "scripts": {
+    "postinstall": "echo \"Thanks for checking out Superface.ai!\nFor help, run: superface --help\nDocumentation: https://sfc.is/docs\nQuestions or feedback: https://sfc.is/discussions\n\"",
     "prebuild": "rimraf dist",
     "build": "tsc -p tsconfig.release.json --outDir dist",
     "test": "yarn test:fast && yarn test:integration",
