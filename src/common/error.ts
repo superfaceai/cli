@@ -33,8 +33,7 @@ Please include the following information:
 - command you ran
 - error message
 - version of the CLI, OS: superface cli/${VERSION} (${process.platform}-${process.arch}) ${process.release.name}-${process.version}
-
-You can copy it from the terminal by pressing Ctrl+Shift+C or Cmd+Shift+C`);
+`);
     }
 
     return new CLIError(emoji ? '❌ ' + message + final : final, {
