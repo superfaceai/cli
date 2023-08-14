@@ -121,6 +121,24 @@ describe('prepare CLI command', () => {
       ).rejects.toThrow(`Provider ${providerJson.name} already exists.`);
     });
 
+    it('throws when name from file is not valid', async () => {
+      const fileContent = 'file content';
+      const providerJson = mockProviderJson();
+      jest
+        .mocked(exists)
+        .mockResolvedValueOnce(true)
+        .mockResolvedValueOnce(false);
+      jest.mocked(readFile).mockResolvedValueOnce(fileContent);
+      jest.mocked(prepareProviderJson).mockResolvedValueOnce(providerJson);
+
+      await expect(instance.execute({
+        logger,
+        userError,
+        flags: {},
+        args: { urlOrPath: 'path/to/FILE.docs.2!87.yaml' },
+      })).rejects.toThrow(`Provider name inferred from file name is not valid. Please provide provider name explicitly as second argument.`);
+    });
+
     it('prepares provider json from url', async () => {
       const providerJson = mockProviderJson();
       jest.mocked(exists).mockResolvedValue(false);
@@ -192,13 +210,13 @@ describe('prepare CLI command', () => {
         logger,
         userError,
         flags: {},
-        args: { urlOrPath: 'path/to/file.docs.2!87.yaml' },
+        args: { urlOrPath: 'path/to/FILE!docs.yaml' },
       });
 
       expect(prepareProviderJson).toHaveBeenCalledWith(
         {
           urlOrSource: fileContent,
-          name: 'file-docs-2-87',
+          name: 'file-docs',
           options: { quiet: undefined },
         },
         { ux, userError }
