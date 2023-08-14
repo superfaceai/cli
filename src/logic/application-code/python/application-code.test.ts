@@ -53,13 +53,12 @@ try:
     security = {}
   )
   print(f"RESULT: {result}")
+except PerformError as e:
+  print(f"ERROR RESULT: {e.error_result}")
+except UnexpectedError as e:
+  print(f"ERROR: {e}", file=sys.stderr)
 except Exception as e:
-  if isinstance(e, PerformError):
-    print(f"ERROR RESULT: {e.error_result}")
-  elif isinstance(e, UnexpectedError):
-    print(f"ERROR:", e, file=sys.stderr)
-  else:
-    raise e
+  raise e
 finally:
   client.send_metrics_to_superface()`,
       requiredParameters: [],
