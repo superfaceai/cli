@@ -30,18 +30,18 @@ brew install superfaceai/cli/superface
 * [`superface execute PROVIDERNAME PROFILEID`](#superface-execute-providername-profileid)
 * [`superface login`](#superface-login)
 * [`superface logout`](#superface-logout)
-* [`superface map PROVIDERNAME [PROFILEID]`](#superface-map-providername-profileid)
+* [`superface map PROVIDERNAME [PROFILEID] [LANGUAGE]`](#superface-map-providername-profileid-language)
 * [`superface new PROVIDERNAME PROMPT [PROFILEID]`](#superface-new-providername-prompt-profileid)
 * [`superface prepare URLORPATH [NAME]`](#superface-prepare-urlorpath-name)
 * [`superface whoami`](#superface-whoami)
 
 ## `superface execute PROVIDERNAME PROFILEID`
 
-Run the created integration in superface directory. Commands `prepare`, `new` and `map` must be run before this command. This command will execute integration using Node.js (more runners coming soon)
+Run the created integration in superface directory. Commands `prepare`, `new` and `map` must be run before this command. This command will execute integration using Node.js or Python.
 
 ```
 USAGE
-  $ superface execute [PROVIDERNAME] [PROFILEID] [LANGUAGE] [-q] [--noColor] [--noEmoji] [-h]
+  $ superface execute PROVIDERNAME PROFILEID [LANGUAGE] [-q] [--noColor] [--noEmoji] [-h]
 
 ARGUMENTS
   PROVIDERNAME  Name of provider.
@@ -55,7 +55,7 @@ FLAGS
 
 DESCRIPTION
   Run the created integration in superface directory. Commands `prepare`, `new` and `map` must be run before this
-  command. This command will execute integration using Node.js (more runners coming soon)
+  command. This command will execute integration using Node.js or Python.
 
 EXAMPLES
   $ superface execute resend communication/send-email
@@ -112,17 +112,18 @@ EXAMPLES
 
 _See code: [dist/commands/logout.ts](https://github.com/superfaceai/cli/tree/main/src/commands/logout.ts)_
 
-## `superface map PROVIDERNAME [PROFILEID]`
+## `superface map PROVIDERNAME [PROFILEID] [LANGUAGE]`
 
 Creates a new (or updates an existing) Comlink Map that maps the use case to the selected API provider. After Map is available, the integration is ready to be used by our WASM OneSDK. You should check security, integration parameters and input in the created files before execution. The created Comlinks can be tested by running `superface execute` command
 
 ```
 USAGE
-  $ superface map [PROVIDERNAME] [PROFILEID] [LANGUAGE] [-q] [--noColor] [--noEmoji] [-h]
+  $ superface map PROVIDERNAME [PROFILEID] [LANGUAGE] [-q] [--noColor] [--noEmoji] [-h]
 
 ARGUMENTS
   PROVIDERNAME  Name of provider.
   PROFILEID     Id of profile, eg: starwars/character-information
+  LANGUAGE      (python|js) [default: js] Language which will use generated code. Default is `js`.
 
 FLAGS
   -h, --help   show CLI help
@@ -148,12 +149,13 @@ Creates new Comlink Profile for your use case based on the selected API. Comlink
 
 ```
 USAGE
-  $ superface new [PROVIDERNAME] [PROMPT] [PROFILEID] [-q] [--noColor] [--noEmoji] [-h]
+  $ superface new PROVIDERNAME PROMPT [PROFILEID] [-q] [--noColor] [--noEmoji] [-h]
 
 ARGUMENTS
   PROVIDERNAME  URL or path to the API documentation.
   PROMPT        Short description of your use case in natural language.
-  PROFILEID     Optional id of profile, eg: starwars/character-information. If not provided it will be inferred from prompt.
+  PROFILEID     Optional ID of the new profile, e.g. starwars/character-information. If not provided, profile ID will be
+                inferred from the prompt.
 
 FLAGS
   -h, --help   show CLI help
@@ -182,7 +184,7 @@ Learns API from the documentation and prepares the API metadata.
 
 ```
 USAGE
-  $ superface prepare [URLORPATH] [NAME] [-q] [--noColor] [--noEmoji] [-h]
+  $ superface prepare URLORPATH [NAME] [-q] [--noColor] [--noEmoji] [-h]
 
 ARGUMENTS
   URLORPATH  URL or path to the API documentation.

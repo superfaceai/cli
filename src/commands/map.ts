@@ -64,8 +64,7 @@ export default class Map extends Command {
       description: 'Language which will use generated code. Default is `js`.',
       required: false,
       options: Object.values(SupportedLanguages),
-      // Hidden until we figure better language select DX
-      hidden: true,
+      default: SupportedLanguages.JS,
     },
   ];
 
