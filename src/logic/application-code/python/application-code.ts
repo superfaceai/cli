@@ -56,13 +56,10 @@ try:
     security = ${preparedSecurity.securityString}
   )
   print(f"RESULT: {result}")
-except Exception as e:
-  if isinstance(e, PerformError):
-    print(f"ERROR RESULT: {e.error_result}")
-  elif isinstance(e, UnexpectedError):
-    print(f"ERROR:", e, file=sys.stderr)
-  else:
-    raise e
+except PerformError as e:
+  print(f"ERROR RESULT: {e.error_result}")
+except UnexpectedError as e:
+  print(f"ERROR: {e}", file=sys.stderr)
 finally:
   client.send_metrics_to_superface()`;
 
