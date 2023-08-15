@@ -197,7 +197,16 @@ async function resolveInputs(
       resolvedSource.filename,
       extname(resolvedSource.filename)
       // replace special characters with dashes
-    ).replace(/[^a-z0-9]/gi, '-');
+    )
+      .toLowerCase()
+      .replace(/[^a-z0-9]/gi, '-');
+
+    if (!isValidProviderName(apiName)) {
+      throw userError(
+        `Provider name inferred from file name is not valid. Please provide provider name explicitly as second argument.`,
+        1
+      );
+    }
   }
 
   return {
