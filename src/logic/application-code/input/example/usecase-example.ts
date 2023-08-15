@@ -3,16 +3,19 @@ export type ExampleScalar = ExampleBoolean | ExampleNumber | ExampleString;
 export type ExampleString = {
   kind: 'string';
   value: string;
+  required: boolean;
 };
 
 export type ExampleNumber = {
   kind: 'number';
   value: number;
+  required: boolean;
 };
 
 export type ExampleBoolean = {
   kind: 'boolean';
   value: boolean;
+  required: boolean;
 };
 
 export type ExampleObject = {

@@ -5,27 +5,82 @@ import { prepareUseCaseInput } from './prepare-usecase-input';
 
 describe('prepareUseCaseInput', () => {
   const mockProfileSource = `name = "test"
-version = "0.0.0"
+    version = "0.0.0"
 
-usecase Test safe {
+    usecase Test safe {
 
-  example InputExample {
-    input {
-      a = 'Luke',
-      b = 1.2,
-      c = true,
-      d = [1],
-      e = ['a', 'b'],
-      f = [true, false],
-      g = { a = 1, b = 2 },
-      h = { a = 'a', b = 'b' },
-      i = { a = true, b = false },
-      k = { a = [{ b = [ true]}] },
+      input {
+        a! string!
+        b! number
+        c! boolean
+        d! [number]
+        e! [string!]!
+        f! [boolean]
+        g! {
+          a number
+          b number
+        }!
+        h {
+          a string
+          b string
+        }
+        i {
+          a boolean
+          b boolean
+        }!
+        j! [{
+          k! string
+          m {
+            n! number
+          }
+        }]
+        l {
+          a [{
+            b [boolean]
+            c! {
+              d! number
+            }
+          }]
+        }
+        m fieldA!
+        n fieldB!
+        o fieldC!
+        p fieldD!
+        q fieldE!
+        r modelA!
+      }
+      example InputExample {
+        input {
+          a = 'Luke',
+          b = 1.2,
+          c = true,
+          d = [1],
+          e = ['a', 'b'],
+          f = [true, false],
+          g = { a = 1, b = 2 },
+          h = { a = 'a', b = 'b' },
+          i = { a = true, b = false },
+          j = [{ k = 'a', m = { n = 1 } }],
+          k = { a = [{ b = [ true]}] },
+        }
+      }
     }
+
+  field fieldA string!
+  field fieldB number
+  field fieldC boolean
+  field fieldD enum {
+    A
+    B
   }
-}`;
+
+  model modelA {
+   a string!
+  }`;
 
   const ast = parseProfile(new Source(mockProfileSource, 'test.supr'));
+
+  console.log(JSON.stringify(ast, null, 2));
 
   describe('for js', () => {
     it('should prepare input for use case', () => {
@@ -57,7 +112,15 @@ usecase Test safe {
           a: true,
           b: false,
         },
-        k: {
+        j: [
+          {
+            k : 'a',
+            m: {
+              n: 1,
+            },
+          },
+        ],
+        l: {
           a: [
             {
               b: [
@@ -100,7 +163,15 @@ usecase Test safe {
           "a": True,
           "b": False,
         },
-        "k": {
+        "j": [
+          {
+            "k" : 'a',
+            "m": {
+              "n": 1,
+            },
+          },
+        ],
+        "l": {
           "a": [
             {
               "b": [

@@ -16,7 +16,8 @@ describe('Parse structure tree', () => {
             value: '',
           },
           {},
-          {}
+          {},
+          false
         )
       ).toThrowError(new Error(`Invalid kind: ComlinkPrimitiveLiteral`));
     });
@@ -39,7 +40,8 @@ describe('Parse structure tree', () => {
             ],
           },
           {},
-          {}
+          {},
+          false
         )
       ).toEqual({
         kind: 'object',
@@ -48,6 +50,7 @@ describe('Parse structure tree', () => {
             name: 'test',
             kind: 'string',
             value: '',
+            required: true,
           },
         ],
       });
@@ -61,11 +64,13 @@ describe('Parse structure tree', () => {
             name: 'number',
           },
           {},
-          {}
+          {},
+          false
         )
       ).toEqual({
         kind: 'number',
         value: 0,
+        required: false,
       });
     });
 
@@ -96,7 +101,8 @@ describe('Parse structure tree', () => {
               },
             },
           },
-          {}
+          {},
+          false
         )
       ).toEqual({
         kind: 'object',
@@ -105,6 +111,7 @@ describe('Parse structure tree', () => {
             name: 'test',
             kind: 'string',
             value: '',
+            required: true,
           },
         ],
       });
@@ -137,11 +144,13 @@ describe('Parse structure tree', () => {
             ],
           },
           {},
-          {}
+          {},
+          false
         )
       ).toEqual({
         kind: 'boolean',
         value: true,
+        required: false,
       });
     });
 
@@ -156,7 +165,8 @@ describe('Parse structure tree', () => {
             },
           },
           {},
-          {}
+          {},
+          false
         )
       ).toEqual({
         kind: 'array',
@@ -164,6 +174,7 @@ describe('Parse structure tree', () => {
           {
             kind: 'number',
             value: 0,
+            required: false,
           },
         ],
       });
@@ -182,227 +193,710 @@ describe('Parse structure tree', () => {
             ],
           },
           {},
-          {}
+          {},
+          false
         )
       ).toEqual({
         kind: 'number',
         value: 43,
+        required: false,
       });
     });
   });
 
   describe('visitObjecDefinition', () => {
-    it('falls back to string when type is not defined', () => {
-      expect(
-        visitObjecDefinition(
-          {
-            kind: 'ObjectDefinition',
-            fields: [
-              {
-                kind: 'FieldDefinition',
-                fieldName: 'test',
-                required: true,
+    describe('with example', () => {
+      it('returns example object for object with field using NamedModelDefinition', () => {
+        expect(
+          visit(
+            {
+              kind: 'ObjectDefinition',
+              fields: [
+                {
+                  kind: 'FieldDefinition',
+                  fieldName: 'a',
+                  required: true,
+                  type: {
+                    kind: 'ModelTypeName',
+                    name: 'test',
+                  },
+                },
+              ],
+            },
+            {
+              test: {
+                modelName: 'test',
+                kind: 'NamedModelDefinition',
+                type: {
+                  kind: 'ObjectDefinition',
+                  fields: [
+                    {
+                      kind: 'FieldDefinition',
+                      fieldName: 'a',
+                      required: true,
+                      type: {
+                        kind: 'PrimitiveTypeName',
+                        name: 'string',
+                      },
+                    },
+                  ],
+                },
               },
-            ],
-          },
-          {},
-          {}
-        )
-      ).toEqual({
-        kind: 'object',
-        properties: [
-          {
-            name: 'test',
-            kind: 'string',
-            value: '',
-          },
-        ],
+            },
+            {},
+            false,
+            {
+              kind: `ComlinkObjectLiteral`,
+              fields: [
+                {
+                  kind: `ComlinkAssignment`,
+                  key: [`a`],
+                  value: {
+                    kind: `ComlinkObjectLiteral`,
+                    fields: [
+                      {
+                        kind: `ComlinkAssignment`,
+                        key: [`a`],
+                        value: {
+                          kind: `ComlinkPrimitiveLiteral`,
+                          value: `test`,
+                        },
+                      },
+                    ],
+                  },
+                },
+              ],
+            }
+          )
+        ).toEqual({
+          kind: 'object',
+          properties: [
+            {
+              name: 'a',
+              kind: 'object',
+              properties: [
+                {
+                  name: 'a',
+                  kind: 'string',
+                  required: true,
+                  value: 'test',
+                },
+              ],
+            },
+          ],
+        });
       });
-    });
 
-    it('returns example object for object with FieldDefinition fields', () => {
-      expect(
-        visitObjecDefinition(
-          {
-            kind: 'ObjectDefinition',
-            fields: [
-              {
-                kind: 'FieldDefinition',
+      it('falls back to string when type is not defined', () => {
+        expect(
+          visitObjecDefinition(
+            {
+              kind: 'ObjectDefinition',
+              fields: [
+                {
+                  kind: 'FieldDefinition',
+                  fieldName: 'test',
+                  required: true,
+                },
+              ],
+            },
+            {},
+            {}
+          )
+        ).toEqual({
+          kind: 'object',
+          properties: [
+            {
+              name: 'test',
+              kind: 'string',
+              value: '',
+              required: true,
+            },
+          ],
+        });
+      });
+
+      it('returns example object for object with FieldDefinition fields', () => {
+        expect(
+          visitObjecDefinition(
+            {
+              kind: 'ObjectDefinition',
+              fields: [
+                {
+                  kind: 'FieldDefinition',
+                  fieldName: 'test',
+                  required: true,
+                  type: {
+                    kind: 'PrimitiveTypeName',
+                    name: 'string',
+                  },
+                },
+              ],
+            },
+            {},
+            {},
+            {
+              kind: 'ComlinkObjectLiteral',
+              fields: [
+                {
+                  kind: 'ComlinkAssignment',
+                  key: ['test'],
+                  value: {
+                    kind: 'ComlinkPrimitiveLiteral',
+                    value: 'example',
+                  },
+                },
+              ],
+            }
+          )
+        ).toEqual({
+          kind: 'object',
+          properties: [
+            {
+              name: 'test',
+              kind: 'string',
+              value: 'example',
+              required: true,
+            },
+          ],
+        });
+      });
+
+      it('returns example object for object with NamedFieldDefinition fields', () => {
+        expect(
+          visitObjecDefinition(
+            {
+              kind: 'ObjectDefinition',
+              fields: [
+                {
+                  kind: 'FieldDefinition',
+                  fieldName: 'test',
+                  required: true,
+                },
+              ],
+            },
+            {},
+            {
+              test: {
+                kind: 'NamedFieldDefinition',
                 fieldName: 'test',
-                required: true,
                 type: {
                   kind: 'PrimitiveTypeName',
                   name: 'string',
                 },
               },
-            ],
-          },
-          {},
-          {}
-        )
-      ).toEqual({
-        kind: 'object',
-        properties: [
-          {
-            name: 'test',
-            kind: 'string',
-            value: '',
-          },
-        ],
+            },
+            {
+              kind: 'ComlinkObjectLiteral',
+              fields: [
+                {
+                  kind: 'ComlinkAssignment',
+                  key: ['test'],
+                  value: {
+                    kind: 'ComlinkPrimitiveLiteral',
+                    value: 'example',
+                  },
+                },
+              ],
+            }
+          )
+        ).toEqual({
+          kind: 'object',
+          properties: [
+            {
+              name: 'test',
+              kind: 'string',
+              value: 'example',
+              required: true,
+            },
+          ],
+        });
       });
     });
 
-    it('returns example object for object with NamedFieldDefinition fields', () => {
-      expect(
-        visitObjecDefinition(
-          {
-            kind: 'ObjectDefinition',
-            fields: [
-              {
-                kind: 'FieldDefinition',
-                fieldName: 'test',
-                required: true,
-              },
-            ],
-          },
-          {},
-          {
-            test: {
-              kind: 'NamedFieldDefinition',
-              fieldName: 'test',
-              type: {
-                kind: 'PrimitiveTypeName',
-                name: 'string',
+    describe('without example', () => {
+      it('returns example object for object with field using NamedModelDefinition', () => {
+        expect(
+          visit(
+            {
+              kind: 'ObjectDefinition',
+              fields: [
+                {
+                  kind: 'FieldDefinition',
+                  fieldName: 'a',
+                  required: true,
+                  type: {
+                    kind: 'ModelTypeName',
+                    name: 'test',
+                  },
+                },
+              ],
+            },
+            {
+              test: {
+                modelName: 'test',
+                kind: 'NamedModelDefinition',
+                type: {
+                  kind: 'ObjectDefinition',
+                  fields: [
+                    {
+                      kind: 'FieldDefinition',
+                      fieldName: 'a',
+                      required: true,
+                      type: {
+                        kind: 'PrimitiveTypeName',
+                        name: 'string',
+                      },
+                    },
+                  ],
+                },
               },
             },
-          }
-        )
-      ).toEqual({
-        kind: 'object',
-        properties: [
-          {
-            name: 'test',
-            kind: 'string',
-            value: '',
-          },
-        ],
+            {},
+            false
+          )
+        ).toEqual({
+          kind: 'object',
+          properties: [
+            {
+              name: 'a',
+              kind: 'object',
+              properties: [
+                {
+                  name: 'a',
+                  kind: 'string',
+                  required: true,
+                  value: '',
+                },
+              ],
+            },
+          ],
+        });
+      });
+
+      it('falls back to string when type is not defined', () => {
+        expect(
+          visitObjecDefinition(
+            {
+              kind: 'ObjectDefinition',
+              fields: [
+                {
+                  kind: 'FieldDefinition',
+                  fieldName: 'test',
+                  required: true,
+                },
+              ],
+            },
+            {},
+            {}
+          )
+        ).toEqual({
+          kind: 'object',
+          properties: [
+            {
+              name: 'test',
+              kind: 'string',
+              value: '',
+              required: true,
+            },
+          ],
+        });
+      });
+
+      it('returns example object for object with FieldDefinition fields', () => {
+        expect(
+          visitObjecDefinition(
+            {
+              kind: 'ObjectDefinition',
+              fields: [
+                {
+                  kind: 'FieldDefinition',
+                  fieldName: 'test',
+                  required: true,
+                  type: {
+                    kind: 'PrimitiveTypeName',
+                    name: 'string',
+                  },
+                },
+              ],
+            },
+            {},
+            {}
+          )
+        ).toEqual({
+          kind: 'object',
+          properties: [
+            {
+              name: 'test',
+              kind: 'string',
+              value: '',
+              required: true,
+            },
+          ],
+        });
+      });
+
+      it('returns example object for object with NamedFieldDefinition fields', () => {
+        expect(
+          visitObjecDefinition(
+            {
+              kind: 'ObjectDefinition',
+              fields: [
+                {
+                  kind: 'FieldDefinition',
+                  fieldName: 'test',
+                  required: true,
+                },
+              ],
+            },
+            {},
+            {
+              test: {
+                kind: 'NamedFieldDefinition',
+                fieldName: 'test',
+                type: {
+                  kind: 'PrimitiveTypeName',
+                  name: 'string',
+                },
+              },
+            }
+          )
+        ).toEqual({
+          kind: 'object',
+          properties: [
+            {
+              name: 'test',
+              kind: 'string',
+              value: '',
+              required: true,
+            },
+          ],
+        });
       });
     });
   });
 
   describe('visitListNode', () => {
-    it('returns example array for array with ComlinkPrimitiveLiteral fields', () => {
-      expect(
-        visitListNode(
-          {
-            kind: 'ListDefinition',
-            elementType: {
-              kind: 'PrimitiveTypeName',
-              name: 'string',
+    describe('with example', () => {
+      it('returns example array for array with ComlinkPrimitiveLiteral fields', () => {
+        expect(
+          visitListNode(
+            {
+              kind: 'ListDefinition',
+              elementType: {
+                kind: 'PrimitiveTypeName',
+                name: 'string',
+              },
             },
-          },
-          {},
-          {}
-        )
-      ).toEqual({
-        kind: 'array',
-        items: [
-          {
-            kind: 'string',
-            value: '',
-          },
-        ],
+            {},
+            {},
+            false,
+            {
+              kind: 'ComlinkListLiteral',
+              items: [
+                {
+                  kind: 'ComlinkPrimitiveLiteral',
+                  value: 'test',
+                },
+              ],
+            }
+          )
+        ).toEqual({
+          kind: 'array',
+          items: [
+            {
+              kind: 'string',
+              value: 'test',
+              required: false,
+            },
+          ],
+        });
+      });
+    });
+
+    describe('without example', () => {
+      it('returns example array for array with ComlinkPrimitiveLiteral fields', () => {
+        expect(
+          visitListNode(
+            {
+              kind: 'ListDefinition',
+              elementType: {
+                kind: 'PrimitiveTypeName',
+                name: 'string',
+              },
+            },
+            {},
+            {},
+            false
+          )
+        ).toEqual({
+          kind: 'array',
+          items: [
+            {
+              kind: 'string',
+              value: '',
+              required: false,
+            },
+          ],
+        });
       });
     });
   });
 
   describe('visitPrimitiveNode', () => {
-    it('returns example scalar for primitive string', () => {
-      expect(
-        visitPrimitiveNode({
-          kind: 'PrimitiveTypeName',
-          name: 'string',
-        })
-      ).toEqual({
-        kind: 'string',
-        value: '',
+    describe('with example', () => {
+      it('returns example scalar for primitive string', () => {
+        expect(
+          visitPrimitiveNode(
+            {
+              kind: 'PrimitiveTypeName',
+              name: 'string',
+            },
+            true,
+            {
+              kind: 'ComlinkPrimitiveLiteral',
+              value: 'test',
+            }
+          )
+        ).toEqual({
+          kind: 'string',
+          value: 'test',
+          required: true,
+        });
+      });
+
+      it('returns example scalar for primitive number', () => {
+        expect(
+          visitPrimitiveNode(
+            {
+              kind: 'PrimitiveTypeName',
+              name: 'number',
+            },
+            false,
+            {
+              kind: 'ComlinkPrimitiveLiteral',
+              value: 12,
+            }
+          )
+        ).toEqual({
+          kind: 'number',
+          value: 12,
+          required: false,
+        });
+      });
+
+      it('returns example scalar for primitive boolean', () => {
+        expect(
+          visitPrimitiveNode(
+            {
+              kind: 'PrimitiveTypeName',
+              name: 'boolean',
+            },
+            true,
+            {
+              kind: 'ComlinkPrimitiveLiteral',
+              value: false,
+            }
+          )
+        ).toEqual({
+          kind: 'boolean',
+          value: false,
+          required: true,
+        });
       });
     });
 
-    it('returns example scalar for primitive number', () => {
-      expect(
-        visitPrimitiveNode({
-          kind: 'PrimitiveTypeName',
-          name: 'number',
-        })
-      ).toEqual({
-        kind: 'number',
-        value: 0,
+    describe('without example', () => {
+      it('returns example scalar for primitive string', () => {
+        expect(
+          visitPrimitiveNode(
+            {
+              kind: 'PrimitiveTypeName',
+              name: 'string',
+            },
+            true
+          )
+        ).toEqual({
+          kind: 'string',
+          value: '',
+          required: true,
+        });
       });
-    });
 
-    it('returns example scalar for primitive boolean', () => {
-      expect(
-        visitPrimitiveNode({
-          kind: 'PrimitiveTypeName',
-          name: 'boolean',
-        })
-      ).toEqual({
-        kind: 'boolean',
-        value: true,
+      it('returns example scalar for primitive number', () => {
+        expect(
+          visitPrimitiveNode(
+            {
+              kind: 'PrimitiveTypeName',
+              name: 'number',
+            },
+            false
+          )
+        ).toEqual({
+          kind: 'number',
+          value: 0,
+          required: false,
+        });
+      });
+
+      it('returns example scalar for primitive boolean', () => {
+        expect(
+          visitPrimitiveNode(
+            {
+              kind: 'PrimitiveTypeName',
+              name: 'boolean',
+            },
+            true
+          )
+        ).toEqual({
+          kind: 'boolean',
+          value: true,
+          required: true,
+        });
       });
     });
   });
 
   describe('visitEnumNode', () => {
-    it('returns example scalar for enum with string', () => {
-      expect(
-        visitEnumNode({
-          kind: 'EnumDefinition',
-          values: [
+    describe('with example', () => {
+      it('returns example scalar for enum with string', () => {
+        expect(
+          visitEnumNode(
             {
-              kind: 'EnumValue',
-              value: 'something',
+              kind: 'EnumDefinition',
+              values: [
+                {
+                  kind: 'EnumValue',
+                  value: 'something',
+                },
+              ],
             },
-          ],
-        })
-      ).toEqual({
-        kind: 'string',
-        value: 'something',
+            false,
+            {
+              kind: 'ComlinkPrimitiveLiteral',
+              value: 'real value',
+            }
+          )
+        ).toEqual({
+          kind: 'string',
+          value: 'real value',
+          required: false,
+        });
+      });
+
+      it('returns example scalar for enum with number', () => {
+        expect(
+          visitEnumNode(
+            {
+              kind: 'EnumDefinition',
+              values: [
+                {
+                  kind: 'EnumValue',
+                  value: 42,
+                },
+              ],
+            },
+            false,
+            {
+              kind: 'ComlinkPrimitiveLiteral',
+              value: 12,
+            }
+          )
+        ).toEqual({
+          kind: 'number',
+          value: 12,
+          required: false,
+        });
+      });
+
+      it('returns example scalar for enum with boolean', () => {
+        expect(
+          visitEnumNode(
+            {
+              kind: 'EnumDefinition',
+              values: [
+                {
+                  kind: 'EnumValue',
+                  value: true,
+                },
+              ],
+            },
+            false,
+            {
+              kind: 'ComlinkPrimitiveLiteral',
+              value: false,
+            }
+          )
+        ).toEqual({
+          kind: 'boolean',
+          value: false,
+          required: false,
+        });
       });
     });
 
-    it('returns example scalar for enum with number', () => {
-      expect(
-        visitEnumNode({
-          kind: 'EnumDefinition',
-          values: [
+    describe('without example', () => {
+      it('returns example scalar for enum with string', () => {
+        expect(
+          visitEnumNode(
             {
-              kind: 'EnumValue',
-              value: 42,
+              kind: 'EnumDefinition',
+              values: [
+                {
+                  kind: 'EnumValue',
+                  value: 'something',
+                },
+              ],
             },
-          ],
-        })
-      ).toEqual({
-        kind: 'number',
-        value: 42,
+            false
+          )
+        ).toEqual({
+          kind: 'string',
+          value: 'something',
+          required: false,
+        });
       });
-    });
 
-    it('returns example scalar for enum with boolean', () => {
-      expect(
-        visitEnumNode({
-          kind: 'EnumDefinition',
-          values: [
+      it('returns example scalar for enum with number', () => {
+        expect(
+          visitEnumNode(
             {
-              kind: 'EnumValue',
-              value: true,
+              kind: 'EnumDefinition',
+              values: [
+                {
+                  kind: 'EnumValue',
+                  value: 42,
+                },
+              ],
             },
-          ],
-        })
-      ).toEqual({
-        kind: 'boolean',
-        value: true,
+            false
+          )
+        ).toEqual({
+          kind: 'number',
+          value: 42,
+          required: false,
+        });
+      });
+
+      it('returns example scalar for enum with boolean', () => {
+        expect(
+          visitEnumNode(
+            {
+              kind: 'EnumDefinition',
+              values: [
+                {
+                  kind: 'EnumValue',
+                  value: true,
+                },
+              ],
+            },
+            false
+          )
+        ).toEqual({
+          kind: 'boolean',
+          value: true,
+          required: false,
+        });
       });
     });
   });
