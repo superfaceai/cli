@@ -60,8 +60,6 @@ except PerformError as e:
   print(f"ERROR RESULT: {e.error_result}")
 except UnexpectedError as e:
   print(f"ERROR: {e}", file=sys.stderr)
-except Exception as e:
-  raise e
 finally:
   client.send_metrics_to_superface()`;
 
