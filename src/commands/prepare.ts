@@ -133,18 +133,18 @@ This command prepares a Provider JSON metadata definition that can be used to ge
       ux.warn(`{inverse  ACTION REQUIRED }
 Documentation was indexed but the Provider definition requires attention.
 
-{bold 1) Edit '{underline ${formatPath(
+1) Edit '{bold ${formatPath(
         providerJsonPath
-      )}}'. See {underline https://sfc.is/editing-providers}}
+      )}}'. See {underline https://sfc.is/editing-providers}
 
 2) Create a new Comlink profile using:
-{underline.bold superface new ${providerJson.name} "use case description"}`);
+{bold superface new ${providerJson.name} "use case description"}`);
     } else {
       ux.succeed(
         `Provider definition saved to '${formatPath(providerJsonPath)}'.
 
 Create a new Comlink profile using:
-superface new ${providerJson.name} "use case description"`
+{bold superface new ${providerJson.name} "use case description"}`
       );
     }
   }

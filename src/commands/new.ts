@@ -113,7 +113,7 @@ export default class New extends Command {
       `New Comlink profile saved to '${formatPath(profilePath)}'.
 
 Create your use case code by running:
-{underline.bold superface map ${resolvedProviderJson.providerJson.name} ${
+{bold superface map ${resolvedProviderJson.providerJson.name} ${
         ProfileId.fromScopeName(profile.scope, profile.name).id
       }}`
     );

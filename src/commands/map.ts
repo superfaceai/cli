@@ -397,7 +397,7 @@ ${status.dotenv.newVars.map(env => `- $${env}`).join('\n')}`;
     message += `
 
 Run (${status.execution.languageDependency}):
-{underline.bold cd superface && ${status.execution.dependencyInstallCommand}
+{bold cd superface && ${status.execution.dependencyInstallCommand}
 ${status.execution.executeCommand}}`;
   }
 
