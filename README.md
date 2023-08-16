@@ -37,7 +37,7 @@ brew install superfaceai/cli/superface
 
 ## `superface execute PROVIDERNAME PROFILEID`
 
-Run the created integration in superface directory. Commands `prepare`, `new` and `map` must be run before this command. This command will execute integration using Node.js or Python.
+Run the created integration in superface directory. Commands `prepare`, `new` and `map` must be run before this command. You can switch runner language via `language` flag (`js` by default).
 
 ```
 USAGE
@@ -55,7 +55,7 @@ FLAGS
 
 DESCRIPTION
   Run the created integration in superface directory. Commands `prepare`, `new` and `map` must be run before this
-  command. This command will execute integration using Node.js or Python.
+  command. You can switch runner language via `language` flag (`js` by default).
 
 EXAMPLES
   $ superface execute resend communication/send-email
@@ -123,7 +123,7 @@ USAGE
 ARGUMENTS
   PROVIDERNAME  Name of provider.
   PROFILEID     Id of profile, eg: starwars/character-information
-  LANGUAGE      (python|js) [default: js] Language which will use generated code. Default is `js`.
+  LANGUAGE      (python|js) [default: js] Language of the generated application code. Default is `js`
 
 FLAGS
   -h, --help   show CLI help
