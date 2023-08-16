@@ -395,9 +395,9 @@ ${status.dotenv.newVars.map(env => `- $${env}`).join('\n')}`;
   if (status.execution) {
     message += `
 
-Run (${status.execution.languageDependency}):
-cd superface && ${status.execution.dependencyInstallCommand}
-${status.execution.executeCommand}`;
+✨ Test the created integration (${status.execution.languageDependency}):
+{bold cd superface && ${status.execution.dependencyInstallCommand}
+${status.execution.executeCommand}}`;
   }
 
   return message;
