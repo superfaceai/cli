@@ -42,11 +42,11 @@ describe('prepareUseCaseInput', () => {
             }
           }]
         }
-        m fieldA!
-        n fieldB!
-        o fieldC!
-        p fieldD!
-        q fieldE!
+        fieldA!
+        fieldB!
+        fieldC!
+        fieldD!
+
         r modelA!
       }
       example InputExample {
@@ -61,7 +61,12 @@ describe('prepareUseCaseInput', () => {
           h = { a = 'a', b = 'b' },
           i = { a = true, b = false },
           j = [{ k = 'a', m = { n = 1 } }],
-          k = { a = [{ b = [ true]}] },
+          l = { a = [{ b = [ true ], c = { d = 12 }}] },
+          fieldA = 'a',
+          fieldB = 1,
+          fieldC = true,
+          fieldD = "A",
+          r = { a = 'a' }
         }
       }
     }
@@ -126,8 +131,18 @@ describe('prepareUseCaseInput', () => {
               b: [
                 true,
               ],
+              c: {
+                d: 12,
+              },
             },
           ],
+        },
+        fieldA : 'a',
+        fieldB: 1,
+        fieldC: true,
+        fieldD : 'A',
+        r: {
+          a : 'a',
         },
       }`);
     });
@@ -177,8 +192,18 @@ describe('prepareUseCaseInput', () => {
               "b": [
                 True,
               ],
+              "c": {
+                "d": 12,
+              },
             },
           ],
+        },
+        "fieldA" : 'a',
+        "fieldB": 1,
+        "fieldC": True,
+        "fieldD" : 'A',
+        "r": {
+          "a" : 'a',
         },
       }`);
     });

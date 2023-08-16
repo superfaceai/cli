@@ -206,6 +206,83 @@ describe('Parse structure tree', () => {
 
   describe('visitObjecDefinition', () => {
     describe('with example', () => {
+      it('returns example object for object with field using NamedFieldDefinition', () => {
+        expect(
+          visit(
+            {
+              kind: 'ObjectDefinition',
+              fields: [
+                {
+                  kind: 'FieldDefinition',
+                  fieldName: 'a',
+                  required: true,
+                },
+              ],
+            },
+            {},
+            {
+              a: {
+                kind: 'NamedFieldDefinition',
+                fieldName: 'a',
+                type: {
+                  kind: 'ObjectDefinition',
+                  fields: [
+                    {
+                      kind: 'FieldDefinition',
+                      fieldName: 'b',
+                      required: true,
+                      type: {
+                        kind: 'PrimitiveTypeName',
+                        name: 'string',
+                      },
+                    },
+                  ],
+                },
+              },
+            },
+            false,
+            {
+              kind: `ComlinkObjectLiteral`,
+              fields: [
+                {
+                  kind: `ComlinkAssignment`,
+                  key: [`a`],
+                  value: {
+                    kind: `ComlinkObjectLiteral`,
+                    fields: [
+                      {
+                        kind: `ComlinkAssignment`,
+                        key: [`b`],
+                        value: {
+                          kind: `ComlinkPrimitiveLiteral`,
+                          value: `test value`,
+                        },
+                      },
+                    ],
+                  },
+                },
+              ],
+            }
+          )
+        ).toEqual({
+          kind: 'object',
+          properties: [
+            {
+              name: 'a',
+              kind: 'object',
+              properties: [
+                {
+                  name: 'b',
+                  kind: 'string',
+                  required: true,
+                  value: 'test value',
+                },
+              ],
+            },
+          ],
+        });
+      });
+
       it('returns example object for object with field using NamedModelDefinition', () => {
         expect(
           visit(
@@ -218,21 +295,21 @@ describe('Parse structure tree', () => {
                   required: true,
                   type: {
                     kind: 'ModelTypeName',
-                    name: 'test',
+                    name: 'b',
                   },
                 },
               ],
             },
             {
-              test: {
-                modelName: 'test',
+              b: {
+                modelName: 'b',
                 kind: 'NamedModelDefinition',
                 type: {
                   kind: 'ObjectDefinition',
                   fields: [
                     {
                       kind: 'FieldDefinition',
-                      fieldName: 'a',
+                      fieldName: 'c',
                       required: true,
                       type: {
                         kind: 'PrimitiveTypeName',
@@ -256,7 +333,7 @@ describe('Parse structure tree', () => {
                     fields: [
                       {
                         kind: `ComlinkAssignment`,
-                        key: [`a`],
+                        key: [`c`],
                         value: {
                           kind: `ComlinkPrimitiveLiteral`,
                           value: `test`,
@@ -276,7 +353,7 @@ describe('Parse structure tree', () => {
               kind: 'object',
               properties: [
                 {
-                  name: 'a',
+                  name: 'c',
                   kind: 'string',
                   required: true,
                   value: 'test',
@@ -415,6 +492,61 @@ describe('Parse structure tree', () => {
     });
 
     describe('without example', () => {
+      it('returns example object for object with field using NamedFieldDefinition', () => {
+        expect(
+          visit(
+            {
+              kind: 'ObjectDefinition',
+              fields: [
+                {
+                  kind: 'FieldDefinition',
+                  fieldName: 'a',
+                  required: true,
+                },
+              ],
+            },
+            {},
+            {
+              a: {
+                kind: 'NamedFieldDefinition',
+                fieldName: 'a',
+                type: {
+                  kind: 'ObjectDefinition',
+                  fields: [
+                    {
+                      kind: 'FieldDefinition',
+                      fieldName: 'b',
+                      required: true,
+                      type: {
+                        kind: 'PrimitiveTypeName',
+                        name: 'string',
+                      },
+                    },
+                  ],
+                },
+              },
+            },
+            false
+          )
+        ).toEqual({
+          kind: 'object',
+          properties: [
+            {
+              name: 'a',
+              kind: 'object',
+              properties: [
+                {
+                  name: 'b',
+                  kind: 'string',
+                  required: true,
+                  value: '',
+                },
+              ],
+            },
+          ],
+        });
+      });
+
       it('returns example object for object with field using NamedModelDefinition', () => {
         expect(
           visit(

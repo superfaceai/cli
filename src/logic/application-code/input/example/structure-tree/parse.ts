@@ -267,9 +267,7 @@ export function visitObjecDefinition(
   return {
     kind: 'object',
     properties: object.fields.map(field => {
-      console.log('field', field);
       const namedFieldNode = namedFieldDefinitionsCache[field.fieldName];
-      // const namedModelNode = namedModelDefinitionsCache[field.fieldName];
       // Fallback to string if type is not defined
       const type = field.type ??
         namedFieldNode?.type ?? {
