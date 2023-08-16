@@ -59,13 +59,12 @@ export default class Map extends Command {
       required: false,
     },
     {
-      // TODO: add language support and value validation
       name: 'language',
-      description: 'Language which will use generated code. Default is `js`.',
+      description:
+        'Language of the generated application code. Default is `js`',
       required: false,
       options: Object.values(SupportedLanguages),
-      // Hidden until we figure better language select DX
-      hidden: true,
+      default: SupportedLanguages.JS,
     },
   ];
 
