@@ -19,7 +19,7 @@ import { resolveLanguage, resolveProfileSource } from './map';
 export default class Execute extends Command {
   // TODO: add description
   public static description =
-    'Run the created integration in superface directory. Commands `prepare`, `new` and `map` must be run before this command. This command will execute integration using Node.js or Python.';
+    'Run the created integration in superface directory. Commands `prepare`, `new` and `map` must be run before this command. You can switch runner language via `language` flag (`js` by default).';
 
   public static examples = [
     'superface execute resend communication/send-email',
@@ -38,7 +38,7 @@ export default class Execute extends Command {
     },
     {
       name: 'language',
-      description: 'Language which will be used. Default is `js`.',
+      description: 'Language of the application code runner. Default is `js`.',
       required: false,
       default: SupportedLanguages.JS,
       options: Object.values(SupportedLanguages),
