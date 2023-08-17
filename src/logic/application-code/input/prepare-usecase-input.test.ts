@@ -91,7 +91,7 @@ describe('prepareUseCaseInput', () => {
     it('should prepare input for use case', () => {
       const input = prepareUseCaseInput(ast, SupportedLanguages.JS);
       expect(input).toEqual(`{
-        a : 'Luke',
+        a: 'Luke',
         b: 1.2,
         c: true,
         d: [
@@ -110,8 +110,8 @@ describe('prepareUseCaseInput', () => {
           b: 2,
         },
         h: {
-          a : 'a',
-          b : 'b',
+          a: 'a',
+          b: 'b',
         },
         i: {
           a: true,
@@ -119,7 +119,7 @@ describe('prepareUseCaseInput', () => {
         },
         j: [
           {
-            k : 'a',
+            k: 'a',
             m: {
               n: 1,
             },
@@ -137,12 +137,12 @@ describe('prepareUseCaseInput', () => {
             },
           ],
         },
-        fieldA : 'a',
+        fieldA: 'a',
         fieldB: 1,
         fieldC: true,
-        fieldD : 'A',
+        fieldD: 'A',
         r: {
-          a : 'a',
+          a: 'a',
         },
       }`);
     });
@@ -152,7 +152,7 @@ describe('prepareUseCaseInput', () => {
     it('should prepare input for use case', () => {
       const input = prepareUseCaseInput(ast, SupportedLanguages.PYTHON);
       expect(input).toEqual(`{
-        "a" : 'Luke',
+        "a": 'Luke',
         "b": 1.2,
         "c": True,
         "d": [
@@ -171,8 +171,8 @@ describe('prepareUseCaseInput', () => {
           "b": 2,
         },
         "h": {
-          "a" : 'a',
-          "b" : 'b',
+          "a": 'a',
+          "b": 'b',
         },
         "i": {
           "a": True,
@@ -180,7 +180,7 @@ describe('prepareUseCaseInput', () => {
         },
         "j": [
           {
-            "k" : 'a',
+            "k": 'a',
             "m": {
               "n": 1,
             },
@@ -198,12 +198,12 @@ describe('prepareUseCaseInput', () => {
             },
           ],
         },
-        "fieldA" : 'a',
+        "fieldA": 'a',
         "fieldB": 1,
         "fieldC": True,
-        "fieldD" : 'A',
+        "fieldD": 'A',
         "r": {
-          "a" : 'a',
+          "a": 'a',
         },
       }`);
     });
