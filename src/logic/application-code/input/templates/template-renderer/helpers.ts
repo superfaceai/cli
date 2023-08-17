@@ -98,6 +98,15 @@ export const HELPERS = [
       return '';
     },
   },
+  {
+    name: 'comment',
+    helper: function (language: string) {
+      if (language === SupportedLanguages.PYTHON) {
+        return `#`;
+      }
+      return '//';
+    },
+  },
 
   {
     name: 'booleanValue',

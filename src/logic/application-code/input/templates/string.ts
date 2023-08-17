@@ -1,1 +1,1 @@
-export default '{{escapedString value}}';
+export default '{{escapedString value}}{{#if required}}{{comment language}}Required{{/if}}';
