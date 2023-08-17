@@ -100,7 +100,8 @@ export function visit(
         node,
         namedModelDefinitionsCache,
         namedFieldDefinitionsCache,
-        required
+        required,
+        example
       );
     default:
       throw new Error(`Invalid kind: ${node?.kind ?? 'undefined'}`);

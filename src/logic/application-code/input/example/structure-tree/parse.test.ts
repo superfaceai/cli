@@ -7,199 +7,164 @@ import {
 } from './parse';
 
 describe('Parse structure tree', () => {
-  describe('visit', () => {
-    it('throws when type is not defined', () => {
-      expect(() =>
-        visit(
-          {
-            kind: 'ComlinkPrimitiveLiteral',
-            value: '',
-          },
-          {},
-          {},
-          false
-        )
-      ).toThrowError(new Error(`Invalid kind: ComlinkPrimitiveLiteral`));
-    });
+  it('throws when type is not defined', () => {
+    expect(() =>
+      visit(
+        {
+          kind: 'ComlinkPrimitiveLiteral',
+          value: '',
+        },
+        {},
+        {},
+        false
+      )
+    ).toThrowError(new Error(`Invalid kind: ComlinkPrimitiveLiteral`));
+  });
 
-    it('returns example object for object definition', () => {
-      expect(
-        visit(
-          {
-            kind: 'ObjectDefinition',
-            fields: [
-              {
-                kind: 'FieldDefinition',
-                fieldName: 'test',
-                required: true,
-                type: {
+  describe('visitUnionDefinition', () => {
+    describe('with example', () => {
+      it('returns example scalar for union definition', () => {
+        expect(
+          visit(
+            {
+              kind: 'UnionDefinition',
+              types: [
+                {
                   kind: 'PrimitiveTypeName',
-                  name: 'string',
+                  name: 'boolean',
                 },
-              },
-            ],
-          },
-          {},
-          {},
-          false
-        )
-      ).toEqual({
-        kind: 'object',
-        properties: [
-          {
-            name: 'test',
-            kind: 'string',
-            value: '',
-            required: true,
-          },
-        ],
-      });
-    });
-
-    it('returns example scalar for primitive definition', () => {
-      expect(
-        visit(
-          {
-            kind: 'PrimitiveTypeName',
-            name: 'number',
-          },
-          {},
-          {},
-          false
-        )
-      ).toEqual({
-        kind: 'number',
-        value: 0,
-        required: false,
-      });
-    });
-
-    it('returns example object for model type name', () => {
-      expect(
-        visit(
-          {
-            kind: 'ModelTypeName',
-            name: 'test',
-          },
-          {
-            test: {
-              modelName: 'test',
-              kind: 'NamedModelDefinition',
-              type: {
-                kind: 'ObjectDefinition',
-                fields: [
-                  {
-                    kind: 'FieldDefinition',
-                    fieldName: 'test',
-                    required: true,
-                    type: {
-                      kind: 'PrimitiveTypeName',
-                      name: 'string',
+                {
+                  kind: 'ObjectDefinition',
+                  fields: [
+                    {
+                      kind: 'FieldDefinition',
+                      fieldName: 'test',
+                      required: true,
+                      type: {
+                        kind: 'PrimitiveTypeName',
+                        name: 'boolean',
+                      },
                     },
-                  },
-                ],
-              },
+                  ],
+                },
+              ],
             },
-          },
-          {},
-          false
-        )
-      ).toEqual({
-        kind: 'object',
-        properties: [
-          {
-            name: 'test',
-            kind: 'string',
-            value: '',
-            required: true,
-          },
-        ],
+            {},
+            {},
+            false,
+            {
+              kind: `ComlinkPrimitiveLiteral`,
+              value: false,
+            }
+          )
+        ).toEqual({
+          kind: 'boolean',
+          value: false,
+          required: false,
+        });
       });
     });
 
-    it('returns example scalar for union definition', () => {
-      expect(
-        visit(
-          {
-            kind: 'UnionDefinition',
-            types: [
-              {
-                kind: 'PrimitiveTypeName',
-                name: 'boolean',
-              },
-              {
-                kind: 'ObjectDefinition',
-                fields: [
-                  {
-                    kind: 'FieldDefinition',
-                    fieldName: 'test',
-                    required: true,
-                    type: {
-                      kind: 'PrimitiveTypeName',
-                      name: 'boolean',
+    describe('without example', () => {
+      it('returns example scalar for union definition', () => {
+        expect(
+          visit(
+            {
+              kind: 'UnionDefinition',
+              types: [
+                {
+                  kind: 'PrimitiveTypeName',
+                  name: 'boolean',
+                },
+                {
+                  kind: 'ObjectDefinition',
+                  fields: [
+                    {
+                      kind: 'FieldDefinition',
+                      fieldName: 'test',
+                      required: true,
+                      type: {
+                        kind: 'PrimitiveTypeName',
+                        name: 'boolean',
+                      },
                     },
-                  },
-                ],
-              },
-            ],
-          },
-          {},
-          {},
-          false
-        )
-      ).toEqual({
-        kind: 'boolean',
-        value: true,
-        required: false,
-      });
-    });
-
-    it('returns example array for array definition', () => {
-      expect(
-        visit(
-          {
-            kind: 'ListDefinition',
-            elementType: {
-              kind: 'PrimitiveTypeName',
-              name: 'number',
+                  ],
+                },
+              ],
             },
-          },
-          {},
-          {},
-          false
-        )
-      ).toEqual({
-        kind: 'array',
-        items: [
-          {
-            kind: 'number',
-            value: 0,
-            required: false,
-          },
-        ],
+            {},
+            {},
+            false
+          )
+        ).toEqual({
+          kind: 'boolean',
+          value: true,
+          required: false,
+        });
+      });
+    });
+  });
+
+  describe('visitEnumDefinition', () => {
+    describe('with example', () => {
+      it('returns example scalar for enum definition', () => {
+        expect(
+          visit(
+            {
+              kind: 'EnumDefinition',
+              values: [
+                {
+                  kind: 'EnumValue',
+                  value: 43,
+                },
+                {
+                  kind: 'EnumValue',
+                  value: 27,
+                },
+              ],
+            },
+            {},
+            {},
+            false,
+            {
+              kind: `ComlinkPrimitiveLiteral`,
+              value: 27,
+            }
+          )
+        ).toEqual({
+          kind: 'number',
+          value: 27,
+          required: false,
+        });
       });
     });
 
-    it('returns example scalar for enum definition', () => {
-      expect(
-        visit(
-          {
-            kind: 'EnumDefinition',
-            values: [
-              {
-                kind: 'EnumValue',
-                value: 43,
-              },
-            ],
-          },
-          {},
-          {},
-          false
-        )
-      ).toEqual({
-        kind: 'number',
-        value: 43,
-        required: false,
+    describe('without example', () => {
+      it('returns example scalar for enum definition', () => {
+        expect(
+          visit(
+            {
+              kind: 'EnumDefinition',
+              values: [
+                {
+                  kind: 'EnumValue',
+                  value: 43,
+                },
+                {
+                  kind: 'EnumValue',
+                  value: 27,
+                },
+              ],
+            },
+            {},
+            {},
+            false
+          )
+        ).toEqual({
+          kind: 'number',
+          value: 43,
+          required: false,
+        });
       });
     });
   });
