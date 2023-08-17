@@ -707,6 +707,43 @@ describe('Parse structure tree', () => {
               required: false,
             },
           ],
+          required: false,
+        });
+      });
+
+      it('returns example array for required array with ComlinkPrimitiveLiteral fields', () => {
+        expect(
+          visitListNode(
+            {
+              kind: 'ListDefinition',
+              elementType: {
+                kind: 'PrimitiveTypeName',
+                name: 'string',
+              },
+            },
+            {},
+            {},
+            true,
+            {
+              kind: 'ComlinkListLiteral',
+              items: [
+                {
+                  kind: 'ComlinkPrimitiveLiteral',
+                  value: 'test',
+                },
+              ],
+            }
+          )
+        ).toEqual({
+          kind: 'array',
+          items: [
+            {
+              kind: 'string',
+              value: 'test',
+              required: false,
+            },
+          ],
+          required: true,
         });
       });
     });
@@ -735,6 +772,34 @@ describe('Parse structure tree', () => {
               required: false,
             },
           ],
+          required: false,
+        });
+      });
+
+      it('returns example array for required array with ComlinkPrimitiveLiteral fields', () => {
+        expect(
+          visitListNode(
+            {
+              kind: 'ListDefinition',
+              elementType: {
+                kind: 'PrimitiveTypeName',
+                name: 'string',
+              },
+            },
+            {},
+            {},
+            true
+          )
+        ).toEqual({
+          kind: 'array',
+          items: [
+            {
+              kind: 'string',
+              value: '',
+              required: false,
+            },
+          ],
+          required: true,
         });
       });
     });

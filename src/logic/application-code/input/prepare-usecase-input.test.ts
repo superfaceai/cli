@@ -14,7 +14,7 @@ describe('prepareUseCaseInput', () => {
         b! number
         c! boolean
         d! [number]
-        e! [string!]!
+        e [string!]!
         f! [boolean]
         g! {
           a number
@@ -85,8 +85,6 @@ describe('prepareUseCaseInput', () => {
 
   const ast = parseProfile(new Source(mockProfileSource, 'test.supr'));
 
-  console.log(JSON.stringify(ast, null, 2));
-
   describe('for js', () => {
     it('should prepare input for use case', () => {
       const input = prepareUseCaseInput(ast, SupportedLanguages.JS);
@@ -95,16 +93,16 @@ describe('prepareUseCaseInput', () => {
         b: 1.2//Required,
         c: true//Required,
         d: [
-          1//Required,
-        ],
+          1,
+        ]//Required,
         e: [
-          'a'//Required,
-          'b'//Required,
+          'a',
+          'b',
         ],
         f: [
-          true//Required,
-          false//Required,
-        ],
+          true,
+          false,
+        ]//Required,
         g: {
           a: 1,
           b: 2,
@@ -124,7 +122,7 @@ describe('prepareUseCaseInput', () => {
               n: 1//Required,
             },
           },
-        ],
+        ]//Required,
         l: {
           a: [
             {
@@ -156,16 +154,16 @@ describe('prepareUseCaseInput', () => {
         "b": 1.2#Required,
         "c": True#Required,
         "d": [
-          1#Required,
-        ],
+          1,
+        ]#Required,
         "e": [
-          'a'#Required,
-          'b'#Required,
+          'a',
+          'b',
         ],
         "f": [
-          True#Required,
-          False#Required,
-        ],
+          True,
+          False,
+        ]#Required,
         "g": {
           "a": 1,
           "b": 2,
@@ -185,7 +183,7 @@ describe('prepareUseCaseInput', () => {
               "n": 1#Required,
             },
           },
-        ],
+        ]#Required,
         "l": {
           "a": [
             {

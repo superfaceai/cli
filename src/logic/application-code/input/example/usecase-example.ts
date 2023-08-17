@@ -31,6 +31,7 @@ export type ExampleObject = {
 export type ExampleArray = {
   kind: 'array';
   items: (ExampleArray | ExampleObject | ExampleScalar | ExampleNone)[];
+  required: boolean;
 };
 
 export type ExampleNone = {

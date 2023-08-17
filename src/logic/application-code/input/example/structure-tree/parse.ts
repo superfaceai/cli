@@ -201,12 +201,14 @@ export function visitListNode(
   if (example?.kind === 'ComlinkListLiteral') {
     return {
       kind: 'array',
+      required,
       items: example.items.map(item =>
         visit(
           list.elementType,
           namedModelDefinitionsCache,
           namedFieldDefinitionsCache,
-          required,
+          // Array can be empty
+          false,
           item
         )
       ),
@@ -215,12 +217,14 @@ export function visitListNode(
 
   return {
     kind: 'array',
+    required,
     items: [
       visit(
         list.elementType,
         namedModelDefinitionsCache,
         namedFieldDefinitionsCache,
-        required,
+        // Array can be empty
+        false,
         undefined
       ),
     ],
