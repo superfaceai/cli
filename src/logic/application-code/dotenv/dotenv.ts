@@ -4,6 +4,7 @@ import {
   prepareSecurityValues,
 } from '@superfaceai/ast';
 
+import { ONESDK_LOG_COMMENT, ONESDK_LOG_ENV } from './onesdk-log';
 import {
   ONESDK_TOKEN_COMMENT,
   ONESDK_TOKEN_ENV,
@@ -27,22 +28,25 @@ export function createNewDotenv({
   parameters,
   security,
   token,
+  logEnabled,
 }: {
   previousDotenv?: string;
   providerName: string;
   parameters?: IntegrationParameter[];
   security?: SecurityScheme[];
   token?: string | null;
+  logEnabled?: boolean;
 }): NewDotenv {
   const previousContent = previousDotenv ?? '';
 
   const parameterEnvs = getParameterEnvs(providerName, parameters);
   const securityEnvs = getSecurityEnvs(providerName, security);
   const tokenEnv = makeTokenEnv(token);
+  const logEnv = makeLogEnv(logEnabled === true ? '"on"' : '"off"');
 
   const newEnvsOnly = makeFilterForNewEnvs(previousContent);
 
-  const newEnvVariables = [tokenEnv, ...parameterEnvs, ...securityEnvs]
+  const newEnvVariables = [tokenEnv, logEnv, ...parameterEnvs, ...securityEnvs]
     .filter(uniqueEnvsOnly)
     .filter(newEnvsOnly);
 
@@ -51,6 +55,14 @@ export function createNewDotenv({
     newEmptyEnvVariables: newEnvVariables
       .filter(e => e.value === undefined)
       .map(e => e.name),
+  };
+}
+
+function makeLogEnv(logValue = '"off"'): EnvVar {
+  return {
+    name: ONESDK_LOG_ENV,
+    value: logValue,
+    comment: ONESDK_LOG_COMMENT,
   };
 }
 
@@ -98,10 +110,10 @@ function serializeEnvVar(env: EnvVar): string {
   const comment =
     env.comment !== undefined
       ? '\n' +
-        env.comment
-          .split('\n')
-          .map(commentLine => `# ${commentLine}`)
-          .join('\n')
+      env.comment
+        .split('\n')
+        .map(commentLine => `# ${commentLine}`)
+        .join('\n')
       : '';
 
   return `${comment ? comment + '\n' : ''}${env.name}=${env.value ?? ''}`;
