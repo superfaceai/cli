@@ -131,12 +131,16 @@ describe('prepare CLI command', () => {
       jest.mocked(readFile).mockResolvedValueOnce(fileContent);
       jest.mocked(prepareProviderJson).mockResolvedValueOnce(providerJson);
 
-      await expect(instance.execute({
-        logger,
-        userError,
-        flags: {},
-        args: { urlOrPath: 'path/to/FILE.docs.2!87.yaml' },
-      })).rejects.toThrow(`Provider name inferred from file name is not valid. Please provide provider name explicitly as second argument.`);
+      await expect(
+        instance.execute({
+          logger,
+          userError,
+          flags: {},
+          args: { urlOrPath: 'path/to/FILE.docs.2!87.yaml' },
+        })
+      ).rejects.toThrow(
+        `Provider name inferred from file name is not valid. Please provide provider name explicitly as second argument.`
+      );
     });
 
     it('prepares provider json from url', async () => {
