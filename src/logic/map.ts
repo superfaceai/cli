@@ -6,7 +6,7 @@ import { SuperfaceClient } from '../common/http';
 import { pollUrl } from '../common/polling';
 import type { UX } from '../common/ux';
 
-export type MapPreparationResponse = {
+type MapPreparationResponse = {
   source: string;
 };
 

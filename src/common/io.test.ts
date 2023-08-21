@@ -1,5 +1,5 @@
 import type { SuperJsonDocument } from '@superfaceai/ast';
-import { loadSuperJson, NodeFileSystem } from '@superfaceai/one-sdk';
+import { readFile } from 'fs/promises';
 import { join } from 'path';
 import { Writable } from 'stream';
 
@@ -43,9 +43,7 @@ describe('IO functions', () => {
     INITIAL_CWD = process.cwd();
     process.chdir(WORKING_DIR);
 
-    INITIAL_SUPER_JSON = (
-      await loadSuperJson(FIXTURE.superJson, NodeFileSystem)
-    ).unwrap();
+    INITIAL_SUPER_JSON = JSON.parse(await readFile(FIXTURE.superJson, 'utf-8'));
   });
 
   afterAll(async () => {

@@ -1,16 +1,16 @@
 export type ExampleScalar = ExampleBoolean | ExampleNumber | ExampleString;
 
-export type ExampleString = {
+type ExampleString = {
   kind: 'string';
   value: string;
 };
 
-export type ExampleNumber = {
+type ExampleNumber = {
   kind: 'number';
   value: number;
 };
 
-export type ExampleBoolean = {
+type ExampleBoolean = {
   kind: 'boolean';
   value: boolean;
 };
