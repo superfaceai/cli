@@ -38,7 +38,7 @@ describe('jsApplicationCode', () => {
     expect(result).toEqual({
       code: `import { config } from 'dotenv';
 // Load OneClient from SDK
-import { OneClient, PerformError, UnexpectedError } from '@superfaceai/one-sdk/node/index.js';
+import { OneClient, PerformError, UnexpectedError, ValidationError } from '@superfaceai/one-sdk/node/index.js';
 
 // Load environment variables from .env file
 config();
@@ -71,6 +71,8 @@ try {
 } catch (e) {
   if (e instanceof PerformError) {
     console.log('ERROR RESULT:', e.errorResult);
+  } else if (e instanceof ValidationError) {
+    console.error('VALIDATION ERROR:', e.message);
   } else if (e instanceof UnexpectedError) {
     console.error('ERROR:', e);
   } else {
@@ -112,7 +114,7 @@ try {
     expect(result).toEqual({
       code: `import { config } from 'dotenv';
 // Load OneClient from SDK
-import { OneClient, PerformError, UnexpectedError } from '@superfaceai/one-sdk/node/index.js';
+import { OneClient, PerformError, UnexpectedError, ValidationError } from '@superfaceai/one-sdk/node/index.js';
 
 // Load environment variables from .env file
 config();
@@ -145,6 +147,8 @@ try {
 } catch (e) {
   if (e instanceof PerformError) {
     console.log('ERROR RESULT:', e.errorResult);
+  } else if (e instanceof ValidationError) {
+    console.error('VALIDATION ERROR:', e.message);
   } else if (e instanceof UnexpectedError) {
     console.error('ERROR:', e);
   } else {
