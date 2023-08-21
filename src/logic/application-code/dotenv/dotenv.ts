@@ -58,7 +58,7 @@ export function createNewDotenv({
   };
 }
 
-function makeLogEnv(logValue = '"off"'): EnvVar {
+function makeLogEnv(logValue = 'off'): EnvVar {
   return {
     name: ONESDK_LOG_ENV,
     value: logValue,
