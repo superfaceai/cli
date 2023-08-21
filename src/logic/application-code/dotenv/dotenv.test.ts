@@ -27,8 +27,8 @@ const TOKEN = 'sfs_b31314b7fc8...8ec1930e';
 
 const EXISTING_DOTENV = `SUPERFACE_ONESDK_TOKEN=sfs_b31314b7fc8...8ec1930e
 
-# Set to "on" to enable better output logging
-ONESDK_LOG="off"
+# Set to "on" to enable debug logging
+ONESDK_LOG=off
 
 # Deployment zone
 # for AWS
@@ -49,8 +49,8 @@ describe('createNewDotenv', () => {
       content: `# The token for monitoring your Comlinks at https://superface.ai
 SUPERFACE_ONESDK_TOKEN=sfs_b31314b7fc8...8ec1930e
 
-# Set to "on" to enable better output logging
-ONESDK_LOG="off"
+# Set to "on" to enable debug logging
+ONESDK_LOG=off
 
 # Parameter description
 MY_PROVIDER_PARAM_ONE=
@@ -68,8 +68,8 @@ MY_PROVIDER_TOKEN=
         content: `# Set your OneSDK token to monitor your usage out-of-the-box. Get yours at https://superface.ai
 SUPERFACE_ONESDK_TOKEN=
 
-# Set to "on" to enable better output logging
-ONESDK_LOG="off"
+# Set to "on" to enable debug logging
+ONESDK_LOG=off
 `,
         newEmptyEnvVariables: ['SUPERFACE_ONESDK_TOKEN'],
       });
@@ -85,8 +85,8 @@ ONESDK_LOG="off"
         content: `# The token for monitoring your Comlinks at https://superface.ai
 SUPERFACE_ONESDK_TOKEN=sfs_b31314b7fc8...8ec1930e
 
-# Set to "on" to enable better output logging
-ONESDK_LOG="off"
+# Set to "on" to enable debug logging
+ONESDK_LOG=off
 `,
         newEmptyEnvVariables: [],
       });
@@ -104,8 +104,8 @@ ONESDK_LOG="off"
         content: `# The token for monitoring your Comlinks at https://superface.ai
 SUPERFACE_ONESDK_TOKEN=sfs_b31314b7fc8...8ec1930e
 
-# Set to "on" to enable better output logging
-ONESDK_LOG="off"
+# Set to "on" to enable debug logging
+ONESDK_LOG=off
 `,
         newEmptyEnvVariables: [],
       });
@@ -122,8 +122,8 @@ ONESDK_LOG="off"
         content: `# The token for monitoring your Comlinks at https://superface.ai
 SUPERFACE_ONESDK_TOKEN=sfs_b31314b7fc8...8ec1930e
 
-# Set to "on" to enable better output logging
-ONESDK_LOG="off"
+# Set to "on" to enable debug logging
+ONESDK_LOG=off
 
 # Parameter description
 MY_PROVIDER_PARAM_ONE=
@@ -148,8 +148,8 @@ MY_PROVIDER_PARAM_TWO=us-west-1
         content: `# The token for monitoring your Comlinks at https://superface.ai
 SUPERFACE_ONESDK_TOKEN=sfs_b31314b7fc8...8ec1930e
 
-# Set to "on" to enable better output logging
-ONESDK_LOG="off"
+# Set to "on" to enable debug logging
+ONESDK_LOG=off
 
 # Parameter description
 MY_PROVIDER_PARAM_ONE=
@@ -194,8 +194,8 @@ MY_PROVIDER_TOKEN=
       expect(result).toStrictEqual({
         content: `SUPERFACE_ONESDK_TOKEN=sfs_b31314b7fc8...8ec1930e
 
-# Set to "on" to enable better output logging
-ONESDK_LOG="off"
+# Set to "on" to enable debug logging
+ONESDK_LOG=off
 
 # Deployment zone
 # for AWS
@@ -220,8 +220,8 @@ MY_PROVIDER_PARAM_ONE=
       expect(result).toStrictEqual({
         content: `SUPERFACE_ONESDK_TOKEN=sfs_b31314b7fc8...8ec1930e
 
-# Set to "on" to enable better output logging
-ONESDK_LOG="off"
+# Set to "on" to enable debug logging
+ONESDK_LOG=off
 
 # Deployment zone
 # for AWS

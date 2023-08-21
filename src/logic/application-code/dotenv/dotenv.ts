@@ -42,7 +42,7 @@ export function createNewDotenv({
   const parameterEnvs = getParameterEnvs(providerName, parameters);
   const securityEnvs = getSecurityEnvs(providerName, security);
   const tokenEnv = makeTokenEnv(token);
-  const logEnv = makeLogEnv(logEnabled === true ? '"on"' : '"off"');
+  const logEnv = makeLogEnv(logEnabled === true ? 'on' : 'off');
 
   const newEnvsOnly = makeFilterForNewEnvs(previousContent);
 
@@ -110,10 +110,10 @@ function serializeEnvVar(env: EnvVar): string {
   const comment =
     env.comment !== undefined
       ? '\n' +
-      env.comment
-        .split('\n')
-        .map(commentLine => `# ${commentLine}`)
-        .join('\n')
+        env.comment
+          .split('\n')
+          .map(commentLine => `# ${commentLine}`)
+          .join('\n')
       : '';
 
   return `${comment ? comment + '\n' : ''}${env.name}=${env.value ?? ''}`;
