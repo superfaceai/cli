@@ -48,7 +48,6 @@
     "eslint-plugin-jest-formatting": "^3.1.0",
     "eslint-plugin-simple-import-sort": "^8.0.0",
     "jest": "27.1.0",
-    "knip": "^2.19.7",
     "mockttp": "^3.6.0",
     "prettier": "^2.3.2",
     "ts-jest": "27.0.5"
