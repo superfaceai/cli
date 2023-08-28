@@ -6,7 +6,7 @@ import type {
 import { DocumentType, EXTENSIONS, inferDocumentType } from '@superfaceai/ast';
 import type { VersionRange } from '@superfaceai/parser';
 import { parseMap, parseProfile, parseProfileId } from '@superfaceai/parser';
-import { basename, join as joinPath } from 'path';
+import { basename } from 'path';
 
 import type { UserError } from './error';
 import type { DocumentTypeFlag } from './flags';
@@ -17,13 +17,8 @@ export const DEFAULT_PROFILE_VERSION = {
   patch: 0,
 };
 export const DEFAULT_PROFILE_VERSION_STR = '1.0.0';
-export const UNVERIFIED_PROVIDER_PREFIX = 'unverified-';
 export const SF_API_URL_VARIABLE = 'SUPERFACE_API_URL';
 export const SF_PRODUCTION = 'https://superface.ai';
-export const SUPERFACE_DIR = 'superface';
-export const META_FILE = 'super.json';
-export const UNCOMPILED_SDK_FILE = 'sdk.ts';
-export const SUPER_PATH = joinPath(SUPERFACE_DIR, META_FILE);
 
 /**
  * If flag is `DocumentTypeFlag.UNKNOWN` and `path` is defined, then calls `inferDocumentType(path)`

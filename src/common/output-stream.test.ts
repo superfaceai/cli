@@ -1,8 +1,8 @@
+import { mkdir, writeFile } from 'fs/promises';
 import { join } from 'path';
 
 import { rimraf, streamEnd, streamWrite } from '../common/io';
 import { OutputStream } from '../common/output-stream';
-import { SUPER_PATH } from './document';
 
 // Mock only streamWrite and streamEnd response
 jest.mock('../common/io', () => ({
@@ -35,7 +35,7 @@ describe('OutputStream', () => {
 
   describe('when writing to stream', () => {
     it('calls write to file correctly', async () => {
-      const outputStream = new OutputStream('test/test.json', { dirs: true });
+      const outputStream = new OutputStream('test/test.txt', { dirs: true });
       await outputStream.write('testData');
       expect(streamWrite).toHaveBeenCalledTimes(1);
       expect(streamWrite).toHaveBeenCalledWith(outputStream.stream, 'testData');
@@ -90,8 +90,13 @@ describe('OutputStream', () => {
 
   describe('when calling writeIfAbsent', () => {
     it('returns false if file exists and there is no force flag', async () => {
+      await mkdir('test', { recursive: true });
+      await writeFile(join('test', 'test.txt'), 'testData');
+
       expect(
-        await OutputStream.writeIfAbsent(SUPER_PATH, 'testData', { dirs: true })
+        await OutputStream.writeIfAbsent(join('test', 'test.txt'), 'testData', {
+          dirs: true,
+        })
       ).toEqual(false);
     }, 10000);
 
