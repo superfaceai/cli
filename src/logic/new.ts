@@ -28,7 +28,7 @@ function assertProfileResponse(
   ) {
     const tmp = input as { id: string; profile: { source?: string } };
 
-    if (typeof tmp.profile.source !== 'string') {
+    if (typeof tmp.profile?.source !== 'string') {
       throw userError(
         `Unexpected response received - missing profile source: ${JSON.stringify(
           tmp,
@@ -43,11 +43,9 @@ function assertProfileResponse(
       parseProfile(new Source(tmp.profile.source));
     } catch (e) {
       throw userError(
-        `Unexpected response received - unable to parse profile source: ${JSON.stringify(
-          e,
-          null,
-          2
-        )}`,
+        `Unexpected response received - unable to parse profile source: ${
+          tmp.profile.source
+        }, error: ${JSON.stringify(e, null, 2)}`,
         1
       );
     }
