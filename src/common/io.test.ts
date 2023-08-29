@@ -9,7 +9,6 @@ import {
   isDirectoryQuiet,
   isFileQuiet,
   mkdirQuiet,
-  resolveSkipFile,
   rimraf,
   streamEnd,
   streamWrite,
@@ -51,7 +50,7 @@ describe('IO functions', () => {
     process.chdir(INITIAL_CWD);
   });
 
-  /** Resets super.json to initial state stored in `INITIAL_SUPER_JSON` */
+  /** Resets test file to initial state stored in `INITIAL_SUPER_JSON` */
   async function resetTestFile() {
     await OutputStream.writeOnce(FIXTURE.testFile, INITIAL_TEST_FILE);
   }
@@ -154,19 +153,6 @@ describe('IO functions', () => {
     it('resolves command is executed', async () => {
       const actualPromise = execFile('node', ['--version']);
       await expect(actualPromise).resolves.toBeUndefined();
-    }, 10000);
-  });
-
-  describe('when resolving skip file', () => {
-    it('resolve skip file correctly', async () => {
-      await expect(resolveSkipFile('never', [])).resolves.toEqual(false);
-      await expect(resolveSkipFile('always', [])).resolves.toEqual(true);
-      await expect(
-        resolveSkipFile('exists', [FIXTURE.testFile])
-      ).resolves.toEqual(true);
-      await expect(
-        resolveSkipFile('exists', [FIXTURE.testFile, 'some/made/up/file.json'])
-      ).resolves.toEqual(false);
     }, 10000);
   });
 
