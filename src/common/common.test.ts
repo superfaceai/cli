@@ -1,7 +1,5 @@
 import { DocumentType, inferDocumentType } from '@superfaceai/ast';
 
-// import { inferDocumentTypeWithFlag } from './document';
-
 describe('inferDocumentType()', () => {
   it('infers map type', () => {
     expect(inferDocumentType('test.suma')).toEqual(DocumentType.MAP);
