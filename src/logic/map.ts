@@ -1,6 +1,5 @@
 import type { ProviderJson } from '@superfaceai/ast';
 import type { ServiceClient } from '@superfaceai/service-client';
-import * as prettier from 'prettier';
 
 import type { UserError } from '../common/error';
 import { SuperfaceClient } from '../common/http';
@@ -53,15 +52,7 @@ export async function mapProviderToProfile(
     { client, ux, userError }
   );
 
-  const mapSource = (
-    await finishMapPreparation(resultUrl, { client, userError })
-  ).source;
-
-  try {
-    return prettier.format(mapSource);
-  } catch (e) {
-    return mapSource;
-  }
+  return (await finishMapPreparation(resultUrl, { client, userError })).source;
 }
 
 async function startMapPreparation(
