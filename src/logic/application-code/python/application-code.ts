@@ -31,17 +31,17 @@ export const pythonApplicationCode: ApplicationCodeWriter = ({
   const preparedSecurity = prepareSecurity(provider, security);
 
   const code = `import os
-from dotenv import load_dotenv
 import sys
-from one_sdk import OneClient, PerformError, UnexpectedError
+from dotenv import load_dotenv
+from one_sdk import OneClient, PerformError, UnexpectedError, ValidationError
 
 load_dotenv()
 
 client = OneClient(
-  # ${ONESDK_TOKEN_COMMENT}
-  token = os.getenv("${ONESDK_TOKEN_ENV}"),
-  # Path to Comlinks within your project
-  assets_path = "${buildSuperfaceDirPath()}"
+    # ${ONESDK_TOKEN_COMMENT}
+    token = os.getenv("${ONESDK_TOKEN_ENV}"),
+    # Path to Comlinks within your project
+    assets_path = "${buildSuperfaceDirPath()}"
 )
 
 # Load Comlink profile and use case
@@ -49,19 +49,21 @@ profile = client.get_profile("${profileId}")
 use_case = profile.get_usecase("${useCaseName}")
 
 try:
-  result = use_case.perform(
-    ${input},
-    provider = "${provider}",
-    parameters = ${preparedParameters.parametersString},
-    security = ${preparedSecurity.securityString}
-  )
-  print(f"RESULT: {result}")
+    result = use_case.perform(
+        ${input},
+        provider = "${provider}",
+        parameters = ${preparedParameters.parametersString},
+        security = ${preparedSecurity.securityString}
+    )
+    print(f"RESULT: {result}")
 except PerformError as e:
-  print(f"ERROR RESULT: {e.error_result}")
+    print(f"ERROR RESULT: {e.error_result}")
+except ValidationError as e:
+    print(f"INVALID INPUT: {e.message}", file = sys.stderr)
 except UnexpectedError as e:
-  print(f"ERROR: {e}", file=sys.stderr)
+    print(f"ERROR: {e}", file=sys.stderr)
 finally:
-  client.send_metrics_to_superface()`;
+    client.send_metrics_to_superface()`;
 
   return {
     code,

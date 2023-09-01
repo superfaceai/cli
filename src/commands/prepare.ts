@@ -133,18 +133,18 @@ This command prepares a Provider JSON metadata definition that can be used to ge
       ux.warn(`{inverse  ACTION REQUIRED }
 Documentation was indexed but the Provider definition requires attention.
 
-{bold 1) Edit '{underline ${formatPath(
+1) Edit '{bold ${formatPath(
         providerJsonPath
-      )}}'. See {underline https://sfc.is/editing-providers}}
+      )}}'. See {underline https://sfc.is/editing-providers}
 
 2) Create a new Comlink profile using:
-   superface new ${providerJson.name} "use case description"`);
+{bold superface new ${providerJson.name} "use case description"}`);
     } else {
       ux.succeed(
         `Provider definition saved to '${formatPath(providerJsonPath)}'.
 
 Create a new Comlink profile using:
-superface new ${providerJson.name} "use case description"`
+{bold superface new ${providerJson.name} "use case description"}`
       );
     }
   }
@@ -197,7 +197,16 @@ async function resolveInputs(
       resolvedSource.filename,
       extname(resolvedSource.filename)
       // replace special characters with dashes
-    ).replace(/[^a-z0-9]/gi, '-');
+    )
+      .toLowerCase()
+      .replace(/[^a-z0-9]/gi, '-');
+
+    if (!isValidProviderName(apiName)) {
+      throw userError(
+        `Provider name inferred from file name is not valid. Please provide provider name explicitly as second argument.`,
+        1
+      );
+    }
   }
 
   return {
