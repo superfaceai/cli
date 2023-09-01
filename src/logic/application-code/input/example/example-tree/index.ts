@@ -1,1 +1,0 @@
-export { parseLiteralExample } from './parse';
