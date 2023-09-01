@@ -89,12 +89,12 @@ describe('prepareUseCaseInput', () => {
     it('should prepare input for use case', () => {
       const input = prepareUseCaseInput(ast, SupportedLanguages.JS);
       expect(input).toEqual(`{
-        a: 'Luke'//Required,
-        b: 1.2//Required,
-        c: true//Required,
+        a: 'Luke',
+        b: 1.2,
+        c: true,
         d: [
           1,
-        ]//Required,
+        ],
         e: [
           'a',
           'b',
@@ -102,7 +102,7 @@ describe('prepareUseCaseInput', () => {
         f: [
           true,
           false,
-        ]//Required,
+        ],
         g: {
           a: 1,
           b: 2,
@@ -117,12 +117,12 @@ describe('prepareUseCaseInput', () => {
         },
         j: [
           {
-            k: 'a'//Required,
+            k: 'a',
             m: {
-              n: 1//Required,
+              n: 1,
             },
           },
-        ]//Required,
+        ],
         l: {
           a: [
             {
@@ -130,15 +130,15 @@ describe('prepareUseCaseInput', () => {
                 true,
               ],
               c: {
-                d: 12//Required,
+                d: 12,
               },
             },
           ],
         },
-        fieldA: 'a'//Required,
-        fieldB: 1//Required,
-        fieldC: true//Required,
-        fieldD: 'A'//Required,
+        fieldA: 'a',
+        fieldB: 1,
+        fieldC: true,
+        fieldD: 'A',
         r: {
           a: 'a',
         },
@@ -150,12 +150,12 @@ describe('prepareUseCaseInput', () => {
     it('should prepare input for use case', () => {
       const input = prepareUseCaseInput(ast, SupportedLanguages.PYTHON);
       expect(input).toEqual(`{
-        "a": 'Luke'#Required,
-        "b": 1.2#Required,
-        "c": True#Required,
+        "a": 'Luke',
+        "b": 1.2,
+        "c": True,
         "d": [
           1,
-        ]#Required,
+        ],
         "e": [
           'a',
           'b',
@@ -163,7 +163,7 @@ describe('prepareUseCaseInput', () => {
         "f": [
           True,
           False,
-        ]#Required,
+        ],
         "g": {
           "a": 1,
           "b": 2,
@@ -178,12 +178,12 @@ describe('prepareUseCaseInput', () => {
         },
         "j": [
           {
-            "k": 'a'#Required,
+            "k": 'a',
             "m": {
-              "n": 1#Required,
+              "n": 1,
             },
           },
-        ]#Required,
+        ],
         "l": {
           "a": [
             {
@@ -191,15 +191,15 @@ describe('prepareUseCaseInput', () => {
                 True,
               ],
               "c": {
-                "d": 12#Required,
+                "d": 12,
               },
             },
           ],
         },
-        "fieldA": 'a'#Required,
-        "fieldB": 1#Required,
-        "fieldC": True#Required,
-        "fieldD": 'A'#Required,
+        "fieldA": 'a',
+        "fieldB": 1,
+        "fieldC": True,
+        "fieldD": 'A',
         "r": {
           "a": 'a',
         },
