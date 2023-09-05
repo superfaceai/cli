@@ -36,9 +36,14 @@ describe('jsApplicationCode', () => {
     );
 
     expect(result).toEqual({
-      code: `import { config } from 'dotenv';
+      code: `import { config } from "dotenv";
 // Load OneClient from SDK
-import { OneClient, PerformError, UnexpectedError, ValidationError } from '@superfaceai/one-sdk/node/index.js';
+import {
+  OneClient,
+  PerformError,
+  UnexpectedError,
+  ValidationError,
+} from "@superfaceai/one-sdk/node/index.js";
 
 // Load environment variables from .env file
 config();
@@ -47,12 +52,12 @@ const client = new OneClient({
   // The token for monitoring your Comlinks at https://superface.ai
   token: process.env.SUPERFACE_ONESDK_TOKEN,
   // Path to Comlinks within your project
-  assetsPath: '/Users/test/cli-test/superface'
+  assetsPath: "/Users/test/cli-test/superface",
 });
 
 // Load Comlink profile and use case
-const profile = await client.getProfile('${scope}/${name}');
-const useCase = profile.getUseCase('${useCaseName}');
+const profile = await client.getProfile("${scope}/${name}");
+const useCase = profile.getUseCase("${useCaseName}");
 
 try {
   // Execute use case
@@ -60,21 +65,21 @@ try {
     // Use case input
     {},
     {
-      provider: '${provider}',
+      provider: "${provider}",
       parameters: {},
       // Security values for provider
-      security: {}
+      security: {},
     }
   );
 
   console.log("RESULT:", JSON.stringify(result, null, 2));
 } catch (e) {
   if (e instanceof PerformError) {
-    console.log('ERROR RESULT:', e.errorResult);
+    console.log("ERROR RESULT:", e.errorResult);
   } else if (e instanceof ValidationError) {
-    console.error('VALIDATION ERROR:', e.message);
+    console.error("VALIDATION ERROR:", e.message);
   } else if (e instanceof UnexpectedError) {
-    console.error('ERROR:', e);
+    console.error("ERROR:", e);
   } else {
     throw e;
   }
@@ -112,9 +117,14 @@ try {
     );
 
     expect(result).toEqual({
-      code: `import { config } from 'dotenv';
+      code: `import { config } from "dotenv";
 // Load OneClient from SDK
-import { OneClient, PerformError, UnexpectedError, ValidationError } from '@superfaceai/one-sdk/node/index.js';
+import {
+  OneClient,
+  PerformError,
+  UnexpectedError,
+  ValidationError,
+} from "@superfaceai/one-sdk/node/index.js";
 
 // Load environment variables from .env file
 config();
@@ -123,12 +133,12 @@ const client = new OneClient({
   // The token for monitoring your Comlinks at https://superface.ai
   token: process.env.SUPERFACE_ONESDK_TOKEN,
   // Path to Comlinks within your project
-  assetsPath: 'C:\\\\Users\\\\my\\\\cli-test\\\\superface'
+  assetsPath: "C:\\\\Users\\\\my\\\\cli-test\\\\superface",
 });
 
 // Load Comlink profile and use case
-const profile = await client.getProfile('${scope}/${name}');
-const useCase = profile.getUseCase('${useCaseName}');
+const profile = await client.getProfile("${scope}/${name}");
+const useCase = profile.getUseCase("${useCaseName}");
 
 try {
   // Execute use case
@@ -136,21 +146,21 @@ try {
     // Use case input
     {},
     {
-      provider: '${provider}',
+      provider: "${provider}",
       parameters: {},
       // Security values for provider
-      security: {}
+      security: {},
     }
   );
 
   console.log("RESULT:", JSON.stringify(result, null, 2));
 } catch (e) {
   if (e instanceof PerformError) {
-    console.log('ERROR RESULT:', e.errorResult);
+    console.log("ERROR RESULT:", e.errorResult);
   } else if (e instanceof ValidationError) {
-    console.error('VALIDATION ERROR:', e.message);
+    console.error("VALIDATION ERROR:", e.message);
   } else if (e instanceof UnexpectedError) {
-    console.error('ERROR:', e);
+    console.error("ERROR:", e);
   } else {
     throw e;
   }

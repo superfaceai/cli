@@ -52,12 +52,7 @@ export async function mapProviderToProfile(
     { client, ux, userError }
   );
 
-  return (
-    await finishMapPreparation(resultUrl, {
-      client,
-      userError,
-    })
-  ).source;
+  return (await finishMapPreparation(resultUrl, { client, userError })).source;
 }
 
 async function startMapPreparation(
