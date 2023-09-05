@@ -113,7 +113,6 @@ const whoami = {
     "You are not logged in. Please try running 'superface login'",
 };
 
-
 export const messages = {
   ...common,
   ...fetch,
