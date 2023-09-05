@@ -1,4 +1,8 @@
 import type {
+  ComlinkListLiteralNode,
+  ComlinkLiteralNode,
+  ComlinkObjectLiteralNode,
+  ComlinkPrimitiveLiteralNode,
   EnumDefinitionNode,
   ListDefinitionNode,
   ModelTypeNameNode,
@@ -24,9 +28,16 @@ export function parse(
   },
   namedFieldDefinitionsCache: {
     [key: string]: NamedFieldDefinitionNode;
-  }
+  },
+  example?: ComlinkLiteralNode
 ): UseCaseExample {
-  return visit(type, namedModelDefinitionsCache, namedFieldDefinitionsCache);
+  return visit(
+    type,
+    namedModelDefinitionsCache,
+    namedFieldDefinitionsCache,
+    false,
+    example
+  );
 }
 
 export function visit(
@@ -36,43 +47,61 @@ export function visit(
   },
   namedFieldDefinitionsCache: {
     [key: string]: NamedFieldDefinitionNode;
-  }
+  },
+  required: boolean,
+  example?: ComlinkLiteralNode
 ): ExampleArray | ExampleObject | ExampleScalar {
   switch (node.kind) {
     case 'ObjectDefinition':
       return visitObjecDefinition(
         node,
         namedModelDefinitionsCache,
-        namedFieldDefinitionsCache
+        namedFieldDefinitionsCache,
+        example?.kind === 'ComlinkObjectLiteral' ? example : undefined
       );
     case 'PrimitiveTypeName':
-      return visitPrimitiveNode(node);
+      return visitPrimitiveNode(
+        node,
+        required,
+        example?.kind === 'ComlinkPrimitiveLiteral' ? example : undefined
+      );
     case 'ListDefinition':
       return visitListNode(
         node,
         namedModelDefinitionsCache,
-        namedFieldDefinitionsCache
+        namedFieldDefinitionsCache,
+        required,
+        example?.kind === 'ComlinkListLiteral' ? example : undefined
       );
     case 'EnumDefinition':
-      return visitEnumNode(node);
+      return visitEnumNode(
+        node,
+        required,
+        example?.kind === 'ComlinkPrimitiveLiteral' ? example : undefined
+      );
     case 'ModelTypeName': {
       return visitNamedModelNode(
         node,
         namedModelDefinitionsCache,
-        namedFieldDefinitionsCache
+        namedFieldDefinitionsCache,
+        example
       );
     }
     case 'NonNullDefinition':
       return visit(
         node.type,
         namedModelDefinitionsCache,
-        namedFieldDefinitionsCache
+        namedFieldDefinitionsCache,
+        required,
+        example
       );
     case 'UnionDefinition':
       return visitUnionNode(
         node,
         namedModelDefinitionsCache,
-        namedFieldDefinitionsCache
+        namedFieldDefinitionsCache,
+        required,
+        example
       );
     default:
       throw new Error(`Invalid kind: ${node?.kind ?? 'undefined'}`);
@@ -86,7 +115,8 @@ function visitNamedModelNode(
   },
   namedFieldDefinitionsCache: {
     [key: string]: NamedFieldDefinitionNode;
-  }
+  },
+  example?: ComlinkLiteralNode
 ): ExampleArray | ExampleObject | ExampleScalar {
   const foundNode = namedModelDefinitionsCache[node.name];
   if (foundNode.type === undefined) {
@@ -96,7 +126,9 @@ function visitNamedModelNode(
   return visit(
     foundNode.type,
     namedModelDefinitionsCache,
-    namedFieldDefinitionsCache
+    namedFieldDefinitionsCache,
+    false,
+    example
   );
 }
 
@@ -107,33 +139,51 @@ function visitUnionNode(
   },
   namedFieldDefinitionsCache: {
     [key: string]: NamedFieldDefinitionNode;
-  }
+  },
+  required: boolean,
+  example?: ComlinkLiteralNode
 ): ExampleArray | ExampleObject | ExampleScalar {
   return visit(
     node.types[0],
     namedModelDefinitionsCache,
-    namedFieldDefinitionsCache
+    namedFieldDefinitionsCache,
+    required,
+    example
   );
 }
 
-export function visitEnumNode(node: EnumDefinitionNode): ExampleScalar {
+export function visitEnumNode(
+  node: EnumDefinitionNode,
+  required: boolean,
+  example?: ComlinkPrimitiveLiteralNode
+): ExampleScalar {
   if (typeof node.values[0].value === 'boolean') {
     return {
       kind: 'boolean',
-      value: node.values[0].value,
+      value:
+        typeof example?.value === 'boolean'
+          ? example.value
+          : node.values[0].value,
+      required,
     };
   }
 
   if (typeof node.values[0].value === 'number') {
     return {
       kind: 'number',
-      value: node.values[0].value,
+      value:
+        typeof example?.value === 'number'
+          ? example.value
+          : node.values[0].value,
+      required,
     };
   }
 
   return {
     kind: 'string',
-    value: node.values[0].value,
+    value:
+      typeof example?.value === 'string' ? example.value : node.values[0].value,
+    required,
   };
 }
 
@@ -144,40 +194,68 @@ export function visitListNode(
   },
   namedFieldDefinitionsCache: {
     [key: string]: NamedFieldDefinitionNode;
-  }
+  },
+  required: boolean,
+  example?: ComlinkListLiteralNode
 ): ExampleArray {
+  if (example?.kind === 'ComlinkListLiteral') {
+    return {
+      kind: 'array',
+      required,
+      items: example.items.map(item =>
+        visit(
+          list.elementType,
+          namedModelDefinitionsCache,
+          namedFieldDefinitionsCache,
+          // Array can be empty
+          false,
+          item
+        )
+      ),
+    };
+  }
+
   return {
     kind: 'array',
+    required,
     items: [
       visit(
         list.elementType,
         namedModelDefinitionsCache,
-        namedFieldDefinitionsCache
+        namedFieldDefinitionsCache,
+        // Array can be empty
+        false,
+        undefined
       ),
     ],
   };
 }
 
 export function visitPrimitiveNode(
-  primitive: PrimitiveTypeNameNode
+  primitive: PrimitiveTypeNameNode,
+  required: boolean,
+  example?: ComlinkPrimitiveLiteralNode
 ): ExampleScalar {
   if (primitive.name === 'boolean') {
     return {
       kind: 'boolean',
-      value: true,
+      value: typeof example?.value === 'boolean' ? example.value : true,
+      required,
     };
   }
 
   if (primitive.name === 'number') {
     return {
       kind: 'number',
-      value: 0,
+      value: typeof example?.value === 'number' ? example.value : 0,
+      required,
     };
   }
 
   return {
     kind: 'string',
-    value: '',
+    value: typeof example?.value === 'string' ? example.value : '',
+    required,
   };
 }
 
@@ -188,7 +266,8 @@ export function visitObjecDefinition(
   },
   namedFieldDefinitionsCache: {
     [key: string]: NamedFieldDefinitionNode;
-  }
+  },
+  example?: ComlinkObjectLiteralNode
 ): ExampleObject {
   return {
     kind: 'object',
@@ -204,7 +283,12 @@ export function visitObjecDefinition(
       const model = visit(
         type,
         namedModelDefinitionsCache,
-        namedFieldDefinitionsCache
+        namedFieldDefinitionsCache,
+        field.required,
+        example?.kind === 'ComlinkObjectLiteral'
+          ? example.fields.find(prop => prop.key.join('') === field.fieldName)
+              ?.value
+          : undefined
       );
 
       return {

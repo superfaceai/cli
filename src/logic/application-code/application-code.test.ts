@@ -165,7 +165,7 @@ describe('writeApplicationCode', () => {
     );
 
     expect(result).toEqual({
-      code: expect.stringContaining(`import { config } from 'dotenv'`),
+      code: expect.stringContaining(`import { config } from "dotenv"`),
       requiredParameters: [],
       requiredSecurity: [],
     });

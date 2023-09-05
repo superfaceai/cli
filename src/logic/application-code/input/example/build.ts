@@ -6,7 +6,6 @@ import type {
   UseCaseDefinitionNode,
 } from '@superfaceai/ast';
 
-import { parseLiteralExample } from './example-tree';
 import { parse as buildExampleFromAst } from './structure-tree';
 import type { UseCaseExample } from './usecase-example';
 
@@ -20,14 +19,12 @@ function extractExample(
     [key: string]: NamedFieldDefinitionNode;
   }
 ): UseCaseExample | undefined {
-  if (exampleLiteral !== undefined) {
-    return parseLiteralExample(exampleLiteral);
-  }
   if (typeDefinition !== undefined) {
     return buildExampleFromAst(
       typeDefinition,
       namedModelDefinitionsCache,
-      namedFieldDefinitionsCache
+      namedFieldDefinitionsCache,
+      exampleLiteral
     );
   }
 
