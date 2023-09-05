@@ -17,7 +17,7 @@ type KeysOfType<T, SelectedType> = {
 }[keyof T];
 type Optional<T> = Partial<Pick<T, KeysOfType<T, undefined>>>;
 type NonOptional<T> = Omit<T, KeysOfType<T, undefined>>;
-export type OptionalUndefined<T> = Optional<T> & NonOptional<T>;
+type OptionalUndefined<T> = Optional<T> & NonOptional<T>;
 
 export type Flags<T> = OptionalUndefined<{
   [key in keyof T]: FlagType<T[key]>;

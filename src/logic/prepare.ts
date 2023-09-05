@@ -7,7 +7,7 @@ import { SuperfaceClient } from '../common/http';
 import { pollUrl } from '../common/polling';
 import type { UX } from '../common/ux';
 
-export type ProviderPreparationResponse = {
+type ProviderPreparationResponse = {
   provider_id: string;
   definition: ProviderJson;
   docs_url: string;

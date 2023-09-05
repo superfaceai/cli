@@ -42,7 +42,6 @@ Please include the following information:
   };
 export type UserError = ReturnType<typeof createUserError>;
 
-export type DeveloperError = typeof developerError;
 /**
  * Developer error.
  *

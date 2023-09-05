@@ -8,7 +8,6 @@ import {
   assertProfileDocumentNode,
   assertProviderJson,
 } from '@superfaceai/ast';
-import { VERSION as SDK_VERSION } from '@superfaceai/one-sdk';
 import { VERSION as PARSER_VERSION } from '@superfaceai/parser';
 import { ServiceClient } from '@superfaceai/service-client';
 
@@ -21,7 +20,7 @@ import {
 import { loadNetrc, saveNetrc } from './netrc';
 import type { ProfileId } from './profile';
 
-export interface ProfileInfo {
+interface ProfileInfo {
   owner: string;
   owner_url: string;
   profile_id: string;
@@ -30,10 +29,6 @@ export interface ProfileInfo {
   published_at: Date;
   published_by: string;
   url: string;
-}
-
-export interface GetProfileResponse {
-  response: ProfileInfo | string;
 }
 
 export enum ContentType {
@@ -48,7 +43,7 @@ export class SuperfaceClient {
   private static serviceClient: ServiceClient | undefined;
 
   public static getClient(): ServiceClient {
-    const userAgent = `superface cli/${VERSION} (${process.platform}-${process.arch}) ${process.release.name}-${process.version} (with @superfaceai/one-sdk@${SDK_VERSION}, @superfaceai/parser@${PARSER_VERSION})`;
+    const userAgent = `superface cli/${VERSION} (${process.platform}-${process.arch}) ${process.release.name}-${process.version} (with @superfaceai/parser@${PARSER_VERSION})`;
     if (!SuperfaceClient.serviceClient) {
       // Use refresh token from env if found
       if (process.env.SUPERFACE_REFRESH_TOKEN !== undefined) {

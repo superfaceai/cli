@@ -3,7 +3,7 @@ import { join, normalize, relative } from 'path';
 import { execShell, exists } from './io';
 import type { ILogger } from './log';
 
-export interface IPackageManager {
+interface IPackageManager {
   packageJsonExists(): Promise<boolean>;
   getUsedPm(): Promise<'npm' | 'yarn' | undefined>;
   init(initPm: 'npm' | 'yarn'): Promise<boolean>;

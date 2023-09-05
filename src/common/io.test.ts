@@ -1,5 +1,4 @@
-import type { SuperJsonDocument } from '@superfaceai/ast';
-import { loadSuperJson, NodeFileSystem } from '@superfaceai/one-sdk';
+import { readFile } from 'fs/promises';
 import { join } from 'path';
 import { Writable } from 'stream';
 
@@ -10,23 +9,21 @@ import {
   isDirectoryQuiet,
   isFileQuiet,
   mkdirQuiet,
-  resolveSkipFile,
   rimraf,
   streamEnd,
   streamWrite,
 } from '../common/io';
 import { OutputStream } from '../common/output-stream';
-import { SUPER_PATH } from './document';
 
 describe('IO functions', () => {
   const WORKING_DIR = join('fixtures', 'io');
 
   const FIXTURE = {
-    superJson: SUPER_PATH,
+    testFile: 'initial/test.txt',
   };
 
   let INITIAL_CWD: string;
-  let INITIAL_SUPER_JSON: SuperJsonDocument;
+  let INITIAL_TEST_FILE: string;
 
   // Mock writable stream for testing backpressure
   class MockWritable extends Writable {
@@ -43,28 +40,23 @@ describe('IO functions', () => {
     INITIAL_CWD = process.cwd();
     process.chdir(WORKING_DIR);
 
-    INITIAL_SUPER_JSON = (
-      await loadSuperJson(FIXTURE.superJson, NodeFileSystem)
-    ).unwrap();
+    INITIAL_TEST_FILE = await readFile(FIXTURE.testFile, 'utf-8');
   });
 
   afterAll(async () => {
-    await resetSuperJson();
+    await resetTestFile();
 
     // change cwd back
     process.chdir(INITIAL_CWD);
   });
 
-  /** Resets super.json to initial state stored in `INITIAL_SUPER_JSON` */
-  async function resetSuperJson() {
-    await OutputStream.writeOnce(
-      FIXTURE.superJson,
-      JSON.stringify(INITIAL_SUPER_JSON, undefined, 2)
-    );
+  /** Resets test file to initial state stored in `INITIAL_SUPER_JSON` */
+  async function resetTestFile() {
+    await OutputStream.writeOnce(FIXTURE.testFile, INITIAL_TEST_FILE);
   }
 
   beforeEach(async () => {
-    await resetSuperJson();
+    await resetTestFile();
   });
 
   afterEach(async () => {
@@ -73,8 +65,8 @@ describe('IO functions', () => {
 
   describe('when checking if file exists', () => {
     it('checks file existence correctly', async () => {
-      await expect(exists(FIXTURE.superJson)).resolves.toEqual(true);
-      await expect(exists('superface')).resolves.toEqual(true);
+      await expect(exists(FIXTURE.testFile)).resolves.toEqual(true);
+      await expect(exists('initial')).resolves.toEqual(true);
       await expect(exists('some/made/up/file.json')).resolves.toEqual(false);
     }, 10000);
   });
@@ -85,13 +77,13 @@ describe('IO functions', () => {
     }, 10000);
 
     it('does not create already existing folder', async () => {
-      await expect(mkdirQuiet('superface')).resolves.toEqual(false);
+      await expect(mkdirQuiet('initial')).resolves.toEqual(false);
     }, 10000);
   });
 
   describe('when checking if the given path is a file', () => {
     it('checks if path is a file correctly', async () => {
-      await expect(isFileQuiet(FIXTURE.superJson)).resolves.toEqual(true);
+      await expect(isFileQuiet(FIXTURE.testFile)).resolves.toEqual(true);
       await expect(isFileQuiet('superface')).resolves.toEqual(false);
       await expect(isFileQuiet('some/made/up/file.json')).resolves.toEqual(
         false
@@ -101,8 +93,8 @@ describe('IO functions', () => {
 
   describe('when checking if the given path is a directory', () => {
     it('checks if path is a directory correctly', async () => {
-      await expect(isDirectoryQuiet('superface')).resolves.toEqual(true);
-      await expect(isDirectoryQuiet(FIXTURE.superJson)).resolves.toEqual(false);
+      await expect(isDirectoryQuiet('initial')).resolves.toEqual(true);
+      await expect(isDirectoryQuiet(FIXTURE.testFile)).resolves.toEqual(false);
       await expect(isDirectoryQuiet('some/made/up/file.json')).resolves.toEqual(
         false
       );
@@ -164,23 +156,10 @@ describe('IO functions', () => {
     }, 10000);
   });
 
-  describe('when resolving skip file', () => {
-    it('resolve skip file correctly', async () => {
-      await expect(resolveSkipFile('never', [])).resolves.toEqual(false);
-      await expect(resolveSkipFile('always', [])).resolves.toEqual(true);
-      await expect(
-        resolveSkipFile('exists', [FIXTURE.superJson])
-      ).resolves.toEqual(true);
-      await expect(
-        resolveSkipFile('exists', [FIXTURE.superJson, 'some/made/up/file.json'])
-      ).resolves.toEqual(false);
-    }, 10000);
-  });
-
   describe('when checking if the given path is accessible', () => {
     it('checks if path is accessible correctly', async () => {
-      await expect(isAccessible('superface')).resolves.toEqual(true);
-      await expect(isAccessible(FIXTURE.superJson)).resolves.toEqual(true);
+      await expect(isAccessible('initial')).resolves.toEqual(true);
+      await expect(isAccessible(FIXTURE.testFile)).resolves.toEqual(true);
       await expect(isAccessible('some/made/up/file.json')).resolves.toEqual(
         false
       );

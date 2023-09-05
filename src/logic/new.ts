@@ -7,7 +7,7 @@ import { SuperfaceClient } from '../common/http';
 import { pollUrl } from '../common/polling';
 import type { UX } from '../common/ux';
 
-export type ProfilePreparationResponse = {
+type ProfilePreparationResponse = {
   // Id of the profile with . separated scope and name
   id: string;
   // TODO: get AST from server to avoid parsing (possible problems with AST/Parser versioning)?

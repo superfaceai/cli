@@ -6,7 +6,6 @@ import type { Writable } from 'stream';
 import { promisify } from 'util';
 
 import { assertIsIOError } from './error';
-import type { SkipFileType } from './flags';
 
 export const access = promisify(fs.access);
 export const mkdir = promisify(fs.mkdir);
@@ -182,26 +181,6 @@ export function execFile(
       );
     }
   });
-}
-
-export async function resolveSkipFile(
-  flag: SkipFileType,
-  files: string[]
-): Promise<boolean> {
-  if (flag === 'never') {
-    return false;
-  } else if (flag === 'always') {
-    return true;
-  } else {
-    try {
-      await Promise.all(files.map(file => access(file)));
-    } catch (e) {
-      // If at least one file cannot be accessed return false
-      return false;
-    }
-
-    return true;
-  }
 }
 
 /**

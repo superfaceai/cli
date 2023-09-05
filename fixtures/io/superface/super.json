@@ -1,9 +1,0 @@
-{
-  "profiles": {
-    "starwars/character-information": {
-      "version": "1.0.1",
-      "providers": {}
-    }
-  },
-  "providers": {}
-}
