@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [4.1.0] - 2023-09-05
+
 ## [4.0.2] - 2023-08-21
 ### Changed
 - `ValidationError` added to generated application code
@@ -237,7 +239,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Transpile command
 - CI github flow
 
-[Unreleased]: https://github.com/superfaceai/cli/compare/v4.0.2...HEAD
+[Unreleased]: https://github.com/superfaceai/cli/compare/v4.1.0...HEAD
+[4.1.0]: https://github.com/superfaceai/cli/compare/v4.0.2...v4.1.0
 [4.0.2]: https://github.com/superfaceai/cli/compare/v4.0.1...v4.0.2
 [4.0.1]: https://github.com/superfaceai/cli/compare/v4.0.0...v4.0.1
 [4.0.0]: https://github.com/superfaceai/cli/compare/v3.0.2...v4.0.0
