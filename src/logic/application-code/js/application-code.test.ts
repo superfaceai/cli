@@ -43,7 +43,7 @@ import {
   PerformError,
   UnexpectedError,
   ValidationError,
-} from "@superfaceai/one-sdk/node/index.js";
+} from "@superfaceai/one-sdk";
 
 // Load environment variables from .env file
 config();
@@ -124,7 +124,7 @@ import {
   PerformError,
   UnexpectedError,
   ValidationError,
-} from "@superfaceai/one-sdk/node/index.js";
+} from "@superfaceai/one-sdk";
 
 // Load environment variables from .env file
 config();
