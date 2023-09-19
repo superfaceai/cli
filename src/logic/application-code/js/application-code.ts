@@ -26,7 +26,7 @@ export const jsApplicationCode: ApplicationCodeWriter = ({
   parameters?: IntegrationParameter[];
   security?: SecurityScheme[];
 }) => {
-  const pathToSdk = '@superfaceai/one-sdk/node/index.js';
+  const pathToSdk = '@superfaceai/one-sdk';
 
   const profileId = ProfileId.fromScopeName(profile.scope, profile.name).id;
 
