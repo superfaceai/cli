@@ -36,7 +36,7 @@ Please include the following information:
 `);
     }
 
-    return new CLIError(emoji ? '❌ ' + message + final : final, {
+    return new CLIError(emoji ? '❌ ' + final : final, {
       exit: code,
     });
   };
