@@ -130,8 +130,8 @@ This command prepares a Provider JSON metadata definition that can be used to ge
 
     const docs = providerJsonResult.docs
       ? `\n{bold gray Idexed documentation:}\n${providerJsonResult.docs
-        .map(d => d.replace(/{/g, '\\{').replace(/}/g, '\\}'))
-        .join('\n')}\n`
+          .map(d => d.replace(/{/g, '\\{').replace(/}/g, '\\}'))
+          .join('\n')}\n`
       : ``;
 
     const providerJson = providerJsonResult.definition;

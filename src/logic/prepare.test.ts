@@ -118,7 +118,9 @@ describe('prepareProviderJson', () => {
       )
     ).resolves.toEqual({
       definition: mockProviderJson({ name: providerName }),
-      docs: ['test...', 'test...', '{}...', 'test...'],
+      docs: [
+        'test...\n==========\ntest...\n==========\n{}...\n==========\ntest...',
+      ],
     });
 
     expect(fetch).toHaveBeenNthCalledWith(1, '/authoring/providers', {
