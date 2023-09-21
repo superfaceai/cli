@@ -55,7 +55,71 @@ describe('prepareProviderJson', () => {
         },
         { ux, userError }
       )
-    ).resolves.toEqual(mockProviderJson({ name: providerName }));
+    ).resolves.toEqual({
+      definition: mockProviderJson({ name: providerName }),
+    });
+
+    expect(fetch).toHaveBeenNthCalledWith(1, '/authoring/providers', {
+      body: '{"source":"https://superface.ai/path/to/oas.json","name":"test-provider"}',
+      headers: { 'Content-Type': 'application/json' },
+      method: 'POST',
+    });
+    expect(pollUrl).toHaveBeenCalledWith(
+      { options: { quiet: undefined }, url: 'https://superface.ai/job/123' },
+      { client: expect.any(ServiceClient), ux, userError }
+    );
+    expect(fetch).toHaveBeenNthCalledWith(2, 'https://superface.ai/job/123', {
+      baseUrl: '',
+      headers: { accept: 'application/json' },
+      method: 'GET',
+    });
+  });
+
+  it('prepares provider json with docs', async () => {
+    const fetch = jest
+      .spyOn(ServiceClient.prototype, 'fetch')
+      // Create job
+      .mockResolvedValueOnce(
+        mockResponse(202, 'ok', undefined, {
+          href: 'https://superface.ai/job/123',
+        })
+      )
+      // Fetch result
+      .mockResolvedValueOnce(
+        mockResponse(200, 'ok', undefined, {
+          docs_url: 'test',
+          provider_id: providerName,
+          definition: mockProviderJson({ name: providerName }),
+        })
+      )
+      .mockResolvedValueOnce(
+        mockResponse(200, 'ok', undefined, {
+          url: 'test',
+          data: [
+            {
+              source:
+                'test\n=========\ntest\n=========\n {} \n=========\ntest\n=========\n',
+              created_at: 'test',
+            },
+          ],
+        })
+      );
+
+    jest.mocked(pollUrl).mockResolvedValueOnce('https://superface.ai/job/123');
+
+    await expect(
+      prepareProviderJson(
+        {
+          urlOrSource: 'https://superface.ai/path/to/oas.json',
+          name: providerName,
+          options: { getDocs: true },
+        },
+        { ux, userError }
+      )
+    ).resolves.toEqual({
+      definition: mockProviderJson({ name: providerName }),
+      docs: ['test...', 'test...', '{}...', 'test...'],
+    });
 
     expect(fetch).toHaveBeenNthCalledWith(1, '/authoring/providers', {
       body: '{"source":"https://superface.ai/path/to/oas.json","name":"test-provider"}',

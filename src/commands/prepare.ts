@@ -1,3 +1,4 @@
+import { flags as oclifFlags } from '@oclif/command';
 import type { ProviderJson } from '@superfaceai/ast';
 import { isValidProviderName } from '@superfaceai/ast';
 import { basename, extname } from 'path';
@@ -52,6 +53,7 @@ This command prepares a Provider JSON metadata definition that can be used to ge
     'superface prepare https://raw.githubusercontent.com/APIs-guru/openapi-directory/main/APIs/openai.com/1.2.0/openapi.yaml openai',
     'superface prepare path/to/openapi.json',
     'superface prepare https://workable.readme.io/reference/stages workable',
+    'superface prepare https://workable.readme.io/reference/stages workable --printDocs',
   ];
 
   public static args = [
@@ -70,6 +72,12 @@ This command prepares a Provider JSON metadata definition that can be used to ge
 
   public static flags = {
     ...Command.flags,
+    printDocs: oclifFlags.boolean({
+      required: false,
+      description:
+        'When set to true command will print the indexed documentation overview. This is useful for debugging.',
+      default: false,
+    }),
   };
 
   public async run(): Promise<void> {
@@ -111,19 +119,30 @@ This command prepares a Provider JSON metadata definition that can be used to ge
     });
 
     ux.start('Preparing provider definition');
-    const providerJson = await prepareProviderJson(
+    const providerJsonResult = await prepareProviderJson(
       {
         urlOrSource: resolved.source,
         name: resolved.name,
-        options: { quiet: flags.quiet },
+        options: { quiet: flags.quiet, getDocs: flags.printDocs },
       },
       { userError, ux }
     );
 
-    const providerJsonPath = await writeProviderJson(providerJson, {
-      logger,
-      userError,
-    });
+    const docs = providerJsonResult.docs
+      ? `\n{bold gray Idexed documentation:}\n${providerJsonResult.docs
+        .map(d => d.replace(/{/g, '\\{').replace(/}/g, '\\}'))
+        .join('\n')}\n`
+      : ``;
+
+    const providerJson = providerJsonResult.definition;
+
+    const providerJsonPath = await writeProviderJson(
+      providerJsonResult.definition,
+      {
+        logger,
+        userError,
+      }
+    );
 
     if (
       providerJson.services.length === 0 ||
@@ -138,13 +157,15 @@ Documentation was indexed but the Provider definition requires attention.
       )}}'. See {underline https://sfc.is/editing-providers}
 
 2) Create a new Comlink profile using:
-{bold superface new ${providerJson.name} "use case description"}`);
+{bold superface new ${providerJson.name} "use case description"}
+${docs}`);
     } else {
       ux.succeed(
         `Provider definition saved to '${formatPath(providerJsonPath)}'.
 
 Create a new Comlink profile using:
-{bold superface new ${providerJson.name} "use case description"}`
+{bold superface new ${providerJson.name} "use case description"}
+${docs}`
       );
     }
   }
