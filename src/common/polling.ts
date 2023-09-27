@@ -1,10 +1,12 @@
 import type { ServiceClient } from '@superfaceai/service-client';
 
 import type { UserError } from './error';
+import { stringifyError } from './error';
 import type { UX } from './ux';
 
-export const DEFAULT_POLLING_TIMEOUT_SECONDS = 300;
+export const DEFAULT_POLLING_TIMEOUT_SECONDS = 600;
 export const DEFAULT_POLLING_INTERVAL_SECONDS = 2;
+export const DEFAULT_NUMBER_OF_RETRIES = 3;
 
 enum PollStatus {
   Success = 'Success',
@@ -176,37 +178,61 @@ async function pollFetch(
   url: string,
   { client, userError }: { client: ServiceClient; userError: UserError }
 ): Promise<PollResponse> {
-  const result = await client.fetch(url, {
-    method: 'GET',
-    // Url from server is complete, so we don't need to add baseUrl
-    baseUrl: '',
-    headers: {
-      accept: 'application/json',
-    },
-  });
-  if (result.status === 200) {
-    let data: unknown;
-    try {
-      data = (await result.json()) as unknown;
-    } catch (error) {
-      throw userError(
-        `Unexpected response from server: ${JSON.stringify(
-          await result.text(),
-          null,
-          2
-        )}`,
-        1
-      );
-    }
+  const result = await fetchWithRetry(url, { client, userError });
+  let data: unknown;
+  try {
+    data = (await result.json()) as unknown;
+  } catch (error) {
+    throw userError(
+      `Unexpected response from server: ${JSON.stringify(
+        await result.text(),
+        null,
+        2
+      )}`,
+      1
+    );
+  }
 
-    if (isPollResponse(data)) {
-      return data;
-    }
-
+  if (!isPollResponse(data)) {
     throw userError(
       `Unexpected response from server: ${JSON.stringify(data, null, 2)}`,
       1
     );
   }
-  throw userError(`Unexpected status code ${result.status} received`, 1);
+
+  return data;
+}
+
+async function fetchWithRetry(
+  url: string,
+  { client, userError }: { client: ServiceClient; userError: UserError }
+): Promise<Response> {
+  let numberOfRetries = 0;
+  let errMessage = '';
+
+  while (numberOfRetries < DEFAULT_NUMBER_OF_RETRIES) {
+    let result: Response;
+    try {
+      result = await client.fetch(url, {
+        method: 'GET',
+        // Url from server is complete, so we don't need to add baseUrl
+        baseUrl: '',
+        headers: {
+          accept: 'application/json',
+        },
+      });
+
+      if (result.status === 200) {
+        return result;
+      } else {
+        errMessage = `${result.status} ${result.statusText}`;
+      }
+    } catch (error) {
+      errMessage = stringifyError(error);
+      continue;
+    }
+
+    numberOfRetries++;
+  }
+  throw userError(`Unexpected error: ${errMessage} received`, 1);
 }
