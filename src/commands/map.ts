@@ -1,3 +1,4 @@
+import { flags as oclifFlags } from '@oclif/command';
 import type { ProfileDocumentNode, ProviderJson } from '@superfaceai/ast';
 import { parseDocumentId, parseProfile, Source } from '@superfaceai/parser';
 
@@ -16,6 +17,7 @@ import { fetchSDKToken, SuperfaceClient } from '../common/http';
 import { exists, readFile, readFileQuiet } from '../common/io';
 import type { ILogger } from '../common/log';
 import { OutputStream } from '../common/output-stream';
+import { DEFAULT_POLLING_TIMEOUT_SECONDS } from '../common/polling';
 import { ProfileId } from '../common/profile';
 import { resolveProviderJson } from '../common/provider';
 import { UX } from '../common/ux';
@@ -70,6 +72,12 @@ export default class Map extends Command {
 
   public static flags = {
     ...Command.flags,
+    timeout: oclifFlags.integer({
+      char: 't',
+      required: false,
+      description: `Opration timeout in seconds. If not provided, it will be set to ${DEFAULT_POLLING_TIMEOUT_SECONDS} seconds. Usefull for large APIs.`,
+      default: DEFAULT_POLLING_TIMEOUT_SECONDS,
+    }),
   };
 
   public async run(): Promise<void> {
@@ -126,7 +134,7 @@ export default class Map extends Command {
       {
         providerJson: resolvedProviderJson.providerJson,
         profile: profile.source,
-        options: { quiet: flags.quiet },
+        options: { quiet: flags.quiet, timeout: flags.timeout },
       },
       { userError, ux }
     );

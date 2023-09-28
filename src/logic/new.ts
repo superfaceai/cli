@@ -71,7 +71,7 @@ export async function newProfile(
     prompt: string;
     profileName?: string;
     profileScope?: string;
-    options?: { quiet?: boolean };
+    options: { quiet?: boolean; timeout: number };
   },
   { userError, ux }: { userError: UserError; ux: UX }
 ): Promise<{ source: string; scope?: string; name: string }> {
@@ -83,7 +83,13 @@ export async function newProfile(
   );
 
   const resultUrl = await pollUrl(
-    { url: jobUrl, options: { quiet: options?.quiet } },
+    {
+      url: jobUrl,
+      options: {
+        quiet: options.quiet,
+        pollingTimeoutSeconds: options.timeout,
+      },
+    },
     { client, userError, ux }
   );
 

@@ -51,8 +51,9 @@ export async function prepareProviderJson(
   }: {
     urlOrSource: string;
     name: string | undefined;
-    options?: {
+    options: {
       quiet?: boolean;
+      timeout: number;
     };
   },
   { userError, ux }: { userError: UserError; ux: UX }
@@ -65,7 +66,13 @@ export async function prepareProviderJson(
   );
 
   const resultUrl = await pollUrl(
-    { url: jobUrl, options: { quiet: options?.quiet } },
+    {
+      url: jobUrl,
+      options: {
+        quiet: options.quiet,
+        pollingTimeoutSeconds: options.timeout,
+      },
+    },
     { client, ux, userError }
   );
 

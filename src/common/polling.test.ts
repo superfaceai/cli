@@ -51,7 +51,10 @@ describe('polling', () => {
       pollUrl(
         {
           url: jobUrl,
-          options: { quiet: false },
+          options: {
+            quiet: false,
+            pollingTimeoutSeconds: 300,
+          },
         },
         { client, ux, userError }
       )
@@ -106,7 +109,10 @@ describe('polling', () => {
       pollUrl(
         {
           url: jobUrl,
-          options: { quiet: false },
+          options: {
+            quiet: false,
+            pollingTimeoutSeconds: 300,
+          },
         },
         { client, ux, userError }
       )
@@ -154,7 +160,10 @@ describe('polling', () => {
       pollUrl(
         {
           url: jobUrl,
-          options: { quiet: false },
+          options: {
+            quiet: false,
+            pollingTimeoutSeconds: 300,
+          },
         },
         { client, ux, userError }
       )
@@ -205,7 +214,10 @@ describe('polling', () => {
       pollUrl(
         {
           url: jobUrl,
-          options: { quiet: false },
+          options: {
+            quiet: false,
+            pollingTimeoutSeconds: 300,
+          },
         },
         { client, ux, userError }
       )
@@ -265,6 +277,7 @@ describe('polling', () => {
           url: jobUrl,
           options: {
             quiet: false,
+            pollingTimeoutSeconds: 300,
           },
         },
         { client, ux, userError }
@@ -293,6 +306,7 @@ describe('polling', () => {
           url: jobUrl,
           options: {
             quiet: false,
+            pollingTimeoutSeconds: 300,
           },
         },
         { client, ux, userError }
@@ -326,7 +340,10 @@ describe('polling', () => {
         pollUrl(
           {
             url: jobUrl,
-            options: { quiet: false },
+            options: {
+              quiet: false,
+              pollingTimeoutSeconds: 300,
+            },
           },
           { client, ux, userError }
         )
@@ -346,7 +363,10 @@ describe('polling', () => {
         pollUrl(
           {
             url: jobUrl,
-            options: { quiet: false },
+            options: {
+              quiet: false,
+              pollingTimeoutSeconds: 300,
+            },
           },
           { client, ux, userError }
         )
@@ -366,7 +386,10 @@ describe('polling', () => {
         pollUrl(
           {
             url: jobUrl,
-            options: { quiet: false },
+            options: {
+              quiet: false,
+              pollingTimeoutSeconds: 300,
+            },
           },
           { client, ux, userError }
         )

@@ -51,7 +51,7 @@ describe('prepare CLI command', () => {
         instance.execute({
           logger,
           userError,
-          flags: {},
+          flags: { timeout: 123 },
           args: { urlOrPath: 'path/to/file.yaml', name: 'd.!"-=' },
         })
       ).rejects.toThrow(
@@ -61,7 +61,12 @@ describe('prepare CLI command', () => {
 
     it('throws when provided name is not valid provider name', async () => {
       await expect(
-        instance.execute({ logger, userError, flags: {}, args: {} })
+        instance.execute({
+          logger,
+          userError,
+          flags: { timeout: 123 },
+          args: {},
+        })
       ).rejects.toThrow(
         'Missing first argument, please provide URL or filepath of API documentation.'
       );
@@ -72,7 +77,7 @@ describe('prepare CLI command', () => {
         instance.execute({
           logger,
           userError,
-          flags: {},
+          flags: { timeout: 123 },
           args: { urlOrPath: 'path/to/file.py' },
         })
       ).rejects.toThrow(
@@ -86,7 +91,7 @@ describe('prepare CLI command', () => {
         instance.execute({
           logger,
           userError,
-          flags: {},
+          flags: { timeout: 123 },
           args: { urlOrPath: 'path/to/file.yaml' },
         })
       ).rejects.toThrow('File path/to/file.yaml does not exist.');
@@ -99,7 +104,7 @@ describe('prepare CLI command', () => {
         instance.execute({
           logger,
           userError,
-          flags: {},
+          flags: { timeout: 123 },
           args: { urlOrPath: 'path/to/file.yaml' },
         })
       ).rejects.toThrow('Could not read file path/to/file.yaml.');
@@ -115,7 +120,7 @@ describe('prepare CLI command', () => {
         instance.execute({
           logger,
           userError,
-          flags: {},
+          flags: { timeout: 123 },
           args: { urlOrPath: 'path/to/file.yaml' },
         })
       ).rejects.toThrow(`Provider ${providerJson.name} already exists.`);
@@ -135,7 +140,7 @@ describe('prepare CLI command', () => {
         instance.execute({
           logger,
           userError,
-          flags: {},
+          flags: { timeout: 123 },
           args: { urlOrPath: 'path/to/FILE.docs.2!87.yaml' },
         })
       ).rejects.toThrow(
@@ -152,7 +157,7 @@ describe('prepare CLI command', () => {
       await instance.execute({
         logger,
         userError,
-        flags: {},
+        flags: { timeout: 123 },
         args: { urlOrPath: url },
       });
 
@@ -160,7 +165,7 @@ describe('prepare CLI command', () => {
         {
           urlOrSource: url,
           name: undefined,
-          options: { quiet: undefined },
+          options: { quiet: undefined, timeout: 123 },
         },
         { ux, userError }
       );
@@ -181,7 +186,7 @@ describe('prepare CLI command', () => {
       await instance.execute({
         logger,
         userError,
-        flags: {},
+        flags: { timeout: 123 },
         args: { urlOrPath: url, name },
       });
 
@@ -189,7 +194,7 @@ describe('prepare CLI command', () => {
         {
           urlOrSource: url,
           name,
-          options: { quiet: undefined },
+          options: { quiet: undefined, timeout: 123 },
         },
         { ux, userError }
       );
@@ -213,7 +218,7 @@ describe('prepare CLI command', () => {
       await instance.execute({
         logger,
         userError,
-        flags: {},
+        flags: { timeout: 123 },
         args: { urlOrPath: 'path/to/FILE!docs.yaml' },
       });
 
@@ -221,7 +226,7 @@ describe('prepare CLI command', () => {
         {
           urlOrSource: fileContent,
           name: 'file-docs',
-          options: { quiet: undefined },
+          options: { quiet: undefined, timeout: 123 },
         },
         { ux, userError }
       );
@@ -246,7 +251,7 @@ describe('prepare CLI command', () => {
       await instance.execute({
         logger,
         userError,
-        flags: {},
+        flags: { timeout: 123 },
         args: { urlOrPath: 'path/to/name.yaml', name },
       });
 
@@ -254,7 +259,7 @@ describe('prepare CLI command', () => {
         {
           urlOrSource: fileContent,
           name,
-          options: { quiet: undefined },
+          options: { quiet: undefined, timeout: 123 },
         },
         { userError, ux }
       );
