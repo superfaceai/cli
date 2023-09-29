@@ -128,8 +128,8 @@ ARGUMENTS
 FLAGS
   -h, --help             show CLI help
   -q, --quiet            When set to true, disables the shell echo output of action.
-  -t, --timeout=<value>  [default: 300] Opration timeout in seconds. If not provided, it will be set to 300 seconds.
-                         Usefull for large APIs.
+  -t, --timeout=<value>  [default: 300] Operation timeout in seconds. If not provided, it will be set to 300 seconds.
+                         Useful for large API documentations.
   --noColor              When set to true, disables all colored output.
   --noEmoji              When set to true, disables displaying emoji in output.
 
