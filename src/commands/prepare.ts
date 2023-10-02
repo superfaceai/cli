@@ -1,3 +1,4 @@
+import { flags as oclifFlags } from '@oclif/command';
 import type { ProviderJson } from '@superfaceai/ast';
 import { isValidProviderName } from '@superfaceai/ast';
 import { basename, extname } from 'path';
@@ -13,6 +14,7 @@ import { formatPath } from '../common/format';
 import { exists, mkdir, readFile } from '../common/io';
 import type { ILogger } from '../common/log';
 import { OutputStream } from '../common/output-stream';
+import { DEFAULT_POLLING_TIMEOUT_SECONDS } from '../common/polling';
 import { UX } from '../common/ux';
 import { prepareProviderJson } from '../logic/prepare';
 
@@ -70,6 +72,12 @@ This command prepares a Provider JSON metadata definition that can be used to ge
 
   public static flags = {
     ...Command.flags,
+    timeout: oclifFlags.integer({
+      char: 't',
+      required: false,
+      description: `Operation timeout in seconds. If not provided, it will be set to ${DEFAULT_POLLING_TIMEOUT_SECONDS} seconds. Useful for large API documentations.`,
+      default: DEFAULT_POLLING_TIMEOUT_SECONDS,
+    }),
   };
 
   public async run(): Promise<void> {
@@ -115,7 +123,7 @@ This command prepares a Provider JSON metadata definition that can be used to ge
       {
         urlOrSource: resolved.source,
         name: resolved.name,
-        options: { quiet: flags.quiet },
+        options: { quiet: flags.quiet, timeout: flags.timeout },
       },
       { userError, ux }
     );

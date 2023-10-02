@@ -69,6 +69,7 @@ describe('mapProviderToProfile', () => {
         {
           providerJson,
           profile: profileSource,
+          options: { timeout: 123 },
         },
         { userError, ux }
       )
@@ -83,7 +84,10 @@ describe('mapProviderToProfile', () => {
       method: 'POST',
     });
     expect(pollUrl).toHaveBeenCalledWith(
-      { options: { quiet: undefined }, url: 'https://superface.ai/job/123' },
+      {
+        options: { quiet: undefined, pollingTimeoutSeconds: 123 },
+        url: 'https://superface.ai/job/123',
+      },
       { client: expect.any(ServiceClient), ux, userError }
     );
     expect(fetch).toHaveBeenNthCalledWith(2, 'https://superface.ai/job/123', {
@@ -104,6 +108,7 @@ describe('mapProviderToProfile', () => {
         {
           providerJson,
           profile: profileSource,
+          options: { timeout: 123 },
         },
         { userError, ux }
       )
@@ -131,6 +136,7 @@ describe('mapProviderToProfile', () => {
         {
           providerJson,
           profile: profileSource,
+          options: { timeout: 123 },
         },
         { userError, ux }
       )
@@ -165,6 +171,7 @@ describe('mapProviderToProfile', () => {
         {
           providerJson,
           profile: profileSource,
+          options: { timeout: 123 },
         },
         { userError, ux }
       )
@@ -201,6 +208,7 @@ describe('mapProviderToProfile', () => {
         {
           providerJson,
           profile: profileSource,
+          options: { timeout: 123 },
         },
         { userError, ux }
       )
@@ -215,7 +223,10 @@ describe('mapProviderToProfile', () => {
       method: 'POST',
     });
     expect(pollUrl).toHaveBeenCalledWith(
-      { options: { quiet: undefined }, url: 'https://superface.ai/job/123' },
+      {
+        options: { quiet: undefined, pollingTimeoutSeconds: 123 },
+        url: 'https://superface.ai/job/123',
+      },
       { client: expect.any(ServiceClient), ux, userError }
     );
   });
@@ -239,6 +250,7 @@ describe('mapProviderToProfile', () => {
         {
           providerJson,
           profile: profileSource,
+          options: { timeout: 123 },
         },
         { userError, ux }
       )
@@ -253,7 +265,10 @@ describe('mapProviderToProfile', () => {
       method: 'POST',
     });
     expect(pollUrl).toHaveBeenCalledWith(
-      { options: { quiet: undefined }, url: 'https://superface.ai/job/123' },
+      {
+        options: { quiet: undefined, pollingTimeoutSeconds: 123 },
+        url: 'https://superface.ai/job/123',
+      },
       { client: expect.any(ServiceClient), ux, userError }
     );
     expect(fetch).toHaveBeenNthCalledWith(2, 'https://superface.ai/job/123', {
@@ -284,6 +299,7 @@ describe('mapProviderToProfile', () => {
         {
           providerJson,
           profile: profileSource,
+          options: { timeout: 123 },
         },
         { userError, ux }
       )
@@ -298,7 +314,10 @@ describe('mapProviderToProfile', () => {
       method: 'POST',
     });
     expect(pollUrl).toHaveBeenCalledWith(
-      { options: { quiet: undefined }, url: 'https://superface.ai/job/123' },
+      {
+        options: { quiet: undefined, pollingTimeoutSeconds: 123 },
+        url: 'https://superface.ai/job/123',
+      },
       { client: expect.any(ServiceClient), ux, userError }
     );
     expect(fetch).toHaveBeenNthCalledWith(2, 'https://superface.ai/job/123', {

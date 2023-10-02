@@ -4,7 +4,7 @@ import type { UserError } from './error';
 import { stringifyError } from './error';
 import type { UX } from './ux';
 
-export const DEFAULT_POLLING_TIMEOUT_SECONDS = 600;
+export const DEFAULT_POLLING_TIMEOUT_SECONDS = 300;
 export const DEFAULT_POLLING_INTERVAL_SECONDS = 2;
 export const DEFAULT_NUMBER_OF_RETRIES = 3;
 
@@ -89,8 +89,8 @@ export async function pollUrl(
     options,
   }: {
     url: string;
-    options?: {
-      pollingTimeoutSeconds?: number;
+    options: {
+      pollingTimeoutSeconds: number;
       pollingIntervalSeconds?: number;
       quiet?: boolean;
     };
@@ -106,8 +106,7 @@ export async function pollUrl(
   }
 ): Promise<string> {
   const startPollingTimeStamp = new Date();
-  const timeoutMilliseconds =
-    (options?.pollingTimeoutSeconds ?? DEFAULT_POLLING_TIMEOUT_SECONDS) * 1000;
+  const timeoutMilliseconds = options.pollingTimeoutSeconds * 1000;
   const pollingIntervalMilliseconds =
     (options?.pollingIntervalSeconds ?? DEFAULT_POLLING_INTERVAL_SECONDS) *
     1000;

@@ -118,7 +118,7 @@ Creates a new (or updates an existing) Comlink Map that maps the use case to the
 
 ```
 USAGE
-  $ superface map PROVIDERNAME [PROFILEID] [LANGUAGE] [-q] [--noColor] [--noEmoji] [-h]
+  $ superface map PROVIDERNAME [PROFILEID] [LANGUAGE] [-q] [--noColor] [--noEmoji] [-h] [-t <value>]
 
 ARGUMENTS
   PROVIDERNAME  Name of provider.
@@ -126,10 +126,12 @@ ARGUMENTS
   LANGUAGE      (python|js) [default: js] Language of the generated application code. Default is `js`
 
 FLAGS
-  -h, --help   show CLI help
-  -q, --quiet  When set to true, disables the shell echo output of action.
-  --noColor    When set to true, disables all colored output.
-  --noEmoji    When set to true, disables displaying emoji in output.
+  -h, --help             show CLI help
+  -q, --quiet            When set to true, disables the shell echo output of action.
+  -t, --timeout=<value>  [default: 300] Operation timeout in seconds. If not provided, it will be set to 300 seconds.
+                         Useful for large API documentations.
+  --noColor              When set to true, disables all colored output.
+  --noEmoji              When set to true, disables displaying emoji in output.
 
 DESCRIPTION
   Creates a new (or updates an existing) Comlink Map that maps the use case to the selected API provider. After Map is
@@ -149,7 +151,7 @@ Creates new Comlink Profile for your use case based on the selected API. Comlink
 
 ```
 USAGE
-  $ superface new PROVIDERNAME PROMPT [PROFILEID] [-q] [--noColor] [--noEmoji] [-h]
+  $ superface new PROVIDERNAME PROMPT [PROFILEID] [-q] [--noColor] [--noEmoji] [-h] [-t <value>]
 
 ARGUMENTS
   PROVIDERNAME  URL or path to the API documentation.
@@ -158,10 +160,12 @@ ARGUMENTS
                 inferred from the prompt.
 
 FLAGS
-  -h, --help   show CLI help
-  -q, --quiet  When set to true, disables the shell echo output of action.
-  --noColor    When set to true, disables all colored output.
-  --noEmoji    When set to true, disables displaying emoji in output.
+  -h, --help             show CLI help
+  -q, --quiet            When set to true, disables the shell echo output of action.
+  -t, --timeout=<value>  [default: 300] Operation timeout in seconds. If not provided, it will be set to 300 seconds.
+                         Useful for large API documentations.
+  --noColor              When set to true, disables all colored output.
+  --noEmoji              When set to true, disables displaying emoji in output.
 
 DESCRIPTION
   Creates new Comlink Profile for your use case based on the selected API. Comlink Profile defines the interface of the
@@ -184,17 +188,19 @@ Learns API from the documentation and prepares the API metadata.
 
 ```
 USAGE
-  $ superface prepare URLORPATH [NAME] [-q] [--noColor] [--noEmoji] [-h]
+  $ superface prepare URLORPATH [NAME] [-q] [--noColor] [--noEmoji] [-h] [-t <value>]
 
 ARGUMENTS
   URLORPATH  URL or path to the API documentation.
   NAME       API name. If not provided, it will be inferred from URL or file name.
 
 FLAGS
-  -h, --help   show CLI help
-  -q, --quiet  When set to true, disables the shell echo output of action.
-  --noColor    When set to true, disables all colored output.
-  --noEmoji    When set to true, disables displaying emoji in output.
+  -h, --help             show CLI help
+  -q, --quiet            When set to true, disables the shell echo output of action.
+  -t, --timeout=<value>  [default: 300] Operation timeout in seconds. If not provided, it will be set to 300 seconds.
+                         Useful for large API documentations.
+  --noColor              When set to true, disables all colored output.
+  --noEmoji              When set to true, disables displaying emoji in output.
 
 DESCRIPTION
   Learns API from the documentation and prepares the API metadata.

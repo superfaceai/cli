@@ -55,7 +55,7 @@ describe('new CLI command', () => {
         await expect(
           instance.execute({
             userError,
-            flags: {},
+            flags: { timeout: 123 },
             args: { prompt },
           })
         ).rejects.toThrow(
@@ -71,7 +71,7 @@ describe('new CLI command', () => {
         await expect(
           instance.execute({
             userError,
-            flags: {},
+            flags: { timeout: 123 },
             args: { providerName },
           })
         ).rejects.toThrow(
@@ -96,7 +96,7 @@ describe('new CLI command', () => {
 
       await instance.execute({
         userError,
-        flags: {},
+        flags: { timeout: 123 },
         args: { providerName, prompt },
       });
 
@@ -104,7 +104,7 @@ describe('new CLI command', () => {
         {
           providerJson,
           prompt,
-          options: { quiet: undefined },
+          options: { quiet: undefined, timeout: 123 },
         },
         { ux, userError }
       );
@@ -129,7 +129,7 @@ describe('new CLI command', () => {
       await expect(
         instance.execute({
           userError,
-          flags: {},
+          flags: { timeout: 123 },
           args: { providerName, prompt, profileId: 'n0tV4l!d' },
         })
       ).rejects.toThrow(
@@ -148,7 +148,7 @@ describe('new CLI command', () => {
 
       await instance.execute({
         userError,
-        flags: {},
+        flags: { timeout: 123 },
         args: { providerName, prompt, profileId: 'custom-scope/custom-name' },
       });
 
@@ -158,7 +158,7 @@ describe('new CLI command', () => {
           prompt,
           profileName: 'custom-name',
           profileScope: 'custom-scope',
-          options: { quiet: undefined },
+          options: { quiet: undefined, timeout: 123 },
         },
         { ux, userError }
       );
@@ -180,7 +180,7 @@ describe('new CLI command', () => {
 
       await instance.execute({
         userError,
-        flags: {},
+        flags: { timeout: 123 },
         args: { providerName, prompt },
       });
 
@@ -188,7 +188,7 @@ describe('new CLI command', () => {
         {
           providerJson,
           prompt,
-          options: { quiet: undefined },
+          options: { quiet: undefined, timeout: 123 },
         },
         { ux, userError }
       );
@@ -210,7 +210,7 @@ describe('new CLI command', () => {
 
       await instance.execute({
         userError,
-        flags: {},
+        flags: { timeout: 123 },
         args: { providerName, prompt },
       });
 
@@ -218,7 +218,7 @@ describe('new CLI command', () => {
         {
           providerJson,
           prompt,
-          options: { quiet: undefined },
+          options: { quiet: undefined, timeout: 123 },
         },
         { ux, userError }
       );

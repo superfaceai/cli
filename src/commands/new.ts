@@ -1,3 +1,4 @@
+import { flags as oclifFlags } from '@oclif/command';
 import { basename } from 'path';
 
 import type { Flags } from '../common/command.abstract';
@@ -8,6 +9,7 @@ import { formatPath } from '../common/format';
 import { SuperfaceClient } from '../common/http';
 import { exists } from '../common/io';
 import { OutputStream } from '../common/output-stream';
+import { DEFAULT_POLLING_TIMEOUT_SECONDS } from '../common/polling';
 import { ProfileId } from '../common/profile';
 import { resolveProviderJson } from '../common/provider';
 import { UX } from '../common/ux';
@@ -48,6 +50,12 @@ export default class New extends Command {
 
   public static flags = {
     ...Command.flags,
+    timeout: oclifFlags.integer({
+      char: 't',
+      required: false,
+      description: `Operation timeout in seconds. If not provided, it will be set to ${DEFAULT_POLLING_TIMEOUT_SECONDS} seconds. Useful for large API documentations.`,
+      default: DEFAULT_POLLING_TIMEOUT_SECONDS,
+    }),
   };
 
   public async run(): Promise<void> {
@@ -101,7 +109,7 @@ export default class New extends Command {
         prompt: prompt,
         profileName: customProfileId?.name,
         profileScope: customProfileId?.scope,
-        options: { quiet: flags.quiet },
+        options: { quiet: flags.quiet, timeout: flags.timeout },
       },
       { userError, ux }
     );
