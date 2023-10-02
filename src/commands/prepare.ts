@@ -75,7 +75,7 @@ This command prepares a Provider JSON metadata definition that can be used to ge
     timeout: oclifFlags.integer({
       char: 't',
       required: false,
-      description: `Opration timeout in seconds. If not provided, it will be set to ${DEFAULT_POLLING_TIMEOUT_SECONDS} seconds. Usefull for large APIs.`,
+      description: `Operation timeout in seconds. If not provided, it will be set to ${DEFAULT_POLLING_TIMEOUT_SECONDS} seconds. Useful for large API documentations.`,
       default: DEFAULT_POLLING_TIMEOUT_SECONDS,
     }),
   };
