@@ -51,13 +51,74 @@ describe('polling', () => {
       pollUrl(
         {
           url: jobUrl,
-          options: { quiet: false },
+          options: {
+            quiet: false,
+            pollingTimeoutSeconds: 300,
+          },
         },
         { client, ux, userError }
       )
     ).resolves.toEqual(resultUrl);
 
     expect(mockFetch).toHaveBeenCalledTimes(3);
+
+    expect(mockFetch).toHaveBeenCalledWith(jobUrl, {
+      method: 'GET',
+      baseUrl: '',
+      headers: {
+        accept: 'application/json',
+      },
+    });
+  });
+
+  it('polls until job is done - uses retry', async () => {
+    const resultUrl = 'https://superface.ai/resource/1';
+
+    mockFetch
+      .mockResolvedValueOnce(new Error('1 call 1 error'))
+      .mockResolvedValueOnce(new Error('1 call 2 error'))
+      .mockResolvedValueOnce(
+        mockResponse(200, 'ok', undefined, {
+          status: 'Pending',
+          result_type: 'Provider',
+          events: [
+            { type: 'info', description: 'first', occuredAt: new Date() },
+          ],
+        })
+      )
+      .mockResolvedValueOnce(new Error('2 call 1 error'))
+      .mockResolvedValueOnce(
+        mockResponse(200, 'ok', undefined, {
+          status: 'Pending',
+          result_type: 'Provider',
+          events: [
+            { type: 'info', description: 'second', occuredAt: new Date() },
+          ],
+        })
+      )
+      .mockResolvedValueOnce(new Error('3 call 1 error'))
+      .mockResolvedValueOnce(
+        mockResponse(200, 'ok', undefined, {
+          status: 'Success',
+          result_type: 'Provider',
+          result_url: resultUrl,
+        })
+      );
+
+    await expect(
+      pollUrl(
+        {
+          url: jobUrl,
+          options: {
+            quiet: false,
+            pollingTimeoutSeconds: 300,
+          },
+        },
+        { client, ux, userError }
+      )
+    ).resolves.toEqual(resultUrl);
+
+    expect(mockFetch).toHaveBeenCalledTimes(7);
 
     expect(mockFetch).toHaveBeenCalledWith(jobUrl, {
       method: 'GET',
@@ -99,7 +160,10 @@ describe('polling', () => {
       pollUrl(
         {
           url: jobUrl,
-          options: { quiet: false },
+          options: {
+            quiet: false,
+            pollingTimeoutSeconds: 300,
+          },
         },
         { client, ux, userError }
       )
@@ -150,7 +214,10 @@ describe('polling', () => {
       pollUrl(
         {
           url: jobUrl,
-          options: { quiet: false },
+          options: {
+            quiet: false,
+            pollingTimeoutSeconds: 300,
+          },
         },
         { client, ux, userError }
       )
@@ -202,9 +269,7 @@ describe('polling', () => {
   });
 
   it('throws when fetch returns unexpected status code', async () => {
-    mockFetch.mockResolvedValueOnce(
-      mockResponse(400, 'Bad Request', undefined)
-    );
+    mockFetch.mockResolvedValue(mockResponse(400, 'Bad Request', undefined));
 
     await expect(
       pollUrl(
@@ -212,13 +277,14 @@ describe('polling', () => {
           url: jobUrl,
           options: {
             quiet: false,
+            pollingTimeoutSeconds: 300,
           },
         },
         { client, ux, userError }
       )
-    ).rejects.toThrow('Unexpected status code 400 received');
+    ).rejects.toThrow('Unexpected error: 400 Bad Request received');
 
-    expect(mockFetch).toHaveBeenCalledTimes(1);
+    expect(mockFetch).toHaveBeenCalledTimes(3);
 
     expect(mockFetch).toHaveBeenCalledWith(jobUrl, {
       method: 'GET',
@@ -230,7 +296,7 @@ describe('polling', () => {
   });
 
   it('throws when fetch returns unexpected body', async () => {
-    mockFetch.mockResolvedValueOnce(
+    mockFetch.mockResolvedValue(
       mockResponse(200, 'ok', undefined, { foo: 'bar' })
     );
 
@@ -240,6 +306,7 @@ describe('polling', () => {
           url: jobUrl,
           options: {
             quiet: false,
+            pollingTimeoutSeconds: 300,
           },
         },
         { client, ux, userError }
@@ -273,7 +340,10 @@ describe('polling', () => {
         pollUrl(
           {
             url: jobUrl,
-            options: { quiet: false },
+            options: {
+              quiet: false,
+              pollingTimeoutSeconds: 300,
+            },
           },
           { client, ux, userError }
         )
@@ -293,7 +363,10 @@ describe('polling', () => {
         pollUrl(
           {
             url: jobUrl,
-            options: { quiet: false },
+            options: {
+              quiet: false,
+              pollingTimeoutSeconds: 300,
+            },
           },
           { client, ux, userError }
         )
@@ -313,7 +386,10 @@ describe('polling', () => {
         pollUrl(
           {
             url: jobUrl,
-            options: { quiet: false },
+            options: {
+              quiet: false,
+              pollingTimeoutSeconds: 300,
+            },
           },
           { client, ux, userError }
         )

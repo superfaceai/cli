@@ -95,7 +95,7 @@ describe('MapCLI command', () => {
           instance.execute({
             logger,
             userError,
-            flags: {},
+            flags: { timeout: 123 },
             args: {
               providerName,
               profileId: profileName,
@@ -118,7 +118,7 @@ describe('MapCLI command', () => {
           instance.execute({
             logger,
             userError,
-            flags: {},
+            flags: { timeout: 123 },
             args: { profileId: profileName },
           })
         ).rejects.toThrow(
@@ -135,7 +135,7 @@ describe('MapCLI command', () => {
           instance.execute({
             logger,
             userError,
-            flags: {},
+            flags: { timeout: 123 },
             args: { providerName },
           })
         ).rejects.toThrow(
@@ -154,7 +154,7 @@ describe('MapCLI command', () => {
           instance.execute({
             logger,
             userError,
-            flags: {},
+            flags: { timeout: 123 },
             args: { providerName, profileId: '!_0%L' },
           })
         ).rejects.toThrow(
@@ -174,7 +174,7 @@ describe('MapCLI command', () => {
           instance.execute({
             logger,
             userError,
-            flags: {},
+            flags: { timeout: 123 },
             args: { providerName, profileId: '!_0%L' },
           })
         ).rejects.toThrow(
@@ -194,7 +194,7 @@ describe('MapCLI command', () => {
           instance.execute({
             logger,
             userError,
-            flags: {},
+            flags: { timeout: 123 },
             args: { providerName, profileId: profileName },
           })
         ).rejects.toThrow('File read error');
@@ -213,7 +213,7 @@ describe('MapCLI command', () => {
           instance.execute({
             logger,
             userError,
-            flags: {},
+            flags: { timeout: 123 },
             args: { providerName, profileId: profileName },
           })
         ).rejects.toThrow(`Invalid profile ${profileName}: `);
@@ -233,7 +233,7 @@ describe('MapCLI command', () => {
           instance.execute({
             logger,
             userError,
-            flags: {},
+            flags: { timeout: 123 },
             args: { providerName, profileId: profileName },
           })
         ).rejects.toThrow(
@@ -255,7 +255,7 @@ describe('MapCLI command', () => {
           instance.execute({
             logger,
             userError,
-            flags: {},
+            flags: { timeout: 123 },
             args: { providerName, profileId: profileName },
           })
         ).rejects.toThrow(
@@ -296,7 +296,7 @@ describe('MapCLI command', () => {
       await instance.execute({
         logger,
         userError,
-        flags: {},
+        flags: { timeout: 123 },
         args: { providerName, profileId: profileName },
       });
 
@@ -304,7 +304,7 @@ describe('MapCLI command', () => {
         {
           providerJson,
           profile: source,
-          options: { quiet: undefined },
+          options: { quiet: undefined, timeout: 123 },
         },
         { ux, userError }
       );
@@ -350,7 +350,7 @@ describe('MapCLI command', () => {
       await instance.execute({
         logger,
         userError,
-        flags: {},
+        flags: { timeout: 123 },
         args: { providerName, profileId: profileScope + '.' + profileName },
       });
 
@@ -359,7 +359,7 @@ describe('MapCLI command', () => {
           providerJson,
           profile: source,
 
-          options: { quiet: undefined },
+          options: { quiet: undefined, timeout: 123 },
         },
         { ux, userError }
       );
@@ -425,7 +425,7 @@ describe('MapCLI command', () => {
       await instance.execute({
         logger,
         userError,
-        flags: {},
+        flags: { timeout: 123 },
         args: { providerName, profileId: profileName },
       });
 
@@ -433,7 +433,7 @@ describe('MapCLI command', () => {
         {
           providerJson,
           profile: source,
-          options: { quiet: undefined },
+          options: { quiet: undefined, timeout: 123 },
         },
         { ux, userError }
       );
@@ -497,7 +497,7 @@ describe('MapCLI command', () => {
       await instance.execute({
         logger,
         userError,
-        flags: {},
+        flags: { timeout: 123 },
         args: { providerName, profileId: profileName, language: 'python' },
       });
 
@@ -505,7 +505,7 @@ describe('MapCLI command', () => {
         {
           providerJson,
           profile: source,
-          options: { quiet: undefined },
+          options: { quiet: undefined, timeout: 123 },
         },
         { ux, userError }
       );

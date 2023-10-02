@@ -33,8 +33,9 @@ export async function mapProviderToProfile(
   }: {
     providerJson: ProviderJson;
     profile: string;
-    options?: {
+    options: {
       quiet?: boolean;
+      timeout: number;
     };
   },
   { ux, userError }: { ux: UX; userError: UserError }
@@ -48,7 +49,13 @@ export async function mapProviderToProfile(
   );
 
   const resultUrl = await pollUrl(
-    { url: jobUrl, options: { quiet: options?.quiet } },
+    {
+      url: jobUrl,
+      options: {
+        quiet: options.quiet,
+        pollingTimeoutSeconds: options.timeout,
+      },
+    },
     { client, ux, userError }
   );
 

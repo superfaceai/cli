@@ -14,6 +14,7 @@ import { formatPath } from '../common/format';
 import { exists, mkdir, readFile } from '../common/io';
 import type { ILogger } from '../common/log';
 import { OutputStream } from '../common/output-stream';
+import { DEFAULT_POLLING_TIMEOUT_SECONDS } from '../common/polling';
 import { UX } from '../common/ux';
 import { prepareProviderJson } from '../logic/prepare';
 
@@ -79,6 +80,12 @@ This command prepares a Provider JSON metadata definition that can be used to ge
         'When set to true command will print the indexed documentation overview. This is useful for debugging.',
       default: false,
     }),
+    timeout: oclifFlags.integer({
+      char: 't',
+      required: false,
+      description: `Operation timeout in seconds. If not provided, it will be set to ${DEFAULT_POLLING_TIMEOUT_SECONDS} seconds. Useful for large API documentations.`,
+      default: DEFAULT_POLLING_TIMEOUT_SECONDS,
+    }),
   };
 
   public async run(): Promise<void> {
@@ -124,7 +131,11 @@ This command prepares a Provider JSON metadata definition that can be used to ge
       {
         urlOrSource: resolved.source,
         name: resolved.name,
-        options: { quiet: flags.quiet, getDocs: flags.verbose },
+        options: {
+          quiet: flags.quiet,
+          getDocs: flags.verbose,
+          timeout: flags.timeout,
+        },
       },
       { userError, ux }
     );
