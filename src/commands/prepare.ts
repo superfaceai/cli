@@ -53,7 +53,7 @@ This command prepares a Provider JSON metadata definition that can be used to ge
     'superface prepare https://raw.githubusercontent.com/APIs-guru/openapi-directory/main/APIs/openai.com/1.2.0/openapi.yaml openai',
     'superface prepare path/to/openapi.json',
     'superface prepare https://workable.readme.io/reference/stages workable',
-    'superface prepare https://workable.readme.io/reference/stages workable --printDocs',
+    'superface prepare https://workable.readme.io/reference/stages workable --verbose',
   ];
 
   public static args = [
@@ -72,7 +72,8 @@ This command prepares a Provider JSON metadata definition that can be used to ge
 
   public static flags = {
     ...Command.flags,
-    printDocs: oclifFlags.boolean({
+    verbose: oclifFlags.boolean({
+      char: 'v',
       required: false,
       description:
         'When set to true command will print the indexed documentation overview. This is useful for debugging.',
@@ -123,7 +124,7 @@ This command prepares a Provider JSON metadata definition that can be used to ge
       {
         urlOrSource: resolved.source,
         name: resolved.name,
-        options: { quiet: flags.quiet, getDocs: flags.printDocs },
+        options: { quiet: flags.quiet, getDocs: flags.verbose },
       },
       { userError, ux }
     );

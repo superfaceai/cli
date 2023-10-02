@@ -184,17 +184,18 @@ Learns API from the documentation and prepares the API metadata.
 
 ```
 USAGE
-  $ superface prepare URLORPATH [NAME] [-q] [--noColor] [--noEmoji] [-h]
+  $ superface prepare URLORPATH [NAME] [-q] [--noColor] [--noEmoji] [-h] [-v]
 
 ARGUMENTS
   URLORPATH  URL or path to the API documentation.
   NAME       API name. If not provided, it will be inferred from URL or file name.
 
 FLAGS
-  -h, --help   show CLI help
-  -q, --quiet  When set to true, disables the shell echo output of action.
-  --noColor    When set to true, disables all colored output.
-  --noEmoji    When set to true, disables displaying emoji in output.
+  -h, --help     show CLI help
+  -q, --quiet    When set to true, disables the shell echo output of action.
+  -v, --verbose  When set to true command will print the indexed documentation overview. This is useful for debugging.
+  --noColor      When set to true, disables all colored output.
+  --noEmoji      When set to true, disables displaying emoji in output.
 
 DESCRIPTION
   Learns API from the documentation and prepares the API metadata.
@@ -241,6 +242,8 @@ EXAMPLES
   $ superface prepare path/to/openapi.json
 
   $ superface prepare https://workable.readme.io/reference/stages workable
+
+  $ superface prepare https://workable.readme.io/reference/stages workable --verbose
 ```
 
 _See code: [dist/commands/prepare.ts](https://github.com/superfaceai/cli/tree/main/src/commands/prepare.ts)_
