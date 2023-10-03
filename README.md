@@ -188,7 +188,7 @@ Learns API from the documentation and prepares the API metadata.
 
 ```
 USAGE
-  $ superface prepare URLORPATH [NAME] [-q] [--noColor] [--noEmoji] [-h] [-t <value>]
+  $ superface prepare URLORPATH [NAME] [-q] [--noColor] [--noEmoji] [-h] [-v] [-t <value>]
 
 ARGUMENTS
   URLORPATH  URL or path to the API documentation.
@@ -199,6 +199,8 @@ FLAGS
   -q, --quiet            When set to true, disables the shell echo output of action.
   -t, --timeout=<value>  [default: 300] Operation timeout in seconds. If not provided, it will be set to 300 seconds.
                          Useful for large API documentations.
+  -v, --verbose          When set to true command will print the indexed documentation overview. This is useful for
+                         debugging.
   --noColor              When set to true, disables all colored output.
   --noEmoji              When set to true, disables displaying emoji in output.
 
@@ -247,6 +249,8 @@ EXAMPLES
   $ superface prepare path/to/openapi.json
 
   $ superface prepare https://workable.readme.io/reference/stages workable
+
+  $ superface prepare https://workable.readme.io/reference/stages workable --verbose
 ```
 
 _See code: [dist/commands/prepare.ts](https://github.com/superfaceai/cli/tree/main/src/commands/prepare.ts)_

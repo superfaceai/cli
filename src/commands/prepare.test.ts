@@ -114,7 +114,9 @@ describe('prepare CLI command', () => {
       const providerJson = mockProviderJson();
       jest.mocked(exists).mockResolvedValueOnce(true);
       jest.mocked(readFile).mockResolvedValueOnce('file content');
-      jest.mocked(prepareProviderJson).mockResolvedValueOnce(providerJson);
+      jest
+        .mocked(prepareProviderJson)
+        .mockResolvedValueOnce({ definition: providerJson });
       jest.mocked(exists).mockResolvedValueOnce(true);
       await expect(
         instance.execute({
@@ -134,7 +136,9 @@ describe('prepare CLI command', () => {
         .mockResolvedValueOnce(true)
         .mockResolvedValueOnce(false);
       jest.mocked(readFile).mockResolvedValueOnce(fileContent);
-      jest.mocked(prepareProviderJson).mockResolvedValueOnce(providerJson);
+      jest
+        .mocked(prepareProviderJson)
+        .mockResolvedValueOnce({ definition: providerJson });
 
       await expect(
         instance.execute({
@@ -151,7 +155,9 @@ describe('prepare CLI command', () => {
     it('prepares provider json from url', async () => {
       const providerJson = mockProviderJson();
       jest.mocked(exists).mockResolvedValue(false);
-      jest.mocked(prepareProviderJson).mockResolvedValueOnce(providerJson);
+      jest
+        .mocked(prepareProviderJson)
+        .mockResolvedValueOnce({ definition: providerJson });
       const url = 'https://geocode.search.hereapi.com/oas.yaml';
 
       await instance.execute({
@@ -180,7 +186,9 @@ describe('prepare CLI command', () => {
       const name = 'test';
       const providerJson = mockProviderJson({ name });
       jest.mocked(exists).mockResolvedValue(false);
-      jest.mocked(prepareProviderJson).mockResolvedValueOnce(providerJson);
+      jest
+        .mocked(prepareProviderJson)
+        .mockResolvedValueOnce({ definition: providerJson });
       const url = 'https://geocode.search.hereapi.com/oas.yaml';
 
       await instance.execute({
@@ -213,7 +221,9 @@ describe('prepare CLI command', () => {
         .mockResolvedValueOnce(true)
         .mockResolvedValueOnce(false);
       jest.mocked(readFile).mockResolvedValueOnce(fileContent);
-      jest.mocked(prepareProviderJson).mockResolvedValueOnce(providerJson);
+      jest
+        .mocked(prepareProviderJson)
+        .mockResolvedValueOnce({ definition: providerJson });
 
       await instance.execute({
         logger,
@@ -246,7 +256,9 @@ describe('prepare CLI command', () => {
         .mockResolvedValueOnce(true)
         .mockResolvedValueOnce(false);
       jest.mocked(readFile).mockResolvedValueOnce(fileContent);
-      jest.mocked(prepareProviderJson).mockResolvedValueOnce(providerJson);
+      jest
+        .mocked(prepareProviderJson)
+        .mockResolvedValueOnce({ definition: providerJson });
 
       await instance.execute({
         logger,

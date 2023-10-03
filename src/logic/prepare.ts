@@ -13,6 +13,45 @@ type ProviderPreparationResponse = {
   docs_url: string;
 };
 
+type ProviderDocsResponse = {
+  data: {
+    source: string;
+    created_at: string;
+  }[];
+  url: string;
+};
+
+function assertProviderDocsResponse(
+  input: unknown,
+  { userError }: { userError: UserError }
+): asserts input is ProviderDocsResponse {
+  if (
+    typeof input === 'object' &&
+    input !== null &&
+    'data' in input &&
+    'url' in input
+  ) {
+    const tmp = input as {
+      data: {
+        source: string;
+        created_at: string;
+      }[];
+      url: string;
+    };
+
+    if (
+      typeof tmp.url === 'string' &&
+      Array.isArray(tmp.data) &&
+      tmp.data.every(item => typeof item.source === 'string') &&
+      tmp.data.every(item => typeof item.created_at === 'string')
+    ) {
+      return;
+    }
+  }
+
+  throw userError(`Unexpected response received`, 1);
+}
+
 function assertProviderResponse(
   input: unknown,
   { userError }: { userError: UserError }
@@ -53,11 +92,12 @@ export async function prepareProviderJson(
     name: string | undefined;
     options: {
       quiet?: boolean;
+      getDocs?: boolean;
       timeout: number;
     };
   },
   { userError, ux }: { userError: UserError; ux: UX }
-): Promise<ProviderJson> {
+): Promise<{ definition: ProviderJson; docs?: string[] }> {
   const client = SuperfaceClient.getClient();
 
   const jobUrl = await startProviderPreparation(
@@ -76,13 +116,20 @@ export async function prepareProviderJson(
     { client, ux, userError }
   );
 
-  // TODO: use docs_url to keep track of docs
-  return (
-    await finishProviderPreparation(resultUrl, {
+  const providerResponse = await finishProviderPreparation(resultUrl, {
+    client,
+    userError,
+  });
+
+  let docs: string[] | undefined;
+  if (options?.getDocs === true) {
+    docs = await getIndexedDocs(providerResponse.docs_url, {
       client,
       userError,
-    })
-  ).definition;
+    });
+  }
+
+  return { definition: providerResponse.definition, docs };
 }
 
 async function startProviderPreparation(
@@ -152,4 +199,37 @@ async function finishProviderPreparation(
   assertProviderResponse(body, { userError });
 
   return body;
+}
+
+async function getIndexedDocs(
+  docsUrl: string,
+  { client, userError }: { client: ServiceClient; userError: UserError }
+): Promise<string[]> {
+  const resultResponse = await client.fetch(docsUrl, {
+    method: 'GET',
+    headers: {
+      accept: 'application/json',
+    },
+    // Url from server is complete, so we don't need to add baseUrl
+    baseUrl: '',
+  });
+
+  if (resultResponse.status !== 200) {
+    throw userError(
+      `Unexpected status code ${resultResponse.status} received`,
+      1
+    );
+  }
+
+  const body = (await resultResponse.json()) as unknown;
+
+  assertProviderDocsResponse(body, { userError });
+
+  return body.data.map(item =>
+    item.source
+      .split(/===+\n/)
+      .filter(Boolean)
+      .map(text => text.substring(0, 1000).trim() + '...')
+      .join('\n==========\n')
+  );
 }
