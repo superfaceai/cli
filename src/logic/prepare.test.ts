@@ -66,7 +66,10 @@ describe('prepareProviderJson', () => {
       method: 'POST',
     });
     expect(pollUrl).toHaveBeenCalledWith(
-      { options: { quiet: undefined, pollingTimeoutSeconds: 123 }, url: 'https://superface.ai/job/123' },
+      {
+        options: { quiet: undefined, pollingTimeoutSeconds: 123 },
+        url: 'https://superface.ai/job/123',
+      },
       { client: expect.any(ServiceClient), ux, userError }
     );
     expect(fetch).toHaveBeenNthCalledWith(2, 'https://superface.ai/job/123', {

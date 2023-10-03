@@ -141,9 +141,9 @@ This command prepares a Provider JSON metadata definition that can be used to ge
     );
 
     const docs = providerJsonResult.docs
-      ? `\n{bold gray Indexed documentation:}\n${providerJsonResult.docs
+      ? `\n{bold Indexed documentation:}{grey \n${providerJsonResult.docs
           .map(d => d.replace(/{/g, '\\{').replace(/}/g, '\\}'))
-          .join('\n')}\n`
+          .join('\n')}\n}`
       : ``;
 
     const providerJson = providerJsonResult.definition;

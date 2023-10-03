@@ -229,7 +229,7 @@ async function getIndexedDocs(
     item.source
       .split(/===+\n/)
       .filter(Boolean)
-      .map(text => text.substring(0, 200).trim() + '...')
+      .map(text => text.substring(0, 1000).trim() + '...')
       .join('\n==========\n')
   );
 }
