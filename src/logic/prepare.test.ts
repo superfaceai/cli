@@ -52,7 +52,7 @@ describe('prepareProviderJson', () => {
         {
           urlOrSource: 'https://superface.ai/path/to/oas.json',
           name: providerName,
-          options: { timeout: 123 },
+          options: { timeout: 123, force: true },
         },
         { ux, userError }
       )
@@ -61,7 +61,7 @@ describe('prepareProviderJson', () => {
     });
 
     expect(fetch).toHaveBeenNthCalledWith(1, '/authoring/providers', {
-      body: '{"source":"https://superface.ai/path/to/oas.json","name":"test-provider"}',
+      body: '{"source":"https://superface.ai/path/to/oas.json","name":"test-provider","force":true}',
       headers: { 'Content-Type': 'application/json' },
       method: 'POST',
     });
@@ -116,7 +116,7 @@ describe('prepareProviderJson', () => {
         {
           urlOrSource: 'https://superface.ai/path/to/oas.json',
           name: providerName,
-          options: { getDocs: true, timeout: 123 },
+          options: { getDocs: true, timeout: 123, force: false  },
         },
         { ux, userError }
       )
@@ -128,7 +128,7 @@ describe('prepareProviderJson', () => {
     });
 
     expect(fetch).toHaveBeenNthCalledWith(1, '/authoring/providers', {
-      body: '{"source":"https://superface.ai/path/to/oas.json","name":"test-provider"}',
+      body: '{"source":"https://superface.ai/path/to/oas.json","name":"test-provider","force":false}',
       headers: { 'Content-Type': 'application/json' },
       method: 'POST',
     });
@@ -157,14 +157,14 @@ describe('prepareProviderJson', () => {
         {
           urlOrSource: 'https://superface.ai/path/to/oas.json',
           name: providerName,
-          options: { timeout: 123 },
+          options: { timeout: 123, force: false },
         },
         { ux, userError }
       )
     ).rejects.toEqual(Error('Unexpected status code 400 received'));
 
     expect(fetch).toHaveBeenNthCalledWith(1, '/authoring/providers', {
-      body: '{"source":"https://superface.ai/path/to/oas.json","name":"test-provider"}',
+      body: '{"source":"https://superface.ai/path/to/oas.json","name":"test-provider","force":false}',
       headers: { 'Content-Type': 'application/json' },
       method: 'POST',
     });
@@ -182,7 +182,7 @@ describe('prepareProviderJson', () => {
         {
           urlOrSource: 'https://superface.ai/path/to/oas.json',
           name: providerName,
-          options: { timeout: 123 },
+          options: { timeout: 123, force: false },
         },
         { ux, userError }
       )
@@ -194,7 +194,7 @@ describe('prepareProviderJson', () => {
     );
 
     expect(fetch).toHaveBeenNthCalledWith(1, '/authoring/providers', {
-      body: '{"source":"https://superface.ai/path/to/oas.json","name":"test-provider"}',
+      body: '{"source":"https://superface.ai/path/to/oas.json","name":"test-provider","force":false}',
       headers: { 'Content-Type': 'application/json' },
       method: 'POST',
     });
@@ -214,7 +214,7 @@ describe('prepareProviderJson', () => {
         {
           urlOrSource: 'https://superface.ai/path/to/oas.json',
           name: providerName,
-          options: { timeout: 123 },
+          options: { timeout: 123, force: false },
         },
         { ux, userError }
       )
@@ -223,7 +223,7 @@ describe('prepareProviderJson', () => {
     );
 
     expect(fetch).toHaveBeenNthCalledWith(1, '/authoring/providers', {
-      body: '{"source":"https://superface.ai/path/to/oas.json","name":"test-provider"}',
+      body: '{"source":"https://superface.ai/path/to/oas.json","name":"test-provider","force":false}',
       headers: { 'Content-Type': 'application/json' },
       method: 'POST',
     });
@@ -248,14 +248,14 @@ describe('prepareProviderJson', () => {
         {
           urlOrSource: 'https://superface.ai/path/to/oas.json',
           name: providerName,
-          options: { timeout: 123 },
+          options: { timeout: 123, force: false },
         },
         { ux, userError }
       )
     ).rejects.toEqual(error);
 
     expect(fetch).toHaveBeenNthCalledWith(1, '/authoring/providers', {
-      body: '{"source":"https://superface.ai/path/to/oas.json","name":"test-provider"}',
+      body: '{"source":"https://superface.ai/path/to/oas.json","name":"test-provider","force":false}',
       headers: { 'Content-Type': 'application/json' },
       method: 'POST',
     });
@@ -287,14 +287,14 @@ describe('prepareProviderJson', () => {
         {
           urlOrSource: 'https://superface.ai/path/to/oas.json',
           name: providerName,
-          options: { timeout: 123 },
+          options: { timeout: 123, force: false },
         },
         { ux, userError }
       )
     ).rejects.toEqual(new Error('Unexpected status code 400 received'));
 
     expect(fetch).toHaveBeenNthCalledWith(1, '/authoring/providers', {
-      body: '{"source":"https://superface.ai/path/to/oas.json","name":"test-provider"}',
+      body: '{"source":"https://superface.ai/path/to/oas.json","name":"test-provider","force":false}',
       headers: { 'Content-Type': 'application/json' },
       method: 'POST',
     });
@@ -333,14 +333,14 @@ describe('prepareProviderJson', () => {
         {
           urlOrSource: 'https://superface.ai/path/to/oas.json',
           name: providerName,
-          options: { timeout: 123 },
+          options: { timeout: 123, force: false  },
         },
         { ux, userError }
       )
     ).rejects.toEqual(new Error('Unexpected response received'));
 
     expect(fetch).toHaveBeenNthCalledWith(1, '/authoring/providers', {
-      body: '{"source":"https://superface.ai/path/to/oas.json","name":"test-provider"}',
+      body: '{"source":"https://superface.ai/path/to/oas.json","name":"test-provider","force":false}',
       headers: { 'Content-Type': 'application/json' },
       method: 'POST',
     });

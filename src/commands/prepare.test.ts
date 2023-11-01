@@ -163,7 +163,7 @@ describe('prepare CLI command', () => {
       await instance.execute({
         logger,
         userError,
-        flags: { timeout: 123 },
+        flags: { timeout: 123, force: true },
         args: { urlOrPath: url },
       });
 
@@ -171,7 +171,7 @@ describe('prepare CLI command', () => {
         {
           urlOrSource: url,
           name: undefined,
-          options: { quiet: undefined, timeout: 123 },
+          options: { quiet: undefined, timeout: 123, force: true },
         },
         { ux, userError }
       );
@@ -202,7 +202,7 @@ describe('prepare CLI command', () => {
         {
           urlOrSource: url,
           name,
-          options: { quiet: undefined, timeout: 123 },
+          options: { quiet: undefined, timeout: 123, force: false },
         },
         { ux, userError }
       );
@@ -236,7 +236,7 @@ describe('prepare CLI command', () => {
         {
           urlOrSource: fileContent,
           name: 'file-docs',
-          options: { quiet: undefined, timeout: 123 },
+          options: { quiet: undefined, timeout: 123, force: false },
         },
         { ux, userError }
       );
@@ -271,7 +271,7 @@ describe('prepare CLI command', () => {
         {
           urlOrSource: fileContent,
           name,
-          options: { quiet: undefined, timeout: 123 },
+          options: { quiet: undefined, timeout: 123, force: false  },
         },
         { userError, ux }
       );

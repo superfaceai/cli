@@ -80,6 +80,12 @@ This command prepares a Provider JSON metadata definition that can be used to ge
         'When set to true command will print the indexed documentation overview. This is useful for debugging.',
       default: false,
     }),
+    force: oclifFlags.boolean({
+      required: false,
+      description:
+        'When set to true command will overwrite existing Provider JSON metadata.',
+      default: false,
+    }),
     timeout: oclifFlags.integer({
       char: 't',
       required: false,
@@ -135,6 +141,7 @@ This command prepares a Provider JSON metadata definition that can be used to ge
           quiet: flags.quiet,
           getDocs: flags.verbose,
           timeout: flags.timeout,
+          force: flags.force ?? false,
         },
       },
       { userError, ux }
