@@ -271,7 +271,7 @@ describe('prepare CLI command', () => {
         {
           urlOrSource: fileContent,
           name,
-          options: { quiet: undefined, timeout: 123, force: false  },
+          options: { quiet: undefined, timeout: 123, force: false },
         },
         { userError, ux }
       );

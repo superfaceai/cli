@@ -116,7 +116,7 @@ describe('prepareProviderJson', () => {
         {
           urlOrSource: 'https://superface.ai/path/to/oas.json',
           name: providerName,
-          options: { getDocs: true, timeout: 123, force: false  },
+          options: { getDocs: true, timeout: 123, force: false },
         },
         { ux, userError }
       )
@@ -333,7 +333,7 @@ describe('prepareProviderJson', () => {
         {
           urlOrSource: 'https://superface.ai/path/to/oas.json',
           name: providerName,
-          options: { timeout: 123, force: false  },
+          options: { timeout: 123, force: false },
         },
         { ux, userError }
       )
