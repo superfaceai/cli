@@ -83,7 +83,7 @@ This command prepares a Provider JSON metadata definition that can be used to ge
     force: oclifFlags.boolean({
       required: false,
       description:
-        'When set to true command will overwrite existing Provider JSON metadata.',
+        'When set to `true`, the command will overwrite any existing Provider JSON metadata.',
       default: false,
     }),
     timeout: oclifFlags.integer({
