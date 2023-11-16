@@ -203,7 +203,7 @@ export async function writeProviderJson(
   { logger, userError }: { logger: ILogger; userError: UserError }
 ): Promise<string> {
   // TODO: force flag
-  if ((await exists(buildProviderPath(providerJson.name))) && !options?.force) {
+  if ((await exists(buildProviderPath(providerJson.name))) && options?.force !== true) {
     throw userError(`Provider ${providerJson.name} already exists.`, 1);
   }
 
