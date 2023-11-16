@@ -129,7 +129,7 @@ export async function pollUrl(
           `Failed to ${getJobDescription(result.result_type)}: ${
             result.failure_reason
           }. Use --force to overwrite existing provider.`,
-          0
+          1
         );
       }
       throw userError(
