@@ -158,6 +158,9 @@ This command prepares a Provider JSON metadata definition that can be used to ge
     const providerJsonPath = await writeProviderJson(
       providerJsonResult.definition,
       {
+        force: flags.force,
+      },
+      {
         logger,
         userError,
       }
@@ -192,10 +195,15 @@ ${docs}`
 
 export async function writeProviderJson(
   providerJson: ProviderJson,
+  options:
+    | {
+        force?: boolean;
+      }
+    | undefined,
   { logger, userError }: { logger: ILogger; userError: UserError }
 ): Promise<string> {
   // TODO: force flag
-  if (await exists(buildProviderPath(providerJson.name))) {
+  if ((await exists(buildProviderPath(providerJson.name))) && !options?.force) {
     throw userError(`Provider ${providerJson.name} already exists.`, 1);
   }
 
