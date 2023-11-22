@@ -80,6 +80,12 @@ This command prepares a Provider JSON metadata definition that can be used to ge
         'When set to true command will print the indexed documentation overview. This is useful for debugging.',
       default: false,
     }),
+    force: oclifFlags.boolean({
+      required: false,
+      description:
+        'When set to `true`, the command will overwrite any existing Provider JSON metadata.',
+      default: false,
+    }),
     timeout: oclifFlags.integer({
       char: 't',
       required: false,
@@ -135,6 +141,7 @@ This command prepares a Provider JSON metadata definition that can be used to ge
           quiet: flags.quiet,
           getDocs: flags.verbose,
           timeout: flags.timeout,
+          force: flags.force ?? false,
         },
       },
       { userError, ux }
@@ -150,6 +157,9 @@ This command prepares a Provider JSON metadata definition that can be used to ge
 
     const providerJsonPath = await writeProviderJson(
       providerJsonResult.definition,
+      {
+        force: flags.force,
+      },
       {
         logger,
         userError,
@@ -185,10 +195,15 @@ ${docs}`
 
 export async function writeProviderJson(
   providerJson: ProviderJson,
+  options:
+    | {
+        force?: boolean;
+      }
+    | undefined,
   { logger, userError }: { logger: ILogger; userError: UserError }
 ): Promise<string> {
   // TODO: force flag
-  if (await exists(buildProviderPath(providerJson.name))) {
+  if ((await exists(buildProviderPath(providerJson.name))) && options?.force !== true) {
     throw userError(`Provider ${providerJson.name} already exists.`, 1);
   }
 

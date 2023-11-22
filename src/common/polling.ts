@@ -37,6 +37,7 @@ type PollResponse =
   | {
       status: PollStatus.Failed;
       failure_reason: string;
+      context?: string;
       result_type: PollResultType;
     }
   | { status: PollStatus.Cancelled; result_type: PollResultType };
@@ -123,6 +124,14 @@ export async function pollUrl(
 
       return result.result_url;
     } else if (result.status === PollStatus.Failed) {
+      if (result.context === 'providerAlreadyExists') {
+        throw userError(
+          `Failed to ${getJobDescription(result.result_type)}: ${
+            result.failure_reason
+          }. Use --force to overwrite existing provider.`,
+          1
+        );
+      }
       throw userError(
         `Failed to ${getJobDescription(result.result_type)}: ${
           result.failure_reason

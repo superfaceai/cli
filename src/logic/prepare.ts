@@ -94,6 +94,7 @@ export async function prepareProviderJson(
       quiet?: boolean;
       getDocs?: boolean;
       timeout: number;
+      force: boolean;
     };
   },
   { userError, ux }: { userError: UserError; ux: UX }
@@ -101,7 +102,7 @@ export async function prepareProviderJson(
   const client = SuperfaceClient.getClient();
 
   const jobUrl = await startProviderPreparation(
-    { source: urlOrSource, name },
+    { source: urlOrSource, name, force: options.force },
     { client, userError }
   );
 
@@ -133,7 +134,7 @@ export async function prepareProviderJson(
 }
 
 async function startProviderPreparation(
-  { source, name }: { source: string; name?: string },
+  { source, name, force }: { source: string; name?: string; force: boolean },
   { client, userError }: { client: ServiceClient; userError: UserError }
 ): Promise<string> {
   const jobUrlResponse = await client.fetch(`/authoring/providers`, {
@@ -141,7 +142,7 @@ async function startProviderPreparation(
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ source, name }),
+    body: JSON.stringify({ source, name, force }),
   });
 
   if (jobUrlResponse.status !== 202) {
