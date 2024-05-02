@@ -2,7 +2,11 @@
 
 <img src="https://github.com/superfaceai/cli/blob/main/docs/LogoGreen.png" alt="Superface" width="100" height="100">
 
-# Superface CLI
+# Superface CLI [Deprecated]
+
+**_This project has now been deprecated and support for it is no longer offered. Although some of the APIs that it uses may still work, the CLI project will no longer be developed._**
+
+---
 
 **Let AI connect the APIs for you.**
 
